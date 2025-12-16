@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlatypusTools Help Documentation</title>
+    <style>
+        :root {
+            --primary: #2d5aa8;
+            --secondary: #5c8dd6;
+            --accent: #ff9800;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #333;
+            --text-muted: #666;
+            --border: #ddd;
+            --code-bg: #f4f4f4;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 0;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        header p { font-size: 1.2rem; opacity: 0.9; }
+        nav {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        nav ul { list-style: none; display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+        nav a { color: var(--primary); text-decoration: none; font-weight: 500; }
+        nav a:hover { color: var(--accent); text-decoration: underline; }
+        .section {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 { color: var(--primary); border-bottom: 2px solid var(--secondary); padding-bottom: 10px; margin-bottom: 20px; }
+        h3 { color: var(--secondary); margin: 20px 0 10px; }
+        h4 { color: var(--text); margin: 15px 0 8px; }
+        p { margin-bottom: 12px; }
+        ul, ol { margin-left: 25px; margin-bottom: 15px; }
+        li { margin-bottom: 6px; }
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background: var(--code-bg);
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        pre code { padding: 0; background: none; }
+        .tip {
+            background: #e7f3ff;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .feature-card {
+            background: var(--bg);
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+        .feature-card h4 { margin-top: 0; color: var(--primary); }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        th { background: var(--bg); color: var(--primary); }
+        tr:hover { background: var(--bg); }
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.8rem; }
+            nav ul { flex-direction: column; align-items: center; }
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🦆 PlatypusTools</h1>
+    <p>Comprehensive Windows System Utility - User Documentation</p>
+</header>
+
+<div class="container">
+
+<nav>
+    <ul>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#file-cleaner">File Cleaner</a></li>
+        <li><a href="#media-conversion">Media Conversion</a></li>
+        <li><a href="#duplicates">Duplicates</a></li>
+        <li><a href="#cleanup">Cleanup</a></li>
+        <li><a href="#security">Security</a></li>
+        <li><a href="#metadata">Metadata</a></li>
+        <li><a href="#configuration">Configuration</a></li>
+        <li><a href="#troubleshooting">Troubleshooting</a></li>
+    </ul>
+</nav>
+
+<section id="overview" class="section">
+    <h2>Overview</h2>
+    <p>PlatypusTools is a powerful, all-in-one Windows system utility that combines file management, media conversion, system cleanup, security tools, and metadata editing into a single, easy-to-use application.</p>
+    
+    <h3>Key Features</h3>
+    <div class="grid">
+        <div class="feature-card">
+            <h4>📁 File Cleaner</h4>
+            <p>Scan and clean folders based on file types, patterns, and age criteria.</p>
+        </div>
+        <div class="feature-card">
+            <h4>🎬 Media Conversion</h4>
+            <p>Combine videos, convert images, and resize graphics with FFmpeg integration.</p>
+        </div>
+        <div class="feature-card">
+            <h4>🔍 Duplicate Finder</h4>
+            <p>Detect and remove duplicate files using hash comparison.</p>
+        </div>
+        <div class="feature-card">
+            <h4>🧹 System Cleanup</h4>
+            <p>Disk cleanup, privacy cleaner, startup manager, and hash calculator.</p>
+        </div>
+        <div class="feature-card">
+            <h4>🔒 Security Tools</h4>
+            <p>Hide folders, scan for vulnerabilities, manage local users.</p>
+        </div>
+        <div class="feature-card">
+            <h4>📊 Metadata Editor</h4>
+            <p>View and edit file metadata including EXIF, IPTC, and XMP tags.</p>
+        </div>
+    </div>
+    
+    <h3>System Requirements</h3>
+    <ul>
+        <li>Windows 10/11 (64-bit recommended)</li>
+        <li>PowerShell 5.1 or later</li>
+        <li>Administrator privileges (for some features)</li>
+        <li>FFmpeg/FFprobe (for media operations)</li>
+        <li>ExifTool (for metadata operations)</li>
+    </ul>
+
+    <h3>Installation</h3>
+    <p>PlatypusTools uses the following directory structure:</p>
+    <pre><code>C:\ProgramFiles\PlatypusUtils\
+├── Assets\          # Images and icons
+├── Data\            # Application data and configs
+├── Logs\            # Log files
+├── Tools\           # FFmpeg, ExifTool, etc.
+└── PlatypusTools_Help.html</code></pre>
+</section>
+
+<section id="file-cleaner" class="section">
+    <h2>📁 File Cleaner</h2>
+    <p>The File Cleaner tab helps you scan, filter, and clean files from specified directories.</p>
+    
+    <h3>How to Use</h3>
+    <ol>
+        <li><strong>Browse</strong> - Click Browse to select the folder you want to clean</li>
+        <li><strong>Set Filters</strong> - Choose file type filters (e.g., *.tmp, *.log)</li>
+        <li><strong>Scan</strong> - Click Scan to find matching files</li>
+        <li><strong>Review</strong> - Review the list of files found</li>
+        <li><strong>Clean</strong> - Click Clean to delete selected files</li>
+    </ol>
+    
+    <h3>Filter Options</h3>
+    <table>
+        <tr><th>Filter</th><th>Description</th></tr>
+        <tr><td><code>*.tmp</code></td><td>Temporary files</td></tr>
+        <tr><td><code>*.log</code></td><td>Log files</td></tr>
+        <tr><td><code>*.bak</code></td><td>Backup files</td></tr>
+        <tr><td><code>Thumbs.db</code></td><td>Windows thumbnail cache</td></tr>
+        <tr><td><code>desktop.ini</code></td><td>Folder customization files</td></tr>
+    </table>
+    
+    <div class="tip">
+        <strong>Tip:</strong> Use the "Recursive" option to scan subdirectories as well.
+    </div>
+</section>
+
+<section id="media-conversion" class="section">
+    <h2>🎬 Media Conversion</h2>
+    <p>The Media Conversion tab provides tools for working with video and image files.</p>
+    
+    <h3>Video Combiner</h3>
+    <p>Merge multiple video files into a single output file.</p>
+    <ol>
+        <li>Add video files using the "Add Files" button</li>
+        <li>Arrange the order using Up/Down buttons</li>
+        <li>Set the output filename and location</li>
+        <li>Select output format (MP4, MKV, AVI, MOV)</li>
+        <li>Click "Combine" to merge the videos</li>
+    </ol>
+    
+    <h3>Graphics Conversion</h3>
+    <p>Convert images between different formats.</p>
+    <table>
+        <tr><th>Input Formats</th><th>Output Formats</th></tr>
+        <tr><td>JPG, JPEG, PNG, BMP, GIF, TIFF, WebP</td><td>JPG, PNG, BMP, GIF, TIFF, WebP, ICO</td></tr>
+    </table>
+    
+    <h3>Image Resize</h3>
+    <p>Resize images to specific dimensions or by percentage.</p>
+    <ul>
+        <li><strong>Fixed Size</strong> - Set exact width and height in pixels</li>
+        <li><strong>Percentage</strong> - Scale by a percentage (e.g., 50% = half size)</li>
+        <li><strong>Maintain Aspect Ratio</strong> - Keep original proportions</li>
+    </ul>
+    
+    <div class="warning">
+        <strong>Note:</strong> Video operations require FFmpeg to be installed and configured in the Tools folder.
+    </div>
+</section>
+
+<section id="duplicates" class="section">
+    <h2>🔍 Duplicates</h2>
+    <p>Find and remove duplicate files to free up disk space.</p>
+    
+    <h3>Detection Methods</h3>
+    <table>
+        <tr><th>Method</th><th>Speed</th><th>Accuracy</th><th>Description</th></tr>
+        <tr><td>MD5 Hash</td><td>Fast</td><td>High</td><td>128-bit hash, good for most uses</td></tr>
+        <tr><td>SHA256 Hash</td><td>Slower</td><td>Very High</td><td>256-bit hash, cryptographically secure</td></tr>
+        <tr><td>Filename</td><td>Very Fast</td><td>Low</td><td>Match by name only (may have false positives)</td></tr>
+        <tr><td>Size + Name</td><td>Fast</td><td>Medium</td><td>Match by size and filename</td></tr>
+    </table>
+    
+    <h3>How to Use</h3>
+    <ol>
+        <li>Select folder(s) to scan</li>
+        <li>Choose comparison method</li>
+        <li>Click "Scan for Duplicates"</li>
+        <li>Review groups of duplicate files</li>
+        <li>Select which copies to delete (keep at least one)</li>
+        <li>Click "Delete Selected" to remove duplicates</li>
+    </ol>
+    
+    <div class="tip">
+        <strong>Tip:</strong> Always review duplicates before deleting. The tool keeps at least one copy by default.
+    </div>
+</section>
+
+<section id="cleanup" class="section">
+    <h2>🧹 Cleanup</h2>
+    <p>System maintenance and privacy tools.</p>
+    
+    <h3>Disk Cleanup</h3>
+    <p>Remove Windows temporary files and caches to free disk space.</p>
+    <ul>
+        <li>Windows Temp folder</li>
+        <li>User Temp folder</li>
+        <li>Windows Update cache</li>
+        <li>Prefetch files</li>
+        <li>Recycle Bin</li>
+        <li>Thumbnail cache</li>
+    </ul>
+    
+    <h3>Privacy Cleaner</h3>
+    <p>Clear browsing data and identity traces.</p>
+    <table>
+        <tr><th>Browser</th><th>Data Cleaned</th></tr>
+        <tr><td>Chrome</td><td>Cache, Cookies, History, Downloads, Autofill</td></tr>
+        <tr><td>Firefox</td><td>Cache, Cookies, History, Downloads</td></tr>
+        <tr><td>Edge</td><td>Cache, Cookies, History, Downloads</td></tr>
+        <tr><td>Windows</td><td>Recent documents, Jump lists, Explorer history</td></tr>
+    </table>
+    
+    <h3>Startup Manager</h3>
+    <p>Control which applications start automatically with Windows.</p>
+    <ul>
+        <li>View all startup entries</li>
+        <li>Enable/disable individual items</li>
+        <li>See startup impact rating</li>
+        <li>Delete unwanted startup entries</li>
+    </ul>
+    
+    <h3>Hash Calculator</h3>
+    <p>Generate cryptographic checksums for files.</p>
+    <table>
+        <tr><th>Algorithm</th><th>Hash Length</th><th>Use Case</th></tr>
+        <tr><td>MD5</td><td>32 characters</td><td>Quick integrity check</td></tr>
+        <tr><td>SHA1</td><td>40 characters</td><td>Legacy compatibility</td></tr>
+        <tr><td>SHA256</td><td>64 characters</td><td>Secure verification</td></tr>
+        <tr><td>SHA512</td><td>128 characters</td><td>Maximum security</td></tr>
+    </table>
+</section>
+
+<section id="security" class="section">
+    <h2>🔒 Security</h2>
+    <p>Security scanning and folder protection tools.</p>
+    
+    <h3>Folder Hider</h3>
+    <p>Hide folders from normal view using Windows attributes.</p>
+    <ol>
+        <li>Select a folder to hide</li>
+        <li>Click "Hide Folder" to apply hidden + system attributes</li>
+        <li>Use "Unhide Folder" to reveal hidden folders</li>
+    </ol>
+    
+    <div class="warning">
+        <strong>Warning:</strong> Hidden folders can still be accessed if "Show hidden files" is enabled in Windows Explorer options. This is not encryption.
+    </div>
+    
+    <h3>Security Scan</h3>
+    <p>Check your system for common security issues:</p>
+    <ul>
+        <li>Windows Firewall status</li>
+        <li>Antivirus software detection</li>
+        <li>Windows Update status</li>
+        <li>User Account Control (UAC) settings</li>
+        <li>Open network shares</li>
+        <li>Suspicious scheduled tasks</li>
+        <li>Outbound connection scan</li>
+    </ul>
+    
+    <h3>User Management</h3>
+    <p>Manage local Windows user accounts:</p>
+    <ul>
+        <li>View all local users</li>
+        <li>Reset user passwords</li>
+        <li>Enable/disable accounts</li>
+        <li>Open Local Users and Groups MMC</li>
+    </ul>
+    
+    <div class="warning">
+        <strong>Requires Administrator:</strong> User management features require running PlatypusTools as Administrator.
+    </div>
+</section>
+
+<section id="metadata" class="section">
+    <h2>📊 Metadata</h2>
+    <p>View and edit file metadata using ExifTool.</p>
+    
+    <h3>Supported Metadata Types</h3>
+    <ul>
+        <li><strong>EXIF</strong> - Camera settings, date taken, GPS coordinates</li>
+        <li><strong>IPTC</strong> - Copyright, captions, keywords</li>
+        <li><strong>XMP</strong> - Adobe metadata standard</li>
+        <li><strong>ID3</strong> - Audio file tags (artist, album, title)</li>
+    </ul>
+    
+    <h3>How to Use</h3>
+    <ol>
+        <li>Click "Browse" to select a file</li>
+        <li>View metadata in the properties panel and grid</li>
+        <li>Edit common fields (Title, Artist, Album, Year, Comment)</li>
+        <li>Click "Save" to write changes to the file</li>
+        <li>Use "Export" to save metadata to CSV</li>
+    </ol>
+    
+    <h3>Supported File Types</h3>
+    <table>
+        <tr><th>Category</th><th>Formats</th></tr>
+        <tr><td>Images</td><td>JPG, PNG, TIFF, GIF, BMP, RAW (CR2, NEF, ARW, etc.)</td></tr>
+        <tr><td>Video</td><td>MP4, MOV, AVI, MKV, WMV</td></tr>
+        <tr><td>Audio</td><td>MP3, FLAC, WAV, AAC, OGG</td></tr>
+        <tr><td>Documents</td><td>PDF, DOCX, XLSX</td></tr>
+    </table>
+</section>
+
+<section id="configuration" class="section">
+    <h2>⚙️ Configuration</h2>
+    <p>PlatypusTools saves settings to <code>PlatypusTools_Config.json</code> in the Data folder.</p>
+    
+    <h3>Menu Options</h3>
+    
+    <h4>File Menu</h4>
+    <ul>
+        <li><strong>Set Default Scan Folder</strong> - Default folder for file operations</li>
+        <li><strong>Set Default Output Folder</strong> - Default save location</li>
+        <li><strong>Set Default Tools Folder</strong> - Location of FFmpeg, ExifTool</li>
+        <li><strong>Open Folders</strong> - Quick access to app directories</li>
+        <li><strong>Save/Load/Reset Configuration</strong> - Manage settings</li>
+    </ul>
+    
+    <h4>View Menu</h4>
+    <ul>
+        <li><strong>Theme</strong> - Switch between Light and Dark mode</li>
+        <li><strong>Font Size</strong> - Small, Medium, or Large text</li>
+        <li><strong>Show/Hide Status Bar</strong> - Toggle status bar visibility</li>
+        <li><strong>Show/Hide Header</strong> - Toggle header banner visibility</li>
+    </ul>
+    
+    <h4>Tools Menu</h4>
+    <ul>
+        <li><strong>Open Explorer</strong> - Launch Windows Explorer</li>
+        <li><strong>Open Command Prompt</strong> - Launch CMD</li>
+        <li><strong>Open PowerShell</strong> - Launch PowerShell</li>
+        <li><strong>Open Task Manager</strong> - Launch Task Manager</li>
+        <li><strong>Open Services</strong> - Launch Services MMC</li>
+        <li><strong>Open Device Manager</strong> - Launch Device Manager</li>
+    </ul>
+    
+    <h4>Help Menu</h4>
+    <ul>
+        <li><strong>Help Contents</strong> - Open this documentation</li>
+        <li><strong>Quick Start</strong> - Brief getting started guide</li>
+        <li><strong>Keyboard Shortcuts</strong> - List of keyboard shortcuts</li>
+        <li><strong>View Log</strong> - Open the most recent log file</li>
+        <li><strong>About</strong> - Version and application info</li>
+    </ul>
+</section>
+
+<section id="troubleshooting" class="section">
+    <h2>🔧 Troubleshooting</h2>
+    
+    <h3>Common Issues</h3>
+    
+    <h4>FFmpeg/ExifTool not found</h4>
+    <ul>
+        <li>Ensure FFmpeg and ExifTool are installed in the Tools folder</li>
+        <li>Or set the correct path via File → Set Default Tools Folder</li>
+        <li>Check that <code>ffmpeg.exe</code>, <code>ffprobe.exe</code>, and <code>exiftool.exe</code> are present</li>
+    </ul>
+    
+    <h4>Access Denied errors</h4>
+    <ul>
+        <li>Run PlatypusTools as Administrator</li>
+        <li>Some system folders require elevated privileges</li>
+        <li>Check file/folder permissions</li>
+    </ul>
+    
+    <h4>Video conversion fails</h4>
+    <ul>
+        <li>Check that input files are valid video files</li>
+        <li>Ensure all videos have the same codec/resolution for combining</li>
+        <li>Check available disk space for output</li>
+        <li>Review the log file for FFmpeg error messages</li>
+    </ul>
+    
+    <h4>Metadata editing doesn't save</h4>
+    <ul>
+        <li>Check that the file is not read-only</li>
+        <li>Some formats have limited metadata support</li>
+        <li>Ensure ExifTool is properly installed</li>
+    </ul>
+    
+    <h3>Log Files</h3>
+    <p>Logs are saved to <code>C:\ProgramFiles\PlatypusUtils\Logs\</code></p>
+    <p>Check log files for detailed error messages and operation history.</p>
+    
+    <h3>Getting Help</h3>
+    <p>If you encounter issues not covered here:</p>
+    <ol>
+        <li>Check the log files for error details</li>
+        <li>Ensure all dependencies are installed</li>
+        <li>Try running as Administrator</li>
+        <li>Reset configuration to defaults</li>
+    </ol>
+</section>
+
+</div>
+
+<footer>
+    <p>PlatypusTools v1.0 | © 2024 PlatypusUtils | PowerShell + WPF</p>
+</footer>
+
+</body>
+</html>

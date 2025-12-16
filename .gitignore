@@ -1,0 +1,55 @@
+# PlatypusTools .gitignore
+
+# Runtime data (user-specific)
+Data/
+Logs/
+*.log
+
+# Configuration files (user-specific)
+*_Config.json
+
+# Scan data files
+ScanData/
+*.csv
+
+# Windows system files
+Thumbs.db
+desktop.ini
+*.lnk
+
+# External tools (user must download separately)
+Tools/ffmpeg.exe
+Tools/ffprobe.exe
+Tools/exiftool.exe
+Tools/exiftool(-k).exe
+Tools/*.dll
+
+# Compiled executables
+*.exe
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Editor files
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# PowerShell module cache
+*.psm1.cache
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
