@@ -30,26 +30,26 @@ namespace PlatypusTools.Core.Services
                     var target = ResolveShortcutTarget(lnk);
                     if (string.IsNullOrEmpty(target)) { continue; }
 
-                    string compTarget;
+                    string compTarget = string.Empty;
                     try { compTarget = Path.GetFullPath(target).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar); }
-                    catch { compTarget = target; }
+                    catch { compTarget = target ?? string.Empty; }
 
                     foreach (var dir in targetDirs)
                     {
                         if (string.IsNullOrWhiteSpace(dir)) { continue; }
-                        string compDir;
+                        string compDir = string.Empty;
                         try { compDir = Path.GetFullPath(dir).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar); }
-                        catch { compDir = dir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar); }
+                        catch { compDir = (dir ?? string.Empty).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar); }
 
                         bool isMatch;
-                        if (includeSubDirs)
+                            if (includeSubDirs)
                         {
-                            isMatch = compTarget.StartsWith(compDir, StringComparison.OrdinalIgnoreCase);
+                            isMatch = !string.IsNullOrEmpty(compDir) && compTarget.StartsWith(compDir, StringComparison.OrdinalIgnoreCase);
                         }
                         else
                         {
-                            var parent = Path.GetDirectoryName(compTarget);
-                            isMatch = string.Equals(parent, compDir, StringComparison.OrdinalIgnoreCase);
+                            var parent = Path.GetDirectoryName(compTarget) ?? string.Empty;
+                            isMatch = string.Equals(parent, compDir ?? string.Empty, StringComparison.OrdinalIgnoreCase);
                         }
 
                         if (isMatch)
@@ -80,9 +80,11 @@ namespace PlatypusTools.Core.Services
                 // Use WSH Shell COM to resolve shortcut if available
                 var wsh = Type.GetTypeFromProgID("WScript.Shell");
                 if (wsh == null) { return null; }
-                dynamic shell = Activator.CreateInstance(wsh);
+                var shellObj = Activator.CreateInstance(wsh);
+                if (shellObj == null) return null;
+                dynamic shell = shellObj;
                 dynamic lnk = shell.CreateShortcut(shortcutPath);
-                string target = (string)lnk.TargetPath;
+                string? target = (string?)lnk?.TargetPath;
                 return target;
             }
             catch
