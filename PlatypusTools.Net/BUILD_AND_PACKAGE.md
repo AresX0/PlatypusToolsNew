@@ -38,3 +38,27 @@ Sample `appsettings.json`:
 ```
 
 Tip: Set a custom `LogFile` when running in CI or a managed environment to collect logs centrally.
+
+Troubleshooting: dotnet not found in terminal
+- If `dotnet` is installed but not visible in a terminal, add its install folder to your **user** PATH. The .NET SDK is typically installed at `C:\Program Files\dotnet`.
+
+- To add the folder to your current session (temporary):
+
+```powershell
+$env:Path = "C:\Program Files\dotnet;$env:Path"
+```
+
+- To persist the change for the current user (recommended):
+
+```powershell
+# Append the dotnet folder to the user PATH
+$u = [Environment]::GetEnvironmentVariable('Path', 'User')
+if (-not $u) { $u = 'C:\Program Files\dotnet' } elseif ($u -notmatch 'C:\\Program Files\\dotnet') { $u = "$u;C:\Program Files\dotnet" }
+[Environment]::SetEnvironmentVariable('Path', $u, 'User')
+```
+
+After persisting the change, **restart your terminal or VS Code** to pick up the new PATH. Verify with `dotnet --list-sdks`.
+
+- If you prefer an elevated approach, `setx` can be used but be wary of path length truncation on older Windows versions.
+
+- If `dotnet` is not installed, install the .NET 10 SDK from https://dotnet.microsoft.com/download/dotnet/10.0 and re-open your terminal.
