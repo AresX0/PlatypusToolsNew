@@ -1,4 +1,7 @@
 ﻿# SystemCleaner.ps1
+param([switch]$NonInteractive)
+. "$PSScriptRoot\Tools\NonInteractive.ps1"
+Set-NonInteractive -Enable:$NonInteractive
 # Combines Recent Cleaner with Folder Hider features in a single WPF interface.
 
 # --- STA guard: only relaunch when running as .ps1 (skip when packaged as EXE) ---

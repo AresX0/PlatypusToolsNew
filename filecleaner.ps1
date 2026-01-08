@@ -1,4 +1,7 @@
 ﻿# Rename-WithMetadata-Tags-Final.ps1
+param([switch]$NonInteractive)
+. "$PSScriptRoot\Tools\NonInteractive.ps1"
+Set-NonInteractive -Enable:$NonInteractive
 Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System.Xaml
 Add-Type -AssemblyName System.Windows.Forms
 [System.Threading.Thread]::CurrentThread.CurrentCulture = [System.Globalization.CultureInfo]::InvariantCulture
@@ -566,7 +569,7 @@ $ChkCleanOnlyIfOldPrefix.add_Checked({
             $TxtNewPrefix.IsEnabled = $true
             $ChkRequireExistingPrefix.IsEnabled = $true
             if ([string]::IsNullOrWhiteSpace($TxtOldPrefix.Text)) {
-                $typed = Read-Host "Enter Old Prefix (leave blank to cancel)"
+                try { $typed = Prompt-Or-Throw "Enter Old Prefix (leave blank to cancel)" } catch { $ChkCleanOnlyIfOldPrefix.IsChecked = $false; Set-Status "Cancelled (non-interactive)"; return }
                 if ([string]::IsNullOrWhiteSpace($typed)) { $ChkCleanOnlyIfOldPrefix.IsChecked = $false; Set-Status "Cancelled"; return }
                 $TxtOldPrefix.Text = $typed.Trim()
             }
@@ -712,14 +715,14 @@ $BtnScan.Add_Click({
             $res = [System.Windows.MessageBox]::Show($msg,"Confirm Old Prefix",[System.Windows.MessageBoxButton]::YesNoCancel,[System.Windows.MessageBoxImage]::Question)
             if ($res -eq [System.Windows.MessageBoxResult]::Yes) { $oldPrefix = $candidate; $TxtOldPrefix.Text = $oldPrefix }
             elseif ($res -eq [System.Windows.MessageBoxResult]::No) {
-                $typed = Read-Host "Enter the old prefix to use (leave blank to cancel scan):"
+                try { $typed = Prompt-Or-Throw "Enter the old prefix to use (leave blank to cancel scan):" } catch { Set-Status "Scan cancelled (non-interactive)"; return }
                 if ($null -eq $typed -or [string]::IsNullOrWhiteSpace($typed)) { Set-Status "Scan cancelled"; return }
                 $oldPrefix = $typed.Trim(); $TxtOldPrefix.Text = $oldPrefix
             } else { Set-Status "Scan cancelled"; return }
         }
 
         if ($ChkCleanOnlyIfOldPrefix.IsChecked -and $ChkRequireExistingPrefix.IsChecked -and [string]::IsNullOrWhiteSpace($TxtOldPrefix.Text)) {
-            $typed = Read-Host "You selected 'Only clean files matching Old Prefix'. Enter Old Prefix to use (leave blank to cancel):"
+            try { $typed = Prompt-Or-Throw "You selected 'Only clean files matching Old Prefix'. Enter Old Prefix to use (leave blank to cancel):" } catch { $ChkCleanOnlyIfOldPrefix.IsChecked = $false; Set-Status "Clean-only cancelled (non-interactive)"; return }
             if ($null -eq $typed -or [string]::IsNullOrWhiteSpace($typed)) { $ChkCleanOnlyIfOldPrefix.IsChecked = $false; Set-Status "Clean-only cancelled"; return }
             $TxtOldPrefix.Text = $typed.Trim(); Set-Status "Cleaning limited to prefix: $($TxtOldPrefix.Text)"
         }

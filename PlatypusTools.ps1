@@ -2,6 +2,9 @@
 # Combines Recent Cleaner with Folder Hider features in a single WPF interface.
 
 $script:Version = '1.0.0'
+param([switch]$NonInteractive)
+. "$PSScriptRoot\Tools\NonInteractive.ps1"
+Set-NonInteractive -Enable:$NonInteractive
 
 # --- STA guard: only relaunch when running as .ps1 (skip when packaged as EXE) ---
 $scriptPath = $MyInvocation.MyCommand.Path
