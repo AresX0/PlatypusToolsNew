@@ -1,15 +1,16 @@
-﻿# SystemCleaner.ps1
+# SystemCleaner.ps1
 # Combines Recent Cleaner with Folder Hider features in a single WPF interface.
 
-$script:Version = '1.0.0'
 param([switch]$NonInteractive)
+$script:Version = '1.0.0'
 . "$PSScriptRoot\Tools\NonInteractive.ps1"
 Set-NonInteractive -Enable:$NonInteractive
 
-# --- STA guard: only relaunch when running as .ps1 (skip when packaged as EXE) ---
+# --- STA guard: only relaunch when executed directly as a script file (skip when dot-sourced or packaged as EXE) ---
 $scriptPath = $MyInvocation.MyCommand.Path
 $runningAsScript = ($scriptPath -and $scriptPath.EndsWith('.ps1', [System.StringComparison]::OrdinalIgnoreCase))
-if ($runningAsScript) {
+# If the script is being dot-sourced, $MyInvocation.InvocationName is '.'; avoid relaunching in that case
+if ($runningAsScript -and ($MyInvocation.InvocationName -ne '.')) {
     if ([System.Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') {
         $pwsh = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
         if (-not $pwsh) { $pwsh = (Get-Command powershell -ErrorAction SilentlyContinue).Source }
@@ -479,12 +480,12 @@ Require-Parameter 'Path'
 }
 
 function Update-HiderRecord {
+    [switch]$NonInteractive
     param(
         [Parameter(Mandatory)][string]$Path,
         [object]$PasswordRecord,
         [Nullable[bool]]$AclRestricted,
         [Nullable[bool]]$EfsEnabled
-    [switch]$NonInteractive
     )
 . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
 Set-NonInteractive -Enable:$NonInteractive
@@ -553,9 +554,7 @@ Require-Parameter 'Password'
 function Test-Password {
     param(
         [Parameter(Mandatory)][System.Security.SecureString]$Password,
-        [Parameter(Mandatory)][object]$PasswordRecord
-    [switch]$NonInteractive
-    )
+        [Parameter(Mandatory)][object]$PasswordRecord)
 . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
 Set-NonInteractive -Enable:$NonInteractive
 Require-Parameter 'Password' 
@@ -1052,9 +1051,7 @@ function Remove-CriticalAce {
         [Parameter(Mandatory)][string]$Rights,
         [Parameter(Mandatory)][string]$AccessType,
         [Parameter(Mandatory)][string]$Inheritance,
-        [Parameter(Mandatory)][string]$Propagation
-    [switch]$NonInteractive
-    )
+        [Parameter(Mandatory)][string]$Propagation)
 . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
 Set-NonInteractive -Enable:$NonInteractive
 Require-Parameter 'Path' 
@@ -2368,8 +2365,8 @@ $script:DupJsonDir   = $storage.Root
                                     <CheckBox Name="ChkPrivDryRun" Content="Dry Run" VerticalAlignment="Center" Margin="12,0,0,0" IsChecked="True"/>
                                 </StackPanel>
 
-                                <TextBlock Text="⚠️ Warning: Cleaning browser data will log you out of websites." Foreground="OrangeRed" TextWrapping="Wrap" Margin="0,0,0,4"/>
-                                <TextBlock Text="⚠️ Cleaning cloud tokens may require re-authentication." Foreground="OrangeRed" TextWrapping="Wrap"/>
+                                <TextBlock Text="?? Warning: Cleaning browser data will log you out of websites." Foreground="OrangeRed" TextWrapping="Wrap" Margin="0,0,0,4"/>
+                                <TextBlock Text="?? Cleaning cloud tokens may require re-authentication." Foreground="OrangeRed" TextWrapping="Wrap"/>
                             </StackPanel>
                         </ScrollViewer>
 
@@ -6918,7 +6915,7 @@ Built with PowerShell and WPF
 
 Base Path: $script:PlatypusBase
 
-© 2024 PlatypusUtils
+� 2024 PlatypusUtils
 "@
     [System.Windows.MessageBox]::Show($msg, "About PlatypusTools", "OK", "Information")
 })
@@ -6932,14 +6929,15 @@ if ($MenuShowToolbar) { $MenuShowToolbar.IsChecked = $script:AppConfig.ShowHeade
 # Check tool availability and show status
 $toolStatus = Get-ToolStatus
 $statusParts = @()
-if ($toolStatus.FFmpeg) { $statusParts += "FFmpeg ✓" } else { $statusParts += "FFmpeg ✗" }
-if ($toolStatus.ExifTool) { $statusParts += "ExifTool ✓" } else { $statusParts += "ExifTool ✗" }
+if ($toolStatus.FFmpeg) { $statusParts += "FFmpeg ?" } else { $statusParts += "FFmpeg ?" }
+if ($toolStatus.ExifTool) { $statusParts += "ExifTool ?" } else { $statusParts += "ExifTool ?" }
 $toolMsg = "Tools: " + ($statusParts -join " | ")
 if (-not $toolStatus.FFmpeg -or -not $toolStatus.ExifTool) {
-    $toolMsg += " (Some features limited - see File → Set Default Tools Folder)"
+    $toolMsg += " (Some features limited - see File ? Set Default Tools Folder)"
 }
 Update-Status $toolMsg
 
 # --- Show Combined UI ---
 $window.ShowDialog() | Out-Null
+
 
