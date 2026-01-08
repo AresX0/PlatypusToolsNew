@@ -62,3 +62,7 @@ After persisting the change, **restart your terminal or VS Code** to pick up the
 - If you prefer an elevated approach, `setx` can be used but be wary of path length truncation on older Windows versions.
 
 - If `dotnet` is not installed, install the .NET 10 SDK from https://dotnet.microsoft.com/download/dotnet/10.0 and re-open your terminal.
+
+Archive of PowerShell scripts
+- Historical PowerShell scripts and helper scripts have been copied to `ArchivedScripts/` for archival and reference, and will remain intact. The new .NET implementation and all code are under `PlatypusTools.Net/`.
+
