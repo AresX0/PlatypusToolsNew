@@ -1,5 +1,8 @@
 function Set-Hidden {
-    param([Parameter(Mandatory)][string]$Path)
+    param([Parameter(Mandatory)][string]$Path, [switch]$NonInteractive)
+    . "$PSScriptRoot\Tools\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Path' $Path
     $item = Get-Item -LiteralPath $Path -ErrorAction Stop
     $attrs = $item.Attributes
     $attrs = $attrs -bor [IO.FileAttributes]::Hidden
@@ -8,7 +11,10 @@ function Set-Hidden {
 }
 
 function Set-AclRestriction {
-    param([Parameter(Mandatory)][string]$Path)
+    param([Parameter(Mandatory)][string]$Path, [switch]$NonInteractive)
+    . "$PSScriptRoot\Tools\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Path' $Path
     try {
         $acl = Get-Acl -LiteralPath $Path
         $sidEveryone = New-Object System.Security.Principal.SecurityIdentifier('S-1-1-0')

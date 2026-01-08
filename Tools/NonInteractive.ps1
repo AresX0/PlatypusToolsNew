@@ -29,4 +29,4 @@ function Prompt-Or-Throw {
     return Read-Host $Prompt
 }
 
-Export-ModuleMember -Function Set-NonInteractive, Require-Parameter, Prompt-Or-Throw
+# Export-ModuleMember removed so script can be dot-sourced in script contexts

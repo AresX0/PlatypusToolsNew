@@ -95,7 +95,10 @@ function Ensure-HiderPaths {
 }
 
 function Write-HiderLog {
-    param([Parameter(Mandatory)][string]$Message)
+    param([Parameter(Mandatory)][string]$Message, [switch]$NonInteractive)
+    . "$PSScriptRoot\Tools\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Message' $Message
     Ensure-HiderPaths
     $ts = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')
     $line = "[$ts] $Message"
@@ -103,7 +106,10 @@ function Write-HiderLog {
 }
 
 function Write-SecLog {
-    param([Parameter(Mandatory)][string]$Message)
+    param([Parameter(Mandatory)][string]$Message, [switch]$NonInteractive)
+    . "$PSScriptRoot\Tools\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Message' $Message
     Ensure-HiderPaths
     $ts = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')
     $line = "[$ts] $Message"
@@ -119,7 +125,10 @@ function Get-DefaultHiderConfig {
 }
 
 function Save-HiderConfig {
-    param([Parameter(Mandatory)][object]$ConfigObject)
+    param([Parameter(Mandatory)][object]$ConfigObject, [switch]$NonInteractive)
+    . "$PSScriptRoot\Tools\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'ConfigObject' $ConfigObject
     Ensure-HiderPaths
     $json = $ConfigObject | ConvertTo-Json -Depth 6
     Set-Content -LiteralPath $HiderConfigPath -Encoding UTF8 -Value $json
