@@ -24,9 +24,10 @@ if ($runningAsScript -and ($MyInvocation.InvocationName -ne '.')) {
     }
 }
 
-# Elevation guard: relaunch elevated if not running as admin (only when invoked as script)
+# Elevation guard: relaunch elevated if not running as admin (only when executed directly as a script file)
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if ($runningAsScript -and -not $isAdmin) {
+# Avoid auto-elevation when dot-sourcing (InvocationName == '.') so archived scripts can be sourced in tests
+if ($runningAsScript -and -not $isAdmin -and ($MyInvocation.InvocationName -ne '.')) {
     $shell = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
     if (-not $shell) { $shell = (Get-Command powershell -ErrorAction SilentlyContinue).Source }
     if ($shell) {
@@ -6938,7 +6939,9 @@ if (-not $toolStatus.FFmpeg -or -not $toolStatus.ExifTool) {
 }
 Update-Status $toolMsg
 
-# --- Show Combined UI ---
-$window.ShowDialog() | Out-Null
+# --- Show Combined UI (only when executed directly, not when dot-sourced) ---
+if ($runningAsScript -and ($MyInvocation.InvocationName -ne '.')) {
+    $window.ShowDialog() | Out-Null
+}
 
 

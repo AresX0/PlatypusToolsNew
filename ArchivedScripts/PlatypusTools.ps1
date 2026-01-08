@@ -24,9 +24,10 @@ if ($runningAsScript -and ($MyInvocation.InvocationName -ne '.')) {
     }
 }
 
-# Elevation guard: relaunch elevated if not running as admin (only when invoked as script)
+# Elevation guard: relaunch elevated if not running as admin (only when executed directly as a script file)
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if ($runningAsScript -and -not $isAdmin) {
+# Avoid auto-elevation when dot-sourcing (InvocationName == '.') so archived scripts can be sourced in tests
+if ($runningAsScript -and -not $isAdmin -and ($MyInvocation.InvocationName -ne '.')) {
     $shell = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
     if (-not $shell) { $shell = (Get-Command powershell -ErrorAction SilentlyContinue).Source }
     if ($shell) {
@@ -369,11 +370,10 @@ function Ensure-HiderPaths {
 }
 
 function Write-HiderLog {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][string]$Message)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Message' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][string]$Message)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Message' 
     Ensure-HiderPaths
     $ts = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')
     $line = "[$ts] $Message"
@@ -381,11 +381,10 @@ Require-Parameter 'Message'
 } 
 
 function Write-SecLog {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][string]$Message)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Message' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][string]$Message)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Message' 
     Ensure-HiderPaths
     $ts = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')
     $line = "[$ts] $Message"
@@ -401,11 +400,10 @@ function Get-DefaultHiderConfig {
 }
 
 function Save-HiderConfig {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][object]$ConfigObject)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'ConfigObject' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][object]$ConfigObject)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'ConfigObject' 
     Ensure-HiderPaths
     $json = $ConfigObject | ConvertTo-Json -Depth 6
     Set-Content -LiteralPath $HiderConfigPath -Encoding UTF8 -Value $json
@@ -430,11 +428,10 @@ function Get-HiderConfig {
 }
 
 function Get-HiderRecord {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][string]$Path)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Path' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][string]$Path)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Path' 
     if (-not $Global:HiderConfig -or -not $Global:HiderConfig.Folders) { return $null }
     foreach ($rec in $Global:HiderConfig.Folders) {
         if ($rec.FolderPath -eq $Path) { return $rec }
@@ -443,11 +440,10 @@ Require-Parameter 'Path'
 }
 
 function Add-HiderRecord {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][string]$Path)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Path' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][string]$Path)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Path' 
     if (-not $Global:HiderConfig) { $Global:HiderConfig = Get-DefaultHiderConfig }
     if (Get-HiderRecord -Path $Path) { return $false }
     $rec = [PSCustomObject]@{
@@ -463,11 +459,10 @@ Require-Parameter 'Path'
 }
 
 function Remove-HiderRecord {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][string]$Path)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Path' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][string]$Path)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Path' 
     if (-not $Global:HiderConfig -or -not $Global:HiderConfig.Folders) { return $false }
     $new = @(); $removed = $false
     foreach ($rec in $Global:HiderConfig.Folders) {
@@ -480,16 +475,15 @@ Require-Parameter 'Path'
 }
 
 function Update-HiderRecord {
-    [switch]$NonInteractive
-    param(
+    param([switch]$NonInteractive,
         [Parameter(Mandatory)][string]$Path,
         [object]$PasswordRecord,
         [Nullable[bool]]$AclRestricted,
         [Nullable[bool]]$EfsEnabled
     )
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Path' 
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Path' 
     $rec = Get-HiderRecord -Path $Path
     if (-not $rec) { return $false }
     if ($PSBoundParameters.ContainsKey('PasswordRecord')) { $rec.PasswordRecord = $PasswordRecord }
@@ -508,32 +502,29 @@ function Update-HiderAutoHide {
 }
 
 function Convert-PlainToSecureString {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][string]$Plain)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Plain' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][string]$Plain)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Plain' 
     $ss = New-Object System.Security.SecureString
     foreach ($c in $Plain.ToCharArray()) { $ss.AppendChar($c) }
     $ss.MakeReadOnly(); return $ss
 }
 
 function Convert-SecureStringToPlainText {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][System.Security.SecureString]$Secure)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Secure' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][System.Security.SecureString]$Secure)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Secure' 
     $ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($Secure)
     try { [Runtime.InteropServices.Marshal]::PtrToStringAuto($ptr) } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr) }
 }
 
 function New-PasswordRecord {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][System.Security.SecureString]$Password)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Password' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][System.Security.SecureString]$Password)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Password' 
     $saltBytes = New-Object byte[] 16
     (New-Object System.Security.Cryptography.RNGCryptoServiceProvider).GetBytes($saltBytes)
     $iterations = 100000
@@ -575,11 +566,10 @@ Require-Parameter 'PasswordRecord'
 }
 
 function Get-HiddenState {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][string]$Path)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Path' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][string]$Path)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Path' 
     try {
         if (-not (Test-Path -LiteralPath $Path)) { return $false }
         $attr = [System.IO.File]::GetAttributes($Path)
@@ -588,11 +578,10 @@ Require-Parameter 'Path'
 }
 
 function Set-Hidden {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][string]$Path)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Path' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][string]$Path)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Path' 
     try {
         if (-not (Test-Path -LiteralPath $Path)) { Write-HiderLog "Set-Hidden: Path missing '$Path'"; return }
         $attrs = [System.IO.File]::GetAttributes($Path)
@@ -604,11 +593,10 @@ Require-Parameter 'Path'
 }
 
 function Clear-Hidden {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][string]$Path)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Path' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][string]$Path)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Path' 
     try {
         if (-not (Test-Path -LiteralPath $Path)) { Write-HiderLog "Clear-Hidden: Path missing '$Path'"; return }
         $attrs = [System.IO.File]::GetAttributes($Path)
@@ -620,11 +608,10 @@ Require-Parameter 'Path'
 }
 
 function Set-AclRestriction {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][string]$Path)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Path' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][string]$Path)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Path' 
     try {
         if (-not (Test-Path -LiteralPath $Path)) { Write-HiderLog "Set-AclRestriction: Path missing '$Path'"; return $false }
         $acl = Get-Acl -LiteralPath $Path -ErrorAction Stop
@@ -644,11 +631,10 @@ Require-Parameter 'Path'
 }
 
 function Restore-ACL {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][string]$Path)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Path' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][string]$Path)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Path' 
     try {
         if (-not (Test-Path -LiteralPath $Path)) { Write-HiderLog "Restore-ACL: Path missing '$Path'"; return $false }
         $acl = Get-Acl -LiteralPath $Path -ErrorAction Stop
@@ -685,20 +671,18 @@ Require-Parameter 'Path'
 function Test-EFSAvailable { return Test-Path -LiteralPath (Join-Path $env:windir 'System32\cipher.exe') }
 
 function Test-DriveNTFS {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][string]$Path)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Path' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][string]$Path)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Path' 
     try { return ((New-Object System.IO.DriveInfo([System.IO.Path]::GetPathRoot($Path))).DriveFormat -eq 'NTFS') } catch { return $false }
 }
 
 function Invoke-Cipher {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][string]$Arguments)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Arguments' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][string]$Arguments)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Arguments' 
     $psi = New-Object System.Diagnostics.ProcessStartInfo
     $psi.FileName = Join-Path $env:windir 'System32\cipher.exe'
     $psi.Arguments = $Arguments
@@ -711,11 +695,10 @@ Require-Parameter 'Arguments'
 }
 
 function Enable-EFS {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][string]$Path)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Path' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][string]$Path)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Path' 
     if (-not (Test-Path -LiteralPath $Path)) { Write-HiderLog "Enable-EFS: Path missing '$Path'"; return $false }
     if (-not (Test-EFSAvailable)) { Write-HiderLog 'Enable-EFS: EFS not available.'; return $false }
     if (-not (Test-DriveNTFS -Path $Path)) { Write-HiderLog 'Enable-EFS: Non-NTFS volume.'; return $false }
@@ -725,11 +708,10 @@ Require-Parameter 'Path'
 }
 
 function Disable-EFS {
-    [switch]$NonInteractive
-    param([Parameter(Mandatory)][string]$Path)
-. "$PSScriptRoot\\Tools\\NonInteractive.ps1"
-Set-NonInteractive -Enable:$NonInteractive
-Require-Parameter 'Path' 
+    param([switch]$NonInteractive, [Parameter(Mandatory)][string]$Path)
+    . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
+    Set-NonInteractive -Enable:$NonInteractive
+    Require-Parameter 'Path' 
     if (-not (Test-Path -LiteralPath $Path)) { Write-HiderLog "Disable-EFS: Path missing '$Path'"; return $false }
     if (-not (Test-EFSAvailable)) { Write-HiderLog 'Disable-EFS: EFS not available.'; return $false }
     if (-not (Test-DriveNTFS -Path $Path)) { Write-HiderLog 'Disable-EFS: Non-NTFS volume.'; return $false }
@@ -6937,7 +6919,9 @@ if (-not $toolStatus.FFmpeg -or -not $toolStatus.ExifTool) {
 }
 Update-Status $toolMsg
 
-# --- Show Combined UI ---
-$window.ShowDialog() | Out-Null
+# --- Show Combined UI (only when executed directly, not when dot-sourced) ---
+if ($runningAsScript -and ($MyInvocation.InvocationName -ne '.')) {
+    $window.ShowDialog() | Out-Null
+}
 
 

@@ -11,6 +11,18 @@ function Set-NonInteractive {
 
 function Require-Parameter {
     param([string]$Name, $Value)
+    # If caller didn't pass the value, try to infer it from the caller's bound params or variables
+    try {
+        if (-not $PSBoundParameters.ContainsKey($Name) -and -not $Value) {
+            $callerVar = Get-Variable -Name $Name -Scope 1 -ErrorAction SilentlyContinue
+            if ($callerVar) { $Value = $callerVar.Value }
+        } elseif ($PSBoundParameters.ContainsKey($Name)) {
+            $Value = $PSBoundParameters[$Name]
+        }
+    } catch {
+        # ignore and fall through to check $Value
+    }
+
     if ($null -eq $Value -or ($Value -is [string] -and [string]::IsNullOrWhiteSpace($Value))) {
         if ($global:NonInteractive) {
             throw "Missing required parameter: -$Name (non-interactive mode)."
