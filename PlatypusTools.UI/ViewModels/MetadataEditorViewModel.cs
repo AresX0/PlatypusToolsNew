@@ -103,12 +103,20 @@ namespace PlatypusTools.UI.ViewModels
             set { _copyright = value; OnPropertyChanged(); UpdateTag("Copyright", value); }
         }
 
+        private bool _isExifToolMissing;
+        public bool IsExifToolMissing
+        {
+            get => _isExifToolMissing;
+            set { _isExifToolMissing = value; OnPropertyChanged(); }
+        }
+
         public ICommand BrowseFileCommand { get; }
         public ICommand LoadMetadataCommand { get; }
         public ICommand SaveMetadataCommand { get; }
         public ICommand ClearAllCommand { get; }
         public ICommand AddTagCommand { get; }
         public ICommand RemoveTagCommand { get; }
+        public ICommand OpenExifToolWebsiteCommand { get; }
 
         public MetadataEditorViewModel() : this(new MetadataServiceEnhanced()) { }
 
@@ -122,8 +130,10 @@ namespace PlatypusTools.UI.ViewModels
             ClearAllCommand = new RelayCommand(_ => ClearAll(), _ => Metadata.Any());
             AddTagCommand = new RelayCommand(_ => AddTag());
             RemoveTagCommand = new RelayCommand(obj => RemoveTag(obj as MetadataTag));
+            OpenExifToolWebsiteCommand = new RelayCommand(_ => OpenExifToolWebsite());
 
-            if (!_service.IsExifToolAvailable())
+            IsExifToolMissing = !_service.IsExifToolAvailable();
+            if (IsExifToolMissing)
             {
                 StatusMessage = "⚠️ ExifTool not found. Please install ExifTool to use this feature.";
             }
@@ -283,6 +293,22 @@ namespace PlatypusTools.UI.ViewModels
         {
             if (tag != null)
                 Metadata.Remove(tag);
+        }
+
+        private void OpenExifToolWebsite()
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "https://exiftool.org/",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Failed to open browser: {ex.Message}";
+            }
         }
 
         private void UpdateTag(string key, string value)

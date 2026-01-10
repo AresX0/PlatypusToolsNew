@@ -458,37 +458,60 @@ namespace PlatypusTools.UI.ViewModels
         {
             var dialog = new Microsoft.Win32.SaveFileDialog
             {
-                Filter = "Text files (*.txt)|*.txt|CSV files (*.csv)|*.csv",
-                FileName = $"SystemAudit_{DateTime.Now:yyyyMMdd_HHmmss}.txt"
+                Filter = "CSV files (*.csv)|*.csv|Text files (*.txt)|*.txt",
+                FileName = $"SystemAudit_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
             };
 
             if (dialog.ShowDialog() == true)
             {
                 try
                 {
-                    var lines = new System.Collections.Generic.List<string>
+                    var isCsv = dialog.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase);
+                    
+                    if (isCsv)
                     {
-                        $"System Audit Report - {DateTime.Now}",
-                        $"Total Issues: {TotalIssues}",
-                        $"Critical: {CriticalIssues}, Warnings: {WarningIssues}",
-                        "",
-                        "Details:",
-                        "".PadRight(80, '=')
-                    };
+                        // Export as CSV
+                        var lines = new System.Collections.Generic.List<string>
+                        {
+                            "\"Category\",\"Name\",\"Description\",\"Severity\",\"Status\",\"Details\""
+                        };
 
-                    foreach (var item in AuditItems)
+                        foreach (var item in AuditItems)
+                        {
+                            var csvLine = $"\"{EscapeCsv(item.Category)}\",\"{EscapeCsv(item.Name)}\",\"{EscapeCsv(item.Description)}\",\"{item.Severity}\",\"{item.Status}\",\"{EscapeCsv(item.Details)}\"";
+                            lines.Add(csvLine);
+                        }
+
+                        System.IO.File.WriteAllLines(dialog.FileName, lines);
+                    }
+                    else
                     {
-                        lines.Add($"Category: {item.Category}");
-                        lines.Add($"Name: {item.Name}");
-                        lines.Add($"Description: {item.Description}");
-                        lines.Add($"Severity: {item.Severity}");
-                        lines.Add($"Status: {item.Status}");
-                        if (!string.IsNullOrEmpty(item.Details))
-                            lines.Add($"Details: {item.Details}");
-                        lines.Add("".PadRight(80, '-'));
+                        // Export as text
+                        var lines = new System.Collections.Generic.List<string>
+                        {
+                            $"System Audit Report - {DateTime.Now}",
+                            $"Total Issues: {TotalIssues}",
+                            $"Critical: {CriticalIssues}, Warnings: {WarningIssues}",
+                            "",
+                            "Details:",
+                            "".PadRight(80, '=')
+                        };
+
+                        foreach (var item in AuditItems)
+                        {
+                            lines.Add($"Category: {item.Category}");
+                            lines.Add($"Name: {item.Name}");
+                            lines.Add($"Description: {item.Description}");
+                            lines.Add($"Severity: {item.Severity}");
+                            lines.Add($"Status: {item.Status}");
+                            if (!string.IsNullOrEmpty(item.Details))
+                                lines.Add($"Details: {item.Details}");
+                            lines.Add("".PadRight(80, '-'));
+                        }
+
+                        System.IO.File.WriteAllLines(dialog.FileName, lines);
                     }
 
-                    System.IO.File.WriteAllLines(dialog.FileName, lines);
                     StatusMessage = $"Report exported to {dialog.FileName}";
                 }
                 catch (Exception ex)
@@ -496,6 +519,15 @@ namespace PlatypusTools.UI.ViewModels
                     StatusMessage = $"Error exporting: {ex.Message}";
                 }
             }
+        }
+
+        private string EscapeCsv(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return string.Empty;
+            
+            // Escape quotes by doubling them
+            return value.Replace("\"", "\"\"");
         }
 
         private void Clear()

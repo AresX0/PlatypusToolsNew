@@ -118,11 +118,12 @@ namespace PlatypusTools.UI.ViewModels
                     token.ThrowIfCancellationRequested();
                     return _analyzerService.GetDirectoryTree(RootPath);
                 }, token);
+                
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     var rootNode = CreateNodeViewModel(analysis);
                     DirectoryTree.Add(rootNode);
-                    TotalSize = analysis.Size;
+                    TotalSize = rootNode.Size; // Use the calculated size from the node
                     TotalSizeDisplay = FormatSize(TotalSize);
                 });
 
@@ -143,18 +144,18 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private DirectoryNodeViewModel CreateNodeViewModel(dynamic analysisNode)
+        private DirectoryNodeViewModel CreateNodeViewModel(DirectoryNode analysisNode)
         {
             var node = new DirectoryNodeViewModel
             {
                 Name = Path.GetFileName(analysisNode.Path) ?? analysisNode.Path,
                 FullPath = analysisNode.Path,
-                Size = analysisNode.TotalSize,
-                SizeDisplay = FormatSize(analysisNode.TotalSize),
+                Size = analysisNode.Size,
+                SizeDisplay = FormatSize(analysisNode.Size),
                 FileCount = analysisNode.FileCount
             };
 
-            if (analysisNode.Children != null)
+            if (analysisNode.Children != null && analysisNode.Children.Any())
             {
                 foreach (var child in analysisNode.Children)
                 {

@@ -13,15 +13,36 @@
         <!-- File Selection -->
         <GroupBox Header="File" Grid.Row="0" Margin="0,0,0,10">
             <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBox Grid.Column="0" Text="{Binding FilePath}" IsReadOnly="True" Width="600" HorizontalAlignment="Left"/>
-                <Button Grid.Column="1" Content="Browse..." Command="{Binding BrowseFileCommand}" Width="80" Margin="5,0,0,0"/>
-                <Button Grid.Column="2" Content="Load" Command="{Binding LoadMetadataCommand}" Width="80" Margin="5,0,0,0" FontWeight="Bold"/>
+                <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding FilePath}" IsReadOnly="True" Width="600" HorizontalAlignment="Left"/>
+                <Button Grid.Row="0" Grid.Column="1" Content="Browse..." Command="{Binding BrowseFileCommand}" Width="80" Margin="5,0,0,0"/>
+                <Button Grid.Row="0" Grid.Column="2" Content="Load" Command="{Binding LoadMetadataCommand}" Width="80" Margin="5,0,0,0" FontWeight="Bold"/>
+                
+                <!-- ExifTool warning panel -->
+                <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Background="Orange" Padding="10" Margin="0,10,0,0"
+                        Visibility="{Binding IsExifToolMissing, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel>
+                        <TextBlock TextWrapping="Wrap" FontWeight="Bold" Foreground="White" Margin="0,0,0,5">
+                            ⚠️ ExifTool is not installed. This feature requires ExifTool to read and write metadata.
+                        </TextBlock>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock TextWrapping="Wrap" Foreground="White" VerticalAlignment="Center" Margin="0,0,10,0">
+                                Download from: https://exiftool.org/
+                            </TextBlock>
+                            <Button Content="Open ExifTool Website" Command="{Binding OpenExifToolWebsiteCommand}" 
+                                    Background="White" Padding="10,5" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
             </Grid>
         </GroupBox>
 

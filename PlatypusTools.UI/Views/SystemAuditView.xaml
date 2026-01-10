@@ -46,31 +46,27 @@
 
         <!-- User Management -->
         <GroupBox Header="User Management (Requires Admin)" Grid.Row="2" Margin="0,0,0,10">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                    <TextBlock Text="Selected User:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="Bold" Width="100"/>
+                    <TextBox Text="{Binding SelectedUsername, UpdateSourceTrigger=PropertyChanged}" 
+                             Width="200" Height="30" VerticalContentAlignment="Center" Margin="0,0,10,0"/>
+                    
+                    <Button Content="Disable User" Command="{Binding DisableUserCommand}" Width="100" Height="30" 
+                            Margin="0,0,5,0" Background="Orange"/>
+                    <Button Content="Delete User" Command="{Binding DeleteUserCommand}" Width="100" Height="30" 
+                            Margin="0,0,5,0" Background="Red" Foreground="White"/>
+                </StackPanel>
                 
-                <TextBlock Grid.Column="0" Text="Selected User:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="Bold"/>
-                <TextBox Grid.Column="1" Text="{Binding SelectedUsername, UpdateSourceTrigger=PropertyChanged}" 
-                         Height="30" VerticalContentAlignment="Center" Margin="0,0,10,0"/>
-                
-                <Button Grid.Column="2" Content="Disable User" Command="{Binding DisableUserCommand}" Width="100" Height="30" 
-                        Margin="0,0,5,0" Background="Orange"/>
-                <Button Grid.Column="2" Content="Delete User" Command="{Binding DeleteUserCommand}" Width="100" Height="30" 
-                        Margin="110,0,5,0" Background="Red" Foreground="White"/>
-                
-                <TextBlock Grid.Column="3" Text="New password:" VerticalAlignment="Center" Margin="10,0,10,0"/>
-                <TextBox Grid.Column="3" Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}" 
-                         Height="30" VerticalContentAlignment="Center" Margin="100,0,10,0"/>
-                
-                <Button Grid.Column="4" Content="Reset Password" Command="{Binding ResetPasswordCommand}" Width="120" Height="30" 
-                        Background="LightBlue"/>
-            </Grid>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="New password:" VerticalAlignment="Center" Margin="0,0,10,0" Width="100"/>
+                    <TextBox Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}" 
+                             Width="200" Height="30" VerticalContentAlignment="Center" Margin="0,0,10,0"/>
+                    
+                    <Button Content="Reset Password" Command="{Binding ResetPasswordCommand}" Width="120" Height="30" 
+                            Background="LightBlue"/>
+                </StackPanel>
+            </StackPanel>
         </GroupBox>
 
         <!-- Statistics -->
@@ -91,12 +87,12 @@
         <GroupBox Header="Audit Results" Grid.Row="4" Margin="0,0,0,10">
             <DataGrid ItemsSource="{Binding AuditItems}" AutoGenerateColumns="False" CanUserAddRows="False" 
                       IsReadOnly="True" SelectionMode="Single"
-                      CanUserResizeColumns="True" CanUserSortColumns="True">
+                      CanUserResizeColumns="True" CanUserSortColumns="True" ColumnWidth="*">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="150" CanUserResize="True" MinWidth="100"/>
-                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200" CanUserResize="True" MinWidth="100"/>
-                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" CanUserResize="True" MinWidth="150"/>
-                    <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="80" CanUserResize="True" MinWidth="70">
+                    <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="1.5*" CanUserResize="True" MinWidth="100"/>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*" CanUserResize="True" MinWidth="100"/>
+                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="3*" CanUserResize="True" MinWidth="150"/>
+                    <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="1*" CanUserResize="True" MinWidth="70">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Style.Triggers>
@@ -115,7 +111,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80" CanUserResize="True" MinWidth="60">
+                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="1*" CanUserResize="True" MinWidth="60">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Style.Triggers>

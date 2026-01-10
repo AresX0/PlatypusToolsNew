@@ -823,6 +823,7 @@ namespace PlatypusTools.Core.Services
                         Arguments = "user",
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
+                        RedirectStandardError = true,
                         CreateNoWindow = true
                     };
 
@@ -832,7 +833,9 @@ namespace PlatypusTools.Core.Services
                         var output = allUsersProcess.StandardOutput.ReadToEnd();
                         allUsersProcess.WaitForExit();
 
+                        // Parse user names from the output
                         var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                        var userNames = new List<string>();
                         var inUserList = false;
 
                         foreach (var line in lines)
@@ -845,46 +848,71 @@ namespace PlatypusTools.Core.Services
                                 continue;
                             }
 
-                            if (inUserList && !string.IsNullOrWhiteSpace(trimmed) && 
-                                !trimmed.StartsWith("The command"))
+                            if (!inUserList) continue;
+
+                            // Skip footer lines
+                            if (trimmed.StartsWith("The command") || 
+                                trimmed.Contains("completed successfully") ||
+                                string.IsNullOrWhiteSpace(trimmed))
+                                continue;
+
+                            // Split by whitespace to get individual user names
+                            var names = trimmed.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                            userNames.AddRange(names);
+                        }
+
+                        // Check each user's group membership
+                        foreach (var userName in userNames.Distinct())
+                        {
+                            try
                             {
-                                // Check each user's groups
                                 var userGroupsInfo = new ProcessStartInfo
                                 {
                                     FileName = "net",
-                                    Arguments = $"user \"{trimmed}\"",
+                                    Arguments = $"user \"{userName}\"",
                                     UseShellExecute = false,
                                     RedirectStandardOutput = true,
+                                    RedirectStandardError = true,
                                     CreateNoWindow = true
                                 };
 
-                                try
+                                using var userProcess = Process.Start(userGroupsInfo);
+                                if (userProcess != null)
                                 {
-                                    using var userProcess = Process.Start(userGroupsInfo);
-                                    if (userProcess != null)
+                                    var userOutput = userProcess.StandardOutput.ReadToEnd();
+                                    userProcess.WaitForExit();
+
+                                    // Check if user is in any admin group
+                                    var lowerOutput = userOutput.ToLower();
+                                    var adminGroups = new List<string>();
+                                    
+                                    if (lowerOutput.Contains("*administrators"))
+                                        adminGroups.Add("Administrators");
+                                    if (lowerOutput.Contains("*domain admins"))
+                                        adminGroups.Add("Domain Admins");
+                                    if (lowerOutput.Contains("*enterprise admins"))
+                                        adminGroups.Add("Enterprise Admins");
+                                    if (lowerOutput.Contains("*schema admins"))
+                                        adminGroups.Add("Schema Admins");
+
+                                    if (adminGroups.Any())
                                     {
-                                        var userOutput = userProcess.StandardOutput.ReadToEnd();
-                                        userProcess.WaitForExit();
-
-                                        var isAdmin = userOutput.Contains("Administrators") || 
-                                                     userOutput.Contains("Domain Admins") ||
-                                                     userOutput.Contains("Enterprise Admins");
-
-                                        if (isAdmin)
+                                        items.Add(new AuditItem
                                         {
-                                            items.Add(new AuditItem
-                                            {
-                                                Category = "Elevated Users",
-                                                Name = trimmed,
-                                                Description = "User has administrative privileges",
-                                                Severity = AuditSeverity.Warning,
-                                                Status = AuditStatus.Pass,
-                                                Details = "Review if this user requires elevated access"
-                                            });
-                                        }
+                                            Category = "Elevated Users",
+                                            Name = userName,
+                                            Description = $"Member of: {string.Join(", ", adminGroups)}",
+                                            Severity = AuditSeverity.Warning,
+                                            Status = AuditStatus.Pass,
+                                            Details = "User has administrative privileges. Review if elevated access is necessary."
+                                        });
                                     }
                                 }
-                                catch { }
+                            }
+                            catch (Exception userEx)
+                            {
+                                // Log but continue with other users
+                                System.Diagnostics.Debug.WriteLine($"Error checking user {userName}: {userEx.Message}");
                             }
                         }
                     }
@@ -894,10 +922,11 @@ namespace PlatypusTools.Core.Services
                     items.Add(new AuditItem
                     {
                         Category = "Elevated Users",
-                        Name = "Error",
+                        Name = "Scan Error",
                         Description = ex.Message,
                         Severity = AuditSeverity.Warning,
-                        Status = AuditStatus.Unknown
+                        Status = AuditStatus.Unknown,
+                        Details = ex.ToString()
                     });
                 }
             });

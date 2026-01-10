@@ -57,9 +57,24 @@ namespace PlatypusTools.UI.ViewModels
             try
             {
                 var items = _service.GetStartupItems();
+                
+                if (items == null || items.Count == 0)
+                {
+                    StatusMessage = "No startup items found";
+                    return;
+                }
+
                 foreach (var item in items)
                 {
-                    StartupItems.Add(new StartupItemViewModel(item));
+                    try
+                    {
+                        StartupItems.Add(new StartupItemViewModel(item));
+                    }
+                    catch (Exception itemEx)
+                    {
+                        // Log but continue with other items
+                        System.Diagnostics.Debug.WriteLine($"Error adding startup item: {itemEx.Message}");
+                    }
                 }
 
                 StatusMessage = $"Loaded {StartupItems.Count} startup items";
@@ -67,6 +82,7 @@ namespace PlatypusTools.UI.ViewModels
             catch (Exception ex)
             {
                 StatusMessage = $"Error loading startup items: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"Full error: {ex}");
             }
             finally
             {
