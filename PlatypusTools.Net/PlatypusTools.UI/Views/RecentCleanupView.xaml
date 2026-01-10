@@ -4,12 +4,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
-             mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="500">
-    <UserControl.DataContext>
-        <vm:RecentCleanupViewModel />
-    </UserControl.DataContext>
-
-    <Grid Margin="8">
+             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="900">
+    <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -25,7 +21,7 @@
         </StackPanel>
         <ListView Grid.Row="2" ItemsSource="{Binding Results}">
             <ListView.View>
-                <GridView>
+                <GridView AllowsColumnReorder="True">
                     <GridViewColumn Header="Type" Width="80" DisplayMemberBinding="{Binding Type}" />
                     <GridViewColumn Header="Path" Width="300" DisplayMemberBinding="{Binding Path}" />
                     <GridViewColumn Header="Target" Width="300" DisplayMemberBinding="{Binding Target}" />

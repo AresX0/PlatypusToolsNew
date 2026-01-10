@@ -2,6 +2,7 @@ using PlatypusTools.Core.Services;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -26,11 +27,12 @@ namespace PlatypusTools.UI.ViewModels
         {
             Results.Clear();
             var dirs = string.IsNullOrWhiteSpace(TargetDirs) ? new string[0] : TargetDirs.Split(';');
-            await Task.Run(() =>
+            var results = await Task.Run(() => RecentCleaner.RemoveRecentShortcuts(dirs, dryRun: DryRun));
+            
+            foreach (var r in results)
             {
-                var res = RecentCleaner.RemoveRecentShortcuts(dirs, dryRun: DryRun);
-                foreach (var r in res) Results.Add(r);
-            });
+                Application.Current.Dispatcher.Invoke(() => Results.Add(r));
+            }
         }
     }
 }

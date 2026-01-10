@@ -61,9 +61,17 @@ namespace PlatypusTools.Core.Services
             return files.Distinct(StringComparer.OrdinalIgnoreCase);
         }
 
-        public static IList<string> RemoveFiles(IEnumerable<string> files, bool dryRun = true, string? backupPath = null)
+        public static IList<string> RemoveFiles(IEnumerable<string> files, bool dryRun = true, string? backupPath = null, string? basePath = null)
         {
             var removed = new List<string>();
+            // Normalize basePath
+            string? normalizedBase = null;
+            if (!string.IsNullOrWhiteSpace(basePath))
+            {
+                try { normalizedBase = Path.GetFullPath(basePath); }
+                catch { normalizedBase = null; }
+            }
+
             foreach (var f in files)
             {
                 try
@@ -82,8 +90,25 @@ namespace PlatypusTools.Core.Services
                     {
                         try
                         {
-                            Directory.CreateDirectory(backupPath);
                             var dest = Path.Combine(backupPath, Path.GetFileName(f));
+
+                            // If basePath provided and file is under it, preserve relative structure
+                            if (!string.IsNullOrEmpty(normalizedBase))
+                            {
+                                try
+                                {
+                                    var full = Path.GetFullPath(f);
+                                    if (full.StartsWith(normalizedBase, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        var rel = full.Substring(normalizedBase.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                                        dest = Path.Combine(backupPath, rel);
+                                    }
+                                }
+                                catch { /* fallback to flat backup */ }
+                            }
+
+                            var destDir = Path.GetDirectoryName(dest) ?? backupPath;
+                            Directory.CreateDirectory(destDir);
                             File.Copy(f, dest, true);
                             SimpleLogger.Info($"Backed up '{f}' to '{dest}'");
                         }
@@ -112,6 +137,45 @@ namespace PlatypusTools.Core.Services
                 }
             }
             return removed;
+        }
+
+        public static IDictionary<string,string> ComputeBackupMapping(IEnumerable<string> files, string backupPath, string? basePath = null)
+        {
+            var mapping = new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase);
+            if (string.IsNullOrEmpty(backupPath)) return mapping;
+
+            string? normalizedBase = null;
+            if (!string.IsNullOrWhiteSpace(basePath))
+            {
+                try { normalizedBase = Path.GetFullPath(basePath); }
+                catch { normalizedBase = null; }
+            }
+
+            foreach (var f in files)
+            {
+                try
+                {
+                    if (!File.Exists(f)) continue;
+                    var dest = Path.Combine(backupPath, Path.GetFileName(f));
+                    if (!string.IsNullOrEmpty(normalizedBase))
+                    {
+                        try
+                        {
+                            var full = Path.GetFullPath(f);
+                            if (full.StartsWith(normalizedBase, StringComparison.OrdinalIgnoreCase))
+                            {
+                                var rel = full.Substring(normalizedBase.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                                dest = Path.Combine(backupPath, rel);
+                            }
+                        }
+                        catch { }
+                    }
+                    mapping[f] = dest;
+                }
+                catch { }
+            }
+
+            return mapping;
         }
     }
 }

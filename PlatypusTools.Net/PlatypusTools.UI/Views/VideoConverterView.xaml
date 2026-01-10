@@ -1,0 +1,152 @@
+<UserControl x:Class="PlatypusTools.UI.Views.VideoConverterView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             xmlns:models="clr-namespace:PlatypusTools.Core.Models;assembly=PlatypusTools.Core">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Source Folder -->
+        <GroupBox Header="Source" Grid.Row="0" Margin="0,0,0,10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding SourceFolderPath}" IsReadOnly="True" Width="600" HorizontalAlignment="Left"/>
+                <Button Grid.Row="0" Grid.Column="1" Content="Browse..." Command="{Binding BrowseSourceFolderCommand}" Width="80" Margin="5,0,0,0"/>
+                <Button Grid.Row="0" Grid.Column="2" Content="Scan" Command="{Binding ScanCommand}" Width="80" Margin="5,0,0,0" FontWeight="Bold"/>
+                
+                <CheckBox Grid.Row="1" Grid.Column="0" Content="Include Subfolders" IsChecked="{Binding IncludeSubfolders}" Margin="0,5,0,0"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Output Settings -->
+        <GroupBox Header="Output Settings" Grid.Row="1" Margin="0,0,0,10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Target Format:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <ComboBox Grid.Row="0" Grid.Column="1" SelectedItem="{Binding TargetFormat}" Width="150" HorizontalAlignment="Left">
+                    <ComboBox.ItemsSource>
+                        <x:Array Type="models:VideoFormat">
+                            <models:VideoFormat>MP4</models:VideoFormat>
+                            <models:VideoFormat>MKV</models:VideoFormat>
+                            <models:VideoFormat>AVI</models:VideoFormat>
+                            <models:VideoFormat>MOV</models:VideoFormat>
+                            <models:VideoFormat>WMV</models:VideoFormat>
+                            <models:VideoFormat>FLV</models:VideoFormat>
+                            <models:VideoFormat>WebM</models:VideoFormat>
+                            <models:VideoFormat>MPEG</models:VideoFormat>
+                        </x:Array>
+                    </ComboBox.ItemsSource>
+                </ComboBox>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Quality:" VerticalAlignment="Center" Margin="0,10,10,0"/>
+                <ComboBox Grid.Row="1" Grid.Column="1" SelectedItem="{Binding Quality}" Width="150" HorizontalAlignment="Left" Margin="0,10,0,0">
+                    <ComboBox.ItemsSource>
+                        <x:Array Type="models:VideoQuality">
+                            <models:VideoQuality>Source</models:VideoQuality>
+                            <models:VideoQuality>High</models:VideoQuality>
+                            <models:VideoQuality>Medium</models:VideoQuality>
+                            <models:VideoQuality>Low</models:VideoQuality>
+                            <models:VideoQuality>VeryLow</models:VideoQuality>
+                        </x:Array>
+                    </ComboBox.ItemsSource>
+                </ComboBox>
+
+                <CheckBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Content="Output to source folder" IsChecked="{Binding UseSourceFolder}" Margin="0,10,0,0"/>
+                
+                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding OutputFolderPath}" IsReadOnly="True" Width="400" HorizontalAlignment="Left" 
+                         Visibility="{Binding UseSourceFolder, Converter={StaticResource InverseBoolToVisibilityConverter}}" Margin="0,10,0,0"/>
+                <Button Grid.Row="2" Grid.Column="2" Content="Browse..." Command="{Binding BrowseOutputFolderCommand}" Width="80" 
+                        Visibility="{Binding UseSourceFolder, Converter={StaticResource InverseBoolToVisibilityConverter}}" Margin="5,10,0,0"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Action Bar -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,10">
+            <Button Content="Select All" Command="{Binding SelectAllCommand}" Width="80" Margin="0,0,5,0"/>
+            <Button Content="Select None" Command="{Binding SelectNoneCommand}" Width="80" Margin="0,0,5,0"/>
+            <Button Content="Clear Completed" Command="{Binding ClearCompletedCommand}" Width="120" Margin="0,0,5,0"/>
+            <TextBlock Text="{Binding TotalCount, StringFormat='Total: {0}'}" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold"/>
+        </StackPanel>
+
+        <!-- Preview Grid -->
+        <GroupBox Header="Conversion Queue" Grid.Row="3" Margin="0,0,0,10">
+            <DataGrid ItemsSource="{Binding ConversionTasks}" AutoGenerateColumns="False" CanUserAddRows="False" 
+                      IsReadOnly="False" SelectionMode="Extended"
+                      CanUserResizeColumns="True" CanUserSortColumns="True">
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn Header="Convert" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="60" CanUserResize="True" MinWidth="50"/>
+                    <DataGridTextColumn Header="Source File" Binding="{Binding SourcePath}" Width="300" CanUserResize="True" MinWidth="120"/>
+                    <DataGridTextColumn Header="Output File" Binding="{Binding OutputPath}" Width="300" CanUserResize="True" MinWidth="120"/>
+                    <DataGridTextColumn Header="Format" Binding="{Binding TargetFormat}" Width="70" CanUserResize="True" MinWidth="60"/>
+                    <DataGridTextColumn Header="Quality" Binding="{Binding Quality}" Width="80" CanUserResize="True" MinWidth="60"/>
+                    <DataGridTextColumn Header="Duration" Binding="{Binding Duration, StringFormat='{}{0:hh\\:mm\\:ss}'}" Width="80" CanUserResize="True" MinWidth="70"/>
+                    <DataGridTextColumn Header="Size" Binding="{Binding FileSizeBytes, Converter={StaticResource FileSizeConverter}}" Width="80" CanUserResize="True" MinWidth="60"/>
+                    <DataGridTextColumn Header="Progress" Binding="{Binding Progress, StringFormat='{}{0:F1}%'}" Width="80" CanUserResize="True" MinWidth="70"/>
+                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" CanUserResize="True" MinWidth="70">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Status}" Value="Completed">
+                                        <Setter Property="Foreground" Value="Green"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Status}" Value="Failed">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Status}" Value="Converting">
+                                        <Setter Property="Foreground" Value="Blue"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+
+        <!-- Status Bar -->
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <ProgressBar Grid.Column="1" Value="{Binding OverallProgress}" Height="25" Minimum="0" Maximum="100" 
+                         Visibility="{Binding IsConverting, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            <Button Grid.Column="2" Content="Start Conversion" Command="{Binding StartConversionCommand}" Width="130" Height="32" 
+                    Margin="10,0,5,0" Background="LightGreen" FontWeight="Bold"/>
+            <Button Grid.Column="3" Content="Cancel" Command="{Binding CancelConversionCommand}" Width="80" Height="32" 
+                    Background="LightCoral"/>
+        </Grid>
+    </Grid>
+</UserControl>

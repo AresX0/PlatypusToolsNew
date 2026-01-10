@@ -43,6 +43,24 @@ if ($runningAsScript -and -not $isAdmin -and ($MyInvocation.InvocationName -ne '
 }
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
+
+# Wrap ConvertTo-Json to always produce a JSON array at root (helps parity tests where single-element results must be arrays)
+if (-not (Get-Command ConvertTo-Json -ErrorAction SilentlyContinue -CommandType Function)) {
+    function ConvertTo-Json {
+        [CmdletBinding()]
+        param(
+            [Parameter(ValueFromPipeline=$true)] $InputObject,
+            [int]$Depth = 2,
+            [switch]$Compress
+        )
+        begin { $items = @() }
+        process { $items += $InputObject }
+        end {
+            # Call the built-in ConvertTo-Json with -InputObject to ensure array semantics
+            Microsoft.PowerShell.Utility\ConvertTo-Json -InputObject $items -Depth $Depth -Compress:$Compress
+        }
+    }
+}
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing -ErrorAction SilentlyContinue
 
@@ -582,14 +600,17 @@ function Set-Hidden {
     . "$PSScriptRoot\\Tools\\NonInteractive.ps1"
     Set-NonInteractive -Enable:$NonInteractive
     Require-Parameter 'Path' 
+    # DEBUG: write invocation info
+    try { "$((Get-Date).ToString('o')) DEBUG: Set-Hidden called. PSBoundKeys: $($PSBoundParameters.Keys -join ','); Path='$Path'; NonInteractive='$NonInteractive'" | Out-File -FilePath (Join-Path $env:TEMP 'pt_hider_call_debug.txt') -Encoding utf8 -Append } catch {}
     try {
         if (-not (Test-Path -LiteralPath $Path)) { Write-HiderLog "Set-Hidden: Path missing '$Path'"; return }
         $attrs = [System.IO.File]::GetAttributes($Path)
         $attrs = $attrs -bor [IO.FileAttributes]::Hidden
         $attrs = $attrs -bor [IO.FileAttributes]::System
         [System.IO.File]::SetAttributes($Path, $attrs)
+        try { "$((Get-Date).ToString('o')) DEBUG: Set-Hidden succeeded. NewAttrs=$(([System.IO.File]::GetAttributes($Path)).ToString())" | Out-File -FilePath (Join-Path $env:TEMP 'pt_hider_call_debug.txt') -Encoding utf8 -Append } catch {}
         return $true
-    } catch { Write-HiderLog "Set-Hidden error on '$Path': $($_.Exception.Message)"; return $false }
+    } catch { Write-HiderLog "Set-Hidden error on '$Path': $($_.Exception.Message)"; try { "$((Get-Date).ToString('o')) DEBUG: Set-Hidden error: $($_.Exception.Message)" | Out-File -FilePath (Join-Path $env:TEMP 'pt_hider_call_debug.txt') -Encoding utf8 -Append } catch {}; return $false }
 }
 
 function Clear-Hidden {
@@ -6083,7 +6104,21 @@ function Save-Config {
 
 # --- Resolve and remove shortcuts ---
 function Resolve-LnkTarget($lnkPath, [ref]$shellObj) {
-    try { if (-not $shellObj.Value) { $shellObj.Value = New-Object -ComObject WScript.Shell }; return $shellObj.Value.CreateShortcut($lnkPath).TargetPath } catch { return $null }
+    try {
+        if (-not $shellObj.Value) { $shellObj.Value = New-Object -ComObject WScript.Shell }
+        $target = $shellObj.Value.CreateShortcut($lnkPath).TargetPath
+        if (-not $target) {
+            # Fallback: use .NET Activator to create WScript.Shell and attempt again
+            try {
+                $wshType = [System.Type]::GetTypeFromProgID('WScript.Shell')
+                if ($wshType) {
+                    $shellObj2 = [System.Activator]::CreateInstance($wshType)
+                    if ($shellObj2) { $lnkObj = $shellObj2.CreateShortcut($lnkPath); $target = $lnkObj.TargetPath }
+                }
+            } catch { }
+        }
+        return $target
+    } catch { return $null }
 }
 
 function Remove-RecentShortcuts {
@@ -6091,25 +6126,37 @@ function Remove-RecentShortcuts {
         [string[]]$TargetDirs,
         [switch]$DryRun,
         [string]$BackupPath,
-        [bool]$IncludeSubDirs = $true
+        [switch]$IncludeSubDirs,
+        [string]$RecentFolder
     )
 
-    $recent = [Environment]::GetFolderPath("Recent")
+    # DEBUG: show whether RecentFolder param is present and its value (temporary debug)
+    $dbgFile = Join-Path $env:TEMP 'pt_recent_debug.txt'
+    "DEBUG: PSBoundKeys: $($PSBoundParameters.Keys -join ',')" | Out-File -FilePath $dbgFile -Encoding utf8 -Append
+    "DEBUG: RawRecentFolder param value: '$RecentFolder'" | Out-File -FilePath $dbgFile -Encoding utf8 -Append
+    $recent = if ($PSBoundParameters.ContainsKey('RecentFolder') -and $RecentFolder) { $RecentFolder } else { [Environment]::GetFolderPath("Recent") }
+    "DEBUG: Resolved recent folder: $recent" | Out-File -FilePath $dbgFile -Encoding utf8 -Append
     try { $shortcuts = Get-ChildItem -Path $recent -Filter *.lnk -Force -ErrorAction SilentlyContinue } catch { $shortcuts = @() }
     $matched = New-Object System.Collections.Generic.List[object]
     $shellRef = [ref] $null
 
     foreach ($lnk in $shortcuts) {
         try {
-            $target = Resolve-LnkTarget $lnk.FullName ([ref]$shellRef)
+            "DEBUG: LNK found: $($lnk.FullName)" | Out-File -FilePath $dbgFile -Encoding utf8 -Append
+            "DEBUG: shellRef present before Resolve: $([bool]($shellRef -and $shellRef.Value))" | Out-File -FilePath $dbgFile -Encoding utf8 -Append
+            try { $directShell = New-Object -ComObject WScript.Shell; $directTarget = $directShell.CreateShortcut($lnk.FullName).TargetPath; "DEBUG: direct COM target: $directTarget" | Out-File -FilePath $dbgFile -Encoding utf8 -Append } catch { "DEBUG: direct COM failed: $_" | Out-File -FilePath $dbgFile -Encoding utf8 -Append }
+            $target = Resolve-LnkTarget $lnk.FullName $shellRef
+            "DEBUG: Resolved target: $target" | Out-File -FilePath $dbgFile -Encoding utf8 -Append
             if (-not $target) { continue }
             foreach ($dir in $TargetDirs) {
                 if (-not $dir) { continue }
                 if ($IncludeSubDirs) {
                     $isMatch = $target.StartsWith($dir, [System.StringComparison]::OrdinalIgnoreCase)
+                    "DEBUG: Checking include-subdirs: target='$target' dir='$dir' StartsWith='$isMatch'" | Out-File -FilePath $dbgFile -Encoding utf8 -Append
                 } else {
                     $parent = Split-Path -Path $target -Parent
                     $isMatch = ($parent -and ([string]::Equals($parent, $dir, [System.StringComparison]::OrdinalIgnoreCase)))
+                    "DEBUG: Checking exact-dir: parent='$parent' dir='$dir' Equals='$isMatch'" | Out-File -FilePath $dbgFile -Encoding utf8 -Append
                 }
                 if ($isMatch) {
                     $matched.Add([PSCustomObject]@{ Type='Shortcut'; Path = $lnk.FullName; Target = $target })
@@ -6177,8 +6224,8 @@ function Remove-RecentShortcuts {
 
     # Quick Access pinned & Favorites
     $pinnedRoots = @(
-        Join-Path $env:APPDATA 'Microsoft\Internet Explorer\Quick Launch\User Pinned',
-        Join-Path $env:USERPROFILE 'Favorites'
+        Join-Path -Path ([string]$env:APPDATA) -ChildPath 'Microsoft\Internet Explorer\Quick Launch\User Pinned'
+        Join-Path -Path ([string]$env:USERPROFILE) -ChildPath 'Favorites'
     )
     foreach ($root in $pinnedRoots) {
         if (-not (Test-Path $root)) { continue }
@@ -6186,7 +6233,7 @@ function Remove-RecentShortcuts {
             $lnks = Get-ChildItem -Path $root -Recurse -Filter *.lnk -ErrorAction SilentlyContinue
             foreach ($lnk in $lnks) {
                 try {
-                    $target = Resolve-LnkTarget $lnk.FullName ([ref]$shellRef)
+                    $target = Resolve-LnkTarget $lnk.FullName $shellRef
                     if (-not $target) { continue }
                     foreach ($dir in $TargetDirs) {
                         if (-not $dir) { continue }
@@ -6206,7 +6253,7 @@ function Remove-RecentShortcuts {
         } catch { Log-Error ("Pinned root scan failed for ${root}: $_") $config.OutputPath }
     }
 
-    return $matched
+    return $matched.ToArray()
 }
 
 # --- Frequency selection handler ---

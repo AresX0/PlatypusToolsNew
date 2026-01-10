@@ -287,7 +287,7 @@ function Remove-RecentShortcuts {
 
     foreach ($lnk in $shortcuts) {
         try {
-            $target = Resolve-LnkTarget $lnk.FullName ([ref]$shellRef)
+            $target = Resolve-LnkTarget $lnk.FullName $shellRef
             if (-not $target) { continue }
             foreach ($dir in $TargetDirs) {
                 if (-not $dir) { continue }

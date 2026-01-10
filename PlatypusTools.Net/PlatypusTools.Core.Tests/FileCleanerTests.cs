@@ -45,9 +45,28 @@ namespace PlatypusTools.Core.Tests
             File.WriteAllText(f, "x");
 
             var backup = Path.Combine(tmp, "backup");
-            var removed = FileCleaner.RemoveFiles(new[] { f }, dryRun: false, backupPath: backup);
+            var removed = FileCleaner.RemoveFiles(new[] { f }, dryRun: false, backupPath: backup, basePath: tmp);
             Assert.IsFalse(File.Exists(f));
             var backed = Path.Combine(backup, Path.GetFileName(f));
+            Assert.IsTrue(File.Exists(backed));
+            Assert.IsTrue(removed.Contains(f));
+        }
+
+        [TestMethod]
+        public void RemoveFiles_Backup_PreservesRelativeStructure()
+        {
+            var tmp = Path.Combine(Path.GetTempPath(), "pt_filecleaner_relbackup_test");
+            if (Directory.Exists(tmp)) Directory.Delete(tmp, true);
+            Directory.CreateDirectory(tmp);
+            var nested = Path.Combine(tmp, "sub", "sub2");
+            Directory.CreateDirectory(nested);
+            var f = Path.Combine(nested, "e.txt");
+            File.WriteAllText(f, "x");
+
+            var backup = Path.Combine(tmp, "backup");
+            var removed = FileCleaner.RemoveFiles(new[] { f }, dryRun: false, backupPath: backup, basePath: tmp);
+            Assert.IsFalse(File.Exists(f));
+            var backed = Path.Combine(backup, "sub", "sub2", Path.GetFileName(f));
             Assert.IsTrue(File.Exists(backed));
             Assert.IsTrue(removed.Contains(f));
         }
@@ -67,7 +86,7 @@ namespace PlatypusTools.Core.Tests
             File.WriteAllText(dest, "locked");
             File.SetAttributes(dest, FileAttributes.ReadOnly);
 
-            var removed = FileCleaner.RemoveFiles(new[] { f }, dryRun: false, backupPath: backup);
+            var removed = FileCleaner.RemoveFiles(new[] { f }, dryRun: false, backupPath: backup, basePath: tmp);
             Assert.IsTrue(File.Exists(f)); // should not be deleted
             Assert.IsFalse(removed.Contains(f));
 
