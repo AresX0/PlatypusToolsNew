@@ -7,12 +7,21 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Elevation Warning -->
+        <Border Grid.Row="0" Background="Orange" Padding="10" Margin="0,0,0,10"
+                Visibility="{Binding NeedsElevation, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <TextBlock TextWrapping="Wrap" FontWeight="Bold" Foreground="White">
+                ⚠️ Administrative privileges required for full system audit. Some features may be limited. Run as administrator for complete audit capabilities.
+            </TextBlock>
+        </Border>
+
         <!-- Quick Actions -->
-        <GroupBox Header="Audit Actions" Grid.Row="0" Margin="0,0,0,10">
+        <GroupBox Header="Audit Actions" Grid.Row="1" Margin="0,0,0,10">
             <StackPanel Orientation="Horizontal">
                 <Button Content="Full System Audit" Command="{Binding RunFullAuditCommand}" Width="140" Height="35" 
                         Margin="0,0,5,0" Background="LightBlue" FontWeight="Bold"/>
@@ -25,7 +34,7 @@
         </GroupBox>
 
         <!-- Statistics -->
-        <GroupBox Header="Summary" Grid.Row="1" Margin="0,0,0,10">
+        <GroupBox Header="Summary" Grid.Row="2" Margin="0,0,0,10">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Total Issues: " FontWeight="Bold" Margin="0,0,5,0"/>
                 <TextBlock Text="{Binding TotalIssues}" Foreground="Red" FontWeight="Bold" Margin="0,0,20,0"/>
@@ -39,7 +48,7 @@
         </GroupBox>
 
         <!-- Results Grid -->
-        <GroupBox Header="Audit Results" Grid.Row="2" Margin="0,0,0,10">
+        <GroupBox Header="Audit Results" Grid.Row="3" Margin="0,0,0,10">
             <DataGrid ItemsSource="{Binding AuditItems}" AutoGenerateColumns="False" CanUserAddRows="False" 
                       IsReadOnly="True" SelectionMode="Single"
                       CanUserResizeColumns="True" CanUserSortColumns="True">
@@ -99,7 +108,7 @@
         </GroupBox>
 
         <!-- Status Bar -->
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>

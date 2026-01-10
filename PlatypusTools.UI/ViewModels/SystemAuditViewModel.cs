@@ -3,9 +3,11 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using PlatypusTools.Core.Services;
+using PlatypusTools.Core.Utilities;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -14,6 +16,9 @@ namespace PlatypusTools.UI.ViewModels
         private readonly ISystemAuditService _service;
 
         public ObservableCollection<AuditItem> AuditItems { get; } = new();
+
+        public bool IsElevated => ElevationHelper.IsElevated();
+        public bool NeedsElevation => !IsElevated;
 
         private bool _isAuditing;
         public bool IsAuditing

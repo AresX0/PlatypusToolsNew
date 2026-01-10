@@ -15,9 +15,13 @@ namespace PlatypusTools.Core.Services
         Task<List<AuditItem>> RunFullAudit();
         Task<List<AuditItem>> AuditFilePermissions(string path);
         Task<List<AuditItem>> AuditFirewall();
+        Task<List<AuditItem>> AuditFirewallRules();
         Task<List<AuditItem>> AuditWindowsUpdates();
         Task<List<AuditItem>> AuditInstalledSoftware();
         Task<List<AuditItem>> AuditStartupItems();
+        Task<List<AuditItem>> AuditSensitiveDirectoriesAcl();
+        Task<List<AuditItem>> AuditAdministrativeAccounts();
+        Task<List<AuditItem>> AuditAntivirusStatus();
         Task<bool> FixIssue(AuditItem item);
     }
 
@@ -53,11 +57,29 @@ namespace PlatypusTools.Core.Services
         {
             var items = new List<AuditItem>();
 
-            items.AddRange(await AuditFirewall());
-            items.AddRange(await AuditWindowsUpdates());
-            items.AddRange(await AuditInstalledSoftware());
-            items.AddRange(await AuditStartupItems());
-            items.AddRange(await AuditSystemSettings());
+            try
+            {
+                items.AddRange(await AuditFirewall());
+                items.AddRange(await AuditFirewallRules());
+                items.AddRange(await AuditWindowsUpdates());
+                items.AddRange(await AuditStartupItems());
+                items.AddRange(await AuditSystemSettings());
+                items.AddRange(await AuditSensitiveDirectoriesAcl());
+                items.AddRange(await AuditAdministrativeAccounts());
+                items.AddRange(await AuditAntivirusStatus());
+            }
+            catch (Exception ex)
+            {
+                items.Add(new AuditItem
+                {
+                    Category = "System",
+                    Name = "Audit Error",
+                    Description = ex.Message,
+                    Severity = AuditSeverity.Warning,
+                    Status = AuditStatus.Unknown,
+                    Details = ex.StackTrace ?? string.Empty
+                });
+            }
 
             return items;
         }
@@ -232,25 +254,50 @@ namespace PlatypusTools.Core.Services
             {
                 try
                 {
-                    var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Product");
-                    var count = 0;
-                    
-                    foreach (ManagementObject obj in searcher.Get())
+                    // Use registry instead of WMI Win32_Product for better performance
+                    var uninstallKeys = new[]
                     {
-                        count++;
-                        var name = obj["Name"]?.ToString() ?? "Unknown";
-                        var version = obj["Version"]?.ToString() ?? "Unknown";
-                        
-                        items.Add(new AuditItem
-                        {
-                            Category = "Installed Software",
-                            Name = name,
-                            Description = $"Version: {version}",
-                            Severity = AuditSeverity.Info,
-                            Status = AuditStatus.Pass
-                        });
+                        @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
+                        @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+                    };
 
-                        if (count >= 50) break; // Limit to first 50
+                    var count = 0;
+                    foreach (var keyPath in uninstallKeys)
+                    {
+                        using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(keyPath);
+                        if (key != null)
+                        {
+                            foreach (var subKeyName in key.GetSubKeyNames())
+                            {
+                                try
+                                {
+                                    using var subKey = key.OpenSubKey(subKeyName);
+                                    if (subKey != null)
+                                    {
+                                        var displayName = subKey.GetValue("DisplayName")?.ToString();
+                                        var displayVersion = subKey.GetValue("DisplayVersion")?.ToString();
+                                        
+                                        if (!string.IsNullOrEmpty(displayName))
+                                        {
+                                            items.Add(new AuditItem
+                                            {
+                                                Category = "Installed Software",
+                                                Name = displayName,
+                                                Description = $"Version: {displayVersion ?? "Unknown"}",
+                                                Severity = AuditSeverity.Info,
+                                                Status = AuditStatus.Pass
+                                            });
+                                            
+                                            count++;
+                                            if (count >= 100) break; // Limit to first 100
+                                        }
+                                    }
+                                }
+                                catch { }
+                            }
+                        }
+                        
+                        if (count >= 100) break;
                     }
                 }
                 catch (Exception ex)
@@ -395,6 +442,361 @@ namespace PlatypusTools.Core.Services
                 }
                 catch { }
             });
+
+            return items;
+        }
+
+        public async Task<List<AuditItem>> AuditFirewallRules()
+        {
+            var items = new List<AuditItem>();
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    // Get inbound rules
+                    var inboundInfo = new ProcessStartInfo
+                    {
+                        FileName = "netsh",
+                        Arguments = "advfirewall firewall show rule name=all dir=in",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true
+                    };
+
+                    using var inboundProcess = Process.Start(inboundInfo);
+                    if (inboundProcess != null)
+                    {
+                        var output = inboundProcess.StandardOutput.ReadToEnd();
+                        inboundProcess.WaitForExit();
+
+                        var rules = ParseFirewallRules(output, "Inbound");
+                        items.AddRange(rules);
+                    }
+
+                    // Get outbound rules
+                    var outboundInfo = new ProcessStartInfo
+                    {
+                        FileName = "netsh",
+                        Arguments = "advfirewall firewall show rule name=all dir=out",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true
+                    };
+
+                    using var outboundProcess = Process.Start(outboundInfo);
+                    if (outboundProcess != null)
+                    {
+                        var output = outboundProcess.StandardOutput.ReadToEnd();
+                        outboundProcess.WaitForExit();
+
+                        var rules = ParseFirewallRules(output, "Outbound");
+                        items.AddRange(rules);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    items.Add(new AuditItem
+                    {
+                        Category = "Firewall Rules",
+                        Name = "Error",
+                        Description = ex.Message,
+                        Severity = AuditSeverity.Warning,
+                        Status = AuditStatus.Unknown
+                    });
+                }
+            });
+
+            return items;
+        }
+
+        public async Task<List<AuditItem>> AuditSensitiveDirectoriesAcl()
+        {
+            var items = new List<AuditItem>();
+
+            var sensitiveDirs = new[]
+            {
+                Environment.GetFolderPath(Environment.SpecialFolder.System),
+                Environment.GetFolderPath(Environment.SpecialFolder.Windows),
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32", "config")
+            };
+
+            foreach (var dir in sensitiveDirs)
+            {
+                if (Directory.Exists(dir))
+                {
+                    var aclItems = await AuditFilePermissions(dir);
+                    items.AddRange(aclItems);
+                }
+            }
+
+            return items;
+        }
+
+        public async Task<List<AuditItem>> AuditAdministrativeAccounts()
+        {
+            var items = new List<AuditItem>();
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = "net",
+                        Arguments = "localgroup Administrators",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true
+                    };
+
+                    using var process = Process.Start(startInfo);
+                    if (process != null)
+                    {
+                        var output = process.StandardOutput.ReadToEnd();
+                        process.WaitForExit();
+
+                        var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                        var inMemberList = false;
+
+                        foreach (var line in lines)
+                        {
+                            var trimmed = line.Trim();
+                            
+                            if (trimmed.StartsWith("-----"))
+                            {
+                                inMemberList = true;
+                                continue;
+                            }
+
+                            if (inMemberList && !string.IsNullOrWhiteSpace(trimmed) && 
+                                !trimmed.StartsWith("The command"))
+                            {
+                                items.Add(new AuditItem
+                                {
+                                    Category = "Administrative Accounts",
+                                    Name = trimmed,
+                                    Description = "Member of Administrators group",
+                                    Severity = AuditSeverity.Info,
+                                    Status = AuditStatus.Pass,
+                                    Details = "Has full administrative control"
+                                });
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    items.Add(new AuditItem
+                    {
+                        Category = "Administrative Accounts",
+                        Name = "Error",
+                        Description = ex.Message,
+                        Severity = AuditSeverity.Warning,
+                        Status = AuditStatus.Unknown
+                    });
+                }
+            });
+
+            return items;
+        }
+
+        public async Task<List<AuditItem>> AuditAntivirusStatus()
+        {
+            var items = new List<AuditItem>();
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    // Check Windows Defender
+                    var defenderInfo = new ProcessStartInfo
+                    {
+                        FileName = "powershell",
+                        Arguments = "-Command \"Get-MpComputerStatus | ConvertTo-Json\"",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true
+                    };
+
+                    using var process = Process.Start(defenderInfo);
+                    if (process != null)
+                    {
+                        var output = process.StandardOutput.ReadToEnd();
+                        process.WaitForExit();
+
+                        var realtimeEnabled = output.Contains("\"RealTimeProtectionEnabled\": true");
+                        var antivirusEnabled = output.Contains("\"AntivirusEnabled\": true");
+                        var antispywareEnabled = output.Contains("\"AntispywareEnabled\": true");
+
+                        items.Add(new AuditItem
+                        {
+                            Category = "Antivirus Protection",
+                            Name = "Windows Defender - Real-time Protection",
+                            Description = realtimeEnabled ? "Enabled" : "Disabled",
+                            Severity = realtimeEnabled ? AuditSeverity.Info : AuditSeverity.Critical,
+                            Status = realtimeEnabled ? AuditStatus.Pass : AuditStatus.Fail
+                        });
+
+                        items.Add(new AuditItem
+                        {
+                            Category = "Antivirus Protection",
+                            Name = "Windows Defender - Antivirus",
+                            Description = antivirusEnabled ? "Enabled" : "Disabled",
+                            Severity = antivirusEnabled ? AuditSeverity.Info : AuditSeverity.Critical,
+                            Status = antivirusEnabled ? AuditStatus.Pass : AuditStatus.Fail
+                        });
+
+                        items.Add(new AuditItem
+                        {
+                            Category = "Antivirus Protection",
+                            Name = "Windows Defender - Antispyware",
+                            Description = antispywareEnabled ? "Enabled" : "Disabled",
+                            Severity = antispywareEnabled ? AuditSeverity.Info : AuditSeverity.Critical,
+                            Status = antispywareEnabled ? AuditStatus.Pass : AuditStatus.Fail
+                        });
+
+                        // Get signature information
+                        if (output.Contains("AntivirusSignatureLastUpdated"))
+                        {
+                            var lastUpdateMatch = System.Text.RegularExpressions.Regex.Match(
+                                output, 
+                                @"""AntivirusSignatureLastUpdated"":\s*""([^""]+)"""
+                            );
+                            
+                            if (lastUpdateMatch.Success)
+                            {
+                                items.Add(new AuditItem
+                                {
+                                    Category = "Antivirus Protection",
+                                    Name = "Signature Last Updated",
+                                    Description = lastUpdateMatch.Groups[1].Value,
+                                    Severity = AuditSeverity.Info,
+                                    Status = AuditStatus.Pass
+                                });
+                            }
+                        }
+                    }
+
+                    // Check for other antivirus via WMI
+                    try
+                    {
+                        var wmiInfo = new ProcessStartInfo
+                        {
+                            FileName = "powershell",
+                            Arguments = "-Command \"Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntivirusProduct | Select-Object displayName, productState | ConvertTo-Json\"",
+                            UseShellExecute = false,
+                            RedirectStandardOutput = true,
+                            CreateNoWindow = true
+                        };
+
+                        using var wmiProcess = Process.Start(wmiInfo);
+                        if (wmiProcess != null)
+                        {
+                            var wmiOutput = wmiProcess.StandardOutput.ReadToEnd();
+                            wmiProcess.WaitForExit();
+
+                            if (!string.IsNullOrWhiteSpace(wmiOutput) && wmiOutput.Contains("displayName"))
+                            {
+                                items.Add(new AuditItem
+                                {
+                                    Category = "Antivirus Protection",
+                                    Name = "Installed Antivirus Products",
+                                    Description = "See details for list",
+                                    Severity = AuditSeverity.Info,
+                                    Status = AuditStatus.Pass,
+                                    Details = wmiOutput
+                                });
+                            }
+                        }
+                    }
+                    catch { }
+                }
+                catch (Exception ex)
+                {
+                    items.Add(new AuditItem
+                    {
+                        Category = "Antivirus Protection",
+                        Name = "Error",
+                        Description = ex.Message,
+                        Severity = AuditSeverity.Warning,
+                        Status = AuditStatus.Unknown
+                    });
+                }
+            });
+
+            return items;
+        }
+
+        private List<AuditItem> ParseFirewallRules(string output, string direction)
+        {
+            var items = new List<AuditItem>();
+            var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+            
+            string? ruleName = null;
+            string? action = null;
+            string? profile = null;
+            string? localPort = null;
+            string? remotePort = null;
+            
+            foreach (var line in lines)
+            {
+                var trimmed = line.Trim();
+                
+                if (trimmed.StartsWith("Rule Name:"))
+                {
+                    // Save previous rule
+                    if (ruleName != null)
+                    {
+                        items.Add(new AuditItem
+                        {
+                            Category = $"Firewall Rules ({direction})",
+                            Name = ruleName,
+                            Description = $"{action ?? "Unknown"} - {profile ?? "All Profiles"}",
+                            Severity = action == "Block" ? AuditSeverity.Info : AuditSeverity.Info,
+                            Status = AuditStatus.Pass,
+                            Details = $"Local Port: {localPort ?? "Any"}, Remote Port: {remotePort ?? "Any"}"
+                        });
+                    }
+                    
+                    ruleName = trimmed.Substring("Rule Name:".Length).Trim();
+                    action = null;
+                    profile = null;
+                    localPort = null;
+                    remotePort = null;
+                }
+                else if (trimmed.StartsWith("Action:"))
+                {
+                    action = trimmed.Substring("Action:".Length).Trim();
+                }
+                else if (trimmed.StartsWith("Profiles:"))
+                {
+                    profile = trimmed.Substring("Profiles:".Length).Trim();
+                }
+                else if (trimmed.StartsWith("LocalPort:"))
+                {
+                    localPort = trimmed.Substring("LocalPort:".Length).Trim();
+                }
+                else if (trimmed.StartsWith("RemotePort:"))
+                {
+                    remotePort = trimmed.Substring("RemotePort:".Length).Trim();
+                }
+            }
+            
+            // Save last rule
+            if (ruleName != null)
+            {
+                items.Add(new AuditItem
+                {
+                    Category = $"Firewall Rules ({direction})",
+                    Name = ruleName,
+                    Description = $"{action ?? "Unknown"} - {profile ?? "All Profiles"}",
+                    Severity = action == "Block" ? AuditSeverity.Info : AuditSeverity.Info,
+                    Status = AuditStatus.Pass,
+                    Details = $"Local Port: {localPort ?? "Any"}, Remote Port: {remotePort ?? "Any"}"
+                });
+            }
 
             return items;
         }
