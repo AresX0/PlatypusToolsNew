@@ -1,0 +1,12 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Color x:Key="WindowBackgroundColor">#FFFFFFFF</Color>
+  <Color x:Key="WindowForegroundColor">#FF000000</Color>
+  <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}" />
+  <SolidColorBrush x:Key="WindowForegroundBrush" Color="{StaticResource WindowForegroundColor}" />
+  <SolidColorBrush x:Key="AccentBrush" Color="#FF3A96DD" />
+  <Style TargetType="Window">
+    <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}" />
+  </Style>
+</ResourceDictionary>

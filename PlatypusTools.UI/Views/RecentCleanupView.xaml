@@ -1,0 +1,32 @@
+<UserControl x:Class="PlatypusTools.UI.Views.RecentCleanupView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="900">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
+            <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Target directories (semicolon separated):</TextBlock>
+            <TextBox Width="300" Text="{Binding TargetDirs, UpdateSourceTrigger=PropertyChanged}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8">
+            <CheckBox IsChecked="{Binding DryRun}" Content="Dry run" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <Button Content="Scan Recent" Command="{Binding ScanCommand}" Width="120" />
+        </StackPanel>
+        <ListView Grid.Row="2" ItemsSource="{Binding Results}">
+            <ListView.View>
+                <GridView AllowsColumnReorder="True">
+                    <GridViewColumn Header="Type" Width="80" DisplayMemberBinding="{Binding Type}" />
+                    <GridViewColumn Header="Path" Width="300" DisplayMemberBinding="{Binding Path}" />
+                    <GridViewColumn Header="Target" Width="300" DisplayMemberBinding="{Binding Target}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</UserControl>

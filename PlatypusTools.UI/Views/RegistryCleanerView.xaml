@@ -1,0 +1,92 @@
+<UserControl x:Class="PlatypusTools.UI.Views.RegistryCleanerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="1000">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Actions -->
+        <GroupBox Header="Registry Cleaner" Grid.Row="0" Margin="0,0,0,8">
+            <Grid Margin="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" Grid.Column="0">
+                    <Button Content="Scan for Issues" Command="{Binding ScanCommand}" Width="120" FontWeight="Bold" Margin="0,0,8,0" />
+                    <Button Content="Fix Selected" Command="{Binding FixSelectedCommand}" Width="100" Background="DarkGreen" Foreground="White" Margin="0,0,8,0" />
+                    <Button Content="Fix All" Command="{Binding FixAllCommand}" Width="100" Background="DarkOrange" Foreground="White" Margin="0,0,16,0" />
+                    <Button Content="Create Backup" Command="{Binding BackupCommand}" Width="120" Margin="0,0,8,0" />
+                    <Button Content="Select All" Command="{Binding SelectAllCommand}" Width="90" Margin="0,0,4,0" />
+                    <Button Content="Deselect All" Command="{Binding DeselectAllCommand}" Width="90" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,16,0">
+                        Issues: <Run Text="{Binding TotalIssues, Mode=OneWay}" />
+                    </TextBlock>
+                    <TextBlock VerticalAlignment="Center" FontWeight="Bold" Foreground="Green">
+                        Fixed: <Run Text="{Binding FixedIssues, Mode=OneWay}" />
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <!-- Issues List -->
+        <GroupBox Header="Registry Issues" Grid.Row="1" Margin="0,0,0,8">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <DataGrid ItemsSource="{Binding Issues}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserResizeColumns="True"
+                          SelectionMode="Extended"
+                          AlternatingRowBackground="#F5F5F5">
+                    <DataGrid.Columns>
+                        <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="60" MinWidth="50" />
+                        <DataGridTextColumn Header="Issue Type" Binding="{Binding IssueType}" Width="120" MinWidth="100" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="80" MinWidth="60" IsReadOnly="True">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <Trigger Property="Text" Value="High">
+                                            <Setter Property="Foreground" Value="Red" />
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                        </Trigger>
+                                        <Trigger Property="Text" Value="Medium">
+                                            <Setter Property="Foreground" Value="Orange" />
+                                        </Trigger>
+                                        <Trigger Property="Text" Value="Low">
+                                            <Setter Property="Foreground" Value="Green" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Key Path" Binding="{Binding KeyPath}" Width="*" MinWidth="300" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="250" MinWidth="200" IsReadOnly="True" />
+                        <DataGridCheckBoxColumn Header="Fixed" Binding="{Binding IsFixed, Mode=OneWay}" Width="60" MinWidth="50" IsReadOnly="True" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </ScrollViewer>
+        </GroupBox>
+
+        <!-- Status Bar -->
+        <StatusBar Grid.Row="2">
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusMessage}" />
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Scanning..." Margin="0,0,8,0" Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <ProgressBar Width="100" Height="16" IsIndeterminate="True" Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                </StackPanel>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</UserControl>

@@ -1,0 +1,46 @@
+bin/
+obj/
+publish/
+*.user
+*.vs
+.vscode/
+*.db
+*.pdb
+*.log
+
+# Non-essential files (archived locally)
+ArchivedScripts/
+Path/
+PlatypusUtils/
+Tools/
+.tools/
+.scripts/
+backups/
+LocalArchive/
+
+# Old executables and binaries
+*.exe
+*.dll
+*.ico
+*.png
+exiftool
+ffmpeg.exe
+ffplay.exe
+ffprobe.exe
+
+# Legacy files
+Changes
+MANIFEST
+META.json
+META.yml
+metadata_results.csv
+perl-Image-ExifTool.spec
+files_to_remove.txt
+planned_moves.txt
+diag_*.txt
+hidefolder_*.txt
+test_results*.txt
+filecleaner1.32.cs
+pssa_report.json
+README
+README.txt
