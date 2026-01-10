@@ -22,7 +22,14 @@ namespace PlatypusTools.Core.Services
         Task<List<AuditItem>> AuditSensitiveDirectoriesAcl();
         Task<List<AuditItem>> AuditAdministrativeAccounts();
         Task<List<AuditItem>> AuditAntivirusStatus();
+        Task<List<AuditItem>> ScanElevatedUsers();
+        Task<List<AuditItem>> ScanCriticalAcls();
+        Task<List<AuditItem>> ScanOutboundTraffic();
+        Task<bool> DisableUser(string username);
+        Task<bool> DeleteUser(string username);
+        Task<bool> ResetUserPassword(string username, string newPassword);
         Task<bool> FixIssue(AuditItem item);
+        void OpenUsersAndGroups();
     }
 
     public class AuditItem
@@ -799,6 +806,418 @@ namespace PlatypusTools.Core.Services
             }
 
             return items;
+        }
+
+        public async Task<List<AuditItem>> ScanElevatedUsers()
+        {
+            var items = new List<AuditItem>();
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    // Get all local users
+                    var allUsersInfo = new ProcessStartInfo
+                    {
+                        FileName = "net",
+                        Arguments = "user",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true
+                    };
+
+                    using var allUsersProcess = Process.Start(allUsersInfo);
+                    if (allUsersProcess != null)
+                    {
+                        var output = allUsersProcess.StandardOutput.ReadToEnd();
+                        allUsersProcess.WaitForExit();
+
+                        var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                        var inUserList = false;
+
+                        foreach (var line in lines)
+                        {
+                            var trimmed = line.Trim();
+                            
+                            if (trimmed.StartsWith("-----"))
+                            {
+                                inUserList = true;
+                                continue;
+                            }
+
+                            if (inUserList && !string.IsNullOrWhiteSpace(trimmed) && 
+                                !trimmed.StartsWith("The command"))
+                            {
+                                // Check each user's groups
+                                var userGroupsInfo = new ProcessStartInfo
+                                {
+                                    FileName = "net",
+                                    Arguments = $"user \"{trimmed}\"",
+                                    UseShellExecute = false,
+                                    RedirectStandardOutput = true,
+                                    CreateNoWindow = true
+                                };
+
+                                try
+                                {
+                                    using var userProcess = Process.Start(userGroupsInfo);
+                                    if (userProcess != null)
+                                    {
+                                        var userOutput = userProcess.StandardOutput.ReadToEnd();
+                                        userProcess.WaitForExit();
+
+                                        var isAdmin = userOutput.Contains("Administrators") || 
+                                                     userOutput.Contains("Domain Admins") ||
+                                                     userOutput.Contains("Enterprise Admins");
+
+                                        if (isAdmin)
+                                        {
+                                            items.Add(new AuditItem
+                                            {
+                                                Category = "Elevated Users",
+                                                Name = trimmed,
+                                                Description = "User has administrative privileges",
+                                                Severity = AuditSeverity.Warning,
+                                                Status = AuditStatus.Pass,
+                                                Details = "Review if this user requires elevated access"
+                                            });
+                                        }
+                                    }
+                                }
+                                catch { }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    items.Add(new AuditItem
+                    {
+                        Category = "Elevated Users",
+                        Name = "Error",
+                        Description = ex.Message,
+                        Severity = AuditSeverity.Warning,
+                        Status = AuditStatus.Unknown
+                    });
+                }
+            });
+
+            return items;
+        }
+
+        public async Task<List<AuditItem>> ScanCriticalAcls()
+        {
+            var items = new List<AuditItem>();
+
+            var criticalPaths = new[]
+            {
+                Environment.GetFolderPath(Environment.SpecialFolder.System),
+                Environment.GetFolderPath(Environment.SpecialFolder.Windows),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32", "config"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32", "drivers"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)),
+                @"C:\Windows\Tasks",
+                @"C:\Windows\System32\Tasks"
+            };
+
+            foreach (var path in criticalPaths)
+            {
+                if (Directory.Exists(path))
+                {
+                    await Task.Run(() =>
+                    {
+                        try
+                        {
+                            var dirInfo = new DirectoryInfo(path);
+                            var security = dirInfo.GetAccessControl();
+                            var rules = security.GetAccessRules(true, true, typeof(System.Security.Principal.NTAccount));
+
+                            foreach (System.Security.AccessControl.AuthorizationRule rule in rules)
+                            {
+                                var fsRule = rule as System.Security.AccessControl.FileSystemAccessRule;
+                                if (fsRule != null)
+                                {
+                                    // Check for critical issues
+                                    var identity = fsRule.IdentityReference.Value;
+                                    var isCritical = false;
+                                    var issue = "";
+
+                                    if ((identity.Contains("Everyone") || identity.Contains("Users")) &&
+                                        fsRule.AccessControlType == System.Security.AccessControl.AccessControlType.Allow)
+                                    {
+                                        if (fsRule.FileSystemRights.HasFlag(System.Security.AccessControl.FileSystemRights.FullControl))
+                                        {
+                                            isCritical = true;
+                                            issue = $"Full Control granted to {identity}";
+                                        }
+                                        else if (fsRule.FileSystemRights.HasFlag(System.Security.AccessControl.FileSystemRights.Modify) ||
+                                                 fsRule.FileSystemRights.HasFlag(System.Security.AccessControl.FileSystemRights.Write))
+                                        {
+                                            isCritical = true;
+                                            issue = $"Write/Modify access granted to {identity}";
+                                        }
+                                    }
+
+                                    if (isCritical)
+                                    {
+                                        items.Add(new AuditItem
+                                        {
+                                            Category = "Critical ACL",
+                                            Name = Path.GetFileName(path),
+                                            Description = issue,
+                                            Severity = AuditSeverity.Critical,
+                                            Status = AuditStatus.Fail,
+                                            Details = path
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        catch { }
+                    });
+                }
+            }
+
+            return items;
+        }
+
+        public async Task<List<AuditItem>> ScanOutboundTraffic()
+        {
+            var items = new List<AuditItem>();
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    // Get active network connections
+                    var netstatInfo = new ProcessStartInfo
+                    {
+                        FileName = "netstat",
+                        Arguments = "-ano",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true
+                    };
+
+                    using var process = Process.Start(netstatInfo);
+                    if (process != null)
+                    {
+                        var output = process.StandardOutput.ReadToEnd();
+                        process.WaitForExit();
+
+                        var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                        var outboundCount = 0;
+
+                        foreach (var line in lines)
+                        {
+                            if (line.Contains("ESTABLISHED") && line.Trim().StartsWith("TCP"))
+                            {
+                                var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                                if (parts.Length >= 5)
+                                {
+                                    var localAddress = parts[1];
+                                    var foreignAddress = parts[2];
+                                    var pid = parts[4];
+
+                                    // Check if it's outbound (not loopback)
+                                    if (!foreignAddress.StartsWith("127.0.0.1") && 
+                                        !foreignAddress.StartsWith("[::1]"))
+                                    {
+                                        outboundCount++;
+                                        
+                                        // Get process name
+                                        string processName = "Unknown";
+                                        try
+                                        {
+                                            var proc = Process.GetProcessById(int.Parse(pid));
+                                            processName = proc.ProcessName;
+                                        }
+                                        catch { }
+
+                                        items.Add(new AuditItem
+                                        {
+                                            Category = "Outbound Traffic",
+                                            Name = processName,
+                                            Description = $"{localAddress} → {foreignAddress}",
+                                            Severity = AuditSeverity.Info,
+                                            Status = AuditStatus.Pass,
+                                            Details = $"PID: {pid}"
+                                        });
+
+                                        if (outboundCount >= 50) break; // Limit results
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Also check firewall outbound rules
+                    var firewallInfo = new ProcessStartInfo
+                    {
+                        FileName = "netsh",
+                        Arguments = "advfirewall firewall show rule name=all dir=out",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true
+                    };
+
+                    using var fwProcess = Process.Start(firewallInfo);
+                    if (fwProcess != null)
+                    {
+                        var fwOutput = fwProcess.StandardOutput.ReadToEnd();
+                        fwProcess.WaitForExit();
+
+                        var blockCount = 0;
+                        foreach (var line in fwOutput.Split('\n'))
+                        {
+                            if (line.Contains("Action:") && line.Contains("Block"))
+                            {
+                                blockCount++;
+                            }
+                        }
+
+                        items.Add(new AuditItem
+                        {
+                            Category = "Outbound Traffic",
+                            Name = "Firewall Blocked Outbound",
+                            Description = $"{blockCount} outbound blocking rules configured",
+                            Severity = AuditSeverity.Info,
+                            Status = AuditStatus.Pass
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    items.Add(new AuditItem
+                    {
+                        Category = "Outbound Traffic",
+                        Name = "Error",
+                        Description = ex.Message,
+                        Severity = AuditSeverity.Warning,
+                        Status = AuditStatus.Unknown
+                    });
+                }
+            });
+
+            return items;
+        }
+
+        public async Task<bool> DisableUser(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+                return false;
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = "net",
+                        Arguments = $"user \"{username}\" /active:no",
+                        UseShellExecute = true,
+                        Verb = "runas",
+                        CreateNoWindow = true
+                    };
+
+                    using var process = Process.Start(startInfo);
+                    process?.WaitForExit();
+                });
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteUser(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+                return false;
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = "net",
+                        Arguments = $"user \"{username}\" /delete",
+                        UseShellExecute = true,
+                        Verb = "runas",
+                        CreateNoWindow = true
+                    };
+
+                    using var process = Process.Start(startInfo);
+                    process?.WaitForExit();
+                });
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> ResetUserPassword(string username, string newPassword)
+        {
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(newPassword))
+                return false;
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = "net",
+                        Arguments = $"user \"{username}\" \"{newPassword}\"",
+                        UseShellExecute = true,
+                        Verb = "runas",
+                        CreateNoWindow = true
+                    };
+
+                    using var process = Process.Start(startInfo);
+                    process?.WaitForExit();
+                });
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public void OpenUsersAndGroups()
+        {
+            try
+            {
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "lusrmgr.msc",
+                    UseShellExecute = true
+                };
+
+                Process.Start(startInfo);
+            }
+            catch
+            {
+                // Fallback to control panel
+                try
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "control",
+                        Arguments = "userpasswords2",
+                        UseShellExecute = true
+                    });
+                }
+                catch { }
+            }
         }
 
         public async Task<bool> FixIssue(AuditItem item)

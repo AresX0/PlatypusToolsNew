@@ -8,6 +8,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -22,19 +23,58 @@
 
         <!-- Quick Actions -->
         <GroupBox Header="Audit Actions" Grid.Row="1" Margin="0,0,0,10">
-            <StackPanel Orientation="Horizontal">
-                <Button Content="Full System Audit" Command="{Binding RunFullAuditCommand}" Width="140" Height="35" 
-                        Margin="0,0,5,0" Background="LightBlue" FontWeight="Bold"/>
-                <Button Content="Firewall" Command="{Binding RunFirewallAuditCommand}" Width="100" Height="35" Margin="0,0,5,0"/>
-                <Button Content="Updates" Command="{Binding RunUpdatesAuditCommand}" Width="100" Height="35" Margin="0,0,5,0"/>
-                <Button Content="Startup Items" Command="{Binding RunStartupAuditCommand}" Width="120" Height="35" Margin="0,0,5,0"/>
-                <Button Content="Fix All Issues" Command="{Binding FixAllCommand}" Width="120" Height="35" 
-                        Margin="10,0,5,0" Background="LightGreen" FontWeight="Bold"/>
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                    <Button Content="Full System Audit" Command="{Binding RunFullAuditCommand}" Width="140" Height="35" 
+                            Margin="0,0,5,0" Background="LightBlue" FontWeight="Bold"/>
+                    <Button Content="Scan Elevated Users" Command="{Binding ScanElevatedUsersCommand}" Width="140" Height="35" 
+                            Margin="0,0,5,0" Background="LightCoral"/>
+                    <Button Content="Scan Critical ACLs" Command="{Binding ScanCriticalAclsCommand}" Width="140" Height="35" 
+                            Margin="0,0,5,0" Background="LightCoral"/>
+                    <Button Content="Scan Outbound Traffic" Command="{Binding ScanOutboundTrafficCommand}" Width="160" Height="35" 
+                            Margin="0,0,5,0" Background="LightGreen"/>
+                    <Button Content="Open Users &amp; Groups" Command="{Binding OpenUsersAndGroupsCommand}" Width="160" Height="35" 
+                            Margin="0,0,5,0" Background="LightYellow"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Firewall" Command="{Binding RunFirewallAuditCommand}" Width="100" Height="35" Margin="0,0,5,0"/>
+                    <Button Content="Updates" Command="{Binding RunUpdatesAuditCommand}" Width="100" Height="35" Margin="0,0,5,0"/>
+                    <Button Content="Startup Items" Command="{Binding RunStartupAuditCommand}" Width="120" Height="35" Margin="0,0,5,0"/>
+                </StackPanel>
             </StackPanel>
         </GroupBox>
 
+        <!-- User Management -->
+        <GroupBox Header="User Management (Requires Admin)" Grid.Row="2" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0" Text="Selected User:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="Bold"/>
+                <TextBox Grid.Column="1" Text="{Binding SelectedUsername, UpdateSourceTrigger=PropertyChanged}" 
+                         Height="30" VerticalContentAlignment="Center" Margin="0,0,10,0"/>
+                
+                <Button Grid.Column="2" Content="Disable User" Command="{Binding DisableUserCommand}" Width="100" Height="30" 
+                        Margin="0,0,5,0" Background="Orange"/>
+                <Button Grid.Column="2" Content="Delete User" Command="{Binding DeleteUserCommand}" Width="100" Height="30" 
+                        Margin="110,0,5,0" Background="Red" Foreground="White"/>
+                
+                <TextBlock Grid.Column="3" Text="New password:" VerticalAlignment="Center" Margin="10,0,10,0"/>
+                <TextBox Grid.Column="3" Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}" 
+                         Height="30" VerticalContentAlignment="Center" Margin="100,0,10,0"/>
+                
+                <Button Grid.Column="4" Content="Reset Password" Command="{Binding ResetPasswordCommand}" Width="120" Height="30" 
+                        Background="LightBlue"/>
+            </Grid>
+        </GroupBox>
+
         <!-- Statistics -->
-        <GroupBox Header="Summary" Grid.Row="2" Margin="0,0,0,10">
+        <GroupBox Header="Summary" Grid.Row="3" Margin="0,0,0,10">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Total Issues: " FontWeight="Bold" Margin="0,0,5,0"/>
                 <TextBlock Text="{Binding TotalIssues}" Foreground="Red" FontWeight="Bold" Margin="0,0,20,0"/>
@@ -48,7 +88,7 @@
         </GroupBox>
 
         <!-- Results Grid -->
-        <GroupBox Header="Audit Results" Grid.Row="3" Margin="0,0,0,10">
+        <GroupBox Header="Audit Results" Grid.Row="4" Margin="0,0,0,10">
             <DataGrid ItemsSource="{Binding AuditItems}" AutoGenerateColumns="False" CanUserAddRows="False" 
                       IsReadOnly="True" SelectionMode="Single"
                       CanUserResizeColumns="True" CanUserSortColumns="True">
@@ -108,7 +148,7 @@
         </GroupBox>
 
         <!-- Status Bar -->
-        <Grid Grid.Row="4">
+        <Grid Grid.Row="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>

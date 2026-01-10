@@ -75,10 +75,31 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand RunFirewallAuditCommand { get; }
         public ICommand RunUpdatesAuditCommand { get; }
         public ICommand RunStartupAuditCommand { get; }
+        public ICommand ScanElevatedUsersCommand { get; }
+        public ICommand ScanCriticalAclsCommand { get; }
+        public ICommand ScanOutboundTrafficCommand { get; }
+        public ICommand OpenUsersAndGroupsCommand { get; }
+        public ICommand DisableUserCommand { get; }
+        public ICommand DeleteUserCommand { get; }
+        public ICommand ResetPasswordCommand { get; }
         public ICommand FixIssueCommand { get; }
         public ICommand FixAllCommand { get; }
         public ICommand ExportReportCommand { get; }
         public ICommand ClearCommand { get; }
+
+        private string _selectedUsername = string.Empty;
+        public string SelectedUsername
+        {
+            get => _selectedUsername;
+            set { _selectedUsername = value; OnPropertyChanged(); }
+        }
+
+        private string _newPassword = string.Empty;
+        public string NewPassword
+        {
+            get => _newPassword;
+            set { _newPassword = value; OnPropertyChanged(); }
+        }
 
         private ObservableCollection<AuditItem> _allItems = new();
 
@@ -92,6 +113,13 @@ namespace PlatypusTools.UI.ViewModels
             RunFirewallAuditCommand = new RelayCommand(_ => RunFirewallAudit(), _ => CanRunAudit);
             RunUpdatesAuditCommand = new RelayCommand(_ => RunUpdatesAudit(), _ => CanRunAudit);
             RunStartupAuditCommand = new RelayCommand(_ => RunStartupAudit(), _ => CanRunAudit);
+            ScanElevatedUsersCommand = new RelayCommand(_ => ScanElevatedUsers(), _ => CanRunAudit);
+            ScanCriticalAclsCommand = new RelayCommand(_ => ScanCriticalAcls(), _ => CanRunAudit);
+            ScanOutboundTrafficCommand = new RelayCommand(_ => ScanOutboundTraffic(), _ => CanRunAudit);
+            OpenUsersAndGroupsCommand = new RelayCommand(_ => OpenUsersAndGroups());
+            DisableUserCommand = new RelayCommand(_ => DisableUser());
+            DeleteUserCommand = new RelayCommand(_ => DeleteUser());
+            ResetPasswordCommand = new RelayCommand(_ => ResetPassword());
             FixIssueCommand = new RelayCommand(obj => FixIssue(obj as AuditItem));
             FixAllCommand = new RelayCommand(_ => FixAll(), _ => AuditItems.Any(i => i.CanAutoFix));
             ExportReportCommand = new RelayCommand(_ => ExportReport());
@@ -206,6 +234,174 @@ namespace PlatypusTools.UI.ViewModels
             finally
             {
                 IsAuditing = false;
+            }
+        }
+
+        private async void ScanElevatedUsers()
+        {
+            IsAuditing = true;
+            StatusMessage = "Scanning for elevated users...";
+
+            try
+            {
+                var items = await _service.ScanElevatedUsers();
+                foreach (var item in items)
+                {
+                    _allItems.Add(item);
+                    AuditItems.Add(item);
+                }
+                
+                UpdateStatistics();
+                StatusMessage = $"Found {items.Count} elevated users";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAuditing = false;
+            }
+        }
+
+        private async void ScanCriticalAcls()
+        {
+            IsAuditing = true;
+            StatusMessage = "Scanning critical ACLs...";
+
+            try
+            {
+                var items = await _service.ScanCriticalAcls();
+                foreach (var item in items)
+                {
+                    _allItems.Add(item);
+                    AuditItems.Add(item);
+                }
+                
+                UpdateStatistics();
+                StatusMessage = $"Found {items.Count} critical ACL issues";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAuditing = false;
+            }
+        }
+
+        private async void ScanOutboundTraffic()
+        {
+            IsAuditing = true;
+            StatusMessage = "Scanning outbound traffic...";
+
+            try
+            {
+                var items = await _service.ScanOutboundTraffic();
+                foreach (var item in items)
+                {
+                    _allItems.Add(item);
+                    AuditItems.Add(item);
+                }
+                
+                UpdateStatistics();
+                StatusMessage = $"Found {items.Count} outbound connections";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAuditing = false;
+            }
+        }
+
+        private void OpenUsersAndGroups()
+        {
+            try
+            {
+                _service.OpenUsersAndGroups();
+                StatusMessage = "Opened Users and Groups management";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            }
+        }
+
+        private async void DisableUser()
+        {
+            if (string.IsNullOrWhiteSpace(SelectedUsername))
+            {
+                StatusMessage = "Please select a user from the audit results";
+                return;
+            }
+
+            try
+            {
+                var success = await _service.DisableUser(SelectedUsername);
+                StatusMessage = success 
+                    ? $"Successfully disabled user: {SelectedUsername}" 
+                    : $"Failed to disable user: {SelectedUsername}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            }
+        }
+
+        private async void DeleteUser()
+        {
+            if (string.IsNullOrWhiteSpace(SelectedUsername))
+            {
+                StatusMessage = "Please select a user from the audit results";
+                return;
+            }
+
+            try
+            {
+                var success = await _service.DeleteUser(SelectedUsername);
+                StatusMessage = success 
+                    ? $"Successfully deleted user: {SelectedUsername}" 
+                    : $"Failed to delete user: {SelectedUsername}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            }
+        }
+
+        private async void ResetPassword()
+        {
+            if (string.IsNullOrWhiteSpace(SelectedUsername))
+            {
+                StatusMessage = "Please select a user from the audit results";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(NewPassword))
+            {
+                StatusMessage = "Please enter a new password";
+                return;
+            }
+
+            try
+            {
+                var success = await _service.ResetUserPassword(SelectedUsername, NewPassword);
+                StatusMessage = success 
+                    ? $"Successfully reset password for: {SelectedUsername}" 
+                    : $"Failed to reset password for: {SelectedUsername}";
+                
+                if (success)
+                {
+                    NewPassword = string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
             }
         }
 
