@@ -150,21 +150,18 @@ namespace PlatypusTools.Core.Services
                     var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
                     
                     // Skip header line if present
-                    bool isFirstLine = true;
                     foreach (var line in lines)
                     {
                         try
                         {
-                            // Skip header
-                            if (isFirstLine)
-                            {
-                                isFirstLine = false;
-                                if (line.StartsWith("\"TaskName\"") || line.StartsWith("TaskName"))
-                                    continue;
-                            }
+                            // Skip header line
+                            if (line.StartsWith("\"TaskName\"") || line.StartsWith("TaskName") || 
+                                line.StartsWith("HostName") || line.StartsWith("\"HostName\""))
+                                continue;
 
                             // Only process task lines that indicate they're running or ready
-                            if (!line.Contains("READY") && !line.Contains("RUNNING"))
+                            if (!line.Contains("Ready") && !line.Contains("Running") && 
+                                !line.Contains("READY") && !line.Contains("RUNNING"))
                                 continue;
 
                             var parts = SplitCsvLine(line);
