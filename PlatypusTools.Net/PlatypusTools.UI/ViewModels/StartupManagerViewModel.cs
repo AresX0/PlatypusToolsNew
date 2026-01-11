@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
@@ -22,7 +23,9 @@ namespace PlatypusTools.UI.ViewModels
             SelectAllCommand = new RelayCommand(_ => SelectAll());
             SelectNoneCommand = new RelayCommand(_ => SelectNone());
 
-            Refresh();
+            // Don't auto-refresh in constructor - let user click Refresh button
+            // This prevents crashes during initialization
+            StatusMessage = "Click Refresh to load startup items";
         }
 
         public ObservableCollection<StartupItemViewModel> StartupItems { get; }
@@ -51,14 +54,40 @@ namespace PlatypusTools.UI.ViewModels
             StartupItems.Clear();
             StatusMessage = "Loading startup items...";
 
-            var items = _service.GetStartupItems();
-            foreach (var item in items)
+            try
             {
-                StartupItems.Add(new StartupItemViewModel(item));
-            }
+                var items = _service.GetStartupItems();
+                
+                if (items == null || items.Count == 0)
+                {
+                    StatusMessage = "No startup items found";
+                    return;
+                }
 
-            StatusMessage = $"Loaded {StartupItems.Count} startup items";
-            RaiseCommandsCanExecuteChanged();
+                foreach (var item in items)
+                {
+                    try
+                    {
+                        StartupItems.Add(new StartupItemViewModel(item));
+                    }
+                    catch (Exception itemEx)
+                    {
+                        // Log but continue with other items
+                        System.Diagnostics.Debug.WriteLine($"Error adding startup item: {itemEx.Message}");
+                    }
+                }
+
+                StatusMessage = $"Loaded {StartupItems.Count} startup items";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error loading startup items: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"Full error: {ex}");
+            }
+            finally
+            {
+                RaiseCommandsCanExecuteChanged();
+            }
         }
 
         private void DisableSelected()

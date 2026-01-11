@@ -7,9 +7,8 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
-  <!-- Publish the UI project before building the installer -->
   <Target Name="PublishUIProject" BeforeTargets="Build">
-    <Exec Command="&quot;C:\Program Files\dotnet\dotnet.exe&quot; publish ..\PlatypusTools.UI\PlatypusTools.UI.csproj -c $(Configuration) -r win-x64 --self-contained true -p:PublishSingleFile=false -p:SelfContained=true -p:RuntimeIdentifier=win-x64 -o ..\PlatypusTools.UI\bin\$(Configuration)\net10.0-windows\win-x64\publish" />
+    <Exec Command="&quot;C:\Program Files\dotnet\dotnet.exe&quot; publish ..\PlatypusTools.UI\PlatypusTools.UI.csproj -c $(Configuration) -r win-x64 --self-contained true -p:PublishSingleFile=false -o ..\PlatypusTools.UI\bin\$(Configuration)\net10.0-windows\win-x64\publish" />
   </Target>
 
   <ItemGroup>
@@ -18,8 +17,29 @@
 
   <ItemGroup>
     <Compile Include="Product.wxs" />
-    <Compile Include="Files.wxs" />
+    <Compile Include="Shortcuts.wxs" />
+    <!-- <Compile Include="Files.wxs" /> --> 
   </ItemGroup>
+
+  <!-- Harvest all files from publish directory -->
+  <ItemGroup>
+    <HarvestDirectory Include="..\PlatypusTools.UI\bin\$(Configuration)\net10.0-windows\win-x64\publish">
+      <ComponentGroupName>RuntimeFiles</ComponentGroupName>
+      <DirectoryRefId>INSTALLFOLDER</DirectoryRefId>
+      <SuppressFragments>true</SuppressFragments>
+      <SuppressRegistry>true</SuppressRegistry>
+      <SuppressRootDirectory>true</SuppressRootDirectory>
+    </HarvestDirectory>
+  </ItemGroup>
+
+  <!-- Remove old Payload section -->
+  <!--
+  <ItemGroup>
+    <PayloadFile Include="..\PlatypusTools.Net\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\**\*.*" Exclude="..\PlatypusTools.Net\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\**\*.pdb">
+      <ComponentGroupName>PublishedFiles</ComponentGroupName>
+    </PayloadFile>
+  </ItemGroup>
+  -->
 
   <ItemGroup>
     <ProjectReference Include="..\PlatypusTools.UI\PlatypusTools.UI.csproj">

@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using PlatypusTools.Core.Services;
@@ -11,6 +12,7 @@ namespace PlatypusTools.UI.ViewModels
     public class FileAnalyzerViewModel : BindableBase
     {
         private readonly FileAnalyzerService _service;
+        private CancellationTokenSource? _cancellationTokenSource;
 
         private string _directoryPath = string.Empty;
         private bool _includeSubdirectories = true;
@@ -40,6 +42,7 @@ namespace PlatypusTools.UI.ViewModels
             BrowseDirectoryCommand = new RelayCommand(_ => BrowseDirectory());
             ExportCommand = new RelayCommand(_ => Export(), _ => TotalFiles > 0);
             ClearCommand = new RelayCommand(_ => Clear());
+            CancelCommand = new RelayCommand(_ => Cancel(), _ => IsAnalyzing);
         }
 
         public string DirectoryPath
@@ -68,6 +71,7 @@ namespace PlatypusTools.UI.ViewModels
                 if (SetProperty(ref _isAnalyzing, value))
                 {
                     RaiseCommandsCanExecuteChanged();
+                    ((RelayCommand)CancelCommand).RaiseCanExecuteChanged();
                 }
             }
         }
@@ -124,6 +128,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand BrowseDirectoryCommand { get; }
         public ICommand ExportCommand { get; }
         public ICommand ClearCommand { get; }
+        public ICommand CancelCommand { get; }
 
         private async Task AnalyzeAsync()
         {
@@ -133,13 +138,21 @@ namespace PlatypusTools.UI.ViewModels
                 return;
             }
 
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource = new CancellationTokenSource();
+            var token = _cancellationTokenSource.Token;
+
             IsAnalyzing = true;
             StatusMessage = "Analyzing directory...";
             Clear();
 
             try
             {
-                var result = await Task.Run(() => _service.AnalyzeDirectory(DirectoryPath, IncludeSubdirectories));
+                var result = await Task.Run(() => 
+                {
+                    token.ThrowIfCancellationRequested();
+                    return _service.AnalyzeDirectory(DirectoryPath, IncludeSubdirectories);
+                }, token);
 
                 if (!string.IsNullOrEmpty(result.ErrorMessage))
                 {
@@ -179,6 +192,10 @@ namespace PlatypusTools.UI.ViewModels
                 StatusMessage = $"Analysis complete: {TotalFiles} files, {TotalSizeFormatted}";
                 OnPropertyChanged(nameof(TotalSizeFormatted));
             }
+            catch (OperationCanceledException)
+            {
+                StatusMessage = "Analysis cancelled";
+            }
             catch (Exception ex)
             {
                 StatusMessage = $"Error: {ex.Message}";
@@ -187,6 +204,12 @@ namespace PlatypusTools.UI.ViewModels
             {
                 IsAnalyzing = false;
             }
+        }
+
+        private void Cancel()
+        {
+            _cancellationTokenSource?.Cancel();
+            StatusMessage = "Cancelling...";
         }
 
         private async Task FindDuplicatesAsync()

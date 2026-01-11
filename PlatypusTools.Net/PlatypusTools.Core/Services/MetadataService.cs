@@ -154,6 +154,26 @@ namespace PlatypusTools.Core.Services
 
         public string GetExifToolPath()
         {
+            // Check Tools folder relative to application first
+            var appPath = AppDomain.CurrentDomain.BaseDirectory;
+            var toolsPaths = new[]
+            {
+                Path.Combine(appPath, "..", "..", "..", "..", "PlatypusUtils", "Tools", "exiftool.exe"),
+                Path.Combine(appPath, "..", "..", "..", "..", "LocalArchive", "PlatypusUtils", "Tools", "exiftool.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "PlatypusTools", "Tools", "exiftool.exe")
+            };
+
+            foreach (var path in toolsPaths)
+            {
+                try
+                {
+                    var fullPath = Path.GetFullPath(path);
+                    if (File.Exists(fullPath))
+                        return fullPath;
+                }
+                catch { }
+            }
+
             var possiblePaths = new[]
             {
                 Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "exiftool", "exiftool.exe"),

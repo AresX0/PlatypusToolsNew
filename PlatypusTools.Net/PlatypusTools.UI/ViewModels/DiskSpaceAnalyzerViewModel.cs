@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -34,6 +35,7 @@ namespace PlatypusTools.UI.ViewModels
     public class DiskSpaceAnalyzerViewModel : BindableBase
     {
         private readonly DiskSpaceAnalyzerService _analyzerService;
+        private CancellationTokenSource? _cancellationTokenSource;
 
         public DiskSpaceAnalyzerViewModel()
         {
@@ -43,6 +45,7 @@ namespace PlatypusTools.UI.ViewModels
             BrowsePathCommand = new RelayCommand(_ => BrowsePath());
             RefreshCommand = new RelayCommand(async _ => await RefreshAsync(), _ => !IsAnalyzing);
             ExportCommand = new RelayCommand(async _ => await ExportAsync(), _ => DirectoryTree.Any());
+            CancelCommand = new RelayCommand(_ => Cancel(), _ => IsAnalyzing);
         }
 
         public ObservableCollection<DirectoryNodeViewModel> DirectoryTree { get; } = new();
@@ -67,6 +70,7 @@ namespace PlatypusTools.UI.ViewModels
                 SetProperty(ref _isAnalyzing, value); 
                 ((RelayCommand)AnalyzeCommand).RaiseCanExecuteChanged();
                 ((RelayCommand)RefreshCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)CancelCommand).RaiseCanExecuteChanged();
             } 
         }
 
@@ -83,6 +87,13 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand BrowsePathCommand { get; }
         public ICommand RefreshCommand { get; }
         public ICommand ExportCommand { get; }
+        public ICommand CancelCommand { get; }
+
+        private void Cancel()
+        {
+            _cancellationTokenSource?.Cancel();
+            StatusMessage = "Cancelling...";
+        }
 
         private async Task AnalyzeAsync()
         {
@@ -92,23 +103,36 @@ namespace PlatypusTools.UI.ViewModels
                 return;
             }
 
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource = new CancellationTokenSource();
+            var token = _cancellationTokenSource.Token;
+
             IsAnalyzing = true;
             StatusMessage = "Analyzing disk space...";
             DirectoryTree.Clear();
 
             try
             {
-                var analysis = await _analyzerService.GetDirectoryTree(RootPath);
+                var analysis = await Task.Run(() => 
+                {
+                    token.ThrowIfCancellationRequested();
+                    return _analyzerService.GetDirectoryTree(RootPath);
+                }, token);
+                
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     var rootNode = CreateNodeViewModel(analysis);
                     DirectoryTree.Add(rootNode);
-                    TotalSize = analysis.Size;
+                    TotalSize = rootNode.Size; // Use the calculated size from the node
                     TotalSizeDisplay = FormatSize(TotalSize);
                 });
 
                 StatusMessage = $"Analysis complete. Total size: {TotalSizeDisplay}";
                 ((RelayCommand)ExportCommand).RaiseCanExecuteChanged();
+            }
+            catch (OperationCanceledException)
+            {
+                StatusMessage = "Analysis cancelled";
             }
             catch (Exception ex)
             {
@@ -120,18 +144,18 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private DirectoryNodeViewModel CreateNodeViewModel(dynamic analysisNode)
+        private DirectoryNodeViewModel CreateNodeViewModel(DirectoryNode analysisNode)
         {
             var node = new DirectoryNodeViewModel
             {
                 Name = Path.GetFileName(analysisNode.Path) ?? analysisNode.Path,
                 FullPath = analysisNode.Path,
-                Size = analysisNode.TotalSize,
-                SizeDisplay = FormatSize(analysisNode.TotalSize),
+                Size = analysisNode.Size,
+                SizeDisplay = FormatSize(analysisNode.Size),
                 FileCount = analysisNode.FileCount
             };
 
-            if (analysisNode.Children != null)
+            if (analysisNode.Children != null && analysisNode.Children.Any())
             {
                 foreach (var child in analysisNode.Children)
                 {

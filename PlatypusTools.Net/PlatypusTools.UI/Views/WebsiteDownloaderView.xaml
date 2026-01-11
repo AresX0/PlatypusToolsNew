@@ -110,11 +110,11 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="80" MinWidth="60"/>
-                    <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*" MinWidth="150"/>
-                    <DataGridTextColumn Header="URL" Binding="{Binding Url}" Width="2*" MinWidth="200"/>
-                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" MinWidth="80"/>
-                    <DataGridTemplateColumn Header="Progress" Width="100" MinWidth="80">
+                    <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="80" MinWidth="60" CanUserResize="True"/>
+                    <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*" MinWidth="150" CanUserResize="True"/>
+                    <DataGridTextColumn Header="URL" Binding="{Binding Url}" Width="2*" MinWidth="200" CanUserResize="True"/>
+                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" MinWidth="80" CanUserResize="True"/>
+                    <DataGridTemplateColumn Header="Progress" Width="100" MinWidth="80" CanUserResize="True">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <ProgressBar Value="{Binding Progress}" Height="16" Minimum="0" Maximum="100"/>

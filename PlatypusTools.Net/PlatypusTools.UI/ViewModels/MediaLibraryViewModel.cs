@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -35,12 +36,14 @@ namespace PlatypusTools.UI.ViewModels
     public class MediaLibraryViewModel : BindableBase
     {
         private readonly MediaLibraryService _mediaLibraryService;
+        private CancellationTokenSource? _scanCancellationTokenSource;
 
         public MediaLibraryViewModel()
         {
             _mediaLibraryService = new MediaLibraryService();
 
             ScanCommand = new RelayCommand(async _ => await ScanAsync(), _ => !IsScanning && !string.IsNullOrWhiteSpace(DirectoryPath));
+            CancelScanCommand = new RelayCommand(_ => CancelScan(), _ => IsScanning);
             RefreshCommand = new RelayCommand(async _ => await RefreshAsync(), _ => !IsScanning);
             BrowseDirectoryCommand = new RelayCommand(_ => BrowseDirectory());
             FilterByTypeCommand = new RelayCommand(type => FilterByType(type?.ToString()));
@@ -75,6 +78,7 @@ namespace PlatypusTools.UI.ViewModels
         public int TotalFiles { get => _totalFiles; set => SetProperty(ref _totalFiles, value); }
 
         public ICommand ScanCommand { get; }
+        public ICommand CancelScanCommand { get; }
         public ICommand RefreshCommand { get; }
         public ICommand BrowseDirectoryCommand { get; }
         public ICommand FilterByTypeCommand { get; }
@@ -89,31 +93,56 @@ namespace PlatypusTools.UI.ViewModels
                 return;
             }
 
+            _scanCancellationTokenSource?.Cancel();
+            _scanCancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = _scanCancellationTokenSource.Token;
+
             IsScanning = true;
             StatusMessage = "Scanning media files...";
             MediaItems.Clear();
+            ((RelayCommand)CancelScanCommand).RaiseCanExecuteChanged();
 
             try
             {
                 var files = await _mediaLibraryService.ScanDirectoryAsync(DirectoryPath);
+                
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    StatusMessage = "Scan canceled";
+                    return;
+                }
+
+                // Collect all items first (on background thread)
+                var items = files.Select(file => new MediaItemViewModel
+                {
+                    FilePath = file.FilePath,
+                    FileName = Path.GetFileName(file.FilePath),
+                    FileType = Path.GetExtension(file.FilePath).TrimStart('.').ToUpper(),
+                    FileSize = new FileInfo(file.FilePath).Length,
+                    DateModified = File.GetLastWriteTime(file.FilePath)
+                }).ToList();
+
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    StatusMessage = "Scan canceled";
+                    return;
+                }
+
+                // Update UI in single batch on UI thread
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
-                    foreach (var file in files)
+                    foreach (var item in items)
                     {
-                        var item = new MediaItemViewModel
-                        {
-                            FilePath = file.FilePath,
-                            FileName = Path.GetFileName(file.FilePath),
-                            FileType = Path.GetExtension(file.FilePath).TrimStart('.').ToUpper(),
-                            FileSize = new FileInfo(file.FilePath).Length,
-                            DateModified = File.GetLastWriteTime(file.FilePath)
-                        };
                         MediaItems.Add(item);
                     }
                 });
 
                 TotalFiles = MediaItems.Count;
                 StatusMessage = $"Found {TotalFiles} media files";
+            }
+            catch (OperationCanceledException)
+            {
+                StatusMessage = "Scan canceled";
             }
             catch (Exception ex)
             {
@@ -122,7 +151,14 @@ namespace PlatypusTools.UI.ViewModels
             finally
             {
                 IsScanning = false;
+                ((RelayCommand)CancelScanCommand).RaiseCanExecuteChanged();
             }
+        }
+
+        private void CancelScan()
+        {
+            _scanCancellationTokenSource?.Cancel();
+            StatusMessage = "Canceling...";
         }
 
         private async Task RefreshAsync()

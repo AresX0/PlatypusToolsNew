@@ -34,6 +34,7 @@ namespace PlatypusTools.UI.ViewModels
             RegistryCleaner = new RegistryCleanerViewModel();
             ScheduledTasks = new ScheduledTasksViewModel();
             SystemRestore = new SystemRestoreViewModel();
+            BootableUSB = new BootableUSBViewModel();
 
             BrowseCommand = new RelayCommand(_ => Browse());
             SaveWorkspaceCommand = new RelayCommand(_ => SaveWorkspace());
@@ -85,6 +86,7 @@ namespace PlatypusTools.UI.ViewModels
         public RegistryCleanerViewModel RegistryCleaner { get; }
         public ScheduledTasksViewModel ScheduledTasks { get; }
         public SystemRestoreViewModel SystemRestore { get; }
+        public BootableUSBViewModel BootableUSB { get; }
         private string _selectedFolder = string.Empty;
         public string SelectedFolder { get => _selectedFolder; set { _selectedFolder = value; RaisePropertyChanged(); PropagateSelectedFolder(); } }
 

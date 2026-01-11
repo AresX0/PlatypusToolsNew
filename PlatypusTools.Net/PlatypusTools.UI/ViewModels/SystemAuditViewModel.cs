@@ -3,9 +3,11 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using PlatypusTools.Core.Services;
+using PlatypusTools.Core.Utilities;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -14,6 +16,9 @@ namespace PlatypusTools.UI.ViewModels
         private readonly ISystemAuditService _service;
 
         public ObservableCollection<AuditItem> AuditItems { get; } = new();
+
+        public bool IsElevated => ElevationHelper.IsElevated();
+        public bool NeedsElevation => !IsElevated;
 
         private bool _isAuditing;
         public bool IsAuditing
@@ -70,10 +75,31 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand RunFirewallAuditCommand { get; }
         public ICommand RunUpdatesAuditCommand { get; }
         public ICommand RunStartupAuditCommand { get; }
+        public ICommand ScanElevatedUsersCommand { get; }
+        public ICommand ScanCriticalAclsCommand { get; }
+        public ICommand ScanOutboundTrafficCommand { get; }
+        public ICommand OpenUsersAndGroupsCommand { get; }
+        public ICommand DisableUserCommand { get; }
+        public ICommand DeleteUserCommand { get; }
+        public ICommand ResetPasswordCommand { get; }
         public ICommand FixIssueCommand { get; }
         public ICommand FixAllCommand { get; }
         public ICommand ExportReportCommand { get; }
         public ICommand ClearCommand { get; }
+
+        private string _selectedUsername = string.Empty;
+        public string SelectedUsername
+        {
+            get => _selectedUsername;
+            set { _selectedUsername = value; OnPropertyChanged(); }
+        }
+
+        private string _newPassword = string.Empty;
+        public string NewPassword
+        {
+            get => _newPassword;
+            set { _newPassword = value; OnPropertyChanged(); }
+        }
 
         private ObservableCollection<AuditItem> _allItems = new();
 
@@ -87,6 +113,13 @@ namespace PlatypusTools.UI.ViewModels
             RunFirewallAuditCommand = new RelayCommand(_ => RunFirewallAudit(), _ => CanRunAudit);
             RunUpdatesAuditCommand = new RelayCommand(_ => RunUpdatesAudit(), _ => CanRunAudit);
             RunStartupAuditCommand = new RelayCommand(_ => RunStartupAudit(), _ => CanRunAudit);
+            ScanElevatedUsersCommand = new RelayCommand(_ => ScanElevatedUsers(), _ => CanRunAudit);
+            ScanCriticalAclsCommand = new RelayCommand(_ => ScanCriticalAcls(), _ => CanRunAudit);
+            ScanOutboundTrafficCommand = new RelayCommand(_ => ScanOutboundTraffic(), _ => CanRunAudit);
+            OpenUsersAndGroupsCommand = new RelayCommand(_ => OpenUsersAndGroups());
+            DisableUserCommand = new RelayCommand(_ => DisableUser());
+            DeleteUserCommand = new RelayCommand(_ => DeleteUser());
+            ResetPasswordCommand = new RelayCommand(_ => ResetPassword());
             FixIssueCommand = new RelayCommand(obj => FixIssue(obj as AuditItem));
             FixAllCommand = new RelayCommand(_ => FixAll(), _ => AuditItems.Any(i => i.CanAutoFix));
             ExportReportCommand = new RelayCommand(_ => ExportReport());
@@ -204,6 +237,174 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
+        private async void ScanElevatedUsers()
+        {
+            IsAuditing = true;
+            StatusMessage = "Scanning for elevated users...";
+
+            try
+            {
+                var items = await _service.ScanElevatedUsers();
+                foreach (var item in items)
+                {
+                    _allItems.Add(item);
+                    AuditItems.Add(item);
+                }
+                
+                UpdateStatistics();
+                StatusMessage = $"Found {items.Count} elevated users";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAuditing = false;
+            }
+        }
+
+        private async void ScanCriticalAcls()
+        {
+            IsAuditing = true;
+            StatusMessage = "Scanning critical ACLs...";
+
+            try
+            {
+                var items = await _service.ScanCriticalAcls();
+                foreach (var item in items)
+                {
+                    _allItems.Add(item);
+                    AuditItems.Add(item);
+                }
+                
+                UpdateStatistics();
+                StatusMessage = $"Found {items.Count} critical ACL issues";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAuditing = false;
+            }
+        }
+
+        private async void ScanOutboundTraffic()
+        {
+            IsAuditing = true;
+            StatusMessage = "Scanning outbound traffic...";
+
+            try
+            {
+                var items = await _service.ScanOutboundTraffic();
+                foreach (var item in items)
+                {
+                    _allItems.Add(item);
+                    AuditItems.Add(item);
+                }
+                
+                UpdateStatistics();
+                StatusMessage = $"Found {items.Count} outbound connections";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAuditing = false;
+            }
+        }
+
+        private void OpenUsersAndGroups()
+        {
+            try
+            {
+                _service.OpenUsersAndGroups();
+                StatusMessage = "Opened Users and Groups management";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            }
+        }
+
+        private async void DisableUser()
+        {
+            if (string.IsNullOrWhiteSpace(SelectedUsername))
+            {
+                StatusMessage = "Please select a user from the audit results";
+                return;
+            }
+
+            try
+            {
+                var success = await _service.DisableUser(SelectedUsername);
+                StatusMessage = success 
+                    ? $"Successfully disabled user: {SelectedUsername}" 
+                    : $"Failed to disable user: {SelectedUsername}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            }
+        }
+
+        private async void DeleteUser()
+        {
+            if (string.IsNullOrWhiteSpace(SelectedUsername))
+            {
+                StatusMessage = "Please select a user from the audit results";
+                return;
+            }
+
+            try
+            {
+                var success = await _service.DeleteUser(SelectedUsername);
+                StatusMessage = success 
+                    ? $"Successfully deleted user: {SelectedUsername}" 
+                    : $"Failed to delete user: {SelectedUsername}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            }
+        }
+
+        private async void ResetPassword()
+        {
+            if (string.IsNullOrWhiteSpace(SelectedUsername))
+            {
+                StatusMessage = "Please select a user from the audit results";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(NewPassword))
+            {
+                StatusMessage = "Please enter a new password";
+                return;
+            }
+
+            try
+            {
+                var success = await _service.ResetUserPassword(SelectedUsername, NewPassword);
+                StatusMessage = success 
+                    ? $"Successfully reset password for: {SelectedUsername}" 
+                    : $"Failed to reset password for: {SelectedUsername}";
+                
+                if (success)
+                {
+                    NewPassword = string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            }
+        }
+
         private async void FixIssue(AuditItem? item)
         {
             if (item == null || !item.CanAutoFix) return;
@@ -257,37 +458,60 @@ namespace PlatypusTools.UI.ViewModels
         {
             var dialog = new Microsoft.Win32.SaveFileDialog
             {
-                Filter = "Text files (*.txt)|*.txt|CSV files (*.csv)|*.csv",
-                FileName = $"SystemAudit_{DateTime.Now:yyyyMMdd_HHmmss}.txt"
+                Filter = "CSV files (*.csv)|*.csv|Text files (*.txt)|*.txt",
+                FileName = $"SystemAudit_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
             };
 
             if (dialog.ShowDialog() == true)
             {
                 try
                 {
-                    var lines = new System.Collections.Generic.List<string>
+                    var isCsv = dialog.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase);
+                    
+                    if (isCsv)
                     {
-                        $"System Audit Report - {DateTime.Now}",
-                        $"Total Issues: {TotalIssues}",
-                        $"Critical: {CriticalIssues}, Warnings: {WarningIssues}",
-                        "",
-                        "Details:",
-                        "".PadRight(80, '=')
-                    };
+                        // Export as CSV
+                        var lines = new System.Collections.Generic.List<string>
+                        {
+                            "\"Category\",\"Name\",\"Description\",\"Severity\",\"Status\",\"Details\""
+                        };
 
-                    foreach (var item in AuditItems)
+                        foreach (var item in AuditItems)
+                        {
+                            var csvLine = $"\"{EscapeCsv(item.Category)}\",\"{EscapeCsv(item.Name)}\",\"{EscapeCsv(item.Description)}\",\"{item.Severity}\",\"{item.Status}\",\"{EscapeCsv(item.Details)}\"";
+                            lines.Add(csvLine);
+                        }
+
+                        System.IO.File.WriteAllLines(dialog.FileName, lines);
+                    }
+                    else
                     {
-                        lines.Add($"Category: {item.Category}");
-                        lines.Add($"Name: {item.Name}");
-                        lines.Add($"Description: {item.Description}");
-                        lines.Add($"Severity: {item.Severity}");
-                        lines.Add($"Status: {item.Status}");
-                        if (!string.IsNullOrEmpty(item.Details))
-                            lines.Add($"Details: {item.Details}");
-                        lines.Add("".PadRight(80, '-'));
+                        // Export as text
+                        var lines = new System.Collections.Generic.List<string>
+                        {
+                            $"System Audit Report - {DateTime.Now}",
+                            $"Total Issues: {TotalIssues}",
+                            $"Critical: {CriticalIssues}, Warnings: {WarningIssues}",
+                            "",
+                            "Details:",
+                            "".PadRight(80, '=')
+                        };
+
+                        foreach (var item in AuditItems)
+                        {
+                            lines.Add($"Category: {item.Category}");
+                            lines.Add($"Name: {item.Name}");
+                            lines.Add($"Description: {item.Description}");
+                            lines.Add($"Severity: {item.Severity}");
+                            lines.Add($"Status: {item.Status}");
+                            if (!string.IsNullOrEmpty(item.Details))
+                                lines.Add($"Details: {item.Details}");
+                            lines.Add("".PadRight(80, '-'));
+                        }
+
+                        System.IO.File.WriteAllLines(dialog.FileName, lines);
                     }
 
-                    System.IO.File.WriteAllLines(dialog.FileName, lines);
                     StatusMessage = $"Report exported to {dialog.FileName}";
                 }
                 catch (Exception ex)
@@ -295,6 +519,15 @@ namespace PlatypusTools.UI.ViewModels
                     StatusMessage = $"Error exporting: {ex.Message}";
                 }
             }
+        }
+
+        private string EscapeCsv(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return string.Empty;
+            
+            // Escape quotes by doubling them
+            return value.Replace("\"", "\"\"");
         }
 
         private void Clear()

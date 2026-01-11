@@ -122,12 +122,14 @@ namespace PlatypusTools.UI.ViewModels
             StatusMessage = "Scanning...";
             Operations.Clear();
 
-            await Task.Run(() =>
+            var ops = await Task.Run(() => _service.ScanFolder(FolderPath, IncludeSubfolders, FileTypeFilter));
+            
+            // Update UI in batch on UI thread
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
-                var ops = _service.ScanFolder(FolderPath, IncludeSubfolders, FileTypeFilter);
                 foreach (var op in ops)
                 {
-                    System.Windows.Application.Current.Dispatcher.Invoke(() => Operations.Add(op));
+                    Operations.Add(op);
                 }
             });
 

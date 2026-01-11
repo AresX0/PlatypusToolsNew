@@ -131,6 +131,7 @@ namespace PlatypusTools.Core.Services
                     FileName = "schtasks",
                     Arguments = "/Query /FO CSV /V",
                     RedirectStandardOutput = true,
+                    RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
@@ -141,34 +142,93 @@ namespace PlatypusTools.Core.Services
                     var output = process.StandardOutput.ReadToEnd();
                     process.WaitForExit();
 
-                    var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-                    foreach (var line in lines.Skip(1)) // Skip header
+                    if (process.ExitCode != 0)
                     {
-                        if (line.Contains("READY") || line.Contains("RUNNING"))
+                        return items; // Return empty list on failure
+                    }
+
+                    var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                    
+                    // Skip header line if present
+                    foreach (var line in lines)
+                    {
+                        try
                         {
-                            var parts = line.Split(',');
-                            if (parts.Length > 1)
+                            // Skip header line
+                            if (line.StartsWith("\"TaskName\"") || line.StartsWith("TaskName") || 
+                                line.StartsWith("HostName") || line.StartsWith("\"HostName\""))
+                                continue;
+
+                            // Only process task lines that indicate they're running or ready
+                            if (!line.Contains("Ready") && !line.Contains("Running") && 
+                                !line.Contains("READY") && !line.Contains("RUNNING"))
+                                continue;
+
+                            var parts = SplitCsvLine(line);
+                            if (parts.Count > 1)
                             {
                                 var taskName = parts[0].Trim('"');
-                                if (taskName.Contains("\\Microsoft\\Windows\\") == false) // Filter out system tasks
+                                
+                                // Filter out system tasks
+                                if (taskName.Contains("\\Microsoft\\Windows\\"))
+                                    continue;
+
+                                // Get task command if available (usually at index 8 in verbose output)
+                                var taskCommand = parts.Count > 8 ? parts[8].Trim('"') : "";
+
+                                items.Add(new StartupItem
                                 {
-                                    items.Add(new StartupItem
-                                    {
-                                        Name = taskName,
-                                        Command = parts.Length > 8 ? parts[8].Trim('"') : "",
-                                        Location = "Task Scheduler",
-                                        IsEnabled = line.Contains("READY") || line.Contains("RUNNING"),
-                                        Type = "Scheduled Task"
-                                    });
-                                }
+                                    Name = taskName,
+                                    Command = taskCommand,
+                                    Location = "Task Scheduler",
+                                    IsEnabled = line.Contains("READY") || line.Contains("RUNNING"),
+                                    Type = "Scheduled Task"
+                                });
                             }
+                        }
+                        catch
+                        {
+                            // Skip problematic lines
+                            continue;
                         }
                     }
                 }
             }
-            catch { }
+            catch
+            {
+                // Return empty list on any error
+            }
 
             return items;
+        }
+
+        private List<string> SplitCsvLine(string line)
+        {
+            var result = new List<string>();
+            var current = new System.Text.StringBuilder();
+            bool inQuotes = false;
+
+            for (int i = 0; i < line.Length; i++)
+            {
+                char c = line[i];
+
+                if (c == '"')
+                {
+                    inQuotes = !inQuotes;
+                }
+                else if (c == ',' && !inQuotes)
+                {
+                    result.Add(current.ToString());
+                    current.Clear();
+                }
+                else
+                {
+                    current.Append(c);
+                }
+            }
+
+            result.Add(current.ToString());
+            return result;
         }
 
         public bool DisableStartupItem(StartupItem item)

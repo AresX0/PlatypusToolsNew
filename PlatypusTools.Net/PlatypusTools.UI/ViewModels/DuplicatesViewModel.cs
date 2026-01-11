@@ -5,17 +5,22 @@ using PlatypusTools.Core.Services;
 using System.Linq;
 using System.IO;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PlatypusTools.UI.ViewModels
 {
     public class DuplicatesViewModel : BindableBase
     {
+        private CancellationTokenSource? _scanCancellationTokenSource;
+
         public DuplicatesViewModel()
         {
             Groups = new ObservableCollection<DuplicateGroupViewModel>();
             UseRecycleBin = true; // default to safe operation
             BrowseCommand = new RelayCommand(_ => Browse());
-            ScanCommand = new RelayCommand(_ => Scan());
+            ScanCommand = new RelayCommand(async _ => await ScanAsync(), _ => !IsScanning);
+            CancelScanCommand = new RelayCommand(_ => CancelScan(), _ => IsScanning);
             DeleteSelectedCommand = new RelayCommand(_ => DeleteSelected(), _ => Groups.Any(g => g.Files.Any(f => f.IsSelected)));
 
             OpenFileCommand = new RelayCommand(obj => OpenFile(obj as string));
@@ -49,8 +54,15 @@ namespace PlatypusTools.UI.ViewModels
         private bool _dryRun = true;
         public bool DryRun { get => _dryRun; set { _dryRun = value; RaisePropertyChanged(); } }
 
+        private bool _isScanning = false;
+        public bool IsScanning { get => _isScanning; set { _isScanning = value; RaisePropertyChanged(); } }
+
+        private string _statusMessage = string.Empty;
+        public string StatusMessage { get => _statusMessage; set { _statusMessage = value; RaisePropertyChanged(); } }
+
         public ICommand BrowseCommand { get; }
         public ICommand ScanCommand { get; }
+        public ICommand CancelScanCommand { get; }
         public ICommand DeleteSelectedCommand { get; }
         public ICommand OpenFileCommand { get; }
         public ICommand OpenFolderCommand { get; }
@@ -73,13 +85,64 @@ namespace PlatypusTools.UI.ViewModels
             if (res == System.Windows.Forms.DialogResult.OK) FolderPath = dlg.SelectedPath;
         }
 
-        private void Scan()
+        private async Task ScanAsync()
         {
+            if (IsScanning) return;
+            if (string.IsNullOrWhiteSpace(FolderPath) || !Directory.Exists(FolderPath))
+            {
+                StatusMessage = "Please select a valid folder";
+                return;
+            }
+
+            _scanCancellationTokenSource?.Cancel();
+            _scanCancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = _scanCancellationTokenSource.Token;
+
+            IsScanning = true;
+            StatusMessage = "Scanning for duplicates...";
             Groups.Clear();
-            if (string.IsNullOrWhiteSpace(FolderPath) || !Directory.Exists(FolderPath)) return;
-            var groups = DuplicatesScanner.FindDuplicates(new[] { FolderPath }, recurse: true);
-            foreach (var g in groups) Groups.Add(new DuplicateGroupViewModel(g));
-            ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)CancelScanCommand).RaiseCanExecuteChanged();
+
+            try
+            {
+                var groups = await Task.Run(() => DuplicatesScanner.FindDuplicates(new[] { FolderPath }, recurse: true).ToList(), cancellationToken);
+                
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    foreach (var g in groups)
+                    {
+                        Groups.Add(new DuplicateGroupViewModel(g));
+                    }
+                    
+                    StatusMessage = $"Found {Groups.Count} duplicate groups ({Groups.Sum(g => g.Files.Count)} total files)";
+                }
+                else
+                {
+                    StatusMessage = "Scan canceled";
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                StatusMessage = "Scan canceled";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error scanning: {ex.Message}";
+            }
+            finally
+            {
+                IsScanning = false;
+                ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)CancelScanCommand).RaiseCanExecuteChanged();
+            }
+        }
+
+        private void CancelScan()
+        {
+            _scanCancellationTokenSource?.Cancel();
+            StatusMessage = "Canceling...";
         }
 
         private void SelectNewest()
@@ -177,7 +240,7 @@ namespace PlatypusTools.UI.ViewModels
             var dest = Path.Combine(Path.GetDirectoryName(path) ?? string.Empty, newName);
             try { File.Move(path, dest); } catch { System.Windows.MessageBox.Show("Rename failed.", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error); }
             // Refresh scan
-            Scan();
+            _ = ScanAsync();
         }
 
         private void StageFile(string? path)
@@ -262,7 +325,7 @@ namespace PlatypusTools.UI.ViewModels
                 catch { }
             }
             // Refresh scan
-            Scan();
+            _ = ScanAsync();
         }
     }
 }

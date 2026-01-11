@@ -269,8 +269,9 @@ namespace PlatypusTools.Core.Services
 
         private ScheduledTaskInfo? ParseTaskLine(string line)
         {
-            // CSV format: TaskName, Next Run Time, Status, etc.
-            // Parse CSV with quotes
+            // CSV format from schtasks /Query /FO CSV /V:
+            // 0: TaskName, 1: Next Run Time, 2: Status, 3: Logon Mode, 4: Last Run Time,
+            // 5: Last Result, 6: Author, 7: Task To Run, 8: Start In, 9: Comment, etc.
             var fields = ParseCsvLine(line);
             if (fields.Count < 3) return null;
 
@@ -280,7 +281,7 @@ namespace PlatypusTools.Core.Services
                 Path = fields[0]
             };
 
-            // Next run time
+            // Next run time (index 1)
             if (fields.Count > 1 && !string.IsNullOrWhiteSpace(fields[1]))
             {
                 if (DateTime.TryParse(fields[1], out var nextRun))
@@ -289,37 +290,37 @@ namespace PlatypusTools.Core.Services
                 }
             }
 
-            // Status
+            // Status (index 2)
             if (fields.Count > 2)
             {
                 task.Status = fields[2];
             }
 
-            // Last run time
-            if (fields.Count > 3 && !string.IsNullOrWhiteSpace(fields[3]))
+            // Last run time (index 4)
+            if (fields.Count > 4 && !string.IsNullOrWhiteSpace(fields[4]))
             {
-                if (DateTime.TryParse(fields[3], out var lastRun))
+                if (DateTime.TryParse(fields[4], out var lastRun))
                 {
                     task.LastRunTime = lastRun;
                 }
             }
 
-            // Last result
-            if (fields.Count > 4)
-            {
-                task.LastResult = fields[4];
-            }
-
-            // Author
+            // Last result (index 5)
             if (fields.Count > 5)
             {
-                task.Author = fields[5];
+                task.LastResult = fields[5];
             }
 
-            // Task to run
+            // Author (index 6)
             if (fields.Count > 6)
             {
-                task.TaskToRun = fields[6];
+                task.Author = fields[6];
+            }
+
+            // Task to run (index 7)
+            if (fields.Count > 7)
+            {
+                task.TaskToRun = fields[7];
             }
 
             return task;

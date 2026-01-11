@@ -50,6 +50,9 @@ namespace PlatypusTools.UI.ViewModels
             KillProcessCommand = new RelayCommand(async _ => await KillProcessAsync(), _ => SelectedProcess != null);
             LoadDetailsCommand = new RelayCommand(async item => await LoadDetailsAsync(item as ProcessInfoViewModel));
             FilterCommand = new RelayCommand(_ => ApplyFilter());
+            
+            // Don't auto-refresh on construction to prevent blocking UI thread
+            StatusMessage = "Click Refresh to load processes";
         }
 
         public ObservableCollection<ProcessInfoViewModel> Processes { get; } = new();
@@ -106,7 +109,7 @@ namespace PlatypusTools.UI.ViewModels
 
             try
             {
-                var processes = await _processManagerService.GetProcesses();
+                var processes = await Task.Run(() => _processManagerService.GetProcesses());
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     _allProcesses.Clear();

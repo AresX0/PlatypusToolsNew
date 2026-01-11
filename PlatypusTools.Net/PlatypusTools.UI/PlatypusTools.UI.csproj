@@ -8,6 +8,8 @@
     <Nullable>enable</Nullable>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
@@ -26,7 +28,6 @@
     <ProjectReference Include="..\PlatypusTools.Core\PlatypusTools.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Assets\platypus.png" />
     <Content Include="Assets\PlatypusTools_Help.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

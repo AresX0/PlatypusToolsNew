@@ -103,6 +103,11 @@
                             <views:UpscalerView DataContext="{Binding Upscaler}" />
                         </ScrollViewer>
                     </TabItem>
+                    <TabItem Header="Bootable USB Creator">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <views:BootableUSBView DataContext="{Binding BootableUSB}" />
+                        </ScrollViewer>
+                    </TabItem>
                 </TabControl>
             </TabItem>
             <TabItem Header="Duplicates">

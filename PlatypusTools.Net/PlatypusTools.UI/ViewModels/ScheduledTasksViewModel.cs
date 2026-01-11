@@ -50,6 +50,10 @@ namespace PlatypusTools.UI.ViewModels
             DeleteCommand = new RelayCommand(async _ => await DeleteTaskAsync(), _ => SelectedTask != null);
             CreateCommand = new RelayCommand(_ => CreateTask());
             RunCommand = new RelayCommand(async _ => await RunTaskAsync(), _ => SelectedTask != null);
+            
+            // Don't auto-refresh on construction to prevent blocking UI thread
+            // User needs to click Refresh button
+            StatusMessage = "Click Refresh to load scheduled tasks";
         }
 
         public ObservableCollection<ScheduledTaskViewModel> Tasks { get; } = new();
@@ -103,7 +107,7 @@ namespace PlatypusTools.UI.ViewModels
 
             try
             {
-                var tasks = await _scheduledTasksService.GetScheduledTasks();
+                var tasks = await Task.Run(() => _scheduledTasksService.GetScheduledTasks());
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     int enabledCount = 0;

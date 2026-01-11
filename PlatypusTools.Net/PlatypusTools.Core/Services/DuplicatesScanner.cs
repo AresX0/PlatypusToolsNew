@@ -24,21 +24,46 @@ namespace PlatypusTools.Core.Services
                 else if (File.Exists(p)) fileList.Add(p);
             }
 
-            var dict = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+            // First pass: Group by file size (much faster than hashing)
+            var sizeGroups = new Dictionary<long, List<string>>();
             foreach (var f in fileList)
             {
                 try
                 {
-                    using var sha = SHA256.Create();
-                    using var s = File.OpenRead(f);
-                    var hash = BitConverter.ToString(sha.ComputeHash(s)).Replace("-", string.Empty);
-                    if (!dict.TryGetValue(hash, out var list)) { list = new List<string>(); dict[hash] = list; }
+                    var fi = new FileInfo(f);
+                    if (!sizeGroups.TryGetValue(fi.Length, out var list))
+                    {
+                        list = new List<string>();
+                        sizeGroups[fi.Length] = list;
+                    }
                     list.Add(f);
                 }
                 catch { }
             }
 
-            return dict.Where(kv => kv.Value.Count > 1).Select(kv => new DuplicateGroup { Hash = kv.Key, Files = kv.Value });
+            // Second pass: Only hash files that have the same size as at least one other file
+            var hashDict = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var sizeGroup in sizeGroups.Where(g => g.Value.Count > 1))
+            {
+                foreach (var f in sizeGroup.Value)
+                {
+                    try
+                    {
+                        using var sha = SHA256.Create();
+                        using var s = File.OpenRead(f);
+                        var hash = BitConverter.ToString(sha.ComputeHash(s)).Replace("-", string.Empty);
+                        if (!hashDict.TryGetValue(hash, out var list))
+                        {
+                            list = new List<string>();
+                            hashDict[hash] = list;
+                        }
+                        list.Add(f);
+                    }
+                    catch { }
+                }
+            }
+
+            return hashDict.Where(kv => kv.Value.Count > 1).Select(kv => new DuplicateGroup { Hash = kv.Key, Files = kv.Value });
         }
     }
 }

@@ -19,6 +19,7 @@
                 <TextBox Width="500" Text="{Binding DirectoryPath, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
                 <Button Content="Browse..." Command="{Binding BrowseDirectoryCommand}" Width="90" Margin="0,0,8,0" />
                 <Button Content="Scan" Command="{Binding ScanCommand}" Width="90" FontWeight="Bold" />
+                <Button Content="Cancel" Command="{Binding CancelScanCommand}" Width="70" Margin="4,0,0,0" />
             </StackPanel>
         </GroupBox>
 
