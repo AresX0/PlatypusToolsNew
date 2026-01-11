@@ -1,0 +1,124 @@
+<UserControl x:Class="PlatypusTools.UI.Views.PrivacyCleanerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:PrivacyCleanerViewModel}">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Selection and Options -->
+        <GroupBox Grid.Row="0" Margin="0,0,0,10">
+            <GroupBox.Header>
+                <TextBlock Text="⚠️ Select Privacy Items to Clean - This will delete data!" FontWeight="Bold" Foreground="Red"/>
+            </GroupBox.Header>
+            <Grid Margin="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Browsers -->
+                <GroupBox Grid.Column="0" Header="Browsers" Margin="0,0,5,0">
+                    <StackPanel Margin="5">
+                        <CheckBox Content="Chrome" IsChecked="{Binding BrowserChrome}" Margin="0,3,0,0"/>
+                        <CheckBox Content="Edge" IsChecked="{Binding BrowserEdge}" Margin="0,3,0,0"/>
+                        <CheckBox Content="Firefox" IsChecked="{Binding BrowserFirefox}" Margin="0,3,0,0"/>
+                        <CheckBox Content="Brave" IsChecked="{Binding BrowserBrave}" Margin="0,3,0,3"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Cloud Services -->
+                <GroupBox Grid.Column="1" Header="Cloud Services" Margin="0,0,5,0">
+                    <StackPanel Margin="5">
+                        <CheckBox Content="OneDrive" IsChecked="{Binding CloudOneDrive}" Margin="0,3,0,0"/>
+                        <CheckBox Content="Google Drive" IsChecked="{Binding CloudGoogle}" Margin="0,3,0,0"/>
+                        <CheckBox Content="Dropbox" IsChecked="{Binding CloudDropbox}" Margin="0,3,0,0"/>
+                        <CheckBox Content="iCloud" IsChecked="{Binding CloudiCloud}" Margin="0,3,0,3"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Windows Identity -->
+                <GroupBox Grid.Column="2" Header="Windows Identity" Margin="0,0,5,0">
+                    <StackPanel Margin="5">
+                        <CheckBox Content="Recent Documents" IsChecked="{Binding WindowsRecentDocs}" Margin="0,3,0,0"/>
+                        <CheckBox Content="Jump Lists" IsChecked="{Binding WindowsJumpLists}" Margin="0,3,0,0"/>
+                        <CheckBox Content="Explorer History" IsChecked="{Binding WindowsExplorerHistory}" Margin="0,3,0,0"/>
+                        <CheckBox Content="Clipboard" IsChecked="{Binding WindowsClipboard}" Margin="0,3,0,3"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Application Data -->
+                <GroupBox Grid.Column="3" Header="Application Data">
+                    <StackPanel Margin="5">
+                        <CheckBox Content="Office Recent" IsChecked="{Binding ApplicationOffice}" Margin="0,3,0,0"/>
+                        <CheckBox Content="Adobe Recent" IsChecked="{Binding ApplicationAdobe}" Margin="0,3,0,0"/>
+                        <CheckBox Content="Media Players" IsChecked="{Binding ApplicationMediaPlayers}" Margin="0,3,0,3"/>
+                    </StackPanel>
+                </GroupBox>
+            </Grid>
+        </GroupBox>
+
+        <!-- Action Buttons and Results Grid Container -->
+        <Grid Grid.Row="1" Margin="0,0,0,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Action Buttons -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                <Button Content="Analyze" Command="{Binding AnalyzeCommand}" 
+                        Width="100" Margin="0,0,10,0" Padding="8" FontWeight="Bold"/>
+                <Button Content="Clean Now" Command="{Binding CleanNowCommand}" 
+                        Width="100" Padding="8" FontWeight="Bold" Background="DarkRed" Foreground="White"/>
+                <CheckBox Content="Dry Run" IsChecked="{Binding DryRun}" 
+                          VerticalAlignment="Center" Margin="20,0,0,0" 
+                          ToolTip="Preview what would be deleted without actually deleting"/>
+                <TextBlock Text="(Recommended: Use Dry Run first!)" 
+                           VerticalAlignment="Center" Margin="10,0,0,0" 
+                           FontStyle="Italic" Foreground="Gray"/>
+            </StackPanel>
+
+            <!-- Results Grid -->
+            <GroupBox Grid.Row="1" Header="Items to be Cleaned">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <DataGrid ItemsSource="{Binding ItemsToClean}" AutoGenerateColumns="False" 
+                              IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" Margin="5"
+                              CanUserResizeColumns="True" CanUserSortColumns="True"
+                              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="300" CanUserResize="True" MinWidth="100"/>
+                            <DataGridTextColumn Header="Items" Binding="{Binding Items}" Width="100" CanUserResize="True" MinWidth="60"/>
+                            <DataGridTextColumn Header="Size" Binding="{Binding Size}" Width="120" CanUserResize="True" MinWidth="70"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </ScrollViewer>
+            </GroupBox>
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="#FFF4E5" BorderBrush="#FF8C00" BorderThickness="2" Padding="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" 
+                           FontWeight="SemiBold" TextWrapping="Wrap"/>
+                <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelCommand}" 
+                        Width="80" Padding="5" Margin="10,0,0,0"
+                        Visibility="{Binding IsAnalyzing, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

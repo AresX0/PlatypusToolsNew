@@ -1,0 +1,80 @@
+<UserControl x:Class="PlatypusTools.UI.Views.ProcessManagerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="1000">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Filter and Actions -->
+        <GroupBox Header="Process Manager" Grid.Row="0" Margin="0,0,0,8">
+            <Grid Margin="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" Grid.Column="0">
+                    <TextBlock VerticalAlignment="Center" Width="80">Filter:</TextBlock>
+                    <TextBox Width="300" Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,16,0" />
+                    <Button Content="Refresh" Command="{Binding RefreshCommand}" Width="90" Margin="0,0,8,0" />
+                    <Button Content="Kill Process" Command="{Binding KillProcessCommand}" Width="100" Background="DarkRed" Foreground="White" FontWeight="Bold" />
+                </StackPanel>
+                <TextBlock Grid.Column="1" VerticalAlignment="Center" FontWeight="Bold">
+                    Total Processes: <Run Text="{Binding TotalProcesses, Mode=OneWay}" />
+                </TextBlock>
+            </Grid>
+        </GroupBox>
+
+        <!-- Process List -->
+        <GroupBox Header="Running Processes" Grid.Row="1" Margin="0,0,0,8">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <DataGrid ItemsSource="{Binding Processes}"
+                          SelectedItem="{Binding SelectedProcess}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserResizeColumns="True"
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          AlternatingRowBackground="#F5F5F5">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="PID" Binding="{Binding ProcessId}" Width="80" MinWidth="60" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Process Name" Binding="{Binding ProcessName}" Width="200" MinWidth="150" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Memory (MB)" Binding="{Binding MemoryUsageDisplay}" Width="100" MinWidth="80" IsReadOnly="True" />
+                        <DataGridTextColumn Header="CPU %" Binding="{Binding CPUUsage, StringFormat='{}{0:0.00}'}" Width="80" MinWidth="60" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Threads" Binding="{Binding ThreadCount}" Width="80" MinWidth="60" IsReadOnly="True" />
+                        <DataGridTextColumn Header="User" Binding="{Binding UserName}" Width="120" MinWidth="100" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Start Time" Binding="{Binding StartTime, StringFormat='yyyy-MM-dd HH:mm:ss'}" Width="150" MinWidth="130" IsReadOnly="True" />
+                        <DataGridTextColumn Header="File Path" Binding="{Binding FilePath}" Width="*" MinWidth="200" IsReadOnly="True" />
+                    </DataGrid.Columns>
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Kill Process" Command="{Binding KillProcessCommand}" />
+                            <MenuItem Header="Load Details" Command="{Binding LoadDetailsCommand}" CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            <Separator />
+                            <MenuItem Header="Open File Location" />
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                </DataGrid>
+            </ScrollViewer>
+        </GroupBox>
+
+        <!-- Status Bar -->
+        <StatusBar Grid.Row="2">
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusMessage}" />
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Refreshing..." Margin="0,0,8,0" Visibility="{Binding IsRefreshing, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <ProgressBar Width="100" Height="16" IsIndeterminate="True" Visibility="{Binding IsRefreshing, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                </StackPanel>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</UserControl>
