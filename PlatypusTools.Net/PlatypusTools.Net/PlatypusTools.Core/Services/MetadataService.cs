@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PlatypusTools.Core.Services
@@ -21,33 +23,73 @@ namespace PlatypusTools.Core.Services
 
     public class MetadataServiceEnhanced : IMetadataService
     {
+        /// <summary>
+        /// Reads metadata from a file. Uses native .NET libraries first, then falls back to ExifTool.
+        /// </summary>
         public async Task<Dictionary<string, string>> ReadMetadata(string filePath)
         {
             var metadata = new Dictionary<string, string>();
             
             try
             {
-                var exifToolPath = GetExifToolPath();
-                if (!File.Exists(exifToolPath))
-                    return metadata;
-
-                var startInfo = new ProcessStartInfo
+                System.Diagnostics.Debug.WriteLine($"[MetadataService] ReadMetadata called for: {filePath}");
+                
+                // Try native reading first (faster and doesn't require ExifTool)
+                if (NativeMetadataReader.IsSupported(filePath))
                 {
-                    FileName = exifToolPath,
-                    Arguments = $"-a -G1 -s \"{filePath}\"",  // -a = all tags, -G1 = group names, -s = short output
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                };
+                    System.Diagnostics.Debug.WriteLine($"[MetadataService] Using native metadata reader");
+                    metadata = NativeMetadataReader.ReadMetadata(filePath);
+                    System.Diagnostics.Debug.WriteLine($"[MetadataService] Native reader returned {metadata.Count} entries");
+                    
+                    if (metadata.Count > 0)
+                        return metadata;
+                }
+                
+                // Fall back to ExifTool for unsupported formats or if native reading failed
+                System.Diagnostics.Debug.WriteLine($"[MetadataService] Falling back to ExifTool");
+                return await ReadMetadataWithExifTool(filePath);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MetadataService] ERROR: {ex.Message}");
+            }
 
-                using var process = new Process { StartInfo = startInfo };
-                process.Start();
+            return metadata;
+        }
+
+        private async Task<Dictionary<string, string>> ReadMetadataWithExifTool(string filePath)
+        {
+            var metadata = new Dictionary<string, string>();
+            
+            var exifToolPath = GetExifToolPath();
+            if (!File.Exists(exifToolPath))
+                return metadata;
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = exifToolPath,
+                Arguments = $"-a -G1 -s \"{filePath}\"",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                CreateNoWindow = true,
+                WorkingDirectory = Path.GetDirectoryName(exifToolPath)
+            };
+
+            using var process = new Process { StartInfo = startInfo };
+            process.Start();
+            
+            // Send Enter key to close exiftool(-k).exe if it's waiting
+            try { await process.StandardInput.WriteLineAsync(); } catch { }
+            
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            try
+            {
                 var output = await process.StandardOutput.ReadToEndAsync();
                 var errorOutput = await process.StandardError.ReadToEndAsync();
-                await process.WaitForExitAsync();
+                await process.WaitForExitAsync(cts.Token);
 
-                // Parse output: each line is "[Group] TagName: Value"
                 var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
                 foreach (var line in lines)
                 {
@@ -57,65 +99,185 @@ namespace PlatypusTools.Core.Services
                         var key = line.Substring(0, colonIndex).Trim();
                         var value = line.Substring(colonIndex + 1).Trim();
                         
-                        // Remove [Group] prefix if present
                         if (key.StartsWith("["))
                         {
                             var endBracket = key.IndexOf(']');
                             if (endBracket > 0 && endBracket < key.Length - 1)
-                            {
                                 key = key.Substring(endBracket + 1).Trim();
-                            }
                         }
                         
                         metadata[key] = value;
                     }
                 }
             }
-            catch (Exception ex)
+            catch (OperationCanceledException)
             {
-                // Log error but return empty dictionary
-                Console.WriteLine($"Error reading metadata: {ex.Message}");
+                try { process.Kill(); } catch { }
             }
 
             return metadata;
         }
 
+        /// <summary>
+        /// Writes metadata to a file. Tries native writing first (TagLib for audio/video),
+        /// then falls back to ExifTool.
+        /// </summary>
         public async Task<bool> WriteMetadata(string filePath, Dictionary<string, string> metadata)
         {
             try
             {
-                var exifToolPath = GetExifToolPath();
-                if (!File.Exists(exifToolPath))
-                    return false;
+                System.Diagnostics.Debug.WriteLine($"[MetadataService] WriteMetadata called for: {filePath}");
+                System.Diagnostics.Debug.WriteLine($"[MetadataService] Writing {metadata.Count} tags");
 
-                // Build arguments
-                var args = new List<string>();
+                // Try native writing with TagLib for audio/video
+                var extension = Path.GetExtension(filePath).ToLowerInvariant();
+                var audioVideoExtensions = new HashSet<string> { ".mp3", ".mp4", ".m4a", ".m4v", ".flac", ".ogg", ".wav", ".aac", ".wma", ".mkv", ".avi", ".mov" };
+                
+                if (audioVideoExtensions.Contains(extension))
+                {
+                    if (WriteWithTagLib(filePath, metadata))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[MetadataService] Successfully wrote with TagLib");
+                        return true;
+                    }
+                }
+
+                // Fall back to ExifTool
+                return await WriteMetadataWithExifTool(filePath, metadata);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MetadataService] WriteMetadata error: {ex.Message}");
+                return false;
+            }
+        }
+
+        private bool WriteWithTagLib(string filePath, Dictionary<string, string> metadata)
+        {
+            try
+            {
+                using var file = TagLib.File.Create(filePath);
+                var tag = file.Tag;
+
                 foreach (var kvp in metadata)
                 {
-                    if (!string.IsNullOrEmpty(kvp.Value))
-                        args.Add($"-{kvp.Key}=\"{kvp.Value}\"");
+                    var key = kvp.Key.ToLowerInvariant().Replace(" ", "");
+                    var value = kvp.Value;
+
+                    switch (key)
+                    {
+                        case "title":
+                            tag.Title = value;
+                            break;
+                        case "artist":
+                        case "performers":
+                            tag.Performers = value.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                .Select(s => s.Trim()).ToArray();
+                            break;
+                        case "album":
+                            tag.Album = value;
+                            break;
+                        case "year":
+                            if (uint.TryParse(value, out var year))
+                                tag.Year = year;
+                            break;
+                        case "track":
+                        case "tracknumber":
+                            if (uint.TryParse(value, out var track))
+                                tag.Track = track;
+                            break;
+                        case "genre":
+                        case "genres":
+                            tag.Genres = value.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                .Select(s => s.Trim()).ToArray();
+                            break;
+                        case "comment":
+                        case "comments":
+                            tag.Comment = value;
+                            break;
+                        case "copyright":
+                            tag.Copyright = value;
+                            break;
+                        case "composer":
+                        case "composers":
+                            tag.Composers = value.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                .Select(s => s.Trim()).ToArray();
+                            break;
+                        case "albumartist":
+                        case "albumartists":
+                            tag.AlbumArtists = value.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                .Select(s => s.Trim()).ToArray();
+                            break;
+                        case "description":
+                            tag.Description = value;
+                            break;
+                        case "conductor":
+                            tag.Conductor = value;
+                            break;
+                        case "disc":
+                        case "discnumber":
+                            if (uint.TryParse(value, out var disc))
+                                tag.Disc = disc;
+                            break;
+                    }
                 }
-                args.Add($"-overwrite_original");
-                args.Add($"\"{filePath}\"");
 
-                var startInfo = new ProcessStartInfo
+                file.Save();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MetadataService] TagLib write error: {ex.Message}");
+                return false;
+            }
+        }
+
+        private async Task<bool> WriteMetadataWithExifTool(string filePath, Dictionary<string, string> metadata)
+        {
+            var exifToolPath = GetExifToolPath();
+            if (!File.Exists(exifToolPath))
+                return false;
+
+            var args = new List<string>();
+            foreach (var kvp in metadata)
+            {
+                if (!string.IsNullOrEmpty(kvp.Value))
                 {
-                    FileName = exifToolPath,
-                    Arguments = string.Join(" ", args),
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                };
+                    var escapedValue = kvp.Value.Replace("\"", "\\\"");
+                    args.Add($"-{kvp.Key}=\"{escapedValue}\"");
+                }
+            }
+            args.Add("-overwrite_original");
+            args.Add($"\"{filePath}\"");
 
-                using var process = new Process { StartInfo = startInfo };
-                process.Start();
-                await process.WaitForExitAsync();
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = exifToolPath,
+                Arguments = string.Join(" ", args),
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                CreateNoWindow = true,
+                WorkingDirectory = Path.GetDirectoryName(exifToolPath)
+            };
 
+            using var process = new Process { StartInfo = startInfo };
+            process.Start();
+            
+            try { await process.StandardInput.WriteLineAsync(); } catch { }
+            
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            try
+            {
+                await process.StandardOutput.ReadToEndAsync();
+                await process.StandardError.ReadToEndAsync();
+                await process.WaitForExitAsync(cts.Token);
                 return process.ExitCode == 0;
             }
-            catch
+            catch (OperationCanceledException)
             {
+                try { process.Kill(); } catch { }
                 return false;
             }
         }
@@ -142,14 +304,31 @@ namespace PlatypusTools.Core.Services
                     Arguments = string.Join(" ", args),
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
-                    CreateNoWindow = true
+                    RedirectStandardError = true,
+                    RedirectStandardInput = true,
+                    CreateNoWindow = true,
+                    WorkingDirectory = Path.GetDirectoryName(exifToolPath)
                 };
 
                 using var process = new Process { StartInfo = startInfo };
                 process.Start();
-                await process.WaitForExitAsync();
-
-                return process.ExitCode == 0;
+                
+                // Send Enter key in case exiftool(-k).exe is being used
+                try { await process.StandardInput.WriteLineAsync(); } catch { }
+                
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                try
+                {
+                    await process.StandardOutput.ReadToEndAsync();
+                    await process.StandardError.ReadToEndAsync();
+                    await process.WaitForExitAsync(cts.Token);
+                    return process.ExitCode == 0;
+                }
+                catch (OperationCanceledException)
+                {
+                    try { process.Kill(); } catch { }
+                    return false;
+                }
             }
             catch
             {

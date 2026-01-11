@@ -1,0 +1,29 @@
+name: Check Archived Scripts
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  verify-archive:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify archived copies exist
+        shell: pwsh
+        run: |
+          $repo = (Get-Location).ProviderPath
+          $psFiles = Get-ChildItem -Path $repo -Filter '*.ps1' -Recurse | Where-Object { $_.FullName -notmatch '\\ArchivedScripts\\' }
+          $missing = @()
+          foreach ($f in $psFiles) {
+              $rel = $f.FullName.Substring($repo.Length).TrimStart('\\','/')
+              $archPath = Join-Path $repo 'ArchivedScripts'
+              $candidate = Join-Path $archPath $rel
+              if (-not (Test-Path $candidate)) { $missing += $rel }
+          }
+          if ($missing.Count -gt 0) {
+              Write-Error "Missing archived copies for the following .ps1 files:`n$($missing -join "`n")"
+              exit 1
+          } else { Write-Output "All .ps1 files have archived copies in ArchivedScripts/" }

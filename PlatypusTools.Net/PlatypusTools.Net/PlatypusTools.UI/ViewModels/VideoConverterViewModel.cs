@@ -184,6 +184,12 @@ namespace PlatypusTools.UI.ViewModels
             }
 
             StatusMessage = "Scanning...";
+            
+            // Unsubscribe from existing tasks before clearing
+            foreach (var task in ConversionTasks)
+            {
+                task.PropertyChanged -= Task_PropertyChanged;
+            }
             ConversionTasks.Clear();
 
             try
@@ -197,16 +203,33 @@ namespace PlatypusTools.UI.ViewModels
                     task.Quality = Quality;
                     task.OutputPath = GetOutputPath(task.SourcePath);
                     task.IsSelected = false; // User must manually select files
+                    task.PropertyChanged += Task_PropertyChanged;
                     ConversionTasks.Add(task);
                 }
 
                 TotalCount = ConversionTasks.Count;
                 StatusMessage = $"Found {TotalCount} video files";
+                RefreshCommandStates();
             }
             catch (Exception ex)
             {
                 StatusMessage = $"Error: {ex.Message}";
             }
+        }
+
+        private void Task_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(VideoConversionTask.IsSelected))
+            {
+                RefreshCommandStates();
+            }
+        }
+
+        private void RefreshCommandStates()
+        {
+            OnPropertyChanged(nameof(CanStartConversion));
+            (StartConversionCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            System.Windows.Input.CommandManager.InvalidateRequerySuggested();
         }
 
         private async void StartConversion()

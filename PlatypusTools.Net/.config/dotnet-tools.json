@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "dotnet-format": {
+      "version": "7.0.254702",
+      "commands": [
+        "dotnet-format"
+      ],
+      "rollForward": false
+    },
+    "wix": {
+      "version": "6.0.1",
+      "commands": [
+        "wix"
+      ],
+      "rollForward": false
+    }
+  }
+}

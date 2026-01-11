@@ -20,11 +20,27 @@ namespace PlatypusTools.UI.ViewModels
             set { _key = value; OnPropertyChanged(); }
         }
 
+        private string _originalValue = string.Empty;
+        public string OriginalValue
+        {
+            get => _originalValue;
+            set { _originalValue = value; OnPropertyChanged(); }
+        }
+
         private string _value = string.Empty;
         public string Value
         {
             get => _value;
-            set { _value = value; OnPropertyChanged(); }
+            set 
+            { 
+                if (_value != value)
+                {
+                    _value = value; 
+                    OnPropertyChanged();
+                    // Auto-update IsModified based on comparison to OriginalValue
+                    IsModified = _value != OriginalValue;
+                }
+            }
         }
 
         private bool _isModified;
@@ -267,6 +283,8 @@ namespace PlatypusTools.UI.ViewModels
             set { _selectedFolderFile = value; OnPropertyChanged(); }
         }
 
+        public bool HasModifiedTags => Metadata.Any(m => m.IsModified);
+
         public ICommand BrowseFileCommand { get; }
         public ICommand LoadMetadataCommand { get; }
         public ICommand SaveMetadataCommand { get; }
@@ -347,6 +365,12 @@ namespace PlatypusTools.UI.ViewModels
 
             IsLoading = true;
             StatusMessage = "Loading metadata...";
+            
+            // Unsubscribe from existing tags before clearing
+            foreach (var tag in Metadata)
+            {
+                tag.PropertyChanged -= Tag_PropertyChanged;
+            }
             Metadata.Clear();
 
             try
@@ -355,7 +379,9 @@ namespace PlatypusTools.UI.ViewModels
 
                 foreach (var kvp in metadata.OrderBy(k => k.Key))
                 {
-                    Metadata.Add(new MetadataTag { Key = kvp.Key, Value = kvp.Value });
+                    var tag = new MetadataTag { Key = kvp.Key, Value = kvp.Value, OriginalValue = kvp.Value };
+                    tag.PropertyChanged += Tag_PropertyChanged;
+                    Metadata.Add(tag);
                 }
 
                 // Update file type display
@@ -540,8 +566,26 @@ namespace PlatypusTools.UI.ViewModels
             }
             else if (!string.IsNullOrEmpty(value))
             {
-                Metadata.Add(new MetadataTag { Key = key, Value = value, IsModified = true });
+                var tag = new MetadataTag { Key = key, Value = value, OriginalValue = "", IsModified = true };
+                tag.PropertyChanged += Tag_PropertyChanged;
+                Metadata.Add(tag);
             }
+            RefreshSaveCommand();
+        }
+
+        private void Tag_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(MetadataTag.IsModified))
+            {
+                RefreshSaveCommand();
+            }
+        }
+
+        private void RefreshSaveCommand()
+        {
+            OnPropertyChanged(nameof(HasModifiedTags));
+            (SaveMetadataCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            System.Windows.Input.CommandManager.InvalidateRequerySuggested();
         }
 
         // Folder analysis methods
