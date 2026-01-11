@@ -6,9 +6,15 @@
     <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
+    <ApplicationIcon>..\..\JosephThePlatypus.ico</ApplicationIcon>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
+    <Reference Include="WindowsFormsIntegration">
+      <HintPath>C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\10.0.1\WindowsFormsIntegration.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>

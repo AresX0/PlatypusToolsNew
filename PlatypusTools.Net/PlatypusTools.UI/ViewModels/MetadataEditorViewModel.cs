@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using System.Threading.Tasks;
 using PlatypusTools.Core.Services;
 
 namespace PlatypusTools.UI.ViewModels
@@ -31,6 +32,72 @@ namespace PlatypusTools.UI.ViewModels
         {
             get => _isModified;
             set { _isModified = value; OnPropertyChanged(); }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    public class FolderAnalysisResult : INotifyPropertyChanged
+    {
+        private string _fileName = string.Empty;
+        public string FileName
+        {
+            get => _fileName;
+            set { _fileName = value; OnPropertyChanged(); }
+        }
+
+        private string _filePath = string.Empty;
+        public string FilePath
+        {
+            get => _filePath;
+            set { _filePath = value; OnPropertyChanged(); }
+        }
+
+        private int _tagCount;
+        public int TagCount
+        {
+            get => _tagCount;
+            set { _tagCount = value; OnPropertyChanged(); }
+        }
+
+        private long _fileSize;
+        public long FileSize
+        {
+            get => _fileSize;
+            set { _fileSize = value; OnPropertyChanged(); }
+        }
+
+        public string FileSizeFormatted => FormatFileSize(FileSize);
+
+        private DateTime _dateModified;
+        public DateTime DateModified
+        {
+            get => _dateModified;
+            set { _dateModified = value; OnPropertyChanged(); }
+        }
+
+        private string _status = string.Empty;
+        public string Status
+        {
+            get => _status;
+            set { _status = value; OnPropertyChanged(); }
+        }
+
+        private static string FormatFileSize(long bytes)
+        {
+            string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+            double len = bytes;
+            int order = 0;
+            while (len >= 1024 && order < sizes.Length - 1)
+            {
+                order++;
+                len = len / 1024;
+            }
+            return $"{len:0.##} {sizes[order]}";
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -103,12 +170,76 @@ namespace PlatypusTools.UI.ViewModels
             set { _copyright = value; OnPropertyChanged(); UpdateTag("Copyright", value); }
         }
 
+        private bool _isExifToolMissing;
+        public bool IsExifToolMissing
+        {
+            get => _isExifToolMissing;
+            set { _isExifToolMissing = value; OnPropertyChanged(); }
+        }
+
         public ICommand BrowseFileCommand { get; }
         public ICommand LoadMetadataCommand { get; }
         public ICommand SaveMetadataCommand { get; }
         public ICommand ClearAllCommand { get; }
         public ICommand AddTagCommand { get; }
         public ICommand RemoveTagCommand { get; }
+        public ICommand OpenExifToolWebsiteCommand { get; }
+        public ICommand BrowseFolderCommand { get; }
+        public ICommand AnalyzeFolderCommand { get; }
+        public ICommand ExportFolderResultsCommand { get; }
+
+        public ObservableCollection<FolderAnalysisResult> FolderResults { get; } = new();
+
+        private string _folderPath = string.Empty;
+        public string FolderPath
+        {
+            get => _folderPath;
+            set { _folderPath = value; OnPropertyChanged(); }
+        }
+
+        private int _totalFilesAnalyzed;
+        public int TotalFilesAnalyzed
+        {
+            get => _totalFilesAnalyzed;
+            set { _totalFilesAnalyzed = value; OnPropertyChanged(); }
+        }
+
+        private int _filesProcessed;
+        public int FilesProcessed
+        {
+            get => _filesProcessed;
+            set { _filesProcessed = value; OnPropertyChanged(); }
+        }
+
+        private bool _isAnalyzing;
+        public bool IsAnalyzing
+        {
+            get => _isAnalyzing;
+            set { _isAnalyzing = value; OnPropertyChanged(); }
+        }
+
+        private string _analysisStatusMessage = string.Empty;
+        public string AnalysisStatusMessage
+        {
+            get => _analysisStatusMessage;
+            set { _analysisStatusMessage = value; OnPropertyChanged(); }
+        }
+
+        private string _fileTypeFilter = "All Files";
+        public string FileTypeFilter
+        {
+            get => _fileTypeFilter;
+            set { _fileTypeFilter = value; OnPropertyChanged(); }
+        }
+
+        public List<string> FileTypeFilters { get; } = new()
+        {
+            "All Files",
+            "Images Only (jpg, png, gif, bmp, tiff)",
+            "Videos Only (mp4, mkv, avi, mov, wmv)",
+            "Audio Only (mp3, flac, wav, m4a, aac)",
+            "Documents (pdf, doc, docx)"
+        };
 
         public MetadataEditorViewModel() : this(new MetadataServiceEnhanced()) { }
 
@@ -122,8 +253,13 @@ namespace PlatypusTools.UI.ViewModels
             ClearAllCommand = new RelayCommand(_ => ClearAll(), _ => Metadata.Any());
             AddTagCommand = new RelayCommand(_ => AddTag());
             RemoveTagCommand = new RelayCommand(obj => RemoveTag(obj as MetadataTag));
+            OpenExifToolWebsiteCommand = new RelayCommand(_ => OpenExifToolWebsite());
+            BrowseFolderCommand = new RelayCommand(_ => BrowseFolder());
+            AnalyzeFolderCommand = new RelayCommand(_ => AnalyzeFolder(), _ => !string.IsNullOrEmpty(FolderPath) && !IsAnalyzing);
+            ExportFolderResultsCommand = new RelayCommand(_ => ExportFolderResults(), _ => FolderResults.Any());
 
-            if (!_service.IsExifToolAvailable())
+            IsExifToolMissing = !_service.IsExifToolAvailable();
+            if (IsExifToolMissing)
             {
                 StatusMessage = "⚠️ ExifTool not found. Please install ExifTool to use this feature.";
             }
@@ -164,7 +300,7 @@ namespace PlatypusTools.UI.ViewModels
 
             try
             {
-                var metadata = await _service.ReadMetadata(FilePath);
+                var metadata = await Task.Run(() => _service.ReadMetadata(FilePath));
 
                 foreach (var kvp in metadata.OrderBy(k => k.Key))
                 {
@@ -208,7 +344,7 @@ namespace PlatypusTools.UI.ViewModels
 
                 if (modifiedTags.Any())
                 {
-                    var success = await _service.WriteMetadata(FilePath, modifiedTags);
+                    var success = await Task.Run(() => _service.WriteMetadata(FilePath, modifiedTags));
                     if (success)
                     {
                         foreach (var tag in Metadata)
@@ -250,7 +386,7 @@ namespace PlatypusTools.UI.ViewModels
             try
             {
                 var allTags = Metadata.Select(m => m.Key).ToArray();
-                var success = await _service.ClearMetadata(FilePath, allTags);
+                var success = await Task.Run(() => _service.ClearMetadata(FilePath, allTags));
                 
                 if (success)
                 {
@@ -285,6 +421,22 @@ namespace PlatypusTools.UI.ViewModels
                 Metadata.Remove(tag);
         }
 
+        private void OpenExifToolWebsite()
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "https://exiftool.org/",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Failed to open browser: {ex.Message}";
+            }
+        }
+
         private void UpdateTag(string key, string value)
         {
             var existing = Metadata.FirstOrDefault(m => m.Key == key);
@@ -296,6 +448,151 @@ namespace PlatypusTools.UI.ViewModels
             else if (!string.IsNullOrEmpty(value))
             {
                 Metadata.Add(new MetadataTag { Key = key, Value = value, IsModified = true });
+            }
+        }
+
+        private void BrowseFolder()
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "Select any file in the folder to analyze",
+                CheckFileExists = false,
+                CheckPathExists = true,
+                FileName = "Select Folder"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                FolderPath = Path.GetDirectoryName(dialog.FileName) ?? string.Empty;
+                AnalysisStatusMessage = $"Folder selected: {FolderPath}";
+            }
+        }
+
+        private async void AnalyzeFolder()
+        {
+            if (string.IsNullOrEmpty(FolderPath) || !Directory.Exists(FolderPath))
+            {
+                AnalysisStatusMessage = "Invalid folder path";
+                return;
+            }
+
+            if (!_service.IsExifToolAvailable())
+            {
+                AnalysisStatusMessage = "ExifTool not available";
+                return;
+            }
+
+            IsAnalyzing = true;
+            FolderResults.Clear();
+            FilesProcessed = 0;
+            TotalFilesAnalyzed = 0;
+
+            try
+            {
+                // Get file extensions based on filter
+                var extensions = GetExtensionsForFilter(FileTypeFilter);
+                
+                // Get all files in folder
+                var allFiles = Directory.GetFiles(FolderPath, "*.*", SearchOption.TopDirectoryOnly)
+                    .Where(f => extensions.Length == 0 || extensions.Contains(Path.GetExtension(f).ToLower()))
+                    .ToList();
+
+                TotalFilesAnalyzed = allFiles.Count;
+                AnalysisStatusMessage = $"Analyzing {TotalFilesAnalyzed} files...";
+
+                foreach (var file in allFiles)
+                {
+                    var result = new FolderAnalysisResult
+                    {
+                        FileName = Path.GetFileName(file),
+                        FilePath = file,
+                        FileSize = new FileInfo(file).Length,
+                        DateModified = File.GetLastWriteTime(file),
+                        Status = "Processing..."
+                    };
+
+                    FolderResults.Add(result);
+
+                    try
+                    {
+                        var metadata = await Task.Run(() => _service.ReadMetadata(file));
+                        result.TagCount = metadata.Count;
+                        result.Status = "✓ Success";
+                    }
+                    catch (Exception ex)
+                    {
+                        result.TagCount = 0;
+                        result.Status = $"✗ Error: {ex.Message}";
+                    }
+
+                    FilesProcessed++;
+                    AnalysisStatusMessage = $"Processed {FilesProcessed}/{TotalFilesAnalyzed} files...";
+                }
+
+                var successCount = FolderResults.Count(r => r.Status.StartsWith("✓"));
+                var totalTags = FolderResults.Sum(r => r.TagCount);
+                var avgTags = successCount > 0 ? totalTags / (double)successCount : 0;
+
+                AnalysisStatusMessage = $"Analysis complete: {successCount}/{TotalFilesAnalyzed} files successful, {totalTags} total tags (avg {avgTags:F1} tags/file)";
+            }
+            catch (Exception ex)
+            {
+                AnalysisStatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        private string[] GetExtensionsForFilter(string filter)
+        {
+            return filter switch
+            {
+                "Images Only (jpg, png, gif, bmp, tiff)" => new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif" },
+                "Videos Only (mp4, mkv, avi, mov, wmv)" => new[] { ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm" },
+                "Audio Only (mp3, flac, wav, m4a, aac)" => new[] { ".mp3", ".flac", ".wav", ".m4a", ".aac", ".ogg", ".wma" },
+                "Documents (pdf, doc, docx)" => new[] { ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx" },
+                _ => Array.Empty<string>()
+            };
+        }
+
+        private async void ExportFolderResults()
+        {
+            if (!FolderResults.Any())
+            {
+                AnalysisStatusMessage = "No results to export";
+                return;
+            }
+
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "CSV Files (*.csv)|*.csv|Text Files (*.txt)|*.txt",
+                DefaultExt = ".csv",
+                FileName = $"metadata_analysis_{DateTime.Now:yyyyMMdd_HHmmss}"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    var lines = new List<string>
+                    {
+                        "FileName,FilePath,TagCount,FileSize,DateModified,Status"
+                    };
+
+                    foreach (var result in FolderResults)
+                    {
+                        lines.Add($"\"{result.FileName}\",\"{result.FilePath}\",{result.TagCount},\"{result.FileSizeFormatted}\",\"{result.DateModified:yyyy-MM-dd HH:mm:ss}\",\"{result.Status}\"");
+                    }
+
+                    await File.WriteAllLinesAsync(dialog.FileName, lines);
+                    AnalysisStatusMessage = $"Results exported to {Path.GetFileName(dialog.FileName)}";
+                }
+                catch (Exception ex)
+                {
+                    AnalysisStatusMessage = $"Export error: {ex.Message}";
+                }
             }
         }
 
