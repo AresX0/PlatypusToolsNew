@@ -1,0 +1,16 @@
+﻿[2025-12-15 20:42:12] Added folder: C:\test
+[2025-12-15 20:42:23] Hid folder: C:\test (ACL=False EFS=False)
+[2025-12-15 20:42:36] Unhid folder: C:\test (ACL restore=True EFS restore=True)
+[2025-12-15 21:16:36] Hid folder: C:\test (ACL=False EFS=False)
+[2025-12-15 21:16:43] Unhid folder: C:\test (ACL restore=True EFS restore=True)
+[2025-12-21 11:04:05] Added folder: F:\Private
+[2025-12-21 11:04:28] Hid folder: F:\Private (ACL=False EFS=False)
+[2025-12-22 02:25:04] Unhid folder: F:\Private (ACL restore=True EFS restore=True)
+[2025-12-22 03:23:03] Hid folder: F:\Private (ACL=False EFS=False)
+[2025-12-22 03:28:59] Unhid folder: F:\Private (ACL restore=True EFS restore=True)
+[2025-12-22 03:38:49] Hid folder: F:\Private (ACL=False EFS=False)
+[2026-01-02 10:49:26] Added folder: F:\$RECYCLE.BIN
+[2026-01-02 10:49:26] Added folder: F:\System Volume Information
+[2026-01-02 10:49:26] Added folder: F:\$RECYCLE.BIN\S-1-12-1-3240630118-1112574473-427772804-1463183191
+[2026-01-02 10:49:26] Added folder: F:\$RECYCLE.BIN\S-1-5-21-3226671936-2261181276-551747971-1002
+[2026-01-05 01:27:56] Unhid folder: F:\Private (ACL restore=True EFS restore=True)

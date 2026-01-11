@@ -4,7 +4,7 @@
   
   <Package Name="PlatypusTools"
            Manufacturer="PlatypusTools"
-           Version="2.0.0.0"
+           Version="2.0.0.6"
            UpgradeCode="A1B2C3D4-E5F6-4A5B-9C8D-1E2F3A4B5C6D"
            InstallerVersion="500"
            Compressed="yes">
@@ -24,7 +24,8 @@
 
     <!-- Features -->
     <Feature Id="ProductFeature" Title="PlatypusTools" Level="1">
-      <ComponentGroupRef Id="RuntimeFiles" />
+      <ComponentGroupRef Id="PublishFiles" />
+      <ComponentGroupRef Id="SupportFiles" />
       <ComponentRef Id="ApplicationShortcut" />
       <ComponentRef Id="RegistryEntries" />
     </Feature>

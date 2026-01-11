@@ -33,6 +33,8 @@
                             Margin="0,0,5,0" Background="LightCoral"/>
                     <Button Content="Scan Outbound Traffic" Command="{Binding ScanOutboundTrafficCommand}" Width="160" Height="35" 
                             Margin="0,0,5,0" Background="LightGreen"/>
+                    <Button Content="Scan Inbound Traffic" Command="{Binding ScanInboundTrafficCommand}" Width="160" Height="35" 
+                            Margin="0,0,5,0" Background="LightGreen"/>
                     <Button Content="Open Users &amp; Groups" Command="{Binding OpenUsersAndGroupsCommand}" Width="160" Height="35" 
                             Margin="0,0,5,0" Background="LightYellow"/>
                 </StackPanel>
@@ -85,14 +87,16 @@
 
         <!-- Results Grid -->
         <GroupBox Header="Audit Results" Grid.Row="4" Margin="0,0,0,10">
-            <DataGrid ItemsSource="{Binding AuditItems}" AutoGenerateColumns="False" CanUserAddRows="False" 
-                      IsReadOnly="True" SelectionMode="Single"
-                      CanUserResizeColumns="True" CanUserSortColumns="True" ColumnWidth="*">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="1.5*" CanUserResize="True" MinWidth="100"/>
-                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*" CanUserResize="True" MinWidth="100"/>
-                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="3*" CanUserResize="True" MinWidth="150"/>
-                    <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="1*" CanUserResize="True" MinWidth="70">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <DataGrid ItemsSource="{Binding AuditItems}" AutoGenerateColumns="False" CanUserAddRows="False" 
+                          SelectionMode="Single"
+                          CanUserResizeColumns="True" CanUserSortColumns="True"
+                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="150" CanUserResize="True" MinWidth="100" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200" CanUserResize="True" MinWidth="100" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="300" CanUserResize="True" MinWidth="150" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="100" CanUserResize="True" MinWidth="70">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Style.Triggers>
@@ -141,6 +145,7 @@
                     </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- Status Bar -->

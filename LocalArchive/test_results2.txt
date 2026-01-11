@@ -1,0 +1,59 @@
+Automated deep tests started: 12/14/2025 3:07:04 PM
+Defined function: Ensure-AppPaths
+Defined function: Initialize-AppDir
+Defined function: Write-Log
+Defined function: Get-DefaultConfig
+Defined function: Save-Config
+Defined function: Get-Config
+Defined function: Get-FolderRecord
+Defined function: Add-FolderRecord
+Defined function: Remove-FolderRecord
+Defined function: Update-Record
+Defined function: Update-AutoHide
+Defined function: Convert-PlainToSecureString
+Defined function: Convert-SecureStringToPlainText
+Defined function: New-PasswordRecord
+Defined function: Test-Password
+Defined function: Get-HiddenState
+Defined function: Set-Hidden
+Defined function: Clear-Hidden
+Defined function: Set-AclRestriction
+Defined function: Restore-ACL
+Defined function: Test-EFSAvailable
+Defined function: Test-DriveNTFS
+Defined function: Invoke-Cipher
+Defined function: Enable-EFS
+Defined function: Disable-EFS
+Defined function: Get-PasswordStrength
+Defined function: Should-ApplyAclRestriction
+Defined function: Update-StatusLabel
+Defined function: Set-PendingState
+Defined function: Reset-UiFromConfig
+Defined function: Show-SetPasswordDialog
+Defined function: Show-PasswordPrompt
+Defined function: Hide-AllManagedFolders
+Defined function: Update-TrayMenu
+Defined function: Update-ListView
+Defined function: Get-SelectedPath
+Defined function: Get-ActivePath
+Defined function: Set-LastActivity
+Loaded in-memory default config
+Created temp folder: C:\Users\doran\AppData\Local\Temp\fh_test_1cbf9ffd-014e-4a04-aba8-a64290e8954e
+Added in-memory folder record for C:\Users\doran\AppData\Local\Temp\fh_test_1cbf9ffd-014e-4a04-aba8-a64290e8954e
+Set password record: Iter=100000 SaltLen=24 HashLen=44
+After Set-Hidden, Get-HiddenState: True
+Set-AclRestriction returned: True
+Restore-ACL returned: True
+Test-Password (correct) returned: True
+After Clear-Hidden, Get-HiddenState: False
+Test-Password (wrong) returned: False
+Test-EFSAvailable: True
+Test-DriveNTFS for C:\Users\doran\AppData\Local\Temp\fh_test_1cbf9ffd-014e-4a04-aba8-a64290e8954e: True
+Starting FileCleaner single-file renumber test
+Defined FileCleaner function: Get-FilteredFiles
+Defined FileCleaner function: Get-ProposedName
+Defined FileCleaner function: Get-MetadataSummary
+FileCleaner proposed: Show-E001-Alpha.mkv
+FileCleaner ApplyEnabled (expect True): True
+Removed temp folder C:\Users\doran\AppData\Local\Temp\fh_test_1cbf9ffd-014e-4a04-aba8-a64290e8954e
+Automated deep tests finished: 12/14/2025 3:07:07 PM

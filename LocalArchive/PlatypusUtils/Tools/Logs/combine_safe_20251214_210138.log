@@ -1,0 +1,34 @@
+﻿[21:01:38] Safe combine (re-encode) into: C:\Users\doran\Downloads\combined_safe.mp4
+[21:01:38] List file: C:\Users\doran\Downloads\videolist.txt
+===== Safe combine (re-encode) 2025-12-14T21:01:38 =====
+cmd: C:\convert\ffmpeg.exe 
+[21:01:38] Safe combine (re-encode) -> logging to C:\Path\logs\combine_safe_20251214_210138.log
+ffmpeg.exe : ffmpeg version 2025-11-24-git-c732564d2e-essentials_build-www.gyan.dev Copyright (c) 2000-2025 the FFmpeg developers
+At C:\Path\VideoEditor.ps1:737 char:13
++   $output = & $ffmpegPath @Args 2>&1
++             ~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ffmpeg version ...mpeg developers:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  built with gcc 15.2.0 (Rev8, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-cairo 
+--enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib 
+--enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 
+--enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype 
+--enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm 
+--enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc 
+--enable-vaapi --enable-openal --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora 
+--enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis 
+--enable-librubberband
+  libavutil      60. 18.100 / 60. 18.100
+  libavcodec     62. 19.100 / 62. 19.100
+  libavformat    62.  6.103 / 62.  6.103
+  libavdevice    62.  2.100 / 62.  2.100
+  libavfilter    11.  9.100 / 11.  9.100
+  libswscale      9.  3.100 /  9.  3.100
+  libswresample   6.  2.100 /  6.  2.100
+Universal media converter
+usage: ffmpeg [options] [[infile options] -i infile]... {[outfile options] outfile}...
+
+Use -h to get full help or, even better, run 'man ffmpeg'
+[21:01:39] Safe combine failed with exit code 1. See C:\Path\logs\combine_safe_20251214_210138.log

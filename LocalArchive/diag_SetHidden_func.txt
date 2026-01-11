@@ -1,0 +1,9 @@
+﻿
+function Set-Hidden {
+    param([Parameter(Mandatory)][string]$Path)
+    $item = Get-Item -LiteralPath $Path -ErrorAction Stop
+    $attrs = $item.Attributes
+    $attrs = $attrs -bor [IO.FileAttributes]::Hidden
+    $attrs = $attrs -bor [IO.FileAttributes]::System
+    $item.Attributes = $attrs
+}

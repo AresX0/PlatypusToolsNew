@@ -1,0 +1,115 @@
+﻿[22:20:39] Converting to wmv (source) in C:\convert ...
+[22:20:39] -> Say_7FinalProject.mp4 => conv_Say_7FinalProject.wmv [source]
+===== Convert to wmv 2025-12-14T22:20:39 =====
+cmd: C:\convert\ffmpeg.exe -y -i 'C:\Users\doran\OneDrive - Say Family\Recordings\Say_7FinalProject.mp4' -c:v wmv2 -b:v 4000k -c:a wmav2 -b:a 192k C:\convert\conv_Say_7FinalProject.wmv
+[22:20:39] Convert to wmv -> logging to C:\Path\logs\convert_wmv_20251214_222039.log
+ffmpeg version 2025-11-24-git-c732564d2e-essentials_build-www.gyan.dev Copyright (c) 2000-2025 the FFmpeg developers
+  built with gcc 15.2.0 (Rev8, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-cairo --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-openal --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband
+  libavutil      60. 18.100 / 60. 18.100
+  libavcodec     62. 19.100 / 62. 19.100
+  libavformat    62.  6.103 / 62.  6.103
+  libavdevice    62.  2.100 / 62.  2.100
+  libavfilter    11.  9.100 / 11.  9.100
+  libswscale      9.  3.100 /  9.  3.100
+  libswresample   6.  2.100 /  6.  2.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'C:\Users\doran\OneDrive - Say Family\Recordings\Say_7FinalProject.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : https://clipchamp.com
+    comment         : Create videos with https://clipchamp.com/en/video-editor - free online video editor, video compressor, video converter.
+  Duration: 00:11:55.77, start: 0.000000, bitrate: 613 kb/s
+  Stream #0:0[0x1](und): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(progressive), 720x720 [SAR 1:1 DAR 1:1], 414 kb/s, 30 fps, 30 tbr, 15360 tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+  Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 192 kb/s (default)
+    Metadata:
+      handler_name    : SoundHandler
+Stream mapping:
+  Stream #0:0 -> #0:0 (h264 (native) -> wmv2 (native))
+  Stream #0:1 -> #0:1 (aac (native) -> wmav2 (native))
+Press [q] to stop, [?] for help
+Output #0, asf, to 'C:\convert\conv_Say_7FinalProject.wmv':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    Description     : Create videos with https://clipchamp.com/en/video-editor - free online video editor, video compressor, video converter.
+    WM/EncodingSettings: Lavf62.6.103
+  Stream #0:0(und): Video: wmv2 (WMV2 / 0x32564D57), yuv420p(tv, progressive), 720x720 [SAR 1:1 DAR 1:1], q=2-31, 4000 kb/s, 30 fps, 1k tbn (default)
+    Metadata:
+      encoder         : Lavc62.19.100 wmv2
+      handler_name    : VideoHandler
+    Side data:
+      CPB properties: bitrate max/min/avg: 0/0/4000000 buffer size: 0 vbv_delay: N/A
+  Stream #0:1(und): Audio: wmav2 (a[1][0][0] / 0x0161), 48000 Hz, stereo, fltp, 192 kb/s (default)
+    Metadata:
+      encoder         : Lavc62.19.100 wmav2
+      handler_name    : SoundHandler
+frame=  458 fps=0.0 q=2.0 size=    2048KiB time=00:00:15.23 bitrate=1101.3kbits/s speed=29.4x elapsed=0:00:00.51    
+[wmv2 @ 000001fc6907f0c0] warning, clipping 1 dct coefficients to -255..255
+    Last message repeated 16 times
+frame=  922 fps=891 q=2.0 size=    4608KiB time=00:00:30.70 bitrate=1229.6kbits/s speed=29.7x elapsed=0:00:01.03    
+frame= 1382 fps=888 q=2.0 size=    7680KiB time=00:00:46.06 bitrate=1365.7kbits/s speed=29.6x elapsed=0:00:01.55    
+frame= 1816 fps=876 q=2.0 size=   10752KiB time=00:01:00.50 bitrate=1455.9kbits/s speed=29.2x elapsed=0:00:02.07    
+frame= 2268 fps=877 q=2.0 size=   13568KiB time=00:01:15.60 bitrate=1470.2kbits/s speed=29.2x elapsed=0:00:02.58    
+frame= 2724 fps=879 q=2.0 size=   16640KiB time=00:01:30.80 bitrate=1501.3kbits/s speed=29.3x elapsed=0:00:03.09    
+frame= 3192 fps=883 q=2.0 size=   19456KiB time=00:01:46.36 bitrate=1498.4kbits/s speed=29.4x elapsed=0:00:03.61    
+frame= 3633 fps=882 q=2.0 size=   22272KiB time=00:02:01.06 bitrate=1507.0kbits/s speed=29.4x elapsed=0:00:04.12    
+frame= 4096 fps=883 q=2.0 size=   25088KiB time=00:02:16.53 bitrate=1505.3kbits/s speed=29.4x elapsed=0:00:04.63    
+[wmv2 @ 000001fc6907f0c0] warning, clipping 1 dct coefficients to -255..255
+    Last message repeated 2 times
+frame= 4560 fps=885 q=2.0 size=   27904KiB time=00:02:32.00 bitrate=1503.9kbits/s speed=29.5x elapsed=0:00:05.15    
+frame= 5018 fps=884 q=2.0 size=   30464KiB time=00:02:47.26 bitrate=1492.0kbits/s speed=29.5x elapsed=0:00:05.67    
+frame= 5477 fps=886 q=2.0 size=   33024KiB time=00:03:02.56 bitrate=1481.8kbits/s speed=29.5x elapsed=0:00:06.18    
+frame= 5946 fps=887 q=2.0 size=   35584KiB time=00:03:18.20 bitrate=1470.8kbits/s speed=29.6x elapsed=0:00:06.70    
+frame= 6413 fps=888 q=2.0 size=   38400KiB time=00:03:33.76 bitrate=1471.6kbits/s speed=29.6x elapsed=0:00:07.21    
+frame= 6817 fps=881 q=1.6 size=   42240KiB time=00:03:47.23 bitrate=1522.8kbits/s speed=29.4x elapsed=0:00:07.73    
+frame= 7225 fps=875 q=1.6 size=   46592KiB time=00:04:00.83 bitrate=1584.8kbits/s speed=29.2x elapsed=0:00:08.25    
+frame= 7617 fps=869 q=2.0 size=   50432KiB time=00:04:13.86 bitrate=1627.4kbits/s speed=  29x elapsed=0:00:08.76    
+frame= 8021 fps=865 q=2.0 size=   54272KiB time=00:04:27.36 bitrate=1662.9kbits/s speed=28.8x elapsed=0:00:09.27    
+frame= 8431 fps=860 q=2.0 size=   58368KiB time=00:04:41.03 bitrate=1701.4kbits/s speed=28.7x elapsed=0:00:09.80    
+frame= 8832 fps=856 q=2.0 size=   62464KiB time=00:04:54.40 bitrate=1738.1kbits/s speed=28.5x elapsed=0:00:10.32    
+frame= 9205 fps=850 q=1.6 size=   66048KiB time=00:05:06.80 bitrate=1763.6kbits/s speed=28.3x elapsed=0:00:10.82    
+frame= 9612 fps=847 q=2.0 size=   70144KiB time=00:05:20.40 bitrate=1793.4kbits/s speed=28.2x elapsed=0:00:11.34    
+frame= 9998 fps=843 q=2.0 size=   73984KiB time=00:05:33.26 bitrate=1818.6kbits/s speed=28.1x elapsed=0:00:11.85    
+frame=10399 fps=840 q=2.0 size=   78080KiB time=00:05:46.63 bitrate=1845.3kbits/s speed=  28x elapsed=0:00:12.37    
+frame=10756 fps=834 q=2.0 size=   81664KiB time=00:05:58.53 bitrate=1865.9kbits/s speed=27.8x elapsed=0:00:12.89    
+frame=11096 fps=827 q=2.0 size=   84992KiB time=00:06:09.86 bitrate=1882.4kbits/s speed=27.6x elapsed=0:00:13.41    
+frame=11424 fps=821 q=2.0 size=   88320KiB time=00:06:20.80 bitrate=1900.0kbits/s speed=27.4x elapsed=0:00:13.91    
+frame=11734 fps=813 q=2.0 size=   91392KiB time=00:06:31.10 bitrate=1914.3kbits/s speed=27.1x elapsed=0:00:14.43    
+frame=12133 fps=811 q=1.6 size=   95232KiB time=00:06:44.43 bitrate=1929.0kbits/s speed=  27x elapsed=0:00:14.95    
+[wmv2 @ 000001fc6907f0c0] warning, clipping 1 dct coefficients to -255..255
+    Last message repeated 22 times
+frame=12564 fps=812 q=2.0 size=   99072KiB time=00:06:58.80 bitrate=1937.9kbits/s speed=27.1x elapsed=0:00:15.47    
+frame=13015 fps=814 q=2.0 size=  101376KiB time=00:07:13.83 bitrate=1914.3kbits/s speed=27.1x elapsed=0:00:15.98    
+frame=13374 fps=810 q=2.0 size=  103424KiB time=00:07:25.80 bitrate=1900.5kbits/s speed=  27x elapsed=0:00:16.50    
+frame=13835 fps=813 q=2.0 size=  105728KiB time=00:07:41.16 bitrate=1878.1kbits/s speed=27.1x elapsed=0:00:17.02    
+frame=14254 fps=813 q=2.0 size=  108288KiB time=00:07:55.13 bitrate=1867.0kbits/s speed=27.1x elapsed=0:00:17.52    
+frame=14616 fps=810 q=2.0 size=  110336KiB time=00:08:07.16 bitrate=1855.4kbits/s speed=  27x elapsed=0:00:18.04    
+frame=15007 fps=809 q=2.0 size=  112640KiB time=00:08:20.23 bitrate=1844.6kbits/s speed=  27x elapsed=0:00:18.55    
+[wmv2 @ 000001fc6907f0c0] warning, clipping 1 dct coefficients to -255..255
+    Last message repeated 1 times
+frame=15386 fps=807 q=2.0 size=  114944KiB time=00:08:32.86 bitrate=1836.0kbits/s speed=26.9x elapsed=0:00:19.07    
+frame=15791 fps=806 q=2.0 size=  117504KiB time=00:08:46.36 bitrate=1828.7kbits/s speed=26.9x elapsed=0:00:19.59    
+frame=16178 fps=805 q=2.0 size=  120064KiB time=00:08:59.23 bitrate=1824.0kbits/s speed=26.8x elapsed=0:00:20.10    
+frame=16548 fps=802 q=2.0 size=  122368KiB time=00:09:11.60 bitrate=1817.3kbits/s speed=26.7x elapsed=0:00:20.62    
+frame=16928 fps=801 q=2.0 size=  124672KiB time=00:09:24.26 bitrate=1810.0kbits/s speed=26.7x elapsed=0:00:21.14    
+frame=17304 fps=799 q=2.0 size=  126976KiB time=00:09:36.80 bitrate=1803.4kbits/s speed=26.6x elapsed=0:00:21.65    
+frame=17688 fps=798 q=2.0 size=  129536KiB time=00:09:49.60 bitrate=1799.8kbits/s speed=26.6x elapsed=0:00:22.17    
+frame=18044 fps=796 q=2.0 size=  131840KiB time=00:10:01.46 bitrate=1795.7kbits/s speed=26.5x elapsed=0:00:22.68    
+[wmv2 @ 000001fc6907f0c0] warning, clipping 1 dct coefficients to -255..255
+frame=18421 fps=794 q=1.6 size=  133888KiB time=00:10:14.03 bitrate=1786.2kbits/s speed=26.5x elapsed=0:00:23.20    
+frame=18823 fps=794 q=2.0 size=  135936KiB time=00:10:27.40 bitrate=1774.9kbits/s speed=26.5x elapsed=0:00:23.71    
+frame=19210 fps=793 q=2.0 size=  137728KiB time=00:10:40.33 bitrate=1762.0kbits/s speed=26.4x elapsed=0:00:24.23    
+frame=19572 fps=791 q=2.0 size=  140032KiB time=00:10:52.40 bitrate=1758.3kbits/s speed=26.4x elapsed=0:00:24.74    
+frame=19969 fps=790 q=1.6 size=  142336KiB time=00:11:05.63 bitrate=1751.7kbits/s speed=26.3x elapsed=0:00:25.26    
+frame=20352 fps=789 q=2.0 size=  144384KiB time=00:11:18.40 bitrate=1743.5kbits/s speed=26.3x elapsed=0:00:25.78    
+frame=20713 fps=788 q=1.6 size=  146688KiB time=00:11:30.43 bitrate=1740.5kbits/s speed=26.3x elapsed=0:00:26.29    
+frame=21108 fps=787 q=2.0 size=  148992KiB time=00:11:43.60 bitrate=1734.7kbits/s speed=26.2x elapsed=0:00:26.81    
+frame=21470 fps=786 q=2.0 size=  151296KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:27.32    
+[out#0/asf @ 000001fc6954b040] video:128069KiB audio:16776KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 4.589899%
+frame=21473 fps=786 q=2.0 Lsize=  151493KiB time=00:11:55.73 bitrate=1733.9kbits/s speed=26.2x elapsed=0:00:27.32    
+[22:21:08] Convert finished. Success: 1, Fail: 0

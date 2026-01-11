@@ -81,11 +81,11 @@
                     <DataGrid ItemsSource="{Binding FileTypeStats}" 
                               AutoGenerateColumns="False" CanUserAddRows="False" 
                               CanUserResizeColumns="True" CanUserSortColumns="True"
-                              SelectionMode="Single" IsReadOnly="True">
+                              SelectionMode="Single">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Extension" Binding="{Binding Extension}" Width="150" MinWidth="100" CanUserResize="True"/>
-                            <DataGridTextColumn Header="Count" Binding="{Binding Count}" Width="100" MinWidth="80" CanUserResize="True"/>
-                            <DataGridTextColumn Header="Total Size" Binding="{Binding TotalSizeFormatted}" Width="*" MinWidth="120" CanUserResize="True"/>
+                            <DataGridTextColumn Header="Extension" Binding="{Binding Extension}" Width="150" MinWidth="100" CanUserResize="True" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Count" Binding="{Binding Count}" Width="100" MinWidth="80" CanUserResize="True" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Total Size" Binding="{Binding TotalSizeFormatted}" Width="*" MinWidth="120" CanUserResize="True" IsReadOnly="True"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </TabItem>
@@ -95,11 +95,11 @@
                     <DataGrid ItemsSource="{Binding LargestFiles}" 
                               AutoGenerateColumns="False" CanUserAddRows="False" 
                               CanUserResizeColumns="True" CanUserSortColumns="True"
-                              SelectionMode="Single" IsReadOnly="True">
+                              SelectionMode="Single">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" MinWidth="150" CanUserResize="True"/>
-                            <DataGridTextColumn Header="Size" Binding="{Binding SizeFormatted}" Width="120" MinWidth="100" CanUserResize="True"/>
-                            <DataGridTextColumn Header="Path" Binding="{Binding FullPath}" Width="2*" MinWidth="200" CanUserResize="True"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" MinWidth="150" CanUserResize="True" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Size" Binding="{Binding SizeFormatted}" Width="120" MinWidth="100" CanUserResize="True" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Path" Binding="{Binding FullPath}" Width="2*" MinWidth="200" CanUserResize="True" IsReadOnly="True"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </TabItem>
@@ -109,12 +109,12 @@
                     <DataGrid ItemsSource="{Binding OldestFiles}" 
                               AutoGenerateColumns="False" CanUserAddRows="False" 
                               CanUserResizeColumns="True" CanUserSortColumns="True"
-                              SelectionMode="Single" IsReadOnly="True">
+                              SelectionMode="Single">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" MinWidth="150" CanUserResize="True"/>
-                            <DataGridTextColumn Header="Created" Binding="{Binding Created, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="150" MinWidth="120" CanUserResize="True"/>
-                            <DataGridTextColumn Header="Size" Binding="{Binding SizeFormatted}" Width="120" MinWidth="100" CanUserResize="True"/>
-                            <DataGridTextColumn Header="Path" Binding="{Binding FullPath}" Width="2*" MinWidth="200" CanUserResize="True"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" MinWidth="150" CanUserResize="True" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Created" Binding="{Binding Created, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="150" MinWidth="120" CanUserResize="True" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Size" Binding="{Binding SizeFormatted}" Width="120" MinWidth="100" CanUserResize="True" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Path" Binding="{Binding FullPath}" Width="2*" MinWidth="200" CanUserResize="True" IsReadOnly="True"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </TabItem>
@@ -124,12 +124,12 @@
                     <DataGrid ItemsSource="{Binding NewestFiles}" 
                               AutoGenerateColumns="False" CanUserAddRows="False" 
                               CanUserResizeColumns="True" CanUserSortColumns="True"
-                              SelectionMode="Single" IsReadOnly="True">
+                              SelectionMode="Single">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" MinWidth="150"/>
-                            <DataGridTextColumn Header="Created" Binding="{Binding Created, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="150" MinWidth="120"/>
-                            <DataGridTextColumn Header="Size" Binding="{Binding SizeFormatted}" Width="120" MinWidth="100"/>
-                            <DataGridTextColumn Header="Path" Binding="{Binding FullPath}" Width="2*" MinWidth="200"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" MinWidth="150" CanUserResize="True" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Created" Binding="{Binding Created, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="150" MinWidth="120" CanUserResize="True" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Size" Binding="{Binding SizeFormatted}" Width="120" MinWidth="100" CanUserResize="True" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Path" Binding="{Binding FullPath}" Width="2*" MinWidth="200" CanUserResize="True" IsReadOnly="True"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </TabItem>
@@ -139,10 +139,10 @@
                     <DataGrid ItemsSource="{Binding FilesByAge}" 
                               AutoGenerateColumns="False" CanUserAddRows="False" 
                               CanUserResizeColumns="True" CanUserSortColumns="True"
-                              SelectionMode="Single" IsReadOnly="True">
+                              SelectionMode="Single">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Age Range" Binding="{Binding AgeRange}" Width="*" MinWidth="150"/>
-                            <DataGridTextColumn Header="File Count" Binding="{Binding Count}" Width="150" MinWidth="100"/>
+                            <DataGridTextColumn Header="Age Range" Binding="{Binding AgeRange}" Width="*" MinWidth="150" CanUserResize="True" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="File Count" Binding="{Binding Count}" Width="150" MinWidth="100" CanUserResize="True" IsReadOnly="True"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </TabItem>
@@ -152,12 +152,12 @@
                     <DataGrid ItemsSource="{Binding DuplicateGroups}" 
                               AutoGenerateColumns="False" CanUserAddRows="False" 
                               CanUserResizeColumns="True" CanUserSortColumns="True"
-                              SelectionMode="Single" IsReadOnly="True">
+                              SelectionMode="Single">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Hash" Binding="{Binding Hash}" Width="250" MinWidth="150"/>
-                            <DataGridTextColumn Header="Size" Binding="{Binding SizeFormatted}" Width="120" MinWidth="100"/>
-                            <DataGridTextColumn Header="Copies" Binding="{Binding FileCount}" Width="80" MinWidth="60"/>
-                            <DataGridTextColumn Header="Wasted Space" Binding="{Binding WastedSpace}" Width="*" MinWidth="120"/>
+                            <DataGridTextColumn Header="Hash" Binding="{Binding Hash}" Width="250" MinWidth="150" CanUserResize="True" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Size" Binding="{Binding SizeFormatted}" Width="120" MinWidth="100" CanUserResize="True" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Copies" Binding="{Binding FileCount}" Width="80" MinWidth="60" CanUserResize="True" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Wasted Space" Binding="{Binding WastedSpace}" Width="*" MinWidth="120" CanUserResize="True" IsReadOnly="True"/>
                         </DataGrid.Columns>
                         <DataGrid.RowDetailsTemplate>
                             <DataTemplate>

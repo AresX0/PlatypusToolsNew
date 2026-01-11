@@ -186,6 +186,7 @@ namespace PlatypusTools.UI.ViewModels
                     task.TargetFormat = TargetFormat;
                     task.Quality = Quality;
                     task.OutputPath = GetOutputPath(task.SourcePath);
+                    task.IsSelected = false; // User must manually select files
                     ConversionTasks.Add(task);
                 }
 

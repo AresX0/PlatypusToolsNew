@@ -1,0 +1,53 @@
+﻿Input list (concat file content):
+file 'C:\Users\doran\Downloads\vickyvane_bed1.mp4'
+file 'C:\Users\doran\Downloads\vickyvane_bed2.mp4'
+file 'C:\Users\doran\Downloads\vickyvane_bed3.mp4'
+file 'C:\Users\doran\Downloads\vickyvane_bed4.mp4'
+[02:36:26] Combining into: C:\Users\doran\Downloads\combined_20251222_023626.mp4 (stream copy)
+[02:36:26] List file: C:\Users\doran\Downloads\videolist_copy_20251222_023626.txt
+[02:36:26]   1. vickyvane_bed1.mp4
+[02:36:26]   2. vickyvane_bed2.mp4
+[02:36:26]   3. vickyvane_bed3.mp4
+[02:36:26]   4. vickyvane_bed4.mp4
+[02:36:26] ffmpeg cmd: C:\Path\ffmpeg.exe -y -fflags +genpts -safe 0 -f concat -i C:\Users\doran\Downloads\videolist_copy_20251222_023626.txt -c copy -avoid_negative_ts make_zero -reset_timestamps 1 -movflags +faststart C:\Users\doran\Downloads\combined_20251222_023626.mp4
+===== Combine (stream copy) 2025-12-22T02:36:26 =====
+cmd: C:\Path\ffmpeg.exe -y -fflags +genpts -safe 0 -f concat -i C:\Users\doran\Downloads\videolist_copy_20251222_023626.txt -c copy -avoid_negative_ts make_zero -reset_timestamps 1 -movflags +faststart C:\Users\doran\Downloads\combined_20251222_023626.mp4
+[02:36:26] Combine (stream copy) -> logging to C:\ProgramFiles\PlatypusUtils\Data\VideoEditor\Logs\combine_copy_20251222_023626.log
+ffmpeg version 2025-11-24-git-c732564d2e-essentials_build-www.gyan.dev Copyright (c) 2000-2025 the FFmpeg developers
+  built with gcc 15.2.0 (Rev8, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-cairo --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-openal --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband
+  libavutil      60. 18.100 / 60. 18.100
+  libavcodec     62. 19.100 / 62. 19.100
+  libavformat    62.  6.103 / 62.  6.103
+  libavdevice    62.  2.100 / 62.  2.100
+  libavfilter    11.  9.100 / 11.  9.100
+  libswscale      9.  3.100 /  9.  3.100
+  libswresample   6.  2.100 /  6.  2.100
+[mov,mp4,m4a,3gp,3g2,mj2 @ 000001a9ba482080] Auto-inserting h264_mp4toannexb bitstream filter
+Input #0, concat, from 'C:\Users\doran\Downloads\videolist_copy_20251222_023626.txt':
+  Duration: N/A, start: 0.000000, bitrate: 1400 kb/s
+  Stream #0:0(und): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 480x360 [SAR 1:1 DAR 4:3], 1208 kb/s, 29.97 fps, 29.97 tbr, 30k tbn
+    Metadata:
+      handler_name    : VideoHandler
+  Stream #0:1(und): Audio: aac (LC) (mp4a / 0x6134706D), 32000 Hz, stereo, fltp, 192 kb/s
+    Metadata:
+      handler_name    : SoundHandler
+Stream mapping:
+  Stream #0:0 -> #0:0 (copy)
+  Stream #0:1 -> #0:1 (copy)
+Output #0, mp4, to 'C:\Users\doran\Downloads\combined_20251222_023626.mp4':
+  Metadata:
+    encoder         : Lavf62.6.103
+  Stream #0:0(und): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 480x360 [SAR 1:1 DAR 4:3], q=2-31, 1208 kb/s, 29.97 fps, 29.97 tbr, 30k tbn
+    Metadata:
+      handler_name    : VideoHandler
+  Stream #0:1(und): Audio: aac (LC) (mp4a / 0x6134706D), 32000 Hz, stereo, fltp, 192 kb/s
+    Metadata:
+      handler_name    : SoundHandler
+Press [q] to stop, [?] for help
+[mov,mp4,m4a,3gp,3g2,mj2 @ 000001a9ba4a5a80] Auto-inserting h264_mp4toannexb bitstream filter
+[mov,mp4,m4a,3gp,3g2,mj2 @ 000001a9ba9c8d40] Auto-inserting h264_mp4toannexb bitstream filter
+    Last message repeated 1 times
+[mp4 @ 000001a9ba4873c0] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 000001a9ba53e500] video:61847KiB audio:7301KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.514588%
+frame=15071 fps=0.0 q=-1.0 Lsize=   69504KiB time=00:08:22.90 bitrate=1132.2kbits/s speed=1.83e+03x elapsed=0:00:00.27    

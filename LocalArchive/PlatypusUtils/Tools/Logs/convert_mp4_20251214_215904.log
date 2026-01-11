@@ -1,0 +1,5 @@
+﻿[21:59:04] Converting to mp4 (720p) in C:\convert ...
+[21:59:04] -> stepsiblingscaught_getting_my_clueless_stepbros_attention_1280.mp4 => conv_stepsiblingscaught_getting_my_clueless_stepbros_attention_1280.mp4 [720p]
+===== Convert to mp4 2025-12-14T21:59:04 =====
+cmd: C:\convert\ffmpeg.exe -y -i C:\Users\doran\Downloads\stepsiblingscaught_getting_my_clueless_stepbros_attention_1280.mp4 -vf scale=-2:720 -c:v libx264 -preset fast -crf 20 -c:a aac -b:a 192k C:\convert\conv_stepsiblingscaught_getting_my_clueless_stepbros_attention_1280.mp4
+[21:59:04] Convert to mp4 -> logging to C:\Path\logs\convert_mp4_20251214_215904.log

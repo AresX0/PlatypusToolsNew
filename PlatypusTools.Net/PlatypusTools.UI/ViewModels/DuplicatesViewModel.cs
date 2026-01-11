@@ -152,6 +152,7 @@ namespace PlatypusTools.UI.ViewModels
                 var chosen = g.Files.OrderByDescending(f => File.GetLastWriteTimeUtc(f.Path)).FirstOrDefault();
                 foreach (var f in g.Files) f.IsSelected = f == chosen;
             }
+            ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
         }
 
         private void SelectOldest()
@@ -161,6 +162,7 @@ namespace PlatypusTools.UI.ViewModels
                 var chosen = g.Files.OrderBy(f => File.GetLastWriteTimeUtc(f.Path)).FirstOrDefault();
                 foreach (var f in g.Files) f.IsSelected = f == chosen;
             }
+            ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
         }
 
         private void SelectLargest()
@@ -170,6 +172,7 @@ namespace PlatypusTools.UI.ViewModels
                 var chosen = g.Files.OrderByDescending(f => new FileInfo(f.Path).Length).FirstOrDefault();
                 foreach (var f in g.Files) f.IsSelected = f == chosen;
             }
+            ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
         }
 
         private void SelectSmallest()
@@ -179,6 +182,7 @@ namespace PlatypusTools.UI.ViewModels
                 var chosen = g.Files.OrderBy(f => new FileInfo(f.Path).Length).FirstOrDefault();
                 foreach (var f in g.Files) f.IsSelected = f == chosen;
             }
+            ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
         }
 
         private void KeepOnePerGroup()
@@ -188,6 +192,7 @@ namespace PlatypusTools.UI.ViewModels
                 var keep = g.Files.FirstOrDefault();
                 foreach (var f in g.Files) f.IsSelected = f != keep;
             }
+            ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
         }
 
         private void OpenFile(string? path)

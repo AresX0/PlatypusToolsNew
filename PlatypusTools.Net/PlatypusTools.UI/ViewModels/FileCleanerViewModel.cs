@@ -53,25 +53,25 @@ namespace PlatypusTools.UI.ViewModels
         public bool AddSeason { get => _addSeason; set { _addSeason = value; RaisePropertyChanged(); } }
 
         private int _seasonNumber = 1;
-        public int SeasonNumber { get => _seasonNumber; set { _seasonNumber = value; RaisePropertyChanged(); } }
+        public int SeasonNumber { get => _seasonNumber; set { _seasonNumber = value; RaisePropertyChanged(); AutoApplyPreview(); } }
 
         private int _seasonLeadingZeros = 2;
-        public int SeasonLeadingZeros { get => _seasonLeadingZeros; set { _seasonLeadingZeros = value; RaisePropertyChanged(); } }
+        public int SeasonLeadingZeros { get => _seasonLeadingZeros; set { _seasonLeadingZeros = value; RaisePropertyChanged(); AutoApplyPreview(); } }
 
         private bool _addEpisode;
-        public bool AddEpisode { get => _addEpisode; set { _addEpisode = value; RaisePropertyChanged(); } }
+        public bool AddEpisode { get => _addEpisode; set { _addEpisode = value; RaisePropertyChanged(); AutoApplyPreview(); } }
 
         private int _startEpisodeNumber = 1;
-        public int StartEpisodeNumber { get => _startEpisodeNumber; set { _startEpisodeNumber = value; RaisePropertyChanged(); } }
+        public int StartEpisodeNumber { get => _startEpisodeNumber; set { _startEpisodeNumber = value; RaisePropertyChanged(); AutoApplyPreview(); } }
 
         private int _episodeLeadingZeros = 2;
-        public int EpisodeLeadingZeros { get => _episodeLeadingZeros; set { _episodeLeadingZeros = value; RaisePropertyChanged(); } }
+        public int EpisodeLeadingZeros { get => _episodeLeadingZeros; set { _episodeLeadingZeros = value; RaisePropertyChanged(); AutoApplyPreview(); } }
 
         private bool _renumberAlphabetically;
-        public bool RenumberAlphabetically { get => _renumberAlphabetically; set { _renumberAlphabetically = value; RaisePropertyChanged(); } }
+        public bool RenumberAlphabetically { get => _renumberAlphabetically; set { _renumberAlphabetically = value; RaisePropertyChanged(); AutoApplyPreview(); } }
 
         private bool _seasonBeforeEpisode = true;
-        public bool SeasonBeforeEpisode { get => _seasonBeforeEpisode; set { _seasonBeforeEpisode = value; RaisePropertyChanged(); } }
+        public bool SeasonBeforeEpisode { get => _seasonBeforeEpisode; set { _seasonBeforeEpisode = value; RaisePropertyChanged(); AutoApplyPreview(); } }
 
         // Filename Cleaning
         private bool _remove720p;
@@ -220,7 +220,10 @@ namespace PlatypusTools.UI.ViewModels
                 _renamerService.ApplyPrefixRules(operations, NewPrefix, OldPrefix, IgnorePrefix, NormalizeCasing, OnlyFilesWithOldPrefix, AddPrefixToAll);
             }
 
-            if (AddSeason || AddEpisode)
+            // Apply season/episode numbering if:
+            // - AddSeason or AddEpisode is checked, OR
+            // - RenumberAlphabetically is checked (needs to reformat existing episode numbers)
+            if (AddSeason || AddEpisode || RenumberAlphabetically)
             {
                 _renamerService.ApplySeasonEpisodeNumbering(operations, 
                     AddSeason ? SeasonNumber : null, 
@@ -260,6 +263,16 @@ namespace PlatypusTools.UI.ViewModels
 
             SelectedCount = PreviewItems.Count(p => p.IsSelected);
             StatusMessage = $"Preview updated - {PreviewItems.Count(p => p.Status == RenameStatus.Pending)} files will be renamed";
+            ((RelayCommand)ApplyChangesCommand).RaiseCanExecuteChanged();
+        }
+
+        private void AutoApplyPreview()
+        {
+            // Only auto-apply if we have items already scanned
+            if (PreviewItems.Any())
+            {
+                ApplyPreview();
+            }
         }
 
         private void SelectAll()
@@ -267,6 +280,7 @@ namespace PlatypusTools.UI.ViewModels
             foreach (var item in PreviewItems)
                 item.IsSelected = true;
             SelectedCount = PreviewItems.Count;
+            ((RelayCommand)ApplyChangesCommand).RaiseCanExecuteChanged();
         }
 
         private void SelectNone()
@@ -274,6 +288,7 @@ namespace PlatypusTools.UI.ViewModels
             foreach (var item in PreviewItems)
                 item.IsSelected = false;
             SelectedCount = 0;
+            ((RelayCommand)ApplyChangesCommand).RaiseCanExecuteChanged();
         }
 
         private void ApplyChanges()

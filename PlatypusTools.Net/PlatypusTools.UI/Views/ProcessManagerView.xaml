@@ -43,14 +43,14 @@
                           SelectionMode="Single"
                           AlternatingRowBackground="#F5F5F5">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="PID" Binding="{Binding ProcessId}" Width="80" MinWidth="60" />
-                        <DataGridTextColumn Header="Process Name" Binding="{Binding ProcessName}" Width="200" MinWidth="150" />
-                        <DataGridTextColumn Header="Memory (MB)" Binding="{Binding MemoryUsageDisplay}" Width="100" MinWidth="80" />
-                        <DataGridTextColumn Header="CPU %" Binding="{Binding CPUUsage, StringFormat='{}{0:0.00}'}" Width="80" MinWidth="60" />
-                        <DataGridTextColumn Header="Threads" Binding="{Binding ThreadCount}" Width="80" MinWidth="60" />
-                        <DataGridTextColumn Header="User" Binding="{Binding UserName}" Width="120" MinWidth="100" />
-                        <DataGridTextColumn Header="Start Time" Binding="{Binding StartTime, StringFormat='yyyy-MM-dd HH:mm:ss'}" Width="150" MinWidth="130" />
-                        <DataGridTextColumn Header="File Path" Binding="{Binding FilePath}" Width="*" MinWidth="200" />
+                        <DataGridTextColumn Header="PID" Binding="{Binding ProcessId}" Width="80" MinWidth="60" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Process Name" Binding="{Binding ProcessName}" Width="200" MinWidth="150" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Memory (MB)" Binding="{Binding MemoryUsageDisplay}" Width="100" MinWidth="80" IsReadOnly="True" />
+                        <DataGridTextColumn Header="CPU %" Binding="{Binding CPUUsage, StringFormat='{}{0:0.00}'}" Width="80" MinWidth="60" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Threads" Binding="{Binding ThreadCount}" Width="80" MinWidth="60" IsReadOnly="True" />
+                        <DataGridTextColumn Header="User" Binding="{Binding UserName}" Width="120" MinWidth="100" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Start Time" Binding="{Binding StartTime, StringFormat='yyyy-MM-dd HH:mm:ss'}" Width="150" MinWidth="130" IsReadOnly="True" />
+                        <DataGridTextColumn Header="File Path" Binding="{Binding FilePath}" Width="*" MinWidth="200" IsReadOnly="True" />
                     </DataGrid.Columns>
                     <DataGrid.ContextMenu>
                         <ContextMenu>

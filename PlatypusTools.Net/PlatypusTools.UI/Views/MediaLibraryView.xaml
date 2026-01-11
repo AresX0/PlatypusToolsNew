@@ -52,13 +52,13 @@
                           SelectionMode="Single"
                           AlternatingRowBackground="#F5F5F5">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="250" MinWidth="150" />
-                        <DataGridTextColumn Header="Type" Binding="{Binding FileType}" Width="60" MinWidth="50" />
-                        <DataGridTextColumn Header="Size (MB)" Binding="{Binding FileSize, Converter={StaticResource BytesToMBConverter}}" Width="90" MinWidth="80" />
-                        <DataGridTextColumn Header="Resolution" Binding="{Binding Resolution}" Width="100" MinWidth="80" />
-                        <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="100" MinWidth="80" />
-                        <DataGridTextColumn Header="Date Modified" Binding="{Binding DateModified, StringFormat='yyyy-MM-dd HH:mm'}" Width="140" MinWidth="120" />
-                        <DataGridTextColumn Header="Full Path" Binding="{Binding FilePath}" Width="*" MinWidth="200" />
+                        <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="250" MinWidth="150" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Type" Binding="{Binding FileType}" Width="60" MinWidth="50" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Size (MB)" Binding="{Binding FileSize, Converter={StaticResource BytesToMBConverter}}" Width="90" MinWidth="80" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Resolution" Binding="{Binding Resolution}" Width="100" MinWidth="80" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="100" MinWidth="80" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Date Modified" Binding="{Binding DateModified, StringFormat='yyyy-MM-dd HH:mm'}" Width="140" MinWidth="120" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Full Path" Binding="{Binding FilePath}" Width="*" MinWidth="200" IsReadOnly="True" />
                     </DataGrid.Columns>
                     <DataGrid.ContextMenu>
                         <ContextMenu>

@@ -1,0 +1,342 @@
+﻿[2025-12-15 20:38:12] UI: Security scan button clicked
+[2025-12-15 20:39:46] UI: Security scan button clicked
+[2025-12-15 20:41:02] UI: Security scan button clicked
+[2025-12-15 20:41:02] Security scan started
+[2025-12-15 20:41:02] Users discovered: 8
+[2025-12-15 20:41:02] Group Administrators members: 3
+[2025-12-15 20:41:02] Group Backup Operators members: 0
+[2025-12-15 20:41:02] Group Power Users members: 0
+[2025-12-15 20:41:02] User scan start: Administrator
+[2025-12-15 20:41:02] User group checks done: Administrator
+[2025-12-15 20:41:02] User ACL checks done: Administrator
+[2025-12-15 20:41:02] User registry checks done: Administrator
+[2025-12-15 20:41:02] Flagged Administrator: Member of Administrators
+[2025-12-15 20:41:02] User scan end: Administrator
+[2025-12-15 20:41:02] User scan start: DefaultAccount
+[2025-12-15 20:41:02] User group checks done: DefaultAccount
+[2025-12-15 20:41:02] User ACL checks done: DefaultAccount
+[2025-12-15 20:41:02] User registry checks done: DefaultAccount
+[2025-12-15 20:41:02] User scan end: DefaultAccount
+[2025-12-15 20:41:02] User scan start: defaultuser0
+[2025-12-15 20:41:02] User group checks done: defaultuser0
+[2025-12-15 20:41:02] User ACL checks done: defaultuser0
+[2025-12-15 20:41:02] User registry checks done: defaultuser0
+[2025-12-15 20:41:02] User scan end: defaultuser0
+[2025-12-15 20:41:02] User scan start: doran
+[2025-12-15 20:41:02] User group checks done: doran
+[2025-12-15 20:41:02] User ACL checks done: doran
+[2025-12-15 20:41:02] User registry checks done: doran
+[2025-12-15 20:41:02] Flagged doran: Member of Administrators
+[2025-12-15 20:41:02] User scan end: doran
+[2025-12-15 20:41:02] User scan start: Guest
+[2025-12-15 20:41:02] User group checks done: Guest
+[2025-12-15 20:41:02] User ACL checks done: Guest
+[2025-12-15 20:41:02] User registry checks done: Guest
+[2025-12-15 20:41:02] User scan end: Guest
+[2025-12-15 20:41:02] User scan start: hide
+[2025-12-15 20:41:02] User group checks done: hide
+[2025-12-15 20:41:02] User ACL checks done: hide
+[2025-12-15 20:41:02] User registry checks done: hide
+[2025-12-15 20:41:02] User scan end: hide
+[2025-12-15 20:41:02] User scan start: script
+[2025-12-15 20:41:02] User group checks done: script
+[2025-12-15 20:41:02] User ACL checks done: script
+[2025-12-15 20:41:02] User registry checks done: script
+[2025-12-15 20:41:02] Flagged script: Member of Administrators
+[2025-12-15 20:41:02] User scan end: script
+[2025-12-15 20:41:02] User scan start: WDAGUtilityAccount
+[2025-12-15 20:41:02] User group checks done: WDAGUtilityAccount
+[2025-12-15 20:41:02] User ACL checks done: WDAGUtilityAccount
+[2025-12-15 20:41:02] User registry checks done: WDAGUtilityAccount
+[2025-12-15 20:41:02] User scan end: WDAGUtilityAccount
+[2025-12-15 20:41:02] Security scan completed. Findings: 3
+[2025-12-15 20:41:02] UI: Scan complete, rows=3
+[2025-12-15 20:41:06] UI: Critical ACL window requested
+[2025-12-15 20:41:12] UI: Outbound scan requested
+[2025-12-15 20:43:17] UI: Outbound scan requested
+[2025-12-15 20:46:10] UI: Outbound scan requested
+[2025-12-15 20:46:10] Outbound scan: Starting connection gathering
+[2025-12-15 20:46:12] Outbound scan: Using Get-NetTCPConnection
+[2025-12-15 20:46:12] Outbound scan: Found 133 total connections
+[2025-12-15 20:46:13] Outbound scan: 8 public connections to process
+[2025-12-15 20:46:13] Outbound scan: Processing 1/8 - 52.96.16.162:443
+[2025-12-15 20:46:13] Outbound scan: Processing 2/8 - 45.33.125.156:443
+[2025-12-15 20:46:13] Outbound scan: Processing 3/8 - 104.208.203.90:443
+[2025-12-15 20:46:13] Outbound scan: Processing 4/8 - 104.208.203.90:443
+[2025-12-15 20:46:13] Outbound scan: Processing 5/8 - 140.82.112.21:443
+[2025-12-15 20:46:13] Outbound scan: Processing 6/8 - 20.189.173.15:443
+[2025-12-15 20:46:13] Outbound scan: Processing 7/8 - 199.232.193.91:443
+[2025-12-15 20:46:13] Outbound scan: Processing 8/8 - 104.208.203.90:443
+[2025-12-15 20:46:13] Outbound scan: Complete with 8 results
+[2025-12-15 20:46:27] UI: Critical ACL window requested
+[2025-12-15 20:46:30] UI: Security scan button clicked
+[2025-12-15 20:46:30] Security scan started
+[2025-12-15 20:46:30] Users discovered: 8
+[2025-12-15 20:46:30] Group Administrators members: 3
+[2025-12-15 20:46:30] Group Backup Operators members: 0
+[2025-12-15 20:46:30] Group Power Users members: 0
+[2025-12-15 20:46:31] User scan start: Administrator
+[2025-12-15 20:46:31] User group checks done: Administrator
+[2025-12-15 20:46:31] User ACL checks done: Administrator
+[2025-12-15 20:46:31] User registry checks done: Administrator
+[2025-12-15 20:46:31] Flagged Administrator: Member of Administrators
+[2025-12-15 20:46:31] User scan end: Administrator
+[2025-12-15 20:46:31] User scan start: DefaultAccount
+[2025-12-15 20:46:31] User group checks done: DefaultAccount
+[2025-12-15 20:46:31] User ACL checks done: DefaultAccount
+[2025-12-15 20:46:31] User registry checks done: DefaultAccount
+[2025-12-15 20:46:31] User scan end: DefaultAccount
+[2025-12-15 20:46:31] User scan start: defaultuser0
+[2025-12-15 20:46:31] User group checks done: defaultuser0
+[2025-12-15 20:46:31] User ACL checks done: defaultuser0
+[2025-12-15 20:46:31] User registry checks done: defaultuser0
+[2025-12-15 20:46:31] User scan end: defaultuser0
+[2025-12-15 20:46:31] User scan start: doran
+[2025-12-15 20:46:31] User group checks done: doran
+[2025-12-15 20:46:31] User ACL checks done: doran
+[2025-12-15 20:46:31] User registry checks done: doran
+[2025-12-15 20:46:31] Flagged doran: Member of Administrators
+[2025-12-15 20:46:31] User scan end: doran
+[2025-12-15 20:46:31] User scan start: Guest
+[2025-12-15 20:46:31] User group checks done: Guest
+[2025-12-15 20:46:31] User ACL checks done: Guest
+[2025-12-15 20:46:31] User registry checks done: Guest
+[2025-12-15 20:46:31] User scan end: Guest
+[2025-12-15 20:46:31] User scan start: hide
+[2025-12-15 20:46:31] User group checks done: hide
+[2025-12-15 20:46:31] User ACL checks done: hide
+[2025-12-15 20:46:31] User registry checks done: hide
+[2025-12-15 20:46:31] User scan end: hide
+[2025-12-15 20:46:31] User scan start: script
+[2025-12-15 20:46:31] User group checks done: script
+[2025-12-15 20:46:31] User ACL checks done: script
+[2025-12-15 20:46:31] User registry checks done: script
+[2025-12-15 20:46:31] Flagged script: Member of Administrators
+[2025-12-15 20:46:31] User scan end: script
+[2025-12-15 20:46:31] User scan start: WDAGUtilityAccount
+[2025-12-15 20:46:31] User group checks done: WDAGUtilityAccount
+[2025-12-15 20:46:31] User ACL checks done: WDAGUtilityAccount
+[2025-12-15 20:46:31] User registry checks done: WDAGUtilityAccount
+[2025-12-15 20:46:31] User scan end: WDAGUtilityAccount
+[2025-12-15 20:46:31] Security scan completed. Findings: 3
+[2025-12-15 20:46:31] UI: Scan complete, rows=3
+[2025-12-15 21:16:21] UI: Outbound scan requested
+[2025-12-15 21:16:21] Outbound scan: Starting connection gathering
+[2025-12-15 21:16:23] Outbound scan: Using Get-NetTCPConnection
+[2025-12-15 21:16:24] Outbound scan: Found 133 total connections
+[2025-12-15 21:16:24] Outbound scan: 8 public connections to process
+[2025-12-15 21:16:24] Outbound scan: Processing 1/8 - 52.96.16.162:443
+[2025-12-15 21:16:24] Outbound scan: Processing 2/8 - 140.82.114.22:443
+[2025-12-15 21:16:24] Outbound scan: Processing 3/8 - 45.33.125.156:443
+[2025-12-15 21:16:24] Outbound scan: Processing 4/8 - 104.208.203.90:443
+[2025-12-15 21:16:24] Outbound scan: Processing 5/8 - 104.208.203.90:443
+[2025-12-15 21:16:24] Outbound scan: Processing 6/8 - 20.189.173.15:443
+[2025-12-15 21:16:24] Outbound scan: Processing 7/8 - 199.232.193.91:443
+[2025-12-15 21:16:24] Outbound scan: Processing 8/8 - 104.208.203.90:443
+[2025-12-15 21:16:24] Outbound scan: Complete with 8 results
+[2025-12-15 21:16:26] UI: Security scan button clicked
+[2025-12-15 21:16:26] Security scan started
+[2025-12-15 21:16:27] Users discovered: 8
+[2025-12-15 21:16:27] Group Administrators members: 3
+[2025-12-15 21:16:27] Group Backup Operators members: 0
+[2025-12-15 21:16:27] Group Power Users members: 0
+[2025-12-15 21:16:27] User scan start: Administrator
+[2025-12-15 21:16:27] User group checks done: Administrator
+[2025-12-15 21:16:27] User ACL checks done: Administrator
+[2025-12-15 21:16:27] User registry checks done: Administrator
+[2025-12-15 21:16:27] Flagged Administrator: Member of Administrators
+[2025-12-15 21:16:27] User scan end: Administrator
+[2025-12-15 21:16:27] User scan start: DefaultAccount
+[2025-12-15 21:16:27] User group checks done: DefaultAccount
+[2025-12-15 21:16:27] User ACL checks done: DefaultAccount
+[2025-12-15 21:16:27] User registry checks done: DefaultAccount
+[2025-12-15 21:16:27] User scan end: DefaultAccount
+[2025-12-15 21:16:27] User scan start: defaultuser0
+[2025-12-15 21:16:27] User group checks done: defaultuser0
+[2025-12-15 21:16:27] User ACL checks done: defaultuser0
+[2025-12-15 21:16:27] User registry checks done: defaultuser0
+[2025-12-15 21:16:27] User scan end: defaultuser0
+[2025-12-15 21:16:27] User scan start: doran
+[2025-12-15 21:16:27] User group checks done: doran
+[2025-12-15 21:16:27] User ACL checks done: doran
+[2025-12-15 21:16:27] User registry checks done: doran
+[2025-12-15 21:16:27] Flagged doran: Member of Administrators
+[2025-12-15 21:16:27] User scan end: doran
+[2025-12-15 21:16:27] User scan start: Guest
+[2025-12-15 21:16:27] User group checks done: Guest
+[2025-12-15 21:16:27] User ACL checks done: Guest
+[2025-12-15 21:16:27] User registry checks done: Guest
+[2025-12-15 21:16:27] User scan end: Guest
+[2025-12-15 21:16:27] User scan start: hide
+[2025-12-15 21:16:27] User group checks done: hide
+[2025-12-15 21:16:27] User ACL checks done: hide
+[2025-12-15 21:16:27] User registry checks done: hide
+[2025-12-15 21:16:27] User scan end: hide
+[2025-12-15 21:16:27] User scan start: script
+[2025-12-15 21:16:27] User group checks done: script
+[2025-12-15 21:16:27] User ACL checks done: script
+[2025-12-15 21:16:27] User registry checks done: script
+[2025-12-15 21:16:27] Flagged script: Member of Administrators
+[2025-12-15 21:16:27] User scan end: script
+[2025-12-15 21:16:27] User scan start: WDAGUtilityAccount
+[2025-12-15 21:16:27] User group checks done: WDAGUtilityAccount
+[2025-12-15 21:16:27] User ACL checks done: WDAGUtilityAccount
+[2025-12-15 21:16:27] User registry checks done: WDAGUtilityAccount
+[2025-12-15 21:16:27] User scan end: WDAGUtilityAccount
+[2025-12-15 21:16:27] Security scan completed. Findings: 3
+[2025-12-15 21:16:27] UI: Scan complete, rows=3
+[2025-12-15 21:16:30] UI: Critical ACL window requested
+[2025-12-18 00:09:26] UI: Security scan button clicked
+[2025-12-18 00:09:26] Security scan started
+[2025-12-18 00:09:26] Users discovered: 8
+[2025-12-18 00:09:26] Group Administrators members: 3
+[2025-12-18 00:09:26] Group Backup Operators members: 0
+[2025-12-18 00:09:26] Group Power Users members: 0
+[2025-12-18 00:09:26] User scan start: Administrator
+[2025-12-18 00:09:26] User group checks done: Administrator
+[2025-12-18 00:09:26] User ACL checks done: Administrator
+[2025-12-18 00:09:26] User registry checks done: Administrator
+[2025-12-18 00:09:26] Flagged Administrator: Member of Administrators
+[2025-12-18 00:09:26] User scan end: Administrator
+[2025-12-18 00:09:26] User scan start: DefaultAccount
+[2025-12-18 00:09:26] User group checks done: DefaultAccount
+[2025-12-18 00:09:26] User ACL checks done: DefaultAccount
+[2025-12-18 00:09:27] User registry checks done: DefaultAccount
+[2025-12-18 00:09:27] User scan end: DefaultAccount
+[2025-12-18 00:09:27] User scan start: defaultuser0
+[2025-12-18 00:09:27] User group checks done: defaultuser0
+[2025-12-18 00:09:27] User ACL checks done: defaultuser0
+[2025-12-18 00:09:27] User registry checks done: defaultuser0
+[2025-12-18 00:09:27] User scan end: defaultuser0
+[2025-12-18 00:09:27] User scan start: doran
+[2025-12-18 00:09:27] User group checks done: doran
+[2025-12-18 00:09:27] User ACL checks done: doran
+[2025-12-18 00:09:27] User registry checks done: doran
+[2025-12-18 00:09:27] Flagged doran: Member of Administrators
+[2025-12-18 00:09:27] User scan end: doran
+[2025-12-18 00:09:27] User scan start: Guest
+[2025-12-18 00:09:27] User group checks done: Guest
+[2025-12-18 00:09:27] User ACL checks done: Guest
+[2025-12-18 00:09:27] User registry checks done: Guest
+[2025-12-18 00:09:27] User scan end: Guest
+[2025-12-18 00:09:27] User scan start: hide
+[2025-12-18 00:09:27] User group checks done: hide
+[2025-12-18 00:09:27] User ACL checks done: hide
+[2025-12-18 00:09:27] User registry checks done: hide
+[2025-12-18 00:09:27] User scan end: hide
+[2025-12-18 00:09:27] User scan start: script
+[2025-12-18 00:09:27] User group checks done: script
+[2025-12-18 00:09:27] User ACL checks done: script
+[2025-12-18 00:09:27] User registry checks done: script
+[2025-12-18 00:09:27] Flagged script: Member of Administrators
+[2025-12-18 00:09:27] User scan end: script
+[2025-12-18 00:09:27] User scan start: WDAGUtilityAccount
+[2025-12-18 00:09:27] User group checks done: WDAGUtilityAccount
+[2025-12-18 00:09:27] User ACL checks done: WDAGUtilityAccount
+[2025-12-18 00:09:27] User registry checks done: WDAGUtilityAccount
+[2025-12-18 00:09:27] User scan end: WDAGUtilityAccount
+[2025-12-18 00:09:27] Security scan completed. Findings: 3
+[2025-12-18 00:09:27] UI: Scan complete, rows=3
+[2025-12-18 00:09:29] UI: Critical ACL window requested
+[2026-01-02 10:49:06] UI: Security scan button clicked
+[2026-01-02 10:49:06] Security scan started
+[2026-01-02 10:49:06] Users discovered: 8
+[2026-01-02 10:49:06] Group Administrators members: 3
+[2026-01-02 10:49:06] Group Backup Operators members: 0
+[2026-01-02 10:49:06] Group Power Users members: 0
+[2026-01-02 10:49:06] User scan start: Administrator
+[2026-01-02 10:49:07] User group checks done: Administrator
+[2026-01-02 10:49:07] User ACL checks done: Administrator
+[2026-01-02 10:49:07] User registry checks done: Administrator
+[2026-01-02 10:49:07] Flagged Administrator: Member of Administrators
+[2026-01-02 10:49:07] User scan end: Administrator
+[2026-01-02 10:49:07] User scan start: DefaultAccount
+[2026-01-02 10:49:07] User group checks done: DefaultAccount
+[2026-01-02 10:49:07] User ACL checks done: DefaultAccount
+[2026-01-02 10:49:07] User registry checks done: DefaultAccount
+[2026-01-02 10:49:07] User scan end: DefaultAccount
+[2026-01-02 10:49:07] User scan start: defaultuser0
+[2026-01-02 10:49:07] User group checks done: defaultuser0
+[2026-01-02 10:49:07] User ACL checks done: defaultuser0
+[2026-01-02 10:49:07] User registry checks done: defaultuser0
+[2026-01-02 10:49:07] User scan end: defaultuser0
+[2026-01-02 10:49:07] User scan start: doran
+[2026-01-02 10:49:07] User group checks done: doran
+[2026-01-02 10:49:07] User ACL checks done: doran
+[2026-01-02 10:49:07] User registry checks done: doran
+[2026-01-02 10:49:07] Flagged doran: Member of Administrators
+[2026-01-02 10:49:07] User scan end: doran
+[2026-01-02 10:49:07] User scan start: Guest
+[2026-01-02 10:49:07] User group checks done: Guest
+[2026-01-02 10:49:07] User ACL checks done: Guest
+[2026-01-02 10:49:07] User registry checks done: Guest
+[2026-01-02 10:49:07] User scan end: Guest
+[2026-01-02 10:49:07] User scan start: hide
+[2026-01-02 10:49:07] User group checks done: hide
+[2026-01-02 10:49:07] User ACL checks done: hide
+[2026-01-02 10:49:07] User registry checks done: hide
+[2026-01-02 10:49:07] User scan end: hide
+[2026-01-02 10:49:07] User scan start: script
+[2026-01-02 10:49:07] User group checks done: script
+[2026-01-02 10:49:07] User ACL checks done: script
+[2026-01-02 10:49:07] User registry checks done: script
+[2026-01-02 10:49:07] Flagged script: Member of Administrators
+[2026-01-02 10:49:07] User scan end: script
+[2026-01-02 10:49:07] User scan start: WDAGUtilityAccount
+[2026-01-02 10:49:07] User group checks done: WDAGUtilityAccount
+[2026-01-02 10:49:07] User ACL checks done: WDAGUtilityAccount
+[2026-01-02 10:49:07] User registry checks done: WDAGUtilityAccount
+[2026-01-02 10:49:07] User scan end: WDAGUtilityAccount
+[2026-01-02 10:49:07] Security scan completed. Findings: 3
+[2026-01-02 10:49:07] UI: Scan complete, rows=3
+[2026-01-02 10:49:12] UI: Security scan button clicked
+[2026-01-02 10:49:12] Security scan started
+[2026-01-02 10:49:12] Users discovered: 8
+[2026-01-02 10:49:12] Group Administrators members: 3
+[2026-01-02 10:49:12] Group Backup Operators members: 0
+[2026-01-02 10:49:12] Group Power Users members: 0
+[2026-01-02 10:49:12] User scan start: Administrator
+[2026-01-02 10:49:12] User group checks done: Administrator
+[2026-01-02 10:49:12] User ACL checks done: Administrator
+[2026-01-02 10:49:12] User registry checks done: Administrator
+[2026-01-02 10:49:12] Flagged Administrator: Member of Administrators
+[2026-01-02 10:49:12] User scan end: Administrator
+[2026-01-02 10:49:12] User scan start: DefaultAccount
+[2026-01-02 10:49:12] User group checks done: DefaultAccount
+[2026-01-02 10:49:12] User ACL checks done: DefaultAccount
+[2026-01-02 10:49:12] User registry checks done: DefaultAccount
+[2026-01-02 10:49:12] User scan end: DefaultAccount
+[2026-01-02 10:49:12] User scan start: defaultuser0
+[2026-01-02 10:49:12] User group checks done: defaultuser0
+[2026-01-02 10:49:12] User ACL checks done: defaultuser0
+[2026-01-02 10:49:12] User registry checks done: defaultuser0
+[2026-01-02 10:49:12] User scan end: defaultuser0
+[2026-01-02 10:49:12] User scan start: doran
+[2026-01-02 10:49:12] User group checks done: doran
+[2026-01-02 10:49:12] User ACL checks done: doran
+[2026-01-02 10:49:12] User registry checks done: doran
+[2026-01-02 10:49:12] Flagged doran: Member of Administrators
+[2026-01-02 10:49:12] User scan end: doran
+[2026-01-02 10:49:12] User scan start: Guest
+[2026-01-02 10:49:12] User group checks done: Guest
+[2026-01-02 10:49:12] User ACL checks done: Guest
+[2026-01-02 10:49:12] User registry checks done: Guest
+[2026-01-02 10:49:12] User scan end: Guest
+[2026-01-02 10:49:12] User scan start: hide
+[2026-01-02 10:49:12] User group checks done: hide
+[2026-01-02 10:49:12] User ACL checks done: hide
+[2026-01-02 10:49:12] User registry checks done: hide
+[2026-01-02 10:49:12] User scan end: hide
+[2026-01-02 10:49:12] User scan start: script
+[2026-01-02 10:49:12] User group checks done: script
+[2026-01-02 10:49:12] User ACL checks done: script
+[2026-01-02 10:49:12] User registry checks done: script
+[2026-01-02 10:49:12] Flagged script: Member of Administrators
+[2026-01-02 10:49:12] User scan end: script
+[2026-01-02 10:49:12] User scan start: WDAGUtilityAccount
+[2026-01-02 10:49:12] User group checks done: WDAGUtilityAccount
+[2026-01-02 10:49:12] User ACL checks done: WDAGUtilityAccount
+[2026-01-02 10:49:12] User registry checks done: WDAGUtilityAccount
+[2026-01-02 10:49:12] User scan end: WDAGUtilityAccount
+[2026-01-02 10:49:12] Security scan completed. Findings: 3
+[2026-01-02 10:49:12] UI: Scan complete, rows=3

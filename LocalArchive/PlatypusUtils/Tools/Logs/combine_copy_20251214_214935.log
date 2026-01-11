@@ -1,0 +1,11 @@
+﻿Input list (concat file content):
+file 'C:\Users\doran\Downloads\ExploitedCollegeGirls-E01-jade-bg-4k.mp4'
+file 'C:\Users\doran\Downloads\nubilesporn_i_share_because_i_care_1280.mp4'
+[21:49:36] Combining into: C:\test\combined_safe.mp4 (stream copy)
+[21:49:36] List file: C:\test\videolist.txt
+[21:49:36]   1. ExploitedCollegeGirls-E01-jade-bg-4k.mp4
+[21:49:36]   2. nubilesporn_i_share_because_i_care_1280.mp4
+[21:49:36] ffmpeg cmd: C:\convert\ffmpeg.exe -y -fflags +genpts -safe 0 -f concat -i C:\test\videolist.txt -c copy -avoid_negative_ts make_zero -reset_timestamps 1 -movflags +faststart C:\test\combined_safe.mp4
+===== Combine (stream copy) 2025-12-14T21:49:36 =====
+cmd: C:\convert\ffmpeg.exe -v info -y -fflags +genpts -safe 0 -f concat -i C:\test\videolist.txt -c copy -avoid_negative_ts make_zero -reset_timestamps 1 -movflags +faststart C:\test\combined_safe.mp4
+[21:49:36] Combine (stream copy) -> logging to C:\Path\logs\combine_copy_20251214_214935.log

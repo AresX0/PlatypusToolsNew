@@ -1,0 +1,5 @@
+2025-12-03 08:57:57 UI ready. Log file: C:\Path\Logs\scan_log_20251203_085746.txt
+2025-12-03 08:57:59 Enumerating files in F:\Private\EXCOGI (recursive=True)
+2025-12-03 08:57:59 Enumeration found 355 files
+2025-12-03 08:57:59 Starting analysis for 355 files
+2025-12-03 08:58:00 Analysis completed. Result: 

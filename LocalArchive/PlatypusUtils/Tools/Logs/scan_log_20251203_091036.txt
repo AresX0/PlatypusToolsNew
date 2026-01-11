@@ -1,0 +1,2 @@
+2025-12-03 09:10:45 UI ready. Log file: C:\Path\Logs\scan_log_20251203_091036.txt ; ScanData folder: C:\Path\ScanData
+2025-12-03 09:10:56 Preflight resolve: fpcalc=True; ffprobe=True

@@ -1,0 +1,15 @@
+﻿[20:49:59] === ICO Conversion started 2025-12-15T20:49:59 ===
+[20:49:59] Output folder: F:\OneDrive\Desktop
+[20:49:59] Icon size: 256x256
+[20:49:59] Overwrite: False
+[20:49:59] Custom output name: tst
+[20:49:59] Files to convert: 
+[20:49:59] [1/] Screenshot 2025-10-04 150015.png -> Screenshot 2025-10-04 150015.ico
+[20:49:59]   Loading source: C:\Users\doran\Downloads\Screenshot 2025-10-04 150015.png
+[20:49:59]     Source loaded: 1870x491
+[20:49:59]     Scaling to 256x256
+[20:49:59]     PNG size: 17814 bytes
+[20:49:59]     Building ICO file structure...
+[20:49:59]     SUCCESS -> F:\OneDrive\Desktop\Screenshot 2025-10-04 150015.ico (17836 bytes)
+[20:49:59] === Conversion complete: success=1, skipped=0, fail=0 ===
+[20:49:59] Log saved to: C:\ProgramFiles\PlatypusUtils\Data\VideoEditor\Logs\imgconv_20251215_204959.log

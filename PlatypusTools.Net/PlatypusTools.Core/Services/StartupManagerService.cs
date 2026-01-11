@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Win32;
+using PlatypusTools.Core.Utilities;
 
 namespace PlatypusTools.Core.Services
 {
@@ -16,7 +17,9 @@ namespace PlatypusTools.Core.Services
 
         public List<StartupItem> GetStartupItems()
         {
+            SimpleLogger.Debug("Entering " + System.Reflection.MethodBase.GetCurrentMethod()?.Name);
             var items = new List<StartupItem>();
+            SimpleLogger.Debug("Starting startup items enumeration");
             
             // Get from registry (Current User)
             foreach (var keyPath in RegistryRunKeys)
@@ -111,21 +114,30 @@ namespace PlatypusTools.Core.Services
             catch { }
 
             // Get from Task Scheduler startup tasks
+            SimpleLogger.Debug("Attempting to get scheduled startup tasks");
             try
             {
                 var scheduledItems = GetScheduledStartupTasks();
+                SimpleLogger.Debug($"Got {scheduledItems.Count} scheduled tasks");
                 items.AddRange(scheduledItems);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error("Failed to get scheduled startup tasks" + " - " + ex.Message);
+            }
 
+            SimpleLogger.Debug($"Total startup items found: {items.Count}");
+            // Debug exit
             return items.OrderBy(i => i.Name).ToList();
         }
 
         private List<StartupItem> GetScheduledStartupTasks()
         {
+            SimpleLogger.Debug("Entering " + System.Reflection.MethodBase.GetCurrentMethod()?.Name);
             var items = new List<StartupItem>();
             try
             {
+                SimpleLogger.Debug("Starting schtasks process");
                 var psi = new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = "schtasks",
@@ -140,41 +152,66 @@ namespace PlatypusTools.Core.Services
                 if (process != null)
                 {
                     var output = process.StandardOutput.ReadToEnd();
+                    var errorOutput = process.StandardError.ReadToEnd();
                     process.WaitForExit();
+
+                    SimpleLogger.Debug($"schtasks exit code: {process.ExitCode}");
+                    if (!string.IsNullOrEmpty(errorOutput))
+                    {
+                        SimpleLogger.Debug($"schtasks error output: {errorOutput}");
+                    }
 
                     if (process.ExitCode != 0)
                     {
+                        SimpleLogger.Debug("schtasks failed, returning empty list");
                         return items; // Return empty list on failure
                     }
 
+                    SimpleLogger.Debug($"schtasks output length: {output.Length} characters");
+
                     var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                    SimpleLogger.Debug($"Processing {lines.Length} lines from schtasks output");
                     
                     // Skip header line if present
+                    int lineNumber = 0;
                     foreach (var line in lines)
                     {
+                        lineNumber++;
                         try
                         {
                             // Skip header line
                             if (line.StartsWith("\"TaskName\"") || line.StartsWith("TaskName") || 
                                 line.StartsWith("HostName") || line.StartsWith("\"HostName\""))
+                            {
+                                SimpleLogger.Debug($"Skipping header line {lineNumber}");
                                 continue;
+                            }
 
                             // Only process task lines that indicate they're running or ready
                             if (!line.Contains("Ready") && !line.Contains("Running") && 
                                 !line.Contains("READY") && !line.Contains("RUNNING"))
+                            {
                                 continue;
+                            }
 
+                            SimpleLogger.Debug($"Processing task line {lineNumber}");
                             var parts = SplitCsvLine(line);
+                            SimpleLogger.Debug($"Parsed {parts.Count} CSV fields");
                             if (parts.Count > 1)
                             {
                                 var taskName = parts[0].Trim('"');
+                                SimpleLogger.Debug($"Task name: {taskName}");
                                 
                                 // Filter out system tasks
                                 if (taskName.Contains("\\Microsoft\\Windows\\"))
+                                {
+                                    SimpleLogger.Debug($"Filtering out system task: {taskName}");
                                     continue;
+                                }
 
                                 // Get task command if available (usually at index 8 in verbose output)
                                 var taskCommand = parts.Count > 8 ? parts[8].Trim('"') : "";
+                                SimpleLogger.Debug($"Adding task: {taskName}");
 
                                 items.Add(new StartupItem
                                 {
@@ -186,19 +223,21 @@ namespace PlatypusTools.Core.Services
                                 });
                             }
                         }
-                        catch
+                        catch (Exception lineEx)
                         {
-                            // Skip problematic lines
+                            SimpleLogger.Error($"Error processing line {lineNumber}" + " - " + lineEx.Message);
                             continue;
                         }
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Return empty list on any error
+                SimpleLogger.Error("GetScheduledStartupTasks outer exception" + " - " + ex.Message);
             }
 
+            SimpleLogger.Debug($"Returning {items.Count} scheduled startup tasks");
+            // Debug exit
             return items;
         }
 
@@ -390,3 +429,5 @@ namespace PlatypusTools.Core.Services
         public bool IsEnabled { get; set; }
     }
 }
+
+

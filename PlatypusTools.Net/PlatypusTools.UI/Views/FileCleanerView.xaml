@@ -41,172 +41,176 @@
             </StackPanel>
         </GroupBox>
 
-        <!-- Renaming Options -->
-        <TabControl Grid.Row="1" Height="220" Margin="0,0,0,8">
-            <!-- Prefix Management -->
-            <TabItem Header="Prefix Management">
-                <Grid Margin="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="140" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+        <!-- Renaming Options - All in One Panel -->
+        <GroupBox Header="Batch Renaming Options (All operations applied in order)" Grid.Row="1" Margin="0,0,0,8">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="400">
+                <StackPanel>
+                    <!-- Prefix Management Section -->
+                    <Expander Header="▶ Prefix Management" IsExpanded="True" Margin="0,0,0,8">
+                        <Grid Margin="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center">New Prefix:</TextBlock>
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding NewPrefix, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
+                            <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center">New Prefix:</TextBlock>
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding NewPrefix, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">Old Prefix:</TextBlock>
-                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding OldPrefix, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
+                            <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">Old Prefix:</TextBlock>
+                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding OldPrefix, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
 
-                    <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center">Detected Prefix:</TextBlock>
-                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,4">
-                        <TextBox Text="{Binding DetectedPrefix, UpdateSourceTrigger=PropertyChanged}" Width="300" IsReadOnly="True" Background="#F0F0F0" />
-                        <Button Content="Detect Prefix" Command="{Binding DetectPrefixCommand}" Width="110" Margin="8,0,0,0" />
-                    </StackPanel>
+                            <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center">Detected Prefix:</TextBlock>
+                            <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBox Text="{Binding DetectedPrefix, UpdateSourceTrigger=PropertyChanged}" Width="300" IsReadOnly="True" Background="#F0F0F0" />
+                                <Button Content="Detect Prefix" Command="{Binding DetectPrefixCommand}" Width="110" Margin="8,0,0,0" />
+                            </StackPanel>
 
-                    <TextBlock Grid.Row="3" Grid.Column="0" VerticalAlignment="Center">Ignore Prefix:</TextBlock>
-                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding IgnorePrefix, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" 
-                             ToolTip="Files starting with this prefix will be excluded from processing" />
+                            <TextBlock Grid.Row="3" Grid.Column="0" VerticalAlignment="Center">Ignore Prefix:</TextBlock>
+                            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding IgnorePrefix, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" 
+                                     ToolTip="Files starting with this prefix will be excluded from processing" />
 
-                    <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding AddPrefixToAll}" Margin="0,4,0,2">
-                        Add prefix to all files (even without old prefix)
-                    </CheckBox>
-                    <CheckBox Grid.Row="5" Grid.Column="1" IsChecked="{Binding NormalizeCasing}" Margin="0,2,0,2">
-                        Normalize prefix case (force apply case-only changes)
-                    </CheckBox>
-                    <CheckBox Grid.Row="6" Grid.Column="1" IsChecked="{Binding OnlyFilesWithOldPrefix}" Margin="0,2,0,4">
-                        Only process files with old prefix
-                    </CheckBox>
-                </Grid>
-            </TabItem>
+                            <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding AddPrefixToAll}" Margin="0,4,0,2">
+                                Add prefix to all files (even without old prefix)
+                            </CheckBox>
+                            <CheckBox Grid.Row="5" Grid.Column="1" IsChecked="{Binding NormalizeCasing}" Margin="0,2,0,2">
+                                Normalize prefix case (force apply case-only changes)
+                            </CheckBox>
+                            <CheckBox Grid.Row="6" Grid.Column="1" IsChecked="{Binding OnlyFilesWithOldPrefix}" Margin="0,2,0,4">
+                                Only process files with old prefix
+                            </CheckBox>
+                        </Grid>
+                    </Expander>
 
-            <!-- Season/Episode Numbering -->
-            <TabItem Header="Season/Episode">
-                <Grid Margin="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="160" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+                    <!-- Season/Episode Section -->
+                    <Expander Header="▶ Season/Episode Numbering" IsExpanded="True" Margin="0,0,0,8">
+                        <Grid Margin="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="140" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
-                    <CheckBox Grid.Row="0" Grid.Column="0" IsChecked="{Binding AddSeason}" VerticalAlignment="Center">Add Season:</CheckBox>
-                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,4">
-                        <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Season #:</TextBlock>
-                        <TextBox Text="{Binding SeasonNumber}" Width="60" />
-                        <TextBlock VerticalAlignment="Center" Margin="16,0,8,0">Leading Zeros:</TextBlock>
-                        <ComboBox Width="60" SelectedItem="{Binding SeasonLeadingZeros}">
-                            <ComboBoxItem Content="1" />
-                            <ComboBoxItem Content="2" IsSelected="True" />
-                            <ComboBoxItem Content="3" />
-                            <ComboBoxItem Content="4" />
-                        </ComboBox>
-                    </StackPanel>
+                            <CheckBox Grid.Row="0" Grid.Column="0" IsChecked="{Binding AddSeason}" VerticalAlignment="Center">Add Season:</CheckBox>
+                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Season #:</TextBlock>
+                                <TextBox Text="{Binding SeasonNumber}" Width="60" />
+                                <TextBlock VerticalAlignment="Center" Margin="16,0,8,0">Leading Zeros:</TextBlock>
+                                <ComboBox Width="60" SelectedValue="{Binding SeasonLeadingZeros}">
+                                    <sys:Int32 xmlns:sys="clr-namespace:System;assembly=mscorlib">1</sys:Int32>
+                                    <sys:Int32 xmlns:sys="clr-namespace:System;assembly=mscorlib">2</sys:Int32>
+                                    <sys:Int32 xmlns:sys="clr-namespace:System;assembly=mscorlib">3</sys:Int32>
+                                    <sys:Int32 xmlns:sys="clr-namespace:System;assembly=mscorlib">4</sys:Int32>
+                                </ComboBox>
+                            </StackPanel>
 
-                    <CheckBox Grid.Row="1" Grid.Column="0" IsChecked="{Binding AddEpisode}" VerticalAlignment="Center">Add Episode:</CheckBox>
-                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,4">
-                        <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Start #:</TextBlock>
-                        <TextBox Text="{Binding StartEpisodeNumber}" Width="60" />
-                        <TextBlock VerticalAlignment="Center" Margin="16,0,8,0">Leading Zeros:</TextBlock>
-                        <ComboBox Width="60" SelectedItem="{Binding EpisodeLeadingZeros}">
-                            <ComboBoxItem Content="1" />
-                            <ComboBoxItem Content="2" IsSelected="True" />
-                            <ComboBoxItem Content="3" />
-                            <ComboBoxItem Content="4" />
-                        </ComboBox>
-                    </StackPanel>
+                            <CheckBox Grid.Row="1" Grid.Column="0" IsChecked="{Binding AddEpisode}" VerticalAlignment="Center">Add Episode:</CheckBox>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Start #:</TextBlock>
+                                <TextBox Text="{Binding StartEpisodeNumber}" Width="60" />
+                                <TextBlock VerticalAlignment="Center" Margin="16,0,8,0">Leading Zeros:</TextBlock>
+                                <ComboBox Width="60" SelectedValue="{Binding EpisodeLeadingZeros}">
+                                    <sys:Int32 xmlns:sys="clr-namespace:System;assembly=mscorlib">1</sys:Int32>
+                                    <sys:Int32 xmlns:sys="clr-namespace:System;assembly=mscorlib">2</sys:Int32>
+                                    <sys:Int32 xmlns:sys="clr-namespace:System;assembly=mscorlib">3</sys:Int32>
+                                    <sys:Int32 xmlns:sys="clr-namespace:System;assembly=mscorlib">4</sys:Int32>
+                                </ComboBox>
+                            </StackPanel>
 
-                    <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding RenumberAlphabetically}" Margin="0,4,0,2">
-                        Renumber alphabetically across directory (auto-increment)
-                    </CheckBox>
+                            <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding RenumberAlphabetically}" Margin="0,4,0,2">
+                                Renumber alphabetically across directory (auto-increment)
+                            </CheckBox>
 
-                    <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding SeasonBeforeEpisode}" Margin="0,2,0,4">
-                        Season before Episode (S01E01 format)
-                    </CheckBox>
+                            <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding SeasonBeforeEpisode}" Margin="0,2,0,4">
+                                Season before Episode (S01E01 format)
+                            </CheckBox>
 
-                    <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,8,0,4" FontStyle="Italic" Foreground="Gray">
-                        Example: PREFIX-S01E001-Filename.ext
-                    </TextBlock>
+                            <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,8,0,4" FontStyle="Italic" Foreground="Gray">
+                                Example: PREFIX-S01E001-Filename.ext
+                            </TextBlock>
 
-                    <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" FontSize="10" Foreground="Gray">
-                        Season/Episode will be inserted immediately after prefix, before the rest of the filename. 
-                        Renumber alphabetically will sort files by name and assign sequential episode numbers.
-                    </TextBlock>
-                </Grid>
-            </TabItem>
+                            <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" FontSize="10" Foreground="Gray">
+                                Season/Episode will be inserted immediately after prefix, before the rest of the filename. 
+                                Renumber alphabetically will sort files by name and assign sequential episode numbers.
+                            </TextBlock>
+                        </Grid>
+                    </Expander>
 
-            <!-- Filename Cleaning -->
-            <TabItem Header="Filename Cleaning">
-                <Grid Margin="8">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+                    <!-- Filename Cleaning Section -->
+                    <Expander Header="▶ Filename Cleaning (Remove Tokens)" IsExpanded="True" Margin="0,0,0,8">
+                        <Grid Margin="8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" FontWeight="Bold" Margin="0,0,0,8">Remove Common Tokens:</TextBlock>
-                    
-                    <WrapPanel Grid.Row="1" Margin="0,0,0,8">
-                        <CheckBox IsChecked="{Binding Remove720p}" Margin="0,0,16,4">720p</CheckBox>
-                        <CheckBox IsChecked="{Binding Remove1080p}" Margin="0,0,16,4">1080p</CheckBox>
-                        <CheckBox IsChecked="{Binding Remove4k}" Margin="0,0,16,4">4K</CheckBox>
-                        <CheckBox IsChecked="{Binding RemoveHD}" Margin="0,0,16,4">HD/HDTV</CheckBox>
-                    </WrapPanel>
+                            <TextBlock Grid.Row="0" FontWeight="Bold" Margin="0,0,0,8">Remove Common Tokens:</TextBlock>
+                            
+                            <WrapPanel Grid.Row="1" Margin="0,0,0,8">
+                                <CheckBox IsChecked="{Binding Remove720p}" Margin="0,0,16,4">720p</CheckBox>
+                                <CheckBox IsChecked="{Binding Remove1080p}" Margin="0,0,16,4">1080p</CheckBox>
+                                <CheckBox IsChecked="{Binding Remove4k}" Margin="0,0,16,4">4K</CheckBox>
+                                <CheckBox IsChecked="{Binding RemoveHD}" Margin="0,0,16,4">HD/HDTV</CheckBox>
+                            </WrapPanel>
 
-                    <TextBlock Grid.Row="2" Margin="0,0,0,4">Custom Tokens to Remove (comma-separated):</TextBlock>
-                    <TextBox Grid.Row="3" Text="{Binding CustomTokens, UpdateSourceTrigger=PropertyChanged}" 
-                             ToolTip="Enter custom text to remove, separated by commas. Example: WEBRip,BluRay,x264" />
-                </Grid>
-            </TabItem>
+                            <TextBlock Grid.Row="2" Margin="0,0,0,4">Custom Tokens to Remove (comma-separated):</TextBlock>
+                            <TextBox Grid.Row="3" Text="{Binding CustomTokens, UpdateSourceTrigger=PropertyChanged}" 
+                                     ToolTip="Enter custom text to remove, separated by commas. Example: WEBRip,BluRay,x264" />
+                        </Grid>
+                    </Expander>
 
-            <!-- Name Normalization -->
-            <TabItem Header="Normalization">
-                <Grid Margin="8">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
+                    <!-- Normalization Section -->
+                    <Expander Header="▶ Name Normalization (Space/Separator Conversion)" IsExpanded="True" Margin="0,0,0,8">
+                        <Grid Margin="8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" FontWeight="Bold" Margin="0,0,0,8">Space/Separator Conversion:</TextBlock>
-                    
-                    <ComboBox Grid.Row="1" SelectedItem="{Binding NormalizationPreset}" Margin="0,0,0,8">
-                        <ComboBox.ItemsSource>
-                            <x:Array Type="models:NormalizationPreset">
-                                <models:NormalizationPreset>None</models:NormalizationPreset>
-                                <models:NormalizationPreset>SpacesToDashes</models:NormalizationPreset>
-                                <models:NormalizationPreset>SpacesToUnderscores</models:NormalizationPreset>
-                                <models:NormalizationPreset>RemoveSpaces</models:NormalizationPreset>
-                                <models:NormalizationPreset>DashesToSpaces</models:NormalizationPreset>
-                                <models:NormalizationPreset>UnderscoresToSpaces</models:NormalizationPreset>
-                                <models:NormalizationPreset>DashesToUnderscores</models:NormalizationPreset>
-                                <models:NormalizationPreset>UnderscoresToDashes</models:NormalizationPreset>
-                            </x:Array>
-                        </ComboBox.ItemsSource>
-                    </ComboBox>
+                            <TextBlock Grid.Row="0" FontWeight="Bold" Margin="0,0,0,8">Space/Separator Conversion:</TextBlock>
+                            
+                            <ComboBox Grid.Row="1" SelectedItem="{Binding NormalizationPreset}" Margin="0,0,0,8">
+                                <ComboBox.ItemsSource>
+                                    <x:Array Type="models:NormalizationPreset">
+                                        <models:NormalizationPreset>None</models:NormalizationPreset>
+                                        <models:NormalizationPreset>SpacesToDashes</models:NormalizationPreset>
+                                        <models:NormalizationPreset>SpacesToUnderscores</models:NormalizationPreset>
+                                        <models:NormalizationPreset>RemoveSpaces</models:NormalizationPreset>
+                                        <models:NormalizationPreset>DashesToSpaces</models:NormalizationPreset>
+                                        <models:NormalizationPreset>UnderscoresToSpaces</models:NormalizationPreset>
+                                        <models:NormalizationPreset>DashesToUnderscores</models:NormalizationPreset>
+                                        <models:NormalizationPreset>UnderscoresToDashes</models:NormalizationPreset>
+                                    </x:Array>
+                                </ComboBox.ItemsSource>
+                            </ComboBox>
 
-                    <TextBlock Grid.Row="2" TextWrapping="Wrap" FontSize="10" Foreground="Gray" VerticalAlignment="Top">
-                        Normalization converts spaces and separators according to the selected preset. 
-                        Multiple consecutive separators will be cleaned up automatically.
-                    </TextBlock>
-                </Grid>
-            </TabItem>
-        </TabControl>
+                            <TextBlock Grid.Row="2" TextWrapping="Wrap" FontSize="10" Foreground="Gray" VerticalAlignment="Top">
+                                Normalization converts spaces and separators according to the selected preset. 
+                                Multiple consecutive separators will be cleaned up automatically.
+                            </TextBlock>
+                        </Grid>
+                    </Expander>
+                </StackPanel>
+            </ScrollViewer>
+        </GroupBox>
 
         <!-- Preview Grid -->
         <GroupBox Header="Preview" Grid.Row="2" Margin="0,0,0,8">
@@ -226,13 +230,22 @@
                     <TextBlock VerticalAlignment="Center" FontWeight="Bold" Text="{Binding SelectedCount}" />
                 </StackPanel>
 
-                <DataGrid Grid.Row="1" ItemsSource="{Binding PreviewItems}" AutoGenerateColumns="False" 
-                          CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeColumns="True" 
-                          SelectionMode="Extended" ColumnHeaderHeight="32">
-                    <DataGrid.Columns>
-                        <DataGridCheckBoxColumn Header="Apply" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="60" CanUserResize="True" />
-                        <DataGridTextColumn Header="Original Name" Binding="{Binding OriginalFileName}" Width="*" MinWidth="200" IsReadOnly="True" CanUserResize="True" />
-                        <DataGridTextColumn Header="Proposed Name" Binding="{Binding ProposedFileName}" Width="*" MinWidth="200" IsReadOnly="True" CanUserResize="True">
+                <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <DataGrid x:Name="PreviewDataGrid" ItemsSource="{Binding PreviewItems}" AutoGenerateColumns="False" 
+                              CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeColumns="True" 
+                              SelectionMode="Extended" ColumnHeaderHeight="32" 
+                              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                <Setter Property="Padding" Value="8,4"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header="Apply" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="60" CanUserResize="True" MinWidth="50" />
+                            <DataGridTextColumn Header="Original Name" Binding="{Binding OriginalFileName}" Width="300" MinWidth="100" IsReadOnly="True" CanUserResize="True" />
+                            <DataGridTextColumn Header="Proposed Name" Binding="{Binding ProposedFileName}" Width="300" MinWidth="100" IsReadOnly="True" CanUserResize="True">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="FontWeight" Value="Bold" />
@@ -263,7 +276,7 @@
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
-                        <DataGridTextColumn Header="Directory" Binding="{Binding Directory}" Width="*" MinWidth="150" IsReadOnly="True" CanUserResize="True">
+                        <DataGridTextColumn Header="Directory" Binding="{Binding Directory}" Width="400" MinWidth="150" IsReadOnly="True" CanUserResize="True">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="FontSize" Value="10" />
@@ -273,6 +286,7 @@
                         </DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
+                </ScrollViewer>
             </Grid>
         </GroupBox>
 

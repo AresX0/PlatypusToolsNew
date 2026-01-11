@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.Json;
 using PlatypusTools.Core.Models;
 using System.Collections.Generic;
+using PlatypusTools.Core.Utilities;
 
 namespace PlatypusTools.Core.Services
 {
@@ -12,12 +13,28 @@ namespace PlatypusTools.Core.Services
 
         public static HiderConfig? LoadConfig(string path)
         {
+            SimpleLogger.Debug("Entering " + System.Reflection.MethodBase.GetCurrentMethod()?.Name);
+            SimpleLogger.Debug($"Loading config from: {path}");
+
             try
             {
-                if (!File.Exists(path)) return GetDefaultConfig();
+                if (!File.Exists(path))
+                {
+                    SimpleLogger.Debug($"Config file does not exist, returning default config");
+                    return GetDefaultConfig();
+                }
+
                 var json = File.ReadAllText(path);
+                SimpleLogger.Debug($"Config file read successfully, length: {json.Length} bytes");
+
                 var cfg = JsonSerializer.Deserialize<HiderConfig>(json);
-                if (cfg == null) return null;
+                if (cfg == null)
+                {
+                    SimpleLogger.Debug("Config deserialization returned null");
+                    return null;
+                }
+
+                SimpleLogger.Debug($"Config deserialized successfully, {cfg.Folders.Count} folders");
 
                 // Decrypt any encrypted password blobs into PasswordRecord instances
                 var migrated = false;
@@ -30,7 +47,11 @@ namespace PlatypusTools.Core.Services
                             var blob = ReadCredentialBlob(r.EncryptedPasswordRef);
                             if (!string.IsNullOrEmpty(blob)) r.PasswordRecord = UnprotectObject<PasswordRecord>(blob);
                         }
-                        catch { r.PasswordRecord = null; }
+                        catch (Exception ex)
+                        {
+                            SimpleLogger.Error("Unprotecting password from credential manager" + " - " + ex.Message);
+                            r.PasswordRecord = null;
+                        }
                     }
                     else if (!string.IsNullOrEmpty(r.EncryptedPassword))
                     {
@@ -48,33 +69,63 @@ namespace PlatypusTools.Core.Services
                                 r.EncryptedPassword = null;
                                 migrated = true;
                             }
-                            catch { }
+                            catch (Exception ex2)
+                            {
+                                SimpleLogger.Error("Migrating password to credential manager" + " - " + ex2.Message);
+                            }
                         }
-                        catch { r.PasswordRecord = null; }
+                        catch (Exception ex3)
+                        {
+                            SimpleLogger.Error("Unprotecting legacy password" + " - " + ex3.Message);
+                            r.PasswordRecord = null;
+                        }
                     }
                 }
 
                 if (migrated)
                 {
-                    try { SaveConfig(cfg, path); } catch { }
+                    try
+                    {
+                        SimpleLogger.Debug("Saving migrated config");
+                        SaveConfig(cfg, path);
+                    }
+                    catch (Exception ex)
+                    {
+                        SimpleLogger.Error("Saving migrated config" + " - " + ex.Message);
+                    }
                 }
 
+                // Debug exit
                 return cfg;
             }
-            catch { return null; }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error("Loading config" + " - " + ex.Message);
+                return null;
+            }
         }
 
         public static bool SaveConfig(HiderConfig cfg, string path)
         {
+            SimpleLogger.Debug("Entering " + System.Reflection.MethodBase.GetCurrentMethod()?.Name);
+            SimpleLogger.Debug($"Saving config to: {path}");
+
             try
             {
                 var dir = Path.GetDirectoryName(path);
-                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                {
+                    SimpleLogger.Debug($"Creating directory: {dir}");
+                    Directory.CreateDirectory(dir);
+                }
 
                 // Prepare a copy for serialization so we don't leave plaintext PasswordRecord in file
                 var cfgCopy = new HiderConfig { AutoHideEnabled = cfg.AutoHideEnabled, AutoHideMinutes = cfg.AutoHideMinutes };
+                SimpleLogger.Debug($"Processing {cfg.Folders.Count} folders for saving");
+
                 foreach (var r in cfg.Folders)
                 {
+                    SimpleLogger.Debug($"Processing folder: {r.FolderPath}");
                     var copy = new HiderRecord { FolderPath = r.FolderPath, AclRestricted = r.AclRestricted, EfsEnabled = r.EfsEnabled };
                     if (r.PasswordRecord != null)
                     {
@@ -85,38 +136,81 @@ namespace PlatypusTools.Core.Services
                             var key = GenerateCredentialKey(r.FolderPath);
                             WriteCredentialBlob(key, blob);
                             copy.EncryptedPasswordRef = key;
+                            SimpleLogger.Debug($"Password protected and stored for: {r.FolderPath}");
                         }
-                        catch
+                        catch (Exception ex)
                         {
+                            SimpleLogger.Error($"Protecting password for {r.FolderPath}" + " - " + ex.Message);
                             // fallback to embedding DPAPI blob in config
-                            try { copy.EncryptedPassword = ProtectObject(r.PasswordRecord); } catch { copy.EncryptedPassword = null; }
+                            try
+                            {
+                                copy.EncryptedPassword = ProtectObject(r.PasswordRecord);
+                                SimpleLogger.Debug($"Using fallback DPAPI protection for: {r.FolderPath}");
+                            }
+                            catch (Exception ex2)
+                            {
+                                SimpleLogger.Error($"Fallback protection for {r.FolderPath}" + " - " + ex2.Message);
+                                copy.EncryptedPassword = null;
+                            }
                         }
                     }
                     else if (!string.IsNullOrEmpty(r.EncryptedPasswordRef))
                     {
                         // preserve existing credential ref
                         copy.EncryptedPasswordRef = r.EncryptedPasswordRef;
+                        SimpleLogger.Debug($"Preserving encrypted password ref for: {r.FolderPath}");
                     }
                     else if (!string.IsNullOrEmpty(r.EncryptedPassword))
                     {
                         // preserve existing legacy encrypted blob
                         copy.EncryptedPassword = r.EncryptedPassword;
+                        SimpleLogger.Debug($"Preserving legacy encrypted password for: {r.FolderPath}");
                     }
                     cfgCopy.Folders.Add(copy);
                 }
 
                 var json = JsonSerializer.Serialize(cfgCopy, new JsonSerializerOptions { WriteIndented = true });
+                SimpleLogger.Debug($"Config serialized, length: {json.Length} bytes");
+
                 File.WriteAllText(path, json);
+                SimpleLogger.Debug("Config file written successfully");
+
+                // Debug exit
                 return true;
             }
-            catch { return false; }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error("Saving config" + " - " + ex.Message);
+                return false;
+            }
         }
 
         public static bool AddRecord(HiderConfig cfg, HiderRecord rec)
         {
-            if (cfg == null || rec == null) return false;
-            if (cfg.Folders.Exists(r => string.Equals(r.FolderPath, rec.FolderPath, StringComparison.OrdinalIgnoreCase))) return false;
+            SimpleLogger.Debug("Entering " + System.Reflection.MethodBase.GetCurrentMethod()?.Name);
+            SimpleLogger.Debug($"Adding record for: {rec?.FolderPath ?? "null"}");
+
+            if (cfg == null)
+            {
+                SimpleLogger.Debug("Config is null, cannot add record");
+                return false;
+            }
+            if (rec == null)
+            {
+                SimpleLogger.Debug("Record is null, cannot add");
+                return false;
+            }
+
+            var exists = cfg.Folders.Exists(r => string.Equals(r.FolderPath, rec.FolderPath, StringComparison.OrdinalIgnoreCase));
+            if (exists)
+            {
+                SimpleLogger.Debug($"Record already exists for: {rec.FolderPath}");
+                return false;
+            }
+
             cfg.Folders.Add(rec);
+            SimpleLogger.Debug($"Record added successfully, total count: {cfg.Folders.Count}");
+            // Debug exit
             return true;
         }
 
@@ -344,3 +438,5 @@ namespace PlatypusTools.Core.Services
 
     }
 }
+
+

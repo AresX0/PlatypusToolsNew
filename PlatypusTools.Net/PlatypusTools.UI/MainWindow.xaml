@@ -180,6 +180,11 @@
                     <views:MetadataEditorView DataContext="{Binding MetadataEditor}" />
                 </ScrollViewer>
             </TabItem>
+            <TabItem Header="Multimedia Editor">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                    <views:MultimediaEditorView DataContext="{Binding MultimediaEditor}" />
+                </ScrollViewer>
+            </TabItem>
             <TabItem Header="Tools">
                 <TabControl>
                     <TabItem Header="Website Downloader">

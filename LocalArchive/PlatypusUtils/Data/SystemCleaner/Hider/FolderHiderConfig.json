@@ -1,0 +1,50 @@
+﻿{
+    "Folders":  [
+                    {
+                        "FolderPath":  "C:\\test",
+                        "PasswordRecord":  {
+                                               "Salt":  "cvrRBdd3d0dVnQhttR8fSg==",
+                                               "Hash":  "glTdUptllBTS+CTzK7FL9o/czVsBbumH+kmxPXwcNOU=",
+                                               "Iterations":  100000
+                                           },
+                        "AclRestricted":  false,
+                        "EfsEnabled":  false
+                    },
+                    {
+                        "FolderPath":  "F:\\Private",
+                        "PasswordRecord":  {
+                                               "Salt":  "NJukE/liqmYHsSUo+VSjoQ==",
+                                               "Hash":  "64RyTjzcohwzpb5gGPS7633ivttdSRXyA1g+MvENpds=",
+                                               "Iterations":  100000
+                                           },
+                        "AclRestricted":  false,
+                        "EfsEnabled":  false
+                    },
+                    {
+                        "FolderPath":  "F:\\$RECYCLE.BIN",
+                        "PasswordRecord":  null,
+                        "AclRestricted":  false,
+                        "EfsEnabled":  false
+                    },
+                    {
+                        "FolderPath":  "F:\\System Volume Information",
+                        "PasswordRecord":  null,
+                        "AclRestricted":  false,
+                        "EfsEnabled":  false
+                    },
+                    {
+                        "FolderPath":  "F:\\$RECYCLE.BIN\\S-1-12-1-3240630118-1112574473-427772804-1463183191",
+                        "PasswordRecord":  null,
+                        "AclRestricted":  false,
+                        "EfsEnabled":  false
+                    },
+                    {
+                        "FolderPath":  "F:\\$RECYCLE.BIN\\S-1-5-21-3226671936-2261181276-551747971-1002",
+                        "PasswordRecord":  null,
+                        "AclRestricted":  false,
+                        "EfsEnabled":  false
+                    }
+                ],
+    "AutoHideEnabled":  false,
+    "AutoHideMinutes":  5
+}

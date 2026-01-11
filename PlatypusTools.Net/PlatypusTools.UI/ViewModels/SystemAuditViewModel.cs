@@ -78,6 +78,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand ScanElevatedUsersCommand { get; }
         public ICommand ScanCriticalAclsCommand { get; }
         public ICommand ScanOutboundTrafficCommand { get; }
+        public ICommand ScanInboundTrafficCommand { get; }
         public ICommand OpenUsersAndGroupsCommand { get; }
         public ICommand DisableUserCommand { get; }
         public ICommand DeleteUserCommand { get; }
@@ -107,15 +108,21 @@ namespace PlatypusTools.UI.ViewModels
 
         public SystemAuditViewModel(ISystemAuditService service)
         {
-            _service = service;
+            // Debug entry
+            SimpleLogger.Debug("Initializing SystemAuditViewModel");
+            
+            try
+            {
+                _service = service;
 
-            RunFullAuditCommand = new RelayCommand(_ => RunFullAudit(), _ => CanRunAudit);
+                RunFullAuditCommand = new RelayCommand(_ => RunFullAudit(), _ => CanRunAudit);
             RunFirewallAuditCommand = new RelayCommand(_ => RunFirewallAudit(), _ => CanRunAudit);
             RunUpdatesAuditCommand = new RelayCommand(_ => RunUpdatesAudit(), _ => CanRunAudit);
             RunStartupAuditCommand = new RelayCommand(_ => RunStartupAudit(), _ => CanRunAudit);
             ScanElevatedUsersCommand = new RelayCommand(_ => ScanElevatedUsers(), _ => CanRunAudit);
             ScanCriticalAclsCommand = new RelayCommand(_ => ScanCriticalAcls(), _ => CanRunAudit);
             ScanOutboundTrafficCommand = new RelayCommand(_ => ScanOutboundTraffic(), _ => CanRunAudit);
+            ScanInboundTrafficCommand = new RelayCommand(_ => ScanInboundTraffic(), _ => CanRunAudit);
             OpenUsersAndGroupsCommand = new RelayCommand(_ => OpenUsersAndGroups());
             DisableUserCommand = new RelayCommand(_ => DisableUser());
             DeleteUserCommand = new RelayCommand(_ => DeleteUser());
@@ -124,18 +131,31 @@ namespace PlatypusTools.UI.ViewModels
             FixAllCommand = new RelayCommand(_ => FixAll(), _ => AuditItems.Any(i => i.CanAutoFix));
             ExportReportCommand = new RelayCommand(_ => ExportReport());
             ClearCommand = new RelayCommand(_ => Clear());
+            
+                SimpleLogger.Debug("SystemAuditViewModel initialized successfully");
+                // Debug exit
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error("SystemAuditViewModel constructor" + " - " + ex.Message);
+                throw;
+            }
         }
 
         private async void RunFullAudit()
         {
-            IsAuditing = true;
-            StatusMessage = "Running full system audit...";
-            AuditItems.Clear();
-            _allItems.Clear();
-
+            // Debug entry
+            SimpleLogger.Debug("Starting full system audit");
+            
             try
             {
+                IsAuditing = true;
+                StatusMessage = "Running full system audit...";
+                AuditItems.Clear();
+                _allItems.Clear();
+
                 var items = await _service.RunFullAudit();
+                SimpleLogger.Debug($"Full audit returned {items.Count} items");
                 
                 foreach (var item in items)
                 {
@@ -145,25 +165,30 @@ namespace PlatypusTools.UI.ViewModels
 
                 UpdateStatistics();
                 StatusMessage = $"Audit complete: {TotalIssues} issues found ({CriticalIssues} critical, {WarningIssues} warnings)";
+                SimpleLogger.Debug("Full audit completed successfully");
             }
             catch (Exception ex)
             {
+                SimpleLogger.Error("RunFullAudit" + " - " + ex.Message);
                 StatusMessage = $"Error: {ex.Message}";
             }
             finally
             {
                 IsAuditing = false;
+                // Debug exit
             }
         }
 
         private async void RunFirewallAudit()
         {
-            IsAuditing = true;
-            StatusMessage = "Auditing firewall...";
-
+            // Debug entry
             try
             {
+                IsAuditing = true;
+                StatusMessage = "Auditing firewall...";
+
                 var items = await _service.AuditFirewall();
+                SimpleLogger.Debug($"Firewall audit returned {items.Count} items");
                 foreach (var item in items)
                 {
                     _allItems.Add(item);
@@ -175,22 +200,26 @@ namespace PlatypusTools.UI.ViewModels
             }
             catch (Exception ex)
             {
+                SimpleLogger.Error("RunFirewallAudit" + " - " + ex.Message);
                 StatusMessage = $"Error: {ex.Message}";
             }
             finally
             {
                 IsAuditing = false;
+                // Debug exit
             }
         }
 
         private async void RunUpdatesAudit()
         {
-            IsAuditing = true;
-            StatusMessage = "Auditing Windows updates...";
-
+            // Debug entry
             try
             {
+                IsAuditing = true;
+                StatusMessage = "Auditing Windows updates...";
+
                 var items = await _service.AuditWindowsUpdates();
+                SimpleLogger.Debug($"Updates audit returned {items.Count} items");
                 foreach (var item in items)
                 {
                     _allItems.Add(item);
@@ -202,22 +231,26 @@ namespace PlatypusTools.UI.ViewModels
             }
             catch (Exception ex)
             {
+                SimpleLogger.Error("RunUpdatesAudit" + " - " + ex.Message);
                 StatusMessage = $"Error: {ex.Message}";
             }
             finally
             {
                 IsAuditing = false;
+                // Debug exit
             }
         }
 
         private async void RunStartupAudit()
         {
-            IsAuditing = true;
-            StatusMessage = "Auditing startup items...";
-
+            // Debug entry
             try
             {
+                IsAuditing = true;
+                StatusMessage = "Auditing startup items...";
+
                 var items = await _service.AuditStartupItems();
+                SimpleLogger.Debug($"Startup audit returned {items.Count} items");
                 foreach (var item in items)
                 {
                     _allItems.Add(item);
@@ -229,22 +262,26 @@ namespace PlatypusTools.UI.ViewModels
             }
             catch (Exception ex)
             {
+                SimpleLogger.Error("RunStartupAudit" + " - " + ex.Message);
                 StatusMessage = $"Error: {ex.Message}";
             }
             finally
             {
                 IsAuditing = false;
+                // Debug exit
             }
         }
 
         private async void ScanElevatedUsers()
         {
-            IsAuditing = true;
-            StatusMessage = "Scanning for elevated users...";
-
+            // Debug entry
             try
             {
+                IsAuditing = true;
+                StatusMessage = "Scanning for elevated users...";
+
                 var items = await _service.ScanElevatedUsers();
+                SimpleLogger.Debug($"Elevated users scan returned {items.Count} items");
                 foreach (var item in items)
                 {
                     _allItems.Add(item);
@@ -256,22 +293,26 @@ namespace PlatypusTools.UI.ViewModels
             }
             catch (Exception ex)
             {
+                SimpleLogger.Error("ScanElevatedUsers" + " - " + ex.Message);
                 StatusMessage = $"Error: {ex.Message}";
             }
             finally
             {
                 IsAuditing = false;
+                // Debug exit
             }
         }
 
         private async void ScanCriticalAcls()
         {
-            IsAuditing = true;
-            StatusMessage = "Scanning critical ACLs...";
-
+            // Debug entry
             try
             {
+                IsAuditing = true;
+                StatusMessage = "Scanning critical ACLs...";
+
                 var items = await _service.ScanCriticalAcls();
+                SimpleLogger.Debug($"Critical ACLs scan returned {items.Count} items");
                 foreach (var item in items)
                 {
                     _allItems.Add(item);
@@ -283,11 +324,13 @@ namespace PlatypusTools.UI.ViewModels
             }
             catch (Exception ex)
             {
+                SimpleLogger.Error("ScanCriticalAcls" + " - " + ex.Message);
                 StatusMessage = $"Error: {ex.Message}";
             }
             finally
             {
                 IsAuditing = false;
+                // Debug exit
             }
         }
 
@@ -310,16 +353,48 @@ namespace PlatypusTools.UI.ViewModels
             }
             catch (Exception ex)
             {
+                SimpleLogger.Error("ScanOutboundTraffic" + " - " + ex.Message);
                 StatusMessage = $"Error: {ex.Message}";
             }
             finally
             {
                 IsAuditing = false;
+                // Debug exit
+            }
+        }
+
+        private async void ScanInboundTraffic()
+        {
+            IsAuditing = true;
+            StatusMessage = "Scanning inbound traffic...";
+
+            try
+            {
+                var items = await _service.ScanInboundTraffic();
+                foreach (var item in items)
+                {
+                    _allItems.Add(item);
+                    AuditItems.Add(item);
+                }
+                
+                UpdateStatistics();
+                StatusMessage = $"Found {items.Count} listening ports/inbound rules";
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error("ScanInboundTraffic" + " - " + ex.Message);
+                StatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAuditing = false;
+                // Debug exit
             }
         }
 
         private void OpenUsersAndGroups()
         {
+            // Debug entry
             try
             {
                 _service.OpenUsersAndGroups();
@@ -327,20 +402,27 @@ namespace PlatypusTools.UI.ViewModels
             }
             catch (Exception ex)
             {
+                SimpleLogger.Error("OpenUsersAndGroups" + " - " + ex.Message);
                 StatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                // Debug exit
             }
         }
 
         private async void DisableUser()
         {
-            if (string.IsNullOrWhiteSpace(SelectedUsername))
-            {
-                StatusMessage = "Please select a user from the audit results";
-                return;
-            }
-
+            // Debug entry
             try
             {
+                if (string.IsNullOrWhiteSpace(SelectedUsername))
+                {
+                    StatusMessage = "Please select a user from the audit results";
+                    return;
+                }
+
+                SimpleLogger.Debug($"Disabling user: {SelectedUsername}");
                 var success = await _service.DisableUser(SelectedUsername);
                 StatusMessage = success 
                     ? $"Successfully disabled user: {SelectedUsername}" 
@@ -348,20 +430,27 @@ namespace PlatypusTools.UI.ViewModels
             }
             catch (Exception ex)
             {
+                SimpleLogger.Error("DisableUser" + " - " + ex.Message);
                 StatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                // Debug exit
             }
         }
 
         private async void DeleteUser()
         {
-            if (string.IsNullOrWhiteSpace(SelectedUsername))
-            {
-                StatusMessage = "Please select a user from the audit results";
-                return;
-            }
-
+            // Debug entry
             try
             {
+                if (string.IsNullOrWhiteSpace(SelectedUsername))
+                {
+                    StatusMessage = "Please select a user from the audit results";
+                    return;
+                }
+
+                SimpleLogger.Debug($"Deleting user: {SelectedUsername}");
                 var success = await _service.DeleteUser(SelectedUsername);
                 StatusMessage = success 
                     ? $"Successfully deleted user: {SelectedUsername}" 
@@ -369,26 +458,33 @@ namespace PlatypusTools.UI.ViewModels
             }
             catch (Exception ex)
             {
+                SimpleLogger.Error("DeleteUser" + " - " + ex.Message);
                 StatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                // Debug exit
             }
         }
 
         private async void ResetPassword()
         {
-            if (string.IsNullOrWhiteSpace(SelectedUsername))
-            {
-                StatusMessage = "Please select a user from the audit results";
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(NewPassword))
-            {
-                StatusMessage = "Please enter a new password";
-                return;
-            }
-
+            // Debug entry
             try
             {
+                if (string.IsNullOrWhiteSpace(SelectedUsername))
+                {
+                    StatusMessage = "Please select a user from the audit results";
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(NewPassword))
+                {
+                    StatusMessage = "Please enter a new password";
+                    return;
+                }
+
+                SimpleLogger.Debug($"Resetting password for user: {SelectedUsername}");
                 var success = await _service.ResetUserPassword(SelectedUsername, NewPassword);
                 StatusMessage = success 
                     ? $"Successfully reset password for: {SelectedUsername}" 
@@ -401,18 +497,25 @@ namespace PlatypusTools.UI.ViewModels
             }
             catch (Exception ex)
             {
+                SimpleLogger.Error("ResetPassword" + " - " + ex.Message);
                 StatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                // Debug exit
             }
         }
 
         private async void FixIssue(AuditItem? item)
         {
-            if (item == null || !item.CanAutoFix) return;
-
-            StatusMessage = $"Fixing {item.Name}...";
-            
+            // Debug entry
             try
             {
+                if (item == null || !item.CanAutoFix) return;
+
+                SimpleLogger.Debug($"Fixing issue: {item.Name}");
+                StatusMessage = $"Fixing {item.Name}...";
+            
                 var success = await _service.FixIssue(item);
                 if (success)
                 {
@@ -567,3 +670,4 @@ namespace PlatypusTools.UI.ViewModels
         }
     }
 }
+

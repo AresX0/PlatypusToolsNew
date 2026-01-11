@@ -27,24 +27,30 @@
             <Button Content="Save Configuration" Command="{Binding SaveConfigCommand}" Width="130" Margin="8,0,0,0" />
         </StackPanel>
 
-        <DataGrid Grid.Row="2" ItemsSource="{Binding Records}" AutoGenerateColumns="False" IsReadOnly="True"
-                  CanUserResizeColumns="True" CanUserSortColumns="True">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Folder" Binding="{Binding FolderPath}" Width="*" MinWidth="200" CanUserResize="True" />
-                <DataGridCheckBoxColumn Header="Hidden" Binding="{Binding IsHidden}" Width="80" MinWidth="60" CanUserResize="True" />
-                <DataGridCheckBoxColumn Header="Restrict to Administrators" Binding="{Binding AclRestricted}" Width="160" MinWidth="140" CanUserResize="True" />
-                <DataGridCheckBoxColumn Header="Use EFS" Binding="{Binding EfsEnabled}" Width="100" MinWidth="80" CanUserResize="True" />
-                <DataGridTemplateColumn Header="Actions" Width="120" MinWidth="100">
+        <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <DataGrid ItemsSource="{Binding Records}" AutoGenerateColumns="False"
+                      CanUserResizeColumns="True" CanUserSortColumns="True"
+                      HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Folder" Binding="{Binding FolderPath}" Width="300" MinWidth="200" CanUserResize="True" IsReadOnly="True" />
+                    <DataGridCheckBoxColumn Header="Hidden" Binding="{Binding IsHidden, Mode=OneWay}" Width="80" MinWidth="60" CanUserResize="True" IsReadOnly="True" />
+                    <DataGridCheckBoxColumn Header="Restrict to Administrators" Binding="{Binding AclRestricted, UpdateSourceTrigger=PropertyChanged}" Width="160" MinWidth="140" CanUserResize="True" />
+                    <DataGridCheckBoxColumn Header="Use EFS" Binding="{Binding EfsEnabled, UpdateSourceTrigger=PropertyChanged}" Width="100" MinWidth="80" CanUserResize="True" />
+                    <DataGridTemplateColumn Header="Actions" Width="280" MinWidth="280">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Button Content="Edit" Command="{Binding DataContext.EditRecordCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="50" Margin="0,0,4,0" />
-                                <Button Content="Remove" Command="{Binding DataContext.RemoveRecordCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="60" />
+                                <Button Content="Hide" Command="{Binding DataContext.SetHiddenCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="45" Margin="0,0,2,0" ToolTip="Hide this folder" />
+                                <Button Content="Unhide" Command="{Binding DataContext.ClearHiddenCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="50" Margin="0,0,2,0" ToolTip="Unhide this folder" />
+                                <Button Content="ACL" Command="{Binding DataContext.ApplyAclCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="40" Margin="0,0,2,0" ToolTip="Restrict to Administrators" />
+                                <Button Content="EFS" Command="{Binding DataContext.ApplyEfsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="40" Margin="0,0,2,0" ToolTip="Apply EFS encryption" />
+                                <Button Content="Remove" Command="{Binding DataContext.RemoveRecordCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="55" Foreground="Red" ToolTip="Remove from list" />
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
+        </ScrollViewer>
     </Grid>
 </UserControl>

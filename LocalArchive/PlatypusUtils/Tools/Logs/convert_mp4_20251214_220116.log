@@ -1,0 +1,5 @@
+﻿[22:01:16] Converting to mp4 (720p) in C:\test ...
+[22:01:16] -> nubilesporn_i_share_because_i_care_1280.mp4 => conv_nubilesporn_i_share_because_i_care_1280.mp4 [720p]
+===== Convert to mp4 2025-12-14T22:01:16 =====
+cmd: C:\convert\ffmpeg.exe -y -i C:\Users\doran\Downloads\nubilesporn_i_share_because_i_care_1280.mp4 -vf scale=-2:720 -c:v libx264 -preset fast -crf 20 -c:a aac -b:a 192k C:\test\conv_nubilesporn_i_share_because_i_care_1280.mp4
+[22:01:16] Convert to mp4 -> logging to C:\Path\logs\convert_mp4_20251214_220116.log

@@ -1,0 +1,3 @@
+$cmd = "& { $ErrorActionPreference='Stop'; try { . 'c:\Path\hidefolder.ps1' } catch { $_ | Out-String | Out-File 'c:\Path\hidefolder_runtime_err.txt' -Encoding utf8; exit 2 } }"
+Start-Process -FilePath powershell.exe -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-Command',$cmd -WindowStyle Hidden -PassThru | Out-Null
+Write-Output 'Started hidefolder in a detached process; any startup error will be written to c:\Path\hidefolder_runtime_err.txt'

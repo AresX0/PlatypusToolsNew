@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using PlatypusTools.Core.Services;
+using PlatypusTools.Core.Utilities;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -12,8 +13,13 @@ namespace PlatypusTools.UI.ViewModels
 
         public StartupManagerViewModel()
         {
-            _service = new StartupManagerService();
-            StartupItems = new ObservableCollection<StartupItemViewModel>();
+            // Debug entry
+            SimpleLogger.Debug("Initializing StartupManagerViewModel");
+            
+            try
+            {
+                _service = new StartupManagerService();
+                StartupItems = new ObservableCollection<StartupItemViewModel>();
 
             RefreshCommand = new RelayCommand(_ => Refresh());
             DisableSelectedCommand = new RelayCommand(_ => DisableSelected(), _ => StartupItems.Any(i => i.IsSelected));
@@ -26,6 +32,16 @@ namespace PlatypusTools.UI.ViewModels
             // Don't auto-refresh in constructor - let user click Refresh button
             // This prevents crashes during initialization
             StatusMessage = "Click Refresh to load startup items";
+            
+                SimpleLogger.Debug("StartupManagerViewModel initialized successfully");
+                // Debug exit
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error("StartupManagerViewModel constructor" + " - " + ex.Message);
+                StatusMessage = $"Error initializing: {ex.Message}";
+                throw;
+            }
         }
 
         public ObservableCollection<StartupItemViewModel> StartupItems { get; }
@@ -51,15 +67,20 @@ namespace PlatypusTools.UI.ViewModels
 
         private void Refresh()
         {
-            StartupItems.Clear();
-            StatusMessage = "Loading startup items...";
-
+            // Debug entry
+            SimpleLogger.Debug("Starting startup items refresh");
+            
             try
             {
+                StartupItems.Clear();
+                StatusMessage = "Loading startup items...";
+
                 var items = _service.GetStartupItems();
+                SimpleLogger.Debug($"GetStartupItems returned {items?.Count ?? 0} items");
                 
                 if (items == null || items.Count == 0)
                 {
+                    SimpleLogger.Debug("No startup items found");
                     StatusMessage = "No startup items found";
                     return;
                 }
@@ -72,11 +93,11 @@ namespace PlatypusTools.UI.ViewModels
                     }
                     catch (Exception itemEx)
                     {
-                        // Log but continue with other items
-                        System.Diagnostics.Debug.WriteLine($"Error adding startup item: {itemEx.Message}");
+                        SimpleLogger.Error($"Adding startup item {item.Name}" + " - " + itemEx.Message);
                     }
                 }
 
+                SimpleLogger.Debug($"Successfully loaded {StartupItems.Count} startup items");
                 StatusMessage = $"Loaded {StartupItems.Count} startup items";
             }
             catch (Exception ex)
@@ -228,3 +249,4 @@ namespace PlatypusTools.UI.ViewModels
         }
     }
 }
+

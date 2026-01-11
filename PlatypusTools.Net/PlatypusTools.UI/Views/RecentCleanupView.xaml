@@ -9,17 +9,20 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
             <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Target directories (semicolon separated):</TextBlock>
             <TextBox Width="300" Text="{Binding TargetDirs, UpdateSourceTrigger=PropertyChanged}" />
+            <Button Content="Browse..." Command="{Binding BrowseCommand}" Width="80" Margin="8,0,0,0" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8">
             <CheckBox IsChecked="{Binding DryRun}" Content="Dry run" VerticalAlignment="Center" Margin="0,0,8,0" />
             <Button Content="Scan Recent" Command="{Binding ScanCommand}" Width="120" />
         </StackPanel>
-        <ListView Grid.Row="2" ItemsSource="{Binding Results}">
+        <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" Margin="0,0,0,8" FontWeight="SemiBold" />
+        <ListView Grid.Row="3" ItemsSource="{Binding Results}">
             <ListView.View>
                 <GridView AllowsColumnReorder="True">
                     <GridViewColumn Header="Type" Width="80" DisplayMemberBinding="{Binding Type}" />

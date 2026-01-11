@@ -3,6 +3,8 @@ using System.Linq;
 using System.Windows.Input;
 using PlatypusTools.Core.Models;
 using PlatypusTools.Core.Services;
+using PlatypusTools.Core.Utilities;
+using System;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -44,12 +46,19 @@ namespace PlatypusTools.UI.ViewModels
 
         public HiderViewModel()
         {
-            Records = new ObservableCollection<HiderRecordViewModel>();
+            // Debug entry
+            SimpleLogger.Debug("Initializing HiderViewModel");
+            
+            try
+            {
+                Records = new ObservableCollection<HiderRecordViewModel>();
 
-            _configPath = System.IO.Path.Combine(
-                System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData),
-                "PlatypusTools",
-                "hider.json");
+                _configPath = System.IO.Path.Combine(
+                    System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData),
+                    "PlatypusTools",
+                    "hider.json");
+
+                SimpleLogger.Debug($"Config path: {_configPath}");
 
             LoadConfig();
 
@@ -58,12 +67,22 @@ namespace PlatypusTools.UI.ViewModels
             RemoveRecordCommand = new RelayCommand(obj => { if (obj is HiderRecordViewModel vm) RemoveRecord(vm); });
             EditRecordCommand = new RelayCommand(obj => { if (obj is HiderRecordViewModel vm) EditRecord(vm); });
 
-            SetHiddenCommand = new RelayCommand(_ => SetSelectedHidden(), _ => SelectedRecord != null);
-            ClearHiddenCommand = new RelayCommand(_ => ClearSelectedHidden(), _ => SelectedRecord != null);
-            ApplyAclCommand = new RelayCommand(_ => ApplyAclToSelected(), _ => SelectedRecord != null);
+            SetHiddenCommand = new RelayCommand(obj => { if (obj is HiderRecordViewModel vm) SetHidden(vm); });
+            ClearHiddenCommand = new RelayCommand(obj => { if (obj is HiderRecordViewModel vm) ClearHidden(vm); });
+            ApplyAclCommand = new RelayCommand(obj => { if (obj is HiderRecordViewModel vm) ApplyAcl(vm); });
+            ApplyEfsCommand = new RelayCommand(obj => { if (obj is HiderRecordViewModel vm) ApplyEfs(vm); });
 
             LoadConfigCommand = new RelayCommand(_ => LoadConfig());
             SaveConfigCommand = new RelayCommand(_ => SaveConfig());
+            
+                SimpleLogger.Debug("HiderViewModel initialized successfully");
+                // Debug exit
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error("HiderViewModel constructor" + " - " + ex.Message);
+                throw;
+            }
         }
 
         public HiderViewModel(string configPath) : this()
@@ -87,17 +106,34 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand SetHiddenCommand { get; }
         public ICommand ClearHiddenCommand { get; }
         public ICommand ApplyAclCommand { get; }
+        public ICommand ApplyEfsCommand { get; }
         public ICommand LoadConfigCommand { get; }
         public ICommand SaveConfigCommand { get; }
 
         private void AddFolder()
         {
-            var rec = new HiderRecord { FolderPath = NewFolderPath };
-            var cfg = HiderService.LoadConfig(_configPath) ?? HiderService.GetDefaultConfig();
-            HiderService.AddRecord(cfg, rec);
-            HiderService.SaveConfig(cfg, _configPath);
-            Records.Add(new HiderRecordViewModel(rec));
-            NewFolderPath = string.Empty;
+            // Debug entry
+            SimpleLogger.Debug($"Adding folder: {NewFolderPath}");
+            
+            try
+            {
+                var rec = new HiderRecord { FolderPath = NewFolderPath };
+                var cfg = HiderService.LoadConfig(_configPath) ?? HiderService.GetDefaultConfig();
+                HiderService.AddRecord(cfg, rec);
+                HiderService.SaveConfig(cfg, _configPath);
+                Records.Add(new HiderRecordViewModel(rec));
+                NewFolderPath = string.Empty;
+                SimpleLogger.Debug("Folder added successfully");
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error("AddFolder" + " - " + ex.Message);
+                throw;
+            }
+            finally
+            {
+                // Debug exit
+            }
         }
 
         private void BrowseFolder()
@@ -151,22 +187,23 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private void SetSelectedHidden()
+        private void SetHidden(HiderRecordViewModel vm)
         {
-            if (SelectedRecord == null) return;
-            HiderService.SetHidden(SelectedRecord.FolderPath, true);
-            SelectedRecord.RefreshHiddenState();
+            if (vm == null) return;
+            HiderService.SetHidden(vm.FolderPath, true);
+            vm.RefreshHiddenState();
+            SaveConfig();
         }
 
-        private void ClearSelectedHidden()
+        private void ClearHidden(HiderRecordViewModel vm)
         {
-            if (SelectedRecord == null) return;
+            if (vm == null) return;
 
             // If a password is set for this record, prompt for it before un-hiding
-            var pr = SelectedRecord.Record.PasswordRecord;
+            var pr = vm.Record.PasswordRecord;
             if (pr != null)
             {
-                var msg = $"Unhide '{SelectedRecord.FolderPath}'";
+                var msg = $"Unhide '{vm.FolderPath}'";
                 var dlg = new Views.PromptPasswordWindow(msg) { Owner = System.Windows.Application.Current?.MainWindow };
                 var res = dlg.ShowDialog();
                 if (res != true) return;
@@ -178,15 +215,57 @@ namespace PlatypusTools.UI.ViewModels
                 }
             }
 
-            HiderService.SetHidden(SelectedRecord.FolderPath, false);
-            SelectedRecord.RefreshHiddenState();
+            HiderService.SetHidden(vm.FolderPath, false);
+            vm.RefreshHiddenState();
+            SaveConfig();
         }
 
-        private void ApplyAclToSelected()
+        private void ApplyAcl(HiderRecordViewModel vm)
         {
-            if (SelectedRecord == null) return;
-            SecurityService.RestrictFolderToAdministrators(SelectedRecord.FolderPath);
-            SelectedRecord.AclRestricted = true;
+            if (vm == null) return;
+            try
+            {
+                if (vm.AclRestricted)
+                {
+                    SecurityService.RestrictFolderToAdministrators(vm.FolderPath);
+                    System.Windows.MessageBox.Show($"ACL restrictions applied to:\n{vm.FolderPath}", "Success", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("Enable 'Restrict to Administrators' checkbox first, then click ACL button.", "Info", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                }
+                SaveConfig();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Failed to apply ACL:\n{ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+        private void ApplyEfs(HiderRecordViewModel vm)
+        {
+            if (vm == null) return;
+            try
+            {
+                if (vm.EfsEnabled)
+                {
+                    // TODO: Implement EFS encryption
+                    // SecurityService.EncryptFolder(vm.FolderPath);
+                    System.Windows.MessageBox.Show($"EFS encryption is enabled in configuration for:\n{vm.FolderPath}\n\nNote: EFS encryption must be manually applied through Windows File Properties (Advanced → Encrypt contents).", 
+                        "EFS Configuration", 
+                        System.Windows.MessageBoxButton.OK, 
+                        System.Windows.MessageBoxImage.Information);
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("Enable 'Use EFS' checkbox first, then click EFS button.", "Info", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                }
+                SaveConfig();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Failed to apply EFS:\n{ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
         }
 
         private void LoadConfig()

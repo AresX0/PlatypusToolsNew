@@ -25,6 +25,7 @@ namespace PlatypusTools.Core.Services
         Task<List<AuditItem>> ScanElevatedUsers();
         Task<List<AuditItem>> ScanCriticalAcls();
         Task<List<AuditItem>> ScanOutboundTraffic();
+        Task<List<AuditItem>> ScanInboundTraffic();
         Task<bool> DisableUser(string username);
         Task<bool> DeleteUser(string username);
         Task<bool> ResetUserPassword(string username, string newPassword);
@@ -1120,6 +1121,134 @@ namespace PlatypusTools.Core.Services
                     items.Add(new AuditItem
                     {
                         Category = "Outbound Traffic",
+                        Name = "Error",
+                        Description = ex.Message,
+                        Severity = AuditSeverity.Warning,
+                        Status = AuditStatus.Unknown
+                    });
+                }
+            });
+
+            return items;
+        }
+
+        public async Task<List<AuditItem>> ScanInboundTraffic()
+        {
+            var items = new List<AuditItem>();
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    // Get listening ports
+                    var netstatInfo = new ProcessStartInfo
+                    {
+                        FileName = "netstat",
+                        Arguments = "-ano",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true
+                    };
+
+                    using var process = Process.Start(netstatInfo);
+                    if (process != null)
+                    {
+                        var output = process.StandardOutput.ReadToEnd();
+                        process.WaitForExit();
+
+                        var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                        var inboundCount = 0;
+
+                        foreach (var line in lines)
+                        {
+                            // Look for LISTENING or ESTABLISHED inbound connections
+                            if ((line.Contains("LISTENING") || line.Contains("ESTABLISHED")) && 
+                                (line.Trim().StartsWith("TCP") || line.Trim().StartsWith("UDP")))
+                            {
+                                var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                                if (parts.Length >= 4)
+                                {
+                                    var protocol = parts[0];
+                                    var localAddress = parts[1];
+                                    var state = line.Contains("LISTENING") ? "LISTENING" : "ESTABLISHED";
+                                    var pid = parts.Length >= 5 ? parts[4] : parts[3];
+
+                                    // For LISTENING ports, show what's accepting connections
+                                    if (state == "LISTENING")
+                                    {
+                                        inboundCount++;
+                                        
+                                        // Get process name
+                                        string processName = "Unknown";
+                                        try
+                                        {
+                                            var proc = Process.GetProcessById(int.Parse(pid));
+                                            processName = proc.ProcessName;
+                                        }
+                                        catch { }
+
+                                        items.Add(new AuditItem
+                                        {
+                                            Category = "Inbound Traffic",
+                                            Name = processName,
+                                            Description = $"{protocol} listening on {localAddress}",
+                                            Severity = AuditSeverity.Info,
+                                            Status = AuditStatus.Pass,
+                                            Details = $"PID: {pid}"
+                                        });
+
+                                        if (inboundCount >= 50) break; // Limit results
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Check firewall inbound rules
+                    var firewallInfo = new ProcessStartInfo
+                    {
+                        FileName = "netsh",
+                        Arguments = "advfirewall firewall show rule name=all dir=in",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true
+                    };
+
+                    using var fwProcess = Process.Start(firewallInfo);
+                    if (fwProcess != null)
+                    {
+                        var fwOutput = fwProcess.StandardOutput.ReadToEnd();
+                        fwProcess.WaitForExit();
+
+                        var allowCount = 0;
+                        var blockCount = 0;
+                        foreach (var line in fwOutput.Split('\n'))
+                        {
+                            if (line.Contains("Action:") && line.Contains("Allow"))
+                            {
+                                allowCount++;
+                            }
+                            else if (line.Contains("Action:") && line.Contains("Block"))
+                            {
+                                blockCount++;
+                            }
+                        }
+
+                        items.Add(new AuditItem
+                        {
+                            Category = "Inbound Traffic",
+                            Name = "Firewall Inbound Rules",
+                            Description = $"{allowCount} allow rules, {blockCount} block rules configured",
+                            Severity = AuditSeverity.Info,
+                            Status = AuditStatus.Pass
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    items.Add(new AuditItem
+                    {
+                        Category = "Inbound Traffic",
                         Name = "Error",
                         Description = ex.Message,
                         Severity = AuditSeverity.Warning,

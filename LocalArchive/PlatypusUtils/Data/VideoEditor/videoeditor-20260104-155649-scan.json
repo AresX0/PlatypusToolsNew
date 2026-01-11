@@ -1,0 +1,101 @@
+﻿{
+    "version":  1,
+    "generated":  "2026-01-04T15:56:52",
+    "stage":  "hashed",
+    "folder":  "Z:\\PLEX\\Itunes",
+    "recurse":  false,
+    "method":  "fast",
+    "fileCount":  15,
+    "files":  [
+                  {
+                      "Path":  "Z:\\PLEX\\Itunes\\AlbumArt_{15F39A73-B73F-4DF8-BAF5-DD307A1A1719}_Large.jpg",
+                      "Sha256":  "F4039BDFD27BCC78460FDE559F35F8008466AC869B6B8519AE86B81AC5CA44D2",
+                      "Size":  10387,
+                      "LastWriteTime":  "\/Date(1255475238000)\/"
+                  },
+                  {
+                      "Path":  "Z:\\PLEX\\Itunes\\AlbumArt_{15F39A73-B73F-4DF8-BAF5-DD307A1A1719}_Small.jpg",
+                      "Sha256":  "22A5A00249351E2DBDB078741EF92EEB97BC85EBAB0158BBD6BD3C6262429E53",
+                      "Size":  2546,
+                      "LastWriteTime":  "\/Date(1255475234000)\/"
+                  },
+                  {
+                      "Path":  "Z:\\PLEX\\Itunes\\AlbumArt_{C24B65ED-D9D6-4F7D-BA20-83BFAB688180}_Large.jpg",
+                      "Sha256":  "800AFE05B7C688DAF9F18BDA1BAD90C3569E85851EC8FA1EAB0DF9D1F7E44D72",
+                      "Size":  8328,
+                      "LastWriteTime":  "\/Date(1243456448000)\/"
+                  },
+                  {
+                      "Path":  "Z:\\PLEX\\Itunes\\AlbumArt_{C24B65ED-D9D6-4F7D-BA20-83BFAB688180}_Small.jpg",
+                      "Sha256":  "E6208F9EFAE13B7061436562C5348FFCC10A96A0363B2A1491867FA82ACAF9A8",
+                      "Size":  2002,
+                      "LastWriteTime":  "\/Date(1243456448000)\/"
+                  },
+                  {
+                      "Path":  "Z:\\PLEX\\Itunes\\AlbumArt_{F24735A5-3D60-4339-B3AC-0A64E28FB1E5}_Large.jpg",
+                      "Sha256":  "70F7B0EE9630E97E91F5725049E754BA977DE0CC29AA7529C365B4B808363FEE",
+                      "Size":  8873,
+                      "LastWriteTime":  "\/Date(1243457732000)\/"
+                  },
+                  {
+                      "Path":  "Z:\\PLEX\\Itunes\\AlbumArt_{F24735A5-3D60-4339-B3AC-0A64E28FB1E5}_Small.jpg",
+                      "Sha256":  "C0CDB805886A4BC852DF1628F452F15B24522811EC0DDAAF377B09C2B81FA2BB",
+                      "Size":  2264,
+                      "LastWriteTime":  "\/Date(1243457732000)\/"
+                  },
+                  {
+                      "Path":  "Z:\\PLEX\\Itunes\\AlbumArt_{F41A35BC-CE0D-4961-B41D-D6040135C77A}_Large.jpg",
+                      "Sha256":  "8701F72A9669F363C8DF848C05FC93EC8E3E44AC839D6B89157C425EC504A5A0",
+                      "Size":  10032,
+                      "LastWriteTime":  "\/Date(1243457530000)\/"
+                  },
+                  {
+                      "Path":  "Z:\\PLEX\\Itunes\\AlbumArt_{F41A35BC-CE0D-4961-B41D-D6040135C77A}_Small.jpg",
+                      "Sha256":  "4A8E3B7524E88717719C8A44A4FF16B109E6F70462137871DADE858CEF77D75E",
+                      "Size":  2390,
+                      "LastWriteTime":  "\/Date(1243457530000)\/"
+                  },
+                  {
+                      "Path":  "Z:\\PLEX\\Itunes\\Back Cover.jpg",
+                      "Sha256":  "BE12633467A75346CBF9AEA37DDD8870F7D6BBEA584045A6CCB64CAE3AFC2581",
+                      "Size":  174781,
+                      "LastWriteTime":  "\/Date(1252882340000)\/"
+                  },
+                  {
+                      "Path":  "Z:\\PLEX\\Itunes\\CD Label.jpg",
+                      "Sha256":  "54DD4249DBD342D9F33AC4EA1CE988841E45808B651CB036364B52702CC9E99D",
+                      "Size":  125112,
+                      "LastWriteTime":  "\/Date(1252881896000)\/"
+                  },
+                  {
+                      "Path":  "Z:\\PLEX\\Itunes\\description.txt",
+                      "Sha256":  "2188F0A8EF57B23D15182FDFD5F802DE94C4B9361AC9F7B47EEC68AA047A7001",
+                      "Size":  379,
+                      "LastWriteTime":  "\/Date(1241828876000)\/"
+                  },
+                  {
+                      "Path":  "Z:\\PLEX\\Itunes\\Front Cover.jpg",
+                      "Sha256":  "EC89CB18D62C960521D329194776DEB7ED88B3D7F86F6434E4CCAFB5B4F4FED7",
+                      "Size":  133984,
+                      "LastWriteTime":  "\/Date(1252881896000)\/"
+                  },
+                  {
+                      "Path":  "Z:\\PLEX\\Itunes\\Inlay.jpg",
+                      "Sha256":  "82D0C90ADB8E96BC6D1DBA6D9F7E06F15D71827DC49DA4C8BB730CE2F40E1EC0",
+                      "Size":  169882,
+                      "LastWriteTime":  "\/Date(1252881892000)\/"
+                  },
+                  {
+                      "Path":  "Z:\\PLEX\\Itunes\\Seether feat. Amy Lee - Broken (video).wmv",
+                      "Sha256":  "7504A6181529A5527AEB8ABC26ACCF0F3BC6814690D611668F328116719C6021",
+                      "Size":  12326341,
+                      "LastWriteTime":  "\/Date(1094941496000)\/"
+                  },
+                  {
+                      "Path":  "Z:\\PLEX\\Itunes\\tmnt.bmp",
+                      "Sha256":  "6203D8DD6F8A62620ABA86053012810B32587E0A6D987D0AF992FDD0D1575348",
+                      "Size":  146670,
+                      "LastWriteTime":  "\/Date(1087459238000)\/"
+                  }
+              ]
+}

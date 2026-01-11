@@ -29,18 +29,21 @@
 
         <!-- File List -->
         <GroupBox Header="Images to Resize" Grid.Row="1" Margin="0,0,0,10">
-            <DataGrid ItemsSource="{Binding FileList}" AutoGenerateColumns="False" 
-                      CanUserAddRows="False" CanUserDeleteRows="False" Margin="5"
-                      CanUserResizeColumns="True" CanUserSortColumns="True">
-                <DataGrid.Columns>
-                    <DataGridCheckBoxColumn Header="Process" Binding="{Binding Process, UpdateSourceTrigger=PropertyChanged}" Width="70" CanUserResize="True" MinWidth="60"/>
-                    <DataGridTextColumn Header="Name" Binding="{Binding Name, Mode=OneWay}" Width="*" IsReadOnly="True" CanUserResize="True" MinWidth="100"/>
-                    <DataGridTextColumn Header="Dimensions" Binding="{Binding Dimensions, Mode=OneWay}" Width="100" IsReadOnly="True" CanUserResize="True" MinWidth="80"/>
-                    <DataGridTextColumn Header="Size" Binding="{Binding Size, Mode=OneWay}" Width="80" IsReadOnly="True" CanUserResize="True" MinWidth="60"/>
-                    <DataGridTextColumn Header="Path" Binding="{Binding Path, Mode=OneWay}" Width="2*" IsReadOnly="True" CanUserResize="True" MinWidth="150"/>
-                    <DataGridTextColumn Header="Status" Binding="{Binding Status, Mode=OneWay}" Width="200" IsReadOnly="True" CanUserResize="True" MinWidth="100"/>
-                </DataGrid.Columns>
-            </DataGrid>
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <DataGrid ItemsSource="{Binding FileList}" AutoGenerateColumns="False" 
+                          CanUserAddRows="False" CanUserDeleteRows="False" Margin="5"
+                          CanUserResizeColumns="True" CanUserSortColumns="True"
+                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                    <DataGrid.Columns>
+                        <DataGridCheckBoxColumn Header="Process" Binding="{Binding Process, UpdateSourceTrigger=PropertyChanged}" Width="70" CanUserResize="True" MinWidth="60"/>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name, Mode=OneWay}" Width="250" IsReadOnly="True" CanUserResize="True" MinWidth="100"/>
+                        <DataGridTextColumn Header="Dimensions" Binding="{Binding Dimensions, Mode=OneWay}" Width="100" IsReadOnly="True" CanUserResize="True" MinWidth="80"/>
+                        <DataGridTextColumn Header="Size" Binding="{Binding Size, Mode=OneWay}" Width="80" IsReadOnly="True" CanUserResize="True" MinWidth="60"/>
+                        <DataGridTextColumn Header="Path" Binding="{Binding Path, Mode=OneWay}" Width="400" IsReadOnly="True" CanUserResize="True" MinWidth="150"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status, Mode=OneWay}" Width="200" IsReadOnly="True" CanUserResize="True" MinWidth="100"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- Resize Options -->

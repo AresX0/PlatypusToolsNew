@@ -1,0 +1,18 @@
+2025-12-03 09:26:30 UI creation: start
+2025-12-03 09:26:30 UI creation: complete
+2025-12-03 09:26:37 Initial folder selected: F:\Private\EXCOGI
+2025-12-03 09:26:37 UI ready. Log file: C:\Path\Logs\scan_log_20251203_092630.txt ; ScanData folder: C:\Path\ScanData
+2025-12-03 09:26:43 btnFpcalcBrowse: selected C:\Path\fpcalc.exe
+2025-12-03 09:26:47 btnFfprobeBrowse: selected C:\Path\ffprobe.exe
+2025-12-03 09:26:48 btnStart: clicked
+2025-12-03 09:26:48 btnStart: running preflight with fpcalc='C:\Path\fpcalc.exe' ffprobe='C:\Path\ffprobe.exe'
+2025-12-03 09:26:48 Preflight-CheckTools: start. fpCandidate='C:\Path\fpcalc.exe' ffCandidate='C:\Path\ffprobe.exe'
+2025-12-03 09:26:48 Resolve-Tool: start for fpcalc.exe with configured path 'C:\Path\fpcalc.exe'
+2025-12-03 09:26:48 Resolve-Tool: using configured path C:\Path\fpcalc.exe
+2025-12-03 09:26:48 Resolve-Tool: start for ffprobe.exe with configured path 'C:\Path\ffprobe.exe'
+2025-12-03 09:26:48 Resolve-Tool: using configured path C:\Path\ffprobe.exe
+2025-12-03 09:26:48 Preflight-CheckTools: resolved fpcalc='C:\Path\fpcalc.exe' ffprobe='C:\Path\ffprobe.exe'
+2025-12-03 09:26:48 Preflight-CheckTools: running fpcalc -version
+2025-12-03 09:26:48 Run-Process: preparing to run. ExePath='C:\Path\fpcalc.exe' Args=''
+2025-12-03 09:26:48 Run-Process: starting process C:\Path\fpcalc.exe 
+2025-12-03 09:26:48 Run-Process: waiting for exit of C:\Path\fpcalc.exe

@@ -3,123 +3,209 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels">
     <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        <TabControl>
+            <!-- Single File Tab -->
+            <TabItem Header="📄 Single File">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-        <!-- File Selection -->
-        <GroupBox Header="File" Grid.Row="0" Margin="0,0,0,10">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+                    <!-- File Selection -->
+                    <GroupBox Header="File" Grid.Row="0" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
-                <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding FilePath}" IsReadOnly="True" Width="600" HorizontalAlignment="Left"/>
-                <Button Grid.Row="0" Grid.Column="1" Content="Browse..." Command="{Binding BrowseFileCommand}" Width="80" Margin="5,0,0,0"/>
-                <Button Grid.Row="0" Grid.Column="2" Content="Load" Command="{Binding LoadMetadataCommand}" Width="80" Margin="5,0,0,0" FontWeight="Bold"/>
-                
-                <!-- ExifTool warning panel -->
-                <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Background="Orange" Padding="10" Margin="0,10,0,0"
-                        Visibility="{Binding IsExifToolMissing, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <StackPanel>
-                        <TextBlock TextWrapping="Wrap" FontWeight="Bold" Foreground="White" Margin="0,0,0,5">
-                            ⚠️ ExifTool is not installed. This feature requires ExifTool to read and write metadata.
-                        </TextBlock>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock TextWrapping="Wrap" Foreground="White" VerticalAlignment="Center" Margin="0,0,10,0">
-                                Download from: https://exiftool.org/
-                            </TextBlock>
-                            <Button Content="Open ExifTool Website" Command="{Binding OpenExifToolWebsiteCommand}" 
-                                    Background="White" Padding="10,5" />
+                            <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding FilePath}" IsReadOnly="True" Width="600" HorizontalAlignment="Left"/>
+                            <Button Grid.Row="0" Grid.Column="1" Content="Browse..." Command="{Binding BrowseFileCommand}" Width="80" Margin="5,0,0,0"/>
+                            <Button Grid.Row="0" Grid.Column="2" Content="Load" Command="{Binding LoadMetadataCommand}" Width="80" Margin="5,0,0,0" FontWeight="Bold"/>
+                            
+                            <!-- ExifTool warning panel -->
+                            <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Background="Orange" Padding="10" Margin="0,10,0,0"
+                                    Visibility="{Binding IsExifToolMissing, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <StackPanel>
+                                    <TextBlock TextWrapping="Wrap" FontWeight="Bold" Foreground="White" Margin="0,0,0,5">
+                                        ⚠️ ExifTool is not installed. This feature requires ExifTool to read and write metadata.
+                                    </TextBlock>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock TextWrapping="Wrap" Foreground="White" VerticalAlignment="Center" Margin="0,0,10,0">
+                                            Download from: https://exiftool.org/
+                                        </TextBlock>
+                                        <Button Content="Open ExifTool Website" Command="{Binding OpenExifToolWebsiteCommand}" 
+                                                Background="White" Padding="10,5" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </GroupBox>
+
+                    <!-- Common Tags -->
+                    <GroupBox Header="Common Tags" Grid.Row="1" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Title:" VerticalAlignment="Center" Margin="0,0,10,5"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Artist:" VerticalAlignment="Center" Margin="0,0,10,5"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Artist, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Album:" VerticalAlignment="Center" Margin="0,0,10,5"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Album, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Comment:" VerticalAlignment="Center" Margin="0,0,10,5"/>
+                            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Comment, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Copyright:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Copyright, UpdateSourceTrigger=PropertyChanged}"/>
+                        </Grid>
+                    </GroupBox>
+
+                    <!-- All Tags -->
+                    <GroupBox Header="All Metadata Tags" Grid.Row="2" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+                                <Button Content="Add Tag" Command="{Binding AddTagCommand}" Width="80" Margin="0,0,5,0"/>
+                                <Button Content="Remove Selected" Command="{Binding RemoveTagCommand}" 
+                                        CommandParameter="{Binding SelectedItem, ElementName=MetadataGrid}" Width="120"/>
+                            </StackPanel>
+
+                            <DataGrid Grid.Row="1" x:Name="MetadataGrid" ItemsSource="{Binding Metadata}" AutoGenerateColumns="False" 
+                                      CanUserAddRows="False" SelectionMode="Single"
+                                      CanUserResizeColumns="True" CanUserSortColumns="True">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Tag Name" Binding="{Binding Key}" Width="200" CanUserResize="True" MinWidth="100"/>
+                                    <DataGridTextColumn Header="Value" Binding="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Width="*" CanUserResize="True" MinWidth="150"/>
+                                    <DataGridCheckBoxColumn Header="Modified" Binding="{Binding IsModified, Mode=OneWay}" Width="80" IsReadOnly="True" CanUserResize="True" MinWidth="70"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </GroupBox>
+
+                    <!-- Actions -->
+                    <Grid Grid.Row="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <ProgressBar Grid.Column="1" IsIndeterminate="True" Height="20" 
+                                     Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <Button Grid.Column="2" Content="Save Changes" Command="{Binding SaveMetadataCommand}" Width="120" Height="32" 
+                                Margin="0,0,5,0" Background="LightGreen" FontWeight="Bold"/>
+                        <Button Grid.Column="3" Content="Clear All" Command="{Binding ClearAllCommand}" Width="80" Height="32" 
+                                Background="LightCoral"/>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <!-- Folder Analysis Tab -->
+            <TabItem Header="📁 Folder Analysis">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Folder Selection -->
+                    <GroupBox Header="Folder" Grid.Row="0" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Grid.Column="0" Text="{Binding FolderPath}" IsReadOnly="True"/>
+                            <Button Grid.Column="1" Content="Browse..." Command="{Binding BrowseFolderCommand}" Width="80" Margin="5,0,0,0"/>
+                            <Button Grid.Column="2" Content="Scan Folder" Command="{Binding ScanFolderCommand}" Width="100" Margin="5,0,0,0" FontWeight="Bold" Background="LightBlue"/>
+                        </Grid>
+                    </GroupBox>
+
+                    <!-- Options -->
+                    <GroupBox Header="Options" Grid.Row="1" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal" Margin="5">
+                            <CheckBox Content="Include subfolders" IsChecked="{Binding IncludeSubfolders}" Margin="0,0,20,0"/>
+                            <TextBlock Text="File filter:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                            <ComboBox SelectedIndex="{Binding SelectedFileFilterIndex}" Width="180">
+                                <ComboBoxItem Content="All Files"/>
+                                <ComboBoxItem Content="Images (*.jpg, *.png, *.gif)"/>
+                                <ComboBoxItem Content="Videos (*.mp4, *.mkv, *.avi)"/>
+                                <ComboBoxItem Content="Audio (*.mp3, *.flac, *.wav)"/>
+                                <ComboBoxItem Content="Documents (*.pdf, *.docx)"/>
+                            </ComboBox>
                         </StackPanel>
-                    </StackPanel>
-                </Border>
-            </Grid>
-        </GroupBox>
+                    </GroupBox>
 
-        <!-- Common Tags -->
-        <GroupBox Header="Common Tags" Grid.Row="1" Margin="0,0,0,10">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="100"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+                    <!-- Files with Metadata -->
+                    <GroupBox Header="Files and Metadata" Grid.Row="2" Margin="0,0,0,10">
+                        <DataGrid x:Name="FolderFilesGrid" ItemsSource="{Binding FolderFiles}" AutoGenerateColumns="False" 
+                                  CanUserAddRows="False" SelectionMode="Single"
+                                  CanUserResizeColumns="True" CanUserSortColumns="True"
+                                  SelectedItem="{Binding SelectedFolderFile}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="200" CanUserResize="True" MinWidth="100"/>
+                                <DataGridTextColumn Header="Extension" Binding="{Binding Extension}" Width="80" CanUserResize="True" MinWidth="50"/>
+                                <DataGridTextColumn Header="Size" Binding="{Binding FileSizeFormatted}" Width="100" CanUserResize="True" MinWidth="70"/>
+                                <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="150" CanUserResize="True" MinWidth="100"/>
+                                <DataGridTextColumn Header="Artist" Binding="{Binding Artist}" Width="150" CanUserResize="True" MinWidth="100"/>
+                                <DataGridTextColumn Header="Album" Binding="{Binding Album}" Width="150" CanUserResize="True" MinWidth="100"/>
+                                <DataGridTextColumn Header="Date Created" Binding="{Binding DateCreated, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="130" CanUserResize="True" MinWidth="100"/>
+                                <DataGridTextColumn Header="Date Modified" Binding="{Binding DateModified, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="130" CanUserResize="True" MinWidth="100"/>
+                                <DataGridTextColumn Header="Tags Count" Binding="{Binding TagCount}" Width="80" CanUserResize="True" MinWidth="60"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </GroupBox>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Title:" VerticalAlignment="Center" Margin="0,0,10,5"/>
-                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
+                    <!-- Actions -->
+                    <Grid Grid.Row="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Artist:" VerticalAlignment="Center" Margin="0,0,10,5"/>
-                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Artist, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
-
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Album:" VerticalAlignment="Center" Margin="0,0,10,5"/>
-                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Album, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
-
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Comment:" VerticalAlignment="Center" Margin="0,0,10,5"/>
-                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Comment, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
-
-                <TextBlock Grid.Row="4" Grid.Column="0" Text="Copyright:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Copyright, UpdateSourceTrigger=PropertyChanged}"/>
-            </Grid>
-        </GroupBox>
-
-        <!-- All Tags -->
-        <GroupBox Header="All Metadata Tags" Grid.Row="2" Margin="0,0,0,10">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
-                    <Button Content="Add Tag" Command="{Binding AddTagCommand}" Width="80" Margin="0,0,5,0"/>
-                    <Button Content="Remove Selected" Command="{Binding RemoveTagCommand}" 
-                            CommandParameter="{Binding SelectedItem, ElementName=MetadataGrid}" Width="120"/>
-                </StackPanel>
-
-                <DataGrid Grid.Row="1" x:Name="MetadataGrid" ItemsSource="{Binding Metadata}" AutoGenerateColumns="False" 
-                          CanUserAddRows="False" SelectionMode="Single"
-                          CanUserResizeColumns="True" CanUserSortColumns="True">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Tag Name" Binding="{Binding Key}" Width="200" CanUserResize="True" MinWidth="100"/>
-                        <DataGridTextColumn Header="Value" Binding="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Width="*" CanUserResize="True" MinWidth="150"/>
-                        <DataGridCheckBoxColumn Header="Modified" Binding="{Binding IsModified, Mode=OneWay}" Width="80" IsReadOnly="True" CanUserResize="True" MinWidth="70"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </Grid>
-        </GroupBox>
-
-        <!-- Actions -->
-        <Grid Grid.Row="3">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-            <ProgressBar Grid.Column="1" IsIndeterminate="True" Height="20" 
-                         Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"/>
-            <Button Grid.Column="2" Content="Save Changes" Command="{Binding SaveMetadataCommand}" Width="120" Height="32" 
-                    Margin="0,0,5,0" Background="LightGreen" FontWeight="Bold"/>
-            <Button Grid.Column="3" Content="Clear All" Command="{Binding ClearAllCommand}" Width="80" Height="32" 
-                    Background="LightCoral"/>
-        </Grid>
+                        <TextBlock Grid.Column="0" Text="{Binding FolderStatusMessage}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <ProgressBar Grid.Column="1" IsIndeterminate="True" Height="20" 
+                                     Visibility="{Binding IsFolderScanning, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <Button Grid.Column="2" Content="Export to CSV" Command="{Binding ExportToCsvCommand}" Width="120" Height="32" 
+                                Margin="0,0,5,0" Background="LightGreen" FontWeight="Bold"/>
+                        <Button Grid.Column="3" Content="Open Selected" Command="{Binding OpenSelectedFileCommand}" Width="100" Height="32"/>
+                    </Grid>
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </UserControl>

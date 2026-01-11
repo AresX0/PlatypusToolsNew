@@ -1,0 +1,58 @@
+Diag start: 12/14/2025 11:54:37 AM
+Defined: Initialize-AppDir
+Defined: Write-Log
+Defined: Get-DefaultConfig
+Defined: Save-Config
+Defined: Get-Config
+Defined: Get-FolderRecord
+Defined: Add-FolderRecord
+Defined: Remove-FolderRecord
+Defined: Update-Record
+Defined: Update-AutoHide
+Defined: Convert-PlainToSecureString
+Defined: Convert-SecureStringToPlainText
+Defined: New-PasswordRecord
+Defined: Test-Password
+Defined: Get-HiddenState
+Defined: Set-Hidden
+Defined: Clear-Hidden
+Defined: Set-AclRestriction
+Defined: Restore-ACL
+Defined: Test-EFSAvailable
+Defined: Test-DriveNTFS
+Defined: Invoke-Cipher
+Defined: Enable-EFS
+Defined: Disable-EFS
+Defined: Get-PasswordStrength
+Defined: Show-SetPasswordDialog
+Defined: Show-PasswordPrompt
+Defined: Hide-AllManagedFolders
+Defined: Update-TrayMenu
+Defined: Update-ListView
+Defined: Get-SelectedPath
+Defined: Set-LastActivity
+Functions defined.
+Temp folder: C:\Users\doran\AppData\Local\Temp\fh_diag_251d531a-796c-4342-a0d0-049dba903e34
+Get-Command Set-AclRestriction: Set-AclRestriction
+Get-Command Restore-ACL: Restore-ACL
+Get-Acl direct: OK
+Set-Hidden called OK
+Get-HiddenState returned: False
+Calling Set-AclRestriction...
+Set-AclRestriction EX: System.Management.Automation.ParameterBindingValidationException: Cannot bind argument to parameter 'LiteralPath' because it is null.
+   at System.Management.Automation.ExceptionHandlingOps.CheckActionPreference(FunctionContext funcContext, Exception exception)
+   at System.Management.Automation.Interpreter.ActionCallInstruction`2.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.Interpreter.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.LightLambda.RunVoid1[T0](T0 arg0)
+   at System.Management.Automation.PSScriptCmdlet.RunClause(Action`1 clause, Object dollarUnderbar, Object inputToProcess)
+   at System.Management.Automation.PSScriptCmdlet.DoEndProcessing()
+   at System.Management.Automation.CommandProcessorBase.Complete()
+InvocationInfo: At line:17 char:9
++         Write-Log "Set-AclRestriction error on '$Path': $($_.Exceptio ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Restore-ACL result: True
+Attributes now: 
+Removed temp C:\Users\doran\AppData\Local\Temp\fh_diag_251d531a-796c-4342-a0d0-049dba903e34
+Diag finished: 12/14/2025 11:54:38 AM

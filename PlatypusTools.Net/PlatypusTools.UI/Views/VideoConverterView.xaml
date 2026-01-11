@@ -95,19 +95,21 @@
 
         <!-- Preview Grid -->
         <GroupBox Header="Conversion Queue" Grid.Row="3" Margin="0,0,0,10">
-            <DataGrid ItemsSource="{Binding ConversionTasks}" AutoGenerateColumns="False" CanUserAddRows="False" 
-                      IsReadOnly="False" SelectionMode="Extended"
-                      CanUserResizeColumns="True" CanUserSortColumns="True">
-                <DataGrid.Columns>
-                    <DataGridCheckBoxColumn Header="Convert" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="60" CanUserResize="True" MinWidth="50"/>
-                    <DataGridTextColumn Header="Source File" Binding="{Binding SourcePath}" Width="300" CanUserResize="True" MinWidth="120"/>
-                    <DataGridTextColumn Header="Output File" Binding="{Binding OutputPath}" Width="300" CanUserResize="True" MinWidth="120"/>
-                    <DataGridTextColumn Header="Format" Binding="{Binding TargetFormat}" Width="70" CanUserResize="True" MinWidth="60"/>
-                    <DataGridTextColumn Header="Quality" Binding="{Binding Quality}" Width="80" CanUserResize="True" MinWidth="60"/>
-                    <DataGridTextColumn Header="Duration" Binding="{Binding Duration, StringFormat='{}{0:hh\\:mm\\:ss}'}" Width="80" CanUserResize="True" MinWidth="70"/>
-                    <DataGridTextColumn Header="Size" Binding="{Binding FileSizeBytes, Converter={StaticResource FileSizeConverter}}" Width="80" CanUserResize="True" MinWidth="60"/>
-                    <DataGridTextColumn Header="Progress" Binding="{Binding Progress, StringFormat='{}{0:F1}%'}" Width="80" CanUserResize="True" MinWidth="70"/>
-                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" CanUserResize="True" MinWidth="70">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <DataGrid ItemsSource="{Binding ConversionTasks}" AutoGenerateColumns="False" CanUserAddRows="False" 
+                          IsReadOnly="False" SelectionMode="Extended"
+                          CanUserResizeColumns="True" CanUserSortColumns="True"
+                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                    <DataGrid.Columns>
+                        <DataGridCheckBoxColumn Header="Convert" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="60" CanUserResize="True" MinWidth="50"/>
+                        <DataGridTextColumn Header="Source File" Binding="{Binding SourcePath}" Width="300" CanUserResize="True" MinWidth="120"/>
+                        <DataGridTextColumn Header="Output File" Binding="{Binding OutputPath}" Width="300" CanUserResize="True" MinWidth="120"/>
+                        <DataGridTextColumn Header="Format" Binding="{Binding TargetFormat}" Width="70" CanUserResize="True" MinWidth="60"/>
+                        <DataGridTextColumn Header="Quality" Binding="{Binding Quality}" Width="80" CanUserResize="True" MinWidth="60"/>
+                        <DataGridTextColumn Header="Duration" Binding="{Binding Duration, StringFormat='{}{0:hh\\:mm\\:ss}'}" Width="80" CanUserResize="True" MinWidth="70"/>
+                        <DataGridTextColumn Header="Size" Binding="{Binding FileSizeBytes, Converter={StaticResource FileSizeConverter}}" Width="80" CanUserResize="True" MinWidth="60"/>
+                        <DataGridTextColumn Header="Progress" Binding="{Binding Progress, StringFormat='{}{0:F1}%'}" Width="80" CanUserResize="True" MinWidth="70"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" CanUserResize="True" MinWidth="70">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Style.Triggers>
@@ -129,6 +131,7 @@
                     </DataGridTextColumn>
                 </DataGrid.Columns>
             </DataGrid>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- Status Bar -->

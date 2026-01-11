@@ -1,0 +1,7 @@
+﻿[21:04:27] Combining into: C:\Users\doran\Downloads\combined3.mp4 (stream copy)
+[21:04:27] List file: C:\Users\doran\Downloads\videolist.txt
+===== Combine (stream copy) 2025-12-14T21:04:27 =====
+cmd: C:\convert\ffmpeg.exe 
+[21:04:27] Combine (stream copy) -> logging to C:\Path\logs\combine_copy_20251214_210427.log
+[21:04:27] No ffmpeg arguments provided; aborting.
+[21:04:27] Combine failed with exit code 1. See C:\Path\logs\combine_copy_20251214_210427.log

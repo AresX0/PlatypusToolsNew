@@ -1,0 +1,1 @@
+2025-12-03 09:09:49 UI ready. Log file: C:\Path\Logs\scan_log_20251203_090816.txt ; ScanData folder: C:\Path\ScanData

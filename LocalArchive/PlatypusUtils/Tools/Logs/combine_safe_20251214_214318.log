@@ -1,0 +1,11 @@
+﻿Input list (concat file content):
+file 'C:\Users\doran\Downloads\ExploitedCollegeGirls-E01-jade-bg-4k.mp4'
+file 'C:\Users\doran\Downloads\nubilesporn_i_share_because_i_care_1280.mp4'
+[21:43:18] Safe combine (re-encode) into: C:\test\combined_safe.mp4
+[21:43:18] List file: C:\test\videolist.txt
+[21:43:18]   1. ExploitedCollegeGirls-E01-jade-bg-4k.mp4
+[21:43:18]   2. nubilesporn_i_share_because_i_care_1280.mp4
+[21:43:18] ffmpeg cmd: C:\convert\ffmpeg.exe -y -fflags +genpts -safe 0 -f concat -i C:\test\videolist.txt -c:v libx264 -preset medium -crf 20 -c:a aac -b:a 192k -vsync 2 -af aresample=async=1 -avoid_negative_ts make_zero -reset_timestamps 1 -movflags +faststart C:\test\combined_safe.mp4
+===== Safe combine (re-encode) 2025-12-14T21:43:18 =====
+cmd: C:\convert\ffmpeg.exe -v info -y -fflags +genpts -safe 0 -f concat -i C:\test\videolist.txt -c:v libx264 -preset medium -crf 20 -c:a aac -b:a 192k -vsync 2 -af aresample=async=1 -avoid_negative_ts make_zero -reset_timestamps 1 -movflags +faststart C:\test\combined_safe.mp4
+[21:43:18] Safe combine (re-encode) -> logging to C:\Path\logs\combine_safe_20251214_214318.log

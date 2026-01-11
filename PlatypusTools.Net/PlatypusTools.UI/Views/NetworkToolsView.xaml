@@ -89,11 +89,11 @@
                                       SelectionMode="Single"
                                       AlternatingRowBackground="#F5F5F5">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Protocol" Binding="{Binding Protocol}" Width="80" MinWidth="60" />
-                                    <DataGridTextColumn Header="Local Address" Binding="{Binding LocalAddress}" Width="200" MinWidth="150" />
-                                    <DataGridTextColumn Header="Remote Address" Binding="{Binding RemoteAddress}" Width="200" MinWidth="150" />
-                                    <DataGridTextColumn Header="State" Binding="{Binding State}" Width="120" MinWidth="100" />
-                                    <DataGridTextColumn Header="PID" Binding="{Binding PID}" Width="80" MinWidth="60" />
+                                    <DataGridTextColumn Header="Protocol" Binding="{Binding Protocol}" Width="80" MinWidth="60" IsReadOnly="True" />
+                                    <DataGridTextColumn Header="Local Address" Binding="{Binding LocalAddress}" Width="200" MinWidth="150" IsReadOnly="True" />
+                                    <DataGridTextColumn Header="Remote Address" Binding="{Binding RemoteAddress}" Width="200" MinWidth="150" IsReadOnly="True" />
+                                    <DataGridTextColumn Header="State" Binding="{Binding State}" Width="120" MinWidth="100" IsReadOnly="True" />
+                                    <DataGridTextColumn Header="PID" Binding="{Binding PID}" Width="80" MinWidth="60" IsReadOnly="True" />
                                 </DataGrid.Columns>
                             </DataGrid>
                         </ScrollViewer>
@@ -123,13 +123,13 @@
                                       SelectionMode="Single"
                                       AlternatingRowBackground="#F5F5F5">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="150" MinWidth="100" />
-                                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" MinWidth="200" />
-                                    <DataGridTextColumn Header="IP Address" Binding="{Binding IPAddress}" Width="140" MinWidth="120" />
-                                    <DataGridTextColumn Header="MAC Address" Binding="{Binding MACAddress}" Width="150" MinWidth="130" />
-                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80" MinWidth="60" />
-                                    <DataGridTextColumn Header="Bytes Received" Binding="{Binding BytesReceived}" Width="120" MinWidth="100" />
-                                    <DataGridTextColumn Header="Bytes Sent" Binding="{Binding BytesSent}" Width="120" MinWidth="100" />
+                                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="150" MinWidth="100" IsReadOnly="True" />
+                                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" MinWidth="200" IsReadOnly="True" />
+                                    <DataGridTextColumn Header="IP Address" Binding="{Binding IPAddress}" Width="140" MinWidth="120" IsReadOnly="True" />
+                                    <DataGridTextColumn Header="MAC Address" Binding="{Binding MACAddress}" Width="150" MinWidth="130" IsReadOnly="True" />
+                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80" MinWidth="60" IsReadOnly="True" />
+                                    <DataGridTextColumn Header="Bytes Received" Binding="{Binding BytesReceived}" Width="120" MinWidth="100" IsReadOnly="True" />
+                                    <DataGridTextColumn Header="Bytes Sent" Binding="{Binding BytesSent}" Width="120" MinWidth="100" IsReadOnly="True" />
                                 </DataGrid.Columns>
                             </DataGrid>
                         </ScrollViewer>

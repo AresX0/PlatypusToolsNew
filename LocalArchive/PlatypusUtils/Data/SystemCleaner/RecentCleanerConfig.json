@@ -1,0 +1,13 @@
+{
+    "ExcludedDirs":  [
+                         "F:\\Private",
+                         "C:\\Users\\doran\\Downloads",
+                         "F:\\"
+                     ],
+    "OutputPath":  "F:\\Private",
+    "Weekdays":  [
+
+                 ],
+    "Time":  "00:00",
+    "IncludeSubdirs":  true
+}

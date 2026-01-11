@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using PlatypusTools.Core.Services;
 
@@ -32,6 +33,30 @@ namespace PlatypusTools.UI.ViewModels
             get => _isModified;
             set { _isModified = value; OnPropertyChanged(); }
         }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    public class FolderFileMetadata : INotifyPropertyChanged
+    {
+        public string FullPath { get; set; } = string.Empty;
+        public string FileName { get; set; } = string.Empty;
+        public string Extension { get; set; } = string.Empty;
+        public long FileSize { get; set; }
+        public string FileSizeFormatted => FileSize < 1024 ? $"{FileSize} B" 
+            : FileSize < 1024 * 1024 ? $"{FileSize / 1024.0:F1} KB" 
+            : FileSize < 1024 * 1024 * 1024 ? $"{FileSize / (1024.0 * 1024.0):F1} MB"
+            : $"{FileSize / (1024.0 * 1024.0 * 1024.0):F2} GB";
+        public string Title { get; set; } = string.Empty;
+        public string Artist { get; set; } = string.Empty;
+        public string Album { get; set; } = string.Empty;
+        public DateTime DateCreated { get; set; }
+        public DateTime DateModified { get; set; }
+        public int TagCount { get; set; }
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -110,6 +135,51 @@ namespace PlatypusTools.UI.ViewModels
             set { _isExifToolMissing = value; OnPropertyChanged(); }
         }
 
+        // Folder analysis properties
+        public ObservableCollection<FolderFileMetadata> FolderFiles { get; } = new();
+
+        private string _folderPath = string.Empty;
+        public string FolderPath
+        {
+            get => _folderPath;
+            set { _folderPath = value; OnPropertyChanged(); }
+        }
+
+        private string _folderStatusMessage = "Select a folder to scan";
+        public string FolderStatusMessage
+        {
+            get => _folderStatusMessage;
+            set { _folderStatusMessage = value; OnPropertyChanged(); }
+        }
+
+        private bool _isFolderScanning;
+        public bool IsFolderScanning
+        {
+            get => _isFolderScanning;
+            set { _isFolderScanning = value; OnPropertyChanged(); }
+        }
+
+        private bool _includeSubfolders = true;
+        public bool IncludeSubfolders
+        {
+            get => _includeSubfolders;
+            set { _includeSubfolders = value; OnPropertyChanged(); }
+        }
+
+        private int _selectedFileFilterIndex;
+        public int SelectedFileFilterIndex
+        {
+            get => _selectedFileFilterIndex;
+            set { _selectedFileFilterIndex = value; OnPropertyChanged(); }
+        }
+
+        private FolderFileMetadata? _selectedFolderFile;
+        public FolderFileMetadata? SelectedFolderFile
+        {
+            get => _selectedFolderFile;
+            set { _selectedFolderFile = value; OnPropertyChanged(); }
+        }
+
         public ICommand BrowseFileCommand { get; }
         public ICommand LoadMetadataCommand { get; }
         public ICommand SaveMetadataCommand { get; }
@@ -117,6 +187,12 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand AddTagCommand { get; }
         public ICommand RemoveTagCommand { get; }
         public ICommand OpenExifToolWebsiteCommand { get; }
+
+        // Folder commands
+        public ICommand BrowseFolderCommand { get; }
+        public ICommand ScanFolderCommand { get; }
+        public ICommand ExportToCsvCommand { get; }
+        public ICommand OpenSelectedFileCommand { get; }
 
         public MetadataEditorViewModel() : this(new MetadataServiceEnhanced()) { }
 
@@ -131,6 +207,12 @@ namespace PlatypusTools.UI.ViewModels
             AddTagCommand = new RelayCommand(_ => AddTag());
             RemoveTagCommand = new RelayCommand(obj => RemoveTag(obj as MetadataTag));
             OpenExifToolWebsiteCommand = new RelayCommand(_ => OpenExifToolWebsite());
+
+            // Folder commands
+            BrowseFolderCommand = new RelayCommand(_ => BrowseFolder());
+            ScanFolderCommand = new RelayCommand(_ => ScanFolder(), _ => !string.IsNullOrEmpty(FolderPath));
+            ExportToCsvCommand = new RelayCommand(_ => ExportToCsv(), _ => FolderFiles.Any());
+            OpenSelectedFileCommand = new RelayCommand(_ => OpenSelectedFile(), _ => SelectedFolderFile != null);
 
             IsExifToolMissing = !_service.IsExifToolAvailable();
             if (IsExifToolMissing)
@@ -322,6 +404,168 @@ namespace PlatypusTools.UI.ViewModels
             else if (!string.IsNullOrEmpty(value))
             {
                 Metadata.Add(new MetadataTag { Key = key, Value = value, IsModified = true });
+            }
+        }
+
+        // Folder analysis methods
+        private void BrowseFolder()
+        {
+            using var dialog = new System.Windows.Forms.FolderBrowserDialog
+            {
+                Description = "Select folder to scan for metadata",
+                UseDescriptionForTitle = true
+            };
+
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                FolderPath = dialog.SelectedPath;
+            }
+        }
+
+        private async void ScanFolder()
+        {
+            if (!Directory.Exists(FolderPath))
+            {
+                FolderStatusMessage = "Folder not found";
+                return;
+            }
+
+            IsFolderScanning = true;
+            FolderStatusMessage = "Scanning folder...";
+            FolderFiles.Clear();
+
+            try
+            {
+                var searchOption = IncludeSubfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+                var extensions = GetFilterExtensions();
+                
+                var files = Directory.GetFiles(FolderPath, "*.*", searchOption)
+                    .Where(f => extensions.Length == 0 || extensions.Any(ext => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
+                    .ToList();
+
+                FolderStatusMessage = $"Found {files.Count} files, reading metadata...";
+
+                int processed = 0;
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        var fileInfo = new FileInfo(file);
+                        var fileMetadata = new FolderFileMetadata
+                        {
+                            FullPath = file,
+                            FileName = fileInfo.Name,
+                            Extension = fileInfo.Extension,
+                            FileSize = fileInfo.Length,
+                            DateCreated = fileInfo.CreationTime,
+                            DateModified = fileInfo.LastWriteTime
+                        };
+
+                        // Try to read metadata if ExifTool is available
+                        if (_service.IsExifToolAvailable())
+                        {
+                            try
+                            {
+                                var metadata = await _service.ReadMetadata(file);
+                                fileMetadata.Title = metadata.ContainsKey("Title") ? metadata["Title"] : string.Empty;
+                                fileMetadata.Artist = metadata.ContainsKey("Artist") ? metadata["Artist"] : string.Empty;
+                                fileMetadata.Album = metadata.ContainsKey("Album") ? metadata["Album"] : string.Empty;
+                                fileMetadata.TagCount = metadata.Count;
+                            }
+                            catch
+                            {
+                                // Ignore metadata read errors for individual files
+                            }
+                        }
+
+                        FolderFiles.Add(fileMetadata);
+                        processed++;
+
+                        if (processed % 10 == 0)
+                        {
+                            FolderStatusMessage = $"Processed {processed}/{files.Count} files...";
+                        }
+                    }
+                    catch
+                    {
+                        // Skip files that can't be read
+                    }
+                }
+
+                FolderStatusMessage = $"Scanned {FolderFiles.Count} files";
+            }
+            catch (Exception ex)
+            {
+                FolderStatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsFolderScanning = false;
+            }
+        }
+
+        private string[] GetFilterExtensions()
+        {
+            return SelectedFileFilterIndex switch
+            {
+                1 => new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp" },
+                2 => new[] { ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm" },
+                3 => new[] { ".mp3", ".flac", ".wav", ".aac", ".ogg", ".wma", ".m4a" },
+                4 => new[] { ".pdf", ".docx", ".doc", ".xlsx", ".xls", ".pptx" },
+                _ => Array.Empty<string>()
+            };
+        }
+
+        private void ExportToCsv()
+        {
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "CSV Files (*.csv)|*.csv",
+                FileName = $"metadata_export_{DateTime.Now:yyyyMMdd_HHmmss}.csv",
+                Title = "Export Metadata to CSV"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    using var writer = new StreamWriter(dialog.FileName);
+                    writer.WriteLine("File Name,Extension,Size,Title,Artist,Album,Date Created,Date Modified,Tags Count,Full Path");
+                    
+                    foreach (var file in FolderFiles)
+                    {
+                        writer.WriteLine($"\"{file.FileName}\",\"{file.Extension}\",\"{file.FileSizeFormatted}\",\"{EscapeCsv(file.Title)}\",\"{EscapeCsv(file.Artist)}\",\"{EscapeCsv(file.Album)}\",\"{file.DateCreated:yyyy-MM-dd HH:mm}\",\"{file.DateModified:yyyy-MM-dd HH:mm}\",{file.TagCount},\"{file.FullPath}\"");
+                    }
+
+                    FolderStatusMessage = $"Exported {FolderFiles.Count} files to CSV";
+                }
+                catch (Exception ex)
+                {
+                    FolderStatusMessage = $"Export failed: {ex.Message}";
+                }
+            }
+        }
+
+        private static string EscapeCsv(string value)
+        {
+            return value?.Replace("\"", "\"\"") ?? string.Empty;
+        }
+
+        private void OpenSelectedFile()
+        {
+            if (SelectedFolderFile == null) return;
+
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = SelectedFolderFile.FullPath,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                FolderStatusMessage = $"Failed to open file: {ex.Message}";
             }
         }
 

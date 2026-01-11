@@ -1,0 +1,7 @@
+﻿[21:04:03] Safe combine (re-encode) into: C:\Users\doran\Downloads\combined_safe.mp4
+[21:04:03] List file: C:\Users\doran\Downloads\videolist.txt
+===== Safe combine (re-encode) 2025-12-14T21:04:03 =====
+cmd: C:\convert\ffmpeg.exe 
+[21:04:03] Safe combine (re-encode) -> logging to C:\Path\logs\combine_safe_20251214_210403.log
+[21:04:03] No ffmpeg arguments provided; aborting.
+[21:04:03] Safe combine failed with exit code 1. See C:\Path\logs\combine_safe_20251214_210403.log

@@ -1,0 +1,1982 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+    <DirectoryRef Id="INSTALLFOLDER">
+      <Component Id="CMP_Accessibility_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Accessibility_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Accessibility.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_clretwrc_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_clretwrc_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\clretwrc.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_clrgc_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_clrgc_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\clrgc.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_clrgcexp_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_clrgcexp_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\clrgcexp.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_clrjit_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_clrjit_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\clrjit.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_coreclr_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_coreclr_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\coreclr.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_createdump_exe" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_createdump_exe" Source="$(var.PlatypusTools.UI.TargetDir)publish\createdump.exe" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_D3DCompiler_47_cor3_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_D3DCompiler_47_cor3_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\D3DCompiler_47_cor3.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_DirectWriteForwarder_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_DirectWriteForwarder_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\DirectWriteForwarder.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_hostfxr_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_hostfxr_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\hostfxr.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_hostpolicy_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_hostpolicy_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\hostpolicy.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_HtmlAgilityPack_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_HtmlAgilityPack_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\HtmlAgilityPack.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_CSharp_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_CSharp_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.CSharp.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_DiaSymReader_Native_amd64_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_DiaSymReader_Native_amd64_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.DiaSymReader.Native.amd64.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_VisualBasic_Core_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_VisualBasic_Core_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.VisualBasic.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_VisualBasic_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_VisualBasic_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.VisualBasic.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_VisualBasic_Forms_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_VisualBasic_Forms_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.VisualBasic.Forms.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Web_WebView2_Core_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Web_WebView2_Core_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Web.WebView2.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Web_WebView2_Core_xml" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Web_WebView2_Core_xml" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Web.WebView2.Core.xml" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Web_WebView2_WinForms_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Web_WebView2_WinForms_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Web.WebView2.WinForms.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Web_WebView2_WinForms_xml" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Web_WebView2_WinForms_xml" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Web.WebView2.WinForms.xml" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Web_WebView2_Wpf_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Web_WebView2_Wpf_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Web.WebView2.Wpf.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Web_WebView2_Wpf_xml" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Web_WebView2_Wpf_xml" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Web.WebView2.Wpf.xml" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Win32_Primitives_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Win32_Primitives_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Win32.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Win32_Registry_AccessControl_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Win32_Registry_AccessControl_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Win32.Registry.AccessControl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Win32_Registry_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Win32_Registry_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Win32.Registry.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Win32_SystemEvents_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Win32_SystemEvents_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Win32.SystemEvents.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_mscordaccore_amd64_amd64_10_0_125_57005_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_mscordaccore_amd64_amd64_10_0_125_57005_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\mscordaccore_amd64_amd64_10.0.125.57005.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_mscordaccore_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_mscordaccore_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\mscordaccore.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_mscordbi_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_mscordbi_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\mscordbi.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_mscorlib_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_mscorlib_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\mscorlib.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_mscorrc_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_mscorrc_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\mscorrc.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_msquic_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_msquic_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\msquic.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_netstandard_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_netstandard_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\netstandard.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PenImc_cor3_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PenImc_cor3_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PenImc_cor3.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PlatypusTools_Core_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PlatypusTools_Core_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PlatypusTools.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PlatypusTools_UI_deps_json" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PlatypusTools_UI_deps_json" Source="$(var.PlatypusTools.UI.TargetDir)publish\PlatypusTools.UI.deps.json" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PlatypusTools_UI_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PlatypusTools_UI_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PlatypusTools.UI.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PlatypusTools_UI_exe" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PlatypusTools_UI_exe" Source="$(var.PlatypusTools.UI.TargetDir)publish\PlatypusTools.UI.exe" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PlatypusTools_UI_runtimeconfig_json" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PlatypusTools_UI_runtimeconfig_json" Source="$(var.PlatypusTools.UI.TargetDir)publish\PlatypusTools.UI.runtimeconfig.json" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PresentationCore_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PresentationCore_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PresentationCore.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PresentationFramework_SystemCore_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PresentationFramework_SystemCore_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PresentationFramework-SystemCore.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PresentationFramework_SystemData_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PresentationFramework_SystemData_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PresentationFramework-SystemData.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PresentationFramework_SystemDrawing_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PresentationFramework_SystemDrawing_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PresentationFramework-SystemDrawing.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PresentationFramework_SystemXml_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PresentationFramework_SystemXml_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PresentationFramework-SystemXml.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PresentationFramework_SystemXmlLinq_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PresentationFramework_SystemXmlLinq_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PresentationFramework-SystemXmlLinq.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PresentationFramework_Aero_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PresentationFramework_Aero_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PresentationFramework.Aero.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PresentationFramework_Aero2_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PresentationFramework_Aero2_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PresentationFramework.Aero2.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PresentationFramework_AeroLite_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PresentationFramework_AeroLite_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PresentationFramework.AeroLite.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PresentationFramework_Classic_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PresentationFramework_Classic_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PresentationFramework.Classic.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PresentationFramework_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PresentationFramework_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PresentationFramework.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PresentationFramework_Fluent_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PresentationFramework_Fluent_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PresentationFramework.Fluent.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PresentationFramework_Luna_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PresentationFramework_Luna_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PresentationFramework.Luna.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PresentationFramework_Royale_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PresentationFramework_Royale_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PresentationFramework.Royale.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PresentationNative_cor3_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PresentationNative_cor3_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PresentationNative_cor3.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_PresentationUI_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_PresentationUI_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PresentationUI.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_ReachFramework_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_ReachFramework_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ReachFramework.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_AppContext_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_AppContext_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.AppContext.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Buffers_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Buffers_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Buffers.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_CodeDom_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_CodeDom_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.CodeDom.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Collections_Concurrent_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Collections_Concurrent_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Collections.Concurrent.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Collections_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Collections_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Collections.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Collections_Immutable_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Collections_Immutable_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Collections.Immutable.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Collections_NonGeneric_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Collections_NonGeneric_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Collections.NonGeneric.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Collections_Specialized_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Collections_Specialized_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Collections.Specialized.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_ComponentModel_Annotations_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_ComponentModel_Annotations_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.ComponentModel.Annotations.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_ComponentModel_DataAnnotations_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_ComponentModel_DataAnnotations_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.ComponentModel.DataAnnotations.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_ComponentModel_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_ComponentModel_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.ComponentModel.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_ComponentModel_EventBasedAsync_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_ComponentModel_EventBasedAsync_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.ComponentModel.EventBasedAsync.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_ComponentModel_Primitives_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_ComponentModel_Primitives_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.ComponentModel.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_ComponentModel_TypeConverter_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_ComponentModel_TypeConverter_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.ComponentModel.TypeConverter.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Configuration_ConfigurationManager_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Configuration_ConfigurationManager_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Configuration.ConfigurationManager.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Configuration_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Configuration_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Configuration.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Console_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Console_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Console.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Core_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Core_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Data_Common_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Data_Common_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Data.Common.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Data_DataSetExtensions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Data_DataSetExtensions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Data.DataSetExtensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Data_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Data_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Data.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Design_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Design_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Design.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Diagnostics_Contracts_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Diagnostics_Contracts_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Diagnostics.Contracts.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Diagnostics_Debug_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Diagnostics_Debug_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Diagnostics.Debug.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Diagnostics_DiagnosticSource_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Diagnostics_DiagnosticSource_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Diagnostics.DiagnosticSource.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Diagnostics_EventLog_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Diagnostics_EventLog_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Diagnostics.EventLog.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Diagnostics_EventLog_Messages_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Diagnostics_EventLog_Messages_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Diagnostics.EventLog.Messages.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Diagnostics_FileVersionInfo_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Diagnostics_FileVersionInfo_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Diagnostics.FileVersionInfo.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Diagnostics_PerformanceCounter_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Diagnostics_PerformanceCounter_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Diagnostics.PerformanceCounter.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Diagnostics_Process_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Diagnostics_Process_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Diagnostics.Process.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Diagnostics_StackTrace_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Diagnostics_StackTrace_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Diagnostics.StackTrace.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Diagnostics_TextWriterTraceListener_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Diagnostics_TextWriterTraceListener_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Diagnostics.TextWriterTraceListener.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Diagnostics_Tools_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Diagnostics_Tools_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Diagnostics.Tools.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Diagnostics_TraceSource_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Diagnostics_TraceSource_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Diagnostics.TraceSource.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Diagnostics_Tracing_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Diagnostics_Tracing_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Diagnostics.Tracing.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_DirectoryServices_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_DirectoryServices_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.DirectoryServices.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Drawing_Common_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Drawing_Common_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Drawing.Common.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Drawing_Design_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Drawing_Design_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Drawing.Design.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Drawing_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Drawing_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Drawing.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Drawing_Primitives_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Drawing_Primitives_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Drawing.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Dynamic_Runtime_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Dynamic_Runtime_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Dynamic.Runtime.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Formats_Asn1_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Formats_Asn1_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Formats.Asn1.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Formats_Nrbf_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Formats_Nrbf_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Formats.Nrbf.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Formats_Tar_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Formats_Tar_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Formats.Tar.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Globalization_Calendars_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Globalization_Calendars_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Globalization.Calendars.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Globalization_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Globalization_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Globalization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Globalization_Extensions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Globalization_Extensions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Globalization.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_Compression_Brotli_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_Compression_Brotli_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.Compression.Brotli.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_Compression_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_Compression_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.Compression.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_Compression_FileSystem_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_Compression_FileSystem_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.Compression.FileSystem.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_Compression_Native_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_Compression_Native_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.Compression.Native.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_Compression_ZipFile_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_Compression_ZipFile_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.Compression.ZipFile.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_FileSystem_AccessControl_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_FileSystem_AccessControl_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.FileSystem.AccessControl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_FileSystem_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_FileSystem_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.FileSystem.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_FileSystem_DriveInfo_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_FileSystem_DriveInfo_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.FileSystem.DriveInfo.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_FileSystem_Primitives_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_FileSystem_Primitives_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.FileSystem.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_FileSystem_Watcher_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_FileSystem_Watcher_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.FileSystem.Watcher.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_IsolatedStorage_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_IsolatedStorage_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.IsolatedStorage.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_MemoryMappedFiles_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_MemoryMappedFiles_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.MemoryMappedFiles.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_Packaging_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_Packaging_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.Packaging.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_Pipelines_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_Pipelines_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.Pipelines.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_Pipes_AccessControl_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_Pipes_AccessControl_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.Pipes.AccessControl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_Pipes_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_Pipes_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.Pipes.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_IO_UnmanagedMemoryStream_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_IO_UnmanagedMemoryStream_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.IO.UnmanagedMemoryStream.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Linq_AsyncEnumerable_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Linq_AsyncEnumerable_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Linq.AsyncEnumerable.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Linq_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Linq_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Linq.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Linq_Expressions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Linq_Expressions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Linq.Expressions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Linq_Parallel_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Linq_Parallel_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Linq.Parallel.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Linq_Queryable_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Linq_Queryable_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Linq.Queryable.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Management_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Management_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Management.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Memory_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Memory_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Memory.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_Http_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_Http_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.Http.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_Http_Json_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_Http_Json_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.Http.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_HttpListener_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_HttpListener_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.HttpListener.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_Mail_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_Mail_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.Mail.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_NameResolution_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_NameResolution_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.NameResolution.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_NetworkInformation_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_NetworkInformation_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.NetworkInformation.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_Ping_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_Ping_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.Ping.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_Primitives_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_Primitives_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_Quic_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_Quic_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.Quic.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_Requests_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_Requests_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.Requests.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_Security_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_Security_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.Security.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_ServerSentEvents_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_ServerSentEvents_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.ServerSentEvents.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_ServicePoint_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_ServicePoint_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.ServicePoint.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_Sockets_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_Sockets_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.Sockets.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_WebClient_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_WebClient_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.WebClient.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_WebHeaderCollection_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_WebHeaderCollection_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.WebHeaderCollection.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_WebProxy_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_WebProxy_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.WebProxy.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_WebSockets_Client_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_WebSockets_Client_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.WebSockets.Client.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Net_WebSockets_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Net_WebSockets_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Net.WebSockets.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Numerics_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Numerics_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Numerics.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Numerics_Vectors_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Numerics_Vectors_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Numerics.Vectors.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_ObjectModel_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_ObjectModel_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.ObjectModel.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Printing_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Printing_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Printing.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Private_CoreLib_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Private_CoreLib_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Private.CoreLib.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Private_DataContractSerialization_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Private_DataContractSerialization_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Private.DataContractSerialization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Private_Uri_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Private_Uri_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Private.Uri.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Private_Windows_Core_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Private_Windows_Core_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Private.Windows.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Private_Windows_GdiPlus_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Private_Windows_GdiPlus_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Private.Windows.GdiPlus.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Private_Xml_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Private_Xml_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Private.Xml.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Private_Xml_Linq_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Private_Xml_Linq_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Private.Xml.Linq.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Reflection_DispatchProxy_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Reflection_DispatchProxy_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Reflection.DispatchProxy.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Reflection_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Reflection_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Reflection.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Reflection_Emit_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Reflection_Emit_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Reflection.Emit.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Reflection_Emit_ILGeneration_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Reflection_Emit_ILGeneration_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Reflection.Emit.ILGeneration.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Reflection_Emit_Lightweight_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Reflection_Emit_Lightweight_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Reflection.Emit.Lightweight.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Reflection_Extensions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Reflection_Extensions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Reflection.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Reflection_Metadata_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Reflection_Metadata_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Reflection.Metadata.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Reflection_Primitives_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Reflection_Primitives_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Reflection.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Reflection_TypeExtensions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Reflection_TypeExtensions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Reflection.TypeExtensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Resources_Extensions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Resources_Extensions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Resources.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Resources_Reader_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Resources_Reader_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Resources.Reader.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Resources_ResourceManager_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Resources_ResourceManager_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Resources.ResourceManager.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Resources_Writer_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Resources_Writer_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Resources.Writer.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Runtime_CompilerServices_Unsafe_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Runtime_CompilerServices_Unsafe_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Runtime.CompilerServices.Unsafe.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Runtime_CompilerServices_VisualC_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Runtime_CompilerServices_VisualC_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Runtime.CompilerServices.VisualC.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Runtime_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Runtime_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Runtime.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Runtime_Extensions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Runtime_Extensions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Runtime.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Runtime_Handles_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Runtime_Handles_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Runtime.Handles.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Runtime_InteropServices_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Runtime_InteropServices_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Runtime.InteropServices.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Runtime_InteropServices_JavaScript_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Runtime_InteropServices_JavaScript_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Runtime.InteropServices.JavaScript.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Runtime_InteropServices_R_070E76A1F880" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Runtime_InteropServices_R_070E76A1F880" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Runtime.InteropServices.RuntimeInformation.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Runtime_Intrinsics_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Runtime_Intrinsics_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Runtime.Intrinsics.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Runtime_Loader_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Runtime_Loader_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Runtime.Loader.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Runtime_Numerics_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Runtime_Numerics_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Runtime.Numerics.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Runtime_Serialization_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Runtime_Serialization_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Runtime.Serialization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Runtime_Serialization_Formatters_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Runtime_Serialization_Formatters_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Runtime.Serialization.Formatters.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Runtime_Serialization_Json_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Runtime_Serialization_Json_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Runtime.Serialization.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Runtime_Serialization_Primitives_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Runtime_Serialization_Primitives_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Runtime.Serialization.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Runtime_Serialization_Xml_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Runtime_Serialization_Xml_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Runtime.Serialization.Xml.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_AccessControl_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_AccessControl_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.AccessControl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_Claims_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_Claims_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.Claims.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_Cryptography_Algorithms_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_Cryptography_Algorithms_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.Cryptography.Algorithms.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_Cryptography_Cng_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_Cryptography_Cng_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.Cryptography.Cng.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_Cryptography_Csp_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_Cryptography_Csp_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.Cryptography.Csp.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_Cryptography_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_Cryptography_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.Cryptography.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_Cryptography_Encoding_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_Cryptography_Encoding_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.Cryptography.Encoding.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_Cryptography_OpenSsl_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_Cryptography_OpenSsl_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.Cryptography.OpenSsl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_Cryptography_Pkcs_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_Cryptography_Pkcs_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.Cryptography.Pkcs.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_Cryptography_Primitives_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_Cryptography_Primitives_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.Cryptography.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_Cryptography_ProtectedData_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_Cryptography_ProtectedData_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.Cryptography.ProtectedData.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_Cryptography_X50_2E71B4C3D91C" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_Cryptography_X50_2E71B4C3D91C" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.Cryptography.X509Certificates.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_Cryptography_Xml_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_Cryptography_Xml_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.Cryptography.Xml.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_Permissions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_Permissions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.Permissions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_Principal_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_Principal_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.Principal.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_Principal_Windows_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_Principal_Windows_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.Principal.Windows.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Security_SecureString_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Security_SecureString_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Security.SecureString.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_ServiceModel_Web_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_ServiceModel_Web_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.ServiceModel.Web.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_ServiceProcess_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_ServiceProcess_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.ServiceProcess.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Text_Encoding_CodePages_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Text_Encoding_CodePages_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Text.Encoding.CodePages.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Text_Encoding_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Text_Encoding_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Text.Encoding.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Text_Encoding_Extensions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Text_Encoding_Extensions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Text.Encoding.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Text_Encodings_Web_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Text_Encodings_Web_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Text.Encodings.Web.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Text_Json_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Text_Json_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Text.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Text_RegularExpressions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Text_RegularExpressions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Text.RegularExpressions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Threading_AccessControl_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Threading_AccessControl_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Threading.AccessControl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Threading_Channels_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Threading_Channels_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Threading.Channels.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Threading_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Threading_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Threading.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Threading_Overlapped_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Threading_Overlapped_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Threading.Overlapped.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Threading_Tasks_Dataflow_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Threading_Tasks_Dataflow_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Threading.Tasks.Dataflow.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Threading_Tasks_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Threading_Tasks_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Threading.Tasks.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Threading_Tasks_Extensions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Threading_Tasks_Extensions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Threading.Tasks.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Threading_Tasks_Parallel_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Threading_Tasks_Parallel_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Threading.Tasks.Parallel.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Threading_Thread_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Threading_Thread_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Threading.Thread.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Threading_ThreadPool_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Threading_ThreadPool_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Threading.ThreadPool.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Threading_Timer_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Threading_Timer_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Threading.Timer.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Transactions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Transactions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Transactions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Transactions_Local_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Transactions_Local_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Transactions.Local.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_ValueTuple_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_ValueTuple_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.ValueTuple.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Web_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Web_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Web.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Web_HttpUtility_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Web_HttpUtility_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Web.HttpUtility.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Windows_Controls_Ribbon_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Windows_Controls_Ribbon_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Windows.Controls.Ribbon.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Windows_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Windows_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Windows.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Windows_Extensions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Windows_Extensions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Windows.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Windows_Forms_Design_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Windows_Forms_Design_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Windows.Forms.Design.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Windows_Forms_Design_Editors_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Windows_Forms_Design_Editors_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Windows.Forms.Design.Editors.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Windows_Forms_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Windows_Forms_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Windows.Forms.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Windows_Forms_Primitives_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Windows_Forms_Primitives_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Windows.Forms.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Windows_Input_Manipulations_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Windows_Input_Manipulations_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Windows.Input.Manipulations.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Windows_Presentation_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Windows_Presentation_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Windows.Presentation.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Windows_Primitives_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Windows_Primitives_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Windows.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Xaml_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Xaml_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Xaml.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Xml_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Xml_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Xml.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Xml_Linq_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Xml_Linq_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Xml.Linq.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Xml_ReaderWriter_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Xml_ReaderWriter_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Xml.ReaderWriter.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Xml_Serialization_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Xml_Serialization_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Xml.Serialization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Xml_XDocument_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Xml_XDocument_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Xml.XDocument.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Xml_XmlDocument_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Xml_XmlDocument_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Xml.XmlDocument.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Xml_XmlSerializer_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Xml_XmlSerializer_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Xml.XmlSerializer.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Xml_XPath_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Xml_XPath_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Xml.XPath.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Xml_XPath_XDocument_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Xml_XPath_XDocument_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Xml.XPath.XDocument.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_UIAutomationClient_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_UIAutomationClient_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\UIAutomationClient.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_UIAutomationClientSideProviders_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_UIAutomationClientSideProviders_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\UIAutomationClientSideProviders.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_UIAutomationProvider_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_UIAutomationProvider_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\UIAutomationProvider.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_UIAutomationTypes_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_UIAutomationTypes_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\UIAutomationTypes.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_vcruntime140_cor3_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_vcruntime140_cor3_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\vcruntime140_cor3.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_WebView2Loader_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_WebView2Loader_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\WebView2Loader.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_WindowsBase_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_WindowsBase_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\WindowsBase.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_WindowsFormsIntegration_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_WindowsFormsIntegration_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\WindowsFormsIntegration.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_wpfgfx_cor3_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_wpfgfx_cor3_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\wpfgfx_cor3.dll" KeyPath="yes" />
+      </Component>
+      <Directory Id="DIR_Assets" Name="Assets">
+        <Component Id="CMP_Assets_PlatypusTools_Help_html" Guid="*" Directory="DIR_Assets">
+          <File Id="FIL_Assets_PlatypusTools_Help_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\PlatypusTools_Help.html" KeyPath="yes" />
+        </Component>
+      </Directory>
+      <Directory Id="DIR_cs" Name="cs">
+        <Component Id="CMP_cs_Microsoft_VisualBasic_Forms_resources_dll" Guid="*" Directory="DIR_cs">
+          <File Id="FIL_cs_Microsoft_VisualBasic_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\cs\Microsoft.VisualBasic.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_cs_PresentationCore_resources_dll" Guid="*" Directory="DIR_cs">
+          <File Id="FIL_cs_PresentationCore_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\cs\PresentationCore.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_cs_PresentationFramework_resources_dll" Guid="*" Directory="DIR_cs">
+          <File Id="FIL_cs_PresentationFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\cs\PresentationFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_cs_PresentationUI_resources_dll" Guid="*" Directory="DIR_cs">
+          <File Id="FIL_cs_PresentationUI_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\cs\PresentationUI.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_cs_ReachFramework_resources_dll" Guid="*" Directory="DIR_cs">
+          <File Id="FIL_cs_ReachFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\cs\ReachFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_cs_System_Windows_Controls_Ribbon_resources_dll" Guid="*" Directory="DIR_cs">
+          <File Id="FIL_cs_System_Windows_Controls_Ribbon_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\cs\System.Windows.Controls.Ribbon.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_cs_System_Windows_Forms_Design_resources_dll" Guid="*" Directory="DIR_cs">
+          <File Id="FIL_cs_System_Windows_Forms_Design_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\cs\System.Windows.Forms.Design.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_cs_System_Windows_Forms_Primitives_resources_dll" Guid="*" Directory="DIR_cs">
+          <File Id="FIL_cs_System_Windows_Forms_Primitives_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\cs\System.Windows.Forms.Primitives.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_cs_System_Windows_Forms_resources_dll" Guid="*" Directory="DIR_cs">
+          <File Id="FIL_cs_System_Windows_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\cs\System.Windows.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_cs_System_Windows_Input_Manipula_DA7354616FB1" Guid="*" Directory="DIR_cs">
+          <File Id="FIL_cs_System_Windows_Input_Manipula_DA7354616FB1" Source="$(var.PlatypusTools.UI.TargetDir)publish\cs\System.Windows.Input.Manipulations.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_cs_System_Xaml_resources_dll" Guid="*" Directory="DIR_cs">
+          <File Id="FIL_cs_System_Xaml_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\cs\System.Xaml.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_cs_UIAutomationClient_resources_dll" Guid="*" Directory="DIR_cs">
+          <File Id="FIL_cs_UIAutomationClient_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\cs\UIAutomationClient.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_cs_UIAutomationClientSideProviders_resources_dll" Guid="*" Directory="DIR_cs">
+          <File Id="FIL_cs_UIAutomationClientSideProviders_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\cs\UIAutomationClientSideProviders.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_cs_UIAutomationProvider_resources_dll" Guid="*" Directory="DIR_cs">
+          <File Id="FIL_cs_UIAutomationProvider_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\cs\UIAutomationProvider.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_cs_UIAutomationTypes_resources_dll" Guid="*" Directory="DIR_cs">
+          <File Id="FIL_cs_UIAutomationTypes_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\cs\UIAutomationTypes.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_cs_WindowsBase_resources_dll" Guid="*" Directory="DIR_cs">
+          <File Id="FIL_cs_WindowsBase_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\cs\WindowsBase.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_cs_WindowsFormsIntegration_resources_dll" Guid="*" Directory="DIR_cs">
+          <File Id="FIL_cs_WindowsFormsIntegration_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\cs\WindowsFormsIntegration.resources.dll" KeyPath="yes" />
+        </Component>
+      </Directory>
+      <Directory Id="DIR_de" Name="de">
+        <Component Id="CMP_de_Microsoft_VisualBasic_Forms_resources_dll" Guid="*" Directory="DIR_de">
+          <File Id="FIL_de_Microsoft_VisualBasic_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\Microsoft.VisualBasic.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_de_PresentationCore_resources_dll" Guid="*" Directory="DIR_de">
+          <File Id="FIL_de_PresentationCore_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\PresentationCore.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_de_PresentationFramework_resources_dll" Guid="*" Directory="DIR_de">
+          <File Id="FIL_de_PresentationFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\PresentationFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_de_PresentationUI_resources_dll" Guid="*" Directory="DIR_de">
+          <File Id="FIL_de_PresentationUI_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\PresentationUI.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_de_ReachFramework_resources_dll" Guid="*" Directory="DIR_de">
+          <File Id="FIL_de_ReachFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\ReachFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_de_System_Windows_Controls_Ribbon_resources_dll" Guid="*" Directory="DIR_de">
+          <File Id="FIL_de_System_Windows_Controls_Ribbon_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\System.Windows.Controls.Ribbon.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_de_System_Windows_Forms_Design_resources_dll" Guid="*" Directory="DIR_de">
+          <File Id="FIL_de_System_Windows_Forms_Design_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\System.Windows.Forms.Design.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_de_System_Windows_Forms_Primitives_resources_dll" Guid="*" Directory="DIR_de">
+          <File Id="FIL_de_System_Windows_Forms_Primitives_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\System.Windows.Forms.Primitives.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_de_System_Windows_Forms_resources_dll" Guid="*" Directory="DIR_de">
+          <File Id="FIL_de_System_Windows_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\System.Windows.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_de_System_Windows_Input_Manipula_503402FC81D1" Guid="*" Directory="DIR_de">
+          <File Id="FIL_de_System_Windows_Input_Manipula_503402FC81D1" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\System.Windows.Input.Manipulations.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_de_System_Xaml_resources_dll" Guid="*" Directory="DIR_de">
+          <File Id="FIL_de_System_Xaml_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\System.Xaml.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_de_UIAutomationClient_resources_dll" Guid="*" Directory="DIR_de">
+          <File Id="FIL_de_UIAutomationClient_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\UIAutomationClient.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_de_UIAutomationClientSideProviders_resources_dll" Guid="*" Directory="DIR_de">
+          <File Id="FIL_de_UIAutomationClientSideProviders_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\UIAutomationClientSideProviders.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_de_UIAutomationProvider_resources_dll" Guid="*" Directory="DIR_de">
+          <File Id="FIL_de_UIAutomationProvider_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\UIAutomationProvider.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_de_UIAutomationTypes_resources_dll" Guid="*" Directory="DIR_de">
+          <File Id="FIL_de_UIAutomationTypes_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\UIAutomationTypes.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_de_WindowsBase_resources_dll" Guid="*" Directory="DIR_de">
+          <File Id="FIL_de_WindowsBase_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\WindowsBase.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_de_WindowsFormsIntegration_resources_dll" Guid="*" Directory="DIR_de">
+          <File Id="FIL_de_WindowsFormsIntegration_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\WindowsFormsIntegration.resources.dll" KeyPath="yes" />
+        </Component>
+      </Directory>
+      <Directory Id="DIR_es" Name="es">
+        <Component Id="CMP_es_Microsoft_VisualBasic_Forms_resources_dll" Guid="*" Directory="DIR_es">
+          <File Id="FIL_es_Microsoft_VisualBasic_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\es\Microsoft.VisualBasic.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_es_PresentationCore_resources_dll" Guid="*" Directory="DIR_es">
+          <File Id="FIL_es_PresentationCore_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\es\PresentationCore.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_es_PresentationFramework_resources_dll" Guid="*" Directory="DIR_es">
+          <File Id="FIL_es_PresentationFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\es\PresentationFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_es_PresentationUI_resources_dll" Guid="*" Directory="DIR_es">
+          <File Id="FIL_es_PresentationUI_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\es\PresentationUI.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_es_ReachFramework_resources_dll" Guid="*" Directory="DIR_es">
+          <File Id="FIL_es_ReachFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\es\ReachFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_es_System_Windows_Controls_Ribbon_resources_dll" Guid="*" Directory="DIR_es">
+          <File Id="FIL_es_System_Windows_Controls_Ribbon_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\es\System.Windows.Controls.Ribbon.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_es_System_Windows_Forms_Design_resources_dll" Guid="*" Directory="DIR_es">
+          <File Id="FIL_es_System_Windows_Forms_Design_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\es\System.Windows.Forms.Design.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_es_System_Windows_Forms_Primitives_resources_dll" Guid="*" Directory="DIR_es">
+          <File Id="FIL_es_System_Windows_Forms_Primitives_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\es\System.Windows.Forms.Primitives.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_es_System_Windows_Forms_resources_dll" Guid="*" Directory="DIR_es">
+          <File Id="FIL_es_System_Windows_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\es\System.Windows.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_es_System_Windows_Input_Manipula_347D3919A8AF" Guid="*" Directory="DIR_es">
+          <File Id="FIL_es_System_Windows_Input_Manipula_347D3919A8AF" Source="$(var.PlatypusTools.UI.TargetDir)publish\es\System.Windows.Input.Manipulations.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_es_System_Xaml_resources_dll" Guid="*" Directory="DIR_es">
+          <File Id="FIL_es_System_Xaml_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\es\System.Xaml.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_es_UIAutomationClient_resources_dll" Guid="*" Directory="DIR_es">
+          <File Id="FIL_es_UIAutomationClient_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\es\UIAutomationClient.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_es_UIAutomationClientSideProviders_resources_dll" Guid="*" Directory="DIR_es">
+          <File Id="FIL_es_UIAutomationClientSideProviders_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\es\UIAutomationClientSideProviders.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_es_UIAutomationProvider_resources_dll" Guid="*" Directory="DIR_es">
+          <File Id="FIL_es_UIAutomationProvider_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\es\UIAutomationProvider.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_es_UIAutomationTypes_resources_dll" Guid="*" Directory="DIR_es">
+          <File Id="FIL_es_UIAutomationTypes_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\es\UIAutomationTypes.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_es_WindowsBase_resources_dll" Guid="*" Directory="DIR_es">
+          <File Id="FIL_es_WindowsBase_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\es\WindowsBase.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_es_WindowsFormsIntegration_resources_dll" Guid="*" Directory="DIR_es">
+          <File Id="FIL_es_WindowsFormsIntegration_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\es\WindowsFormsIntegration.resources.dll" KeyPath="yes" />
+        </Component>
+      </Directory>
+      <Directory Id="DIR_fr" Name="fr">
+        <Component Id="CMP_fr_Microsoft_VisualBasic_Forms_resources_dll" Guid="*" Directory="DIR_fr">
+          <File Id="FIL_fr_Microsoft_VisualBasic_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\fr\Microsoft.VisualBasic.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_fr_PresentationCore_resources_dll" Guid="*" Directory="DIR_fr">
+          <File Id="FIL_fr_PresentationCore_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\fr\PresentationCore.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_fr_PresentationFramework_resources_dll" Guid="*" Directory="DIR_fr">
+          <File Id="FIL_fr_PresentationFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\fr\PresentationFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_fr_PresentationUI_resources_dll" Guid="*" Directory="DIR_fr">
+          <File Id="FIL_fr_PresentationUI_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\fr\PresentationUI.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_fr_ReachFramework_resources_dll" Guid="*" Directory="DIR_fr">
+          <File Id="FIL_fr_ReachFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\fr\ReachFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_fr_System_Windows_Controls_Ribbon_resources_dll" Guid="*" Directory="DIR_fr">
+          <File Id="FIL_fr_System_Windows_Controls_Ribbon_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\fr\System.Windows.Controls.Ribbon.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_fr_System_Windows_Forms_Design_resources_dll" Guid="*" Directory="DIR_fr">
+          <File Id="FIL_fr_System_Windows_Forms_Design_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\fr\System.Windows.Forms.Design.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_fr_System_Windows_Forms_Primitives_resources_dll" Guid="*" Directory="DIR_fr">
+          <File Id="FIL_fr_System_Windows_Forms_Primitives_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\fr\System.Windows.Forms.Primitives.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_fr_System_Windows_Forms_resources_dll" Guid="*" Directory="DIR_fr">
+          <File Id="FIL_fr_System_Windows_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\fr\System.Windows.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_fr_System_Windows_Input_Manipula_9EA565FAC32F" Guid="*" Directory="DIR_fr">
+          <File Id="FIL_fr_System_Windows_Input_Manipula_9EA565FAC32F" Source="$(var.PlatypusTools.UI.TargetDir)publish\fr\System.Windows.Input.Manipulations.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_fr_System_Xaml_resources_dll" Guid="*" Directory="DIR_fr">
+          <File Id="FIL_fr_System_Xaml_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\fr\System.Xaml.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_fr_UIAutomationClient_resources_dll" Guid="*" Directory="DIR_fr">
+          <File Id="FIL_fr_UIAutomationClient_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\fr\UIAutomationClient.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_fr_UIAutomationClientSideProviders_resources_dll" Guid="*" Directory="DIR_fr">
+          <File Id="FIL_fr_UIAutomationClientSideProviders_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\fr\UIAutomationClientSideProviders.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_fr_UIAutomationProvider_resources_dll" Guid="*" Directory="DIR_fr">
+          <File Id="FIL_fr_UIAutomationProvider_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\fr\UIAutomationProvider.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_fr_UIAutomationTypes_resources_dll" Guid="*" Directory="DIR_fr">
+          <File Id="FIL_fr_UIAutomationTypes_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\fr\UIAutomationTypes.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_fr_WindowsBase_resources_dll" Guid="*" Directory="DIR_fr">
+          <File Id="FIL_fr_WindowsBase_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\fr\WindowsBase.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_fr_WindowsFormsIntegration_resources_dll" Guid="*" Directory="DIR_fr">
+          <File Id="FIL_fr_WindowsFormsIntegration_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\fr\WindowsFormsIntegration.resources.dll" KeyPath="yes" />
+        </Component>
+      </Directory>
+      <Directory Id="DIR_it" Name="it">
+        <Component Id="CMP_it_Microsoft_VisualBasic_Forms_resources_dll" Guid="*" Directory="DIR_it">
+          <File Id="FIL_it_Microsoft_VisualBasic_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\it\Microsoft.VisualBasic.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_it_PresentationCore_resources_dll" Guid="*" Directory="DIR_it">
+          <File Id="FIL_it_PresentationCore_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\it\PresentationCore.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_it_PresentationFramework_resources_dll" Guid="*" Directory="DIR_it">
+          <File Id="FIL_it_PresentationFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\it\PresentationFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_it_PresentationUI_resources_dll" Guid="*" Directory="DIR_it">
+          <File Id="FIL_it_PresentationUI_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\it\PresentationUI.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_it_ReachFramework_resources_dll" Guid="*" Directory="DIR_it">
+          <File Id="FIL_it_ReachFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\it\ReachFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_it_System_Windows_Controls_Ribbon_resources_dll" Guid="*" Directory="DIR_it">
+          <File Id="FIL_it_System_Windows_Controls_Ribbon_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\it\System.Windows.Controls.Ribbon.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_it_System_Windows_Forms_Design_resources_dll" Guid="*" Directory="DIR_it">
+          <File Id="FIL_it_System_Windows_Forms_Design_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\it\System.Windows.Forms.Design.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_it_System_Windows_Forms_Primitives_resources_dll" Guid="*" Directory="DIR_it">
+          <File Id="FIL_it_System_Windows_Forms_Primitives_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\it\System.Windows.Forms.Primitives.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_it_System_Windows_Forms_resources_dll" Guid="*" Directory="DIR_it">
+          <File Id="FIL_it_System_Windows_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\it\System.Windows.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_it_System_Windows_Input_Manipula_856E1C38FA12" Guid="*" Directory="DIR_it">
+          <File Id="FIL_it_System_Windows_Input_Manipula_856E1C38FA12" Source="$(var.PlatypusTools.UI.TargetDir)publish\it\System.Windows.Input.Manipulations.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_it_System_Xaml_resources_dll" Guid="*" Directory="DIR_it">
+          <File Id="FIL_it_System_Xaml_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\it\System.Xaml.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_it_UIAutomationClient_resources_dll" Guid="*" Directory="DIR_it">
+          <File Id="FIL_it_UIAutomationClient_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\it\UIAutomationClient.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_it_UIAutomationClientSideProviders_resources_dll" Guid="*" Directory="DIR_it">
+          <File Id="FIL_it_UIAutomationClientSideProviders_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\it\UIAutomationClientSideProviders.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_it_UIAutomationProvider_resources_dll" Guid="*" Directory="DIR_it">
+          <File Id="FIL_it_UIAutomationProvider_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\it\UIAutomationProvider.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_it_UIAutomationTypes_resources_dll" Guid="*" Directory="DIR_it">
+          <File Id="FIL_it_UIAutomationTypes_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\it\UIAutomationTypes.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_it_WindowsBase_resources_dll" Guid="*" Directory="DIR_it">
+          <File Id="FIL_it_WindowsBase_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\it\WindowsBase.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_it_WindowsFormsIntegration_resources_dll" Guid="*" Directory="DIR_it">
+          <File Id="FIL_it_WindowsFormsIntegration_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\it\WindowsFormsIntegration.resources.dll" KeyPath="yes" />
+        </Component>
+      </Directory>
+      <Directory Id="DIR_ja" Name="ja">
+        <Component Id="CMP_ja_Microsoft_VisualBasic_Forms_resources_dll" Guid="*" Directory="DIR_ja">
+          <File Id="FIL_ja_Microsoft_VisualBasic_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ja\Microsoft.VisualBasic.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ja_PresentationCore_resources_dll" Guid="*" Directory="DIR_ja">
+          <File Id="FIL_ja_PresentationCore_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ja\PresentationCore.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ja_PresentationFramework_resources_dll" Guid="*" Directory="DIR_ja">
+          <File Id="FIL_ja_PresentationFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ja\PresentationFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ja_PresentationUI_resources_dll" Guid="*" Directory="DIR_ja">
+          <File Id="FIL_ja_PresentationUI_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ja\PresentationUI.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ja_ReachFramework_resources_dll" Guid="*" Directory="DIR_ja">
+          <File Id="FIL_ja_ReachFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ja\ReachFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ja_System_Windows_Controls_Ribbon_resources_dll" Guid="*" Directory="DIR_ja">
+          <File Id="FIL_ja_System_Windows_Controls_Ribbon_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ja\System.Windows.Controls.Ribbon.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ja_System_Windows_Forms_Design_resources_dll" Guid="*" Directory="DIR_ja">
+          <File Id="FIL_ja_System_Windows_Forms_Design_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ja\System.Windows.Forms.Design.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ja_System_Windows_Forms_Primitives_resources_dll" Guid="*" Directory="DIR_ja">
+          <File Id="FIL_ja_System_Windows_Forms_Primitives_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ja\System.Windows.Forms.Primitives.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ja_System_Windows_Forms_resources_dll" Guid="*" Directory="DIR_ja">
+          <File Id="FIL_ja_System_Windows_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ja\System.Windows.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ja_System_Windows_Input_Manipula_B8CC4FC1533F" Guid="*" Directory="DIR_ja">
+          <File Id="FIL_ja_System_Windows_Input_Manipula_B8CC4FC1533F" Source="$(var.PlatypusTools.UI.TargetDir)publish\ja\System.Windows.Input.Manipulations.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ja_System_Xaml_resources_dll" Guid="*" Directory="DIR_ja">
+          <File Id="FIL_ja_System_Xaml_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ja\System.Xaml.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ja_UIAutomationClient_resources_dll" Guid="*" Directory="DIR_ja">
+          <File Id="FIL_ja_UIAutomationClient_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ja\UIAutomationClient.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ja_UIAutomationClientSideProviders_resources_dll" Guid="*" Directory="DIR_ja">
+          <File Id="FIL_ja_UIAutomationClientSideProviders_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ja\UIAutomationClientSideProviders.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ja_UIAutomationProvider_resources_dll" Guid="*" Directory="DIR_ja">
+          <File Id="FIL_ja_UIAutomationProvider_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ja\UIAutomationProvider.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ja_UIAutomationTypes_resources_dll" Guid="*" Directory="DIR_ja">
+          <File Id="FIL_ja_UIAutomationTypes_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ja\UIAutomationTypes.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ja_WindowsBase_resources_dll" Guid="*" Directory="DIR_ja">
+          <File Id="FIL_ja_WindowsBase_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ja\WindowsBase.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ja_WindowsFormsIntegration_resources_dll" Guid="*" Directory="DIR_ja">
+          <File Id="FIL_ja_WindowsFormsIntegration_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ja\WindowsFormsIntegration.resources.dll" KeyPath="yes" />
+        </Component>
+      </Directory>
+      <Directory Id="DIR_ko" Name="ko">
+        <Component Id="CMP_ko_Microsoft_VisualBasic_Forms_resources_dll" Guid="*" Directory="DIR_ko">
+          <File Id="FIL_ko_Microsoft_VisualBasic_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ko\Microsoft.VisualBasic.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ko_PresentationCore_resources_dll" Guid="*" Directory="DIR_ko">
+          <File Id="FIL_ko_PresentationCore_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ko\PresentationCore.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ko_PresentationFramework_resources_dll" Guid="*" Directory="DIR_ko">
+          <File Id="FIL_ko_PresentationFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ko\PresentationFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ko_PresentationUI_resources_dll" Guid="*" Directory="DIR_ko">
+          <File Id="FIL_ko_PresentationUI_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ko\PresentationUI.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ko_ReachFramework_resources_dll" Guid="*" Directory="DIR_ko">
+          <File Id="FIL_ko_ReachFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ko\ReachFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ko_System_Windows_Controls_Ribbon_resources_dll" Guid="*" Directory="DIR_ko">
+          <File Id="FIL_ko_System_Windows_Controls_Ribbon_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ko\System.Windows.Controls.Ribbon.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ko_System_Windows_Forms_Design_resources_dll" Guid="*" Directory="DIR_ko">
+          <File Id="FIL_ko_System_Windows_Forms_Design_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ko\System.Windows.Forms.Design.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ko_System_Windows_Forms_Primitives_resources_dll" Guid="*" Directory="DIR_ko">
+          <File Id="FIL_ko_System_Windows_Forms_Primitives_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ko\System.Windows.Forms.Primitives.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ko_System_Windows_Forms_resources_dll" Guid="*" Directory="DIR_ko">
+          <File Id="FIL_ko_System_Windows_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ko\System.Windows.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ko_System_Windows_Input_Manipula_37E07128C83A" Guid="*" Directory="DIR_ko">
+          <File Id="FIL_ko_System_Windows_Input_Manipula_37E07128C83A" Source="$(var.PlatypusTools.UI.TargetDir)publish\ko\System.Windows.Input.Manipulations.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ko_System_Xaml_resources_dll" Guid="*" Directory="DIR_ko">
+          <File Id="FIL_ko_System_Xaml_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ko\System.Xaml.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ko_UIAutomationClient_resources_dll" Guid="*" Directory="DIR_ko">
+          <File Id="FIL_ko_UIAutomationClient_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ko\UIAutomationClient.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ko_UIAutomationClientSideProviders_resources_dll" Guid="*" Directory="DIR_ko">
+          <File Id="FIL_ko_UIAutomationClientSideProviders_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ko\UIAutomationClientSideProviders.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ko_UIAutomationProvider_resources_dll" Guid="*" Directory="DIR_ko">
+          <File Id="FIL_ko_UIAutomationProvider_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ko\UIAutomationProvider.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ko_UIAutomationTypes_resources_dll" Guid="*" Directory="DIR_ko">
+          <File Id="FIL_ko_UIAutomationTypes_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ko\UIAutomationTypes.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ko_WindowsBase_resources_dll" Guid="*" Directory="DIR_ko">
+          <File Id="FIL_ko_WindowsBase_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ko\WindowsBase.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ko_WindowsFormsIntegration_resources_dll" Guid="*" Directory="DIR_ko">
+          <File Id="FIL_ko_WindowsFormsIntegration_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ko\WindowsFormsIntegration.resources.dll" KeyPath="yes" />
+        </Component>
+      </Directory>
+      <Directory Id="DIR_pl" Name="pl">
+        <Component Id="CMP_pl_Microsoft_VisualBasic_Forms_resources_dll" Guid="*" Directory="DIR_pl">
+          <File Id="FIL_pl_Microsoft_VisualBasic_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pl\Microsoft.VisualBasic.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pl_PresentationCore_resources_dll" Guid="*" Directory="DIR_pl">
+          <File Id="FIL_pl_PresentationCore_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pl\PresentationCore.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pl_PresentationFramework_resources_dll" Guid="*" Directory="DIR_pl">
+          <File Id="FIL_pl_PresentationFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pl\PresentationFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pl_PresentationUI_resources_dll" Guid="*" Directory="DIR_pl">
+          <File Id="FIL_pl_PresentationUI_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pl\PresentationUI.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pl_ReachFramework_resources_dll" Guid="*" Directory="DIR_pl">
+          <File Id="FIL_pl_ReachFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pl\ReachFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pl_System_Windows_Controls_Ribbon_resources_dll" Guid="*" Directory="DIR_pl">
+          <File Id="FIL_pl_System_Windows_Controls_Ribbon_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pl\System.Windows.Controls.Ribbon.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pl_System_Windows_Forms_Design_resources_dll" Guid="*" Directory="DIR_pl">
+          <File Id="FIL_pl_System_Windows_Forms_Design_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pl\System.Windows.Forms.Design.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pl_System_Windows_Forms_Primitives_resources_dll" Guid="*" Directory="DIR_pl">
+          <File Id="FIL_pl_System_Windows_Forms_Primitives_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pl\System.Windows.Forms.Primitives.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pl_System_Windows_Forms_resources_dll" Guid="*" Directory="DIR_pl">
+          <File Id="FIL_pl_System_Windows_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pl\System.Windows.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pl_System_Windows_Input_Manipula_4E058B6E5844" Guid="*" Directory="DIR_pl">
+          <File Id="FIL_pl_System_Windows_Input_Manipula_4E058B6E5844" Source="$(var.PlatypusTools.UI.TargetDir)publish\pl\System.Windows.Input.Manipulations.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pl_System_Xaml_resources_dll" Guid="*" Directory="DIR_pl">
+          <File Id="FIL_pl_System_Xaml_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pl\System.Xaml.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pl_UIAutomationClient_resources_dll" Guid="*" Directory="DIR_pl">
+          <File Id="FIL_pl_UIAutomationClient_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pl\UIAutomationClient.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pl_UIAutomationClientSideProviders_resources_dll" Guid="*" Directory="DIR_pl">
+          <File Id="FIL_pl_UIAutomationClientSideProviders_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pl\UIAutomationClientSideProviders.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pl_UIAutomationProvider_resources_dll" Guid="*" Directory="DIR_pl">
+          <File Id="FIL_pl_UIAutomationProvider_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pl\UIAutomationProvider.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pl_UIAutomationTypes_resources_dll" Guid="*" Directory="DIR_pl">
+          <File Id="FIL_pl_UIAutomationTypes_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pl\UIAutomationTypes.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pl_WindowsBase_resources_dll" Guid="*" Directory="DIR_pl">
+          <File Id="FIL_pl_WindowsBase_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pl\WindowsBase.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pl_WindowsFormsIntegration_resources_dll" Guid="*" Directory="DIR_pl">
+          <File Id="FIL_pl_WindowsFormsIntegration_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pl\WindowsFormsIntegration.resources.dll" KeyPath="yes" />
+        </Component>
+      </Directory>
+      <Directory Id="DIR_pt_BR" Name="pt-BR">
+        <Component Id="CMP_pt_BR_Microsoft_VisualBasic_Forms_resources_dll" Guid="*" Directory="DIR_pt_BR">
+          <File Id="FIL_pt_BR_Microsoft_VisualBasic_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pt-BR\Microsoft.VisualBasic.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pt_BR_PresentationCore_resources_dll" Guid="*" Directory="DIR_pt_BR">
+          <File Id="FIL_pt_BR_PresentationCore_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pt-BR\PresentationCore.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pt_BR_PresentationFramework_resources_dll" Guid="*" Directory="DIR_pt_BR">
+          <File Id="FIL_pt_BR_PresentationFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pt-BR\PresentationFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pt_BR_PresentationUI_resources_dll" Guid="*" Directory="DIR_pt_BR">
+          <File Id="FIL_pt_BR_PresentationUI_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pt-BR\PresentationUI.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pt_BR_ReachFramework_resources_dll" Guid="*" Directory="DIR_pt_BR">
+          <File Id="FIL_pt_BR_ReachFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pt-BR\ReachFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pt_BR_System_Windows_Controls_Ri_BB0D2F371007" Guid="*" Directory="DIR_pt_BR">
+          <File Id="FIL_pt_BR_System_Windows_Controls_Ri_BB0D2F371007" Source="$(var.PlatypusTools.UI.TargetDir)publish\pt-BR\System.Windows.Controls.Ribbon.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pt_BR_System_Windows_Forms_Design_resources_dll" Guid="*" Directory="DIR_pt_BR">
+          <File Id="FIL_pt_BR_System_Windows_Forms_Design_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pt-BR\System.Windows.Forms.Design.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pt_BR_System_Windows_Forms_Primi_AAD2B729E94E" Guid="*" Directory="DIR_pt_BR">
+          <File Id="FIL_pt_BR_System_Windows_Forms_Primi_AAD2B729E94E" Source="$(var.PlatypusTools.UI.TargetDir)publish\pt-BR\System.Windows.Forms.Primitives.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pt_BR_System_Windows_Forms_resources_dll" Guid="*" Directory="DIR_pt_BR">
+          <File Id="FIL_pt_BR_System_Windows_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pt-BR\System.Windows.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pt_BR_System_Windows_Input_Manip_521666B5E349" Guid="*" Directory="DIR_pt_BR">
+          <File Id="FIL_pt_BR_System_Windows_Input_Manip_521666B5E349" Source="$(var.PlatypusTools.UI.TargetDir)publish\pt-BR\System.Windows.Input.Manipulations.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pt_BR_System_Xaml_resources_dll" Guid="*" Directory="DIR_pt_BR">
+          <File Id="FIL_pt_BR_System_Xaml_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pt-BR\System.Xaml.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pt_BR_UIAutomationClient_resources_dll" Guid="*" Directory="DIR_pt_BR">
+          <File Id="FIL_pt_BR_UIAutomationClient_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pt-BR\UIAutomationClient.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pt_BR_UIAutomationClientSideProv_8C1C003FD255" Guid="*" Directory="DIR_pt_BR">
+          <File Id="FIL_pt_BR_UIAutomationClientSideProv_8C1C003FD255" Source="$(var.PlatypusTools.UI.TargetDir)publish\pt-BR\UIAutomationClientSideProviders.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pt_BR_UIAutomationProvider_resources_dll" Guid="*" Directory="DIR_pt_BR">
+          <File Id="FIL_pt_BR_UIAutomationProvider_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pt-BR\UIAutomationProvider.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pt_BR_UIAutomationTypes_resources_dll" Guid="*" Directory="DIR_pt_BR">
+          <File Id="FIL_pt_BR_UIAutomationTypes_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pt-BR\UIAutomationTypes.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pt_BR_WindowsBase_resources_dll" Guid="*" Directory="DIR_pt_BR">
+          <File Id="FIL_pt_BR_WindowsBase_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pt-BR\WindowsBase.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_pt_BR_WindowsFormsIntegration_resources_dll" Guid="*" Directory="DIR_pt_BR">
+          <File Id="FIL_pt_BR_WindowsFormsIntegration_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\pt-BR\WindowsFormsIntegration.resources.dll" KeyPath="yes" />
+        </Component>
+      </Directory>
+      <Directory Id="DIR_ru" Name="ru">
+        <Component Id="CMP_ru_Microsoft_VisualBasic_Forms_resources_dll" Guid="*" Directory="DIR_ru">
+          <File Id="FIL_ru_Microsoft_VisualBasic_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ru\Microsoft.VisualBasic.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ru_PresentationCore_resources_dll" Guid="*" Directory="DIR_ru">
+          <File Id="FIL_ru_PresentationCore_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ru\PresentationCore.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ru_PresentationFramework_resources_dll" Guid="*" Directory="DIR_ru">
+          <File Id="FIL_ru_PresentationFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ru\PresentationFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ru_PresentationUI_resources_dll" Guid="*" Directory="DIR_ru">
+          <File Id="FIL_ru_PresentationUI_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ru\PresentationUI.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ru_ReachFramework_resources_dll" Guid="*" Directory="DIR_ru">
+          <File Id="FIL_ru_ReachFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ru\ReachFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ru_System_Windows_Controls_Ribbon_resources_dll" Guid="*" Directory="DIR_ru">
+          <File Id="FIL_ru_System_Windows_Controls_Ribbon_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ru\System.Windows.Controls.Ribbon.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ru_System_Windows_Forms_Design_resources_dll" Guid="*" Directory="DIR_ru">
+          <File Id="FIL_ru_System_Windows_Forms_Design_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ru\System.Windows.Forms.Design.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ru_System_Windows_Forms_Primitives_resources_dll" Guid="*" Directory="DIR_ru">
+          <File Id="FIL_ru_System_Windows_Forms_Primitives_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ru\System.Windows.Forms.Primitives.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ru_System_Windows_Forms_resources_dll" Guid="*" Directory="DIR_ru">
+          <File Id="FIL_ru_System_Windows_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ru\System.Windows.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ru_System_Windows_Input_Manipula_4D3B747D37A4" Guid="*" Directory="DIR_ru">
+          <File Id="FIL_ru_System_Windows_Input_Manipula_4D3B747D37A4" Source="$(var.PlatypusTools.UI.TargetDir)publish\ru\System.Windows.Input.Manipulations.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ru_System_Xaml_resources_dll" Guid="*" Directory="DIR_ru">
+          <File Id="FIL_ru_System_Xaml_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ru\System.Xaml.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ru_UIAutomationClient_resources_dll" Guid="*" Directory="DIR_ru">
+          <File Id="FIL_ru_UIAutomationClient_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ru\UIAutomationClient.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ru_UIAutomationClientSideProviders_resources_dll" Guid="*" Directory="DIR_ru">
+          <File Id="FIL_ru_UIAutomationClientSideProviders_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ru\UIAutomationClientSideProviders.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ru_UIAutomationProvider_resources_dll" Guid="*" Directory="DIR_ru">
+          <File Id="FIL_ru_UIAutomationProvider_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ru\UIAutomationProvider.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ru_UIAutomationTypes_resources_dll" Guid="*" Directory="DIR_ru">
+          <File Id="FIL_ru_UIAutomationTypes_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ru\UIAutomationTypes.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ru_WindowsBase_resources_dll" Guid="*" Directory="DIR_ru">
+          <File Id="FIL_ru_WindowsBase_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ru\WindowsBase.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_ru_WindowsFormsIntegration_resources_dll" Guid="*" Directory="DIR_ru">
+          <File Id="FIL_ru_WindowsFormsIntegration_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ru\WindowsFormsIntegration.resources.dll" KeyPath="yes" />
+        </Component>
+      </Directory>
+      <Directory Id="DIR_runtimes" Name="runtimes">
+        <Directory Id="DIR_runtimes_win_x64" Name="win-x64">
+          <Directory Id="DIR_runtimes_win_x64_native" Name="native">
+            <Component Id="CMP_runtimes_win_x64_native_WebView2Loader_dll" Guid="*" Directory="DIR_runtimes_win_x64_native">
+              <File Id="FIL_runtimes_win_x64_native_WebView2Loader_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\runtimes\win-x64\native\WebView2Loader.dll" KeyPath="yes" />
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+      <Directory Id="DIR_tr" Name="tr">
+        <Component Id="CMP_tr_Microsoft_VisualBasic_Forms_resources_dll" Guid="*" Directory="DIR_tr">
+          <File Id="FIL_tr_Microsoft_VisualBasic_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\tr\Microsoft.VisualBasic.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_tr_PresentationCore_resources_dll" Guid="*" Directory="DIR_tr">
+          <File Id="FIL_tr_PresentationCore_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\tr\PresentationCore.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_tr_PresentationFramework_resources_dll" Guid="*" Directory="DIR_tr">
+          <File Id="FIL_tr_PresentationFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\tr\PresentationFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_tr_PresentationUI_resources_dll" Guid="*" Directory="DIR_tr">
+          <File Id="FIL_tr_PresentationUI_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\tr\PresentationUI.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_tr_ReachFramework_resources_dll" Guid="*" Directory="DIR_tr">
+          <File Id="FIL_tr_ReachFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\tr\ReachFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_tr_System_Windows_Controls_Ribbon_resources_dll" Guid="*" Directory="DIR_tr">
+          <File Id="FIL_tr_System_Windows_Controls_Ribbon_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\tr\System.Windows.Controls.Ribbon.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_tr_System_Windows_Forms_Design_resources_dll" Guid="*" Directory="DIR_tr">
+          <File Id="FIL_tr_System_Windows_Forms_Design_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\tr\System.Windows.Forms.Design.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_tr_System_Windows_Forms_Primitives_resources_dll" Guid="*" Directory="DIR_tr">
+          <File Id="FIL_tr_System_Windows_Forms_Primitives_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\tr\System.Windows.Forms.Primitives.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_tr_System_Windows_Forms_resources_dll" Guid="*" Directory="DIR_tr">
+          <File Id="FIL_tr_System_Windows_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\tr\System.Windows.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_tr_System_Windows_Input_Manipula_B89D54BD53E4" Guid="*" Directory="DIR_tr">
+          <File Id="FIL_tr_System_Windows_Input_Manipula_B89D54BD53E4" Source="$(var.PlatypusTools.UI.TargetDir)publish\tr\System.Windows.Input.Manipulations.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_tr_System_Xaml_resources_dll" Guid="*" Directory="DIR_tr">
+          <File Id="FIL_tr_System_Xaml_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\tr\System.Xaml.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_tr_UIAutomationClient_resources_dll" Guid="*" Directory="DIR_tr">
+          <File Id="FIL_tr_UIAutomationClient_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\tr\UIAutomationClient.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_tr_UIAutomationClientSideProviders_resources_dll" Guid="*" Directory="DIR_tr">
+          <File Id="FIL_tr_UIAutomationClientSideProviders_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\tr\UIAutomationClientSideProviders.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_tr_UIAutomationProvider_resources_dll" Guid="*" Directory="DIR_tr">
+          <File Id="FIL_tr_UIAutomationProvider_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\tr\UIAutomationProvider.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_tr_UIAutomationTypes_resources_dll" Guid="*" Directory="DIR_tr">
+          <File Id="FIL_tr_UIAutomationTypes_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\tr\UIAutomationTypes.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_tr_WindowsBase_resources_dll" Guid="*" Directory="DIR_tr">
+          <File Id="FIL_tr_WindowsBase_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\tr\WindowsBase.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_tr_WindowsFormsIntegration_resources_dll" Guid="*" Directory="DIR_tr">
+          <File Id="FIL_tr_WindowsFormsIntegration_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\tr\WindowsFormsIntegration.resources.dll" KeyPath="yes" />
+        </Component>
+      </Directory>
+      <Directory Id="DIR_zh_Hans" Name="zh-Hans">
+        <Component Id="CMP_zh_Hans_Microsoft_VisualBasic_Fo_3A9373A0D4E5" Guid="*" Directory="DIR_zh_Hans">
+          <File Id="FIL_zh_Hans_Microsoft_VisualBasic_Fo_3A9373A0D4E5" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hans\Microsoft.VisualBasic.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hans_PresentationCore_resources_dll" Guid="*" Directory="DIR_zh_Hans">
+          <File Id="FIL_zh_Hans_PresentationCore_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hans\PresentationCore.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hans_PresentationFramework_resources_dll" Guid="*" Directory="DIR_zh_Hans">
+          <File Id="FIL_zh_Hans_PresentationFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hans\PresentationFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hans_PresentationUI_resources_dll" Guid="*" Directory="DIR_zh_Hans">
+          <File Id="FIL_zh_Hans_PresentationUI_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hans\PresentationUI.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hans_ReachFramework_resources_dll" Guid="*" Directory="DIR_zh_Hans">
+          <File Id="FIL_zh_Hans_ReachFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hans\ReachFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hans_System_Windows_Controls__CC3A9CCA73EC" Guid="*" Directory="DIR_zh_Hans">
+          <File Id="FIL_zh_Hans_System_Windows_Controls__CC3A9CCA73EC" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hans\System.Windows.Controls.Ribbon.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hans_System_Windows_Forms_Des_584F16A3886D" Guid="*" Directory="DIR_zh_Hans">
+          <File Id="FIL_zh_Hans_System_Windows_Forms_Des_584F16A3886D" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hans\System.Windows.Forms.Design.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hans_System_Windows_Forms_Pri_67158D4821FE" Guid="*" Directory="DIR_zh_Hans">
+          <File Id="FIL_zh_Hans_System_Windows_Forms_Pri_67158D4821FE" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hans\System.Windows.Forms.Primitives.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hans_System_Windows_Forms_resources_dll" Guid="*" Directory="DIR_zh_Hans">
+          <File Id="FIL_zh_Hans_System_Windows_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hans\System.Windows.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hans_System_Windows_Input_Man_39C45FECBC6B" Guid="*" Directory="DIR_zh_Hans">
+          <File Id="FIL_zh_Hans_System_Windows_Input_Man_39C45FECBC6B" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hans\System.Windows.Input.Manipulations.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hans_System_Xaml_resources_dll" Guid="*" Directory="DIR_zh_Hans">
+          <File Id="FIL_zh_Hans_System_Xaml_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hans\System.Xaml.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hans_UIAutomationClient_resources_dll" Guid="*" Directory="DIR_zh_Hans">
+          <File Id="FIL_zh_Hans_UIAutomationClient_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hans\UIAutomationClient.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hans_UIAutomationClientSidePr_26767FC450E5" Guid="*" Directory="DIR_zh_Hans">
+          <File Id="FIL_zh_Hans_UIAutomationClientSidePr_26767FC450E5" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hans\UIAutomationClientSideProviders.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hans_UIAutomationProvider_resources_dll" Guid="*" Directory="DIR_zh_Hans">
+          <File Id="FIL_zh_Hans_UIAutomationProvider_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hans\UIAutomationProvider.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hans_UIAutomationTypes_resources_dll" Guid="*" Directory="DIR_zh_Hans">
+          <File Id="FIL_zh_Hans_UIAutomationTypes_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hans\UIAutomationTypes.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hans_WindowsBase_resources_dll" Guid="*" Directory="DIR_zh_Hans">
+          <File Id="FIL_zh_Hans_WindowsBase_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hans\WindowsBase.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hans_WindowsFormsIntegration_resources_dll" Guid="*" Directory="DIR_zh_Hans">
+          <File Id="FIL_zh_Hans_WindowsFormsIntegration_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hans\WindowsFormsIntegration.resources.dll" KeyPath="yes" />
+        </Component>
+      </Directory>
+      <Directory Id="DIR_zh_Hant" Name="zh-Hant">
+        <Component Id="CMP_zh_Hant_Microsoft_VisualBasic_Fo_D6973D7CC9FC" Guid="*" Directory="DIR_zh_Hant">
+          <File Id="FIL_zh_Hant_Microsoft_VisualBasic_Fo_D6973D7CC9FC" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hant\Microsoft.VisualBasic.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hant_PresentationCore_resources_dll" Guid="*" Directory="DIR_zh_Hant">
+          <File Id="FIL_zh_Hant_PresentationCore_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hant\PresentationCore.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hant_PresentationFramework_resources_dll" Guid="*" Directory="DIR_zh_Hant">
+          <File Id="FIL_zh_Hant_PresentationFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hant\PresentationFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hant_PresentationUI_resources_dll" Guid="*" Directory="DIR_zh_Hant">
+          <File Id="FIL_zh_Hant_PresentationUI_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hant\PresentationUI.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hant_ReachFramework_resources_dll" Guid="*" Directory="DIR_zh_Hant">
+          <File Id="FIL_zh_Hant_ReachFramework_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hant\ReachFramework.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hant_System_Windows_Controls__C2D46E8CCB68" Guid="*" Directory="DIR_zh_Hant">
+          <File Id="FIL_zh_Hant_System_Windows_Controls__C2D46E8CCB68" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hant\System.Windows.Controls.Ribbon.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hant_System_Windows_Forms_Des_C9E2C160D4B4" Guid="*" Directory="DIR_zh_Hant">
+          <File Id="FIL_zh_Hant_System_Windows_Forms_Des_C9E2C160D4B4" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hant\System.Windows.Forms.Design.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hant_System_Windows_Forms_Pri_56136D154D17" Guid="*" Directory="DIR_zh_Hant">
+          <File Id="FIL_zh_Hant_System_Windows_Forms_Pri_56136D154D17" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hant\System.Windows.Forms.Primitives.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hant_System_Windows_Forms_resources_dll" Guid="*" Directory="DIR_zh_Hant">
+          <File Id="FIL_zh_Hant_System_Windows_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hant\System.Windows.Forms.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hant_System_Windows_Input_Man_87D809679043" Guid="*" Directory="DIR_zh_Hant">
+          <File Id="FIL_zh_Hant_System_Windows_Input_Man_87D809679043" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hant\System.Windows.Input.Manipulations.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hant_System_Xaml_resources_dll" Guid="*" Directory="DIR_zh_Hant">
+          <File Id="FIL_zh_Hant_System_Xaml_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hant\System.Xaml.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hant_UIAutomationClient_resources_dll" Guid="*" Directory="DIR_zh_Hant">
+          <File Id="FIL_zh_Hant_UIAutomationClient_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hant\UIAutomationClient.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hant_UIAutomationClientSidePr_B1ED1B8FEB5A" Guid="*" Directory="DIR_zh_Hant">
+          <File Id="FIL_zh_Hant_UIAutomationClientSidePr_B1ED1B8FEB5A" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hant\UIAutomationClientSideProviders.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hant_UIAutomationProvider_resources_dll" Guid="*" Directory="DIR_zh_Hant">
+          <File Id="FIL_zh_Hant_UIAutomationProvider_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hant\UIAutomationProvider.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hant_UIAutomationTypes_resources_dll" Guid="*" Directory="DIR_zh_Hant">
+          <File Id="FIL_zh_Hant_UIAutomationTypes_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hant\UIAutomationTypes.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hant_WindowsBase_resources_dll" Guid="*" Directory="DIR_zh_Hant">
+          <File Id="FIL_zh_Hant_WindowsBase_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hant\WindowsBase.resources.dll" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_zh_Hant_WindowsFormsIntegration_resources_dll" Guid="*" Directory="DIR_zh_Hant">
+          <File Id="FIL_zh_Hant_WindowsFormsIntegration_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\zh-Hant\WindowsFormsIntegration.resources.dll" KeyPath="yes" />
+        </Component>
+      </Directory>
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <ComponentGroup Id="PublishFiles">
+      <ComponentRef Id="CMP_Accessibility_dll" />
+      <ComponentRef Id="CMP_clretwrc_dll" />
+      <ComponentRef Id="CMP_clrgc_dll" />
+      <ComponentRef Id="CMP_clrgcexp_dll" />
+      <ComponentRef Id="CMP_clrjit_dll" />
+      <ComponentRef Id="CMP_coreclr_dll" />
+      <ComponentRef Id="CMP_createdump_exe" />
+      <ComponentRef Id="CMP_D3DCompiler_47_cor3_dll" />
+      <ComponentRef Id="CMP_DirectWriteForwarder_dll" />
+      <ComponentRef Id="CMP_hostfxr_dll" />
+      <ComponentRef Id="CMP_hostpolicy_dll" />
+      <ComponentRef Id="CMP_HtmlAgilityPack_dll" />
+      <ComponentRef Id="CMP_Microsoft_CSharp_dll" />
+      <ComponentRef Id="CMP_Microsoft_DiaSymReader_Native_amd64_dll" />
+      <ComponentRef Id="CMP_Microsoft_VisualBasic_Core_dll" />
+      <ComponentRef Id="CMP_Microsoft_VisualBasic_dll" />
+      <ComponentRef Id="CMP_Microsoft_VisualBasic_Forms_dll" />
+      <ComponentRef Id="CMP_Microsoft_Web_WebView2_Core_dll" />
+      <ComponentRef Id="CMP_Microsoft_Web_WebView2_Core_xml" />
+      <ComponentRef Id="CMP_Microsoft_Web_WebView2_WinForms_dll" />
+      <ComponentRef Id="CMP_Microsoft_Web_WebView2_WinForms_xml" />
+      <ComponentRef Id="CMP_Microsoft_Web_WebView2_Wpf_dll" />
+      <ComponentRef Id="CMP_Microsoft_Web_WebView2_Wpf_xml" />
+      <ComponentRef Id="CMP_Microsoft_Win32_Primitives_dll" />
+      <ComponentRef Id="CMP_Microsoft_Win32_Registry_AccessControl_dll" />
+      <ComponentRef Id="CMP_Microsoft_Win32_Registry_dll" />
+      <ComponentRef Id="CMP_Microsoft_Win32_SystemEvents_dll" />
+      <ComponentRef Id="CMP_mscordaccore_amd64_amd64_10_0_125_57005_dll" />
+      <ComponentRef Id="CMP_mscordaccore_dll" />
+      <ComponentRef Id="CMP_mscordbi_dll" />
+      <ComponentRef Id="CMP_mscorlib_dll" />
+      <ComponentRef Id="CMP_mscorrc_dll" />
+      <ComponentRef Id="CMP_msquic_dll" />
+      <ComponentRef Id="CMP_netstandard_dll" />
+      <ComponentRef Id="CMP_PenImc_cor3_dll" />
+      <ComponentRef Id="CMP_PlatypusTools_Core_dll" />
+      <ComponentRef Id="CMP_PlatypusTools_UI_deps_json" />
+      <ComponentRef Id="CMP_PlatypusTools_UI_dll" />
+      <ComponentRef Id="CMP_PlatypusTools_UI_exe" />
+      <ComponentRef Id="CMP_PlatypusTools_UI_runtimeconfig_json" />
+      <ComponentRef Id="CMP_PresentationCore_dll" />
+      <ComponentRef Id="CMP_PresentationFramework_SystemCore_dll" />
+      <ComponentRef Id="CMP_PresentationFramework_SystemData_dll" />
+      <ComponentRef Id="CMP_PresentationFramework_SystemDrawing_dll" />
+      <ComponentRef Id="CMP_PresentationFramework_SystemXml_dll" />
+      <ComponentRef Id="CMP_PresentationFramework_SystemXmlLinq_dll" />
+      <ComponentRef Id="CMP_PresentationFramework_Aero_dll" />
+      <ComponentRef Id="CMP_PresentationFramework_Aero2_dll" />
+      <ComponentRef Id="CMP_PresentationFramework_AeroLite_dll" />
+      <ComponentRef Id="CMP_PresentationFramework_Classic_dll" />
+      <ComponentRef Id="CMP_PresentationFramework_dll" />
+      <ComponentRef Id="CMP_PresentationFramework_Fluent_dll" />
+      <ComponentRef Id="CMP_PresentationFramework_Luna_dll" />
+      <ComponentRef Id="CMP_PresentationFramework_Royale_dll" />
+      <ComponentRef Id="CMP_PresentationNative_cor3_dll" />
+      <ComponentRef Id="CMP_PresentationUI_dll" />
+      <ComponentRef Id="CMP_ReachFramework_dll" />
+      <ComponentRef Id="CMP_System_AppContext_dll" />
+      <ComponentRef Id="CMP_System_Buffers_dll" />
+      <ComponentRef Id="CMP_System_CodeDom_dll" />
+      <ComponentRef Id="CMP_System_Collections_Concurrent_dll" />
+      <ComponentRef Id="CMP_System_Collections_dll" />
+      <ComponentRef Id="CMP_System_Collections_Immutable_dll" />
+      <ComponentRef Id="CMP_System_Collections_NonGeneric_dll" />
+      <ComponentRef Id="CMP_System_Collections_Specialized_dll" />
+      <ComponentRef Id="CMP_System_ComponentModel_Annotations_dll" />
+      <ComponentRef Id="CMP_System_ComponentModel_DataAnnotations_dll" />
+      <ComponentRef Id="CMP_System_ComponentModel_dll" />
+      <ComponentRef Id="CMP_System_ComponentModel_EventBasedAsync_dll" />
+      <ComponentRef Id="CMP_System_ComponentModel_Primitives_dll" />
+      <ComponentRef Id="CMP_System_ComponentModel_TypeConverter_dll" />
+      <ComponentRef Id="CMP_System_Configuration_ConfigurationManager_dll" />
+      <ComponentRef Id="CMP_System_Configuration_dll" />
+      <ComponentRef Id="CMP_System_Console_dll" />
+      <ComponentRef Id="CMP_System_Core_dll" />
+      <ComponentRef Id="CMP_System_Data_Common_dll" />
+      <ComponentRef Id="CMP_System_Data_DataSetExtensions_dll" />
+      <ComponentRef Id="CMP_System_Data_dll" />
+      <ComponentRef Id="CMP_System_Design_dll" />
+      <ComponentRef Id="CMP_System_Diagnostics_Contracts_dll" />
+      <ComponentRef Id="CMP_System_Diagnostics_Debug_dll" />
+      <ComponentRef Id="CMP_System_Diagnostics_DiagnosticSource_dll" />
+      <ComponentRef Id="CMP_System_Diagnostics_EventLog_dll" />
+      <ComponentRef Id="CMP_System_Diagnostics_EventLog_Messages_dll" />
+      <ComponentRef Id="CMP_System_Diagnostics_FileVersionInfo_dll" />
+      <ComponentRef Id="CMP_System_Diagnostics_PerformanceCounter_dll" />
+      <ComponentRef Id="CMP_System_Diagnostics_Process_dll" />
+      <ComponentRef Id="CMP_System_Diagnostics_StackTrace_dll" />
+      <ComponentRef Id="CMP_System_Diagnostics_TextWriterTraceListener_dll" />
+      <ComponentRef Id="CMP_System_Diagnostics_Tools_dll" />
+      <ComponentRef Id="CMP_System_Diagnostics_TraceSource_dll" />
+      <ComponentRef Id="CMP_System_Diagnostics_Tracing_dll" />
+      <ComponentRef Id="CMP_System_DirectoryServices_dll" />
+      <ComponentRef Id="CMP_System_dll" />
+      <ComponentRef Id="CMP_System_Drawing_Common_dll" />
+      <ComponentRef Id="CMP_System_Drawing_Design_dll" />
+      <ComponentRef Id="CMP_System_Drawing_dll" />
+      <ComponentRef Id="CMP_System_Drawing_Primitives_dll" />
+      <ComponentRef Id="CMP_System_Dynamic_Runtime_dll" />
+      <ComponentRef Id="CMP_System_Formats_Asn1_dll" />
+      <ComponentRef Id="CMP_System_Formats_Nrbf_dll" />
+      <ComponentRef Id="CMP_System_Formats_Tar_dll" />
+      <ComponentRef Id="CMP_System_Globalization_Calendars_dll" />
+      <ComponentRef Id="CMP_System_Globalization_dll" />
+      <ComponentRef Id="CMP_System_Globalization_Extensions_dll" />
+      <ComponentRef Id="CMP_System_IO_Compression_Brotli_dll" />
+      <ComponentRef Id="CMP_System_IO_Compression_dll" />
+      <ComponentRef Id="CMP_System_IO_Compression_FileSystem_dll" />
+      <ComponentRef Id="CMP_System_IO_Compression_Native_dll" />
+      <ComponentRef Id="CMP_System_IO_Compression_ZipFile_dll" />
+      <ComponentRef Id="CMP_System_IO_dll" />
+      <ComponentRef Id="CMP_System_IO_FileSystem_AccessControl_dll" />
+      <ComponentRef Id="CMP_System_IO_FileSystem_dll" />
+      <ComponentRef Id="CMP_System_IO_FileSystem_DriveInfo_dll" />
+      <ComponentRef Id="CMP_System_IO_FileSystem_Primitives_dll" />
+      <ComponentRef Id="CMP_System_IO_FileSystem_Watcher_dll" />
+      <ComponentRef Id="CMP_System_IO_IsolatedStorage_dll" />
+      <ComponentRef Id="CMP_System_IO_MemoryMappedFiles_dll" />
+      <ComponentRef Id="CMP_System_IO_Packaging_dll" />
+      <ComponentRef Id="CMP_System_IO_Pipelines_dll" />
+      <ComponentRef Id="CMP_System_IO_Pipes_AccessControl_dll" />
+      <ComponentRef Id="CMP_System_IO_Pipes_dll" />
+      <ComponentRef Id="CMP_System_IO_UnmanagedMemoryStream_dll" />
+      <ComponentRef Id="CMP_System_Linq_AsyncEnumerable_dll" />
+      <ComponentRef Id="CMP_System_Linq_dll" />
+      <ComponentRef Id="CMP_System_Linq_Expressions_dll" />
+      <ComponentRef Id="CMP_System_Linq_Parallel_dll" />
+      <ComponentRef Id="CMP_System_Linq_Queryable_dll" />
+      <ComponentRef Id="CMP_System_Management_dll" />
+      <ComponentRef Id="CMP_System_Memory_dll" />
+      <ComponentRef Id="CMP_System_Net_dll" />
+      <ComponentRef Id="CMP_System_Net_Http_dll" />
+      <ComponentRef Id="CMP_System_Net_Http_Json_dll" />
+      <ComponentRef Id="CMP_System_Net_HttpListener_dll" />
+      <ComponentRef Id="CMP_System_Net_Mail_dll" />
+      <ComponentRef Id="CMP_System_Net_NameResolution_dll" />
+      <ComponentRef Id="CMP_System_Net_NetworkInformation_dll" />
+      <ComponentRef Id="CMP_System_Net_Ping_dll" />
+      <ComponentRef Id="CMP_System_Net_Primitives_dll" />
+      <ComponentRef Id="CMP_System_Net_Quic_dll" />
+      <ComponentRef Id="CMP_System_Net_Requests_dll" />
+      <ComponentRef Id="CMP_System_Net_Security_dll" />
+      <ComponentRef Id="CMP_System_Net_ServerSentEvents_dll" />
+      <ComponentRef Id="CMP_System_Net_ServicePoint_dll" />
+      <ComponentRef Id="CMP_System_Net_Sockets_dll" />
+      <ComponentRef Id="CMP_System_Net_WebClient_dll" />
+      <ComponentRef Id="CMP_System_Net_WebHeaderCollection_dll" />
+      <ComponentRef Id="CMP_System_Net_WebProxy_dll" />
+      <ComponentRef Id="CMP_System_Net_WebSockets_Client_dll" />
+      <ComponentRef Id="CMP_System_Net_WebSockets_dll" />
+      <ComponentRef Id="CMP_System_Numerics_dll" />
+      <ComponentRef Id="CMP_System_Numerics_Vectors_dll" />
+      <ComponentRef Id="CMP_System_ObjectModel_dll" />
+      <ComponentRef Id="CMP_System_Printing_dll" />
+      <ComponentRef Id="CMP_System_Private_CoreLib_dll" />
+      <ComponentRef Id="CMP_System_Private_DataContractSerialization_dll" />
+      <ComponentRef Id="CMP_System_Private_Uri_dll" />
+      <ComponentRef Id="CMP_System_Private_Windows_Core_dll" />
+      <ComponentRef Id="CMP_System_Private_Windows_GdiPlus_dll" />
+      <ComponentRef Id="CMP_System_Private_Xml_dll" />
+      <ComponentRef Id="CMP_System_Private_Xml_Linq_dll" />
+      <ComponentRef Id="CMP_System_Reflection_DispatchProxy_dll" />
+      <ComponentRef Id="CMP_System_Reflection_dll" />
+      <ComponentRef Id="CMP_System_Reflection_Emit_dll" />
+      <ComponentRef Id="CMP_System_Reflection_Emit_ILGeneration_dll" />
+      <ComponentRef Id="CMP_System_Reflection_Emit_Lightweight_dll" />
+      <ComponentRef Id="CMP_System_Reflection_Extensions_dll" />
+      <ComponentRef Id="CMP_System_Reflection_Metadata_dll" />
+      <ComponentRef Id="CMP_System_Reflection_Primitives_dll" />
+      <ComponentRef Id="CMP_System_Reflection_TypeExtensions_dll" />
+      <ComponentRef Id="CMP_System_Resources_Extensions_dll" />
+      <ComponentRef Id="CMP_System_Resources_Reader_dll" />
+      <ComponentRef Id="CMP_System_Resources_ResourceManager_dll" />
+      <ComponentRef Id="CMP_System_Resources_Writer_dll" />
+      <ComponentRef Id="CMP_System_Runtime_CompilerServices_Unsafe_dll" />
+      <ComponentRef Id="CMP_System_Runtime_CompilerServices_VisualC_dll" />
+      <ComponentRef Id="CMP_System_Runtime_dll" />
+      <ComponentRef Id="CMP_System_Runtime_Extensions_dll" />
+      <ComponentRef Id="CMP_System_Runtime_Handles_dll" />
+      <ComponentRef Id="CMP_System_Runtime_InteropServices_dll" />
+      <ComponentRef Id="CMP_System_Runtime_InteropServices_JavaScript_dll" />
+      <ComponentRef Id="CMP_System_Runtime_InteropServices_R_070E76A1F880" />
+      <ComponentRef Id="CMP_System_Runtime_Intrinsics_dll" />
+      <ComponentRef Id="CMP_System_Runtime_Loader_dll" />
+      <ComponentRef Id="CMP_System_Runtime_Numerics_dll" />
+      <ComponentRef Id="CMP_System_Runtime_Serialization_dll" />
+      <ComponentRef Id="CMP_System_Runtime_Serialization_Formatters_dll" />
+      <ComponentRef Id="CMP_System_Runtime_Serialization_Json_dll" />
+      <ComponentRef Id="CMP_System_Runtime_Serialization_Primitives_dll" />
+      <ComponentRef Id="CMP_System_Runtime_Serialization_Xml_dll" />
+      <ComponentRef Id="CMP_System_Security_AccessControl_dll" />
+      <ComponentRef Id="CMP_System_Security_Claims_dll" />
+      <ComponentRef Id="CMP_System_Security_Cryptography_Algorithms_dll" />
+      <ComponentRef Id="CMP_System_Security_Cryptography_Cng_dll" />
+      <ComponentRef Id="CMP_System_Security_Cryptography_Csp_dll" />
+      <ComponentRef Id="CMP_System_Security_Cryptography_dll" />
+      <ComponentRef Id="CMP_System_Security_Cryptography_Encoding_dll" />
+      <ComponentRef Id="CMP_System_Security_Cryptography_OpenSsl_dll" />
+      <ComponentRef Id="CMP_System_Security_Cryptography_Pkcs_dll" />
+      <ComponentRef Id="CMP_System_Security_Cryptography_Primitives_dll" />
+      <ComponentRef Id="CMP_System_Security_Cryptography_ProtectedData_dll" />
+      <ComponentRef Id="CMP_System_Security_Cryptography_X50_2E71B4C3D91C" />
+      <ComponentRef Id="CMP_System_Security_Cryptography_Xml_dll" />
+      <ComponentRef Id="CMP_System_Security_dll" />
+      <ComponentRef Id="CMP_System_Security_Permissions_dll" />
+      <ComponentRef Id="CMP_System_Security_Principal_dll" />
+      <ComponentRef Id="CMP_System_Security_Principal_Windows_dll" />
+      <ComponentRef Id="CMP_System_Security_SecureString_dll" />
+      <ComponentRef Id="CMP_System_ServiceModel_Web_dll" />
+      <ComponentRef Id="CMP_System_ServiceProcess_dll" />
+      <ComponentRef Id="CMP_System_Text_Encoding_CodePages_dll" />
+      <ComponentRef Id="CMP_System_Text_Encoding_dll" />
+      <ComponentRef Id="CMP_System_Text_Encoding_Extensions_dll" />
+      <ComponentRef Id="CMP_System_Text_Encodings_Web_dll" />
+      <ComponentRef Id="CMP_System_Text_Json_dll" />
+      <ComponentRef Id="CMP_System_Text_RegularExpressions_dll" />
+      <ComponentRef Id="CMP_System_Threading_AccessControl_dll" />
+      <ComponentRef Id="CMP_System_Threading_Channels_dll" />
+      <ComponentRef Id="CMP_System_Threading_dll" />
+      <ComponentRef Id="CMP_System_Threading_Overlapped_dll" />
+      <ComponentRef Id="CMP_System_Threading_Tasks_Dataflow_dll" />
+      <ComponentRef Id="CMP_System_Threading_Tasks_dll" />
+      <ComponentRef Id="CMP_System_Threading_Tasks_Extensions_dll" />
+      <ComponentRef Id="CMP_System_Threading_Tasks_Parallel_dll" />
+      <ComponentRef Id="CMP_System_Threading_Thread_dll" />
+      <ComponentRef Id="CMP_System_Threading_ThreadPool_dll" />
+      <ComponentRef Id="CMP_System_Threading_Timer_dll" />
+      <ComponentRef Id="CMP_System_Transactions_dll" />
+      <ComponentRef Id="CMP_System_Transactions_Local_dll" />
+      <ComponentRef Id="CMP_System_ValueTuple_dll" />
+      <ComponentRef Id="CMP_System_Web_dll" />
+      <ComponentRef Id="CMP_System_Web_HttpUtility_dll" />
+      <ComponentRef Id="CMP_System_Windows_Controls_Ribbon_dll" />
+      <ComponentRef Id="CMP_System_Windows_dll" />
+      <ComponentRef Id="CMP_System_Windows_Extensions_dll" />
+      <ComponentRef Id="CMP_System_Windows_Forms_Design_dll" />
+      <ComponentRef Id="CMP_System_Windows_Forms_Design_Editors_dll" />
+      <ComponentRef Id="CMP_System_Windows_Forms_dll" />
+      <ComponentRef Id="CMP_System_Windows_Forms_Primitives_dll" />
+      <ComponentRef Id="CMP_System_Windows_Input_Manipulations_dll" />
+      <ComponentRef Id="CMP_System_Windows_Presentation_dll" />
+      <ComponentRef Id="CMP_System_Windows_Primitives_dll" />
+      <ComponentRef Id="CMP_System_Xaml_dll" />
+      <ComponentRef Id="CMP_System_Xml_dll" />
+      <ComponentRef Id="CMP_System_Xml_Linq_dll" />
+      <ComponentRef Id="CMP_System_Xml_ReaderWriter_dll" />
+      <ComponentRef Id="CMP_System_Xml_Serialization_dll" />
+      <ComponentRef Id="CMP_System_Xml_XDocument_dll" />
+      <ComponentRef Id="CMP_System_Xml_XmlDocument_dll" />
+      <ComponentRef Id="CMP_System_Xml_XmlSerializer_dll" />
+      <ComponentRef Id="CMP_System_Xml_XPath_dll" />
+      <ComponentRef Id="CMP_System_Xml_XPath_XDocument_dll" />
+      <ComponentRef Id="CMP_UIAutomationClient_dll" />
+      <ComponentRef Id="CMP_UIAutomationClientSideProviders_dll" />
+      <ComponentRef Id="CMP_UIAutomationProvider_dll" />
+      <ComponentRef Id="CMP_UIAutomationTypes_dll" />
+      <ComponentRef Id="CMP_vcruntime140_cor3_dll" />
+      <ComponentRef Id="CMP_WebView2Loader_dll" />
+      <ComponentRef Id="CMP_WindowsBase_dll" />
+      <ComponentRef Id="CMP_WindowsFormsIntegration_dll" />
+      <ComponentRef Id="CMP_wpfgfx_cor3_dll" />
+      <ComponentRef Id="CMP_Assets_PlatypusTools_Help_html" />
+      <ComponentRef Id="CMP_cs_Microsoft_VisualBasic_Forms_resources_dll" />
+      <ComponentRef Id="CMP_cs_PresentationCore_resources_dll" />
+      <ComponentRef Id="CMP_cs_PresentationFramework_resources_dll" />
+      <ComponentRef Id="CMP_cs_PresentationUI_resources_dll" />
+      <ComponentRef Id="CMP_cs_ReachFramework_resources_dll" />
+      <ComponentRef Id="CMP_cs_System_Windows_Controls_Ribbon_resources_dll" />
+      <ComponentRef Id="CMP_cs_System_Windows_Forms_Design_resources_dll" />
+      <ComponentRef Id="CMP_cs_System_Windows_Forms_Primitives_resources_dll" />
+      <ComponentRef Id="CMP_cs_System_Windows_Forms_resources_dll" />
+      <ComponentRef Id="CMP_cs_System_Windows_Input_Manipula_DA7354616FB1" />
+      <ComponentRef Id="CMP_cs_System_Xaml_resources_dll" />
+      <ComponentRef Id="CMP_cs_UIAutomationClient_resources_dll" />
+      <ComponentRef Id="CMP_cs_UIAutomationClientSideProviders_resources_dll" />
+      <ComponentRef Id="CMP_cs_UIAutomationProvider_resources_dll" />
+      <ComponentRef Id="CMP_cs_UIAutomationTypes_resources_dll" />
+      <ComponentRef Id="CMP_cs_WindowsBase_resources_dll" />
+      <ComponentRef Id="CMP_cs_WindowsFormsIntegration_resources_dll" />
+      <ComponentRef Id="CMP_de_Microsoft_VisualBasic_Forms_resources_dll" />
+      <ComponentRef Id="CMP_de_PresentationCore_resources_dll" />
+      <ComponentRef Id="CMP_de_PresentationFramework_resources_dll" />
+      <ComponentRef Id="CMP_de_PresentationUI_resources_dll" />
+      <ComponentRef Id="CMP_de_ReachFramework_resources_dll" />
+      <ComponentRef Id="CMP_de_System_Windows_Controls_Ribbon_resources_dll" />
+      <ComponentRef Id="CMP_de_System_Windows_Forms_Design_resources_dll" />
+      <ComponentRef Id="CMP_de_System_Windows_Forms_Primitives_resources_dll" />
+      <ComponentRef Id="CMP_de_System_Windows_Forms_resources_dll" />
+      <ComponentRef Id="CMP_de_System_Windows_Input_Manipula_503402FC81D1" />
+      <ComponentRef Id="CMP_de_System_Xaml_resources_dll" />
+      <ComponentRef Id="CMP_de_UIAutomationClient_resources_dll" />
+      <ComponentRef Id="CMP_de_UIAutomationClientSideProviders_resources_dll" />
+      <ComponentRef Id="CMP_de_UIAutomationProvider_resources_dll" />
+      <ComponentRef Id="CMP_de_UIAutomationTypes_resources_dll" />
+      <ComponentRef Id="CMP_de_WindowsBase_resources_dll" />
+      <ComponentRef Id="CMP_de_WindowsFormsIntegration_resources_dll" />
+      <ComponentRef Id="CMP_es_Microsoft_VisualBasic_Forms_resources_dll" />
+      <ComponentRef Id="CMP_es_PresentationCore_resources_dll" />
+      <ComponentRef Id="CMP_es_PresentationFramework_resources_dll" />
+      <ComponentRef Id="CMP_es_PresentationUI_resources_dll" />
+      <ComponentRef Id="CMP_es_ReachFramework_resources_dll" />
+      <ComponentRef Id="CMP_es_System_Windows_Controls_Ribbon_resources_dll" />
+      <ComponentRef Id="CMP_es_System_Windows_Forms_Design_resources_dll" />
+      <ComponentRef Id="CMP_es_System_Windows_Forms_Primitives_resources_dll" />
+      <ComponentRef Id="CMP_es_System_Windows_Forms_resources_dll" />
+      <ComponentRef Id="CMP_es_System_Windows_Input_Manipula_347D3919A8AF" />
+      <ComponentRef Id="CMP_es_System_Xaml_resources_dll" />
+      <ComponentRef Id="CMP_es_UIAutomationClient_resources_dll" />
+      <ComponentRef Id="CMP_es_UIAutomationClientSideProviders_resources_dll" />
+      <ComponentRef Id="CMP_es_UIAutomationProvider_resources_dll" />
+      <ComponentRef Id="CMP_es_UIAutomationTypes_resources_dll" />
+      <ComponentRef Id="CMP_es_WindowsBase_resources_dll" />
+      <ComponentRef Id="CMP_es_WindowsFormsIntegration_resources_dll" />
+      <ComponentRef Id="CMP_fr_Microsoft_VisualBasic_Forms_resources_dll" />
+      <ComponentRef Id="CMP_fr_PresentationCore_resources_dll" />
+      <ComponentRef Id="CMP_fr_PresentationFramework_resources_dll" />
+      <ComponentRef Id="CMP_fr_PresentationUI_resources_dll" />
+      <ComponentRef Id="CMP_fr_ReachFramework_resources_dll" />
+      <ComponentRef Id="CMP_fr_System_Windows_Controls_Ribbon_resources_dll" />
+      <ComponentRef Id="CMP_fr_System_Windows_Forms_Design_resources_dll" />
+      <ComponentRef Id="CMP_fr_System_Windows_Forms_Primitives_resources_dll" />
+      <ComponentRef Id="CMP_fr_System_Windows_Forms_resources_dll" />
+      <ComponentRef Id="CMP_fr_System_Windows_Input_Manipula_9EA565FAC32F" />
+      <ComponentRef Id="CMP_fr_System_Xaml_resources_dll" />
+      <ComponentRef Id="CMP_fr_UIAutomationClient_resources_dll" />
+      <ComponentRef Id="CMP_fr_UIAutomationClientSideProviders_resources_dll" />
+      <ComponentRef Id="CMP_fr_UIAutomationProvider_resources_dll" />
+      <ComponentRef Id="CMP_fr_UIAutomationTypes_resources_dll" />
+      <ComponentRef Id="CMP_fr_WindowsBase_resources_dll" />
+      <ComponentRef Id="CMP_fr_WindowsFormsIntegration_resources_dll" />
+      <ComponentRef Id="CMP_it_Microsoft_VisualBasic_Forms_resources_dll" />
+      <ComponentRef Id="CMP_it_PresentationCore_resources_dll" />
+      <ComponentRef Id="CMP_it_PresentationFramework_resources_dll" />
+      <ComponentRef Id="CMP_it_PresentationUI_resources_dll" />
+      <ComponentRef Id="CMP_it_ReachFramework_resources_dll" />
+      <ComponentRef Id="CMP_it_System_Windows_Controls_Ribbon_resources_dll" />
+      <ComponentRef Id="CMP_it_System_Windows_Forms_Design_resources_dll" />
+      <ComponentRef Id="CMP_it_System_Windows_Forms_Primitives_resources_dll" />
+      <ComponentRef Id="CMP_it_System_Windows_Forms_resources_dll" />
+      <ComponentRef Id="CMP_it_System_Windows_Input_Manipula_856E1C38FA12" />
+      <ComponentRef Id="CMP_it_System_Xaml_resources_dll" />
+      <ComponentRef Id="CMP_it_UIAutomationClient_resources_dll" />
+      <ComponentRef Id="CMP_it_UIAutomationClientSideProviders_resources_dll" />
+      <ComponentRef Id="CMP_it_UIAutomationProvider_resources_dll" />
+      <ComponentRef Id="CMP_it_UIAutomationTypes_resources_dll" />
+      <ComponentRef Id="CMP_it_WindowsBase_resources_dll" />
+      <ComponentRef Id="CMP_it_WindowsFormsIntegration_resources_dll" />
+      <ComponentRef Id="CMP_ja_Microsoft_VisualBasic_Forms_resources_dll" />
+      <ComponentRef Id="CMP_ja_PresentationCore_resources_dll" />
+      <ComponentRef Id="CMP_ja_PresentationFramework_resources_dll" />
+      <ComponentRef Id="CMP_ja_PresentationUI_resources_dll" />
+      <ComponentRef Id="CMP_ja_ReachFramework_resources_dll" />
+      <ComponentRef Id="CMP_ja_System_Windows_Controls_Ribbon_resources_dll" />
+      <ComponentRef Id="CMP_ja_System_Windows_Forms_Design_resources_dll" />
+      <ComponentRef Id="CMP_ja_System_Windows_Forms_Primitives_resources_dll" />
+      <ComponentRef Id="CMP_ja_System_Windows_Forms_resources_dll" />
+      <ComponentRef Id="CMP_ja_System_Windows_Input_Manipula_B8CC4FC1533F" />
+      <ComponentRef Id="CMP_ja_System_Xaml_resources_dll" />
+      <ComponentRef Id="CMP_ja_UIAutomationClient_resources_dll" />
+      <ComponentRef Id="CMP_ja_UIAutomationClientSideProviders_resources_dll" />
+      <ComponentRef Id="CMP_ja_UIAutomationProvider_resources_dll" />
+      <ComponentRef Id="CMP_ja_UIAutomationTypes_resources_dll" />
+      <ComponentRef Id="CMP_ja_WindowsBase_resources_dll" />
+      <ComponentRef Id="CMP_ja_WindowsFormsIntegration_resources_dll" />
+      <ComponentRef Id="CMP_ko_Microsoft_VisualBasic_Forms_resources_dll" />
+      <ComponentRef Id="CMP_ko_PresentationCore_resources_dll" />
+      <ComponentRef Id="CMP_ko_PresentationFramework_resources_dll" />
+      <ComponentRef Id="CMP_ko_PresentationUI_resources_dll" />
+      <ComponentRef Id="CMP_ko_ReachFramework_resources_dll" />
+      <ComponentRef Id="CMP_ko_System_Windows_Controls_Ribbon_resources_dll" />
+      <ComponentRef Id="CMP_ko_System_Windows_Forms_Design_resources_dll" />
+      <ComponentRef Id="CMP_ko_System_Windows_Forms_Primitives_resources_dll" />
+      <ComponentRef Id="CMP_ko_System_Windows_Forms_resources_dll" />
+      <ComponentRef Id="CMP_ko_System_Windows_Input_Manipula_37E07128C83A" />
+      <ComponentRef Id="CMP_ko_System_Xaml_resources_dll" />
+      <ComponentRef Id="CMP_ko_UIAutomationClient_resources_dll" />
+      <ComponentRef Id="CMP_ko_UIAutomationClientSideProviders_resources_dll" />
+      <ComponentRef Id="CMP_ko_UIAutomationProvider_resources_dll" />
+      <ComponentRef Id="CMP_ko_UIAutomationTypes_resources_dll" />
+      <ComponentRef Id="CMP_ko_WindowsBase_resources_dll" />
+      <ComponentRef Id="CMP_ko_WindowsFormsIntegration_resources_dll" />
+      <ComponentRef Id="CMP_pl_Microsoft_VisualBasic_Forms_resources_dll" />
+      <ComponentRef Id="CMP_pl_PresentationCore_resources_dll" />
+      <ComponentRef Id="CMP_pl_PresentationFramework_resources_dll" />
+      <ComponentRef Id="CMP_pl_PresentationUI_resources_dll" />
+      <ComponentRef Id="CMP_pl_ReachFramework_resources_dll" />
+      <ComponentRef Id="CMP_pl_System_Windows_Controls_Ribbon_resources_dll" />
+      <ComponentRef Id="CMP_pl_System_Windows_Forms_Design_resources_dll" />
+      <ComponentRef Id="CMP_pl_System_Windows_Forms_Primitives_resources_dll" />
+      <ComponentRef Id="CMP_pl_System_Windows_Forms_resources_dll" />
+      <ComponentRef Id="CMP_pl_System_Windows_Input_Manipula_4E058B6E5844" />
+      <ComponentRef Id="CMP_pl_System_Xaml_resources_dll" />
+      <ComponentRef Id="CMP_pl_UIAutomationClient_resources_dll" />
+      <ComponentRef Id="CMP_pl_UIAutomationClientSideProviders_resources_dll" />
+      <ComponentRef Id="CMP_pl_UIAutomationProvider_resources_dll" />
+      <ComponentRef Id="CMP_pl_UIAutomationTypes_resources_dll" />
+      <ComponentRef Id="CMP_pl_WindowsBase_resources_dll" />
+      <ComponentRef Id="CMP_pl_WindowsFormsIntegration_resources_dll" />
+      <ComponentRef Id="CMP_pt_BR_Microsoft_VisualBasic_Forms_resources_dll" />
+      <ComponentRef Id="CMP_pt_BR_PresentationCore_resources_dll" />
+      <ComponentRef Id="CMP_pt_BR_PresentationFramework_resources_dll" />
+      <ComponentRef Id="CMP_pt_BR_PresentationUI_resources_dll" />
+      <ComponentRef Id="CMP_pt_BR_ReachFramework_resources_dll" />
+      <ComponentRef Id="CMP_pt_BR_System_Windows_Controls_Ri_BB0D2F371007" />
+      <ComponentRef Id="CMP_pt_BR_System_Windows_Forms_Design_resources_dll" />
+      <ComponentRef Id="CMP_pt_BR_System_Windows_Forms_Primi_AAD2B729E94E" />
+      <ComponentRef Id="CMP_pt_BR_System_Windows_Forms_resources_dll" />
+      <ComponentRef Id="CMP_pt_BR_System_Windows_Input_Manip_521666B5E349" />
+      <ComponentRef Id="CMP_pt_BR_System_Xaml_resources_dll" />
+      <ComponentRef Id="CMP_pt_BR_UIAutomationClient_resources_dll" />
+      <ComponentRef Id="CMP_pt_BR_UIAutomationClientSideProv_8C1C003FD255" />
+      <ComponentRef Id="CMP_pt_BR_UIAutomationProvider_resources_dll" />
+      <ComponentRef Id="CMP_pt_BR_UIAutomationTypes_resources_dll" />
+      <ComponentRef Id="CMP_pt_BR_WindowsBase_resources_dll" />
+      <ComponentRef Id="CMP_pt_BR_WindowsFormsIntegration_resources_dll" />
+      <ComponentRef Id="CMP_ru_Microsoft_VisualBasic_Forms_resources_dll" />
+      <ComponentRef Id="CMP_ru_PresentationCore_resources_dll" />
+      <ComponentRef Id="CMP_ru_PresentationFramework_resources_dll" />
+      <ComponentRef Id="CMP_ru_PresentationUI_resources_dll" />
+      <ComponentRef Id="CMP_ru_ReachFramework_resources_dll" />
+      <ComponentRef Id="CMP_ru_System_Windows_Controls_Ribbon_resources_dll" />
+      <ComponentRef Id="CMP_ru_System_Windows_Forms_Design_resources_dll" />
+      <ComponentRef Id="CMP_ru_System_Windows_Forms_Primitives_resources_dll" />
+      <ComponentRef Id="CMP_ru_System_Windows_Forms_resources_dll" />
+      <ComponentRef Id="CMP_ru_System_Windows_Input_Manipula_4D3B747D37A4" />
+      <ComponentRef Id="CMP_ru_System_Xaml_resources_dll" />
+      <ComponentRef Id="CMP_ru_UIAutomationClient_resources_dll" />
+      <ComponentRef Id="CMP_ru_UIAutomationClientSideProviders_resources_dll" />
+      <ComponentRef Id="CMP_ru_UIAutomationProvider_resources_dll" />
+      <ComponentRef Id="CMP_ru_UIAutomationTypes_resources_dll" />
+      <ComponentRef Id="CMP_ru_WindowsBase_resources_dll" />
+      <ComponentRef Id="CMP_ru_WindowsFormsIntegration_resources_dll" />
+      <ComponentRef Id="CMP_runtimes_win_x64_native_WebView2Loader_dll" />
+      <ComponentRef Id="CMP_tr_Microsoft_VisualBasic_Forms_resources_dll" />
+      <ComponentRef Id="CMP_tr_PresentationCore_resources_dll" />
+      <ComponentRef Id="CMP_tr_PresentationFramework_resources_dll" />
+      <ComponentRef Id="CMP_tr_PresentationUI_resources_dll" />
+      <ComponentRef Id="CMP_tr_ReachFramework_resources_dll" />
+      <ComponentRef Id="CMP_tr_System_Windows_Controls_Ribbon_resources_dll" />
+      <ComponentRef Id="CMP_tr_System_Windows_Forms_Design_resources_dll" />
+      <ComponentRef Id="CMP_tr_System_Windows_Forms_Primitives_resources_dll" />
+      <ComponentRef Id="CMP_tr_System_Windows_Forms_resources_dll" />
+      <ComponentRef Id="CMP_tr_System_Windows_Input_Manipula_B89D54BD53E4" />
+      <ComponentRef Id="CMP_tr_System_Xaml_resources_dll" />
+      <ComponentRef Id="CMP_tr_UIAutomationClient_resources_dll" />
+      <ComponentRef Id="CMP_tr_UIAutomationClientSideProviders_resources_dll" />
+      <ComponentRef Id="CMP_tr_UIAutomationProvider_resources_dll" />
+      <ComponentRef Id="CMP_tr_UIAutomationTypes_resources_dll" />
+      <ComponentRef Id="CMP_tr_WindowsBase_resources_dll" />
+      <ComponentRef Id="CMP_tr_WindowsFormsIntegration_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hans_Microsoft_VisualBasic_Fo_3A9373A0D4E5" />
+      <ComponentRef Id="CMP_zh_Hans_PresentationCore_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hans_PresentationFramework_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hans_PresentationUI_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hans_ReachFramework_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hans_System_Windows_Controls__CC3A9CCA73EC" />
+      <ComponentRef Id="CMP_zh_Hans_System_Windows_Forms_Des_584F16A3886D" />
+      <ComponentRef Id="CMP_zh_Hans_System_Windows_Forms_Pri_67158D4821FE" />
+      <ComponentRef Id="CMP_zh_Hans_System_Windows_Forms_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hans_System_Windows_Input_Man_39C45FECBC6B" />
+      <ComponentRef Id="CMP_zh_Hans_System_Xaml_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hans_UIAutomationClient_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hans_UIAutomationClientSidePr_26767FC450E5" />
+      <ComponentRef Id="CMP_zh_Hans_UIAutomationProvider_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hans_UIAutomationTypes_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hans_WindowsBase_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hans_WindowsFormsIntegration_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hant_Microsoft_VisualBasic_Fo_D6973D7CC9FC" />
+      <ComponentRef Id="CMP_zh_Hant_PresentationCore_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hant_PresentationFramework_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hant_PresentationUI_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hant_ReachFramework_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hant_System_Windows_Controls__C2D46E8CCB68" />
+      <ComponentRef Id="CMP_zh_Hant_System_Windows_Forms_Des_C9E2C160D4B4" />
+      <ComponentRef Id="CMP_zh_Hant_System_Windows_Forms_Pri_56136D154D17" />
+      <ComponentRef Id="CMP_zh_Hant_System_Windows_Forms_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hant_System_Windows_Input_Man_87D809679043" />
+      <ComponentRef Id="CMP_zh_Hant_System_Xaml_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hant_UIAutomationClient_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hant_UIAutomationClientSidePr_B1ED1B8FEB5A" />
+      <ComponentRef Id="CMP_zh_Hant_UIAutomationProvider_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hant_UIAutomationTypes_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hant_WindowsBase_resources_dll" />
+      <ComponentRef Id="CMP_zh_Hant_WindowsFormsIntegration_resources_dll" />
+    </ComponentGroup>
+  </Fragment>
+</Wix>
+

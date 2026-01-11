@@ -1,0 +1,22 @@
+﻿2025-12-03 09:53:56 UI ready. Log file: C:\Path\Logs\scan_log_20251203_095355.txt ; ScanData folder: C:\Path\ScanData
+2025-12-03 09:54:01 btnFpcalcBrowse: selected C:\Path\fpcalc.exe
+2025-12-03 09:54:05 btnFfprobeBrowse: selected C:\Path\ffmpeg.exe
+2025-12-03 09:54:13 btnBrowse: selected folder F:\Private\EXCOGI
+2025-12-03 09:54:15 btnStart: clicked
+2025-12-03 09:54:15 Preflight-CheckTools: start. fpCandidate='C:\Path\fpcalc.exe' ffCandidate='C:\Path\ffmpeg.exe'
+2025-12-03 09:54:15 Resolve-Tool: start for fpcalc.exe with configured path 'C:\Path\fpcalc.exe'
+2025-12-03 09:54:15 Resolve-Tool: using configured path C:\Path\fpcalc.exe
+2025-12-03 09:54:15 Resolve-Tool: start for ffprobe.exe with configured path 'C:\Path\ffmpeg.exe'
+2025-12-03 09:54:15 Resolve-Tool: using configured path C:\Path\ffmpeg.exe
+2025-12-03 09:54:15 Preflight-CheckTools: resolved fpcalc='C:\Path\fpcalc.exe' ffprobe='C:\Path\ffmpeg.exe'
+2025-12-03 09:54:15 Preflight-CheckTools: running fpcalc -version (timeout 10s)
+2025-12-03 09:54:15 Run-Process: preparing to run. ExePath='C:\Path\fpcalc.exe' ArgsRaw='-version'
+2025-12-03 09:54:15 Run-Process: normalized ArgsString='-version'
+2025-12-03 09:54:15 Run-Process: starting process C:\Path\fpcalc.exe -version
+2025-12-03 09:54:15 Run-Process: waiting for exit of C:\Path\fpcalc.exe (timeout ms = 10000)
+2025-12-03 09:54:15 Run-Process: finished Exe=C:\Path\fpcalc.exe Exit=0 ElapsedMs=58
+2025-12-03 09:54:15 Run-Process: captured StdOut length=0 StdErr length=0
+2025-12-03 09:54:15 Preflight-CheckTools: running ffprobe -version (timeout 10s)
+2025-12-03 09:54:15 Run-Process: preparing to run. ExePath='C:\Path\ffmpeg.exe' ArgsRaw='-version'
+2025-12-03 09:54:15 Run-Process: normalized ArgsString='-version'
+2025-12-03 09:54:15 Run-Process: starting process C:\Path\ffmpeg.exe -version

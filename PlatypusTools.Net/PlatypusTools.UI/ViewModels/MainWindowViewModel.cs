@@ -2,6 +2,8 @@ using System.Windows.Input;
 using System.Windows.Forms;
 using System;
 using System.Diagnostics;
+using PlatypusTools.Core.Utilities;
+using PlatypusTools.Core.Services;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -9,34 +11,62 @@ namespace PlatypusTools.UI.ViewModels
     {
         public MainWindowViewModel()
         {
-            Recent = new RecentCleanupViewModel();
-            FileCleaner = new FileCleanerViewModel();
-            Hider = new HiderViewModel();
-            Duplicates = new DuplicatesViewModel();
-            VideoCombiner = new VideoCombinerViewModel(new PlatypusTools.Core.Services.VideoCombinerService());
-            ImageConverter = new ImageConverterViewModel();
-            ImageResizer = new ImageResizerViewModel();
-            IconConverter = new IconConverterViewModel();
-            Upscaler = new UpscalerViewModel();
-            FileRenamer = new FileRenamerViewModel();
-            DiskCleanup = new DiskCleanupViewModel();
-            PrivacyCleaner = new PrivacyCleanerViewModel();
-            VideoConverter = new VideoConverterViewModel();
-            MetadataEditor = new MetadataEditorViewModel();
-            SystemAudit = new SystemAuditViewModel();
-            StartupManager = new StartupManagerViewModel();
-            WebsiteDownloader = new WebsiteDownloaderViewModel();
-            FileAnalyzer = new FileAnalyzerViewModel();
-            MediaLibrary = new MediaLibraryViewModel();
-            DiskSpaceAnalyzer = new DiskSpaceAnalyzerViewModel();
-            NetworkTools = new NetworkToolsViewModel();
-            ProcessManager = new ProcessManagerViewModel();
-            RegistryCleaner = new RegistryCleanerViewModel();
-            ScheduledTasks = new ScheduledTasksViewModel();
-            SystemRestore = new SystemRestoreViewModel();
-            BootableUSB = new BootableUSBViewModel();
+            // Debug entry
+            SimpleLogger.Debug("Initializing MainWindowViewModel");
+            
+            try
+            {
+                SimpleLogger.Debug("Creating RecentCleanupViewModel");
+                Recent = new RecentCleanupViewModel();
+                
+                SimpleLogger.Debug("Creating FileCleanerViewModel");
+                FileCleaner = new FileCleanerViewModel();
+                
+                SimpleLogger.Debug("Creating HiderViewModel");
+                Hider = new HiderViewModel();
+                
+                SimpleLogger.Debug("Creating DuplicatesViewModel");
+                Duplicates = new DuplicatesViewModel();
+                
+                SimpleLogger.Debug("Creating VideoCombinerViewModel");
+                VideoCombiner = new VideoCombinerViewModel(new PlatypusTools.Core.Services.VideoCombinerService());
+                
+                SimpleLogger.Debug("Creating ImageConverterViewModel");
+                ImageConverter = new ImageConverterViewModel();
+                ImageResizer = new ImageResizerViewModel();
+                IconConverter = new IconConverterViewModel();
+                Upscaler = new UpscalerViewModel();
+                FileRenamer = new FileRenamerViewModel();
+                DiskCleanup = new DiskCleanupViewModel();
+                PrivacyCleaner = new PrivacyCleanerViewModel();
+                VideoConverter = new VideoConverterViewModel();
+                
+                SimpleLogger.Debug("Creating MetadataEditorViewModel");
+                MetadataEditor = new MetadataEditorViewModel();
+                
+                SimpleLogger.Debug("Creating MultimediaEditorViewModel");
+                MultimediaEditor = new MultimediaEditorViewModel();
+                
+                SimpleLogger.Debug("Creating SystemAuditViewModel");
+                SystemAudit = new SystemAuditViewModel();
+                
+                SimpleLogger.Debug("Creating StartupManagerViewModel");
+                StartupManager = new StartupManagerViewModel();
+                
+                SimpleLogger.Debug("Creating remaining ViewModels");
+                WebsiteDownloader = new WebsiteDownloaderViewModel();
+                FileAnalyzer = new FileAnalyzerViewModel();
+                MediaLibrary = new MediaLibraryViewModel();
+                DiskSpaceAnalyzer = new DiskSpaceAnalyzerViewModel();
+                NetworkTools = new NetworkToolsViewModel();
+                ProcessManager = new ProcessManagerViewModel();
+                RegistryCleaner = new RegistryCleanerViewModel();
+                ScheduledTasks = new ScheduledTasksViewModel();
+                SystemRestore = new SystemRestoreViewModel();
+                BootableUSB = new BootableUSBViewModel();
 
-            BrowseCommand = new RelayCommand(_ => Browse());
+                SimpleLogger.Debug("Creating commands");
+                BrowseCommand = new RelayCommand(_ => Browse());
             SaveWorkspaceCommand = new RelayCommand(_ => SaveWorkspace());
             ExportConfigCommand = new RelayCommand(_ => ExportConfig());
             ImportConfigCommand = new RelayCommand(_ => ImportConfig());
@@ -51,6 +81,7 @@ namespace PlatypusTools.UI.ViewModels
             TogglePreviewPanelCommand = new RelayCommand(_ => Duplicates.PreviewVisible = !Duplicates.PreviewVisible);
             ToggleThemeCommand = new RelayCommand(_ => ToggleTheme());
 
+                SimpleLogger.Debug("Commands created successfully");
             // Apply theme from settings
             try
             {
@@ -59,6 +90,15 @@ namespace PlatypusTools.UI.ViewModels
                 PlatypusTools.UI.Services.ThemeManager.ApplyTheme(s.Theme);
             }
             catch { }
+            
+                SimpleLogger.Debug("MainWindowViewModel initialized successfully");
+                // Debug exit
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error("MainWindowViewModel constructor" + " - " + ex.Message);
+                throw;
+            }
         }
 
         public RecentCleanupViewModel Recent { get; }
@@ -75,6 +115,7 @@ namespace PlatypusTools.UI.ViewModels
         public PrivacyCleanerViewModel PrivacyCleaner { get; }
         public VideoConverterViewModel VideoConverter { get; }
         public MetadataEditorViewModel MetadataEditor { get; }
+        public MultimediaEditorViewModel MultimediaEditor { get; }
         public SystemAuditViewModel SystemAudit { get; }
         public StartupManagerViewModel StartupManager { get; }
         public WebsiteDownloaderViewModel WebsiteDownloader { get; }

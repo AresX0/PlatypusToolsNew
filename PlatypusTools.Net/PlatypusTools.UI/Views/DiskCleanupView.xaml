@@ -44,16 +44,19 @@
 
         <!-- Results Grid -->
         <GroupBox Header="Files to be Cleaned" Grid.Row="1" Margin="0,0,0,10">
-            <DataGrid ItemsSource="{Binding ItemsToClean}" AutoGenerateColumns="False" 
-                      IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" Margin="5"
-                      CanUserResizeColumns="True" CanUserSortColumns="True">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="*" CanUserResize="True" MinWidth="100"/>
-                    <DataGridTextColumn Header="Files" Binding="{Binding Files}" Width="80" CanUserResize="True" MinWidth="60"/>
-                    <DataGridTextColumn Header="Size" Binding="{Binding Size}" Width="100" CanUserResize="True" MinWidth="70"/>
-                    <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="2*" CanUserResize="True" MinWidth="150"/>
-                </DataGrid.Columns>
-            </DataGrid>
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <DataGrid ItemsSource="{Binding ItemsToClean}" AutoGenerateColumns="False" 
+                          CanUserAddRows="False" CanUserDeleteRows="False" Margin="5"
+                          CanUserResizeColumns="True" CanUserSortColumns="True"
+                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="200" CanUserResize="True" MinWidth="100" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Files" Binding="{Binding Files}" Width="80" CanUserResize="True" MinWidth="60" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Size" Binding="{Binding Size}" Width="100" CanUserResize="True" MinWidth="70" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="400" CanUserResize="True" MinWidth="150" IsReadOnly="True"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- Status Bar -->

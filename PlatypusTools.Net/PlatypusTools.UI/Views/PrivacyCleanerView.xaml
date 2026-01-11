@@ -90,15 +90,18 @@
 
             <!-- Results Grid -->
             <GroupBox Grid.Row="1" Header="Items to be Cleaned">
-                <DataGrid ItemsSource="{Binding ItemsToClean}" AutoGenerateColumns="False" 
-                          IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" Margin="5"
-                          CanUserResizeColumns="True" CanUserSortColumns="True">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="*" CanUserResize="True" MinWidth="100"/>
-                        <DataGridTextColumn Header="Items" Binding="{Binding Items}" Width="80" CanUserResize="True" MinWidth="60"/>
-                        <DataGridTextColumn Header="Size" Binding="{Binding Size}" Width="100" CanUserResize="True" MinWidth="70"/>
-                    </DataGrid.Columns>
-                </DataGrid>
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <DataGrid ItemsSource="{Binding ItemsToClean}" AutoGenerateColumns="False" 
+                              IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" Margin="5"
+                              CanUserResizeColumns="True" CanUserSortColumns="True"
+                              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="300" CanUserResize="True" MinWidth="100"/>
+                            <DataGridTextColumn Header="Items" Binding="{Binding Items}" Width="100" CanUserResize="True" MinWidth="60"/>
+                            <DataGridTextColumn Header="Size" Binding="{Binding Size}" Width="120" CanUserResize="True" MinWidth="70"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </ScrollViewer>
             </GroupBox>
         </Grid>
 

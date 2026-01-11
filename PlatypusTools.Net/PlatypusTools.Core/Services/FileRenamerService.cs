@@ -53,6 +53,7 @@ namespace PlatypusTools.Core.Services
                 {
                     var fileName = Path.GetFileName(filePath);
                     var directory = Path.GetDirectoryName(filePath) ?? string.Empty;
+                    var coreNameForSorting = GetCoreNameForSorting(fileName, null, null, null);
 
                     operations.Add(new RenameOperation
                     {
@@ -61,6 +62,7 @@ namespace PlatypusTools.Core.Services
                         Directory = directory,
                         OriginalFileName = fileName,
                         ProposedFileName = fileName,
+                        OriginalFileNameForSorting = coreNameForSorting,
                         Status = RenameStatus.Pending,
                         IsSelected = true
                     });
@@ -116,10 +118,12 @@ namespace PlatypusTools.Core.Services
                 if (!string.IsNullOrEmpty(newPrefix))
                 {
                     // Determine if we should add the prefix:
+                    // - If both oldPrefix and newPrefix are specified, ALWAYS replace (remove old, add new)
                     // - If addPrefixToAll is true, always add
                     // - If we removed an old prefix (hadOldPrefix), add new one
                     // - If onlyFilesWithOldPrefix is false and no oldPrefix constraint, add to all
-                    bool shouldAddPrefix = addPrefixToAll || hadOldPrefix || 
+                    bool shouldAddPrefix = (!string.IsNullOrEmpty(oldPrefix) && !string.IsNullOrEmpty(newPrefix)) ||
+                                          addPrefixToAll || hadOldPrefix || 
                                           (!onlyFilesWithOldPrefix && string.IsNullOrEmpty(oldPrefix));
                     
                     if (shouldAddPrefix)
@@ -127,7 +131,8 @@ namespace PlatypusTools.Core.Services
                         // Check if already has this prefix
                         if (!nameWithoutExt.StartsWith(newPrefix, StringComparison.OrdinalIgnoreCase))
                         {
-                            nameWithoutExt = newPrefix + nameWithoutExt;
+                            // Add prefix with separator dash
+                            nameWithoutExt = newPrefix + "-" + nameWithoutExt;
                         }
                         else if (normalizeCasing)
                         {
@@ -155,12 +160,15 @@ namespace PlatypusTools.Core.Services
         {
             if (renumberAlphabetically)
             {
-                // Group by directory and sort alphabetically
+                // Group by directory and sort alphabetically by ORIGINAL core filename
                 var grouped = operations.GroupBy(o => o.Directory).ToList();
                 
                 foreach (var group in grouped)
                 {
-                    var sorted = group.OrderBy(o => o.ProposedFileName).ToList();
+                    // Sort by original filename (ignoring current prefix/episode modifications)
+                    var sorted = group.OrderBy(o => string.IsNullOrEmpty(o.OriginalFileNameForSorting) 
+                        ? Path.GetFileNameWithoutExtension(o.OriginalFileName) 
+                        : o.OriginalFileNameForSorting).ToList();
                     int episodeNum = startEpisodeNumber;
 
                     foreach (var op in sorted)
@@ -169,32 +177,48 @@ namespace PlatypusTools.Core.Services
                         var nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
                         var ext = Path.GetExtension(fileName);
 
-                        // Remove existing episode numbers (E001, E0001, etc.)
-                        nameWithoutExt = Regex.Replace(nameWithoutExt, @"-?E\d+-?", "", RegexOptions.IgnoreCase);
+                        // AGGRESSIVELY remove ALL existing season/episode patterns
+                        // Patterns: S01, S1, E01, E1, S01E01, etc.
+                        // Remove patterns that follow prefix (Prefix-E01-) or standalone (E01-)
+                        nameWithoutExt = Regex.Replace(nameWithoutExt, @"-?S\d+", "", RegexOptions.IgnoreCase);
+                        nameWithoutExt = Regex.Replace(nameWithoutExt, @"-?E\d+", "", RegexOptions.IgnoreCase);
+                        nameWithoutExt = Regex.Replace(nameWithoutExt, @"^S\d+", "", RegexOptions.IgnoreCase);
+                        nameWithoutExt = Regex.Replace(nameWithoutExt, @"^E\d+", "", RegexOptions.IgnoreCase);
+                        nameWithoutExt = nameWithoutExt.Trim('-', ' ');
 
-                        // Build episode string
-                        string episodeStr;
+                        // Build season/episode string with correct leading zeros
+                        string seasonEpisodeStr;
                         if (includeSeasonInFormat && seasonNumber.HasValue)
                         {
                             var seasonFormat = new string('0', seasonLeadingZeros);
                             var episodeFormat = new string('0', episodeLeadingZeros);
-                            episodeStr = $"-S{seasonNumber.Value.ToString(seasonFormat)}E{episodeNum.ToString(episodeFormat)}-";
+                            seasonEpisodeStr = $"S{seasonNumber.Value.ToString(seasonFormat)}E{episodeNum.ToString(episodeFormat)}";
                         }
                         else
                         {
                             var episodeFormat = new string('0', episodeLeadingZeros);
-                            episodeStr = $"-E{episodeNum.ToString(episodeFormat)}-";
+                            seasonEpisodeStr = $"E{episodeNum.ToString(episodeFormat)}";
                         }
 
-                        // Insert episode after first prefix segment (before first - or at start)
-                        var parts = nameWithoutExt.Split(new[] { '-' }, 2);
-                        if (parts.Length > 1)
+                        // Insert S##E## right after prefix (before first dash)
+                        // Format: Prefix-S##E##-RestOfName or E##-RestOfName
+                        var firstDashIndex = nameWithoutExt.IndexOf('-');
+                        if (firstDashIndex > 0)
                         {
-                            nameWithoutExt = parts[0] + episodeStr + parts[1];
+                            // Has prefix with dash separator
+                            var prefix = nameWithoutExt.Substring(0, firstDashIndex);
+                            var rest = nameWithoutExt.Substring(firstDashIndex + 1).TrimStart('-');
+                            
+                            // Only add dash before rest if rest is not empty
+                            if (!string.IsNullOrEmpty(rest))
+                                nameWithoutExt = $"{prefix}-{seasonEpisodeStr}-{rest}";
+                            else
+                                nameWithoutExt = $"{prefix}-{seasonEpisodeStr}";
                         }
                         else
                         {
-                            nameWithoutExt = episodeStr.Trim('-') + nameWithoutExt;
+                            // No prefix or dash, prepend S##E##
+                            nameWithoutExt = $"{seasonEpisodeStr}-{nameWithoutExt}";
                         }
 
                         op.ProposedFileName = nameWithoutExt + ext;

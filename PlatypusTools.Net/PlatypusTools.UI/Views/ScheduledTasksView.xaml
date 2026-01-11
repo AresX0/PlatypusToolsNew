@@ -50,14 +50,14 @@
                           SelectionMode="Single"
                           AlternatingRowBackground="#F5F5F5">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200" MinWidth="150" />
-                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" MinWidth="80" />
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200" MinWidth="150" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" MinWidth="80" IsReadOnly="True" />
                         <DataGridCheckBoxColumn Header="Enabled" Binding="{Binding IsEnabled, Mode=OneWay}" Width="70" MinWidth="60" />
-                        <DataGridTextColumn Header="Last Run" Binding="{Binding LastRunTime, StringFormat='yyyy-MM-dd HH:mm'}" Width="130" MinWidth="110" />
-                        <DataGridTextColumn Header="Next Run" Binding="{Binding NextRunTime, StringFormat='yyyy-MM-dd HH:mm'}" Width="130" MinWidth="110" />
-                        <DataGridTextColumn Header="Trigger" Binding="{Binding Trigger}" Width="150" MinWidth="120" />
-                        <DataGridTextColumn Header="Author" Binding="{Binding Author}" Width="120" MinWidth="100" />
-                        <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="*" MinWidth="200" />
+                        <DataGridTextColumn Header="Last Run" Binding="{Binding LastRunTime, StringFormat='yyyy-MM-dd HH:mm'}" Width="130" MinWidth="110" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Next Run" Binding="{Binding NextRunTime, StringFormat='yyyy-MM-dd HH:mm'}" Width="130" MinWidth="110" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Trigger" Binding="{Binding Trigger}" Width="150" MinWidth="120" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Author" Binding="{Binding Author}" Width="120" MinWidth="100" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="*" MinWidth="200" IsReadOnly="True" />
                     </DataGrid.Columns>
                     <DataGrid.ContextMenu>
                         <ContextMenu>
