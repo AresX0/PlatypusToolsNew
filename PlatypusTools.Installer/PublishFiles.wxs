@@ -1,0 +1,1499 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+    <Fragment>
+        <DirectoryRef Id="INSTALLFOLDER">
+            <Directory Id="dir_Assets" Name="Assets" />
+            <Directory Id="dir_cs" Name="cs" />
+            <Directory Id="dir_de" Name="de" />
+            <Directory Id="dir_es" Name="es" />
+            <Directory Id="dir_fr" Name="fr" />
+            <Directory Id="dir_it" Name="it" />
+            <Directory Id="dir_ja" Name="ja" />
+            <Directory Id="dir_ko" Name="ko" />
+            <Directory Id="dir_pl" Name="pl" />
+            <Directory Id="dir_ptBR" Name="pt-BR" />
+            <Directory Id="dir_ru" Name="ru" />
+            <Directory Id="dir_runtimes" Name="runtimes" />
+            <Directory Id="dir_tr" Name="tr" />
+            <Directory Id="dir_zhHans" Name="zh-Hans" />
+            <Directory Id="dir_zhHant" Name="zh-Hant" />
+        </DirectoryRef>
+        <DirectoryRef Id="dir_runtimes">
+            <Directory Id="dir_runtimes_winx64" Name="win-x64" />
+        </DirectoryRef>
+        <DirectoryRef Id="dir_runtimes_winx64">
+            <Directory Id="dir_runtimes_winx64_native" Name="native" />
+        </DirectoryRef>
+    </Fragment>
+    <Fragment>
+        <ComponentGroup Id="PublishFiles">
+            <Component Id="cmp_1" Directory="INSTALLFOLDER" Guid="{0DDCE5CB-B083-4DD6-A757-8F274F19F1D2}">
+                <File Id="file_1" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Accessibility.dll" />
+            </Component>
+            <Component Id="cmp_2" Directory="dir_Assets" Guid="{25C25F8B-E232-45FC-BE03-6B84F245550B}">
+                <File Id="file_2" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Assets\PlatypusTools_Help.html" />
+            </Component>
+            <Component Id="cmp_3" Directory="INSTALLFOLDER" Guid="{5BF3A43C-E81F-4C9F-87C9-BA1CB1CED913}">
+                <File Id="file_3" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\clretwrc.dll" />
+            </Component>
+            <Component Id="cmp_4" Directory="INSTALLFOLDER" Guid="{0A8CC584-F79E-4965-BF8C-E12EFF93C0E3}">
+                <File Id="file_4" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\clrgc.dll" />
+            </Component>
+            <Component Id="cmp_5" Directory="INSTALLFOLDER" Guid="{D55BFBB1-ECEC-48BF-AAA5-8021FC7A03FD}">
+                <File Id="file_5" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\clrgcexp.dll" />
+            </Component>
+            <Component Id="cmp_6" Directory="INSTALLFOLDER" Guid="{0CB71DB6-7C91-4BAF-9BE5-36E697B85B1C}">
+                <File Id="file_6" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\clrjit.dll" />
+            </Component>
+            <Component Id="cmp_7" Directory="INSTALLFOLDER" Guid="{6C5DA7C9-AF4A-45D6-9E70-91EFA7B9484F}">
+                <File Id="file_7" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\coreclr.dll" />
+            </Component>
+            <Component Id="cmp_8" Directory="INSTALLFOLDER" Guid="{8233122E-A67D-49F4-B737-5A3FEFAEC9C3}">
+                <File Id="file_8" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\createdump.exe" />
+            </Component>
+            <Component Id="cmp_9" Directory="dir_cs" Guid="{AC92F9F0-B4E8-4AC3-8507-B7BE4FB6792D}">
+                <File Id="file_9" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\cs\Microsoft.VisualBasic.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_10" Directory="dir_cs" Guid="{7346DD4C-C4AD-4162-BD95-EE132964E20F}">
+                <File Id="file_10" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\cs\PresentationCore.resources.dll" />
+            </Component>
+            <Component Id="cmp_11" Directory="dir_cs" Guid="{EADA4250-E4E5-432A-8139-8347C3C321B4}">
+                <File Id="file_11" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\cs\PresentationFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_12" Directory="dir_cs" Guid="{6F55A7FF-9F34-4A35-A9DE-602ECCC7D5C7}">
+                <File Id="file_12" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\cs\PresentationUI.resources.dll" />
+            </Component>
+            <Component Id="cmp_13" Directory="dir_cs" Guid="{95F1E295-D64C-4D45-B77D-F88B8A708C98}">
+                <File Id="file_13" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\cs\ReachFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_14" Directory="dir_cs" Guid="{DC253C41-3315-488F-BD00-81D25A22C4D0}">
+                <File Id="file_14" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\cs\System.Windows.Controls.Ribbon.resources.dll" />
+            </Component>
+            <Component Id="cmp_15" Directory="dir_cs" Guid="{AADB1A18-B91C-4B23-A769-1CD1A7EA36AC}">
+                <File Id="file_15" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\cs\System.Windows.Forms.Design.resources.dll" />
+            </Component>
+            <Component Id="cmp_16" Directory="dir_cs" Guid="{F493E571-BD35-4737-8D28-D72071282988}">
+                <File Id="file_16" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\cs\System.Windows.Forms.Primitives.resources.dll" />
+            </Component>
+            <Component Id="cmp_17" Directory="dir_cs" Guid="{AA8AB067-D9C9-4BD7-8890-A5BC3E968B11}">
+                <File Id="file_17" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\cs\System.Windows.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_18" Directory="dir_cs" Guid="{6B87E1BD-4E42-4D92-9CC4-6242580F3406}">
+                <File Id="file_18" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\cs\System.Windows.Input.Manipulations.resources.dll" />
+            </Component>
+            <Component Id="cmp_19" Directory="dir_cs" Guid="{7672CAB1-FB55-45C9-AAFA-9EDA1F2DEFF5}">
+                <File Id="file_19" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\cs\System.Xaml.resources.dll" />
+            </Component>
+            <Component Id="cmp_20" Directory="dir_cs" Guid="{D49336C8-E149-4D4B-96FD-77ABE9843658}">
+                <File Id="file_20" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\cs\UIAutomationClient.resources.dll" />
+            </Component>
+            <Component Id="cmp_21" Directory="dir_cs" Guid="{0BDB2823-CED9-468E-985E-36D7B0EA9F9C}">
+                <File Id="file_21" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\cs\UIAutomationClientSideProviders.resources.dll" />
+            </Component>
+            <Component Id="cmp_22" Directory="dir_cs" Guid="{B79FFEC5-83AF-4BCB-B6EF-AB874A6B6BB8}">
+                <File Id="file_22" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\cs\UIAutomationProvider.resources.dll" />
+            </Component>
+            <Component Id="cmp_23" Directory="dir_cs" Guid="{DCEF044B-FFDD-4EB0-84E0-0EF081316848}">
+                <File Id="file_23" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\cs\UIAutomationTypes.resources.dll" />
+            </Component>
+            <Component Id="cmp_24" Directory="dir_cs" Guid="{0CED28A9-D5DF-4BE4-8F08-4D8768F3ECD3}">
+                <File Id="file_24" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\cs\WindowsBase.resources.dll" />
+            </Component>
+            <Component Id="cmp_25" Directory="dir_cs" Guid="{EE592EFB-F625-4879-B5D2-2F815BA50D28}">
+                <File Id="file_25" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\cs\WindowsFormsIntegration.resources.dll" />
+            </Component>
+            <Component Id="cmp_26" Directory="INSTALLFOLDER" Guid="{3965943D-DEAC-48ED-BB62-9A8712304833}">
+                <File Id="file_26" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\D3DCompiler_47_cor3.dll" />
+            </Component>
+            <Component Id="cmp_27" Directory="dir_de" Guid="{3D1D5B14-D368-4D53-B8A8-57BEBF7B2EAB}">
+                <File Id="file_27" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\de\Microsoft.VisualBasic.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_28" Directory="dir_de" Guid="{CFD469CB-56D5-4738-83D7-369ECC8AC0C4}">
+                <File Id="file_28" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\de\PresentationCore.resources.dll" />
+            </Component>
+            <Component Id="cmp_29" Directory="dir_de" Guid="{AC97149F-FFC4-42D5-BF77-36D06EEE3E2E}">
+                <File Id="file_29" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\de\PresentationFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_30" Directory="dir_de" Guid="{C8ABCB13-2F97-4F9B-983D-D77A24EB188A}">
+                <File Id="file_30" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\de\PresentationUI.resources.dll" />
+            </Component>
+            <Component Id="cmp_31" Directory="dir_de" Guid="{A0E6C7EF-90F5-44CA-B73E-DE0052D74EEF}">
+                <File Id="file_31" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\de\ReachFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_32" Directory="dir_de" Guid="{DA199144-C818-4406-B2CE-A862A99EC1EB}">
+                <File Id="file_32" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\de\System.Windows.Controls.Ribbon.resources.dll" />
+            </Component>
+            <Component Id="cmp_33" Directory="dir_de" Guid="{76D25147-98FF-4749-87AA-BD33064D88A7}">
+                <File Id="file_33" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\de\System.Windows.Forms.Design.resources.dll" />
+            </Component>
+            <Component Id="cmp_34" Directory="dir_de" Guid="{BDBEBBE7-846E-4CBF-BE87-52B8AC32645D}">
+                <File Id="file_34" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\de\System.Windows.Forms.Primitives.resources.dll" />
+            </Component>
+            <Component Id="cmp_35" Directory="dir_de" Guid="{C47A00FD-0E49-4FAA-8C6F-4C88F4BC49AE}">
+                <File Id="file_35" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\de\System.Windows.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_36" Directory="dir_de" Guid="{6B21407D-E20E-498E-9615-3BED8D62851C}">
+                <File Id="file_36" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\de\System.Windows.Input.Manipulations.resources.dll" />
+            </Component>
+            <Component Id="cmp_37" Directory="dir_de" Guid="{EAEE4C51-9DD9-426A-A7C8-B7C9671C79C2}">
+                <File Id="file_37" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\de\System.Xaml.resources.dll" />
+            </Component>
+            <Component Id="cmp_38" Directory="dir_de" Guid="{1876A7E7-CC1E-4D09-965A-EE88F74EB83B}">
+                <File Id="file_38" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\de\UIAutomationClient.resources.dll" />
+            </Component>
+            <Component Id="cmp_39" Directory="dir_de" Guid="{68B9A2D5-25FE-4614-A056-09912D01CC4A}">
+                <File Id="file_39" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\de\UIAutomationClientSideProviders.resources.dll" />
+            </Component>
+            <Component Id="cmp_40" Directory="dir_de" Guid="{BEEA2F9B-40A3-426E-9C81-2D4A1094CF0C}">
+                <File Id="file_40" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\de\UIAutomationProvider.resources.dll" />
+            </Component>
+            <Component Id="cmp_41" Directory="dir_de" Guid="{13A35E50-08FE-4811-814A-40820449CC05}">
+                <File Id="file_41" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\de\UIAutomationTypes.resources.dll" />
+            </Component>
+            <Component Id="cmp_42" Directory="dir_de" Guid="{49730D85-9C36-4050-A08F-2EBADDFE374D}">
+                <File Id="file_42" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\de\WindowsBase.resources.dll" />
+            </Component>
+            <Component Id="cmp_43" Directory="dir_de" Guid="{17829FB1-A3EA-464B-BEF6-702736AB7885}">
+                <File Id="file_43" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\de\WindowsFormsIntegration.resources.dll" />
+            </Component>
+            <Component Id="cmp_44" Directory="INSTALLFOLDER" Guid="{6DB5386D-F86F-4F52-9AEA-19D3A83D5C52}">
+                <File Id="file_44" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\DirectWriteForwarder.dll" />
+            </Component>
+            <Component Id="cmp_45" Directory="dir_es" Guid="{355A9B4B-9F92-4765-9E6A-0C4899DFBC76}">
+                <File Id="file_45" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\es\Microsoft.VisualBasic.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_46" Directory="dir_es" Guid="{2E4B00A8-A44E-4C7D-9202-7F90E6F71F79}">
+                <File Id="file_46" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\es\PresentationCore.resources.dll" />
+            </Component>
+            <Component Id="cmp_47" Directory="dir_es" Guid="{7A1D058E-FB9B-4BE8-844D-8455E231F81F}">
+                <File Id="file_47" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\es\PresentationFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_48" Directory="dir_es" Guid="{17A8D0D8-3893-4BB3-8F28-57C3A4163ACA}">
+                <File Id="file_48" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\es\PresentationUI.resources.dll" />
+            </Component>
+            <Component Id="cmp_49" Directory="dir_es" Guid="{25D958F1-4C0C-47EA-8FFD-B3DD74F82EEB}">
+                <File Id="file_49" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\es\ReachFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_50" Directory="dir_es" Guid="{A238D07A-A559-411A-8906-678CD3AD9901}">
+                <File Id="file_50" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\es\System.Windows.Controls.Ribbon.resources.dll" />
+            </Component>
+            <Component Id="cmp_51" Directory="dir_es" Guid="{A0782EFB-463A-430A-ADEE-43452E1E5E3F}">
+                <File Id="file_51" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\es\System.Windows.Forms.Design.resources.dll" />
+            </Component>
+            <Component Id="cmp_52" Directory="dir_es" Guid="{5A5F135A-0F32-4E5A-8D98-0582D82F5814}">
+                <File Id="file_52" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\es\System.Windows.Forms.Primitives.resources.dll" />
+            </Component>
+            <Component Id="cmp_53" Directory="dir_es" Guid="{3A47F8E5-22EB-407B-9AE4-C01312E55DD1}">
+                <File Id="file_53" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\es\System.Windows.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_54" Directory="dir_es" Guid="{4656A534-B73C-4811-AE06-DAC10E54B459}">
+                <File Id="file_54" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\es\System.Windows.Input.Manipulations.resources.dll" />
+            </Component>
+            <Component Id="cmp_55" Directory="dir_es" Guid="{F9AD2395-F8DA-4A8A-BD78-6C15E45AC835}">
+                <File Id="file_55" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\es\System.Xaml.resources.dll" />
+            </Component>
+            <Component Id="cmp_56" Directory="dir_es" Guid="{27F4C451-815B-4396-966B-A83B325C5983}">
+                <File Id="file_56" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\es\UIAutomationClient.resources.dll" />
+            </Component>
+            <Component Id="cmp_57" Directory="dir_es" Guid="{6967F9DC-3E11-4190-9CE0-48DA5CF285E1}">
+                <File Id="file_57" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\es\UIAutomationClientSideProviders.resources.dll" />
+            </Component>
+            <Component Id="cmp_58" Directory="dir_es" Guid="{830B9BD6-5F28-4903-AC8F-A4F4BAA2FA95}">
+                <File Id="file_58" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\es\UIAutomationProvider.resources.dll" />
+            </Component>
+            <Component Id="cmp_59" Directory="dir_es" Guid="{33758F89-61BC-4B2B-8305-A143060A9EC5}">
+                <File Id="file_59" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\es\UIAutomationTypes.resources.dll" />
+            </Component>
+            <Component Id="cmp_60" Directory="dir_es" Guid="{88E295D4-872A-40E1-A12C-50593D5FA525}">
+                <File Id="file_60" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\es\WindowsBase.resources.dll" />
+            </Component>
+            <Component Id="cmp_61" Directory="dir_es" Guid="{91F17910-205E-402A-B593-4306E0984B73}">
+                <File Id="file_61" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\es\WindowsFormsIntegration.resources.dll" />
+            </Component>
+            <Component Id="cmp_62" Directory="dir_fr" Guid="{06F6196A-5D8E-4756-AF91-1DDA26382443}">
+                <File Id="file_62" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\fr\Microsoft.VisualBasic.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_63" Directory="dir_fr" Guid="{C90A98A1-F678-4A76-A457-03CF1436FE98}">
+                <File Id="file_63" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\fr\PresentationCore.resources.dll" />
+            </Component>
+            <Component Id="cmp_64" Directory="dir_fr" Guid="{568456BC-A999-4459-A553-F1E6981A402B}">
+                <File Id="file_64" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\fr\PresentationFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_65" Directory="dir_fr" Guid="{4AE2AFAB-75DA-4D4D-AD35-B7241175772F}">
+                <File Id="file_65" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\fr\PresentationUI.resources.dll" />
+            </Component>
+            <Component Id="cmp_66" Directory="dir_fr" Guid="{71FDFB73-FC7C-4A97-B0F5-F3B84D7D5297}">
+                <File Id="file_66" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\fr\ReachFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_67" Directory="dir_fr" Guid="{C0119978-45C7-4179-AD25-BA8D0DBE5BF6}">
+                <File Id="file_67" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\fr\System.Windows.Controls.Ribbon.resources.dll" />
+            </Component>
+            <Component Id="cmp_68" Directory="dir_fr" Guid="{D45882C5-9FAD-4FC1-9A80-D6D45F1F78E6}">
+                <File Id="file_68" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\fr\System.Windows.Forms.Design.resources.dll" />
+            </Component>
+            <Component Id="cmp_69" Directory="dir_fr" Guid="{5F36A06B-0BDF-4890-904A-2C8153FB419F}">
+                <File Id="file_69" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\fr\System.Windows.Forms.Primitives.resources.dll" />
+            </Component>
+            <Component Id="cmp_70" Directory="dir_fr" Guid="{5D9098C3-9EA2-4FB2-B183-E248EEE15D56}">
+                <File Id="file_70" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\fr\System.Windows.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_71" Directory="dir_fr" Guid="{5F176F2D-6AF8-4F7B-B058-5BA1EDB4A05C}">
+                <File Id="file_71" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\fr\System.Windows.Input.Manipulations.resources.dll" />
+            </Component>
+            <Component Id="cmp_72" Directory="dir_fr" Guid="{6788CC9C-AF48-469F-82F8-972DD41118BC}">
+                <File Id="file_72" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\fr\System.Xaml.resources.dll" />
+            </Component>
+            <Component Id="cmp_73" Directory="dir_fr" Guid="{64AB769E-02B4-4716-AEE0-CE353561AA11}">
+                <File Id="file_73" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\fr\UIAutomationClient.resources.dll" />
+            </Component>
+            <Component Id="cmp_74" Directory="dir_fr" Guid="{7078CA85-26D4-420E-80B4-DD988469AC42}">
+                <File Id="file_74" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\fr\UIAutomationClientSideProviders.resources.dll" />
+            </Component>
+            <Component Id="cmp_75" Directory="dir_fr" Guid="{E9C8129E-5A86-4613-B0EF-2199C70D6E21}">
+                <File Id="file_75" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\fr\UIAutomationProvider.resources.dll" />
+            </Component>
+            <Component Id="cmp_76" Directory="dir_fr" Guid="{6F0C2E9A-256E-403A-98C3-398FCCFD558A}">
+                <File Id="file_76" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\fr\UIAutomationTypes.resources.dll" />
+            </Component>
+            <Component Id="cmp_77" Directory="dir_fr" Guid="{894585CA-237D-4D09-AA73-3B1A29752600}">
+                <File Id="file_77" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\fr\WindowsBase.resources.dll" />
+            </Component>
+            <Component Id="cmp_78" Directory="dir_fr" Guid="{A0E5858B-7802-4403-B1A0-4F9CF3D48373}">
+                <File Id="file_78" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\fr\WindowsFormsIntegration.resources.dll" />
+            </Component>
+            <Component Id="cmp_79" Directory="INSTALLFOLDER" Guid="{55B6096A-0ECF-49A1-AFFE-7CA2C1E36E10}">
+                <File Id="file_79" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\hostfxr.dll" />
+            </Component>
+            <Component Id="cmp_80" Directory="INSTALLFOLDER" Guid="{15410918-2A1C-434A-AC7F-1BCDE5B5BEC8}">
+                <File Id="file_80" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\hostpolicy.dll" />
+            </Component>
+            <Component Id="cmp_81" Directory="INSTALLFOLDER" Guid="{259F1773-9E1D-46DD-BF19-E8EEBBFCD09F}">
+                <File Id="file_81" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\HtmlAgilityPack.dll" />
+            </Component>
+            <Component Id="cmp_82" Directory="dir_it" Guid="{647961F0-B3F6-4A7C-B83F-5EFB3C2EFAB5}">
+                <File Id="file_82" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\it\Microsoft.VisualBasic.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_83" Directory="dir_it" Guid="{D31CBFBD-B0EA-418B-AD70-7E8C610756CD}">
+                <File Id="file_83" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\it\PresentationCore.resources.dll" />
+            </Component>
+            <Component Id="cmp_84" Directory="dir_it" Guid="{4D9EB99C-E1A1-45B8-96B5-B1D90269B868}">
+                <File Id="file_84" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\it\PresentationFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_85" Directory="dir_it" Guid="{B6952F98-7806-4C41-AE26-29A19499C661}">
+                <File Id="file_85" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\it\PresentationUI.resources.dll" />
+            </Component>
+            <Component Id="cmp_86" Directory="dir_it" Guid="{87C557E6-6B9A-4FA0-BF1A-498CFED2B166}">
+                <File Id="file_86" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\it\ReachFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_87" Directory="dir_it" Guid="{9B6BAA40-193C-44B9-8673-8B556F16E44A}">
+                <File Id="file_87" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\it\System.Windows.Controls.Ribbon.resources.dll" />
+            </Component>
+            <Component Id="cmp_88" Directory="dir_it" Guid="{00C20FA4-79AA-4A03-A521-1E42DEA3A375}">
+                <File Id="file_88" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\it\System.Windows.Forms.Design.resources.dll" />
+            </Component>
+            <Component Id="cmp_89" Directory="dir_it" Guid="{E8C01FAB-49C8-4D07-8E38-2962E3950ACF}">
+                <File Id="file_89" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\it\System.Windows.Forms.Primitives.resources.dll" />
+            </Component>
+            <Component Id="cmp_90" Directory="dir_it" Guid="{8011D5C5-4393-4813-8D3C-DD69E449CB3A}">
+                <File Id="file_90" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\it\System.Windows.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_91" Directory="dir_it" Guid="{FAADCB47-5439-4AA4-B958-CCAF9B648C29}">
+                <File Id="file_91" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\it\System.Windows.Input.Manipulations.resources.dll" />
+            </Component>
+            <Component Id="cmp_92" Directory="dir_it" Guid="{B8077AEF-9FFA-45AF-9DBE-2068E7A97395}">
+                <File Id="file_92" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\it\System.Xaml.resources.dll" />
+            </Component>
+            <Component Id="cmp_93" Directory="dir_it" Guid="{AC3D2D58-AB48-480A-BA00-7A71D9C8F158}">
+                <File Id="file_93" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\it\UIAutomationClient.resources.dll" />
+            </Component>
+            <Component Id="cmp_94" Directory="dir_it" Guid="{D6FAD78A-CF32-4116-BAC2-BB059489952E}">
+                <File Id="file_94" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\it\UIAutomationClientSideProviders.resources.dll" />
+            </Component>
+            <Component Id="cmp_95" Directory="dir_it" Guid="{7C807E33-4FD1-4083-AB58-21CF1BDC2029}">
+                <File Id="file_95" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\it\UIAutomationProvider.resources.dll" />
+            </Component>
+            <Component Id="cmp_96" Directory="dir_it" Guid="{69E87B1D-2E51-4151-A671-213C5BA775A8}">
+                <File Id="file_96" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\it\UIAutomationTypes.resources.dll" />
+            </Component>
+            <Component Id="cmp_97" Directory="dir_it" Guid="{EDC96649-E846-497D-85D3-1DD941803A17}">
+                <File Id="file_97" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\it\WindowsBase.resources.dll" />
+            </Component>
+            <Component Id="cmp_98" Directory="dir_it" Guid="{199EB50E-7BF7-4FE6-A345-10D4A8B76285}">
+                <File Id="file_98" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\it\WindowsFormsIntegration.resources.dll" />
+            </Component>
+            <Component Id="cmp_99" Directory="dir_ja" Guid="{6842EB6E-CB98-484D-A602-D10F4F1585EF}">
+                <File Id="file_99" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ja\Microsoft.VisualBasic.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_100" Directory="dir_ja" Guid="{B59B52BC-E25E-4965-B693-CB4433B0AF19}">
+                <File Id="file_100" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ja\PresentationCore.resources.dll" />
+            </Component>
+            <Component Id="cmp_101" Directory="dir_ja" Guid="{7D7BF11D-5FAE-461E-BFDA-506A4E3C8CBA}">
+                <File Id="file_101" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ja\PresentationFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_102" Directory="dir_ja" Guid="{8B8BB2D5-F451-428C-86EE-3408EAF48F62}">
+                <File Id="file_102" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ja\PresentationUI.resources.dll" />
+            </Component>
+            <Component Id="cmp_103" Directory="dir_ja" Guid="{2CD4389E-AA72-4AB1-B156-01B338C8990E}">
+                <File Id="file_103" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ja\ReachFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_104" Directory="dir_ja" Guid="{81764708-BB05-4C2E-8D40-C8B9550029D8}">
+                <File Id="file_104" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ja\System.Windows.Controls.Ribbon.resources.dll" />
+            </Component>
+            <Component Id="cmp_105" Directory="dir_ja" Guid="{2D2BEB66-D090-4963-AECB-308075EACEAE}">
+                <File Id="file_105" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ja\System.Windows.Forms.Design.resources.dll" />
+            </Component>
+            <Component Id="cmp_106" Directory="dir_ja" Guid="{7556682C-2154-4F10-9A06-4B4650CAAA00}">
+                <File Id="file_106" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ja\System.Windows.Forms.Primitives.resources.dll" />
+            </Component>
+            <Component Id="cmp_107" Directory="dir_ja" Guid="{0F7516BB-F434-474B-9EC7-11CDE6ECCC46}">
+                <File Id="file_107" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ja\System.Windows.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_108" Directory="dir_ja" Guid="{E11C444C-B5FB-4924-A83E-8780E04A9E5D}">
+                <File Id="file_108" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ja\System.Windows.Input.Manipulations.resources.dll" />
+            </Component>
+            <Component Id="cmp_109" Directory="dir_ja" Guid="{DBFD4A2F-1388-4BF7-93FE-29C81914B7B1}">
+                <File Id="file_109" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ja\System.Xaml.resources.dll" />
+            </Component>
+            <Component Id="cmp_110" Directory="dir_ja" Guid="{942CAB97-CFC0-4CEA-8E59-F5B7FCDF87CD}">
+                <File Id="file_110" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ja\UIAutomationClient.resources.dll" />
+            </Component>
+            <Component Id="cmp_111" Directory="dir_ja" Guid="{8AC8E879-4178-4FB1-9357-590B45CEAE36}">
+                <File Id="file_111" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ja\UIAutomationClientSideProviders.resources.dll" />
+            </Component>
+            <Component Id="cmp_112" Directory="dir_ja" Guid="{0BE7E922-E512-4768-B583-47834FBB689A}">
+                <File Id="file_112" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ja\UIAutomationProvider.resources.dll" />
+            </Component>
+            <Component Id="cmp_113" Directory="dir_ja" Guid="{E1FAF30D-C81B-405C-91EE-579FA85E90D8}">
+                <File Id="file_113" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ja\UIAutomationTypes.resources.dll" />
+            </Component>
+            <Component Id="cmp_114" Directory="dir_ja" Guid="{80595C05-C258-4F21-B6A0-B00B7C0FAA9D}">
+                <File Id="file_114" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ja\WindowsBase.resources.dll" />
+            </Component>
+            <Component Id="cmp_115" Directory="dir_ja" Guid="{BBE57FBE-9D47-49A1-A780-7CEB0DE1337B}">
+                <File Id="file_115" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ja\WindowsFormsIntegration.resources.dll" />
+            </Component>
+            <Component Id="cmp_116" Directory="dir_ko" Guid="{1D487657-BA96-4745-9019-081343B6B4AA}">
+                <File Id="file_116" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ko\Microsoft.VisualBasic.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_117" Directory="dir_ko" Guid="{1CFE8B92-7166-45A6-BE12-018C3EABA125}">
+                <File Id="file_117" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ko\PresentationCore.resources.dll" />
+            </Component>
+            <Component Id="cmp_118" Directory="dir_ko" Guid="{B1616616-EB30-4384-9524-2F0EBD38DD39}">
+                <File Id="file_118" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ko\PresentationFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_119" Directory="dir_ko" Guid="{CDD4C904-08C0-4DCB-85A1-4E150D0C70FD}">
+                <File Id="file_119" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ko\PresentationUI.resources.dll" />
+            </Component>
+            <Component Id="cmp_120" Directory="dir_ko" Guid="{7941D5DB-3025-49FF-80F3-C0199B9FEDA6}">
+                <File Id="file_120" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ko\ReachFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_121" Directory="dir_ko" Guid="{B5DB466A-CD27-4B25-809E-40C75482030E}">
+                <File Id="file_121" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ko\System.Windows.Controls.Ribbon.resources.dll" />
+            </Component>
+            <Component Id="cmp_122" Directory="dir_ko" Guid="{14510677-1BD8-4CF5-9692-222C70217746}">
+                <File Id="file_122" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ko\System.Windows.Forms.Design.resources.dll" />
+            </Component>
+            <Component Id="cmp_123" Directory="dir_ko" Guid="{23420FD0-2AF9-4F3C-8909-C9482A32E0DF}">
+                <File Id="file_123" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ko\System.Windows.Forms.Primitives.resources.dll" />
+            </Component>
+            <Component Id="cmp_124" Directory="dir_ko" Guid="{9D87176A-437E-473F-8474-4C052DB4C001}">
+                <File Id="file_124" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ko\System.Windows.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_125" Directory="dir_ko" Guid="{8F1C6365-B648-4796-9EF0-61F4DA8BBB4D}">
+                <File Id="file_125" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ko\System.Windows.Input.Manipulations.resources.dll" />
+            </Component>
+            <Component Id="cmp_126" Directory="dir_ko" Guid="{A9291506-BD65-4F76-886E-CEE7921230CF}">
+                <File Id="file_126" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ko\System.Xaml.resources.dll" />
+            </Component>
+            <Component Id="cmp_127" Directory="dir_ko" Guid="{20E54A4A-2A5F-4C4D-AC23-AE37C00AD56F}">
+                <File Id="file_127" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ko\UIAutomationClient.resources.dll" />
+            </Component>
+            <Component Id="cmp_128" Directory="dir_ko" Guid="{E11801C6-CE6F-4F2E-A641-9EBFF03C09EF}">
+                <File Id="file_128" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ko\UIAutomationClientSideProviders.resources.dll" />
+            </Component>
+            <Component Id="cmp_129" Directory="dir_ko" Guid="{CD413B15-008B-433A-8D74-6BB049CA7273}">
+                <File Id="file_129" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ko\UIAutomationProvider.resources.dll" />
+            </Component>
+            <Component Id="cmp_130" Directory="dir_ko" Guid="{05FC84F1-3B50-49E5-B458-6E2B818A73D4}">
+                <File Id="file_130" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ko\UIAutomationTypes.resources.dll" />
+            </Component>
+            <Component Id="cmp_131" Directory="dir_ko" Guid="{E9086F56-3CC4-43C7-8C65-0E34EEE12E71}">
+                <File Id="file_131" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ko\WindowsBase.resources.dll" />
+            </Component>
+            <Component Id="cmp_132" Directory="dir_ko" Guid="{3C302351-CB85-437F-A42B-4C5BC7EB6FA0}">
+                <File Id="file_132" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ko\WindowsFormsIntegration.resources.dll" />
+            </Component>
+            <Component Id="cmp_133" Directory="INSTALLFOLDER" Guid="{FB420207-A404-4C5D-8B2B-E64AA6063598}">
+                <File Id="file_133" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\MetadataExtractor.dll" />
+            </Component>
+            <Component Id="cmp_134" Directory="INSTALLFOLDER" Guid="{77C8B7AB-5956-4E3F-A7FA-F696A3961D05}">
+                <File Id="file_134" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Microsoft.CSharp.dll" />
+            </Component>
+            <Component Id="cmp_135" Directory="INSTALLFOLDER" Guid="{269D5318-08CD-47B2-AABD-940528E10EC2}">
+                <File Id="file_135" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Microsoft.DiaSymReader.Native.amd64.dll" />
+            </Component>
+            <Component Id="cmp_136" Directory="INSTALLFOLDER" Guid="{347DEA2C-C939-49BD-943B-2065E11AA346}">
+                <File Id="file_136" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Microsoft.VisualBasic.Core.dll" />
+            </Component>
+            <Component Id="cmp_137" Directory="INSTALLFOLDER" Guid="{545A303B-1A76-4C5D-995C-099E53BA289D}">
+                <File Id="file_137" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Microsoft.VisualBasic.dll" />
+            </Component>
+            <Component Id="cmp_138" Directory="INSTALLFOLDER" Guid="{AB98A5F6-6AF2-4780-AE62-7924AF28FA59}">
+                <File Id="file_138" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Microsoft.VisualBasic.Forms.dll" />
+            </Component>
+            <Component Id="cmp_139" Directory="INSTALLFOLDER" Guid="{C441C2F8-15F8-4CEB-98F5-8751D8C3F6EF}">
+                <File Id="file_139" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Web.WebView2.Core.dll" />
+            </Component>
+            <Component Id="cmp_140" Directory="INSTALLFOLDER" Guid="{BF1292D0-09BE-4DDD-ACEB-C0C8AC813986}">
+                <File Id="file_140" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Web.WebView2.Core.xml" />
+            </Component>
+            <Component Id="cmp_141" Directory="INSTALLFOLDER" Guid="{35418C51-2DA6-437D-9747-CB265235DE88}">
+                <File Id="file_141" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Web.WebView2.WinForms.dll" />
+            </Component>
+            <Component Id="cmp_142" Directory="INSTALLFOLDER" Guid="{5D9E108A-328D-4B15-92DE-8761FB3E6ED9}">
+                <File Id="file_142" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Web.WebView2.WinForms.xml" />
+            </Component>
+            <Component Id="cmp_143" Directory="INSTALLFOLDER" Guid="{2D535409-B33E-4175-B648-81308CFE9040}">
+                <File Id="file_143" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Web.WebView2.Wpf.dll" />
+            </Component>
+            <Component Id="cmp_144" Directory="INSTALLFOLDER" Guid="{6420F302-D574-416F-8F70-BF54F077F7E7}">
+                <File Id="file_144" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Web.WebView2.Wpf.xml" />
+            </Component>
+            <Component Id="cmp_145" Directory="INSTALLFOLDER" Guid="{40C505F3-F45F-4FA8-BF2D-47E29655C424}">
+                <File Id="file_145" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Win32.Primitives.dll" />
+            </Component>
+            <Component Id="cmp_146" Directory="INSTALLFOLDER" Guid="{DB2197AB-DFB1-4A5F-B0AA-618936205E0C}">
+                <File Id="file_146" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Win32.Registry.AccessControl.dll" />
+            </Component>
+            <Component Id="cmp_147" Directory="INSTALLFOLDER" Guid="{2F402CB8-CA72-4881-8E50-6D0B76171E49}">
+                <File Id="file_147" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Win32.Registry.dll" />
+            </Component>
+            <Component Id="cmp_148" Directory="INSTALLFOLDER" Guid="{833FECEE-1867-496D-BA98-5B3C0F954561}">
+                <File Id="file_148" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Microsoft.Win32.SystemEvents.dll" />
+            </Component>
+            <Component Id="cmp_149" Directory="INSTALLFOLDER" Guid="{68C6471A-C71A-4C4D-BE6D-D48B56704A03}">
+                <File Id="file_149" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\mscordaccore_amd64_amd64_10.0.125.57005.dll" />
+            </Component>
+            <Component Id="cmp_150" Directory="INSTALLFOLDER" Guid="{8793399F-49EE-483C-B53E-1AFE2658A995}">
+                <File Id="file_150" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\mscordaccore.dll" />
+            </Component>
+            <Component Id="cmp_151" Directory="INSTALLFOLDER" Guid="{A8B32D70-C403-4F7E-863F-1766D3673D20}">
+                <File Id="file_151" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\mscordbi.dll" />
+            </Component>
+            <Component Id="cmp_152" Directory="INSTALLFOLDER" Guid="{CA456B58-32B8-4E12-BD19-35BAD85B93E9}">
+                <File Id="file_152" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\mscorlib.dll" />
+            </Component>
+            <Component Id="cmp_153" Directory="INSTALLFOLDER" Guid="{3F9C95D3-6251-4379-A0FA-EA01EE62C4FD}">
+                <File Id="file_153" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\mscorrc.dll" />
+            </Component>
+            <Component Id="cmp_154" Directory="INSTALLFOLDER" Guid="{3253DBFE-B88B-4F41-B859-1745226BB8E6}">
+                <File Id="file_154" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\msquic.dll" />
+            </Component>
+            <Component Id="cmp_155" Directory="INSTALLFOLDER" Guid="{6852B64C-845F-4D98-80B9-2591AB5A1EAB}">
+                <File Id="file_155" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\netstandard.dll" />
+            </Component>
+            <Component Id="cmp_156" Directory="INSTALLFOLDER" Guid="{2C62A480-9BA9-4B2E-AC5C-CF6C1E3EDB4E}">
+                <File Id="file_156" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PenImc_cor3.dll" />
+            </Component>
+            <Component Id="cmp_157" Directory="dir_pl" Guid="{3B735CE4-152A-4C73-B4ED-96F40F527A41}">
+                <File Id="file_157" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pl\Microsoft.VisualBasic.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_158" Directory="dir_pl" Guid="{92F8220D-8B01-4799-95A2-519C2F9FBDE1}">
+                <File Id="file_158" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pl\PresentationCore.resources.dll" />
+            </Component>
+            <Component Id="cmp_159" Directory="dir_pl" Guid="{07D07E70-8C78-4E41-9E6B-FB0AFF99CD69}">
+                <File Id="file_159" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pl\PresentationFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_160" Directory="dir_pl" Guid="{095E35CE-0AAC-4471-9465-100E10A38F7D}">
+                <File Id="file_160" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pl\PresentationUI.resources.dll" />
+            </Component>
+            <Component Id="cmp_161" Directory="dir_pl" Guid="{3DFCE7ED-8F28-4C44-95E4-3E69CCCD04D6}">
+                <File Id="file_161" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pl\ReachFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_162" Directory="dir_pl" Guid="{32668E6C-6A37-43FD-B43E-3585F6284995}">
+                <File Id="file_162" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pl\System.Windows.Controls.Ribbon.resources.dll" />
+            </Component>
+            <Component Id="cmp_163" Directory="dir_pl" Guid="{1B809C6F-8A2A-4BA6-B6E8-A0E5ABAFE432}">
+                <File Id="file_163" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pl\System.Windows.Forms.Design.resources.dll" />
+            </Component>
+            <Component Id="cmp_164" Directory="dir_pl" Guid="{48C08248-D5B3-4F70-BFAE-5530AF2D5DE0}">
+                <File Id="file_164" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pl\System.Windows.Forms.Primitives.resources.dll" />
+            </Component>
+            <Component Id="cmp_165" Directory="dir_pl" Guid="{1E28D715-0D97-4CED-9C66-0C20EDCB1A30}">
+                <File Id="file_165" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pl\System.Windows.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_166" Directory="dir_pl" Guid="{6202F434-60AB-436B-A81E-C337C5BBB221}">
+                <File Id="file_166" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pl\System.Windows.Input.Manipulations.resources.dll" />
+            </Component>
+            <Component Id="cmp_167" Directory="dir_pl" Guid="{4FAC730C-B37C-49E3-9215-479F73E4CA6E}">
+                <File Id="file_167" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pl\System.Xaml.resources.dll" />
+            </Component>
+            <Component Id="cmp_168" Directory="dir_pl" Guid="{528FEACC-655B-43CD-9791-108FC9BBFCF9}">
+                <File Id="file_168" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pl\UIAutomationClient.resources.dll" />
+            </Component>
+            <Component Id="cmp_169" Directory="dir_pl" Guid="{3B043258-3106-4597-AB43-CB2E13B81C00}">
+                <File Id="file_169" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pl\UIAutomationClientSideProviders.resources.dll" />
+            </Component>
+            <Component Id="cmp_170" Directory="dir_pl" Guid="{131FAA81-4D70-47BD-9FB2-D1B324EA380D}">
+                <File Id="file_170" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pl\UIAutomationProvider.resources.dll" />
+            </Component>
+            <Component Id="cmp_171" Directory="dir_pl" Guid="{07DC1222-468F-4D48-8880-57334BF6D205}">
+                <File Id="file_171" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pl\UIAutomationTypes.resources.dll" />
+            </Component>
+            <Component Id="cmp_172" Directory="dir_pl" Guid="{5493F1D0-210E-4F75-906F-C1F69E9BC4CE}">
+                <File Id="file_172" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pl\WindowsBase.resources.dll" />
+            </Component>
+            <Component Id="cmp_173" Directory="dir_pl" Guid="{7A1D68EC-739F-4D94-B9FC-6924FC70CF67}">
+                <File Id="file_173" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pl\WindowsFormsIntegration.resources.dll" />
+            </Component>
+            <Component Id="cmp_174" Directory="INSTALLFOLDER" Guid="{BE96B322-5C21-4873-B72E-F6A3BAF94B1C}">
+                <File Id="file_174" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PlatypusTools.Core.dll" />
+            </Component>
+            <Component Id="cmp_175" Directory="INSTALLFOLDER" Guid="{DE4E6BBE-C2C7-44EA-A79F-31FB5F7B59F3}">
+                <File Id="file_175" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PlatypusTools.Core.pdb" />
+            </Component>
+            <Component Id="cmp_176" Directory="INSTALLFOLDER" Guid="{CEB1C237-FCAF-42CC-A1D8-725F20307890}">
+                <File Id="file_176" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PlatypusTools.UI.deps.json" />
+            </Component>
+            <Component Id="cmp_177" Directory="INSTALLFOLDER" Guid="{34392FCA-C38B-4612-9C80-BADAA7E56346}">
+                <File Id="file_177" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PlatypusTools.UI.dll" />
+            </Component>
+            <Component Id="cmp_178" Directory="INSTALLFOLDER" Guid="{5555855D-D15F-42C0-A9A7-6EB2D9B3C694}">
+                <File Id="file_178" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PlatypusTools.UI.exe" />
+            </Component>
+            <Component Id="cmp_179" Directory="INSTALLFOLDER" Guid="{6CFBCD7F-1698-49BD-A1A5-D0470D263CD6}">
+                <File Id="file_179" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PlatypusTools.UI.pdb" />
+            </Component>
+            <Component Id="cmp_180" Directory="INSTALLFOLDER" Guid="{F5EAEABA-51EC-4A95-BCB0-1F052A59FA9F}">
+                <File Id="file_180" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PlatypusTools.UI.runtimeconfig.json" />
+            </Component>
+            <Component Id="cmp_181" Directory="INSTALLFOLDER" Guid="{C8AF6566-0607-43BE-ACCB-D7B469D87959}">
+                <File Id="file_181" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PresentationCore.dll" />
+            </Component>
+            <Component Id="cmp_182" Directory="INSTALLFOLDER" Guid="{BABBD421-F21C-405F-95CC-81CC96AA3ED4}">
+                <File Id="file_182" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework-SystemCore.dll" />
+            </Component>
+            <Component Id="cmp_183" Directory="INSTALLFOLDER" Guid="{AB700ED6-E4CD-49EB-853A-0616113410E5}">
+                <File Id="file_183" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework-SystemData.dll" />
+            </Component>
+            <Component Id="cmp_184" Directory="INSTALLFOLDER" Guid="{C6381231-94D2-4B20-B4C4-82774ECBD56F}">
+                <File Id="file_184" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework-SystemDrawing.dll" />
+            </Component>
+            <Component Id="cmp_185" Directory="INSTALLFOLDER" Guid="{9073B6FB-D6AD-43C5-BF69-1E14ECB05B74}">
+                <File Id="file_185" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework-SystemXml.dll" />
+            </Component>
+            <Component Id="cmp_186" Directory="INSTALLFOLDER" Guid="{FDE04207-B889-49B4-AA3C-268328410A52}">
+                <File Id="file_186" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework-SystemXmlLinq.dll" />
+            </Component>
+            <Component Id="cmp_187" Directory="INSTALLFOLDER" Guid="{2EC7993D-FC27-4E17-9934-5A8CD49CA845}">
+                <File Id="file_187" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework.Aero.dll" />
+            </Component>
+            <Component Id="cmp_188" Directory="INSTALLFOLDER" Guid="{B2E13909-7FDF-40B0-B6C3-4FDD3453E11E}">
+                <File Id="file_188" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework.Aero2.dll" />
+            </Component>
+            <Component Id="cmp_189" Directory="INSTALLFOLDER" Guid="{2C1D2F3C-6B4E-4385-819D-42F8AC3F5F14}">
+                <File Id="file_189" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework.AeroLite.dll" />
+            </Component>
+            <Component Id="cmp_190" Directory="INSTALLFOLDER" Guid="{9354BB2D-E2E5-4D58-A075-FCB2279F2D50}">
+                <File Id="file_190" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework.Classic.dll" />
+            </Component>
+            <Component Id="cmp_191" Directory="INSTALLFOLDER" Guid="{081ABCB7-D100-4A99-8714-501E87C69C9A}">
+                <File Id="file_191" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework.dll" />
+            </Component>
+            <Component Id="cmp_192" Directory="INSTALLFOLDER" Guid="{B132C889-BAFB-4C68-A2A8-A447EC52BA15}">
+                <File Id="file_192" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework.Fluent.dll" />
+            </Component>
+            <Component Id="cmp_193" Directory="INSTALLFOLDER" Guid="{443E8866-06A5-4B11-AEEE-19F84B6CD681}">
+                <File Id="file_193" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework.Luna.dll" />
+            </Component>
+            <Component Id="cmp_194" Directory="INSTALLFOLDER" Guid="{3A00D45A-EE3A-42D2-B09B-39EA8D463454}">
+                <File Id="file_194" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PresentationFramework.Royale.dll" />
+            </Component>
+            <Component Id="cmp_195" Directory="INSTALLFOLDER" Guid="{B1373122-9D01-4B2C-9FA5-F299126C9AA4}">
+                <File Id="file_195" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PresentationNative_cor3.dll" />
+            </Component>
+            <Component Id="cmp_196" Directory="INSTALLFOLDER" Guid="{0EE65A98-37F9-47CB-901C-5CFF2B9ABE95}">
+                <File Id="file_196" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PresentationUI.dll" />
+            </Component>
+            <Component Id="cmp_197" Directory="dir_ptBR" Guid="{8485665A-C6AF-4A53-8673-E693F7941CB1}">
+                <File Id="file_197" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pt-BR\Microsoft.VisualBasic.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_198" Directory="dir_ptBR" Guid="{0CEFA188-8082-4173-8CB1-D8C3381B3C4B}">
+                <File Id="file_198" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pt-BR\PresentationCore.resources.dll" />
+            </Component>
+            <Component Id="cmp_199" Directory="dir_ptBR" Guid="{12BF30C9-1CB7-4022-AC86-5EAB769B5798}">
+                <File Id="file_199" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pt-BR\PresentationFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_200" Directory="dir_ptBR" Guid="{3F3AEBA9-89FE-4C93-AD7D-C612E0FEAB93}">
+                <File Id="file_200" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pt-BR\PresentationUI.resources.dll" />
+            </Component>
+            <Component Id="cmp_201" Directory="dir_ptBR" Guid="{2B44FAF6-80C4-4601-B91A-16F1AD594E7E}">
+                <File Id="file_201" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pt-BR\ReachFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_202" Directory="dir_ptBR" Guid="{D62C34D5-8B22-4576-8234-8E6FA9023518}">
+                <File Id="file_202" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pt-BR\System.Windows.Controls.Ribbon.resources.dll" />
+            </Component>
+            <Component Id="cmp_203" Directory="dir_ptBR" Guid="{E0872BA7-360D-4B3F-84D6-A06E75E7BF45}">
+                <File Id="file_203" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pt-BR\System.Windows.Forms.Design.resources.dll" />
+            </Component>
+            <Component Id="cmp_204" Directory="dir_ptBR" Guid="{E1CF293F-3F86-4BE1-BEA1-13D4F6349720}">
+                <File Id="file_204" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pt-BR\System.Windows.Forms.Primitives.resources.dll" />
+            </Component>
+            <Component Id="cmp_205" Directory="dir_ptBR" Guid="{F8337D80-ACE0-4EB0-8E9F-9A3A1EF4AF97}">
+                <File Id="file_205" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pt-BR\System.Windows.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_206" Directory="dir_ptBR" Guid="{848FF6B9-C779-418E-A8CE-A5E76DA4CEA6}">
+                <File Id="file_206" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pt-BR\System.Windows.Input.Manipulations.resources.dll" />
+            </Component>
+            <Component Id="cmp_207" Directory="dir_ptBR" Guid="{BE838ECA-5F8C-44FB-9F6F-246AAE0566BD}">
+                <File Id="file_207" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pt-BR\System.Xaml.resources.dll" />
+            </Component>
+            <Component Id="cmp_208" Directory="dir_ptBR" Guid="{611F4E0D-EAA2-408B-8F97-C6C9E12942F8}">
+                <File Id="file_208" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pt-BR\UIAutomationClient.resources.dll" />
+            </Component>
+            <Component Id="cmp_209" Directory="dir_ptBR" Guid="{9D1262EF-33AE-400C-82D6-40778336324D}">
+                <File Id="file_209" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pt-BR\UIAutomationClientSideProviders.resources.dll" />
+            </Component>
+            <Component Id="cmp_210" Directory="dir_ptBR" Guid="{F66FFD4A-79EF-4A3F-9741-57644BB89BE1}">
+                <File Id="file_210" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pt-BR\UIAutomationProvider.resources.dll" />
+            </Component>
+            <Component Id="cmp_211" Directory="dir_ptBR" Guid="{C84C9233-43B9-43CF-A083-784E496B56D9}">
+                <File Id="file_211" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pt-BR\UIAutomationTypes.resources.dll" />
+            </Component>
+            <Component Id="cmp_212" Directory="dir_ptBR" Guid="{2F292F10-5333-4CE2-8554-C4A168803648}">
+                <File Id="file_212" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pt-BR\WindowsBase.resources.dll" />
+            </Component>
+            <Component Id="cmp_213" Directory="dir_ptBR" Guid="{2E9080E6-9E90-4E2A-B956-274C00068CA5}">
+                <File Id="file_213" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\pt-BR\WindowsFormsIntegration.resources.dll" />
+            </Component>
+            <Component Id="cmp_214" Directory="INSTALLFOLDER" Guid="{1EC0FEEA-3827-4BAC-B301-F59ACC5F4B1A}">
+                <File Id="file_214" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ReachFramework.dll" />
+            </Component>
+            <Component Id="cmp_215" Directory="dir_ru" Guid="{6E256BCE-2013-4413-B4CC-780A44C6F770}">
+                <File Id="file_215" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ru\Microsoft.VisualBasic.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_216" Directory="dir_ru" Guid="{DE0C456A-1140-4460-A328-20EDF890898F}">
+                <File Id="file_216" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ru\PresentationCore.resources.dll" />
+            </Component>
+            <Component Id="cmp_217" Directory="dir_ru" Guid="{584546E9-924F-448F-8A66-277FBD9188A5}">
+                <File Id="file_217" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ru\PresentationFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_218" Directory="dir_ru" Guid="{9EC8402C-4B7C-4E44-8218-BDE271EE2CBC}">
+                <File Id="file_218" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ru\PresentationUI.resources.dll" />
+            </Component>
+            <Component Id="cmp_219" Directory="dir_ru" Guid="{4A1D8486-AB2D-4E45-9C77-3422C01CFA12}">
+                <File Id="file_219" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ru\ReachFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_220" Directory="dir_ru" Guid="{9AB9CCE2-6ED5-46E8-920A-97FFE99E1AA5}">
+                <File Id="file_220" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ru\System.Windows.Controls.Ribbon.resources.dll" />
+            </Component>
+            <Component Id="cmp_221" Directory="dir_ru" Guid="{6C6420E9-CA60-4104-8F5B-B56B354AD7E7}">
+                <File Id="file_221" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ru\System.Windows.Forms.Design.resources.dll" />
+            </Component>
+            <Component Id="cmp_222" Directory="dir_ru" Guid="{6207A96F-FFF8-4489-A05E-E271AAB35688}">
+                <File Id="file_222" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ru\System.Windows.Forms.Primitives.resources.dll" />
+            </Component>
+            <Component Id="cmp_223" Directory="dir_ru" Guid="{61056C62-B9E3-4A5D-91D9-BD04FA365E08}">
+                <File Id="file_223" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ru\System.Windows.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_224" Directory="dir_ru" Guid="{FA3D4688-A358-4BFD-AA66-8FCDBD6375E3}">
+                <File Id="file_224" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ru\System.Windows.Input.Manipulations.resources.dll" />
+            </Component>
+            <Component Id="cmp_225" Directory="dir_ru" Guid="{C547DA5F-AB90-494E-932C-C7745CC07DF1}">
+                <File Id="file_225" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ru\System.Xaml.resources.dll" />
+            </Component>
+            <Component Id="cmp_226" Directory="dir_ru" Guid="{5405E2BA-28D9-4F67-A9DE-288F1BF77C2A}">
+                <File Id="file_226" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ru\UIAutomationClient.resources.dll" />
+            </Component>
+            <Component Id="cmp_227" Directory="dir_ru" Guid="{7E5355ED-8391-4B2E-879C-BF523E82D933}">
+                <File Id="file_227" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ru\UIAutomationClientSideProviders.resources.dll" />
+            </Component>
+            <Component Id="cmp_228" Directory="dir_ru" Guid="{2A9AC2E5-5221-4E35-AF34-4DF03FD02A76}">
+                <File Id="file_228" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ru\UIAutomationProvider.resources.dll" />
+            </Component>
+            <Component Id="cmp_229" Directory="dir_ru" Guid="{3736A5E7-2E9E-4CFF-89FE-77AF751CE4B0}">
+                <File Id="file_229" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ru\UIAutomationTypes.resources.dll" />
+            </Component>
+            <Component Id="cmp_230" Directory="dir_ru" Guid="{A9638EAB-983C-476D-8FFB-094C0DFD76DE}">
+                <File Id="file_230" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ru\WindowsBase.resources.dll" />
+            </Component>
+            <Component Id="cmp_231" Directory="dir_ru" Guid="{A24A8273-9EFE-444F-BBD0-BB67EB0BE8EC}">
+                <File Id="file_231" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\ru\WindowsFormsIntegration.resources.dll" />
+            </Component>
+            <Component Id="cmp_232" Directory="dir_runtimes_winx64_native" Guid="{DDEACA03-04BE-42BD-B587-87D5AFB220B4}">
+                <File Id="file_232" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\runtimes\win-x64\native\WebView2Loader.dll" />
+            </Component>
+            <Component Id="cmp_233" Directory="INSTALLFOLDER" Guid="{5C5CFB6A-89DB-4472-93C6-B3B440E18A59}">
+                <File Id="file_233" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.AppContext.dll" />
+            </Component>
+            <Component Id="cmp_234" Directory="INSTALLFOLDER" Guid="{62EC1A76-1FCB-403C-887F-38AE8326D382}">
+                <File Id="file_234" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Buffers.dll" />
+            </Component>
+            <Component Id="cmp_235" Directory="INSTALLFOLDER" Guid="{898FB59E-A0B7-43F8-AC3C-B190EB84B04A}">
+                <File Id="file_235" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.CodeDom.dll" />
+            </Component>
+            <Component Id="cmp_236" Directory="INSTALLFOLDER" Guid="{5F4F30CB-28E2-4663-B1F4-85178407690C}">
+                <File Id="file_236" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Collections.Concurrent.dll" />
+            </Component>
+            <Component Id="cmp_237" Directory="INSTALLFOLDER" Guid="{2835F360-DE81-4164-8C15-6559E4AE0237}">
+                <File Id="file_237" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Collections.dll" />
+            </Component>
+            <Component Id="cmp_238" Directory="INSTALLFOLDER" Guid="{1E9CC086-CEF5-4E45-A333-C5EDEC47B617}">
+                <File Id="file_238" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Collections.Immutable.dll" />
+            </Component>
+            <Component Id="cmp_239" Directory="INSTALLFOLDER" Guid="{AA7B5065-157E-4CE8-B62F-65031D8C8B52}">
+                <File Id="file_239" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Collections.NonGeneric.dll" />
+            </Component>
+            <Component Id="cmp_240" Directory="INSTALLFOLDER" Guid="{373A2A2D-E04F-4202-A136-6CADE48C63EE}">
+                <File Id="file_240" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Collections.Specialized.dll" />
+            </Component>
+            <Component Id="cmp_241" Directory="INSTALLFOLDER" Guid="{7B789C37-3D8E-4C5D-8F92-818D3FB0AED8}">
+                <File Id="file_241" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.ComponentModel.Annotations.dll" />
+            </Component>
+            <Component Id="cmp_242" Directory="INSTALLFOLDER" Guid="{6BFDA86B-48F5-4FDD-9C8C-D02CB1EE6E28}">
+                <File Id="file_242" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.ComponentModel.DataAnnotations.dll" />
+            </Component>
+            <Component Id="cmp_243" Directory="INSTALLFOLDER" Guid="{5FBAD795-B5A8-45B5-96F6-D90482EA956C}">
+                <File Id="file_243" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.ComponentModel.dll" />
+            </Component>
+            <Component Id="cmp_244" Directory="INSTALLFOLDER" Guid="{C81C5B3B-EADF-4DF3-B151-0CFC0309327D}">
+                <File Id="file_244" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.ComponentModel.EventBasedAsync.dll" />
+            </Component>
+            <Component Id="cmp_245" Directory="INSTALLFOLDER" Guid="{45B40C38-0372-4255-B26A-809BA32C3C40}">
+                <File Id="file_245" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.ComponentModel.Primitives.dll" />
+            </Component>
+            <Component Id="cmp_246" Directory="INSTALLFOLDER" Guid="{9D4B5974-0381-44C4-8ABF-FB5D952C72AC}">
+                <File Id="file_246" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.ComponentModel.TypeConverter.dll" />
+            </Component>
+            <Component Id="cmp_247" Directory="INSTALLFOLDER" Guid="{C1CCF740-D57F-430E-8CE3-3D1D4D4772B6}">
+                <File Id="file_247" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Configuration.ConfigurationManager.dll" />
+            </Component>
+            <Component Id="cmp_248" Directory="INSTALLFOLDER" Guid="{6C8A4A71-72F7-4C2F-B68D-A010CD5A102E}">
+                <File Id="file_248" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Configuration.dll" />
+            </Component>
+            <Component Id="cmp_249" Directory="INSTALLFOLDER" Guid="{39255652-53A7-4D06-8B8F-B26088D69B77}">
+                <File Id="file_249" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Console.dll" />
+            </Component>
+            <Component Id="cmp_250" Directory="INSTALLFOLDER" Guid="{068E470A-47CD-4E9B-8E0C-F2FA68992A44}">
+                <File Id="file_250" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Core.dll" />
+            </Component>
+            <Component Id="cmp_251" Directory="INSTALLFOLDER" Guid="{BB92D0F1-6A02-41FC-BFF2-D298EDF2E475}">
+                <File Id="file_251" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Data.Common.dll" />
+            </Component>
+            <Component Id="cmp_252" Directory="INSTALLFOLDER" Guid="{ECC0B6B3-7A0E-4B0D-B8DE-95268A016756}">
+                <File Id="file_252" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Data.DataSetExtensions.dll" />
+            </Component>
+            <Component Id="cmp_253" Directory="INSTALLFOLDER" Guid="{C83FF342-0F6F-4CC7-9E5B-A6E61D9BC245}">
+                <File Id="file_253" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Data.dll" />
+            </Component>
+            <Component Id="cmp_254" Directory="INSTALLFOLDER" Guid="{0706CCD2-69C3-434C-9F02-6FCFAA2F9A10}">
+                <File Id="file_254" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Design.dll" />
+            </Component>
+            <Component Id="cmp_255" Directory="INSTALLFOLDER" Guid="{666D3B1D-877F-49C4-8675-8E08F61E6C9E}">
+                <File Id="file_255" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.Contracts.dll" />
+            </Component>
+            <Component Id="cmp_256" Directory="INSTALLFOLDER" Guid="{4EC7BEC9-7443-415B-81B8-BF6B7A0B8EEC}">
+                <File Id="file_256" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.Debug.dll" />
+            </Component>
+            <Component Id="cmp_257" Directory="INSTALLFOLDER" Guid="{D72F0513-F921-4ADB-9A98-DBBF94BBABBB}">
+                <File Id="file_257" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.DiagnosticSource.dll" />
+            </Component>
+            <Component Id="cmp_258" Directory="INSTALLFOLDER" Guid="{74676372-0647-4B25-B8D6-C1720D1322AA}">
+                <File Id="file_258" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.EventLog.dll" />
+            </Component>
+            <Component Id="cmp_259" Directory="INSTALLFOLDER" Guid="{EAA0F9F5-C51C-463F-9205-57BBFD164969}">
+                <File Id="file_259" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.EventLog.Messages.dll" />
+            </Component>
+            <Component Id="cmp_260" Directory="INSTALLFOLDER" Guid="{D5EA8313-FBB8-4CDD-86F8-1DD0039378E4}">
+                <File Id="file_260" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.FileVersionInfo.dll" />
+            </Component>
+            <Component Id="cmp_261" Directory="INSTALLFOLDER" Guid="{4261355D-A91E-427E-B025-CF5AEBE082C7}">
+                <File Id="file_261" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.PerformanceCounter.dll" />
+            </Component>
+            <Component Id="cmp_262" Directory="INSTALLFOLDER" Guid="{7FBDCF7C-3A6A-4E9A-8C32-809099EA46CA}">
+                <File Id="file_262" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.Process.dll" />
+            </Component>
+            <Component Id="cmp_263" Directory="INSTALLFOLDER" Guid="{6F9C48D3-61C9-40DA-BFF5-E73CBA9920EE}">
+                <File Id="file_263" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.StackTrace.dll" />
+            </Component>
+            <Component Id="cmp_264" Directory="INSTALLFOLDER" Guid="{5A4DFFED-7D8D-47AD-BA3D-B52B305B5F3A}">
+                <File Id="file_264" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.TextWriterTraceListener.dll" />
+            </Component>
+            <Component Id="cmp_265" Directory="INSTALLFOLDER" Guid="{CC678A81-792F-41A7-AD65-6D9C9D678494}">
+                <File Id="file_265" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.Tools.dll" />
+            </Component>
+            <Component Id="cmp_266" Directory="INSTALLFOLDER" Guid="{97A9140D-458E-48FD-ABAE-40599CE04B2E}">
+                <File Id="file_266" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.TraceSource.dll" />
+            </Component>
+            <Component Id="cmp_267" Directory="INSTALLFOLDER" Guid="{D551E82A-1C9C-429D-AAC6-DBA6B934DD34}">
+                <File Id="file_267" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Diagnostics.Tracing.dll" />
+            </Component>
+            <Component Id="cmp_268" Directory="INSTALLFOLDER" Guid="{E5048601-F640-4DF0-8604-241985A672BD}">
+                <File Id="file_268" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.DirectoryServices.dll" />
+            </Component>
+            <Component Id="cmp_269" Directory="INSTALLFOLDER" Guid="{1BCF6B2B-75FB-4B7B-BB31-7F3CE3BA54AF}">
+                <File Id="file_269" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.dll" />
+            </Component>
+            <Component Id="cmp_270" Directory="INSTALLFOLDER" Guid="{2AF6B00F-207B-4879-9401-C8BDB56E3528}">
+                <File Id="file_270" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Drawing.Common.dll" />
+            </Component>
+            <Component Id="cmp_271" Directory="INSTALLFOLDER" Guid="{2B7004C0-633B-4BC8-945A-A698F098A848}">
+                <File Id="file_271" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Drawing.Design.dll" />
+            </Component>
+            <Component Id="cmp_272" Directory="INSTALLFOLDER" Guid="{61C4D678-6F1F-4254-8F86-4386DACC1D59}">
+                <File Id="file_272" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Drawing.dll" />
+            </Component>
+            <Component Id="cmp_273" Directory="INSTALLFOLDER" Guid="{921B5DA2-EEDC-49F0-B697-C04FA5A31A2B}">
+                <File Id="file_273" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Drawing.Primitives.dll" />
+            </Component>
+            <Component Id="cmp_274" Directory="INSTALLFOLDER" Guid="{3593EB81-EB2C-4F44-97A1-760D66A2F549}">
+                <File Id="file_274" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Dynamic.Runtime.dll" />
+            </Component>
+            <Component Id="cmp_275" Directory="INSTALLFOLDER" Guid="{33ECDF7A-CCA9-45D0-88AF-D0E5CF0BBDA6}">
+                <File Id="file_275" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Formats.Asn1.dll" />
+            </Component>
+            <Component Id="cmp_276" Directory="INSTALLFOLDER" Guid="{58BBD700-C418-4416-B769-007C568C521B}">
+                <File Id="file_276" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Formats.Nrbf.dll" />
+            </Component>
+            <Component Id="cmp_277" Directory="INSTALLFOLDER" Guid="{16D83270-CAAE-4791-9478-15AFFD9062C5}">
+                <File Id="file_277" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Formats.Tar.dll" />
+            </Component>
+            <Component Id="cmp_278" Directory="INSTALLFOLDER" Guid="{2BCF7AD9-B004-4E0B-BC57-76DDF64EBC76}">
+                <File Id="file_278" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Globalization.Calendars.dll" />
+            </Component>
+            <Component Id="cmp_279" Directory="INSTALLFOLDER" Guid="{B0610845-62B6-4346-8BE5-DBA48F5A110E}">
+                <File Id="file_279" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Globalization.dll" />
+            </Component>
+            <Component Id="cmp_280" Directory="INSTALLFOLDER" Guid="{1F2B7DD2-DF14-403E-87C9-94E72E587B7E}">
+                <File Id="file_280" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Globalization.Extensions.dll" />
+            </Component>
+            <Component Id="cmp_281" Directory="INSTALLFOLDER" Guid="{F48E6CB9-B3F6-4421-9317-3BF6C47F1416}">
+                <File Id="file_281" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.Compression.Brotli.dll" />
+            </Component>
+            <Component Id="cmp_282" Directory="INSTALLFOLDER" Guid="{9C8D6DB8-C038-4175-A1D7-3410CC6635F7}">
+                <File Id="file_282" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.Compression.dll" />
+            </Component>
+            <Component Id="cmp_283" Directory="INSTALLFOLDER" Guid="{4C68B3F5-967D-4337-B74D-C6398910F63E}">
+                <File Id="file_283" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.Compression.FileSystem.dll" />
+            </Component>
+            <Component Id="cmp_284" Directory="INSTALLFOLDER" Guid="{9AC135BC-5F30-4145-BB1B-88C903720C38}">
+                <File Id="file_284" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.Compression.Native.dll" />
+            </Component>
+            <Component Id="cmp_285" Directory="INSTALLFOLDER" Guid="{376A6EA3-23FE-41C8-A06C-6ED71D285790}">
+                <File Id="file_285" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.Compression.ZipFile.dll" />
+            </Component>
+            <Component Id="cmp_286" Directory="INSTALLFOLDER" Guid="{E7323C23-6F05-48F7-8A36-3A885637E722}">
+                <File Id="file_286" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.dll" />
+            </Component>
+            <Component Id="cmp_287" Directory="INSTALLFOLDER" Guid="{40CD1241-52ED-4CE5-B65D-7DC8C18D227F}">
+                <File Id="file_287" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.FileSystem.AccessControl.dll" />
+            </Component>
+            <Component Id="cmp_288" Directory="INSTALLFOLDER" Guid="{2F41A73B-E727-4917-B100-9BD04CFCFD9E}">
+                <File Id="file_288" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.FileSystem.dll" />
+            </Component>
+            <Component Id="cmp_289" Directory="INSTALLFOLDER" Guid="{D59F69E5-0DB9-4577-B5C5-92F35048284D}">
+                <File Id="file_289" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.FileSystem.DriveInfo.dll" />
+            </Component>
+            <Component Id="cmp_290" Directory="INSTALLFOLDER" Guid="{74EDCAB6-DA5D-4CFA-8057-2035ACCB89D0}">
+                <File Id="file_290" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.FileSystem.Primitives.dll" />
+            </Component>
+            <Component Id="cmp_291" Directory="INSTALLFOLDER" Guid="{9F736BDF-C618-4D85-9177-82292CA63459}">
+                <File Id="file_291" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.FileSystem.Watcher.dll" />
+            </Component>
+            <Component Id="cmp_292" Directory="INSTALLFOLDER" Guid="{881A7740-627A-49F7-9A2C-B8B84A28619F}">
+                <File Id="file_292" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.IsolatedStorage.dll" />
+            </Component>
+            <Component Id="cmp_293" Directory="INSTALLFOLDER" Guid="{093BB63F-9793-4200-BE88-7345CDE55A3F}">
+                <File Id="file_293" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.MemoryMappedFiles.dll" />
+            </Component>
+            <Component Id="cmp_294" Directory="INSTALLFOLDER" Guid="{93AA27B6-856F-41C8-99EF-4D59424CF331}">
+                <File Id="file_294" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.Packaging.dll" />
+            </Component>
+            <Component Id="cmp_295" Directory="INSTALLFOLDER" Guid="{679110CA-B547-4307-92E0-3B763B795471}">
+                <File Id="file_295" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.Pipelines.dll" />
+            </Component>
+            <Component Id="cmp_296" Directory="INSTALLFOLDER" Guid="{CDCEE77D-6570-418A-A118-18EBF38268E6}">
+                <File Id="file_296" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.Pipes.AccessControl.dll" />
+            </Component>
+            <Component Id="cmp_297" Directory="INSTALLFOLDER" Guid="{0D959F0C-1367-4C64-AC27-BD100207859B}">
+                <File Id="file_297" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.Pipes.dll" />
+            </Component>
+            <Component Id="cmp_298" Directory="INSTALLFOLDER" Guid="{1D71EB0B-B18B-4CB2-9BC1-5B4B8F744E67}">
+                <File Id="file_298" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.IO.UnmanagedMemoryStream.dll" />
+            </Component>
+            <Component Id="cmp_299" Directory="INSTALLFOLDER" Guid="{E67E0389-CD69-4EB3-A18A-1817E503BD2B}">
+                <File Id="file_299" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Linq.AsyncEnumerable.dll" />
+            </Component>
+            <Component Id="cmp_300" Directory="INSTALLFOLDER" Guid="{68C24B05-779A-4176-87A6-238B0A0871F6}">
+                <File Id="file_300" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Linq.dll" />
+            </Component>
+            <Component Id="cmp_301" Directory="INSTALLFOLDER" Guid="{21909FEC-A1F8-45A8-8348-F1372C1F715F}">
+                <File Id="file_301" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Linq.Expressions.dll" />
+            </Component>
+            <Component Id="cmp_302" Directory="INSTALLFOLDER" Guid="{459E0596-60B7-43FC-8BFA-6C01971DF43F}">
+                <File Id="file_302" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Linq.Parallel.dll" />
+            </Component>
+            <Component Id="cmp_303" Directory="INSTALLFOLDER" Guid="{FD5CCDAF-CEDC-462D-B9F5-49DDFC3D5DF4}">
+                <File Id="file_303" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Linq.Queryable.dll" />
+            </Component>
+            <Component Id="cmp_304" Directory="INSTALLFOLDER" Guid="{6CC36E0C-3BAA-4760-AE18-244598226E7D}">
+                <File Id="file_304" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Management.dll" />
+            </Component>
+            <Component Id="cmp_305" Directory="INSTALLFOLDER" Guid="{D5471437-1A6C-488C-B689-84B1D24B08F4}">
+                <File Id="file_305" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Memory.dll" />
+            </Component>
+            <Component Id="cmp_306" Directory="INSTALLFOLDER" Guid="{FD79B917-D7A1-4C08-9CF1-C03FD22447E0}">
+                <File Id="file_306" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.dll" />
+            </Component>
+            <Component Id="cmp_307" Directory="INSTALLFOLDER" Guid="{FDEA2DD3-B173-484A-A56F-8D6442BE44BC}">
+                <File Id="file_307" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.Http.dll" />
+            </Component>
+            <Component Id="cmp_308" Directory="INSTALLFOLDER" Guid="{4DBFAEB1-7CCF-40E4-9F16-12B9C140FCD9}">
+                <File Id="file_308" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.Http.Json.dll" />
+            </Component>
+            <Component Id="cmp_309" Directory="INSTALLFOLDER" Guid="{64ED38CC-35A1-43CE-9D89-760D94C12F0A}">
+                <File Id="file_309" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.HttpListener.dll" />
+            </Component>
+            <Component Id="cmp_310" Directory="INSTALLFOLDER" Guid="{148D56A3-4864-4C13-B39D-2C700B32C78B}">
+                <File Id="file_310" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.Mail.dll" />
+            </Component>
+            <Component Id="cmp_311" Directory="INSTALLFOLDER" Guid="{0A9E82AC-EDCA-4EBF-80B1-F2D7A42DA79F}">
+                <File Id="file_311" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.NameResolution.dll" />
+            </Component>
+            <Component Id="cmp_312" Directory="INSTALLFOLDER" Guid="{0E504A2E-1224-4FAA-B4EF-255DB29210F8}">
+                <File Id="file_312" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.NetworkInformation.dll" />
+            </Component>
+            <Component Id="cmp_313" Directory="INSTALLFOLDER" Guid="{E30A7687-73B8-45ED-8E71-D3DB1C2B09FC}">
+                <File Id="file_313" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.Ping.dll" />
+            </Component>
+            <Component Id="cmp_314" Directory="INSTALLFOLDER" Guid="{E56197EF-4536-49DA-979F-13904E06B86A}">
+                <File Id="file_314" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.Primitives.dll" />
+            </Component>
+            <Component Id="cmp_315" Directory="INSTALLFOLDER" Guid="{994EC5E2-E5CD-40FD-9B93-EF88F3F2CD11}">
+                <File Id="file_315" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.Quic.dll" />
+            </Component>
+            <Component Id="cmp_316" Directory="INSTALLFOLDER" Guid="{4B21730A-0D23-41D2-B1B6-ED8DF24CCF51}">
+                <File Id="file_316" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.Requests.dll" />
+            </Component>
+            <Component Id="cmp_317" Directory="INSTALLFOLDER" Guid="{4D4469E2-AFB7-4890-B887-592002091BA7}">
+                <File Id="file_317" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.Security.dll" />
+            </Component>
+            <Component Id="cmp_318" Directory="INSTALLFOLDER" Guid="{5B9A7BB9-0676-4B3F-884A-4C8655C3FF66}">
+                <File Id="file_318" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.ServerSentEvents.dll" />
+            </Component>
+            <Component Id="cmp_319" Directory="INSTALLFOLDER" Guid="{7D90BFD5-39F0-4EEA-BF4B-5381A961EC1B}">
+                <File Id="file_319" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.ServicePoint.dll" />
+            </Component>
+            <Component Id="cmp_320" Directory="INSTALLFOLDER" Guid="{AB3BE363-5B09-42A1-BEB3-7BFFFE84E82D}">
+                <File Id="file_320" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.Sockets.dll" />
+            </Component>
+            <Component Id="cmp_321" Directory="INSTALLFOLDER" Guid="{DD15045C-04C7-41B1-A90F-65F602A9B9A6}">
+                <File Id="file_321" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.WebClient.dll" />
+            </Component>
+            <Component Id="cmp_322" Directory="INSTALLFOLDER" Guid="{A082A9D4-6F02-4F15-940F-462C18333D3E}">
+                <File Id="file_322" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.WebHeaderCollection.dll" />
+            </Component>
+            <Component Id="cmp_323" Directory="INSTALLFOLDER" Guid="{D16CDD4B-422D-45BE-B56A-CCE4D18E7AE3}">
+                <File Id="file_323" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.WebProxy.dll" />
+            </Component>
+            <Component Id="cmp_324" Directory="INSTALLFOLDER" Guid="{EF45447A-92A5-40CE-86FC-73018ECFAC29}">
+                <File Id="file_324" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.WebSockets.Client.dll" />
+            </Component>
+            <Component Id="cmp_325" Directory="INSTALLFOLDER" Guid="{E6516EBB-984D-46D3-AAC4-F07278B4AC5F}">
+                <File Id="file_325" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Net.WebSockets.dll" />
+            </Component>
+            <Component Id="cmp_326" Directory="INSTALLFOLDER" Guid="{4140631F-750F-4401-8F3F-3C7446DF3EA2}">
+                <File Id="file_326" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Numerics.dll" />
+            </Component>
+            <Component Id="cmp_327" Directory="INSTALLFOLDER" Guid="{92ECC453-F691-4CBC-806D-290D97EBDCC3}">
+                <File Id="file_327" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Numerics.Vectors.dll" />
+            </Component>
+            <Component Id="cmp_328" Directory="INSTALLFOLDER" Guid="{B0549457-C422-4850-B115-FF9AE0C14A07}">
+                <File Id="file_328" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.ObjectModel.dll" />
+            </Component>
+            <Component Id="cmp_329" Directory="INSTALLFOLDER" Guid="{5740B6BF-B82A-415D-B832-E8F8DCD8E20C}">
+                <File Id="file_329" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Printing.dll" />
+            </Component>
+            <Component Id="cmp_330" Directory="INSTALLFOLDER" Guid="{97807C76-2BC9-4ECE-AAD6-E58784C2DD2B}">
+                <File Id="file_330" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Private.CoreLib.dll" />
+            </Component>
+            <Component Id="cmp_331" Directory="INSTALLFOLDER" Guid="{A1C0B35F-289E-495E-805E-DBA0A93CC823}">
+                <File Id="file_331" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Private.DataContractSerialization.dll" />
+            </Component>
+            <Component Id="cmp_332" Directory="INSTALLFOLDER" Guid="{2C3DB74C-939C-4711-AAF1-F1E7E17EB1B1}">
+                <File Id="file_332" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Private.Uri.dll" />
+            </Component>
+            <Component Id="cmp_333" Directory="INSTALLFOLDER" Guid="{8CF8603D-DCB2-4454-9E47-04911986F1EB}">
+                <File Id="file_333" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Private.Windows.Core.dll" />
+            </Component>
+            <Component Id="cmp_334" Directory="INSTALLFOLDER" Guid="{9D82F968-DBFD-4332-A925-7BDDC980B074}">
+                <File Id="file_334" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Private.Windows.GdiPlus.dll" />
+            </Component>
+            <Component Id="cmp_335" Directory="INSTALLFOLDER" Guid="{51A11270-F448-4837-8904-526DD35E9F0A}">
+                <File Id="file_335" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Private.Xml.dll" />
+            </Component>
+            <Component Id="cmp_336" Directory="INSTALLFOLDER" Guid="{8DD53877-DA7C-4986-8DF1-5AED28A51B4D}">
+                <File Id="file_336" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Private.Xml.Linq.dll" />
+            </Component>
+            <Component Id="cmp_337" Directory="INSTALLFOLDER" Guid="{1F5C3E7C-DAA1-4CE7-AF67-FA2D719427C7}">
+                <File Id="file_337" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.DispatchProxy.dll" />
+            </Component>
+            <Component Id="cmp_338" Directory="INSTALLFOLDER" Guid="{25955301-F70D-4591-8DA7-91B1C5459F9B}">
+                <File Id="file_338" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.dll" />
+            </Component>
+            <Component Id="cmp_339" Directory="INSTALLFOLDER" Guid="{8068EE4D-45B0-44C5-B38E-350D87D8F2EE}">
+                <File Id="file_339" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.Emit.dll" />
+            </Component>
+            <Component Id="cmp_340" Directory="INSTALLFOLDER" Guid="{542BAD0B-F313-45E2-9122-22EF28A9F7C8}">
+                <File Id="file_340" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.Emit.ILGeneration.dll" />
+            </Component>
+            <Component Id="cmp_341" Directory="INSTALLFOLDER" Guid="{2E655088-4A51-447D-A139-1965800C89D4}">
+                <File Id="file_341" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.Emit.Lightweight.dll" />
+            </Component>
+            <Component Id="cmp_342" Directory="INSTALLFOLDER" Guid="{891CA1CC-11DE-4F14-B876-B77659FE6B07}">
+                <File Id="file_342" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.Extensions.dll" />
+            </Component>
+            <Component Id="cmp_343" Directory="INSTALLFOLDER" Guid="{020AA5D3-9A3A-4042-B16E-F5F93B373679}">
+                <File Id="file_343" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.Metadata.dll" />
+            </Component>
+            <Component Id="cmp_344" Directory="INSTALLFOLDER" Guid="{EA00C734-0100-44F8-BCD3-F1E3A6389DF9}">
+                <File Id="file_344" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.Primitives.dll" />
+            </Component>
+            <Component Id="cmp_345" Directory="INSTALLFOLDER" Guid="{C062C4B6-96E6-4B74-98C3-A477C8C0BCE2}">
+                <File Id="file_345" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Reflection.TypeExtensions.dll" />
+            </Component>
+            <Component Id="cmp_346" Directory="INSTALLFOLDER" Guid="{7BF5B527-8B8C-44EB-96FC-4A24D88C0B19}">
+                <File Id="file_346" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Resources.Extensions.dll" />
+            </Component>
+            <Component Id="cmp_347" Directory="INSTALLFOLDER" Guid="{8110AB28-932A-4FF7-8B54-D73DF57B63C8}">
+                <File Id="file_347" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Resources.Reader.dll" />
+            </Component>
+            <Component Id="cmp_348" Directory="INSTALLFOLDER" Guid="{187E75C4-EC0B-4047-8FCD-B823B2B97263}">
+                <File Id="file_348" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Resources.ResourceManager.dll" />
+            </Component>
+            <Component Id="cmp_349" Directory="INSTALLFOLDER" Guid="{F2533C4F-530D-4529-B9C6-B847565D5C81}">
+                <File Id="file_349" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Resources.Writer.dll" />
+            </Component>
+            <Component Id="cmp_350" Directory="INSTALLFOLDER" Guid="{BEEACE70-5CD7-47FA-A46F-9545326D9C5F}">
+                <File Id="file_350" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.CompilerServices.Unsafe.dll" />
+            </Component>
+            <Component Id="cmp_351" Directory="INSTALLFOLDER" Guid="{508BEFBC-8262-4531-AD18-80234D81443B}">
+                <File Id="file_351" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.CompilerServices.VisualC.dll" />
+            </Component>
+            <Component Id="cmp_352" Directory="INSTALLFOLDER" Guid="{23E763AF-A278-4936-8511-57282F94CD8C}">
+                <File Id="file_352" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.dll" />
+            </Component>
+            <Component Id="cmp_353" Directory="INSTALLFOLDER" Guid="{44609559-FB64-45E4-9D02-3C7E61C11609}">
+                <File Id="file_353" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Extensions.dll" />
+            </Component>
+            <Component Id="cmp_354" Directory="INSTALLFOLDER" Guid="{B6DEF1F2-4D10-4C82-8A88-E580B9891B14}">
+                <File Id="file_354" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Handles.dll" />
+            </Component>
+            <Component Id="cmp_355" Directory="INSTALLFOLDER" Guid="{6830F961-396A-4A12-A0DA-B3EBF5D62676}">
+                <File Id="file_355" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.InteropServices.dll" />
+            </Component>
+            <Component Id="cmp_356" Directory="INSTALLFOLDER" Guid="{5FDF3A1F-CA17-4A3D-946B-C040FA7D8E77}">
+                <File Id="file_356" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.InteropServices.JavaScript.dll" />
+            </Component>
+            <Component Id="cmp_357" Directory="INSTALLFOLDER" Guid="{F52C79BF-FA9B-4CE9-ACD4-66E405192E2E}">
+                <File Id="file_357" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.InteropServices.RuntimeInformation.dll" />
+            </Component>
+            <Component Id="cmp_358" Directory="INSTALLFOLDER" Guid="{D21B9BE3-1459-4098-AF1A-D0266C97A4F7}">
+                <File Id="file_358" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Intrinsics.dll" />
+            </Component>
+            <Component Id="cmp_359" Directory="INSTALLFOLDER" Guid="{9ED6955C-2A96-4439-9267-969534C6B4F2}">
+                <File Id="file_359" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Loader.dll" />
+            </Component>
+            <Component Id="cmp_360" Directory="INSTALLFOLDER" Guid="{E935F323-B649-488B-B5FD-2F7F135FBA01}">
+                <File Id="file_360" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Numerics.dll" />
+            </Component>
+            <Component Id="cmp_361" Directory="INSTALLFOLDER" Guid="{50C8B652-DCA2-479C-B55F-A3C4FA10ABDB}">
+                <File Id="file_361" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Serialization.dll" />
+            </Component>
+            <Component Id="cmp_362" Directory="INSTALLFOLDER" Guid="{E2E71BC8-5866-48E0-8A6D-6DF4CB94E219}">
+                <File Id="file_362" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Serialization.Formatters.dll" />
+            </Component>
+            <Component Id="cmp_363" Directory="INSTALLFOLDER" Guid="{D22E2A18-9A02-444E-BF44-9259CEE3C3E5}">
+                <File Id="file_363" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Serialization.Json.dll" />
+            </Component>
+            <Component Id="cmp_364" Directory="INSTALLFOLDER" Guid="{35E097B9-9FD4-4B1B-B3D0-93B250037880}">
+                <File Id="file_364" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Serialization.Primitives.dll" />
+            </Component>
+            <Component Id="cmp_365" Directory="INSTALLFOLDER" Guid="{FCA65C1F-0A46-4122-B3A4-8EE81690EBE4}">
+                <File Id="file_365" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Runtime.Serialization.Xml.dll" />
+            </Component>
+            <Component Id="cmp_366" Directory="INSTALLFOLDER" Guid="{CA6A5F78-3848-42CE-BA88-DB64433FB525}">
+                <File Id="file_366" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.AccessControl.dll" />
+            </Component>
+            <Component Id="cmp_367" Directory="INSTALLFOLDER" Guid="{C67B2C7E-090D-46B9-BA70-7B5E7769261E}">
+                <File Id="file_367" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.Claims.dll" />
+            </Component>
+            <Component Id="cmp_368" Directory="INSTALLFOLDER" Guid="{E1E8CDB7-EA5E-412A-B97D-B4CAE7893383}">
+                <File Id="file_368" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.Algorithms.dll" />
+            </Component>
+            <Component Id="cmp_369" Directory="INSTALLFOLDER" Guid="{EB941DC4-17FF-4F2E-87A8-231A5EB1B5F2}">
+                <File Id="file_369" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.Cng.dll" />
+            </Component>
+            <Component Id="cmp_370" Directory="INSTALLFOLDER" Guid="{8EE6C1DC-0F10-4CA6-AC32-DE963F568F1D}">
+                <File Id="file_370" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.Csp.dll" />
+            </Component>
+            <Component Id="cmp_371" Directory="INSTALLFOLDER" Guid="{DC7233BB-DAE1-4D03-92A6-F8C798E46800}">
+                <File Id="file_371" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.dll" />
+            </Component>
+            <Component Id="cmp_372" Directory="INSTALLFOLDER" Guid="{3440336A-4A04-42EA-AE91-B3209FDCB275}">
+                <File Id="file_372" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.Encoding.dll" />
+            </Component>
+            <Component Id="cmp_373" Directory="INSTALLFOLDER" Guid="{DC1EF21C-4E83-4604-A52B-025FFF01157D}">
+                <File Id="file_373" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.OpenSsl.dll" />
+            </Component>
+            <Component Id="cmp_374" Directory="INSTALLFOLDER" Guid="{3385CDFB-157F-4136-9154-60D467855ED1}">
+                <File Id="file_374" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.Pkcs.dll" />
+            </Component>
+            <Component Id="cmp_375" Directory="INSTALLFOLDER" Guid="{D14033A0-9779-4EDB-9D3A-C2788F4EDF9F}">
+                <File Id="file_375" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.Primitives.dll" />
+            </Component>
+            <Component Id="cmp_376" Directory="INSTALLFOLDER" Guid="{3C9BAA10-F6C3-48BE-A9A7-6E4CAD136B93}">
+                <File Id="file_376" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.ProtectedData.dll" />
+            </Component>
+            <Component Id="cmp_377" Directory="INSTALLFOLDER" Guid="{3F8BC33E-8A7C-409A-B139-19648E9FDDE9}">
+                <File Id="file_377" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.X509Certificates.dll" />
+            </Component>
+            <Component Id="cmp_378" Directory="INSTALLFOLDER" Guid="{0E6BB8E4-DABF-4002-AD5A-86A3B136480E}">
+                <File Id="file_378" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.Cryptography.Xml.dll" />
+            </Component>
+            <Component Id="cmp_379" Directory="INSTALLFOLDER" Guid="{9E15AD8A-88E6-464F-BCE6-9F7468582AE4}">
+                <File Id="file_379" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.dll" />
+            </Component>
+            <Component Id="cmp_380" Directory="INSTALLFOLDER" Guid="{7E4E81E0-8126-4C51-AACD-3E7669AD47E0}">
+                <File Id="file_380" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.Permissions.dll" />
+            </Component>
+            <Component Id="cmp_381" Directory="INSTALLFOLDER" Guid="{400E26C7-C160-4725-BB8B-7543CA1FEACD}">
+                <File Id="file_381" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.Principal.dll" />
+            </Component>
+            <Component Id="cmp_382" Directory="INSTALLFOLDER" Guid="{955784DD-651B-41B5-AD21-CAFC8FC9E4FB}">
+                <File Id="file_382" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.Principal.Windows.dll" />
+            </Component>
+            <Component Id="cmp_383" Directory="INSTALLFOLDER" Guid="{69F108A7-614B-42FD-B833-69454028A53C}">
+                <File Id="file_383" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Security.SecureString.dll" />
+            </Component>
+            <Component Id="cmp_384" Directory="INSTALLFOLDER" Guid="{2B489609-47B5-43B3-83D4-0BDFE5F66E2F}">
+                <File Id="file_384" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.ServiceModel.Web.dll" />
+            </Component>
+            <Component Id="cmp_385" Directory="INSTALLFOLDER" Guid="{8E17C967-41DC-4E93-B58F-7ED1C4FEF5B4}">
+                <File Id="file_385" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.ServiceProcess.dll" />
+            </Component>
+            <Component Id="cmp_386" Directory="INSTALLFOLDER" Guid="{355F372D-68EA-473D-9B33-23ED52942403}">
+                <File Id="file_386" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Text.Encoding.CodePages.dll" />
+            </Component>
+            <Component Id="cmp_387" Directory="INSTALLFOLDER" Guid="{9D728D11-ECA9-44D0-AEE9-3BE858FBB127}">
+                <File Id="file_387" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Text.Encoding.dll" />
+            </Component>
+            <Component Id="cmp_388" Directory="INSTALLFOLDER" Guid="{1FF6551E-7130-46F1-A318-A6D23893C6A1}">
+                <File Id="file_388" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Text.Encoding.Extensions.dll" />
+            </Component>
+            <Component Id="cmp_389" Directory="INSTALLFOLDER" Guid="{D078677A-2DF5-4AC0-A81D-2387EA37F622}">
+                <File Id="file_389" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Text.Encodings.Web.dll" />
+            </Component>
+            <Component Id="cmp_390" Directory="INSTALLFOLDER" Guid="{01892668-452C-4537-9E27-FD91C263192B}">
+                <File Id="file_390" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Text.Json.dll" />
+            </Component>
+            <Component Id="cmp_391" Directory="INSTALLFOLDER" Guid="{49BC25E8-9956-448F-BFF9-F3DDF4C88192}">
+                <File Id="file_391" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Text.RegularExpressions.dll" />
+            </Component>
+            <Component Id="cmp_392" Directory="INSTALLFOLDER" Guid="{EFBE2231-46ED-48F8-AB1D-B34C1D8D8EEA}">
+                <File Id="file_392" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Threading.AccessControl.dll" />
+            </Component>
+            <Component Id="cmp_393" Directory="INSTALLFOLDER" Guid="{EB9E51A7-700B-4CC9-B12F-986DFA9F31D5}">
+                <File Id="file_393" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Threading.Channels.dll" />
+            </Component>
+            <Component Id="cmp_394" Directory="INSTALLFOLDER" Guid="{4EC19BAC-9222-452F-B9B3-2C2DD0FC334D}">
+                <File Id="file_394" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Threading.dll" />
+            </Component>
+            <Component Id="cmp_395" Directory="INSTALLFOLDER" Guid="{E532CD2A-1A6D-4510-ACD7-79C90D82B253}">
+                <File Id="file_395" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Threading.Overlapped.dll" />
+            </Component>
+            <Component Id="cmp_396" Directory="INSTALLFOLDER" Guid="{AB620C2C-2485-42AD-97C6-D074E13A2C43}">
+                <File Id="file_396" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Threading.Tasks.Dataflow.dll" />
+            </Component>
+            <Component Id="cmp_397" Directory="INSTALLFOLDER" Guid="{B49E470F-D528-49BD-99F1-78BCC28FCA3D}">
+                <File Id="file_397" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Threading.Tasks.dll" />
+            </Component>
+            <Component Id="cmp_398" Directory="INSTALLFOLDER" Guid="{C9C97235-0F20-4E6C-9B64-F2AAE37CBDF0}">
+                <File Id="file_398" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Threading.Tasks.Extensions.dll" />
+            </Component>
+            <Component Id="cmp_399" Directory="INSTALLFOLDER" Guid="{C40F5EFC-109E-4843-B7C7-925C377CFD49}">
+                <File Id="file_399" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Threading.Tasks.Parallel.dll" />
+            </Component>
+            <Component Id="cmp_400" Directory="INSTALLFOLDER" Guid="{692BEE3F-8C93-4082-B8DB-8974DB0B2127}">
+                <File Id="file_400" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Threading.Thread.dll" />
+            </Component>
+            <Component Id="cmp_401" Directory="INSTALLFOLDER" Guid="{351FDEB7-6747-41C0-A8AD-73BDDEA7ABA2}">
+                <File Id="file_401" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Threading.ThreadPool.dll" />
+            </Component>
+            <Component Id="cmp_402" Directory="INSTALLFOLDER" Guid="{AC7483C5-40E4-485A-AC09-BC472F60DF95}">
+                <File Id="file_402" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Threading.Timer.dll" />
+            </Component>
+            <Component Id="cmp_403" Directory="INSTALLFOLDER" Guid="{F48384B7-A872-4276-8F25-DB9419DCF5C0}">
+                <File Id="file_403" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Transactions.dll" />
+            </Component>
+            <Component Id="cmp_404" Directory="INSTALLFOLDER" Guid="{25A8DD99-9EEA-4814-996A-4235C4ED3D6D}">
+                <File Id="file_404" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Transactions.Local.dll" />
+            </Component>
+            <Component Id="cmp_405" Directory="INSTALLFOLDER" Guid="{B3C6B368-0F81-476F-816E-64BDD8D8464A}">
+                <File Id="file_405" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.ValueTuple.dll" />
+            </Component>
+            <Component Id="cmp_406" Directory="INSTALLFOLDER" Guid="{8C08135E-6CCD-4466-AF04-A0E60A713CC9}">
+                <File Id="file_406" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Web.dll" />
+            </Component>
+            <Component Id="cmp_407" Directory="INSTALLFOLDER" Guid="{3FC40EB2-09D3-4FEC-9850-649D073596F3}">
+                <File Id="file_407" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Web.HttpUtility.dll" />
+            </Component>
+            <Component Id="cmp_408" Directory="INSTALLFOLDER" Guid="{778FEF0A-681F-43E8-8C41-D27F990D889E}">
+                <File Id="file_408" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Windows.Controls.Ribbon.dll" />
+            </Component>
+            <Component Id="cmp_409" Directory="INSTALLFOLDER" Guid="{58CA7E11-1655-473A-91EB-196B532BC8A9}">
+                <File Id="file_409" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Windows.dll" />
+            </Component>
+            <Component Id="cmp_410" Directory="INSTALLFOLDER" Guid="{7A8A623D-CB58-45DB-8071-B4B4D630CE59}">
+                <File Id="file_410" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Windows.Extensions.dll" />
+            </Component>
+            <Component Id="cmp_411" Directory="INSTALLFOLDER" Guid="{9469B006-488F-43AC-83AE-247820E4ADF8}">
+                <File Id="file_411" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Windows.Forms.Design.dll" />
+            </Component>
+            <Component Id="cmp_412" Directory="INSTALLFOLDER" Guid="{921B2DCC-5E72-4209-B88A-4C5472ECF6CD}">
+                <File Id="file_412" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Windows.Forms.Design.Editors.dll" />
+            </Component>
+            <Component Id="cmp_413" Directory="INSTALLFOLDER" Guid="{E384C1CB-EEBF-4188-BAFA-559AF934B359}">
+                <File Id="file_413" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Windows.Forms.dll" />
+            </Component>
+            <Component Id="cmp_414" Directory="INSTALLFOLDER" Guid="{70C0AB4F-210C-4FC7-8E44-001D871A2A9F}">
+                <File Id="file_414" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Windows.Forms.Primitives.dll" />
+            </Component>
+            <Component Id="cmp_415" Directory="INSTALLFOLDER" Guid="{3CDFB7EB-64CF-44F8-A28B-C8383241CD2A}">
+                <File Id="file_415" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Windows.Input.Manipulations.dll" />
+            </Component>
+            <Component Id="cmp_416" Directory="INSTALLFOLDER" Guid="{2277CF5A-3970-4B04-9669-B7D7F178BE19}">
+                <File Id="file_416" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Windows.Presentation.dll" />
+            </Component>
+            <Component Id="cmp_417" Directory="INSTALLFOLDER" Guid="{FB1D0DA8-B79F-447B-AC21-E1889F378F8B}">
+                <File Id="file_417" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Windows.Primitives.dll" />
+            </Component>
+            <Component Id="cmp_418" Directory="INSTALLFOLDER" Guid="{ECD58DC3-57A4-46CA-A187-E42FDDE2217D}">
+                <File Id="file_418" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Xaml.dll" />
+            </Component>
+            <Component Id="cmp_419" Directory="INSTALLFOLDER" Guid="{7F463B0E-1A3F-4465-B66F-81B4F9FF0ABF}">
+                <File Id="file_419" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Xml.dll" />
+            </Component>
+            <Component Id="cmp_420" Directory="INSTALLFOLDER" Guid="{B7062A83-3F37-4FDA-9CE7-0FC333C10320}">
+                <File Id="file_420" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Xml.Linq.dll" />
+            </Component>
+            <Component Id="cmp_421" Directory="INSTALLFOLDER" Guid="{033B8CB9-188D-47F4-9776-796245A4D8C5}">
+                <File Id="file_421" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Xml.ReaderWriter.dll" />
+            </Component>
+            <Component Id="cmp_422" Directory="INSTALLFOLDER" Guid="{3531370B-B053-4385-A35A-8D17A02BDB85}">
+                <File Id="file_422" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Xml.Serialization.dll" />
+            </Component>
+            <Component Id="cmp_423" Directory="INSTALLFOLDER" Guid="{64D0D4C3-CA04-45C3-B143-134A3D381559}">
+                <File Id="file_423" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Xml.XDocument.dll" />
+            </Component>
+            <Component Id="cmp_424" Directory="INSTALLFOLDER" Guid="{0FAD7398-F9C1-4484-96D8-F15C6F8FAB6D}">
+                <File Id="file_424" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Xml.XmlDocument.dll" />
+            </Component>
+            <Component Id="cmp_425" Directory="INSTALLFOLDER" Guid="{E5B51008-C6C2-40EE-94D0-3B8A535051A9}">
+                <File Id="file_425" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Xml.XmlSerializer.dll" />
+            </Component>
+            <Component Id="cmp_426" Directory="INSTALLFOLDER" Guid="{6B36DC7C-23BB-42B2-ADAB-6FB97EC0E88B}">
+                <File Id="file_426" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Xml.XPath.dll" />
+            </Component>
+            <Component Id="cmp_427" Directory="INSTALLFOLDER" Guid="{B0D3F4D2-565A-444A-A4DC-00545745A58F}">
+                <File Id="file_427" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\System.Xml.XPath.XDocument.dll" />
+            </Component>
+            <Component Id="cmp_428" Directory="INSTALLFOLDER" Guid="{3A96DD1D-D4DE-4C70-8204-D8E105D8D4B2}">
+                <File Id="file_428" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\TagLibSharp.dll" />
+            </Component>
+            <Component Id="cmp_429" Directory="dir_tr" Guid="{F701C2C1-E633-4B14-A3D7-4B75C3A72B5D}">
+                <File Id="file_429" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\tr\Microsoft.VisualBasic.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_430" Directory="dir_tr" Guid="{C6D4D9A5-53B2-4184-B219-97F7485B7A97}">
+                <File Id="file_430" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\tr\PresentationCore.resources.dll" />
+            </Component>
+            <Component Id="cmp_431" Directory="dir_tr" Guid="{7468A724-89EE-46CD-84EC-1F00D53C1C02}">
+                <File Id="file_431" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\tr\PresentationFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_432" Directory="dir_tr" Guid="{939D3436-3F4C-4E45-A040-107BB93D8069}">
+                <File Id="file_432" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\tr\PresentationUI.resources.dll" />
+            </Component>
+            <Component Id="cmp_433" Directory="dir_tr" Guid="{EA99BF0F-722A-4146-8444-6CAB096B7EB3}">
+                <File Id="file_433" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\tr\ReachFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_434" Directory="dir_tr" Guid="{086AD873-C6B5-4936-8B70-82C7D1EE9B67}">
+                <File Id="file_434" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\tr\System.Windows.Controls.Ribbon.resources.dll" />
+            </Component>
+            <Component Id="cmp_435" Directory="dir_tr" Guid="{991221CD-05A1-4DA5-A5C9-57F0140E95FF}">
+                <File Id="file_435" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\tr\System.Windows.Forms.Design.resources.dll" />
+            </Component>
+            <Component Id="cmp_436" Directory="dir_tr" Guid="{08ED68CF-57F2-41BD-9809-5C65E9F69E8C}">
+                <File Id="file_436" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\tr\System.Windows.Forms.Primitives.resources.dll" />
+            </Component>
+            <Component Id="cmp_437" Directory="dir_tr" Guid="{C2D6A4BE-6ACE-4624-8257-196AC8CF485F}">
+                <File Id="file_437" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\tr\System.Windows.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_438" Directory="dir_tr" Guid="{5FB72620-E8F7-4529-84F7-F452D480362D}">
+                <File Id="file_438" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\tr\System.Windows.Input.Manipulations.resources.dll" />
+            </Component>
+            <Component Id="cmp_439" Directory="dir_tr" Guid="{9B36A51C-D412-4790-AF2E-446627E896ED}">
+                <File Id="file_439" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\tr\System.Xaml.resources.dll" />
+            </Component>
+            <Component Id="cmp_440" Directory="dir_tr" Guid="{0FAFDD52-04EA-489B-B974-8EC7FAAE0AC9}">
+                <File Id="file_440" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\tr\UIAutomationClient.resources.dll" />
+            </Component>
+            <Component Id="cmp_441" Directory="dir_tr" Guid="{16EC9D8D-8E16-404E-8166-72DEBFC4B214}">
+                <File Id="file_441" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\tr\UIAutomationClientSideProviders.resources.dll" />
+            </Component>
+            <Component Id="cmp_442" Directory="dir_tr" Guid="{16107901-8024-45FD-961E-FEC53A881D55}">
+                <File Id="file_442" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\tr\UIAutomationProvider.resources.dll" />
+            </Component>
+            <Component Id="cmp_443" Directory="dir_tr" Guid="{1F6F178B-68B9-4E12-B517-2C7AFC61A5D3}">
+                <File Id="file_443" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\tr\UIAutomationTypes.resources.dll" />
+            </Component>
+            <Component Id="cmp_444" Directory="dir_tr" Guid="{865D2E2E-8B1E-42E1-821E-D05398230C8F}">
+                <File Id="file_444" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\tr\WindowsBase.resources.dll" />
+            </Component>
+            <Component Id="cmp_445" Directory="dir_tr" Guid="{1F76D9E1-CE56-43D3-9526-EACA16909038}">
+                <File Id="file_445" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\tr\WindowsFormsIntegration.resources.dll" />
+            </Component>
+            <Component Id="cmp_446" Directory="INSTALLFOLDER" Guid="{6DE3DD69-F2AC-4E7A-8209-C752894DC622}">
+                <File Id="file_446" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\UIAutomationClient.dll" />
+            </Component>
+            <Component Id="cmp_447" Directory="INSTALLFOLDER" Guid="{A5A63DBD-F34F-4D6B-B152-6A1DDF7D0D23}">
+                <File Id="file_447" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\UIAutomationClientSideProviders.dll" />
+            </Component>
+            <Component Id="cmp_448" Directory="INSTALLFOLDER" Guid="{324C0B76-199E-415E-A136-C1C253FBCC93}">
+                <File Id="file_448" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\UIAutomationProvider.dll" />
+            </Component>
+            <Component Id="cmp_449" Directory="INSTALLFOLDER" Guid="{87449EB9-160C-4296-84F4-53C84B9848A1}">
+                <File Id="file_449" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\UIAutomationTypes.dll" />
+            </Component>
+            <Component Id="cmp_450" Directory="INSTALLFOLDER" Guid="{5D195D36-B370-4CE5-8826-9EEA6B654D49}">
+                <File Id="file_450" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\vcruntime140_cor3.dll" />
+            </Component>
+            <Component Id="cmp_451" Directory="INSTALLFOLDER" Guid="{2F3F9F35-A457-4F18-85F3-E35E8544CFE4}">
+                <File Id="file_451" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\WebView2Loader.dll" />
+            </Component>
+            <Component Id="cmp_452" Directory="INSTALLFOLDER" Guid="{7501DCE1-1299-4CDA-A427-3677FFDD52C7}">
+                <File Id="file_452" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\WindowsBase.dll" />
+            </Component>
+            <Component Id="cmp_453" Directory="INSTALLFOLDER" Guid="{171B17EC-1A56-4C27-B2AC-356C43F7E964}">
+                <File Id="file_453" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\WindowsFormsIntegration.dll" />
+            </Component>
+            <Component Id="cmp_454" Directory="INSTALLFOLDER" Guid="{66225CD4-A38A-4FA1-B97A-D8286A664B7D}">
+                <File Id="file_454" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\wpfgfx_cor3.dll" />
+            </Component>
+            <Component Id="cmp_455" Directory="INSTALLFOLDER" Guid="{29AC91B2-63EE-4689-8962-835C6E8FA874}">
+                <File Id="file_455" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\XmpCore.dll" />
+            </Component>
+            <Component Id="cmp_456" Directory="dir_zhHans" Guid="{1D6E4A21-117B-4315-9BFC-1980E983B5BA}">
+                <File Id="file_456" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hans\Microsoft.VisualBasic.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_457" Directory="dir_zhHans" Guid="{6A3631FA-F286-412C-9865-7B89AE5F1994}">
+                <File Id="file_457" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hans\PresentationCore.resources.dll" />
+            </Component>
+            <Component Id="cmp_458" Directory="dir_zhHans" Guid="{D4E44532-A358-4EE8-B6BE-7F3E7EFDA554}">
+                <File Id="file_458" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hans\PresentationFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_459" Directory="dir_zhHans" Guid="{0715AA91-EB51-4239-935B-49354E11EA11}">
+                <File Id="file_459" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hans\PresentationUI.resources.dll" />
+            </Component>
+            <Component Id="cmp_460" Directory="dir_zhHans" Guid="{D42C365F-1E62-4329-BCFD-50E02DF3A359}">
+                <File Id="file_460" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hans\ReachFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_461" Directory="dir_zhHans" Guid="{DAF43804-6EB6-47EF-B553-5A3A78F58844}">
+                <File Id="file_461" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hans\System.Windows.Controls.Ribbon.resources.dll" />
+            </Component>
+            <Component Id="cmp_462" Directory="dir_zhHans" Guid="{702B54CF-514C-4C5C-9AF4-0EF82C1A231E}">
+                <File Id="file_462" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hans\System.Windows.Forms.Design.resources.dll" />
+            </Component>
+            <Component Id="cmp_463" Directory="dir_zhHans" Guid="{278EAA95-A631-479E-B9E9-711FF29CB6AB}">
+                <File Id="file_463" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hans\System.Windows.Forms.Primitives.resources.dll" />
+            </Component>
+            <Component Id="cmp_464" Directory="dir_zhHans" Guid="{8E6449D2-8707-411A-89F6-EBFE05AF1C36}">
+                <File Id="file_464" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hans\System.Windows.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_465" Directory="dir_zhHans" Guid="{8253B324-3106-4DFF-AAC8-A7A270B860AE}">
+                <File Id="file_465" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hans\System.Windows.Input.Manipulations.resources.dll" />
+            </Component>
+            <Component Id="cmp_466" Directory="dir_zhHans" Guid="{7ABE4B8B-F245-494D-95B6-6C930980DC9D}">
+                <File Id="file_466" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hans\System.Xaml.resources.dll" />
+            </Component>
+            <Component Id="cmp_467" Directory="dir_zhHans" Guid="{8023B303-BD45-4635-96CD-CFE7E93277B9}">
+                <File Id="file_467" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hans\UIAutomationClient.resources.dll" />
+            </Component>
+            <Component Id="cmp_468" Directory="dir_zhHans" Guid="{060320BB-99E9-43BD-8FDF-536D3E3D7279}">
+                <File Id="file_468" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hans\UIAutomationClientSideProviders.resources.dll" />
+            </Component>
+            <Component Id="cmp_469" Directory="dir_zhHans" Guid="{A9A0C5BD-855F-49E4-97AC-09294DB0704D}">
+                <File Id="file_469" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hans\UIAutomationProvider.resources.dll" />
+            </Component>
+            <Component Id="cmp_470" Directory="dir_zhHans" Guid="{335D011F-6FED-41F5-9DDE-6DCF3CA86D09}">
+                <File Id="file_470" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hans\UIAutomationTypes.resources.dll" />
+            </Component>
+            <Component Id="cmp_471" Directory="dir_zhHans" Guid="{59E96874-0AC5-4954-8C30-76B88676E034}">
+                <File Id="file_471" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hans\WindowsBase.resources.dll" />
+            </Component>
+            <Component Id="cmp_472" Directory="dir_zhHans" Guid="{4DCBA7E1-1D02-48BE-A442-BB688689EA13}">
+                <File Id="file_472" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hans\WindowsFormsIntegration.resources.dll" />
+            </Component>
+            <Component Id="cmp_473" Directory="dir_zhHant" Guid="{12483837-5C98-4086-8E8E-8658FECF0916}">
+                <File Id="file_473" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\Microsoft.VisualBasic.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_474" Directory="dir_zhHant" Guid="{D24A4968-7269-475B-8357-04DCF4DBB185}">
+                <File Id="file_474" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\PresentationCore.resources.dll" />
+            </Component>
+            <Component Id="cmp_475" Directory="dir_zhHant" Guid="{033C659F-AF5B-417E-BA86-52EFDA3D7D00}">
+                <File Id="file_475" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\PresentationFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_476" Directory="dir_zhHant" Guid="{0DE496DB-6404-4E26-A1E8-DD1E2B1C03F2}">
+                <File Id="file_476" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\PresentationUI.resources.dll" />
+            </Component>
+            <Component Id="cmp_477" Directory="dir_zhHant" Guid="{9EB823C5-E2A1-4C69-ADE3-AB3D99D6B036}">
+                <File Id="file_477" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\ReachFramework.resources.dll" />
+            </Component>
+            <Component Id="cmp_478" Directory="dir_zhHant" Guid="{2325A4D8-CD4E-4185-9ABD-96982267CADD}">
+                <File Id="file_478" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\System.Windows.Controls.Ribbon.resources.dll" />
+            </Component>
+            <Component Id="cmp_479" Directory="dir_zhHant" Guid="{8E16B3A1-682A-4DA8-8F1E-ADEAE01F25D2}">
+                <File Id="file_479" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\System.Windows.Forms.Design.resources.dll" />
+            </Component>
+            <Component Id="cmp_480" Directory="dir_zhHant" Guid="{B220EA8F-C944-4509-9FEB-FA02F97B8F00}">
+                <File Id="file_480" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\System.Windows.Forms.Primitives.resources.dll" />
+            </Component>
+            <Component Id="cmp_481" Directory="dir_zhHant" Guid="{2C411AD7-6264-453B-AC72-106AAB8EECC3}">
+                <File Id="file_481" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\System.Windows.Forms.resources.dll" />
+            </Component>
+            <Component Id="cmp_482" Directory="dir_zhHant" Guid="{E61DA789-24AB-4CC4-AB44-0F8D29F318F0}">
+                <File Id="file_482" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\System.Windows.Input.Manipulations.resources.dll" />
+            </Component>
+            <Component Id="cmp_483" Directory="dir_zhHant" Guid="{2BC2EDA2-BF0E-48E3-B06D-9C56BBE8E089}">
+                <File Id="file_483" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\System.Xaml.resources.dll" />
+            </Component>
+            <Component Id="cmp_484" Directory="dir_zhHant" Guid="{479405F6-7785-48A8-8593-09695D611C87}">
+                <File Id="file_484" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\UIAutomationClient.resources.dll" />
+            </Component>
+            <Component Id="cmp_485" Directory="dir_zhHant" Guid="{26F752F9-2C25-4138-B2BE-4261F9371F55}">
+                <File Id="file_485" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\UIAutomationClientSideProviders.resources.dll" />
+            </Component>
+            <Component Id="cmp_486" Directory="dir_zhHant" Guid="{39DB89CF-7500-4C17-BAD6-4673E5EFEEAD}">
+                <File Id="file_486" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\UIAutomationProvider.resources.dll" />
+            </Component>
+            <Component Id="cmp_487" Directory="dir_zhHant" Guid="{AE0BB161-084F-4E47-8105-6AAEDC412DAE}">
+                <File Id="file_487" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\UIAutomationTypes.resources.dll" />
+            </Component>
+            <Component Id="cmp_488" Directory="dir_zhHant" Guid="{177C9A82-BF27-47DC-8D44-61F84153692F}">
+                <File Id="file_488" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\WindowsBase.resources.dll" />
+            </Component>
+            <Component Id="cmp_489" Directory="dir_zhHant" Guid="{11706F06-9850-472F-84B9-E2DBC9671528}">
+                <File Id="file_489" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\WindowsFormsIntegration.resources.dll" />
+            </Component>
+        </ComponentGroup>
+    </Fragment>
+</Wix>

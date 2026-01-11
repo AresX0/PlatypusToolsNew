@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+    <!-- Directory structure -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="PlatypusTools">
+        <Directory Id="ToolsFolder" Name="Tools" />
+        <Directory Id="DataFolder" Name="Data" />
+        <Directory Id="LogsFolder" Name="Logs" />
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="PlatypusTools" />
+    </StandardDirectory>
+  </Fragment>
+
+  <Fragment>
+    <!-- Shortcuts Component -->
+    <Component Id="ApplicationShortcut" Directory="ApplicationProgramsFolder" Guid="D9E0F1A2-B3C4-4D5E-9A8B-1C2D3E4F5A6B">
+      <Shortcut Id="ApplicationStartMenuShortcut"
+                Name="PlatypusTools"
+                Description="Comprehensive System Utilities Suite"
+                Target="[INSTALLFOLDER]PlatypusTools.UI.exe"
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="PlatypusIcon" />
+      <RemoveFolder Id="CleanUpShortCut" Directory="ApplicationProgramsFolder" On="uninstall" />
+      <RegistryValue Root="HKCU" 
+                     Key="Software\PlatypusTools" 
+                     Name="installed" 
+                     Type="integer" 
+                     Value="1" 
+                     KeyPath="yes" />
+    </Component>
+
+    <!-- Registry Entries -->
+    <Component Id="RegistryEntries" Directory="INSTALLFOLDER" Guid="E0F1A2B3-C4D5-4E5F-9B8C-2D3E4F5A6B7C">
+      <RegistryValue Root="HKLM" 
+                     Key="Software\PlatypusTools" 
+                     Name="InstallPath" 
+                     Type="string" 
+                     Value="[INSTALLFOLDER]" 
+                     KeyPath="yes" />
+      <RegistryValue Root="HKLM" 
+                     Key="Software\PlatypusTools" 
+                     Name="Version" 
+                     Type="string" 
+                     Value="2.0.0.0" />
+    </Component>
+  </Fragment>
+
+  <Fragment>
+    <!-- External tools and dependencies -->
+    <ComponentGroup Id="SupportFiles" Directory="ToolsFolder">
+      <!-- FFmpeg tools -->
+      <Component Id="FFmpeg" Guid="F2A3B4C5-D6E7-4F5A-9B8C-2D3E4F5A6B7C">
+        <!-- FFmpeg installed via winget -->
+      </Component>
+
+      <Component Id="FFprobe" Guid="A3B4C5D6-E7F8-4A5B-9C8D-3E4F5A6B7C8D">
+        <!-- FFprobe installed via winget -->
+      </Component>
+
+      <Component Id="FFplay" Guid="B4C5D6E7-F8A9-4B5C-9D8E-4F5A6B7C8D9E">
+        <!-- FFplay installed via winget -->
+      </Component>
+
+      <!-- ExifTool -->
+      <Component Id="ExifTool" Guid="C5D6E7F8-A9B0-4C5D-9E8F-5A6B7C8D9E0F">
+        <File Id="ExifToolExe" Source="C:\Projects\Platypustools\LocalArchive\exiftool.exe" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>
+
