@@ -1,0 +1,224 @@
+using PlatypusTools.Core.Services;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
+
+namespace PlatypusTools.UI.ViewModels
+{
+    public class FileCleanerViewModel : BindableBase
+    {
+        public ObservableCollection<string> Results { get; } = new ObservableCollection<string>();
+        public ObservableCollection<BackupPreviewItem> BackupPreviews { get; } = new ObservableCollection<BackupPreviewItem>();
+
+        public class BackupPreviewItem
+        {
+            public string Original { get; set; } = "";
+            public string Backup { get; set; } = "";
+        }
+
+        private string _targetDir = "";
+        public string TargetDir { get => _targetDir; set { _targetDir = value; RaisePropertyChanged(); } }
+
+        private string _patterns = "";
+        public string Patterns { get => _patterns; set { _patterns = value; RaisePropertyChanged(); } }
+
+        private bool _dryRun = true;
+        public bool DryRun { get => _dryRun; set { _dryRun = value; RaisePropertyChanged(); } }
+
+        private string _backupPath = string.Empty;
+        public string BackupPath { get => _backupPath; set { _backupPath = value; RaisePropertyChanged(); } }
+
+        // Advanced rename / prefix / tagging options
+        private string _prefixText = string.Empty;
+        public string PrefixText { get => _prefixText; set { _prefixText = value; RaisePropertyChanged(); } }
+
+        private string _prefixReplaceWith = string.Empty;
+        public string PrefixReplaceWith { get => _prefixReplaceWith; set { _prefixReplaceWith = value; RaisePropertyChanged(); } }
+
+        private string _prefixAction = "Add"; // Add, Remove, Replace
+        public string PrefixAction { get => _prefixAction; set { _prefixAction = value; RaisePropertyChanged(); } }
+
+        private int _seasonNumber = 1;
+        public int SeasonNumber { get => _seasonNumber; set { _seasonNumber = value; RaisePropertyChanged(); } }
+
+        private int _startEpisode = 1;
+        public int StartEpisode { get => _startEpisode; set { _startEpisode = value; RaisePropertyChanged(); } }
+
+        private int _episodePadding = 2;
+        public int EpisodePadding { get => _episodePadding; set { _episodePadding = value; RaisePropertyChanged(); } }
+
+        public System.Collections.ObjectModel.ObservableCollection<string> PrefixActions { get; } = new System.Collections.ObjectModel.ObservableCollection<string>(new[] { "Add", "Remove", "Replace" });
+
+        public ICommand ScanCommand { get; }
+        public ICommand DeleteCommand { get; }
+        public ICommand PreviewBackupCommand { get; }
+        public ICommand ApplyPrefixCommand { get; }
+        public ICommand ApplySeasonEpisodeCommand { get; }
+        public ICommand RenumberAlphabeticallyCommand { get; }
+
+        public FileCleanerViewModel()
+        {
+            FileRenamer = new FileRenamerViewModel();
+            
+            ScanCommand = new RelayCommand(async _ => await Scan());
+            DeleteCommand = new RelayCommand(async _ => await Delete());
+            PreviewBackupCommand = new RelayCommand(async _ => await PreviewBackup());
+            ApplyPrefixCommand = new RelayCommand(_ => ApplyPrefix());
+            ApplySeasonEpisodeCommand = new RelayCommand(_ => ApplySeasonEpisodeTags());
+            RenumberAlphabeticallyCommand = new RelayCommand(_ => RenumberAlphabetically());
+
+            // If the App provided an initial target directory (e.g., via command-line arg), use it
+            try
+            {
+                if (System.Windows.Application.Current?.Properties.Contains("InitialTargetDir") == true)
+                {
+                    var val = System.Windows.Application.Current.Properties["InitialTargetDir"] as string;
+                    if (!string.IsNullOrWhiteSpace(val)) TargetDir = val;
+                }
+            }
+            catch { }
+        }
+
+        public FileRenamerViewModel FileRenamer { get; }
+
+        public async Task Scan()
+        {
+            Results.Clear();
+            BackupPreviews.Clear();
+            var pats = string.IsNullOrWhiteSpace(Patterns) ? new string[0] : Patterns.Split(';');
+            await Task.Run(() =>
+            {
+                foreach (var f in FileCleaner.GetFiles(TargetDir, pats, true)) Results.Add(f);
+            });
+        }
+
+        public async Task PreviewBackup()
+        {
+            BackupPreviews.Clear();
+            if (string.IsNullOrWhiteSpace(BackupPath) || string.IsNullOrWhiteSpace(TargetDir)) return;
+            var pats = string.IsNullOrWhiteSpace(Patterns) ? new string[0] : Patterns.Split(';');
+            var files = FileCleaner.GetFiles(TargetDir, pats, true).ToList();
+            var mapping = await Task.Run(() => FileCleaner.ComputeBackupMapping(files, BackupPath, TargetDir));
+            foreach (var kv in mapping) BackupPreviews.Add(new BackupPreviewItem { Original = kv.Key, Backup = kv.Value });
+        }
+
+        public async Task Delete()
+        {
+            // Simple confirmation
+            var confirm = System.Windows.MessageBox.Show("Proceed to delete matched files?", "Confirm", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
+            if (confirm != System.Windows.MessageBoxResult.Yes) return;
+            var pats = string.IsNullOrWhiteSpace(Patterns) ? new string[0] : Patterns.Split(';');
+            var files = FileCleaner.GetFiles(TargetDir, pats, true).ToList();
+
+            // Show a short preview in confirmation if backup path is set
+            if (!string.IsNullOrWhiteSpace(BackupPath))
+            {
+                var mapping = FileCleaner.ComputeBackupMapping(files, BackupPath, TargetDir);
+                var sample = mapping.Take(3).Select(kv => $"{kv.Key} -> {kv.Value}").ToArray();
+                var msg = $"Proceed to delete {files.Count} files?{Environment.NewLine}Sample backups:{Environment.NewLine}{string.Join(Environment.NewLine, sample)}";
+                var previewConfirm = System.Windows.MessageBox.Show(msg, "Confirm with backup preview", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
+                if (previewConfirm != System.Windows.MessageBoxResult.Yes) return;
+            }
+
+            var removed = await Task.Run(() => FileCleaner.RemoveFiles(files, dryRun: DryRun, backupPath: string.IsNullOrWhiteSpace(BackupPath) ? null : BackupPath, basePath: TargetDir));
+            System.Windows.MessageBox.Show($"Removed {removed.Count} files (dry-run={DryRun}).", "Done", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            await Scan();
+        }
+
+        private void ApplyPrefix()
+        {
+            if (Results.Count == 0) return;
+            var ops = Results.ToList();
+            var previews = new System.Collections.Generic.List<string>();
+            int changed = 0;
+            foreach (var path in ops)
+            {
+                var dir = System.IO.Path.GetDirectoryName(path) ?? string.Empty;
+                var name = System.IO.Path.GetFileName(path);
+                string newName = name;
+                if (PrefixAction == "Add")
+                {
+                    newName = PrefixText + name;
+                }
+                else if (PrefixAction == "Remove")
+                {
+                    if (!string.IsNullOrEmpty(PrefixText) && name.StartsWith(PrefixText)) newName = name.Substring(PrefixText.Length);
+                }
+                else if (PrefixAction == "Replace")
+                {
+                    newName = name.Replace(PrefixText, PrefixReplaceWith);
+                }
+                if (newName != name)
+                {
+                    previews.Add($"{name} -> {newName}");
+                    changed++;
+                    if (!DryRun)
+                    {
+                        try { System.IO.File.Move(path, System.IO.Path.Combine(dir, newName)); } catch { }
+                    }
+                }
+            }
+            System.Windows.MessageBox.Show($"Applied prefix operation '{PrefixAction}' to {changed} files (dry-run={DryRun}).\nSample:\n{string.Join("\n", previews.Take(5))}", "Prefix", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            _ = Scan();
+        }
+
+        private void ApplySeasonEpisodeTags()
+        {
+            if (Results.Count == 0) return;
+            var ops = Results.OrderBy(p => SmartSortKey(p)).ToList();
+            int ep = StartEpisode;
+            var previews = new System.Collections.Generic.List<string>();
+            foreach (var path in ops)
+            {
+                var dir = System.IO.Path.GetDirectoryName(path) ?? string.Empty;
+                var ext = System.IO.Path.GetExtension(path);
+                var baseName = System.IO.Path.GetFileNameWithoutExtension(path);
+                var tag = $"S{SeasonNumber.ToString().PadLeft(2,'0')}E{ep.ToString().PadLeft(EpisodePadding,'0')}";
+                var newName = $"{tag} - {baseName}{ext}";
+                previews.Add($"{baseName}{ext} -> {newName}");
+                if (!DryRun)
+                {
+                    try { System.IO.File.Move(path, System.IO.Path.Combine(dir, newName)); } catch { }
+                }
+                ep++;
+            }
+            System.Windows.MessageBox.Show($"Tagged {ops.Count} files with season/episode (dry-run={DryRun}).\nSample:\n{string.Join("\n", previews.Take(5))}", "Season/Episode", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            _ = Scan();
+        }
+
+        private void RenumberAlphabetically()
+        {
+            if (Results.Count == 0) return;
+            var ops = Results.OrderBy(p => SmartSortKey(p)).ToList();
+            int i = 1;
+            var previews = new System.Collections.Generic.List<string>();
+            foreach (var path in ops)
+            {
+                var dir = System.IO.Path.GetDirectoryName(path) ?? string.Empty;
+                var ext = System.IO.Path.GetExtension(path);
+                var baseName = System.IO.Path.GetFileNameWithoutExtension(path);
+                var newName = $"{i.ToString().PadLeft(2,'0')} - {baseName}{ext}";
+                previews.Add($"{baseName}{ext} -> {newName}");
+                if (!DryRun)
+                {
+                    try { System.IO.File.Move(path, System.IO.Path.Combine(dir, newName)); } catch { }
+                }
+                i++;
+            }
+            System.Windows.MessageBox.Show($"Renumbered {ops.Count} files (dry-run={DryRun}).\nSample:\n{string.Join("\n", previews.Take(5))}", "Renumber", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            _ = Scan();
+        }
+
+        private string SmartSortKey(string path)
+        {
+            var name = System.IO.Path.GetFileNameWithoutExtension(path);
+            // remove PrefixText if present
+            if (!string.IsNullOrEmpty(PrefixText) && name.StartsWith(PrefixText)) name = name.Substring(PrefixText.Length).Trim();
+            // remove season/episode tags like S01E02
+            name = System.Text.RegularExpressions.Regex.Replace(name, "S\\d{1,2}E\\d{1,2}", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase).Trim();
+            // normalize for sorting
+            return name.ToLowerInvariant();
+        }
+    }
+}

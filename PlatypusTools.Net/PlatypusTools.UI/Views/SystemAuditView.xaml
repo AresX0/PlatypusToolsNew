@@ -1,0 +1,118 @@
+<UserControl x:Class="PlatypusTools.UI.Views.SystemAuditView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             xmlns:services="clr-namespace:PlatypusTools.Core.Services;assembly=PlatypusTools.Core">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Quick Actions -->
+        <GroupBox Header="Audit Actions" Grid.Row="0" Margin="0,0,0,10">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Full System Audit" Command="{Binding RunFullAuditCommand}" Width="140" Height="35" 
+                        Margin="0,0,5,0" Background="LightBlue" FontWeight="Bold"/>
+                <Button Content="Firewall" Command="{Binding RunFirewallAuditCommand}" Width="100" Height="35" Margin="0,0,5,0"/>
+                <Button Content="Updates" Command="{Binding RunUpdatesAuditCommand}" Width="100" Height="35" Margin="0,0,5,0"/>
+                <Button Content="Startup Items" Command="{Binding RunStartupAuditCommand}" Width="120" Height="35" Margin="0,0,5,0"/>
+                <Button Content="Fix All Issues" Command="{Binding FixAllCommand}" Width="120" Height="35" 
+                        Margin="10,0,5,0" Background="LightGreen" FontWeight="Bold"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Statistics -->
+        <GroupBox Header="Summary" Grid.Row="1" Margin="0,0,0,10">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Total Issues: " FontWeight="Bold" Margin="0,0,5,0"/>
+                <TextBlock Text="{Binding TotalIssues}" Foreground="Red" FontWeight="Bold" Margin="0,0,20,0"/>
+                
+                <TextBlock Text="Critical: " FontWeight="Bold" Margin="0,0,5,0"/>
+                <TextBlock Text="{Binding CriticalIssues}" Foreground="DarkRed" FontWeight="Bold" Margin="0,0,20,0"/>
+                
+                <TextBlock Text="Warnings: " FontWeight="Bold" Margin="0,0,5,0"/>
+                <TextBlock Text="{Binding WarningIssues}" Foreground="Orange" FontWeight="Bold"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Results Grid -->
+        <GroupBox Header="Audit Results" Grid.Row="2" Margin="0,0,0,10">
+            <DataGrid ItemsSource="{Binding AuditItems}" AutoGenerateColumns="False" CanUserAddRows="False" 
+                      IsReadOnly="True" SelectionMode="Single"
+                      CanUserResizeColumns="True" CanUserSortColumns="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="150" CanUserResize="True" MinWidth="100"/>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200" CanUserResize="True" MinWidth="100"/>
+                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" CanUserResize="True" MinWidth="150"/>
+                    <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="80" CanUserResize="True" MinWidth="70">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Severity}" Value="Critical">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Severity}" Value="Warning">
+                                        <Setter Property="Foreground" Value="Orange"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Severity}" Value="Info">
+                                        <Setter Property="Foreground" Value="Gray"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80" CanUserResize="True" MinWidth="60">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Status}" Value="Pass">
+                                        <Setter Property="Foreground" Value="Green"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Status}" Value="Fail">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Status}" Value="Unknown">
+                                        <Setter Property="Foreground" Value="Gray"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTemplateColumn Header="Actions" Width="80">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="Fix" Command="{Binding DataContext.FixIssueCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                        CommandParameter="{Binding}" Width="60" Height="25"
+                                        IsEnabled="{Binding CanAutoFix}" Background="LightYellow"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+
+        <!-- Status Bar -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <ProgressBar Grid.Column="1" IsIndeterminate="True" Height="20" 
+                         Visibility="{Binding IsAuditing, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            <Button Grid.Column="2" Content="Export Report" Command="{Binding ExportReportCommand}" Width="120" 
+                    Height="32" Margin="0,0,5,0"/>
+            <Button Grid.Column="3" Content="Clear" Command="{Binding ClearCommand}" Width="80" Height="32"/>
+        </Grid>
+    </Grid>
+</UserControl>
