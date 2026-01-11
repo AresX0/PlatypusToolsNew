@@ -6,7 +6,6 @@
     <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
-    <ApplicationIcon>..\..\JosephThePlatypus.ico</ApplicationIcon>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>false</SelfContained>
   </PropertyGroup>
@@ -24,7 +23,6 @@
     <ProjectReference Include="..\PlatypusTools.Core\PlatypusTools.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Assets\platypus.png" />
     <Content Include="Assets\PlatypusTools_Help.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

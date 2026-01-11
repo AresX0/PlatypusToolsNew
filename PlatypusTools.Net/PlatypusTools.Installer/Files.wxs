@@ -22,7 +22,8 @@
                 Name="PlatypusTools"
                 Description="Comprehensive System Utilities Suite"
                 Target="[INSTALLFOLDER]PlatypusTools.UI.exe"
-                WorkingDirectory="INSTALLFOLDER" />
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="PlatypusIcon" />
       <RemoveFolder Id="CleanUpShortCut" Directory="ApplicationProgramsFolder" On="uninstall" />
       <RegistryValue Root="HKCU" 
                      Key="Software\PlatypusTools" 
@@ -90,22 +91,30 @@
         <File Source="$(var.PlatypusTools.UI.TargetDir)Assets\PlatypusTools_Help.html" KeyPath="yes" />
       </Component>
 
+      <Component Id="AppIcon" Guid="E1F2A3B4-C5D6-4E5F-9A8B-1C2D3E4F5A6B">
+        <File Source="C:\Projects\Platypustools\JosephThePlatypus.ico" KeyPath="yes" />
+      </Component>
     </ComponentGroup>
 
-    <!-- External tools commented out - not included in installer -->
-    <!-- <ComponentGroup Id="SupportFiles" Directory="ToolsFolder">
+    <!-- External tools and dependencies -->
+    <ComponentGroup Id="SupportFiles" Directory="ToolsFolder">
+      <!-- FFmpeg tools -->
       <Component Id="FFmpeg" Guid="F2A3B4C5-D6E7-4F5A-9B8C-2D3E4F5A6B7C">
         <File Id="FFmpegExe" Source="C:\Projects\Platypustools\LocalArchive\ffmpeg.exe" KeyPath="yes" />
       </Component>
+
       <Component Id="FFprobe" Guid="A3B4C5D6-E7F8-4A5B-9C8D-3E4F5A6B7C8D">
         <File Id="FFprobeExe" Source="C:\Projects\Platypustools\LocalArchive\ffprobe.exe" KeyPath="yes" />
       </Component>
+
       <Component Id="FFplay" Guid="B4C5D6E7-F8A9-4B5C-9D8E-4F5A6B7C8D9E">
         <File Id="FFplayExe" Source="C:\Projects\Platypustools\LocalArchive\ffplay.exe" KeyPath="yes" />
       </Component>
+
+      <!-- ExifTool -->
       <Component Id="ExifTool" Guid="C5D6E7F8-A9B0-4C5D-9E8F-5A6B7C8D9E0F">
         <File Id="ExifToolExe" Source="C:\Projects\Platypustools\LocalArchive\exiftool.exe" KeyPath="yes" />
       </Component>
-    </ComponentGroup> -->
+    </ComponentGroup>
   </Fragment>
 </Wix>

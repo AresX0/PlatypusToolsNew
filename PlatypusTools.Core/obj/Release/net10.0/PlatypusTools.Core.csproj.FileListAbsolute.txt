@@ -1,0 +1,13 @@
+C:\Projects\Platypustools\PlatypusTools.Core\bin\Release\net10.0\PlatypusTools.Core.deps.json
+C:\Projects\Platypustools\PlatypusTools.Core\bin\Release\net10.0\PlatypusTools.Core.dll
+C:\Projects\Platypustools\PlatypusTools.Core\bin\Release\net10.0\PlatypusTools.Core.pdb
+C:\Projects\Platypustools\PlatypusTools.Core\obj\Release\net10.0\PlatypusTools.Core.csproj.AssemblyReference.cache
+C:\Projects\Platypustools\PlatypusTools.Core\obj\Release\net10.0\PlatypusTools.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projects\Platypustools\PlatypusTools.Core\obj\Release\net10.0\PlatypusTools.Core.AssemblyInfoInputs.cache
+C:\Projects\Platypustools\PlatypusTools.Core\obj\Release\net10.0\PlatypusTools.Core.AssemblyInfo.cs
+C:\Projects\Platypustools\PlatypusTools.Core\obj\Release\net10.0\PlatypusTools.Core.csproj.CoreCompileInputs.cache
+C:\Projects\Platypustools\PlatypusTools.Core\obj\Release\net10.0\PlatypusTools.Core.sourcelink.json
+C:\Projects\Platypustools\PlatypusTools.Core\obj\Release\net10.0\PlatypusTools.Core.dll
+C:\Projects\Platypustools\PlatypusTools.Core\obj\Release\net10.0\refint\PlatypusTools.Core.dll
+C:\Projects\Platypustools\PlatypusTools.Core\obj\Release\net10.0\PlatypusTools.Core.pdb
+C:\Projects\Platypustools\PlatypusTools.Core\obj\Release\net10.0\ref\PlatypusTools.Core.dll
