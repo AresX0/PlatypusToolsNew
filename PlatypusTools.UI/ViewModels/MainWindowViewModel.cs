@@ -64,6 +64,7 @@ namespace PlatypusTools.UI.ViewModels
                 ScheduledTasks = new ScheduledTasksViewModel();
                 SystemRestore = new SystemRestoreViewModel();
                 BootableUSB = new BootableUSBViewModel();
+                EmptyFolderScanner = new EmptyFolderScannerViewModel();
 
                 SimpleLogger.Debug("Creating commands");
                 BrowseCommand = new RelayCommand(_ => Browse());
@@ -128,6 +129,7 @@ namespace PlatypusTools.UI.ViewModels
         public ScheduledTasksViewModel ScheduledTasks { get; }
         public SystemRestoreViewModel SystemRestore { get; }
         public BootableUSBViewModel BootableUSB { get; }
+        public EmptyFolderScannerViewModel EmptyFolderScanner { get; }
         private string _selectedFolder = string.Empty;
         public string SelectedFolder { get => _selectedFolder; set { _selectedFolder = value; RaisePropertyChanged(); PropagateSelectedFolder(); } }
 

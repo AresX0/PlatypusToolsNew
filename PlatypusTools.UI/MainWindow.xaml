@@ -154,6 +154,11 @@
                             <views:PrivacyCleanerView DataContext="{Binding PrivacyCleaner}" />
                         </ScrollViewer>
                     </TabItem>
+                    <TabItem Header="Empty Folder Scanner">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <views:EmptyFolderScannerView DataContext="{Binding EmptyFolderScanner}" />
+                        </ScrollViewer>
+                    </TabItem>
                 </TabControl>
             </TabItem>
             <TabItem Header="Security">
