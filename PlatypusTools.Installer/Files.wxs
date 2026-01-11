@@ -49,45 +49,25 @@
   </Fragment>
 
   <Fragment>
-    <!-- Main application files -->
+    <!-- Main application files - using publish output with all runtime files -->
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
       <!-- Main executable -->
       <Component Id="MainExecutable" Guid="D4E5F6A7-B8C9-4D5E-9F8A-4B5C6D7E8F9A">
         <File Id="PlatypusToolsExe" 
-              Source="$(var.PlatypusTools.UI.TargetDir)PlatypusTools.UI.exe" 
+              Source="$(var.PlatypusTools.UI.TargetDir)publish\PlatypusTools.UI.exe" 
               KeyPath="yes" />
-        <File Id="PlatypusToolsDll" 
-              Source="$(var.PlatypusTools.UI.TargetDir)PlatypusTools.UI.dll" />
       </Component>
 
-      <!-- Application DLLs and dependencies -->
-      <Component Id="CoreDLL" Guid="E5F6A7B8-C9D0-4E5F-9A8B-5C6D7E8F9A0B">
-        <File Source="$(var.PlatypusTools.UI.TargetDir)PlatypusTools.Core.dll" KeyPath="yes" />
+      <!-- Harvest all DLL files from publish directory -->
+      <Component Id="AllApplicationFiles" Guid="E5F6A7B8-C9D0-4E5F-9A8B-5C6D7E8F9A0B">
+        <File Source="$(var.PlatypusTools.UI.TargetDir)publish\*.dll" KeyPath="yes" />
+        <File Source="$(var.PlatypusTools.UI.TargetDir)publish\*.json" />
+        <File Source="$(var.PlatypusTools.UI.TargetDir)publish\*.pdb" />
       </Component>
 
-      <Component Id="HtmlAgilityPack" Guid="F6A7B8C9-D0E1-4F5A-9B8C-6D7E8F9A0B1C">
-        <File Source="$(var.PlatypusTools.UI.TargetDir)HtmlAgilityPack.dll" KeyPath="yes" />
-      </Component>
-
-      <Component Id="SystemManagement" Guid="A1B2C3D4-E5F6-7A8B-9C0D-1E2F3A4B5C6D">
-        <File Source="$(var.PlatypusTools.UI.TargetDir)System.Management.dll" KeyPath="yes" />
-      </Component>
-
-      <!-- WebView2 Runtime -->
-      <Component Id="WebView2Loader" Guid="B8C9D0E1-F2A3-4B5C-9D8E-8F9A0B1C2D3E">
-        <File Source="$(var.PlatypusTools.UI.TargetDir)Microsoft.Web.WebView2.Core.dll" KeyPath="yes" />
-        <File Source="$(var.PlatypusTools.UI.TargetDir)Microsoft.Web.WebView2.Wpf.dll" />
-      </Component>
-
-      <!-- Configuration files -->
-      <Component Id="AppSettings" Guid="C9D0E1F2-A3B4-4C5D-9E8F-9A0B1C2D3E4F">
-        <File Source="$(var.PlatypusTools.UI.TargetDir)PlatypusTools.UI.deps.json" KeyPath="yes" />
-        <File Source="$(var.PlatypusTools.UI.TargetDir)PlatypusTools.UI.runtimeconfig.json" />
-      </Component>
-
-      <!-- Assets -->
+      <!-- Assets subdirectory -->
       <Component Id="HelpFile" Guid="D0E1F2A3-B4C5-4D5E-9F8A-0B1C2D3E4F5A">
-        <File Source="$(var.PlatypusTools.UI.TargetDir)Assets\PlatypusTools_Help.html" KeyPath="yes" />
+        <File Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\PlatypusTools_Help.html" KeyPath="yes" />
       </Component>
 
     </ComponentGroup>

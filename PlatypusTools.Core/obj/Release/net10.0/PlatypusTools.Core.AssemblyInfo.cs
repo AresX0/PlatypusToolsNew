@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PlatypusUtils")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0a6a633f632c8e342153dcff34eb672919a0e438")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cceff94fb623fe1ea1d515d07d74cc4fcfec0a43")]
 [assembly: System.Reflection.AssemblyProductAttribute("PlatypusTools.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PlatypusTools.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

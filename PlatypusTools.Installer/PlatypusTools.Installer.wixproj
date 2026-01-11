@@ -7,17 +7,28 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
+  <Target Name="PublishUIProject" BeforeTargets="Build">
+    <Exec Command="&quot;C:\Program Files\dotnet\dotnet.exe&quot; publish ..\PlatypusTools.Net\PlatypusTools.UI\PlatypusTools.UI.csproj -c $(Configuration) -r win-x64 --self-contained true -p:PublishSingleFile=false" />
+  </Target>
+
   <ItemGroup>
     <PackageReference Include="WixToolset.UI.wixext" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="Product.wxs" />
-    <Compile Include="Files.wxs" />
+    <Compile Include="FilesGenerated.wxs" />
+  </ItemGroup>
+
+  <!-- Include all published files as payload -->
+  <ItemGroup>
+    <PayloadFile Include="..\PlatypusTools.Net\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\**\*.*" Exclude="..\PlatypusTools.Net\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\**\*.pdb">
+      <ComponentGroupName>PublishedFiles</ComponentGroupName>
+    </PayloadFile>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PlatypusTools.UI\PlatypusTools.UI.csproj">
+    <ProjectReference Include="..\PlatypusTools.Net\PlatypusTools.UI\PlatypusTools.UI.csproj">
       <Name>PlatypusTools.UI</Name>
     </ProjectReference>
   </ItemGroup>

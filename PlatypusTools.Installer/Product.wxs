@@ -18,14 +18,13 @@
     <MediaTemplate EmbedCab="yes" />
 
     <!-- Icon for Add/Remove Programs -->
-    <!-- <Icon Id="PlatypusIcon" SourceFile="C:\Projects\Platypustools\JosephThePlatypus.ico" /> -->
-    <!-- <Property Id="ARPPRODUCTICON" Value="PlatypusIcon" /> -->
+    <Icon Id="PlatypusIcon" SourceFile="C:\Projects\Platypustools\JosephThePlatypus.ico" />
+    <Property Id="ARPPRODUCTICON" Value="PlatypusIcon" />
     <Property Id="ARPURLINFOABOUT" Value="https://github.com/AresX0/PlatypusTools" />
 
     <!-- Features -->
     <Feature Id="ProductFeature" Title="PlatypusTools" Level="1">
-      <ComponentGroupRef Id="ProductComponents" />
-      <!-- <ComponentGroupRef Id="SupportFiles" /> -->
+      <ComponentGroupRef Id="PublishedFiles" />
       <ComponentRef Id="ApplicationShortcut" />
       <ComponentRef Id="RegistryEntries" />
     </Feature>
