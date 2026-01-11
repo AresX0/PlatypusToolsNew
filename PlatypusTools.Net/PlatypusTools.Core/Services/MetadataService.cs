@@ -21,6 +21,27 @@ namespace PlatypusTools.Core.Services
         string? GetCustomExifToolPath();
     }
 
+    internal static class ServiceLogger
+    {
+        private static readonly string LogPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "PlatypusTools", "Logs", "service_debug.log");
+
+        public static void Log(string message)
+        {
+            try
+            {
+                var dir = Path.GetDirectoryName(LogPath);
+                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir!);
+                
+                var line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}";
+                File.AppendAllText(LogPath, line + Environment.NewLine);
+                System.Diagnostics.Debug.WriteLine(message);
+            }
+            catch { }
+        }
+    }
+
     public class MetadataServiceEnhanced : IMetadataService
     {
         /// <summary>
@@ -32,26 +53,26 @@ namespace PlatypusTools.Core.Services
             
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[MetadataService] ReadMetadata called for: {filePath}");
+                ServiceLogger.Log($"[MetadataService] ReadMetadata called for: {filePath}");
                 
                 // Try native reading first (faster and doesn't require ExifTool)
                 if (NativeMetadataReader.IsSupported(filePath))
                 {
-                    System.Diagnostics.Debug.WriteLine($"[MetadataService] Using native metadata reader");
+                    ServiceLogger.Log($"[MetadataService] Using native metadata reader");
                     metadata = NativeMetadataReader.ReadMetadata(filePath);
-                    System.Diagnostics.Debug.WriteLine($"[MetadataService] Native reader returned {metadata.Count} entries");
+                    ServiceLogger.Log($"[MetadataService] Native reader returned {metadata.Count} entries");
                     
                     if (metadata.Count > 0)
                         return metadata;
                 }
                 
                 // Fall back to ExifTool for unsupported formats or if native reading failed
-                System.Diagnostics.Debug.WriteLine($"[MetadataService] Falling back to ExifTool");
+                ServiceLogger.Log($"[MetadataService] Falling back to ExifTool");
                 return await ReadMetadataWithExifTool(filePath);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[MetadataService] ERROR: {ex.Message}");
+                ServiceLogger.Log($"[MetadataService] ERROR: {ex.Message}");
             }
 
             return metadata;
@@ -118,6 +139,16 @@ namespace PlatypusTools.Core.Services
             return metadata;
         }
 
+        // Read-only tags that cannot be written
+        private static readonly HashSet<string> ReadOnlyTags = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "AudioChannels", "AudioCodec", "AudioSampleRate", "Directory", "Duration",
+            "FileCreateDate", "FileModifyDate", "FileName", "FileSize", "FileType",
+            "ImageHeight", "ImageSize", "ImageWidth", "VideoCodec", "BitRate", "Bitrate",
+            "FileAccessDate", "FileInodeChangeDate", "MIMEType", "SourceFile",
+            "ExifToolVersion", "Warning", "Error"
+        };
+
         /// <summary>
         /// Writes metadata to a file. Tries native writing first (TagLib for audio/video),
         /// then falls back to ExifTool.
@@ -126,48 +157,86 @@ namespace PlatypusTools.Core.Services
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[MetadataService] WriteMetadata called for: {filePath}");
-                System.Diagnostics.Debug.WriteLine($"[MetadataService] Writing {metadata.Count} tags");
+                // Filter out read-only tags
+                var writableTags = metadata
+                    .Where(kvp => !ReadOnlyTags.Contains(kvp.Key.Replace(":", "")))
+                    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                ServiceLogger.Log($"[MetadataService] WriteMetadata called for: {filePath}");
+                ServiceLogger.Log($"[MetadataService] Writing {writableTags.Count} tags (filtered from {metadata.Count})");
+
+                if (writableTags.Count == 0)
+                {
+                    ServiceLogger.Log($"[MetadataService] No writable tags to save");
+                    return true; // Nothing to write is success
+                }
 
                 // Try native writing with TagLib for audio/video
                 var extension = Path.GetExtension(filePath).ToLowerInvariant();
-                var audioVideoExtensions = new HashSet<string> { ".mp3", ".mp4", ".m4a", ".m4v", ".flac", ".ogg", ".wav", ".aac", ".wma", ".mkv", ".avi", ".mov" };
+                var tagLibExtensions = new HashSet<string> { ".mp3", ".mp4", ".m4a", ".m4v", ".flac", ".ogg", ".wav", ".aac", ".wma" };
                 
-                if (audioVideoExtensions.Contains(extension))
+                // Note: TagLib doesn't fully support MKV/AVI writing, skip to ExifTool for those
+                if (tagLibExtensions.Contains(extension))
                 {
-                    if (WriteWithTagLib(filePath, metadata))
+                    if (WriteWithTagLib(filePath, writableTags))
                     {
-                        System.Diagnostics.Debug.WriteLine($"[MetadataService] Successfully wrote with TagLib");
+                        ServiceLogger.Log($"[MetadataService] Successfully wrote with TagLib");
                         return true;
                     }
                 }
 
-                // Fall back to ExifTool
-                return await WriteMetadataWithExifTool(filePath, metadata);
+                // Fall back to ExifTool (but note MKV is not supported by ExifTool for writing either)
+                var exifToolUnsupported = new HashSet<string> { ".mkv", ".webm" };
+                if (exifToolUnsupported.Contains(extension))
+                {
+                    ServiceLogger.Log($"[MetadataService] ExifTool does not support writing to {extension} files");
+                    return false;
+                }
+
+                return await WriteMetadataWithExifTool(filePath, writableTags);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[MetadataService] WriteMetadata error: {ex.Message}");
+                ServiceLogger.Log($"[MetadataService] WriteMetadata error: {ex.Message}");
                 return false;
             }
         }
 
         private bool WriteWithTagLib(string filePath, Dictionary<string, string> metadata)
         {
-            try
+            const int maxRetries = 3;
+            const int retryDelayMs = 500;
+            
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
             {
-                using var file = TagLib.File.Create(filePath);
+                try
+                {
+                    ServiceLogger.Log($"[MetadataService] WriteWithTagLib called for: {filePath} (attempt {attempt}/{maxRetries})");
+                    ServiceLogger.Log($"[MetadataService] Metadata keys: {string.Join(", ", metadata.Keys)}");
+                    
+                    // Force garbage collection to release any lingering file handles
+                    if (attempt > 1)
+                    {
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+                        Thread.Sleep(retryDelayMs);
+                    }
+                    
+                    using var file = TagLib.File.Create(filePath);
                 var tag = file.Tag;
+                var tagsWritten = 0;
 
                 foreach (var kvp in metadata)
                 {
-                    var key = kvp.Key.ToLowerInvariant().Replace(" ", "");
+                    var key = kvp.Key.ToLowerInvariant().Replace(" ", "").Replace(":", "");
                     var value = kvp.Value;
+                    ServiceLogger.Log($"[MetadataService] Processing tag: {kvp.Key} -> normalized: {key} = {value}");
 
                     switch (key)
                     {
                         case "title":
                             tag.Title = value;
+                            tagsWritten++;
                             break;
                         case "artist":
                         case "performers":
@@ -219,24 +288,52 @@ namespace PlatypusTools.Core.Services
                             if (uint.TryParse(value, out var disc))
                                 tag.Disc = disc;
                             break;
+                        case "xmpownername":
+                        case "ownername":
+                        case "owner":
+                            // XMP:OwnerName - store in comment or custom field
+                            tag.Comment = string.IsNullOrEmpty(tag.Comment) ? $"Owner: {value}" : tag.Comment;
+                            tagsWritten++;
+                            break;
+                        default:
+                            ServiceLogger.Log($"[MetadataService] Unhandled tag: {key}");
+                            break;
                     }
                 }
 
-                file.Save();
-                return true;
+                ServiceLogger.Log($"[MetadataService] Tags written: {tagsWritten}, calling Save()");
+                    file.Save();
+                    ServiceLogger.Log($"[MetadataService] TagLib Save() completed successfully");
+                    return true;
+                }
+                catch (IOException ioEx) when (attempt < maxRetries)
+                {
+                    ServiceLogger.Log($"[MetadataService] TagLib IO error (attempt {attempt}): {ioEx.Message} - will retry");
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    ServiceLogger.Log($"[MetadataService] TagLib write error: {ex.Message}");
+                    ServiceLogger.Log($"[MetadataService] TagLib exception: {ex}");
+                    if (attempt == maxRetries)
+                        return false;
+                }
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[MetadataService] TagLib write error: {ex.Message}");
-                return false;
-            }
+            return false;
         }
 
         private async Task<bool> WriteMetadataWithExifTool(string filePath, Dictionary<string, string> metadata)
         {
+            ServiceLogger.Log($"[MetadataService] WriteMetadataWithExifTool called for: {filePath}");
+            
             var exifToolPath = GetExifToolPath();
+            ServiceLogger.Log($"[MetadataService] ExifTool path: {exifToolPath}");
+            
             if (!File.Exists(exifToolPath))
+            {
+                ServiceLogger.Log($"[MetadataService] ExifTool not found at: {exifToolPath}");
                 return false;
+            }
 
             var args = new List<string>();
             foreach (var kvp in metadata)
@@ -250,10 +347,13 @@ namespace PlatypusTools.Core.Services
             args.Add("-overwrite_original");
             args.Add($"\"{filePath}\"");
 
+            var commandLine = string.Join(" ", args);
+            ServiceLogger.Log($"[MetadataService] ExifTool command: {exifToolPath} {commandLine}");
+
             var startInfo = new ProcessStartInfo
             {
                 FileName = exifToolPath,
-                Arguments = string.Join(" ", args),
+                Arguments = commandLine,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -270,13 +370,20 @@ namespace PlatypusTools.Core.Services
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             try
             {
-                await process.StandardOutput.ReadToEndAsync();
-                await process.StandardError.ReadToEndAsync();
+                var stdout = await process.StandardOutput.ReadToEndAsync();
+                var stderr = await process.StandardError.ReadToEndAsync();
                 await process.WaitForExitAsync(cts.Token);
+                
+                ServiceLogger.Log($"[MetadataService] ExifTool exit code: {process.ExitCode}");
+                ServiceLogger.Log($"[MetadataService] ExifTool stdout: {stdout}");
+                if (!string.IsNullOrEmpty(stderr))
+                    ServiceLogger.Log($"[MetadataService] ExifTool stderr: {stderr}");
+                
                 return process.ExitCode == 0;
             }
             catch (OperationCanceledException)
             {
+                ServiceLogger.Log($"[MetadataService] ExifTool timed out after 30 seconds");
                 try { process.Kill(); } catch { }
                 return false;
             }
@@ -560,3 +667,4 @@ namespace PlatypusTools.Core.Services
         }
     }
 }
+

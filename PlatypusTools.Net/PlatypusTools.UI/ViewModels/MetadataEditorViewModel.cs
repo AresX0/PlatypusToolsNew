@@ -461,19 +461,32 @@ namespace PlatypusTools.UI.ViewModels
                 var modifiedTags = Metadata.Where(m => m.IsModified)
                     .ToDictionary(m => m.Key, m => m.Value);
 
+                System.Diagnostics.Debug.WriteLine($"[MetadataEditorViewModel] SaveMetadata called");
+                System.Diagnostics.Debug.WriteLine($"[MetadataEditorViewModel] File: {FilePath}");
+                System.Diagnostics.Debug.WriteLine($"[MetadataEditorViewModel] Modified tags count: {modifiedTags.Count}");
+                foreach (var tag in modifiedTags)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MetadataEditorViewModel]   {tag.Key} = {tag.Value}");
+                }
+
                 if (modifiedTags.Any())
                 {
                     var success = await _service.WriteMetadata(FilePath, modifiedTags);
+                    System.Diagnostics.Debug.WriteLine($"[MetadataEditorViewModel] WriteMetadata result: {success}");
+                    
                     if (success)
                     {
                         foreach (var tag in Metadata)
+                        {
+                            tag.OriginalValue = tag.Value;
                             tag.IsModified = false;
+                        }
                         
                         StatusMessage = $"Saved {modifiedTags.Count} metadata tags";
                     }
                     else
                     {
-                        StatusMessage = "Failed to save metadata";
+                        StatusMessage = "Failed to save metadata - check debug output for details";
                     }
                 }
                 else

@@ -73,14 +73,26 @@ namespace PlatypusTools.Core.Services
                 task.StatusMessage = "Converting...";
 
                 var ffmpegPath = GetFFmpegPath();
-                if (!File.Exists(ffmpegPath))
+                ServiceLogger.Log($"[VideoConverter] FFmpeg path: {ffmpegPath}");
+                ServiceLogger.Log($"[VideoConverter] Source: {task.SourcePath}");
+                ServiceLogger.Log($"[VideoConverter] Output: {task.OutputPath}");
+                
+                if (ffmpegPath == "ffmpeg")
+                {
+                    // FFmpeg is in PATH, try to find actual path
+                    ServiceLogger.Log($"[VideoConverter] FFmpeg is in PATH, checking availability");
+                }
+                else if (!File.Exists(ffmpegPath))
                 {
                     task.Status = ConversionStatus.Failed;
                     task.StatusMessage = "FFmpeg not found";
+                    ServiceLogger.Log($"[VideoConverter] ERROR: FFmpeg not found at {ffmpegPath}");
                     return false;
                 }
 
                 var arguments = BuildFFmpegArguments(task);
+                ServiceLogger.Log($"[VideoConverter] Arguments: {arguments}");
+                
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = ffmpegPath,
@@ -127,18 +139,27 @@ namespace PlatypusTools.Core.Services
                     return false;
                 }
 
+                ServiceLogger.Log($"[VideoConverter] FFmpeg exit code: {process.ExitCode}");
+                ServiceLogger.Log($"[VideoConverter] Output file exists: {File.Exists(task.OutputPath)}");
+                
                 if (process.ExitCode == 0 && File.Exists(task.OutputPath))
                 {
                     task.Status = ConversionStatus.Completed;
                     task.StatusMessage = "Completed";
                     task.Progress = 100;
                     progress?.Report(100);
+                    ServiceLogger.Log($"[VideoConverter] SUCCESS: Conversion completed");
                     return true;
                 }
                 else
                 {
                     task.Status = ConversionStatus.Failed;
-                    task.StatusMessage = $"FFmpeg error (code {process.ExitCode})";
+                    // Get last few lines of error output for status message
+                    var errorLines = errorOutput.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                    var lastError = errorLines.Length > 0 ? errorLines[^1] : "Unknown error";
+                    task.StatusMessage = $"Failed: {lastError}";
+                    ServiceLogger.Log($"[VideoConverter] FAILED: Exit code {process.ExitCode}");
+                    ServiceLogger.Log($"[VideoConverter] Error output:\n{errorOutput}");
                     return false;
                 }
             }
@@ -146,6 +167,7 @@ namespace PlatypusTools.Core.Services
             {
                 task.Status = ConversionStatus.Failed;
                 task.StatusMessage = $"Error: {ex.Message}";
+                ServiceLogger.Log($"[VideoConverter] EXCEPTION: {ex}");
                 return false;
             }
         }
@@ -309,23 +331,23 @@ namespace PlatypusTools.Core.Services
             // Input file
             args.Add($"-i \"{task.SourcePath}\"");
 
-            // Quality settings
+            // Quality settings - use -ac 2 to downmix to stereo for AAC compatibility
             switch (task.Quality)
             {
                 case VideoQuality.Source:
                     args.Add("-c copy");
                     break;
                 case VideoQuality.High:
-                    args.Add("-c:v libx264 -crf 18 -c:a aac -b:a 192k");
+                    args.Add("-c:v libx264 -crf 18 -c:a aac -ac 2 -b:a 192k");
                     break;
                 case VideoQuality.Medium:
-                    args.Add("-c:v libx264 -crf 23 -c:a aac -b:a 128k");
+                    args.Add("-c:v libx264 -crf 23 -c:a aac -ac 2 -b:a 128k");
                     break;
                 case VideoQuality.Low:
-                    args.Add("-c:v libx264 -crf 28 -c:a aac -b:a 96k");
+                    args.Add("-c:v libx264 -crf 28 -c:a aac -ac 2 -b:a 96k");
                     break;
                 case VideoQuality.VeryLow:
-                    args.Add("-c:v libx264 -crf 32 -c:a aac -b:a 64k");
+                    args.Add("-c:v libx264 -crf 32 -c:a aac -ac 2 -b:a 64k");
                     break;
             }
 
@@ -342,3 +364,4 @@ namespace PlatypusTools.Core.Services
         }
     }
 }
+

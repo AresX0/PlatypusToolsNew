@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatypusTools.Core", "PlatypusTools.Core\PlatypusTools.Core.csproj", "{9A19103F-16F7-4668-BE54-9A1E7A4F7556}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatypusTools.Core", "PlatypusTools.Net\PlatypusTools.Core\PlatypusTools.Core.csproj", "{9A19103F-16F7-4668-BE54-9A1E7A4F7556}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatypusTools.UI", "PlatypusTools.UI\PlatypusTools.UI.csproj", "{2D5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatypusTools.UI", "PlatypusTools.Net\PlatypusTools.UI\PlatypusTools.UI.csproj", "{2D5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatypusTools.Core.Tests", "PlatypusTools.Core.Tests\PlatypusTools.Core.Tests.csproj", "{3E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatypusTools.Core.Tests", "PlatypusTools.Net\PlatypusTools.Core.Tests\PlatypusTools.Core.Tests.csproj", "{3E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatypusTools.UI.Tests", "tests\PlatypusTools.UI.Tests\PlatypusTools.UI.Tests.csproj", "{4E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatypusTools.UI.Tests", "PlatypusTools.Net\tests\PlatypusTools.UI.Tests\PlatypusTools.UI.Tests.csproj", "{4E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}"
 EndProject
-Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "PlatypusTools.Installer", "PlatypusTools.Installer\PlatypusTools.Installer.wixproj", "{5E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}"
+Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "PlatypusTools.Installer", "PlatypusTools.Net\PlatypusTools.Installer\PlatypusTools.Installer.wixproj", "{5E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
