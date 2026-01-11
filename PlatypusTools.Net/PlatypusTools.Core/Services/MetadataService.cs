@@ -178,17 +178,32 @@ namespace PlatypusTools.Core.Services
             if (!string.IsNullOrEmpty(customPath) && File.Exists(customPath))
                 return customPath;
 
-            // Check Tools folder relative to application first
             var appPath = AppDomain.CurrentDomain.BaseDirectory;
-            var toolsPaths = new[]
+            
+            // Build list of all possible paths - most specific first
+            var allPaths = new List<string>
             {
-                Path.Combine(appPath, "..", "..", "..", "..", "PlatypusUtils", "Tools", "exiftool.exe"),
-                Path.Combine(appPath, "..", "..", "..", "..", "LocalArchive", "PlatypusUtils", "Tools", "exiftool.exe"),
+                // Installed location (MSI installs Tools folder next to exe)
+                Path.Combine(appPath, "Tools", "exiftool-13.43_64", "exiftool.exe"),
+                Path.Combine(appPath, "Tools", "exiftool.exe"),
+                Path.Combine(appPath, "exiftool-13.43_64", "exiftool.exe"),
+                Path.Combine(appPath, "exiftool.exe"),
+                
+                // Program Files locations
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "PlatypusTools", "Tools", "exiftool-13.43_64", "exiftool.exe"),
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "PlatypusTools", "Tools", "exiftool.exe"),
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "PlatypusTools", "Tools", "exiftool-13.43_64", "exiftool.exe")
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "ExifTool", "exiftool.exe"),
+                
+                // Dev environment paths (relative to project)
+                Path.Combine(appPath, "..", "..", "..", "..", "PlatypusUtils", "Tools", "exiftool-13.43_64", "exiftool.exe"),
+                Path.Combine(appPath, "..", "..", "..", "..", "PlatypusUtils", "Tools", "exiftool.exe"),
+                
+                // Common user install locations
+                @"C:\exiftool\exiftool.exe",
+                @"C:\Program Files\exiftool\exiftool.exe"
             };
 
-            foreach (var path in toolsPaths)
+            foreach (var path in allPaths)
             {
                 try
                 {
@@ -197,26 +212,6 @@ namespace PlatypusTools.Core.Services
                         return fullPath;
                 }
                 catch { }
-            }
-
-            var possiblePaths = new[]
-            {
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "exiftool", "exiftool.exe"),
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "exiftool.exe"),
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "exiftool.exe"),
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "exiftool-13.43_64", "exiftool.exe"),
-                @"C:\Program Files\PlatypusTools\Tools\exiftool.exe",
-                @"C:\Program Files\PlatypusTools\Tools\exiftool-13.43_64\exiftool.exe",
-                @"C:\Program Files\ExifTool\exiftool.exe",
-                @"C:\exiftool\exiftool.exe",
-                @"C:\Program Files\exiftool\exiftool.exe",
-                "exiftool"
-            };
-
-            foreach (var path in possiblePaths)
-            {
-                if (File.Exists(path))
-                    return path;
             }
 
             // Search recursively in Program Files directories

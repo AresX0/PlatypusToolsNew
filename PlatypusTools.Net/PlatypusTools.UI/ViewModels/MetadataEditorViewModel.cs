@@ -325,15 +325,23 @@ namespace PlatypusTools.UI.ViewModels
 
         private async void LoadMetadata()
         {
+            if (string.IsNullOrEmpty(FilePath))
+            {
+                StatusMessage = "Please select a file first";
+                return;
+            }
+
             if (!File.Exists(FilePath))
             {
-                StatusMessage = "File not found";
+                StatusMessage = $"File not found: {FilePath}";
                 return;
             }
 
             if (!_service.IsExifToolAvailable())
             {
-                StatusMessage = "ExifTool not available";
+                var exifPath = _service.GetExifToolPath();
+                StatusMessage = $"ExifTool not found. Expected at: {exifPath}";
+                IsExifToolMissing = true;
                 return;
             }
 
@@ -622,6 +630,8 @@ namespace PlatypusTools.UI.ViewModels
                 }
 
                 FolderStatusMessage = $"Scanned {FolderFiles.Count} files";
+                (ExportToCsvCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                System.Windows.Input.CommandManager.InvalidateRequerySuggested();
             }
             catch (Exception ex)
             {
@@ -630,6 +640,7 @@ namespace PlatypusTools.UI.ViewModels
             finally
             {
                 IsFolderScanning = false;
+                (ExportToCsvCommand as RelayCommand)?.RaiseCanExecuteChanged();
             }
         }
 
