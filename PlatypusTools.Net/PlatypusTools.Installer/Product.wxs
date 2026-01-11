@@ -10,8 +10,9 @@
            Compressed="yes">
 
     <SummaryInformation Keywords="Installer"
-                        Description="PlatypusTools - Comprehensive System Utilities Suite"
-                        Manufacturer="PlatypusTools" />
+                        Description="PlatypusTools - Comprehensive System Utilities Suite (includes .NET 10.0 runtime)"
+                        Manufacturer="PlatypusTools"
+                        Comments="Self-contained installer with all dependencies. No .NET installation required." />
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
