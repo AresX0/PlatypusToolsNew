@@ -1,55 +1,124 @@
 # PlatypusTools .gitignore
 
+# ===================
+# Build artifacts
+# ===================
+bin/
+obj/
+publish/
+*.msi
+*.wixpdb
+*.cab
+
+# ===================
 # Runtime data (user-specific)
+# ===================
 Data/
 Logs/
 *.log
 
+# ===================
 # Configuration files (user-specific)
+# ===================
 *_Config.json
 
+# ===================
 # Scan data files
+# ===================
 ScanData/
 *.csv
 
+# ===================
 # Windows system files
+# ===================
 Thumbs.db
 desktop.ini
 *.lnk
 
+# ===================
 # External tools (user must download separately)
+# ===================
 Tools/ffmpeg.exe
 Tools/ffprobe.exe
 Tools/exiftool.exe
 Tools/exiftool(-k).exe
 Tools/*.dll
 
+# ===================
 # Compiled executables
+# ===================
 *.exe
 
+# ===================
 # Temporary files
+# ===================
 *.tmp
 *.temp
 *~
 
+# ===================
 # Backup files
+# ===================
 *.bak
 *.backup
 *.old
 
+# ===================
 # Editor files
+# ===================
 *.swp
 *.swo
 .vscode/
 .idea/
 
+# ===================
 # PowerShell module cache
+# ===================
 *.psm1.cache
 
+# ===================
 # OS generated files
+# ===================
 .DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
 ehthumbs.db
+
+# ===================
+# Archived/duplicate folders
+# ===================
+ARCHIVED_OLD_DUPLICATES/
+LocalArchive/
+
+# ===================
+# Temporary development files (do not commit)
+# ===================
+ADVANCED_LOGGING_SUMMARY.md
+CHANGES_LOG.md
+ELEVATION_IMPLEMENTATION.md
+ENHANCEMENT_PLAN.md
+FIXES_*.md
+GITHUB_UPLOAD_GUIDE.md
+IMPLEMENTATION_PLAN.md
+QUICK_START_GITHUB.md
+RELEASE_NOTES_*.md
+TESTING_GUIDE_*.md
+TODO.md
+USER_ISSUES_SUMMARY.md
+CHANGES_MANIFEST_*.md
+COMPLETION_SUMMARY.md
+
+# ===================
+# NuGet
+# ===================
+*.nupkg
+.nuget/
+packages/
+
+# ===================
+# Rider/ReSharper
+# ===================
+_ReSharper*/
+*.DotSettings.user

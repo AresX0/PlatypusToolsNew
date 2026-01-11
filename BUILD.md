@@ -56,17 +56,17 @@ Complete instructions for building PlatypusTools.NET from source, including the 
 ### Option 1: Clone via Git
 ```powershell
 # HTTPS
-git clone https://github.com/yourusername/PlatypusTools.git
+git clone https://github.com/AresX0/PlatypusToolsNew.git
 
 # SSH
-git clone git@github.com:yourusername/PlatypusTools.git
+git clone git@github.com:AresX0/PlatypusToolsNew.git
 
 # Navigate to .NET project
-cd PlatypusTools\PlatypusTools.Net
+cd PlatypusToolsNew\PlatypusTools.Net
 ```
 
 ### Option 2: Download ZIP
-1. Go to https://github.com/yourusername/PlatypusTools
+1. Go to https://github.com/AresX0/PlatypusToolsNew
 2. Click **Code** → **Download ZIP**
 3. Extract to `C:\Projects\PlatypusTools`
 4. Navigate to `PlatypusTools.Net` folder

@@ -278,43 +278,43 @@ namespace PlatypusTools.Core.Services
             // 11: Scheduled Task State, 12: Idle Time, 13: Power Management, 14: Run As User, 15: Delete Task If Not Rescheduled
             // 16: Stop Task If Runs X Hours, 17: Schedule, 18: Schedule Type, 19: Start Time, etc.
             var fields = ParseCsvLine(line);
-            if (fields.Count < 4) return null;
+            if (fields.Count < 12) return null; // Need at least through Scheduled Task State
 
             // Skip header line (check if first field is "HostName")
             if (fields[0].Equals("HostName", StringComparison.OrdinalIgnoreCase)) return null;
 
+            // Get task name from index 1, strip leading backslash
+            var taskName = fields[1].TrimStart('\\');
+            var taskDisplayName = taskName.Split('\\').Last();
+
             var task = new ScheduledTaskInfo
             {
-                // TaskName is at index 1 (after HostName)
-                Name = fields.Count > 1 ? fields[1].Split('\\').Last() : "Unknown",
-                Path = fields.Count > 1 ? fields[1] : string.Empty
+                Name = taskDisplayName,
+                Path = fields[1]
             };
 
             // Next run time (index 2)
-            if (fields.Count > 2 && !string.IsNullOrWhiteSpace(fields[2]))
+            if (!string.IsNullOrWhiteSpace(fields[2]) && !fields[2].Equals("N/A", StringComparison.OrdinalIgnoreCase))
             {
-                if (DateTime.TryParse(fields[2], out var nextRun))
+                if (DateTime.TryParse(fields[2], out var nextRun) && nextRun.Year > 1900)
                 {
                     task.NextRunTime = nextRun;
                 }
             }
 
-            // Status (index 3)
-            if (fields.Count > 3)
-            {
-                task.Status = fields[3];
-            }
+            // Status (index 3) - e.g., "Ready", "Running", "Disabled"
+            task.Status = fields[3];
 
             // Last run time (index 5)
-            if (fields.Count > 5 && !string.IsNullOrWhiteSpace(fields[5]))
+            if (fields.Count > 5 && !string.IsNullOrWhiteSpace(fields[5]) && !fields[5].Equals("N/A", StringComparison.OrdinalIgnoreCase))
             {
-                if (DateTime.TryParse(fields[5], out var lastRun))
+                if (DateTime.TryParse(fields[5], out var lastRun) && lastRun.Year > 1900)
                 {
                     task.LastRunTime = lastRun;
                 }
             }
 
-            // Last result (index 6)
+            // Last result (index 6) - typically error codes like 0, 267011, etc.
             if (fields.Count > 6)
             {
                 task.LastResult = fields[6];
@@ -332,15 +332,18 @@ namespace PlatypusTools.Core.Services
                 task.TaskToRun = fields[8];
             }
 
-            // Schedule Type (index 18 typically, but may vary)
-            if (fields.Count > 18)
+            // Schedule Type (index 18) - e.g., "Daily", "On demand only", "At log on"
+            if (fields.Count > 18 && !string.IsNullOrWhiteSpace(fields[18]))
             {
                 task.TriggerType = fields[18];
             }
-            else if (fields.Count > 17)
+            else if (fields.Count > 17 && !string.IsNullOrWhiteSpace(fields[17]))
             {
-                // Try index 17 as fallback
                 task.TriggerType = fields[17];
+            }
+            else
+            {
+                task.TriggerType = "Unknown";
             }
 
             return task;
@@ -350,7 +353,7 @@ namespace PlatypusTools.Core.Services
         {
             var fields = new List<string>();
             var inQuotes = false;
-            var currentField = string.Empty;
+            var currentField = new System.Text.StringBuilder();
 
             for (int i = 0; i < line.Length; i++)
             {
@@ -358,20 +361,29 @@ namespace PlatypusTools.Core.Services
 
                 if (c == '"')
                 {
-                    inQuotes = !inQuotes;
+                    // Handle escaped quotes (two consecutive quotes inside quoted string)
+                    if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
+                    {
+                        currentField.Append('"');
+                        i++; // Skip the next quote
+                    }
+                    else
+                    {
+                        inQuotes = !inQuotes;
+                    }
                 }
                 else if (c == ',' && !inQuotes)
                 {
-                    fields.Add(currentField.Trim());
-                    currentField = string.Empty;
+                    fields.Add(currentField.ToString());
+                    currentField.Clear();
                 }
                 else
                 {
-                    currentField += c;
+                    currentField.Append(c);
                 }
             }
 
-            fields.Add(currentField.Trim());
+            fields.Add(currentField.ToString());
             return fields;
         }
     }

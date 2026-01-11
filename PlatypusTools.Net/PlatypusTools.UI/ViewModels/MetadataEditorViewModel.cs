@@ -75,7 +75,16 @@ namespace PlatypusTools.UI.ViewModels
         public string FilePath
         {
             get => _filePath;
-            set { _filePath = value; OnPropertyChanged(); }
+            set 
+            { 
+                if (_filePath != value)
+                {
+                    _filePath = value; 
+                    OnPropertyChanged(); 
+                    (LoadMetadataCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+                }
+            }
         }
 
         private string _statusMessage = "Ready";
@@ -211,7 +220,16 @@ namespace PlatypusTools.UI.ViewModels
         public string FolderPath
         {
             get => _folderPath;
-            set { _folderPath = value; OnPropertyChanged(); }
+            set 
+            { 
+                if (_folderPath != value)
+                {
+                    _folderPath = value; 
+                    OnPropertyChanged(); 
+                    (ScanFolderCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+                }
+            }
         }
 
         private string _folderStatusMessage = "Select a folder to scan";

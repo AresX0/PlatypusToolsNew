@@ -25,10 +25,14 @@ namespace PlatypusTools.UI.ViewModels
             get => _sourceFolderPath;
             set 
             { 
-                _sourceFolderPath = value; 
-                OnPropertyChanged(); 
-                // Refresh the Scan command when path changes
-                (ScanCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                if (_sourceFolderPath != value)
+                {
+                    _sourceFolderPath = value; 
+                    OnPropertyChanged(); 
+                    // Refresh the Scan command when path changes
+                    (ScanCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+                }
             }
         }
 
