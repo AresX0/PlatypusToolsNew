@@ -184,18 +184,18 @@ namespace PlatypusTools.Core.Services
             var allPaths = new List<string>
             {
                 // Installed location (MSI installs Tools folder next to exe)
-                Path.Combine(appPath, "Tools", "exiftool-13.43_64", "exiftool.exe"),
+                Path.Combine(appPath, "Tools", "exiftool-13.45_64", "exiftool.exe"),
                 Path.Combine(appPath, "Tools", "exiftool.exe"),
-                Path.Combine(appPath, "exiftool-13.43_64", "exiftool.exe"),
+                Path.Combine(appPath, "exiftool-13.45_64", "exiftool.exe"),
                 Path.Combine(appPath, "exiftool.exe"),
                 
                 // Program Files locations
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "PlatypusTools", "Tools", "exiftool-13.43_64", "exiftool.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "PlatypusTools", "Tools", "exiftool-13.45_64", "exiftool.exe"),
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "PlatypusTools", "Tools", "exiftool.exe"),
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "ExifTool", "exiftool.exe"),
                 
                 // Dev environment paths (relative to project)
-                Path.Combine(appPath, "..", "..", "..", "..", "PlatypusUtils", "Tools", "exiftool-13.43_64", "exiftool.exe"),
+                Path.Combine(appPath, "..", "..", "..", "..", "PlatypusUtils", "Tools", "exiftool-13.45_64", "exiftool.exe"),
                 Path.Combine(appPath, "..", "..", "..", "..", "PlatypusUtils", "Tools", "exiftool.exe"),
                 
                 // Common user install locations
