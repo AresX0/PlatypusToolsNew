@@ -1,0 +1,24 @@
+<Project Sdk="WixToolset.Sdk/6.0.1">
+  <PropertyGroup>
+    <OutputName>PlatypusToolsSetup</OutputName>
+    <OutputType>Package</OutputType>
+    <Platform>x64</Platform>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="6.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Product.wxs" />
+    <Compile Include="Files.wxs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PlatypusTools.UI\PlatypusTools.UI.csproj">
+      <Name>PlatypusTools.UI</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
