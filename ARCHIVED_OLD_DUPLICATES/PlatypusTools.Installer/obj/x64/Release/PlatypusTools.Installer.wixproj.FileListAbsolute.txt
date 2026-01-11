@@ -1,0 +1,6 @@
+C:\Projects\Platypustools\PlatypusTools.Installer\obj\x64\Release\PlatypusTools.Installer.wixproj.CoreCompileInputs.cache
+C:\Projects\Platypustools\PlatypusTools.Installer\bin\x64\Release\PlatypusToolsSetup.msi
+C:\Projects\Platypustools\PlatypusTools.Installer\bin\x64\Release\PlatypusToolsSetup.wixpdb
+C:\Projects\Platypustools\PlatypusTools.Installer\obj\x64\Release\PlatypusToolsSetup.msi
+C:\Projects\Platypustools\PlatypusTools.Installer\obj\x64\Release\PlatypusToolsSetup.wixpdb
+C:\Projects\Platypustools\PlatypusTools.Installer\obj\x64\Release\PlatypusTools.Installer.wixproj.BindTracking-neutral.txt

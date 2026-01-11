@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "dgSpecHash": "p2bnP9HJ+o4=",
+  "success": true,
+  "projectFilePath": "C:\\Projects\\Platypustools\\PlatypusTools.Core\\PlatypusTools.Core.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\doran\\.nuget\\packages\\htmlagilitypack\\1.12.4\\htmlagilitypack.1.12.4.nupkg.sha512",
+    "C:\\Users\\doran\\.nuget\\packages\\microsoft.codeanalysis.netanalyzers\\8.0.0\\microsoft.codeanalysis.netanalyzers.8.0.0.nupkg.sha512",
+    "C:\\Users\\doran\\.nuget\\packages\\microsoft.win32.systemevents\\10.0.1\\microsoft.win32.systemevents.10.0.1.nupkg.sha512",
+    "C:\\Users\\doran\\.nuget\\packages\\system.codedom\\10.0.0\\system.codedom.10.0.0.nupkg.sha512",
+    "C:\\Users\\doran\\.nuget\\packages\\system.drawing.common\\10.0.1\\system.drawing.common.10.0.1.nupkg.sha512",
+    "C:\\Users\\doran\\.nuget\\packages\\system.management\\10.0.0\\system.management.10.0.0.nupkg.sha512",
+    "C:\\Users\\doran\\.nuget\\packages\\system.security.cryptography.protecteddata\\7.0.0\\system.security.cryptography.protecteddata.7.0.0.nupkg.sha512",
+    "C:\\Users\\doran\\.nuget\\packages\\microsoft.netcore.app.ref\\10.0.1\\microsoft.netcore.app.ref.10.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}

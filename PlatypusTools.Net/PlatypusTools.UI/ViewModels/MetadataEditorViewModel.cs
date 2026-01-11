@@ -92,6 +92,38 @@ namespace PlatypusTools.UI.ViewModels
             set { _isLoading = value; OnPropertyChanged(); }
         }
 
+        // File type detection
+        private string _fileTypeDisplay = string.Empty;
+        public string FileTypeDisplay
+        {
+            get => _fileTypeDisplay;
+            set { _fileTypeDisplay = value; OnPropertyChanged(); }
+        }
+
+        public bool IsVideoFile => !string.IsNullOrEmpty(FilePath) && 
+            new[] { ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".mpeg", ".mpg", ".m4v" }
+            .Contains(Path.GetExtension(FilePath).ToLowerInvariant());
+
+        public bool IsPictureFile => !string.IsNullOrEmpty(FilePath) && 
+            new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp", ".raw", ".cr2", ".nef" }
+            .Contains(Path.GetExtension(FilePath).ToLowerInvariant());
+
+        public bool IsAudioFile => !string.IsNullOrEmpty(FilePath) && 
+            new[] { ".mp3", ".flac", ".wav", ".aac", ".ogg", ".wma", ".m4a", ".opus" }
+            .Contains(Path.GetExtension(FilePath).ToLowerInvariant());
+
+        public bool IsTextFile => !string.IsNullOrEmpty(FilePath) && 
+            new[] { ".txt", ".pdf", ".doc", ".docx", ".rtf", ".md", ".xml", ".json" }
+            .Contains(Path.GetExtension(FilePath).ToLowerInvariant());
+
+        // Universal tags (always shown)
+        private string _owner = string.Empty;
+        public string Owner
+        {
+            get => _owner;
+            set { _owner = value; OnPropertyChanged(); UpdateTag("XMP:OwnerName", value); }
+        }
+
         // Common tags for quick access
         private string _title = string.Empty;
         public string Title
@@ -126,6 +158,43 @@ namespace PlatypusTools.UI.ViewModels
         {
             get => _copyright;
             set { _copyright = value; OnPropertyChanged(); UpdateTag("Copyright", value); }
+        }
+
+        // Video-specific tags
+        private string _series = string.Empty;
+        public string Series
+        {
+            get => _series;
+            set { _series = value; OnPropertyChanged(); UpdateTag("XMP:Series", value); }
+        }
+
+        private string _episode = string.Empty;
+        public string Episode
+        {
+            get => _episode;
+            set { _episode = value; OnPropertyChanged(); UpdateTag("XMP:Episode", value); }
+        }
+
+        private string _movieName = string.Empty;
+        public string MovieName
+        {
+            get => _movieName;
+            set { _movieName = value; OnPropertyChanged(); UpdateTag("XMP:MovieName", value); }
+        }
+
+        // Text-specific tags
+        private string _version = string.Empty;
+        public string Version
+        {
+            get => _version;
+            set { _version = value; OnPropertyChanged(); UpdateTag("XMP:Version", value); }
+        }
+
+        private string _author = string.Empty;
+        public string Author
+        {
+            get => _author;
+            set { _author = value; OnPropertyChanged(); UpdateTag("Author", value); }
         }
 
         private bool _isExifToolMissing;
@@ -263,12 +332,25 @@ namespace PlatypusTools.UI.ViewModels
                     Metadata.Add(new MetadataTag { Key = kvp.Key, Value = kvp.Value });
                 }
 
-                // Populate common tags
-                Title = metadata.ContainsKey("Title") ? metadata["Title"] : string.Empty;
-                Artist = metadata.ContainsKey("Artist") ? metadata["Artist"] : string.Empty;
-                Album = metadata.ContainsKey("Album") ? metadata["Album"] : string.Empty;
-                Comment = metadata.ContainsKey("Comment") ? metadata["Comment"] : string.Empty;
-                Copyright = metadata.ContainsKey("Copyright") ? metadata["Copyright"] : string.Empty;
+                // Update file type display
+                UpdateFileTypeDisplay();
+
+                // Populate common tags - try various tag names
+                Title = GetTagValue(metadata, "Title", "XMP:Title");
+                Artist = GetTagValue(metadata, "Artist", "XMP:Artist", "Creator");
+                Album = GetTagValue(metadata, "Album", "XMP:Album");
+                Comment = GetTagValue(metadata, "Comment", "XMP:Description", "Description");
+                Copyright = GetTagValue(metadata, "Copyright", "XMP:Rights", "Rights");
+                Owner = GetTagValue(metadata, "OwnerName", "XMP:OwnerName");
+                
+                // Video-specific tags
+                Series = GetTagValue(metadata, "Series", "XMP:Series");
+                Episode = GetTagValue(metadata, "Episode", "XMP:Episode");
+                MovieName = GetTagValue(metadata, "MovieName", "XMP:MovieName");
+                
+                // Text-specific tags
+                Version = GetTagValue(metadata, "Version", "XMP:Version");
+                Author = GetTagValue(metadata, "Author", "XMP:Author", "Creator");
 
                 StatusMessage = $"Loaded {Metadata.Count} metadata tags";
             }
@@ -280,6 +362,35 @@ namespace PlatypusTools.UI.ViewModels
             {
                 IsLoading = false;
             }
+        }
+
+        private string GetTagValue(Dictionary<string, string> metadata, params string[] tagNames)
+        {
+            foreach (var tagName in tagNames)
+            {
+                if (metadata.TryGetValue(tagName, out var value) && !string.IsNullOrEmpty(value))
+                    return value;
+            }
+            return string.Empty;
+        }
+
+        private void UpdateFileTypeDisplay()
+        {
+            var ext = Path.GetExtension(FilePath).ToLowerInvariant();
+            FileTypeDisplay = ext switch
+            {
+                ".mp4" or ".mkv" or ".avi" or ".mov" or ".wmv" or ".flv" or ".webm" => "- Video File",
+                ".jpg" or ".jpeg" or ".png" or ".gif" or ".bmp" or ".tiff" or ".webp" => "- Picture File",
+                ".mp3" or ".flac" or ".wav" or ".aac" or ".ogg" or ".wma" or ".m4a" => "- Audio File",
+                ".txt" or ".pdf" or ".doc" or ".docx" or ".rtf" or ".md" => "- Text File",
+                _ => $"- {ext.TrimStart('.')}"
+            };
+            
+            // Notify file type changes
+            OnPropertyChanged(nameof(IsVideoFile));
+            OnPropertyChanged(nameof(IsPictureFile));
+            OnPropertyChanged(nameof(IsAudioFile));
+            OnPropertyChanged(nameof(IsTextFile));
         }
 
         private async void SaveMetadata()

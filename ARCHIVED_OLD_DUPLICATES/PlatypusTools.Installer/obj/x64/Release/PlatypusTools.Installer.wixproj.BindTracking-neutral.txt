@@ -1,0 +1,13 @@
+BuiltPdbOutput	C:\Projects\Platypustools\PlatypusTools.Installer\obj\x64\Release\PlatypusToolsSetup.wixpdb
+BuiltTargetOutput	C:\Projects\Platypustools\PlatypusTools.Installer\obj\x64\Release\PlatypusToolsSetup.msi
+Input	..\PlatypusTools.Net\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\PlatypusTools.UI.exe
+Input	C:\Projects\Platypustools\JosephThePlatypus.ico
+Input	C:\Projects\Platypustools\PlatypusTools_Help.html
+Input	C:\Users\doran\.nuget\packages\wixtoolset.ui.wixext\6.0.1\wixext6\WixToolset.UI.wixext.dll
+Intermediate	C:\Projects\Platypustools\PlatypusTools.Installer\obj\x64\Release\#cab1.cab
+Intermediate	C:\Projects\Platypustools\PlatypusTools.Installer\obj\x64\Release\WixToolset.UI.wixext_s1hPGgjLZUr7SK2i1V2hM61TPII\wix-ir\bannrbmp.bmp
+Intermediate	C:\Projects\Platypustools\PlatypusTools.Installer\obj\x64\Release\WixToolset.UI.wixext_s1hPGgjLZUr7SK2i1V2hM61TPII\wix-ir\dlgbmp.bmp
+Intermediate	C:\Projects\Platypustools\PlatypusTools.Installer\obj\x64\Release\WixToolset.UI.wixext_s1hPGgjLZUr7SK2i1V2hM61TPII\wix-ir\exclamic.ico
+Intermediate	C:\Projects\Platypustools\PlatypusTools.Installer\obj\x64\Release\WixToolset.UI.wixext_s1hPGgjLZUr7SK2i1V2hM61TPII\wix-ir\info.ico
+Intermediate	C:\Projects\Platypustools\PlatypusTools.Installer\obj\x64\Release\WixToolset.UI.wixext_s1hPGgjLZUr7SK2i1V2hM61TPII\wix-ir\new.ico
+Intermediate	C:\Projects\Platypustools\PlatypusTools.Installer\obj\x64\Release\WixToolset.UI.wixext_s1hPGgjLZUr7SK2i1V2hM61TPII\wix-ir\up.ico

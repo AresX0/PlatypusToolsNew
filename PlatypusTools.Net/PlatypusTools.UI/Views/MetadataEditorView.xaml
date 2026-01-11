@@ -50,10 +50,19 @@
                         </Grid>
                     </GroupBox>
 
-                    <!-- Common Tags -->
-                    <GroupBox Header="Common Tags" Grid.Row="1" Margin="0,0,0,10">
+                    <!-- Common Tags - Dynamic based on file type -->
+                    <GroupBox Grid.Row="1" Margin="0,0,0,10">
+                        <GroupBox.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Common Tags" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding FileTypeDisplay}" Margin="10,0,0,0" Foreground="Gray" FontStyle="Italic"/>
+                            </StackPanel>
+                        </GroupBox.Header>
                         <Grid>
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
@@ -63,22 +72,68 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="100"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Title:" VerticalAlignment="Center" Margin="0,0,10,5"/>
-                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
+                            <!-- Universal Tags (always visible) -->
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Owner:" VerticalAlignment="Center" Margin="0,0,10,5"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Owner, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
 
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Artist:" VerticalAlignment="Center" Margin="0,0,10,5"/>
-                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Artist, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Title:" VerticalAlignment="Center" Margin="10,0,10,5"/>
+                            <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
 
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Album:" VerticalAlignment="Center" Margin="0,0,10,5"/>
-                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Album, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Comment:" VerticalAlignment="Center" Margin="0,0,10,5"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding Comment, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
 
-                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Comment:" VerticalAlignment="Center" Margin="0,0,10,5"/>
-                            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Comment, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
+                            <!-- Video Tags -->
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Series:" VerticalAlignment="Center" Margin="0,0,10,5"
+                                       Visibility="{Binding IsVideoFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Series, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"
+                                     Visibility="{Binding IsVideoFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            
+                            <TextBlock Grid.Row="2" Grid.Column="2" Text="Episode:" VerticalAlignment="Center" Margin="10,0,10,5"
+                                       Visibility="{Binding IsVideoFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            <TextBox Grid.Row="2" Grid.Column="3" Text="{Binding Episode, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"
+                                     Visibility="{Binding IsVideoFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
-                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Copyright:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Copyright, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Movie Name:" VerticalAlignment="Center" Margin="0,0,10,5"
+                                       Visibility="{Binding IsVideoFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            <TextBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding MovieName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"
+                                     Visibility="{Binding IsVideoFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                            <!-- Picture Tags -->
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Artist:" VerticalAlignment="Center" Margin="0,0,10,5"
+                                       Visibility="{Binding IsPictureFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Artist, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"
+                                     Visibility="{Binding IsPictureFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="2" Text="Copyright:" VerticalAlignment="Center" Margin="10,0,10,5"
+                                       Visibility="{Binding IsPictureFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            <TextBox Grid.Row="2" Grid.Column="3" Text="{Binding Copyright, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"
+                                     Visibility="{Binding IsPictureFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                            <!-- Audio Tags -->
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Artist:" VerticalAlignment="Center" Margin="0,0,10,5"
+                                       Visibility="{Binding IsAudioFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Artist, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"
+                                     Visibility="{Binding IsAudioFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="2" Text="Album:" VerticalAlignment="Center" Margin="10,0,10,5"
+                                       Visibility="{Binding IsAudioFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            <TextBox Grid.Row="2" Grid.Column="3" Text="{Binding Album, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"
+                                     Visibility="{Binding IsAudioFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                            <!-- Text Tags -->
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Version:" VerticalAlignment="Center" Margin="0,0,10,5"
+                                       Visibility="{Binding IsTextFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Version, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"
+                                     Visibility="{Binding IsTextFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="2" Text="Author:" VerticalAlignment="Center" Margin="10,0,10,5"
+                                       Visibility="{Binding IsTextFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            <TextBox Grid.Row="2" Grid.Column="3" Text="{Binding Author, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"
+                                     Visibility="{Binding IsTextFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
                         </Grid>
                     </GroupBox>
 

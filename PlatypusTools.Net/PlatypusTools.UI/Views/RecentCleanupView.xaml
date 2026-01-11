@@ -11,25 +11,85 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
-            <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Target directories (semicolon separated):</TextBlock>
-            <TextBox Width="300" Text="{Binding TargetDirs, UpdateSourceTrigger=PropertyChanged}" />
-            <Button Content="Browse..." Command="{Binding BrowseCommand}" Width="80" Margin="8,0,0,0" />
+        
+        <!-- Target Directories -->
+        <GroupBox Header="Target Directories to Match Against" Grid.Row="0" Margin="0,0,0,8">
+            <Grid Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding TargetDirs, UpdateSourceTrigger=PropertyChanged}" 
+                         ToolTip="Semicolon-separated directories to match shortcuts against"/>
+                <Button Grid.Row="0" Grid.Column="1" Content="Browse..." Command="{Binding BrowseCommand}" Width="80" Margin="8,0,0,0"/>
+                <Button Grid.Row="0" Grid.Column="2" Content="Clear" Command="{Binding ClearTargetDirsCommand}" Width="60" Margin="5,0,0,0"/>
+                
+                <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Text="Enter directories whose shortcuts should be found and removed from Recent, Favorites, and Start Menu" 
+                           Foreground="Gray" FontStyle="Italic" Margin="0,5,0,0"/>
+            </Grid>
+        </GroupBox>
+        
+        <!-- Exclusion Directories -->
+        <GroupBox Header="Directories to Exclude" Grid.Row="1" Margin="0,0,0,8">
+            <Grid Margin="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <ListBox Grid.Column="0" ItemsSource="{Binding ExclusionDirs}" SelectedItem="{Binding SelectedExclusionDir}" 
+                         Height="80" SelectionMode="Single"/>
+                <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
+                    <Button Content="Add..." Command="{Binding AddExclusionCommand}" Width="80" Margin="0,0,0,5"/>
+                    <Button Content="Remove" Command="{Binding RemoveExclusionCommand}" Width="80"/>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+        
+        <!-- Options and Actions -->
+        <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,0,8">
+            <CheckBox IsChecked="{Binding DryRun}" Content="Dry Run (Preview Only)" VerticalAlignment="Center" Margin="0,0,16,0" 
+                      FontWeight="SemiBold"/>
+            <Button Content="Scan Recent" Command="{Binding ScanCommand}" Width="120" FontWeight="Bold" Background="LightBlue"/>
+            <Button Content="Remove Selected" Command="{Binding RemoveSelectedCommand}" Width="120" Margin="8,0,0,0" 
+                    Background="LightCoral" FontWeight="Bold"/>
+            <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="16,0,0,0" FontWeight="SemiBold"/>
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8">
-            <CheckBox IsChecked="{Binding DryRun}" Content="Dry run" VerticalAlignment="Center" Margin="0,0,8,0" />
-            <Button Content="Scan Recent" Command="{Binding ScanCommand}" Width="120" />
-        </StackPanel>
-        <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" Margin="0,0,0,8" FontWeight="SemiBold" />
-        <ListView Grid.Row="3" ItemsSource="{Binding Results}">
-            <ListView.View>
-                <GridView AllowsColumnReorder="True">
-                    <GridViewColumn Header="Type" Width="80" DisplayMemberBinding="{Binding Type}" />
-                    <GridViewColumn Header="Path" Width="300" DisplayMemberBinding="{Binding Path}" />
-                    <GridViewColumn Header="Target" Width="300" DisplayMemberBinding="{Binding Target}" />
-                </GridView>
-            </ListView.View>
-        </ListView>
+        
+        <!-- Results List -->
+        <GroupBox Header="Found Shortcuts (Select items to remove)" Grid.Row="3">
+            <DataGrid ItemsSource="{Binding Results}" AutoGenerateColumns="False" 
+                      CanUserAddRows="False" CanUserDeleteRows="False"
+                      CanUserResizeColumns="True" CanUserSortColumns="True"
+                      SelectionMode="Extended" IsReadOnly="True"
+                      SelectedItem="{Binding SelectedResult}">
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
+                    <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="100" MinWidth="80"/>
+                    <DataGridTextColumn Header="Shortcut Path" Binding="{Binding Path}" Width="350" MinWidth="200"/>
+                    <DataGridTextColumn Header="Target" Binding="{Binding Target}" Width="*" MinWidth="200"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+        
+        <!-- Summary -->
+        <StatusBar Grid.Row="4" Margin="0,8,0,0">
+            <StatusBarItem>
+                <TextBlock>
+                    <Run Text="Found: "/><Run Text="{Binding Results.Count, Mode=OneWay}" FontWeight="Bold"/>
+                    <Run Text=" shortcuts | Selected: "/><Run Text="{Binding SelectedCount, Mode=OneWay}" FontWeight="Bold"/>
+                </TextBlock>
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </UserControl>

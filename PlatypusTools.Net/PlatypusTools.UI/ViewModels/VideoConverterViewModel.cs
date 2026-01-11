@@ -23,7 +23,13 @@ namespace PlatypusTools.UI.ViewModels
         public string SourceFolderPath
         {
             get => _sourceFolderPath;
-            set { _sourceFolderPath = value; OnPropertyChanged(); }
+            set 
+            { 
+                _sourceFolderPath = value; 
+                OnPropertyChanged(); 
+                // Refresh the Scan command when path changes
+                (ScanCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            }
         }
 
         private string _outputFolderPath = string.Empty;

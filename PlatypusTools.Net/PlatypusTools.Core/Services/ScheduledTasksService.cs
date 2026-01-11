@@ -27,11 +27,14 @@ namespace PlatypusTools.Core.Services
         public string Name { get; set; } = string.Empty;
         public string Path { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+        public string State => Status; // Alias for Status
         public DateTime? NextRunTime { get; set; }
         public DateTime? LastRunTime { get; set; }
         public string? LastResult { get; set; }
+        public string LastTaskResult => LastResult ?? "N/A";
         public string? Author { get; set; }
         public string? TaskToRun { get; set; }
+        public string TriggerType { get; set; } = string.Empty;
         public bool IsEnabled => Status.Equals("Ready", StringComparison.OrdinalIgnoreCase) || 
                                  Status.Equals("Running", StringComparison.OrdinalIgnoreCase);
     }
@@ -270,57 +273,74 @@ namespace PlatypusTools.Core.Services
         private ScheduledTaskInfo? ParseTaskLine(string line)
         {
             // CSV format from schtasks /Query /FO CSV /V:
-            // 0: TaskName, 1: Next Run Time, 2: Status, 3: Logon Mode, 4: Last Run Time,
-            // 5: Last Result, 6: Author, 7: Task To Run, 8: Start In, 9: Comment, etc.
+            // 0: HostName, 1: TaskName, 2: Next Run Time, 3: Status, 4: Logon Mode, 5: Last Run Time,
+            // 6: Last Result, 7: Author, 8: Task To Run, 9: Start In, 10: Comment, 
+            // 11: Scheduled Task State, 12: Idle Time, 13: Power Management, 14: Run As User, 15: Delete Task If Not Rescheduled
+            // 16: Stop Task If Runs X Hours, 17: Schedule, 18: Schedule Type, 19: Start Time, etc.
             var fields = ParseCsvLine(line);
-            if (fields.Count < 3) return null;
+            if (fields.Count < 4) return null;
+
+            // Skip header line (check if first field is "HostName")
+            if (fields[0].Equals("HostName", StringComparison.OrdinalIgnoreCase)) return null;
 
             var task = new ScheduledTaskInfo
             {
-                Name = fields[0].Split('\\').Last(),
-                Path = fields[0]
+                // TaskName is at index 1 (after HostName)
+                Name = fields.Count > 1 ? fields[1].Split('\\').Last() : "Unknown",
+                Path = fields.Count > 1 ? fields[1] : string.Empty
             };
 
-            // Next run time (index 1)
-            if (fields.Count > 1 && !string.IsNullOrWhiteSpace(fields[1]))
+            // Next run time (index 2)
+            if (fields.Count > 2 && !string.IsNullOrWhiteSpace(fields[2]))
             {
-                if (DateTime.TryParse(fields[1], out var nextRun))
+                if (DateTime.TryParse(fields[2], out var nextRun))
                 {
                     task.NextRunTime = nextRun;
                 }
             }
 
-            // Status (index 2)
-            if (fields.Count > 2)
+            // Status (index 3)
+            if (fields.Count > 3)
             {
-                task.Status = fields[2];
+                task.Status = fields[3];
             }
 
-            // Last run time (index 4)
-            if (fields.Count > 4 && !string.IsNullOrWhiteSpace(fields[4]))
+            // Last run time (index 5)
+            if (fields.Count > 5 && !string.IsNullOrWhiteSpace(fields[5]))
             {
-                if (DateTime.TryParse(fields[4], out var lastRun))
+                if (DateTime.TryParse(fields[5], out var lastRun))
                 {
                     task.LastRunTime = lastRun;
                 }
             }
 
-            // Last result (index 5)
-            if (fields.Count > 5)
-            {
-                task.LastResult = fields[5];
-            }
-
-            // Author (index 6)
+            // Last result (index 6)
             if (fields.Count > 6)
             {
-                task.Author = fields[6];
+                task.LastResult = fields[6];
             }
 
-            // Task to run (index 7)
+            // Author (index 7)
             if (fields.Count > 7)
             {
-                task.TaskToRun = fields[7];
+                task.Author = fields[7];
+            }
+
+            // Task to run (index 8)
+            if (fields.Count > 8)
+            {
+                task.TaskToRun = fields[8];
+            }
+
+            // Schedule Type (index 18 typically, but may vary)
+            if (fields.Count > 18)
+            {
+                task.TriggerType = fields[18];
+            }
+            else if (fields.Count > 17)
+            {
+                // Try index 17 as fallback
+                task.TriggerType = fields[17];
             }
 
             return task;

@@ -1,0 +1,56 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Projects\\Platypustools\\PlatypusTools.Installer\\PlatypusTools.Installer.wixproj": {}
+  },
+  "projects": {
+    "C:\\Projects\\Platypustools\\PlatypusTools.Installer\\PlatypusTools.Installer.wixproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Projects\\Platypustools\\PlatypusTools.Installer\\PlatypusTools.Installer.wixproj",
+        "projectName": "PlatypusToolsSetup",
+        "projectPath": "C:\\Projects\\Platypustools\\PlatypusTools.Installer\\PlatypusTools.Installer.wixproj",
+        "packagesPath": "C:\\Users\\doran\\.nuget\\packages\\",
+        "outputPath": "C:\\Projects\\Platypustools\\PlatypusTools.Installer\\obj\\",
+        "projectStyle": "PackageReference",
+        "UsingMicrosoftNETSdk": false,
+        "configFilePaths": [
+          "C:\\Users\\doran\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "native"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "native": {
+            "targetAlias": "native",
+            "projectReferences": {}
+          }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "native": {
+          "targetAlias": "native",
+          "dependencies": {
+            "Microsoft.CodeAnalysis.NetAnalyzers": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "WixToolset.UI.wixext": {
+              "target": "Package",
+              "version": "[6.0.1, )"
+            }
+          }
+        }
+      }
+    }
+  }
+}

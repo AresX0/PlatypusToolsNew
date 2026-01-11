@@ -42,33 +42,37 @@
 
         <!-- Media Files DataGrid -->
         <GroupBox Header="Media Files" Grid.Row="2" Margin="0,0,0,8">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <DataGrid ItemsSource="{Binding MediaItems}" 
-                          AutoGenerateColumns="False"
-                          CanUserAddRows="False"
-                          CanUserDeleteRows="False"
-                          CanUserResizeColumns="True"
-                          IsReadOnly="True"
-                          SelectionMode="Single"
-                          AlternatingRowBackground="#F5F5F5">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="250" MinWidth="150" IsReadOnly="True" />
-                        <DataGridTextColumn Header="Type" Binding="{Binding FileType}" Width="60" MinWidth="50" IsReadOnly="True" />
-                        <DataGridTextColumn Header="Size (MB)" Binding="{Binding FileSize, Converter={StaticResource BytesToMBConverter}}" Width="90" MinWidth="80" IsReadOnly="True" />
-                        <DataGridTextColumn Header="Resolution" Binding="{Binding Resolution}" Width="100" MinWidth="80" IsReadOnly="True" />
-                        <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="100" MinWidth="80" IsReadOnly="True" />
-                        <DataGridTextColumn Header="Date Modified" Binding="{Binding DateModified, StringFormat='yyyy-MM-dd HH:mm'}" Width="140" MinWidth="120" IsReadOnly="True" />
-                        <DataGridTextColumn Header="Full Path" Binding="{Binding FilePath}" Width="*" MinWidth="200" IsReadOnly="True" />
-                    </DataGrid.Columns>
-                    <DataGrid.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Load Metadata" Command="{Binding LoadMetadataCommand}" CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                            <MenuItem Header="Open File Location" />
-                            <MenuItem Header="Play" />
-                        </ContextMenu>
-                    </DataGrid.ContextMenu>
-                </DataGrid>
-            </ScrollViewer>
+            <DataGrid ItemsSource="{Binding MediaItems}" 
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      CanUserResizeColumns="True"
+                      CanUserReorderColumns="True"
+                      CanUserSortColumns="True"
+                      IsReadOnly="True"
+                      SelectionMode="Single"
+                      AlternatingRowBackground="#F5F5F5"
+                      GridLinesVisibility="Horizontal"
+                      HeadersVisibility="Column"
+                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="250" MinWidth="150"/>
+                    <DataGridTextColumn Header="Type" Binding="{Binding FileType}" Width="60" MinWidth="50"/>
+                    <DataGridTextColumn Header="Size (MB)" Binding="{Binding FileSize, Converter={StaticResource BytesToMBConverter}}" Width="90" MinWidth="80"/>
+                    <DataGridTextColumn Header="Resolution" Binding="{Binding Resolution}" Width="100" MinWidth="80"/>
+                    <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="100" MinWidth="80"/>
+                    <DataGridTextColumn Header="Date Modified" Binding="{Binding DateModified, StringFormat='yyyy-MM-dd HH:mm'}" Width="140" MinWidth="120"/>
+                    <DataGridTextColumn Header="Full Path" Binding="{Binding FilePath}" Width="*" MinWidth="200"/>
+                </DataGrid.Columns>
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Load Metadata" Command="{Binding LoadMetadataCommand}" CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                        <MenuItem Header="Open File Location" />
+                        <MenuItem Header="Play" />
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+            </DataGrid>
         </GroupBox>
 
         <!-- Status Bar -->
