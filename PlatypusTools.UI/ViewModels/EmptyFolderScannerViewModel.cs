@@ -29,7 +29,7 @@ namespace PlatypusTools.UI.ViewModels
         {
             EmptyFolders = new ObservableCollection<EmptyFolderItemViewModel>();
             BrowseCommand = new RelayCommand(_ => Browse());
-            ScanCommand = new RelayCommand(_ => Scan(), _ => !IsScanning && !string.IsNullOrWhiteSpace(SelectedFolder));
+            ScanCommand = new RelayCommand(_ => Scan(), _ => CanScan());
             CancelCommand = new RelayCommand(_ => Cancel(), _ => IsScanning);
             DeleteSelectedCommand = new RelayCommand(_ => DeleteSelected(), _ => !IsScanning && EmptyFolders.Any(f => f.IsSelected));
             DeleteAllCommand = new RelayCommand(_ => DeleteAll(), _ => !IsScanning && EmptyFolders.Any());
@@ -37,18 +37,38 @@ namespace PlatypusTools.UI.ViewModels
             SelectNoneCommand = new RelayCommand(_ => SelectNone());
         }
 
+        private bool CanScan() => !IsScanning && !string.IsNullOrWhiteSpace(SelectedFolder);
+
         private string _selectedFolder = string.Empty;
         public string SelectedFolder
         {
             get => _selectedFolder;
-            set { _selectedFolder = value; RaisePropertyChanged(); }
+            set 
+            { 
+                _selectedFolder = value; 
+                RaisePropertyChanged();
+                RaiseCommandsCanExecuteChanged();
+            }
         }
 
         private bool _isScanning;
         public bool IsScanning
         {
             get => _isScanning;
-            set { _isScanning = value; RaisePropertyChanged(); }
+            set 
+            { 
+                _isScanning = value; 
+                RaisePropertyChanged();
+                RaiseCommandsCanExecuteChanged();
+            }
+        }
+
+        private void RaiseCommandsCanExecuteChanged()
+        {
+            (ScanCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            (CancelCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            (DeleteSelectedCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            (DeleteAllCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
 
         private string _statusMessage = "Select a folder and click Scan to find empty folders.";
