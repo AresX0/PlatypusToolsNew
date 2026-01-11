@@ -9,7 +9,7 @@
 
   <!-- Publish the UI project before building the installer -->
   <Target Name="PublishUIProject" BeforeTargets="Build">
-    <Exec Command="&quot;C:\Program Files\dotnet\dotnet.exe&quot; publish ..\PlatypusTools.UI\PlatypusTools.UI.csproj -c $(Configuration) -r win-x64 --self-contained true -p:PublishSingleFile=false -o ..\PlatypusTools.UI\bin\$(Configuration)\net10.0-windows\win-x64\publish" />
+    <Exec Command="&quot;C:\Program Files\dotnet\dotnet.exe&quot; publish ..\PlatypusTools.UI\PlatypusTools.UI.csproj -c $(Configuration) -r win-x64 --self-contained true -p:PublishSingleFile=false -p:SelfContained=true -p:RuntimeIdentifier=win-x64 -o ..\PlatypusTools.UI\bin\$(Configuration)\net10.0-windows\win-x64\publish" />
   </Target>
 
   <ItemGroup>
