@@ -185,5 +185,19 @@ namespace PlatypusTools.UI
                 MessageBox.Show($"Error restoring settings: {ex.Message}", "Restore Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
+    
+        private void OpenSettings(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var settingsWindow = new Views.SettingsWindow();
+                settingsWindow.Owner = this;
+                settingsWindow.ShowDialog();
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Error opening settings: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
     }
 }

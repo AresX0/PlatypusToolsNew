@@ -44,6 +44,8 @@
                 <MenuItem Header="Credential Manager..." Command="{Binding OpenCredentialManagerCommand}" />
                 <Separator />
                 <MenuItem Header="Validate DataContext" Click="ValidateDataContext_Click" />
+                <Separator />
+                <MenuItem Header="Settings..." Click="OpenSettings" InputGestureText="Ctrl+," />
             </MenuItem>
             <MenuItem Header="Help">
                 <MenuItem Header="View Help Documentation" Command="{Binding OpenHelpCommand}" />
@@ -252,3 +254,5 @@
         <controls:StatusBarControl DockPanel.Dock="Bottom"/>
     </DockPanel>
 </Window>
+
+
