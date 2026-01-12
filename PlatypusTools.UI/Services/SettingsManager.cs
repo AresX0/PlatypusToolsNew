@@ -7,6 +7,7 @@ namespace PlatypusTools.UI.Services
     public class AppSettings
     {
         public string Theme { get; set; } = ThemeManager.Light;
+        public bool CheckForUpdatesOnStartup { get; set; } = true;
     }
 
     public static class SettingsManager

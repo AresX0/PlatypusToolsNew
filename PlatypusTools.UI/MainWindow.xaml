@@ -4,6 +4,7 @@
         xmlns:local="clr-namespace:PlatypusTools.UI.Views"
         xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
         xmlns:views="clr-namespace:PlatypusTools.UI.Views"
+        xmlns:controls="clr-namespace:PlatypusTools.UI.Controls"
         Title="PlatypusTools" Height="700" Width="1200" Icon="Assets/platypus.png">
     <Window.DataContext>
         <vm:MainWindowViewModel />
@@ -23,6 +24,9 @@
                 <MenuItem Header="Export Config..." Command="{Binding ExportConfigCommand}" />
                 <MenuItem Header="Import Config..." Command="{Binding ImportConfigCommand}" />
                 <MenuItem Header="Open Recent..." Command="{Binding OpenRecentWorkspacesCommand}" />
+                <Separator />
+                <MenuItem Header="Backup Settings..." Click="BackupSettings" />
+                <MenuItem Header="Restore Settings..." Click="RestoreSettings" />
                 <Separator />
                 <MenuItem Header="Exit" Command="{Binding ExitCommand}" />
             </MenuItem>
@@ -50,6 +54,9 @@
                 <MenuItem Header="Duplicates Finder - How to Use" Click="ShowDuplicatesHelp" />
                 <MenuItem Header="System Cleaner - How to Use" Click="ShowSystemCleanerHelp" />
                 <MenuItem Header="Folder Hider - How to Use" Click="ShowFolderHiderHelp" />
+                <Separator />
+                <MenuItem Header="View Logs..." Click="OpenLogViewer" />
+                <MenuItem Header="Check for Updates..." Click="CheckForUpdates" />
                 <Separator />
                 <MenuItem Header="About PlatypusTools" Click="ShowAbout" />
             </MenuItem>
@@ -240,5 +247,8 @@
                 </TabControl>
             </TabItem>
         </TabControl>
+
+        <!-- Status Bar -->
+        <controls:StatusBarControl DockPanel.Dock="Bottom"/>
     </DockPanel>
 </Window>

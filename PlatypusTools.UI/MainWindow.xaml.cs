@@ -82,5 +82,108 @@ namespace PlatypusTools.UI
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
         }
+        private void OpenLogViewer(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var logWindow = new Views.LogViewerWindow();
+                logWindow.Owner = this;
+                logWindow.Show();
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Error opening log viewer: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private async void CheckForUpdates(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var updateService = Services.UpdateService.Instance;
+                var updateInfo = await updateService.CheckForUpdatesAsync();
+                
+                if (updateInfo != null)
+                {
+                    var updateWindow = new Views.UpdateWindow(updateInfo);
+                    updateWindow.Owner = this;
+                    updateWindow.ShowDialog();
+                }
+                else
+                {
+                    MessageBox.Show("You are running the latest version.", "No Updates", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Error checking for updates: {ex.Message}", "Update Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private async void BackupSettings(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var dlg = new Microsoft.Win32.SaveFileDialog
+                {
+                    Filter = "PlatypusTools Backup (*.ptbackup)|*.ptbackup|All files (*.*)|*.*",
+                    FileName = Services.SettingsBackupService.Instance.GetDefaultBackupFileName()
+                };
+                
+                if (dlg.ShowDialog() == true)
+                {
+                    var success = await Services.SettingsBackupService.Instance.CreateBackupAsync(dlg.FileName);
+                    if (success)
+                    {
+                        MessageBox.Show("Settings backed up successfully.", "Backup Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Failed to create backup.", "Backup Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Error backing up settings: {ex.Message}", "Backup Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private async void RestoreSettings(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var dlg = new Microsoft.Win32.OpenFileDialog
+                {
+                    Filter = "PlatypusTools Backup (*.ptbackup)|*.ptbackup|All files (*.*)|*.*"
+                };
+                
+                if (dlg.ShowDialog() == true)
+                {
+                    var result = MessageBox.Show(
+                        "Restoring settings will overwrite your current configuration.\n\nA backup of your current settings will be created first.\n\nContinue?",
+                        "Restore Settings",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
+                    
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        var success = await Services.SettingsBackupService.Instance.RestoreBackupAsync(dlg.FileName);
+                        if (success)
+                        {
+                            MessageBox.Show("Settings restored successfully.\n\nPlease restart the application for changes to take effect.", "Restore Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                        else
+                        {
+                            MessageBox.Show("Failed to restore settings.", "Restore Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Error restoring settings: {ex.Message}", "Restore Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
     }
 }

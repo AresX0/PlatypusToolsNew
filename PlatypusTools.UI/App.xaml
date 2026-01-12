@@ -11,5 +11,7 @@
         <converters:FileSizeConverter x:Key="FileSizeConverter" />
         <converters:BytesToMBConverter x:Key="BytesToMBConverter" />
         <converters:InverseBooleanToBooleanConverter x:Key="InverseBooleanToBooleanConverter" />
+        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
     </Application.Resources>
 </Application>
