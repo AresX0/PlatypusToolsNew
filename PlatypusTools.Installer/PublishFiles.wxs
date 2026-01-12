@@ -17,6 +17,7 @@
             <Directory Id="dir_tr" Name="tr" />
             <Directory Id="dir_zhHans" Name="zh-Hans" />
             <Directory Id="dir_zhHant" Name="zh-Hant" />
+            <Directory Id="dir_Themes" Name="Themes" />
         </DirectoryRef>
         <DirectoryRef Id="dir_runtimes">
             <Directory Id="dir_runtimes_winx64" Name="win-x64" />
@@ -1497,6 +1498,14 @@
             <Component Id="cmp_490" Directory="dir_zhHant" Guid="{52624129-CD38-4824-8CBE-B160A8671CBA}">
                 <File Id="file_490" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\zh-Hant\WindowsFormsIntegration.resources.dll" />
             </Component>
-        </ComponentGroup>
+            <Component Id="Comp_ThemesDark" Directory="dir_Themes" Guid="*">
+            <File Id="File_DarkXaml" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Themes\Dark.xaml" KeyPath="yes" />
+        </Component>
+        <Component Id="Comp_ThemesLight" Directory="dir_Themes" Guid="*">
+            <File Id="File_LightXaml" Source="C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish\Themes\Light.xaml" KeyPath="yes" />
+        </Component>
+    </ComponentGroup>
     </Fragment>
 </Wix>
+
+
