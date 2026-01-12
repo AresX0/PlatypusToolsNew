@@ -1,0 +1,151 @@
+using System;
+using System.Globalization;
+using System.IO;
+using System.Windows;
+using System.Windows.Data;
+using System.Windows.Media;
+
+namespace PlatypusTools.UI.Converters
+{
+    /// <summary>
+    /// Converts count to Visibility (0 = Collapsed)
+    /// </summary>
+    public class CountToVisibilityConverter : IValueConverter
+    {
+        public bool Invert { get; set; }
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var count = value is int i ? i : 0;
+            var hasItems = count > 0;
+            if (Invert) hasItems = !hasItems;
+            return hasItems ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Inverts a boolean value
+    /// </summary>
+    public class InverseBoolConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => value is bool b && !b;
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => value is bool b && !b;
+    }
+
+    /// <summary>
+    /// Converts DateTime to relative time string (e.g., "2 hours ago")
+    /// </summary>
+    public class RelativeTimeConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is not DateTime dateTime) return "";
+
+            var span = DateTime.Now - dateTime;
+
+            if (span.TotalSeconds < 60) return "Just now";
+            if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes} min ago";
+            if (span.TotalHours < 24) return $"{(int)span.TotalHours} hours ago";
+            if (span.TotalDays < 7) return $"{(int)span.TotalDays} days ago";
+            if (span.TotalDays < 30) return $"{(int)(span.TotalDays / 7)} weeks ago";
+            if (span.TotalDays < 365) return $"{(int)(span.TotalDays / 30)} months ago";
+            return $"{(int)(span.TotalDays / 365)} years ago";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Converts file path to just the filename
+    /// </summary>
+    public class PathToFilenameConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => value is string path ? Path.GetFileName(path) : "";
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Converts file extension to icon or color
+    /// </summary>
+    public class FileExtensionToColorConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var ext = value is string s ? Path.GetExtension(s).ToLowerInvariant() : "";
+            
+            return ext switch
+            {
+                ".jpg" or ".jpeg" or ".png" or ".gif" or ".bmp" or ".webp" => new SolidColorBrush(Colors.Green),
+                ".mp4" or ".mkv" or ".avi" or ".mov" or ".wmv" => new SolidColorBrush(Colors.Purple),
+                ".mp3" or ".wav" or ".flac" or ".aac" => new SolidColorBrush(Colors.Orange),
+                ".doc" or ".docx" or ".pdf" => new SolidColorBrush(Colors.Blue),
+                ".xls" or ".xlsx" or ".csv" => new SolidColorBrush(Colors.DarkGreen),
+                ".zip" or ".rar" or ".7z" => new SolidColorBrush(Colors.Brown),
+                ".exe" or ".msi" => new SolidColorBrush(Colors.Red),
+                _ => new SolidColorBrush(Colors.Gray)
+            };
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Converts percentage to progress bar color
+    /// </summary>
+    public class PercentageToColorConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var percent = value is double d ? d : 0;
+
+            return percent switch
+            {
+                > 90 => new SolidColorBrush(Colors.Red),
+                > 75 => new SolidColorBrush(Colors.Orange),
+                > 50 => new SolidColorBrush(Colors.Yellow),
+                _ => new SolidColorBrush(Colors.Green)
+            };
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Multibinding converter for combining values
+    /// </summary>
+    public class MultiValueToStringConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            var format = parameter as string ?? "{0}";
+            return string.Format(format, values);
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Converts enum value to boolean (for radio button binding)
+    /// </summary>
+    public class EnumToBoolConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => value?.Equals(parameter) ?? false;
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => value is true ? parameter : Binding.DoNothing;
+    }
+}
