@@ -1,0 +1,15 @@
+<UserControl x:Class="PlatypusTools.UI.Views.PreviewPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignHeight="200" d:DesignWidth="400">
+    <Grid>
+        <StackPanel>
+            <TextBlock Text="Preview" FontWeight="Bold" Margin="0,0,0,8" />
+            <TextBlock Text="Last previewed:" FontStyle="Italic" />
+            <TextBlock Text="{Binding LastPreviewedFilePath}" TextWrapping="Wrap" />
+            <Button Content="Open In Window" Width="120" Margin="0,8,0,0" Click="Open_Click" />
+        </StackPanel>
+    </Grid>
+</UserControl>

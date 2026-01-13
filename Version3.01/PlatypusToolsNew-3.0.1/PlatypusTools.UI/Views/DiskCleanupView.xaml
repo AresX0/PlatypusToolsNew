@@ -1,0 +1,77 @@
+<UserControl x:Class="PlatypusTools.UI.Views.DiskCleanupView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:DiskCleanupViewModel}">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Selection and Options -->
+        <GroupBox Header="Select Items to Clean" Grid.Row="0" Margin="0,0,0,10">
+            <StackPanel Margin="5">
+                <StackPanel Orientation="Vertical">
+                    <CheckBox Content="Windows Temp Files" IsChecked="{Binding WindowsTempFiles}" Margin="0,5,0,0"/>
+                    <CheckBox Content="User Temp Files" IsChecked="{Binding UserTempFiles}" Margin="0,5,0,0"/>
+                    <CheckBox Content="Prefetch Files" IsChecked="{Binding PrefetchFiles}" Margin="0,5,0,0"/>
+                    <CheckBox Content="Recycle Bin" IsChecked="{Binding RecycleBin}" Margin="0,5,0,0"/>
+                    <CheckBox Content="Downloads Folder (older than 30 days)" IsChecked="{Binding DownloadsOlderThan30Days}" Margin="0,5,0,0"/>
+                    <CheckBox Content="Windows Update Cache" IsChecked="{Binding WindowsUpdateCache}" Margin="0,5,0,0"/>
+                    <CheckBox Content="Thumbnail Cache" IsChecked="{Binding ThumbnailCache}" Margin="0,5,0,0"/>
+                    <CheckBox Content="Windows Error Reports" IsChecked="{Binding WindowsErrorReports}" Margin="0,5,0,0"/>
+                    <CheckBox Content="Old Log Files" IsChecked="{Binding OldLogFiles}" Margin="0,5,0,5"/>
+                </StackPanel>
+
+                <Separator Margin="0,10,0,10"/>
+
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Analyze" Command="{Binding AnalyzeCommand}" 
+                            Width="100" Margin="0,0,10,0" Padding="8" FontWeight="Bold"/>
+                    <Button Content="Clean Now" Command="{Binding CleanNowCommand}" 
+                            Width="100" Padding="8" FontWeight="Bold"/>
+                    <CheckBox Content="Dry Run" IsChecked="{Binding DryRun}" 
+                              VerticalAlignment="Center" Margin="20,0,0,0" 
+                              ToolTip="Preview what would be deleted without actually deleting"/>
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Results Grid -->
+        <GroupBox Header="Files to be Cleaned" Grid.Row="1" Margin="0,0,0,10">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <DataGrid ItemsSource="{Binding ItemsToClean}" AutoGenerateColumns="False" 
+                          CanUserAddRows="False" CanUserDeleteRows="False" Margin="5"
+                          CanUserResizeColumns="True" CanUserSortColumns="True"
+                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="200" CanUserResize="True" MinWidth="100" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Files" Binding="{Binding Files}" Width="80" CanUserResize="True" MinWidth="60" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Size" Binding="{Binding Size}" Width="100" CanUserResize="True" MinWidth="70" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="400" CanUserResize="True" MinWidth="150" IsReadOnly="True"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </ScrollViewer>
+        </GroupBox>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="#F0F0F0" BorderBrush="#CCCCCC" BorderThickness="1" Padding="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelCommand}" 
+                        Width="80" Padding="5" 
+                        Visibility="{Binding IsAnalyzing, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
