@@ -2,15 +2,16 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
-             Height="28">
-    
+             Height="28"
+             MinHeight="28">
+
     <UserControl.DataContext>
         <x:Static Member="vm:StatusBarViewModel.Instance"/>
     </UserControl.DataContext>
-    
-    <Border BorderThickness="0,1,0,0" 
-            BorderBrush="{DynamicResource BorderBrush}" 
-            Background="{DynamicResource ControlBackgroundBrush}">
+
+    <Border BorderThickness="0,1,0,0"
+            BorderBrush="#CCCCCC"
+            Background="#F5F5F5">
         <Grid Margin="8,4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -19,44 +20,44 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            
-            <!-- Status Message -->
-            <TextBlock Grid.Column="0" 
-                       Text="{Binding StatusMessage}" 
+
+            <!-- Status Message (always visible) -->
+            <TextBlock Grid.Column="0"
+                       Text="{Binding StatusMessage, FallbackValue='Ready'}"
                        VerticalAlignment="Center"
                        TextTrimming="CharacterEllipsis"
-                       Foreground="{DynamicResource ForegroundBrush}"/>
-            
+                       Foreground="#333333"/>
+
             <!-- Items Count (X of Y) -->
-            <TextBlock Grid.Column="1" 
-                       Text="{Binding ItemsDisplay}" 
+            <TextBlock Grid.Column="1"
+                       Text="{Binding ItemsDisplay}"
                        VerticalAlignment="Center"
                        Margin="16,0,0,0"
-                       Foreground="{DynamicResource SecondaryForegroundBrush}"
+                       Foreground="#666666"
                        Visibility="{Binding IsOperationRunning, Converter={StaticResource BoolToVisibilityConverter}}"/>
-            
+
             <!-- Progress Bar -->
-            <ProgressBar Grid.Column="2" 
-                         Width="200" 
+            <ProgressBar Grid.Column="2"
+                         Width="200"
                          Height="16"
                          Margin="16,0,0,0"
                          Value="{Binding Progress}"
                          IsIndeterminate="{Binding IsIndeterminate}"
                          Visibility="{Binding IsOperationRunning, Converter={StaticResource BoolToVisibilityConverter}}"/>
-            
+
             <!-- Elapsed Time -->
-            <TextBlock Grid.Column="3" 
-                       Text="{Binding ElapsedTime}" 
+            <TextBlock Grid.Column="3"
+                       Text="{Binding ElapsedTime}"
                        VerticalAlignment="Center"
                        Margin="8,0,0,0"
                        FontFamily="Consolas"
-                       Foreground="{DynamicResource SecondaryForegroundBrush}"
+                       Foreground="#666666"
                        Visibility="{Binding IsOperationRunning, Converter={StaticResource BoolToVisibilityConverter}}"/>
-            
+
             <!-- Cancel Button -->
-            <Button Grid.Column="4" 
-                    Content="✕" 
-                    Width="24" 
+            <Button Grid.Column="4"
+                    Content="✕"
+                    Width="24"
                     Height="20"
                     Margin="8,0,0,0"
                     ToolTip="Cancel Operation"

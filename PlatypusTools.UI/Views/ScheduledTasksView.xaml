@@ -39,45 +39,61 @@
 
         <!-- Tasks List -->
         <GroupBox Header="Scheduled Tasks" Grid.Row="1" Margin="0,0,0,8">
-            <DataGrid ItemsSource="{Binding Tasks}"
-                      SelectedItem="{Binding SelectedTask}"
-                      AutoGenerateColumns="False"
-                      CanUserAddRows="False"
-                      CanUserDeleteRows="False"
-                      CanUserResizeColumns="True"
-                      CanUserReorderColumns="True"
-                      CanUserSortColumns="True"
-                      IsReadOnly="True"
-                      SelectionMode="Single"
-                      AlternatingRowBackground="#F5F5F5"
-                      GridLinesVisibility="Horizontal"
-                      HeadersVisibility="Column">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Task Name" Binding="{Binding Name}" Width="250" MinWidth="150">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <DataGrid ItemsSource="{Binding Tasks}"
+                                                            SelectedItem="{Binding SelectedTask}"
+                                                            AutoGenerateColumns="False"
+                                                            CanUserAddRows="False"
+                                                            CanUserDeleteRows="False"
+                                                            CanUserResizeColumns="True"
+                                                            CanUserReorderColumns="True"
+                                                            CanUserSortColumns="True"
+                                                            IsReadOnly="True"
+                                                            SelectionMode="Single"
+                                                            GridLinesVisibility="Horizontal"
+                                                            HeadersVisibility="Column"
+                                                            ColumnHeaderHeight="32"
+                                                            HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled"
+                                                            ColumnWidth="*">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                <Setter Property="Padding" Value="8,4"/>
                                 <Setter Property="FontWeight" Value="SemiBold"/>
                             </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
-                    <DataGridTextColumn Header="State" Binding="{Binding State}" Width="80" MinWidth="60"/>
-                    <DataGridCheckBoxColumn Header="Enabled" Binding="{Binding IsEnabled, Mode=OneWay}" Width="70" MinWidth="60"/>
-                    <DataGridTextColumn Header="Trigger Type" Binding="{Binding TriggerType}" Width="120" MinWidth="100"/>
-                    <DataGridTextColumn Header="Next Run" Binding="{Binding NextRunTime, StringFormat='yyyy-MM-dd HH:mm'}" Width="140" MinWidth="110"/>
-                    <DataGridTextColumn Header="Last Run" Binding="{Binding LastRunTime, StringFormat='yyyy-MM-dd HH:mm'}" Width="140" MinWidth="110"/>
-                    <DataGridTextColumn Header="Last Result" Binding="{Binding LastTaskResult}" Width="100" MinWidth="80"/>
-                    <DataGridTextColumn Header="Task Path" Binding="{Binding Path}" Width="*" MinWidth="200"/>
-                </DataGrid.Columns>
-                <DataGrid.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Header="Enable" Command="{Binding EnableCommand}" />
-                        <MenuItem Header="Disable" Command="{Binding DisableCommand}" />
-                        <MenuItem Header="Run Now" Command="{Binding RunCommand}" />
-                        <Separator />
-                        <MenuItem Header="Delete" Command="{Binding DeleteCommand}" />
-                    </ContextMenu>
-                </DataGrid.ContextMenu>
-            </DataGrid>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Task Name" Binding="{Binding Name}" Width="250" MinWidth="150" CanUserResize="True">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="State" Binding="{Binding State}" Width="80" MinWidth="60" CanUserResize="True"/>
+                            <DataGridCheckBoxColumn Header="Enabled" Binding="{Binding IsEnabled, Mode=OneWay}" Width="70" MinWidth="60" CanUserResize="True"/>
+                            <DataGridTextColumn Header="Trigger Type" Binding="{Binding TriggerType}" Width="120" MinWidth="100" CanUserResize="True"/>
+                            <DataGridTextColumn Header="Next Run" Binding="{Binding NextRunTime, StringFormat='yyyy-MM-dd HH:mm'}" Width="140" MinWidth="110" CanUserResize="True"/>
+                            <DataGridTextColumn Header="Last Run" Binding="{Binding LastRunTime, StringFormat='yyyy-MM-dd HH:mm'}" Width="140" MinWidth="110" CanUserResize="True"/>
+                            <DataGridTextColumn Header="Last Result" Binding="{Binding LastTaskResult}" Width="100" MinWidth="80" CanUserResize="True"/>
+                            <DataGridTextColumn Header="Task Path" Binding="{Binding Path}" Width="*" MinWidth="200" CanUserResize="True"/>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Enable" Command="{Binding EnableCommand}" />
+                                <MenuItem Header="Disable" Command="{Binding DisableCommand}" />
+                                <MenuItem Header="Run Now" Command="{Binding RunCommand}" />
+                                <Separator />
+                                <MenuItem Header="Delete" Command="{Binding DeleteCommand}" />
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
+                </ScrollViewer>
+            </Grid>
         </GroupBox>
 
         <!-- Status Bar -->

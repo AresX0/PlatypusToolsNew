@@ -94,4 +94,17 @@ namespace PlatypusTools.UI.Converters
             throw new NotImplementedException();
         }
     }
+
+    public class BoolToThemeTextConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value is bool isDark && isDark ? "Light" : "Dark";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

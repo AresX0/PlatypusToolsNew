@@ -1,10 +1,11 @@
 <UserControl x:Class="PlatypusTools.UI.Views.MultimediaEditorView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:wfi="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
-             mc:Ignorable="d" 
+             xmlns:local="clr-namespace:PlatypusTools.UI.Views"
+             mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="1000">
     <Grid>
         <Grid.RowDefinitions>
@@ -339,6 +340,16 @@
                         </Grid>
                     </GroupBox>
                 </Grid>
+            </TabItem>
+
+            <!-- Audio Player Tab -->
+            <TabItem Header="🎧 Audio Player">
+                <local:AudioPlayerView />
+            </TabItem>
+
+            <!-- Audio Library Tab -->
+            <TabItem Header="📚 Audio Library">
+                <local:AudioLibraryView />
             </TabItem>
 
             <!-- Quick Actions Tab -->

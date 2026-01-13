@@ -26,32 +26,57 @@ namespace PlatypusTools.UI.Views
         
         private void LoadSettings()
         {
-            var settings = SettingsManager.Load();
-            
-            // Theme
-            if (settings.Theme == ThemeManager.Dark)
-                DarkThemeRadio.IsChecked = true;
-            else
-                LightThemeRadio.IsChecked = true;
-            
-            // Auto-update
-            AutoCheckUpdatesCheck.IsChecked = settings.CheckForUpdatesOnStartup;
-            
-            // Load keyboard shortcuts
-            var shortcuts = KeyboardShortcutService.Instance;
-            var shortcutList = new System.Collections.Generic.List<ShortcutDisplayItem>();
-            foreach (var kvp in shortcuts.Shortcuts)
+            try
             {
-                shortcutList.Add(new ShortcutDisplayItem
-                {
-                    Name = kvp.Key,
-                    Shortcut = kvp.Value?.ToString() ?? "",
-                    Description = GetShortcutDescription(kvp.Key)
-                });
+                var settings = SettingsManager.Load();
+
+                // Theme
+                if (settings?.Theme == ThemeManager.Dark)
+                    DarkThemeRadio.IsChecked = true;
+                else if (LightThemeRadio != null)
+                    LightThemeRadio.IsChecked = true;
+
+                // Auto-update
+                if (AutoCheckUpdatesCheck != null)
+                    AutoCheckUpdatesCheck.IsChecked = settings?.CheckForUpdatesOnStartup ?? true;
+
+                // Load keyboard shortcuts
+                LoadKeyboardShortcuts();
             }
-            ShortcutsGrid.ItemsSource = shortcutList;
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading settings: {ex.Message}");
+            }
         }
-        
+
+        private void LoadKeyboardShortcuts()
+        {
+            try
+            {
+                var shortcuts = KeyboardShortcutService.Instance;
+                if (shortcuts?.Shortcuts == null || ShortcutsGrid == null) return;
+
+                var shortcutList = new System.Collections.Generic.List<ShortcutDisplayItem>();
+                foreach (var kvp in shortcuts.Shortcuts)
+                {
+                    if (kvp.Value != null)
+                    {
+                        shortcutList.Add(new ShortcutDisplayItem
+                        {
+                            Name = kvp.Key,
+                            Shortcut = kvp.Value.ToString() ?? "",
+                            Description = GetShortcutDescription(kvp.Key)
+                        });
+                    }
+                }
+                ShortcutsGrid.ItemsSource = shortcutList;
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading shortcuts: {ex.Message}");
+            }
+        }
+
         private string GetShortcutDescription(string name)
         {
             return name switch
@@ -273,3 +298,5 @@ namespace PlatypusTools.UI.Views
         public string Description { get; set; } = "";
     }
 }
+
+

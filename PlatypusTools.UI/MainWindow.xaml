@@ -18,23 +18,23 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="File">
-                <MenuItem Header="Open Folder..." Command="{Binding BrowseCommand}" />
+                <MenuItem Header="Open Folder..." Command="{Binding BrowseCommand}" InputGestureText="Ctrl+O" />
                 <Separator />
-                <MenuItem Header="Save Workspace..." Command="{Binding SaveWorkspaceCommand}" />
-                <MenuItem Header="Export Config..." Command="{Binding ExportConfigCommand}" />
-                <MenuItem Header="Import Config..." Command="{Binding ImportConfigCommand}" />
-                <MenuItem Header="Open Recent..." Command="{Binding OpenRecentWorkspacesCommand}" />
+                <MenuItem Header="Save Workspace..." Command="{Binding SaveWorkspaceCommand}" InputGestureText="Ctrl+S" />
+                <MenuItem Header="Export Config..." Command="{Binding ExportConfigCommand}" InputGestureText="Ctrl+Shift+E" />
+                <MenuItem Header="Import Config..." Command="{Binding ImportConfigCommand}" InputGestureText="Ctrl+Shift+I" />
+                <MenuItem Header="Open Recent..." Command="{Binding OpenRecentWorkspacesCommand}" InputGestureText="Ctrl+R" />
                 <Separator />
                 <MenuItem Header="Backup Settings..." Click="BackupSettings" />
                 <MenuItem Header="Restore Settings..." Click="RestoreSettings" />
                 <Separator />
-                <MenuItem Header="Exit" Command="{Binding ExitCommand}" />
+                <MenuItem Header="Exit" Command="{Binding ExitCommand}" InputGestureText="Alt+F4" />
             </MenuItem>
             <MenuItem Header="View">
                 <MenuItem Header="Toggle Staging Panel" Command="{Binding ToggleStagingInDuplicatesCommand}" IsCheckable="True" IsChecked="{Binding Duplicates.StagingVisible, Mode=TwoWay}" />
                 <MenuItem Header="Show Preview Panel" IsCheckable="True" IsChecked="{Binding Duplicates.PreviewVisible, Mode=TwoWay}" Command="{Binding TogglePreviewPanelCommand}" />
                 <Separator />
-                <MenuItem Header="Dark Theme" IsCheckable="True" IsChecked="{Binding IsDarkTheme, Mode=TwoWay}" Command="{Binding ToggleThemeCommand}" />
+                <MenuItem Header="Dark Theme" IsCheckable="True" IsChecked="{Binding IsDarkTheme, Mode=TwoWay}" Command="{Binding ToggleThemeCommand}" InputGestureText="Ctrl+Shift+D" />
             </MenuItem>
             <MenuItem Header="Tools">
                 <MenuItem Header="Open Archived Scripts" Command="{Binding OpenArchivedScriptsCommand}" />
@@ -48,7 +48,7 @@
                 <MenuItem Header="Settings..." Click="OpenSettings" InputGestureText="Ctrl+," />
             </MenuItem>
             <MenuItem Header="Help">
-                <MenuItem Header="View Help Documentation" Command="{Binding OpenHelpCommand}" />
+                <MenuItem Header="View Help Documentation" Command="{Binding OpenHelpCommand}" InputGestureText="F1" />
                 <Separator />
                 <MenuItem Header="File Cleaner - How to Use" Click="ShowFileCleanerHelp" />
                 <MenuItem Header="Video Converter - How to Use" Click="ShowVideoConverterHelp" />
@@ -60,19 +60,39 @@
                 <MenuItem Header="View Logs..." Click="OpenLogViewer" />
                 <MenuItem Header="Check for Updates..." Click="CheckForUpdates" />
                 <Separator />
-                <MenuItem Header="About PlatypusTools" Click="ShowAbout" />
+                <MenuItem Header="About PlatypusTools" Click="ShowAbout" InputGestureText="Shift+F1" />
             </MenuItem>
         </Menu>
 
         <Border DockPanel.Dock="Top" Background="{StaticResource HeaderBrush}" Padding="12,8">
-            <StackPanel Orientation="Horizontal">
-                <Image Source="Assets/platypus.png" Width="48" Height="48" Margin="0,0,12,0" />
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock FontSize="24" FontWeight="Bold" Foreground="White">PlatypusTools</TextBlock>
-                    <TextBlock FontSize="12" Foreground="#FFBBDEFB">Advanced File Management &amp; Media Tools</TextBlock>
+            <Grid>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Image Source="Assets/platypus.png" Width="48" Height="48" Margin="0,0,12,0" />
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock FontSize="24" FontWeight="Bold" Foreground="White">PlatypusTools</TextBlock>
+                        <TextBlock FontSize="12" Foreground="#FFBBDEFB">Advanced File Management &amp; Media Tools</TextBlock>
+                    </StackPanel>
                 </StackPanel>
-            </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Command="{Binding ToggleThemeCommand}" 
+                            Width="100" Height="32" Margin="0,0,8,0"
+                            Background="#80FFFFFF" Foreground="#FF1E1E1E" 
+                            BorderThickness="0" FontWeight="SemiBold">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🌓" FontSize="14" Margin="0,0,6,0"/>
+                            <TextBlock Text="{Binding IsDarkTheme, Converter={StaticResource BoolToThemeTextConverter}, FallbackValue='Theme'}"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Content="⚙ Settings" Click="OpenSettings" 
+                            Width="90" Height="32"
+                            Background="#80FFFFFF" Foreground="#FF1E1E1E" 
+                            BorderThickness="0" FontWeight="SemiBold"/>
+                </StackPanel>
+            </Grid>
         </Border>
+
+        <!-- Status Bar -->
+        <controls:StatusBarControl DockPanel.Dock="Bottom"/>
 
         <TabControl DockPanel.Dock="Top" Margin="8">
             <TabItem Header="File Cleaner">
@@ -111,6 +131,9 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <views:UpscalerView DataContext="{Binding Upscaler}" />
                         </ScrollViewer>
+                    </TabItem>
+                    <TabItem Header="Batch Upscale">
+                        <views:BatchUpscaleView DataContext="{Binding BatchUpscale}" />
                     </TabItem>
                     <TabItem Header="Bootable USB Creator">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
@@ -246,14 +269,15 @@
                             <views:SystemRestoreView DataContext="{Binding SystemRestore}" />
                         </ScrollViewer>
                     </TabItem>
+                    <TabItem Header="Archive Manager">
+                        <views:ArchiveManagerView DataContext="{Binding ArchiveManager}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
         </TabControl>
-
-        <!-- Status Bar -->
-        <controls:StatusBarControl DockPanel.Dock="Bottom"/>
     </DockPanel>
 </Window>
+
 
 
 

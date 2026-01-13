@@ -40,32 +40,45 @@
 
         <!-- Restore Points List -->
         <GroupBox Header="Available Restore Points" Grid.Row="1" Margin="0,0,0,8">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <DataGrid ItemsSource="{Binding RestorePoints}"
-                          SelectedItem="{Binding SelectedPoint}"
-                          AutoGenerateColumns="False"
-                          CanUserAddRows="False"
-                          CanUserDeleteRows="False"
-                          CanUserResizeColumns="True"
-                          IsReadOnly="True"
-                          SelectionMode="Single"
-                          AlternatingRowBackground="#F5F5F5">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Sequence #" Binding="{Binding SequenceNumber}" Width="100" MinWidth="80" IsReadOnly="True" />
-                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" MinWidth="250" IsReadOnly="True" />
-                        <DataGridTextColumn Header="Creation Time" Binding="{Binding CreationTime, StringFormat='yyyy-MM-dd HH:mm:ss'}" Width="160" MinWidth="140" IsReadOnly="True" />
-                        <DataGridTextColumn Header="Type" Binding="{Binding RestorePointType}" Width="150" MinWidth="120" IsReadOnly="True" />
-                        <DataGridTextColumn Header="Event" Binding="{Binding EventType}" Width="150" MinWidth="120" IsReadOnly="True" />
-                    </DataGrid.Columns>
-                    <DataGrid.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Restore to this Point" Command="{Binding RestoreCommand}" FontWeight="Bold" />
-                            <Separator />
-                            <MenuItem Header="Delete this Point" Command="{Binding DeleteCommand}" />
-                        </ContextMenu>
-                    </DataGrid.ContextMenu>
-                </DataGrid>
-            </ScrollViewer>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <DataGrid ItemsSource="{Binding RestorePoints}"
+                              SelectedItem="{Binding SelectedPoint}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              CanUserResizeColumns="True"
+                              IsReadOnly="True"
+                              SelectionMode="Single"
+                              ColumnHeaderHeight="32"
+                              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                <Setter Property="Padding" Value="8,4"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Sequence #" Binding="{Binding SequenceNumber}" Width="100" MinWidth="80" IsReadOnly="True" CanUserResize="True"/>
+                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" MinWidth="250" IsReadOnly="True" CanUserResize="True"/>
+                            <DataGridTextColumn Header="Creation Time" Binding="{Binding CreationTime, StringFormat='yyyy-MM-dd HH:mm:ss'}" Width="160" MinWidth="140" IsReadOnly="True" CanUserResize="True"/>
+                            <DataGridTextColumn Header="Type" Binding="{Binding RestorePointType}" Width="150" MinWidth="120" IsReadOnly="True" CanUserResize="True"/>
+                            <DataGridTextColumn Header="Event" Binding="{Binding EventType}" Width="150" MinWidth="120" IsReadOnly="True" CanUserResize="True"/>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Restore to this Point" Command="{Binding RestoreCommand}" FontWeight="Bold" />
+                                <Separator />
+                                <MenuItem Header="Delete this Point" Command="{Binding DeleteCommand}" />
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
+                </ScrollViewer>
+            </Grid>
         </GroupBox>
 
         <!-- Status Bar -->

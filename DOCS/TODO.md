@@ -9,22 +9,22 @@
 ## Phase 1: UI Foundation
 
 ### 1.1 Status Bar
-- [ ] **TASK-001**: Create `StatusBarControl.xaml` custom control
-- [ ] **TASK-002**: Create `StatusBarViewModel.cs` with progress tracking
-- [ ] **TASK-003**: Add status bar to `MainWindow.xaml`
+- [x] **TASK-001**: Create `StatusBarControl.xaml` custom control
+- [x] **TASK-002**: Create `StatusBarViewModel.cs` with progress tracking
+- [x] **TASK-003**: Add status bar to `MainWindow.xaml`
 - [ ] **TASK-004**: Wire up status bar to all long-running operations
 - [ ] **TASK-005**: Add cancel button functionality
 
 ### 1.2 Keyboard Shortcuts
-- [ ] **TASK-006**: Create `KeyboardShortcutService.cs` for hotkey management
+- [x] **TASK-006**: Create `KeyboardShortcutService.cs` for hotkey management
 - [ ] **TASK-007**: Create `KeyboardShortcutsViewModel.cs` for settings UI
-- [ ] **TASK-008**: Create `KeyboardShortcutsView.xaml` settings page
+- [x] **TASK-008**: Create `KeyboardShortcutsView.xaml` (in SettingsWindow) settings page
 - [ ] **TASK-009**: Define default shortcuts in `shortcuts.json`
 - [ ] **TASK-010**: Integrate shortcuts with all commands
-- [ ] **TASK-011**: Add shortcut display to menu items
+- [x] **TASK-011**: Add shortcut display to menu items
 
 ### 1.3 Recent Workspaces
-- [ ] **TASK-012**: Create `RecentWorkspacesService.cs`
+- [x] **TASK-012**: Create `RecentWorkspacesService.cs`
 - [ ] **TASK-013**: Add recent workspaces to File menu
 - [ ] **TASK-014**: Create `RecentWorkspacesView.xaml` in Home tab
 - [ ] **TASK-015**: Implement pin/unpin functionality
@@ -32,7 +32,7 @@
 - [ ] **TASK-017**: Persist recent workspaces to settings
 
 ### 1.4 Settings Backup/Restore
-- [ ] **TASK-018**: Create `SettingsBackupService.cs`
+- [x] **TASK-018**: Create `SettingsBackupService.cs`
 - [ ] **TASK-019**: Export settings to JSON/ZIP
 - [ ] **TASK-020**: Import settings from backup
 - [ ] **TASK-021**: Add Settings Backup/Restore UI in settings
@@ -42,72 +42,72 @@
 ## Phase 2: Enhanced Existing Tools
 
 ### 2.1 Video Editor Timeline
-- [ ] **TASK-022**: Design timeline data models (`TimelineTrack.cs`, `TimelineClip.cs`)
-- [ ] **TASK-023**: Create `TimelineControl.xaml` custom control
+- [x] **TASK-022**: Design timeline data models (`TimelineTrack.cs`, `TimelineClip.cs`)
+- [x] **TASK-023**: Create `TimelineControl.xaml` custom control
 - [ ] **TASK-024**: Implement timeline ruler with zoom
 - [ ] **TASK-025**: Create `TimelineTrackControl.xaml` for track headers
 - [ ] **TASK-026**: Create `TimelineClipControl.xaml` for clip display
 - [ ] **TASK-027**: Implement playhead with scrubbing
-- [ ] **TASK-028**: Create `TimelineViewModel.cs`
+- [x] **TASK-028**: Create `TimelineViewModel.cs`
 - [ ] **TASK-029**: Implement drag-and-drop clips
 - [ ] **TASK-030**: Implement clip trimming handles
 - [ ] **TASK-031**: Implement clip splitting
-- [ ] **TASK-032**: Implement undo/redo for timeline actions
+- [x] **TASK-032**: Implement undo/redo for timeline actions
 
 ### 2.2 Video Editor Multi-Track
-- [ ] **TASK-033**: Add track type enumeration (Video, Audio, Title, Effects)
-- [ ] **TASK-034**: Implement track add/remove
-- [ ] **TASK-035**: Implement track reordering
-- [ ] **TASK-036**: Implement track visibility toggle
-- [ ] **TASK-037**: Implement track mute/solo
-- [ ] **TASK-038**: Implement track lock
+- [x] **TASK-033**: Add track type enumeration (Video, Audio, Title, Effects)
+- [x] **TASK-034**: Implement track add/remove
+- [x] **TASK-035**: Implement track reordering
+- [x] **TASK-036**: Implement track visibility toggle
+- [x] **TASK-037**: Implement track mute/solo
+- [x] **TASK-038**: Implement track lock
 
 ### 2.3 Video Editor Transitions
-- [ ] **TASK-039**: Create `Transition.cs` model
-- [ ] **TASK-040**: Create `TransitionService.cs` with FFmpeg filters
+- [x] **TASK-039**: Create `Transition.cs` model
+- [x] **TASK-040**: Create `TransitionService.cs` with FFmpeg filters
 - [ ] **TASK-041**: Create `TransitionPickerView.xaml` UI
-- [ ] **TASK-042**: Implement fade transitions (in, out, cross)
-- [ ] **TASK-043**: Implement wipe transitions
-- [ ] **TASK-044**: Implement slide transitions
-- [ ] **TASK-045**: Implement zoom transitions
+- [x] **TASK-042**: Implement fade transitions (in, out, cross)
+- [x] **TASK-043**: Implement wipe transitions
+- [x] **TASK-044**: Implement slide transitions
+- [x] **TASK-045**: Implement zoom transitions
 - [ ] **TASK-046**: Add transition duration control
 - [ ] **TASK-047**: Add transition preview
 
 ### 2.4 Image Scaler Batch Processing
-- [ ] **TASK-048**: Create `BatchUpscaleJob.cs` model
-- [ ] **TASK-049**: Create `BatchUpscaleService.cs`
-- [ ] **TASK-050**: Create `BatchUpscaleViewModel.cs`
-- [ ] **TASK-051**: Add batch queue UI to Image Scaler
-- [ ] **TASK-052**: Implement add files/folders to queue
+- [x] **TASK-048**: Create `BatchUpscaleJob.cs` model
+- [x] **TASK-049**: Create `BatchUpscaleService.cs`
+- [x] **TASK-050**: Create `BatchUpscaleViewModel.cs`
+- [x] **TASK-051**: Add batch queue UI to Image Scaler
+- [x] **TASK-052**: Implement add files/folders to queue
 - [ ] **TASK-053**: Implement per-item settings override
-- [ ] **TASK-054**: Implement progress tracking
-- [ ] **TASK-055**: Implement pause/resume/cancel
-- [ ] **TASK-056**: Implement parallel processing option
-- [ ] **TASK-057**: Implement output naming patterns
+- [x] **TASK-054**: Implement progress tracking
+- [x] **TASK-055**: Implement pause/resume/cancel
+- [x] **TASK-056**: Implement parallel processing option
+- [x] **TASK-057**: Implement output naming patterns
 
 ### 2.5 Image Scaler Comparison Preview
-- [ ] **TASK-058**: Create `ComparisonViewer.xaml` control
-- [ ] **TASK-059**: Implement slider comparison mode
-- [ ] **TASK-060**: Implement side-by-side mode
-- [ ] **TASK-061**: Implement overlay toggle mode
+- [x] **TASK-058**: Create `ComparisonViewer.xaml` control
+- [x] **TASK-059**: Implement slider comparison mode
+- [x] **TASK-060**: Implement side-by-side mode
+- [x] **TASK-061**: Implement overlay toggle mode
 - [ ] **TASK-062**: Implement synchronized zoom/pan
-- [ ] **TASK-063**: Add comparison view to Image Scaler
+- [x] **TASK-063**: Add comparison view to Image Scaler
 
 ### 2.6 Metadata Template Presets
-- [ ] **TASK-064**: Create `MetadataTemplate.cs` model
-- [ ] **TASK-065**: Create `MetadataTemplateService.cs`
+- [x] **TASK-064**: Create `MetadataTemplate.cs` model
+- [x] **TASK-065**: Create `MetadataTemplateService.cs`
 - [ ] **TASK-066**: Create template save/load UI
 - [ ] **TASK-067**: Implement "Save as Template" feature
-- [ ] **TASK-068**: Implement template management (list, delete, rename)
-- [ ] **TASK-069**: Implement "Apply Template" with merge/replace modes
+- [x] **TASK-068**: Implement template management (list, delete, rename)
+- [x] **TASK-069**: Implement "Apply Template" with merge/replace modes
 
 ### 2.7 Metadata Batch Copy
-- [ ] **TASK-070**: Create batch metadata copy UI
-- [ ] **TASK-071**: Implement source file selection
+- [x] **TASK-070**: Create batch metadata copy UI (MetadataTemplateViewModel)
+- [x] **TASK-071**: Implement source file selection
 - [ ] **TASK-072**: Implement tag selection (checkboxes)
-- [ ] **TASK-073**: Implement target file selection
+- [x] **TASK-073**: Implement target file selection
 - [ ] **TASK-074**: Implement preview before apply
-- [ ] **TASK-075**: Implement batch apply with progress
+- [x] **TASK-075**: Implement batch apply with progress
 
 ### 2.8 Duplicate Finder Image Similarity
 - [ ] **TASK-076**: Create `ImageSimilarityService.cs`
@@ -160,19 +160,19 @@
 - [ ] **TASK-113**: Add PDF Tools to navigation
 
 ### 3.3 Archive Manager
-- [ ] **TASK-114**: Add SharpCompress NuGet package
-- [ ] **TASK-115**: Create `ArchiveService.cs`
-- [ ] **TASK-116**: Create `ArchiveManagerViewModel.cs`
-- [ ] **TASK-117**: Create `ArchiveManagerView.xaml`
-- [ ] **TASK-118**: Implement archive browsing
-- [ ] **TASK-119**: Implement ZIP creation
+- [x] **TASK-114**: Add SharpCompress NuGet package
+- [x] **TASK-115**: Create `ArchiveService.cs`
+- [x] **TASK-116**: Create `ArchiveManagerViewModel.cs`
+- [x] **TASK-117**: Create `ArchiveManagerView.xaml`
+- [x] **TASK-118**: Implement archive browsing
+- [x] **TASK-119**: Implement ZIP creation
 - [ ] **TASK-120**: Implement 7z creation (via 7z.dll)
-- [ ] **TASK-121**: Implement archive extraction (ZIP, 7z, RAR, TAR)
-- [ ] **TASK-122**: Implement selective extraction
+- [x] **TASK-121**: Implement archive extraction (ZIP, 7z, RAR, TAR)
+- [x] **TASK-122**: Implement selective extraction
 - [ ] **TASK-123**: Implement password protection
-- [ ] **TASK-124**: Implement compression levels
+- [x] **TASK-124**: Implement compression levels
 - [ ] **TASK-125**: Implement split archives
-- [ ] **TASK-126**: Add Archive Manager to navigation
+- [x] **TASK-126**: Add Archive Manager to navigation
 
 ### 3.4 Screenshot Tool
 - [ ] **TASK-127**: Create `ScreenCaptureService.cs`
@@ -306,7 +306,14 @@
 - [ ] **TASK-229**: Implement `LibraryService.cpp`
 - [ ] **TASK-230**: Design SQLite schema
 - [ ] **TASK-231**: Implement directory scanning
-- [ ] **TASK-232**: Implement file hashing (for duplicate detection)
+- \[ \] \*\*TASK-232\*\*: Implement file hashing \(for duplicate detection\)
+- [ ] **TASK-232a**: Add faster folder scanning option (background incremental scan with file watcher)
+  - **NOTE**: Audio library folder scanning should support a "quick scan" mode that:
+    - Uses parallel directory enumeration
+    - Caches folder modification timestamps
+    - Only rescans changed folders
+    - Provides real-time progress updates
+    - Can be cancelled without losing partial results
 - [ ] **TASK-233**: Implement CRUD operations
 - [ ] **TASK-234**: Implement search/filter
 - [ ] **TASK-235**: Implement playlist management
@@ -429,7 +436,7 @@
 
 | Phase | Total Tasks | Completed | Remaining |
 |-------|-------------|-----------|-----------|
-| Phase 1: UI Foundation | 21 | 0 | 21 |
+| Phase 1: UI Foundation | 21 | 7 | 14 |
 | Phase 2: Enhanced Tools | 68 | 0 | 68 |
 | Phase 3: New Tools | 56 | 0 | 56 |
 | Phase 4: System Features | 33 | 0 | 33 |
@@ -437,8 +444,10 @@
 | Phase 6: C++/CLI Bridge | 16 | 0 | 16 |
 | Phase 7: .NET UI | 31 | 0 | 31 |
 | Phase 8: Testing & Docs | 19 | 0 | 19 |
-| **TOTAL** | **309** | **0** | **309** |
+| **TOTAL** | **309** | **7** | **302** |
 
 ---
 
 *Update this file as tasks are completed.*
+
+

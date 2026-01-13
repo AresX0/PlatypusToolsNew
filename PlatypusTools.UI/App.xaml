@@ -13,5 +13,9 @@
         <converters:InverseBooleanToBooleanConverter x:Key="InverseBooleanToBooleanConverter" />
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+        <converters:BoolToThemeTextConverter x:Key="BoolToThemeTextConverter" />
+        <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+        <converters:CountToVisibilityConverter x:Key="ZeroToVisibleConverter" />
+        <converters:EnumToBoolConverter x:Key="EnumToBoolConverter" />
     </Application.Resources>
 </Application>

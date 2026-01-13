@@ -39,18 +39,32 @@
 
         <!-- Issues List -->
         <GroupBox Header="Registry Issues" Grid.Row="1" Margin="0,0,0,8">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <DataGrid ItemsSource="{Binding Issues}"
-                          AutoGenerateColumns="False"
-                          CanUserAddRows="False"
-                          CanUserDeleteRows="False"
-                          CanUserResizeColumns="True"
-                          SelectionMode="Extended"
-                          AlternatingRowBackground="#F5F5F5">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <DataGrid ItemsSource="{Binding Issues}"
+                                                    AutoGenerateColumns="False"
+                                                    CanUserAddRows="False"
+                                                    CanUserDeleteRows="False"
+                                                    CanUserResizeColumns="True"
+                                                    SelectionMode="Extended"
+                                                    ColumnHeaderHeight="32"
+                                                    HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled"
+                                                    ColumnWidth="*">
+                                                <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                <Setter Property="Padding" Value="8,4"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
                     <DataGrid.Columns>
-                        <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="60" MinWidth="50" />
-                        <DataGridTextColumn Header="Issue Type" Binding="{Binding IssueType}" Width="120" MinWidth="100" IsReadOnly="True" />
-                        <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="80" MinWidth="60" IsReadOnly="True">
+
+                        <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="60" MinWidth="50" CanUserResize="True"/>
+                        <DataGridTextColumn Header="Issue Type" Binding="{Binding IssueType}" Width="120" MinWidth="100" IsReadOnly="True" CanUserResize="True"/>
+                        <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="80" MinWidth="60" IsReadOnly="True" CanUserResize="True">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Style.Triggers>
@@ -68,12 +82,13 @@
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
-                        <DataGridTextColumn Header="Key Path" Binding="{Binding KeyPath}" Width="*" MinWidth="300" IsReadOnly="True" />
-                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="250" MinWidth="200" IsReadOnly="True" />
-                        <DataGridCheckBoxColumn Header="Fixed" Binding="{Binding IsFixed, Mode=OneWay}" Width="60" MinWidth="50" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Key Path" Binding="{Binding KeyPath}" Width="*" MinWidth="300" IsReadOnly="True" CanUserResize="True"/>
+                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="250" MinWidth="200" IsReadOnly="True" CanUserResize="True"/>
+                        <DataGridCheckBoxColumn Header="Fixed" Binding="{Binding IsFixed, Mode=OneWay}" Width="60" MinWidth="50" IsReadOnly="True" CanUserResize="True"/>
                     </DataGrid.Columns>
-                </DataGrid>
-            </ScrollViewer>
+                    </DataGrid>
+                </ScrollViewer>
+            </Grid>
         </GroupBox>
 
         <!-- Status Bar -->

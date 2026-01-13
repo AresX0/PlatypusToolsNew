@@ -188,7 +188,8 @@
                     <DataGrid ItemsSource="{Binding Operations}" AutoGenerateColumns="False" 
                               CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="False"
                               CanUserResizeColumns="True" CanUserSortColumns="True"
-                              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled"
+                              ColumnWidth="*">
                         <DataGrid.Columns>
                             <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected}" Width="60" CanUserResize="True" MinWidth="50" />
                             <DataGridTextColumn Header="Original Name" Binding="{Binding OriginalFileName}" Width="250" IsReadOnly="True" CanUserResize="True" MinWidth="120" />

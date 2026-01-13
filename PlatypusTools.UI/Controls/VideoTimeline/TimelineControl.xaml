@@ -1,0 +1,219 @@
+<UserControl x:Class="PlatypusTools.UI.Controls.VideoTimeline.TimelineControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:PlatypusTools.UI.Controls.VideoTimeline">
+    
+    <UserControl.Resources>
+        <Style x:Key="TrackHeaderStyle" TargetType="Border">
+            <Setter Property="Width" Value="150"/>
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="BorderBrush" Value="#3F3F46"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+        </Style>
+        
+        <Style x:Key="TrackContentStyle" TargetType="Border">
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="BorderBrush" Value="#3F3F46"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        </Style>
+    </UserControl.Resources>
+    
+    <Grid Background="#252526">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Toolbar -->
+        <Border Grid.Row="0" Background="#333337" Padding="4">
+            <StackPanel Orientation="Horizontal">
+                <!-- Playback Controls -->
+                <Button Content="⏮" Width="28" Height="28" Margin="2" ToolTip="Go to Start"
+                        Command="{Binding StopCommand}"/>
+                <Button Content="▶" Width="28" Height="28" Margin="2" ToolTip="Play"
+                        Command="{Binding PlayCommand}"/>
+                <Button Content="⏸" Width="28" Height="28" Margin="2" ToolTip="Pause"
+                        Command="{Binding PauseCommand}"/>
+                <Button Content="⏹" Width="28" Height="28" Margin="2" ToolTip="Stop"
+                        Command="{Binding StopCommand}"/>
+                
+                <Separator Width="1" Background="#555" Margin="8,4"/>
+                
+                <!-- Edit Tools -->
+                <Button Content="✂" Width="28" Height="28" Margin="2" ToolTip="Split at Playhead (S)"
+                        Command="{Binding SplitClipCommand}"/>
+                <Button Content="🗑" Width="28" Height="28" Margin="2" ToolTip="Delete (Del)"
+                        Command="{Binding DeleteClipCommand}"/>
+                
+                <Separator Width="1" Background="#555" Margin="8,4"/>
+                
+                <!-- Zoom -->
+                <Button Content="🔍-" Width="28" Height="28" Margin="2" ToolTip="Zoom Out"
+                        Command="{Binding ZoomOutCommand}"/>
+                <Slider Width="100" Margin="4" VerticalAlignment="Center"
+                        Minimum="0.1" Maximum="10" Value="{Binding ZoomLevel}"/>
+                <Button Content="🔍+" Width="28" Height="28" Margin="2" ToolTip="Zoom In"
+                        Command="{Binding ZoomInCommand}"/>
+                
+                <Separator Width="1" Background="#555" Margin="8,4"/>
+                
+                <!-- Snap/Ripple -->
+                <ToggleButton Content="🧲" Width="28" Height="28" Margin="2" ToolTip="Snap to Grid"
+                              IsChecked="{Binding SnapToGrid}"/>
+                <ToggleButton Content="📎" Width="28" Height="28" Margin="2" ToolTip="Ripple Edit"
+                              IsChecked="{Binding RippleEdit}"/>
+                
+                <Separator Width="1" Background="#555" Margin="8,4"/>
+                
+                <!-- Track Add -->
+                <Button Content="+ Video" Padding="8,4" Margin="2"
+                        Command="{Binding AddVideoTrackCommand}"/>
+                <Button Content="+ Audio" Padding="8,4" Margin="2"
+                        Command="{Binding AddAudioTrackCommand}"/>
+                <Button Content="+ Title" Padding="8,4" Margin="2"
+                        Command="{Binding AddTitleTrackCommand}"/>
+                
+                <Separator Width="1" Background="#555" Margin="8,4"/>
+                
+                <!-- Undo/Redo -->
+                <Button Content="↶" Width="28" Height="28" Margin="2" ToolTip="Undo (Ctrl+Z)"
+                        Command="{Binding UndoCommand}"/>
+                <Button Content="↷" Width="28" Height="28" Margin="2" ToolTip="Redo (Ctrl+Y)"
+                        Command="{Binding RedoCommand}"/>
+            </StackPanel>
+        </Border>
+        
+        <!-- Time Ruler -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <Border Grid.Column="0" Background="#2D2D30" BorderBrush="#3F3F46" BorderThickness="0,0,1,1">
+                <TextBlock Text="Tracks" VerticalAlignment="Center" HorizontalAlignment="Center"
+                           Foreground="#999" FontWeight="SemiBold"/>
+            </Border>
+            
+            <Canvas x:Name="TimeRuler" Grid.Column="1" Background="#2D2D30" 
+                    ClipToBounds="True"/>
+        </Grid>
+        
+        <!-- Tracks Area -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Track Headers -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Hidden"
+                          x:Name="TrackHeadersScroll">
+                <ItemsControl ItemsSource="{Binding Tracks}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource TrackHeaderStyle}" Height="{Binding Height}">
+                                <Grid Margin="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <!-- Track Color Indicator -->
+                                    <Rectangle Grid.Column="0" Width="4" Fill="{Binding Color}" 
+                                               RadiusX="2" RadiusY="2" Margin="0,0,6,0"/>
+                                    
+                                    <!-- Track Name -->
+                                    <TextBlock Grid.Column="1" Text="{Binding Name}" 
+                                               VerticalAlignment="Center" Foreground="White"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    
+                                    <!-- Track Controls -->
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <ToggleButton Content="👁" Width="20" Height="20" FontSize="10"
+                                                      IsChecked="{Binding IsVisible}" ToolTip="Visibility"
+                                                      Opacity="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                        <ToggleButton Content="🔇" Width="20" Height="20" FontSize="10"
+                                                      IsChecked="{Binding IsMuted}" ToolTip="Mute"/>
+                                        <ToggleButton Content="🔒" Width="20" Height="20" FontSize="10"
+                                                      IsChecked="{Binding IsLocked}" ToolTip="Lock"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            
+            <!-- Track Content (Clips) -->
+            <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Auto" x:Name="TracksScroll">
+                <ItemsControl ItemsSource="{Binding Tracks}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource TrackContentStyle}" Height="{Binding Height}">
+                                <Canvas x:Name="ClipsCanvas" Background="Transparent"
+                                        AllowDrop="True">
+                                    <!-- Clips would be rendered here -->
+                                    <ItemsControl ItemsSource="{Binding Clips}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <Canvas/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{Binding Color}" 
+                                                        CornerRadius="4" Margin="1"
+                                                        BorderBrush="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                        BorderThickness="2" Cursor="Hand">
+                                                    <Grid Margin="4,2">
+                                                        <TextBlock Text="{Binding Name}" Foreground="White"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   FontSize="11"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Canvas>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            
+            <!-- Playhead -->
+            <Canvas Grid.Column="1" IsHitTestVisible="False">
+                <Line x:Name="Playhead" X1="0" Y1="0" X2="0" Y2="2000"
+                      Stroke="#FF5722" StrokeThickness="2"/>
+            </Canvas>
+        </Grid>
+        
+        <!-- Status Bar -->
+        <Border Grid.Row="3" Background="#333337" Padding="8,4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0" Foreground="#CCC">
+                    <Run Text="Position: "/>
+                    <Run Text="{Binding PlayheadPosition, StringFormat='{}{0:hh\\:mm\\:ss\\.ff}'}"/>
+                </TextBlock>
+                
+                <TextBlock Grid.Column="2" Foreground="#CCC">
+                    <Run Text="Duration: "/>
+                    <Run Text="{Binding Duration, StringFormat='{}{0:hh\\:mm\\:ss}'}"/>
+                    <Run Text=" | Zoom: "/>
+                    <Run Text="{Binding ZoomLevel, StringFormat='{}{0:F1}x'}"/>
+                </TextBlock>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -120,6 +120,7 @@ namespace PlatypusTools.UI.ViewModels
                 EmptyFolders.Clear();
                 Progress = 0;
                 StatusMessage = "Scanning for empty folders...";
+                StatusBarViewModel.Instance.StartOperation("Scanning for empty folders...", isCancellable: true);
                 _cts = new CancellationTokenSource();
 
                 _scanner.ProgressChanged += msg => Application.Current?.Dispatcher.Invoke(() => StatusMessage = msg);
@@ -153,6 +154,7 @@ namespace PlatypusTools.UI.ViewModels
             finally
             {
                 IsScanning = false;
+                StatusBarViewModel.Instance.CompleteOperation(StatusMessage);
                 _cts?.Dispose();
                 _cts = null;
             }
@@ -204,6 +206,7 @@ namespace PlatypusTools.UI.ViewModels
             finally
             {
                 IsScanning = false;
+                StatusBarViewModel.Instance.CompleteOperation(StatusMessage);
                 _cts?.Dispose();
                 _cts = null;
             }
@@ -243,6 +246,7 @@ namespace PlatypusTools.UI.ViewModels
             finally
             {
                 IsScanning = false;
+                StatusBarViewModel.Instance.CompleteOperation(StatusMessage);
                 _cts?.Dispose();
                 _cts = null;
             }
@@ -261,3 +265,4 @@ namespace PlatypusTools.UI.ViewModels
         }
     }
 }
+

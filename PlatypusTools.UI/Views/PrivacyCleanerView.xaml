@@ -91,10 +91,19 @@
             <!-- Results Grid -->
             <GroupBox Grid.Row="1" Header="Items to be Cleaned">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                    <DataGrid ItemsSource="{Binding ItemsToClean}" AutoGenerateColumns="False" 
+                    <DataGrid ItemsSource="{Binding ItemsToClean}" AutoGenerateColumns="False"
                               IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" Margin="5"
                               CanUserResizeColumns="True" CanUserSortColumns="True"
-                              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                              ColumnHeaderHeight="32"
+                              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled"
+                              ColumnWidth="*">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                <Setter Property="Padding" Value="8,4"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="300" CanUserResize="True" MinWidth="100"/>
                             <DataGridTextColumn Header="Items" Binding="{Binding Items}" Width="100" CanUserResize="True" MinWidth="60"/>
