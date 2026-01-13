@@ -100,9 +100,6 @@ namespace PlatypusTools.UI.ViewModels
 
             IsScanning = true;
             StatusMessage = "Scanning for duplicates...";
-            
-            // Update global status bar
-            StatusBarViewModel.Instance.StartOperation("Scanning for duplicates...", isCancellable: true);
             Groups.Clear();
             ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
             ((RelayCommand)CancelScanCommand).RaiseCanExecuteChanged();
@@ -136,7 +133,6 @@ namespace PlatypusTools.UI.ViewModels
             finally
             {
                 IsScanning = false;
-                StatusBarViewModel.Instance.CompleteOperation(StatusMessage);
                 ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
                 ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
                 ((RelayCommand)CancelScanCommand).RaiseCanExecuteChanged();

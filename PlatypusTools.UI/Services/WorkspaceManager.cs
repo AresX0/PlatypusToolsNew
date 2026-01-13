@@ -1,17 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace PlatypusTools.UI.Services
 {
-    /// <summary>
-    /// Manages workspaces, workspace persistence, and workspace history.
-    /// Static methods for backwards compatibility with original API.
-    /// </summary>
     public static class WorkspaceManager
     {
         private static string AppFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PlatypusTools");
@@ -69,62 +62,13 @@ namespace PlatypusTools.UI.Services
         {
             try
             {
-                var recent = new List<string>(LoadRecent());
-                recent.Remove(path);
-                recent.Insert(0, path);
-                while (recent.Count > 10) recent.RemoveAt(recent.Count - 1);
-                SaveRecent(recent);
+                var list = new List<string>(LoadRecent());
+                list.RemoveAll(x => string.Equals(x, path, StringComparison.OrdinalIgnoreCase));
+                list.Insert(0, path);
+                if (list.Count > 20) list.RemoveRange(20, list.Count - 20);
+                SaveRecent(list);
             }
             catch { }
         }
-
-        public static void RemoveFromRecent(string path)
-        {
-            try
-            {
-                var recent = new List<string>(LoadRecent());
-                recent.Remove(path);
-                SaveRecent(recent);
-            }
-            catch { }
-        }
-
-        // New async methods for enhanced functionality
-        public static async Task<bool> SaveWorkspaceAsync(string path, object workspace)
-        {
-            try
-            {
-                var txt = JsonSerializer.Serialize(workspace, new JsonSerializerOptions { WriteIndented = true });
-                await File.WriteAllTextAsync(path, txt);
-                AddToRecent(path);
-                return true;
-            }
-            catch { return false; }
-        }
-
-        public static async Task<T?> LoadWorkspaceAsync<T>(string path)
-        {
-            try
-            {
-                if (!File.Exists(path)) return default;
-                var txt = await File.ReadAllTextAsync(path);
-                return JsonSerializer.Deserialize<T>(txt);
-            }
-            catch { return default; }
-        }
-    }
-
-    public class WorkspaceState
-    {
-        public string Id { get; set; } = "";
-        public string? Name { get; set; }
-        public string? FilePath { get; set; }
-        public string? RootFolder { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime ModifiedAt { get; set; }
-        public string? SelectedFolder { get; set; }
-        public string? FileCleanerTarget { get; set; }
-        public string? RecentTargets { get; set; }
-        public string? DuplicatesFolder { get; set; }
     }
 }

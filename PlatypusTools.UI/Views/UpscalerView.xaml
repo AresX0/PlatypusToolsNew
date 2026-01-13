@@ -25,19 +25,7 @@
             <TextBlock VerticalAlignment="Center" Margin="8,0,0,0">Scale:</TextBlock>
             <ComboBox ItemsSource="{Binding ScaleOptions}" SelectedItem="{Binding SelectedScale}" Width="60" Margin="4,0,0,0" />
         </StackPanel>
-        <GroupBox Header="Files to Upscale" Grid.Row="2" Margin="0,0,0,8">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <DataGrid ItemsSource="{Binding Files}" AutoGenerateColumns="False"
-                          CanUserAddRows="False" CanUserDeleteRows="False"
-                          CanUserResizeColumns="True" CanUserSortColumns="True"
-                          IsReadOnly="True"
-                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="File Name" Binding="{Binding}" Width="*" MinWidth="200" />
-                    </DataGrid.Columns>
-                </DataGrid>
-            </ScrollViewer>
-        </GroupBox>
+        <ListBox Grid.Row="2" ItemsSource="{Binding Files}" />
         <ProgressBar Grid.Row="3" Height="16" IsIndeterminate="{Binding IsRunning}" Margin="0,8,0,0" />
         <TextBox Grid.Row="4" Text="{Binding Log}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" Margin="0,8,0,0" IsReadOnly="True" />
     </Grid>

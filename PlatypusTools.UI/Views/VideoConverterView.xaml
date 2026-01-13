@@ -96,25 +96,11 @@
         <!-- Preview Grid -->
         <GroupBox Header="Conversion Queue" Grid.Row="3" Margin="0,0,0,10">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <DataGrid ItemsSource="{Binding ConversionTasks}"
-                          AutoGenerateColumns="False"
-                          CanUserAddRows="False"
-                          IsReadOnly="False"
-                          SelectionMode="Extended"
-                          CanUserResizeColumns="True"
-                          CanUserSortColumns="True"
-                          ColumnHeaderHeight="32"
-                          HorizontalScrollBarVisibility="Disabled"
-                          VerticalScrollBarVisibility="Disabled"
-                          ColumnWidth="*">
-                    <DataGrid.ColumnHeaderStyle>
-                        <Style TargetType="DataGridColumnHeader">
-                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                            <Setter Property="Padding" Value="8,4"/>
-                            <Setter Property="FontWeight" Value="SemiBold"/>
-                        </Style>
-                    </DataGrid.ColumnHeaderStyle>
-                   <DataGrid.Columns>
+                <DataGrid ItemsSource="{Binding ConversionTasks}" AutoGenerateColumns="False" CanUserAddRows="False" 
+                          IsReadOnly="False" SelectionMode="Extended"
+                          CanUserResizeColumns="True" CanUserSortColumns="True"
+                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                    <DataGrid.Columns>
                         <DataGridCheckBoxColumn Header="Convert" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="60" CanUserResize="True" MinWidth="50"/>
                         <DataGridTextColumn Header="Source File" Binding="{Binding SourcePath}" Width="300" CanUserResize="True" MinWidth="120"/>
                         <DataGridTextColumn Header="Output File" Binding="{Binding OutputPath}" Width="300" CanUserResize="True" MinWidth="120"/>
@@ -124,27 +110,27 @@
                         <DataGridTextColumn Header="Size" Binding="{Binding FileSizeBytes, Converter={StaticResource FileSizeConverter}}" Width="80" CanUserResize="True" MinWidth="60"/>
                         <DataGridTextColumn Header="Progress" Binding="{Binding Progress, StringFormat='{}{0:F1}%'}" Width="80" CanUserResize="True" MinWidth="70"/>
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" CanUserResize="True" MinWidth="70">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Status}" Value="Completed">
-                                            <Setter Property="Foreground" Value="Green"/>
-                                            <Setter Property="FontWeight" Value="Bold"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding Status}" Value="Failed">
-                                            <Setter Property="Foreground" Value="Red"/>
-                                            <Setter Property="FontWeight" Value="Bold"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding Status}" Value="Converting">
-                                            <Setter Property="Foreground" Value="Blue"/>
-                                            <Setter Property="FontWeight" Value="Bold"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Status}" Value="Completed">
+                                        <Setter Property="Foreground" Value="Green"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Status}" Value="Failed">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Status}" Value="Converting">
+                                        <Setter Property="Foreground" Value="Blue"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
             </ScrollViewer>
         </GroupBox>
 

@@ -113,10 +113,10 @@
 
     <!-- DataGrid -->
     <Style TargetType="DataGrid">
-        <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
+        <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}" />
         <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}" />
-        <Setter Property="RowBackground" Value="{StaticResource WindowBackgroundBrush}" />
+        <Setter Property="RowBackground" Value="White" />
         <Setter Property="AlternatingRowBackground" Value="{StaticResource ControlBackgroundBrush}" />
         <Setter Property="GridLinesVisibility" Value="None" />
     </Style>
@@ -134,12 +134,9 @@
 
     <!-- DataGridColumnHeader -->
     <Style TargetType="DataGridColumnHeader">
-        <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}" />
+        <Setter Property="Background" Value="{StaticResource ControlBorderBrush}" />
         <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}" />
-        <Setter Property="Padding" Value="8,4" />
-        <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}" />
-        <Setter Property="BorderThickness" Value="0,0,1,1" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="5" />
     </Style>
 
     <!-- DataGridRowHeader -->
@@ -257,15 +254,5 @@
     <Style TargetType="ToolBar">
         <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}" />
         <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}" />
-    </Style>
-
-    <!-- UserControl -->
-    <Style TargetType="UserControl">
-        <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
-    </Style>
-
-    <!-- Border -->
-    <Style TargetType="Border">
-        <Setter Property="Background" Value="Transparent" />
     </Style>
 </ResourceDictionary>

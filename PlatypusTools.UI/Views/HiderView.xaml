@@ -30,8 +30,7 @@
         <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
             <DataGrid ItemsSource="{Binding Records}" AutoGenerateColumns="False"
                       CanUserResizeColumns="True" CanUserSortColumns="True"
-                     HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled"
-                     ColumnWidth="*">
+                      HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Folder" Binding="{Binding FolderPath}" Width="300" MinWidth="200" CanUserResize="True" IsReadOnly="True" />
                     <DataGridCheckBoxColumn Header="Hidden" Binding="{Binding IsHidden, Mode=OneWay}" Width="80" MinWidth="60" CanUserResize="True" IsReadOnly="True" />

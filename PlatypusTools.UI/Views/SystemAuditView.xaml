@@ -87,24 +87,12 @@
 
         <!-- Results Grid -->
         <GroupBox Header="Audit Results" Grid.Row="4" Margin="0,0,0,10">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                      <DataGrid ItemsSource="{Binding AuditItems}" AutoGenerateColumns="False" CanUserAddRows="False"
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <DataGrid ItemsSource="{Binding AuditItems}" AutoGenerateColumns="False" CanUserAddRows="False" 
                           SelectionMode="Single"
                           CanUserResizeColumns="True" CanUserSortColumns="True"
-                          ColumnHeaderHeight="32"
                           HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
-                        <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                <Setter Property="Padding" Value="8,4"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
-                     <DataGrid.Columns>
+                    <DataGrid.Columns>
                         <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="150" CanUserResize="True" MinWidth="100" IsReadOnly="True"/>
                         <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200" CanUserResize="True" MinWidth="100" IsReadOnly="True"/>
                         <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="300" CanUserResize="True" MinWidth="150" IsReadOnly="True"/>
@@ -127,7 +115,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="*" CanUserResize="True" MinWidth="60">
+                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="1*" CanUserResize="True" MinWidth="60">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Style.Triggers>
@@ -156,9 +144,8 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                 </DataGrid.Columns>
-                    </DataGrid>
-                </ScrollViewer>
-            </Grid>
+            </DataGrid>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- Status Bar -->

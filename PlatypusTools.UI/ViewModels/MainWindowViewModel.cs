@@ -36,7 +36,6 @@ namespace PlatypusTools.UI.ViewModels
                 ImageResizer = new ImageResizerViewModel();
                 IconConverter = new IconConverterViewModel();
                 Upscaler = new UpscalerViewModel();
-                BatchUpscale = new BatchUpscaleViewModel();
                 FileRenamer = new FileRenamerViewModel();
                 DiskCleanup = new DiskCleanupViewModel();
                 PrivacyCleaner = new PrivacyCleanerViewModel();
@@ -64,7 +63,6 @@ namespace PlatypusTools.UI.ViewModels
                 RegistryCleaner = new RegistryCleanerViewModel();
                 ScheduledTasks = new ScheduledTasksViewModel();
                 SystemRestore = new SystemRestoreViewModel();
-                ArchiveManager = new ArchiveManagerViewModel();
                 BootableUSB = new BootableUSBViewModel();
                 EmptyFolderScanner = new EmptyFolderScannerViewModel();
 
@@ -113,7 +111,6 @@ namespace PlatypusTools.UI.ViewModels
         public ImageResizerViewModel ImageResizer { get; }
         public IconConverterViewModel IconConverter { get; }
         public UpscalerViewModel Upscaler { get; }
-        public BatchUpscaleViewModel BatchUpscale { get; }
         public FileRenamerViewModel FileRenamer { get; }
         public DiskCleanupViewModel DiskCleanup { get; }
         public PrivacyCleanerViewModel PrivacyCleaner { get; }
@@ -131,7 +128,6 @@ namespace PlatypusTools.UI.ViewModels
         public RegistryCleanerViewModel RegistryCleaner { get; }
         public ScheduledTasksViewModel ScheduledTasks { get; }
         public SystemRestoreViewModel SystemRestore { get; }
-        public ArchiveManagerViewModel ArchiveManager { get; }
         public BootableUSBViewModel BootableUSB { get; }
         public EmptyFolderScannerViewModel EmptyFolderScanner { get; }
         private string _selectedFolder = string.Empty;
