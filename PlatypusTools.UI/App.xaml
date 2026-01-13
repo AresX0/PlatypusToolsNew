@@ -17,5 +17,8 @@
         <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
         <converters:CountToVisibilityConverter x:Key="ZeroToVisibleConverter" />
         <converters:EnumToBoolConverter x:Key="EnumToBoolConverter" />
+        <converters:FileFolderIconConverter x:Key="FileFolderIconConverter" />
+        <converters:FileFontWeightConverter x:Key="FileFontWeightConverter" />
+        <converters:FileCountVisibilityConverter x:Key="FileCountVisibilityConverter" />
     </Application.Resources>
 </Application>

@@ -28,6 +28,9 @@ namespace PlatypusTools.Core.Services
         public int FileCount { get; set; }
         public int SubDirectoryCount { get; set; }
         public DateTime LastModified { get; set; }
+        public bool IsFile { get; set; } = false;
+        public bool IsHidden { get; set; } = false;
+        public bool IsSystem { get; set; } = false;
 
         public string FormattedSize => FormatBytes(Size);
 
@@ -195,33 +198,69 @@ namespace PlatypusTools.Core.Services
             {
                 Name = dirInfo.Name,
                 Path = dirInfo.FullName,
-                LastModified = dirInfo.LastWriteTime
+                LastModified = dirInfo.LastWriteTime,
+                IsFile = false,
+                IsHidden = (dirInfo.Attributes & FileAttributes.Hidden) != 0,
+                IsSystem = (dirInfo.Attributes & FileAttributes.System) != 0
             };
 
             try
             {
-                // Count files
-                var files = dirInfo.GetFiles();
-                node.FileCount = files.Length;
-                node.Size = files.Sum(f => f.Length);
+                // Add files as children
+                FileInfo[] files = Array.Empty<FileInfo>();
+                try {
+                    var tempFiles = dirInfo.GetFiles();
+                    if (tempFiles != null) files = tempFiles;
+                } catch { files = Array.Empty<FileInfo>(); }
+                node.FileCount = files != null ? files.Length : 0;
+                node.Size = files != null ? files.Sum(f => f?.Length ?? 0) : 0;
+                if (files != null)
+                {
+                    foreach (var file in files)
+                    {
+                        if (file == null) continue;
+                        try {
+                            node.Children.Add(new DirectoryNode
+                            {
+                                Name = file.Name,
+                                Path = file.FullName,
+                                Size = file.Length,
+                                LastModified = file.LastWriteTime,
+                                IsFile = true,
+                                IsHidden = (file.Attributes & FileAttributes.Hidden) != 0,
+                                IsSystem = (file.Attributes & FileAttributes.System) != 0,
+                                FileCount = 1,
+                                SubDirectoryCount = 0
+                            });
+                        } catch { /* skip files we can't access */ }
+                    }
+                }
 
                 // Process subdirectories
                 if (currentDepth < maxDepth)
                 {
-                    var subDirs = dirInfo.GetDirectories();
-                    node.SubDirectoryCount = subDirs.Length;
+                    DirectoryInfo[] subDirs = Array.Empty<DirectoryInfo>();
+                    try {
+                        var tempDirs = dirInfo.GetDirectories();
+                        if (tempDirs != null) subDirs = tempDirs;
+                    } catch { subDirs = Array.Empty<DirectoryInfo>(); }
+                    node.SubDirectoryCount = subDirs != null ? subDirs.Length : 0;
 
-                    foreach (var dir in subDirs)
+                    if (subDirs != null)
                     {
-                        try
+                        foreach (var dir in subDirs)
                         {
-                            var childNode = BuildDirectoryTree(dir.FullName, currentDepth + 1, maxDepth);
-                            node.Children.Add(childNode);
-                            node.Size += childNode.Size;
-                        }
-                        catch
-                        {
-                            // Skip directories we can't access
+                            if (dir == null) continue;
+                            try
+                            {
+                                var childNode = BuildDirectoryTree(dir.FullName, currentDepth + 1, maxDepth);
+                                node.Children.Add(childNode);
+                                node.Size += childNode.Size;
+                            }
+                            catch
+                            {
+                                // Skip directories we can't access
+                            }
                         }
                     }
                 }

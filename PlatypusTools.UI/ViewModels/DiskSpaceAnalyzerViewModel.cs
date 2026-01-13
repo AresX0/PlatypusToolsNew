@@ -29,6 +29,15 @@ namespace PlatypusTools.UI.ViewModels
         private bool _isExpanded;
         public bool IsExpanded { get => _isExpanded; set => SetProperty(ref _isExpanded, value); }
 
+        private bool _isFile;
+        public bool IsFile { get => _isFile; set => SetProperty(ref _isFile, value); }
+
+        private bool _isHidden;
+        public bool IsHidden { get => _isHidden; set => SetProperty(ref _isHidden, value); }
+
+        private bool _isSystem;
+        public bool IsSystem { get => _isSystem; set => SetProperty(ref _isSystem, value); }
+
         public ObservableCollection<DirectoryNodeViewModel> Children { get; } = new();
     }
 
@@ -148,11 +157,14 @@ namespace PlatypusTools.UI.ViewModels
         {
             var node = new DirectoryNodeViewModel
             {
-                Name = Path.GetFileName(analysisNode.Path) ?? analysisNode.Path,
+                Name = analysisNode.Name,
                 FullPath = analysisNode.Path,
                 Size = analysisNode.Size,
                 SizeDisplay = FormatSize(analysisNode.Size),
-                FileCount = analysisNode.FileCount
+                FileCount = analysisNode.FileCount,
+                IsFile = analysisNode.IsFile,
+                IsHidden = analysisNode.IsHidden,
+                IsSystem = analysisNode.IsSystem
             };
 
             if (analysisNode.Children != null && analysisNode.Children.Any())

@@ -127,7 +127,18 @@ public class VideoTimelineViewModel
     public void Export(ExportSettings settings);
 }
 ```
+Your requested fixes/features captured as acceptance criteria for:
 
+Website Downloader — Scan button enabled when a valid URL is entered; progress/cancel, validation messaging.
+Disk Space Analyzer — Show complete folder hierarchy, including files and hidden/system files.
+Audio Player — Scan folders/subfolders; dynamically add discovered audio files to the queue; single/multi-select remove from queue.
+Recent Cleaner — Fix “Scan Recent” button; enumerate Recent Items/Jump Lists/Start Menu/Favorites; dry-run + logs.
+Privacy Cleaner — Select All / Some / None after analysis before cleaning.
+Image Converter — Convert to PNG, BMP, JPG/JPEG (extensible to TIFF/WebP), preserve metadata where supported.
+
+
+
+It also includes the previously discussed Audio Converter + Player spec with visualizer and lyrics, interop/build guidance, and licensing notes.
 ---
 
 ### [VE-002] Multi-Track Editing

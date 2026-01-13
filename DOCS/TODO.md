@@ -429,7 +429,11 @@
 - [ ] **TASK-307**: Create user guide
 - [ ] **TASK-308**: Create plugin developer guide
 - [ ] **TASK-309**: Update README with new features
-
+Bugs: Scan buttons (Website Downloader & Recent Cleaner).
+Features: Disk Analyzer recursion + hidden files, Player auto-queue + multi-remove, Privacy Cleaner selection controls, Image Converter formats.
+Acceptance Tests: Concrete checks you can run to verify each area.
+Tech Tasks: C++/CLI events, cancellation, logging, CI packaging.
+Notes: Long-path support and WPF async/dispatcher guidance.
 ---
 
 ## Summary

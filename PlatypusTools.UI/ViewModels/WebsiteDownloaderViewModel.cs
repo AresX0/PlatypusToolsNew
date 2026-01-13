@@ -44,7 +44,13 @@ namespace PlatypusTools.UI.ViewModels
         public string Url
         {
             get => _url;
-            set => SetProperty(ref _url, value);
+            set
+            {
+                if (SetProperty(ref _url, value))
+                {
+                    RaiseCommandsCanExecuteChanged();
+                }
+            }
         }
 
         public string OutputDirectory
