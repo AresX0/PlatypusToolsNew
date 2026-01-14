@@ -38,13 +38,13 @@
                     <StackPanel Margin="10,0">
                         <TextBlock Text="BROWSE" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource SecondaryTextBrush}" Margin="5,10,0,5"/>
                         <Button Content="📋 All Tracks" Command="{Binding RefreshCommand}" HorizontalContentAlignment="Left" Padding="8,6" Margin="0,2" Background="Transparent" BorderThickness="0"/>
-                        <Button Content="👤 Artists" HorizontalContentAlignment="Left" Padding="8,6" Margin="0,2" Background="Transparent" BorderThickness="0"/>
-                        <Button Content="💾 Albums" HorizontalContentAlignment="Left" Padding="8,6" Margin="0,2" Background="Transparent" BorderThickness="0"/>
-                        <Button Content="🎭 Genres" HorizontalContentAlignment="Left" Padding="8,6" Margin="0,2" Background="Transparent" BorderThickness="0"/>
+                        <Button Content="👤 Artists" Command="{Binding ShowArtistsCommand}" HorizontalContentAlignment="Left" Padding="8,6" Margin="0,2" Background="Transparent" BorderThickness="0"/>
+                        <Button Content="💾 Albums" Command="{Binding ShowAlbumsCommand}" HorizontalContentAlignment="Left" Padding="8,6" Margin="0,2" Background="Transparent" BorderThickness="0"/>
+                        <Button Content="🎭 Genres" Command="{Binding ShowGenresCommand}" HorizontalContentAlignment="Left" Padding="8,6" Margin="0,2" Background="Transparent" BorderThickness="0"/>
                         <TextBlock Text="SMART PLAYLISTS" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource SecondaryTextBrush}" Margin="5,15,0,5"/>
-                        <Button Content="🕐 Recently Played" HorizontalContentAlignment="Left" Padding="8,6" Margin="0,2" Background="Transparent" BorderThickness="0"/>
-                        <Button Content="🔥 Most Played" HorizontalContentAlignment="Left" Padding="8,6" Margin="0,2" Background="Transparent" BorderThickness="0"/>
-                        <Button Content="⭐ Top Rated" HorizontalContentAlignment="Left" Padding="8,6" Margin="0,2" Background="Transparent" BorderThickness="0"/>
+                        <Button Content="🕐 Recently Played" Command="{Binding ShowRecentlyPlayedCommand}" HorizontalContentAlignment="Left" Padding="8,6" Margin="0,2" Background="Transparent" BorderThickness="0"/>
+                        <Button Content="🔥 Most Played" Command="{Binding ShowMostPlayedCommand}" HorizontalContentAlignment="Left" Padding="8,6" Margin="0,2" Background="Transparent" BorderThickness="0"/>
+                        <Button Content="⭐ Top Rated" Command="{Binding ShowTopRatedCommand}" HorizontalContentAlignment="Left" Padding="8,6" Margin="0,2" Background="Transparent" BorderThickness="0"/>
                         <!-- User Playlists Section -->
                         <Grid Margin="5,15,0,5">
                             <Grid.ColumnDefinitions>
@@ -130,7 +130,7 @@
                     <!-- Actions -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
                         <Button Content="▶️ Play All" Command="{Binding PlayAllCommand}" Padding="12,6" Margin="5,0"/>
-                        <Button Content="🔀 Shuffle" Padding="12,6" Margin="5,0"/>
+                        <Button Content="🔀 Shuffle" Command="{Binding ShufflePlayCommand}" Padding="12,6" Margin="5,0"/>
                     </StackPanel>
                 </Grid>
             </Border>

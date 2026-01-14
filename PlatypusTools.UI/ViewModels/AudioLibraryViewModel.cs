@@ -28,7 +28,7 @@ public enum LibraryViewMode
 /// <summary>
 /// ViewModel for the Audio Library browser with navigation, search, and organization.
 /// </summary>
-public class AudioLibraryViewModel : BindableBase
+public partial class AudioLibraryViewModel : BindableBase
 {
     private readonly AudioLibraryService _libraryService;
     private readonly AudioPlayerService _playerService;
@@ -67,6 +67,16 @@ public class AudioLibraryViewModel : BindableBase
         AddToQueueCommand = new RelayCommand(AddToQueue);
         RefreshCommand = new RelayCommand(_ => RefreshView());
         CancelScanCommand = new RelayCommand(_ => CancelScan(), _ => IsScanning);
+        
+        // View mode commands
+        ShowAllTracksCommand = new RelayCommand(_ => SetViewMode(LibraryViewMode.AllTracks));
+        ShowArtistsCommand = new RelayCommand(_ => SetViewMode(LibraryViewMode.Artists));
+        ShowAlbumsCommand = new RelayCommand(_ => SetViewMode(LibraryViewMode.Albums));
+        ShowGenresCommand = new RelayCommand(_ => SetViewMode(LibraryViewMode.Genres));
+        ShowRecentlyPlayedCommand = new RelayCommand(_ => SetViewMode(LibraryViewMode.RecentlyPlayed));
+        ShowMostPlayedCommand = new RelayCommand(_ => SetViewMode(LibraryViewMode.MostPlayed));
+        ShowTopRatedCommand = new RelayCommand(_ => SetViewMode(LibraryViewMode.TopRated));
+        ShufflePlayCommand = new AsyncRelayCommand(ShufflePlayAsync);
         
         // Subscribe to events
         _libraryService.LibraryUpdated += OnLibraryUpdated;
@@ -183,6 +193,16 @@ public class AudioLibraryViewModel : BindableBase
     public ICommand AddToQueueCommand { get; }
     public ICommand RefreshCommand { get; }
     public ICommand CancelScanCommand { get; }
+    
+    // View mode commands
+    public ICommand ShowAllTracksCommand { get; }
+    public ICommand ShowArtistsCommand { get; }
+    public ICommand ShowAlbumsCommand { get; }
+    public ICommand ShowGenresCommand { get; }
+    public ICommand ShowRecentlyPlayedCommand { get; }
+    public ICommand ShowMostPlayedCommand { get; }
+    public ICommand ShowTopRatedCommand { get; }
+    public ICommand ShufflePlayCommand { get; }
     
     // Methods
     private async Task LoadLibraryAsync()
@@ -449,3 +469,39 @@ public class AudioTrackViewModel : BindableBase
     }
 }
 
+public partial class AudioLibraryViewModel
+{
+    private void SetViewMode(LibraryViewMode mode)
+    {
+        ViewMode = mode;
+        RefreshView();
+    }
+    
+    private async Task ShufflePlayAsync()
+    {
+        try
+        {
+            var allTracks = _libraryService.AllTracks.ToList();
+            if (!allTracks.Any()) return;
+            
+            var random = new Random();
+            var shuffled = allTracks.OrderBy(_ => random.Next()).ToList();
+            
+            _playerService.ClearQueue();
+            foreach (var track in shuffled)
+            {
+                _playerService.AddToQueue(track);
+            }
+            
+            if (shuffled.Any())
+            {
+                await _playerService.PlayTrackAsync(shuffled.First());
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Windows.MessageBox.Show($"Error starting shuffle: {ex.Message}", "Shuffle Error", 
+                System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+        }
+    }
+}

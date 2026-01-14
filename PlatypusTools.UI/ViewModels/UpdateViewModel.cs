@@ -26,6 +26,8 @@ namespace PlatypusTools.UI.ViewModels
 
         #region Properties
 
+        public string CurrentVersion => _updateService.CurrentVersion;
+
         private UpdateInfo? _updateAvailable;
         public UpdateInfo? UpdateAvailable
         {

@@ -19,7 +19,18 @@ namespace PlatypusTools.UI.ViewModels
 
         public async void Execute(object? parameter)
         {
-            await _execute();
+            try
+            {
+                await _execute();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    $"Error executing command: {ex.Message}\n\n{ex}",
+                    "Command Error",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
+            }
         }
 
         public event EventHandler? CanExecuteChanged;
