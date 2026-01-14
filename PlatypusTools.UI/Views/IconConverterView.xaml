@@ -57,7 +57,15 @@
                     <DataGrid ItemsSource="{Binding FileList}" AutoGenerateColumns="False" 
                               CanUserAddRows="False" CanUserDeleteRows="False" Margin="5"
                               CanUserResizeColumns="True" CanUserSortColumns="True"
+                              ColumnHeaderHeight="32"
                               HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                <Setter Property="Padding" Value="8,4"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
                         <DataGrid.Columns>
                             <DataGridCheckBoxColumn Header="Convert" Binding="{Binding Convert, UpdateSourceTrigger=PropertyChanged}" Width="70" CanUserResize="True" MinWidth="60"/>
                             <DataGridTextColumn Header="Name" Binding="{Binding Name, Mode=OneWay}" Width="250" IsReadOnly="True" CanUserResize="True" MinWidth="100"/>

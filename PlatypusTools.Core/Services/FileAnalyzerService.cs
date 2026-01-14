@@ -186,7 +186,21 @@ namespace PlatypusTools.Core.Services
             {
                 var dirInfo = new DirectoryInfo(path);
 
-                // Add subdirectories
+                // Recursively add subdirectories with full tree
+                BuildTreeRecursive(dirInfo, root);
+
+                root.Size = CalculateDirectorySize(path);
+            }
+            catch { }
+
+            return root;
+        }
+
+        private void BuildTreeRecursive(DirectoryInfo dirInfo, DirectoryTreeNode parentNode)
+        {
+            try
+            {
+                // Add subdirectories recursively
                 foreach (var dir in dirInfo.GetDirectories())
                 {
                     try
@@ -195,11 +209,17 @@ namespace PlatypusTools.Core.Services
                         {
                             Name = dir.Name,
                             FullPath = dir.FullName,
-                            IsDirectory = true,
-                            FileCount = dir.GetFiles("*.*", SearchOption.AllDirectories).Length,
-                            Size = CalculateDirectorySize(dir.FullName)
+                            IsDirectory = true
                         };
-                        root.Children.Add(node);
+                        
+                        // Recursively build children
+                        BuildTreeRecursive(dir, node);
+                        
+                        // Calculate size after recursion
+                        node.Size = CalculateDirectorySize(dir.FullName);
+                        node.FileCount = dir.GetFiles("*.*", SearchOption.AllDirectories).Length;
+                        
+                        parentNode.Children.Add(node);
                     }
                     catch { }
                 }
@@ -216,17 +236,13 @@ namespace PlatypusTools.Core.Services
                             IsDirectory = false,
                             Size = file.Length
                         };
-                        root.Children.Add(node);
-                        root.FileCount++;
+                        parentNode.Children.Add(node);
+                        parentNode.FileCount++;
                     }
                     catch { }
                 }
-
-                root.Size = CalculateDirectorySize(path);
             }
             catch { }
-
-            return root;
         }
 
         private string GetSizeCategory(long bytes)

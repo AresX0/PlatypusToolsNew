@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,9 +54,31 @@ public class PrivacyCleanerViewModel : BindableBase
         AnalyzeCommand = new AsyncRelayCommand(AnalyzeAsync, () => !IsAnalyzing && !IsCleaning);
         CleanNowCommand = new AsyncRelayCommand(CleanNowAsync, () => !IsAnalyzing && !IsCleaning && ItemsToClean.Any());
         CancelCommand = new RelayCommand(_ => Cancel(), _ => IsAnalyzing || IsCleaning);
+        SelectAllItemsCommand = new RelayCommand(_ => SelectAllItems());
+        SelectNoneItemsCommand = new RelayCommand(_ => SelectNoneItems());
     }
 
-    public ObservableCollection<PrivacyItemViewModel> ItemsToClean { get; } = new();
+    private void SelectAllItems()
+    {
+        foreach (var category in ItemsToClean)
+        {
+            category.IsSelected = true;
+            foreach (var child in category.Children)
+                child.IsSelected = true;
+        }
+    }
+
+    private void SelectNoneItems()
+    {
+        foreach (var category in ItemsToClean)
+        {
+            category.IsSelected = false;
+            foreach (var child in category.Children)
+                child.IsSelected = false;
+        }
+    }
+
+    public ObservableCollection<PrivacyCategoryViewModel> ItemsToClean { get; } = new();
 
     // Browsers
     public bool BrowserChrome { get => _browserChrome; set { _browserChrome = value; RaisePropertyChanged(); } }
@@ -121,6 +144,8 @@ public class PrivacyCleanerViewModel : BindableBase
     public ICommand AnalyzeCommand { get; }
     public ICommand CleanNowCommand { get; }
     public ICommand CancelCommand { get; }
+    public ICommand SelectAllItemsCommand { get; }
+    public ICommand SelectNoneItemsCommand { get; }
 
     private async Task AnalyzeAsync()
     {
@@ -142,15 +167,36 @@ public class PrivacyCleanerViewModel : BindableBase
                 progress,
                 _cancellationTokenSource.Token);
 
-            // Populate results
+            // Populate results with hierarchical structure (categories with children)
             foreach (var category in _lastAnalysisResult.Categories.Where(c => c.ItemCount > 0))
             {
-                ItemsToClean.Add(new PrivacyItemViewModel
+                var categoryVm = new PrivacyCategoryViewModel
                 {
-                    Category = category.Category,
-                    Items = category.ItemCount,
-                    Size = FormatBytes(category.TotalSize)
-                });
+                    CategoryName = category.Category,
+                    TotalItems = category.ItemCount,
+                    TotalSize = FormatBytes(category.TotalSize),
+                    TotalSizeBytes = category.TotalSize
+                };
+                
+                // Add individual file items as children
+                foreach (var item in category.Items)
+                {
+                    var fileName = Path.GetFileName(item.Path);
+                    if (string.IsNullOrEmpty(fileName))
+                        fileName = item.Path;
+                        
+                    categoryVm.Children.Add(new PrivacyFileViewModel
+                    {
+                        FileName = fileName,
+                        FilePath = item.Path,
+                        Size = FormatBytes(item.Size),
+                        SizeBytes = item.Size,
+                        IsFile = item.IsFile,
+                        Parent = categoryVm
+                    });
+                }
+                
+                ItemsToClean.Add(categoryVm);
             }
 
             StatusMessage = $"Analysis complete. Found {_lastAnalysisResult.TotalItems} items ({FormatBytes(_lastAnalysisResult.TotalSize)})";
@@ -180,6 +226,14 @@ public class PrivacyCleanerViewModel : BindableBase
             return;
         }
 
+        // Build a filtered result containing only selected items
+        var selectedResult = BuildSelectedItemsResult();
+        if (selectedResult.TotalItems == 0)
+        {
+            StatusMessage = "No items selected for cleaning";
+            return;
+        }
+
         IsCleaning = true;
         _cancellationTokenSource = new CancellationTokenSource();
 
@@ -191,7 +245,7 @@ public class PrivacyCleanerViewModel : BindableBase
             });
 
             var result = await _privacyCleanerService.CleanAsync(
-                _lastAnalysisResult,
+                selectedResult,
                 DryRun,
                 progress,
                 _cancellationTokenSource.Token);
@@ -226,6 +280,46 @@ public class PrivacyCleanerViewModel : BindableBase
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
         }
+    }
+
+    private PrivacyAnalysisResult BuildSelectedItemsResult()
+    {
+        var categories = new System.Collections.Generic.List<PrivacyCategoryResult>();
+        
+        foreach (var categoryVm in ItemsToClean)
+        {
+            // Get selected children (or all if category is selected and no children deselected)
+            var selectedChildren = categoryVm.Children.Where(c => c.IsSelected).ToList();
+            
+            if (selectedChildren.Any())
+            {
+                var categoryResult = new PrivacyCategoryResult
+                {
+                    Category = categoryVm.CategoryName,
+                    ItemCount = selectedChildren.Count,
+                    TotalSize = selectedChildren.Sum(c => c.SizeBytes)
+                };
+                
+                foreach (var child in selectedChildren)
+                {
+                    categoryResult.Items.Add(new PrivacyItem
+                    {
+                        Path = child.FilePath,
+                        Size = child.SizeBytes,
+                        IsFile = child.IsFile
+                    });
+                }
+                
+                categories.Add(categoryResult);
+            }
+        }
+        
+        return new PrivacyAnalysisResult
+        {
+            Categories = categories,
+            TotalItems = categories.Sum(c => c.ItemCount),
+            TotalSize = categories.Sum(c => c.TotalSize)
+        };
     }
 
     private void Cancel()
@@ -278,9 +372,90 @@ public class PrivacyCleanerViewModel : BindableBase
     }
 }
 
-public class PrivacyItemViewModel
+/// <summary>
+/// Represents a category of privacy items (e.g., "Chrome Browser Data")
+/// </summary>
+public class PrivacyCategoryViewModel : BindableBase
 {
-    public string Category { get; init; } = string.Empty;
-    public int Items { get; init; }
+    private bool _isSelected = true;
+    private bool _isExpanded;
+    
+    public string CategoryName { get; init; } = string.Empty;
+    public int TotalItems { get; init; }
+    public string TotalSize { get; init; } = string.Empty;
+    public long TotalSizeBytes { get; init; }
+    
+    public ObservableCollection<PrivacyFileViewModel> Children { get; } = new();
+    
+    public bool IsSelected 
+    { 
+        get => _isSelected; 
+        set 
+        { 
+            if (SetProperty(ref _isSelected, value))
+            {
+                // When category selection changes, update all children
+                foreach (var child in Children)
+                    child.SetSelectedWithoutParentUpdate(value);
+            }
+        } 
+    }
+    
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set => SetProperty(ref _isExpanded, value);
+    }
+    
+    public int SelectedCount => Children.Count(c => c.IsSelected);
+    
+    public void UpdateSelectionState()
+    {
+        // Update selection state based on children
+        var allSelected = Children.All(c => c.IsSelected);
+        var noneSelected = Children.All(c => !c.IsSelected);
+        
+        // Set without triggering child updates
+        _isSelected = allSelected;
+        RaisePropertyChanged(nameof(IsSelected));
+        RaisePropertyChanged(nameof(SelectedCount));
+    }
+}
+
+/// <summary>
+/// Represents an individual file/folder to be cleaned
+/// </summary>
+public class PrivacyFileViewModel : BindableBase
+{
+    private bool _isSelected = true;
+    
+    public string FileName { get; init; } = string.Empty;
+    public string FilePath { get; init; } = string.Empty;
     public string Size { get; init; } = string.Empty;
+    public long SizeBytes { get; init; }
+    public bool IsFile { get; init; }
+    public PrivacyCategoryViewModel? Parent { get; init; }
+    
+    public bool IsSelected 
+    { 
+        get => _isSelected; 
+        set 
+        { 
+            if (SetProperty(ref _isSelected, value))
+            {
+                // Notify parent to update its selection state
+                Parent?.UpdateSelectionState();
+            }
+        } 
+    }
+    
+    // Used when parent updates children to avoid circular updates
+    internal void SetSelectedWithoutParentUpdate(bool value)
+    {
+        if (_isSelected != value)
+        {
+            _isSelected = value;
+            RaisePropertyChanged(nameof(IsSelected));
+        }
+    }
 }

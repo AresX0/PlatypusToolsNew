@@ -15,6 +15,23 @@ namespace PlatypusTools.UI
         {
             base.OnStartup(e);
 
+            // Register global unhandled exception handlers
+            AppDomain.CurrentDomain.UnhandledException += (s, args) =>
+            {
+                var ex = args.ExceptionObject as Exception;
+                SimpleLogger.Error($"Unhandled AppDomain exception: {ex?.ToString() ?? "Unknown"}");
+            };
+            DispatcherUnhandledException += (s, args) =>
+            {
+                SimpleLogger.Error($"Unhandled Dispatcher exception: {args.Exception}");
+                args.Handled = true; // Prevent crash; log and continue if possible
+            };
+            TaskScheduler.UnobservedTaskException += (s, args) =>
+            {
+                SimpleLogger.Error($"Unobserved Task exception: {args.Exception}");
+                args.SetObserved();
+            };
+
             // Show splash screen
             _splashScreen = new SplashScreenWindow();
             _splashScreen.Show();
@@ -103,6 +120,10 @@ namespace PlatypusTools.UI
             {
                 SimpleLogger.MinLevel = lvl;
             }
+
+            // For debugging crashes during development, force verbose logging (Debug)
+            // Remove or revert this line for production builds.
+            SimpleLogger.MinLevel = LogLevel.Debug;
 
             SimpleLogger.Info($"Application starting. LogFile='{SimpleLogger.LogFile}', MinLevel={SimpleLogger.MinLevel}");
         }

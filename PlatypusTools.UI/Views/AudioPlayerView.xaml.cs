@@ -22,6 +22,17 @@ public partial class AudioPlayerView : UserControl
     
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        // Initialize DataGrid columns for proper resizing
+        if (this.FindName("LibraryTrackGrid") is DataGrid grid)
+        {
+            grid.UpdateLayout();
+            foreach (var column in grid.Columns)
+            {
+                column.Width = double.NaN; // Auto-size
+            }
+            grid.UpdateLayout();
+        }
+        
         _viewModel = DataContext as AudioPlayerViewModel;
         if (_viewModel != null)
         {

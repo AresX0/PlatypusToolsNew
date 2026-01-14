@@ -39,27 +39,25 @@
 
         <!-- Tasks List -->
         <GroupBox Header="Scheduled Tasks" Grid.Row="1" Margin="0,0,0,8">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                    <DataGrid ItemsSource="{Binding Tasks}"
-                                                            SelectedItem="{Binding SelectedTask}"
-                                                            AutoGenerateColumns="False"
-                                                            CanUserAddRows="False"
-                                                            CanUserDeleteRows="False"
-                                                            CanUserResizeColumns="True"
-                                                            CanUserReorderColumns="True"
-                                                            CanUserSortColumns="True"
-                                                            IsReadOnly="True"
-                                                            SelectionMode="Single"
-                                                            GridLinesVisibility="Horizontal"
-                                                            HeadersVisibility="Column"
-                                                            ColumnHeaderHeight="32"
-                                                            HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled"
-                                                            ColumnWidth="*">
-                        <DataGrid.ColumnHeaderStyle>
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <DataGrid ItemsSource="{Binding Tasks}"
+                          SelectedItem="{Binding SelectedTask}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserResizeColumns="True"
+                          CanUserReorderColumns="True"
+                          CanUserSortColumns="True"
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          GridLinesVisibility="Horizontal"
+                          HeadersVisibility="Column"
+                          ColumnHeaderHeight="32"
+                          MinHeight="200"
+                          ColumnWidth="*"
+                          HorizontalScrollBarVisibility="Disabled" 
+                          VerticalScrollBarVisibility="Disabled">
+                    <DataGrid.ColumnHeaderStyle>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="HorizontalContentAlignment" Value="Left"/>
                                 <Setter Property="Padding" Value="8,4"/>
@@ -91,9 +89,8 @@
                                 <MenuItem Header="Delete" Command="{Binding DeleteCommand}" />
                             </ContextMenu>
                         </DataGrid.ContextMenu>
-                    </DataGrid>
-                </ScrollViewer>
-            </Grid>
+                </DataGrid>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- Status Bar -->

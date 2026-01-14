@@ -26,6 +26,7 @@ namespace PlatypusTools.UI.ViewModels
 
         public FileAnalyzerViewModel()
         {
+            try { SimpleLogger.Info("FileAnalyzerViewModel constructed"); } catch {}
             _service = new FileAnalyzerService();
             
             FileTypeStats = new ObservableCollection<FileTypeStatsViewModel>();
@@ -145,6 +146,7 @@ namespace PlatypusTools.UI.ViewModels
             IsAnalyzing = true;
             StatusMessage = "Analyzing directory...";
             Clear();
+            try { SimpleLogger.Info($"FileAnalyzer: starting analysis for '{DirectoryPath}' includeSubdirs={IncludeSubdirectories}"); } catch {}
 
             try
             {
@@ -191,6 +193,7 @@ namespace PlatypusTools.UI.ViewModels
 
                 StatusMessage = $"Analysis complete: {TotalFiles} files, {TotalSizeFormatted}";
                 OnPropertyChanged(nameof(TotalSizeFormatted));
+                try { SimpleLogger.Info($"FileAnalyzer: completed analysis for '{DirectoryPath}' files={TotalFiles} size={TotalSize}"); } catch {}
             }
             catch (OperationCanceledException)
             {
@@ -199,6 +202,7 @@ namespace PlatypusTools.UI.ViewModels
             catch (Exception ex)
             {
                 StatusMessage = $"Error: {ex.Message}";
+                try { SimpleLogger.Error("FileAnalyzer AnalyzeAsync exception: " + ex.ToString()); } catch {}
             }
             finally
             {
@@ -295,8 +299,90 @@ namespace PlatypusTools.UI.ViewModels
 
         private void Export()
         {
-            // Export to CSV
-            StatusMessage = "Export functionality coming soon";
+            if (TotalFiles == 0)
+            {
+                StatusMessage = "No analysis data to export";
+                return;
+            }
+
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "Export Analysis Results",
+                DefaultExt = ".csv",
+                Filter = "CSV Files|*.csv|Text Files|*.txt"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    ExportToCSV(dialog.FileName);
+                    StatusMessage = $"Export completed: {dialog.FileName}";
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = $"Export failed: {ex.Message}";
+                }
+            }
+        }
+
+        private void ExportToCSV(string filePath)
+        {
+            using (var writer = new System.IO.StreamWriter(filePath))
+            {
+                // Summary section
+                writer.WriteLine("FILE ANALYSIS REPORT");
+                writer.WriteLine($"Directory,{DirectoryPath}");
+                writer.WriteLine($"Total Files,{TotalFiles}");
+                writer.WriteLine($"Total Size,{TotalSizeFormatted}");
+                writer.WriteLine($"Total Directories,{TotalDirectories}");
+                writer.WriteLine($"Analysis Date,{DateTime.Now:G}");
+                writer.WriteLine();
+
+                // File Types section
+                writer.WriteLine("FILE TYPES");
+                writer.WriteLine("Extension,Count,Total Size");
+                foreach (var ft in FileTypeStats)
+                {
+                    writer.WriteLine($"\"{ft.Extension}\",{ft.Count},{ft.TotalSize}");
+                }
+                writer.WriteLine();
+
+                // Largest Files section
+                writer.WriteLine("LARGEST FILES");
+                writer.WriteLine("Filename,Size,Full Path");
+                foreach (var file in LargestFiles.Take(100))
+                {
+                    writer.WriteLine($"\"{file.Name}\",{file.Size},\"{file.FullPath}\"");
+                }
+                writer.WriteLine();
+
+                // Oldest Files section
+                writer.WriteLine("OLDEST FILES");
+                writer.WriteLine("Filename,Modified Date,Full Path");
+                foreach (var file in OldestFiles.Take(100))
+                {
+                    writer.WriteLine($"\"{file.Name}\",{file.Modified:G},\"{file.FullPath}\"");
+                }
+                writer.WriteLine();
+
+                // Newest Files section
+                writer.WriteLine("NEWEST FILES");
+                writer.WriteLine("Filename,Modified Date,Full Path");
+                foreach (var file in NewestFiles.Take(100))
+                {
+                    writer.WriteLine($"\"{file.Name}\",{file.Modified:G},\"{file.FullPath}\"");
+                }
+                writer.WriteLine();
+
+                // Files by Age section
+                writer.WriteLine("FILES BY AGE");
+                writer.WriteLine("Age Range,Count");
+                foreach (var age in FilesByAge)
+                {
+                    writer.WriteLine($"\"{age.AgeRange}\",{age.Count}");
+                }
+            }
         }
 
         private void Clear()

@@ -32,8 +32,8 @@ namespace PlatypusTools.UI.ViewModels
             _service = new WebsiteDownloaderService();
             DownloadItems = new ObservableCollection<DownloadItemViewModel>();
 
-            ScanCommand = new RelayCommand(async _ => await ScanUrlAsync(), _ => !IsScanning && !string.IsNullOrWhiteSpace(Url));
-            StartDownloadCommand = new RelayCommand(async _ => await StartDownloadAsync(), _ => !IsDownloading && DownloadItems.Any(i => i.IsSelected));
+            ScanCommand = new AsyncRelayCommand(ScanUrlAsync, () => !IsScanning && !string.IsNullOrWhiteSpace(Url));
+            StartDownloadCommand = new AsyncRelayCommand(StartDownloadAsync, () => !IsDownloading && DownloadItems.Any(i => i.IsSelected));
             CancelCommand = new RelayCommand(_ => Cancel(), _ => IsScanning || IsDownloading);
             SelectAllCommand = new RelayCommand(_ => SelectAll());
             SelectNoneCommand = new RelayCommand(_ => SelectNone());
@@ -152,6 +152,9 @@ namespace PlatypusTools.UI.ViewModels
             Progress = 0;
 
             _cancellationTokenSource = new CancellationTokenSource();
+            
+            // Update global status bar
+            StatusBarViewModel.Instance.StartOperation("Scanning website...", 0, true);
 
             try
             {
@@ -173,14 +176,17 @@ namespace PlatypusTools.UI.ViewModels
                 }
 
                 StatusMessage = $"Found {DownloadItems.Count} items";
+                StatusBarViewModel.Instance.CompleteOperation($"Found {DownloadItems.Count} items");
             }
             catch (OperationCanceledException)
             {
                 StatusMessage = "Scan cancelled";
+                StatusBarViewModel.Instance.CompleteOperation("Scan cancelled");
             }
             catch (Exception ex)
             {
                 StatusMessage = $"Error: {ex.Message}";
+                StatusBarViewModel.Instance.CompleteOperation($"Error: {ex.Message}");
             }
             finally
             {
@@ -218,6 +224,9 @@ namespace PlatypusTools.UI.ViewModels
             var selectedItems = DownloadItems.Where(i => i.IsSelected).ToList();
             var completed = 0;
             var total = selectedItems.Count;
+            
+            // Update global status bar
+            StatusBarViewModel.Instance.StartOperation("Downloading files...", total, true);
 
             try
             {
@@ -250,6 +259,7 @@ namespace PlatypusTools.UI.ViewModels
                         Interlocked.Increment(ref completed);
                         Progress = (completed * 100) / total;
                         StatusMessage = $"Downloaded {completed} of {total} files";
+                        StatusBarViewModel.Instance.UpdateProgress(completed, $"Downloaded {completed} of {total} files");
                     }
                     finally
                     {
@@ -259,14 +269,17 @@ namespace PlatypusTools.UI.ViewModels
 
                 await Task.WhenAll(tasks);
                 StatusMessage = $"Download completed: {completed} of {total} files";
+                StatusBarViewModel.Instance.CompleteOperation($"Download completed: {completed} of {total} files");
             }
             catch (OperationCanceledException)
             {
                 StatusMessage = "Download cancelled";
+                StatusBarViewModel.Instance.CompleteOperation("Download cancelled");
             }
             catch (Exception ex)
             {
                 StatusMessage = $"Error: {ex.Message}";
+                StatusBarViewModel.Instance.CompleteOperation($"Error: {ex.Message}");
             }
             finally
             {
@@ -320,8 +333,8 @@ namespace PlatypusTools.UI.ViewModels
 
         private void RaiseCommandsCanExecuteChanged()
         {
-            (ScanCommand as RelayCommand)?.RaiseCanExecuteChanged();
-            (StartDownloadCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            (ScanCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
+            (StartDownloadCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
             (CancelCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
     }

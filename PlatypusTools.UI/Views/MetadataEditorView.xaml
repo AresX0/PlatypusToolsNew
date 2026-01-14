@@ -151,18 +151,24 @@
                                         CommandParameter="{Binding SelectedItem, ElementName=MetadataGrid}" Width="120"/>
                             </StackPanel>
 
-                            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                            <DataGrid x:Name="MetadataGrid" ItemsSource="{Binding Metadata}" AutoGenerateColumns="False" 
+                            <DataGrid Grid.Row="1" x:Name="MetadataGrid" ItemsSource="{Binding Metadata}" AutoGenerateColumns="False" 
                                       CanUserAddRows="False" SelectionMode="Single"
                                       CanUserResizeColumns="True" CanUserSortColumns="True"
-                                      HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                                      ColumnHeaderHeight="32"
+                                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                                <DataGrid.ColumnHeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader">
+                                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                        <Setter Property="Padding" Value="8,4"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </Style>
+                                </DataGrid.ColumnHeaderStyle>
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Tag Name" Binding="{Binding Key}" Width="200" CanUserResize="True" MinWidth="100"/>
                                     <DataGridTextColumn Header="Value" Binding="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Width="*" CanUserResize="True" MinWidth="150"/>
                                     <DataGridCheckBoxColumn Header="Modified" Binding="{Binding IsModified, Mode=OneWay}" Width="80" IsReadOnly="True" CanUserResize="True" MinWidth="70"/>
                                 </DataGrid.Columns>
                             </DataGrid>
-                            </ScrollViewer>
                         </Grid>
                     </GroupBox>
 
@@ -228,12 +234,19 @@
 
                     <!-- Files with Metadata -->
                     <GroupBox Header="Files and Metadata" Grid.Row="2" Margin="0,0,0,10">
-                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                         <DataGrid x:Name="FolderFilesGrid" ItemsSource="{Binding FolderFiles}" AutoGenerateColumns="False" 
                                   CanUserAddRows="False" SelectionMode="Single"
                                   CanUserResizeColumns="True" CanUserSortColumns="True"
                                   SelectedItem="{Binding SelectedFolderFile}"
-                                  HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                                  ColumnHeaderHeight="32"
+                                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                            <DataGrid.ColumnHeaderStyle>
+                                <Style TargetType="DataGridColumnHeader">
+                                    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                    <Setter Property="Padding" Value="8,4"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                </Style>
+                            </DataGrid.ColumnHeaderStyle>
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="200" CanUserResize="True" MinWidth="100"/>
                                 <DataGridTextColumn Header="Extension" Binding="{Binding Extension}" Width="80" CanUserResize="True" MinWidth="50"/>
@@ -246,7 +259,6 @@
                                 <DataGridTextColumn Header="Tags Count" Binding="{Binding TagCount}" Width="80" CanUserResize="True" MinWidth="60"/>
                             </DataGrid.Columns>
                         </DataGrid>
-                        </ScrollViewer>
                     </GroupBox>
 
                     <!-- Actions -->

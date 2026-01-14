@@ -15,11 +15,12 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <DataGrid ItemsSource="{Binding StagedFiles}" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Extended">
+        <DataGrid ItemsSource="{Binding StagedFiles}" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Extended"
+                  CanUserResizeColumns="True" CanUserSortColumns="True">
             <DataGrid.Columns>
-                <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected}" Width="60" />
-                <DataGridTextColumn Header="Original Path" Binding="{Binding OriginalPath}" Width="*" />
-                <DataGridTextColumn Header="Staged Path" Binding="{Binding StagedPath}" Width="*" />
+                <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected}" Width="60" CanUserResize="True" MinWidth="40"/>
+                <DataGridTextColumn Header="Original Path" Binding="{Binding OriginalPath}" Width="*" CanUserResize="True" MinWidth="150"/>
+                <DataGridTextColumn Header="Staged Path" Binding="{Binding StagedPath}" Width="*" CanUserResize="True" MinWidth="150"/>
             </DataGrid.Columns>
         </DataGrid>
 

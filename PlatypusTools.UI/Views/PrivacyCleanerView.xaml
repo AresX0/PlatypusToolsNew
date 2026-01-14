@@ -78,6 +78,10 @@
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
                 <Button Content="Analyze" Command="{Binding AnalyzeCommand}" 
                         Width="100" Margin="0,0,10,0" Padding="8" FontWeight="Bold"/>
+                <Button Content="Select All" Command="{Binding SelectAllItemsCommand}" 
+                        Width="90" Margin="0,0,5,0" Padding="8"/>
+                <Button Content="Select None" Command="{Binding SelectNoneItemsCommand}" 
+                        Width="90" Margin="0,0,10,0" Padding="8"/>
                 <Button Content="Clean Now" Command="{Binding CleanNowCommand}" 
                         Width="100" Padding="8" FontWeight="Bold" Background="DarkRed" Foreground="White"/>
                 <CheckBox Content="Dry Run" IsChecked="{Binding DryRun}" 
@@ -88,29 +92,64 @@
                            FontStyle="Italic" Foreground="Gray"/>
             </StackPanel>
 
-            <!-- Results Grid -->
-            <GroupBox Grid.Row="1" Header="Items to be Cleaned">
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                    <DataGrid ItemsSource="{Binding ItemsToClean}" AutoGenerateColumns="False"
-                              IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" Margin="5"
-                              CanUserResizeColumns="True" CanUserSortColumns="True"
-                              ColumnHeaderHeight="32"
-                              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled"
-                              ColumnWidth="*">
-                        <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                <Setter Property="Padding" Value="8,4"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="300" CanUserResize="True" MinWidth="100"/>
-                            <DataGridTextColumn Header="Items" Binding="{Binding Items}" Width="100" CanUserResize="True" MinWidth="60"/>
-                            <DataGridTextColumn Header="Size" Binding="{Binding Size}" Width="120" CanUserResize="True" MinWidth="70"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </ScrollViewer>
+            <!-- Results - Expandable TreeView -->
+            <GroupBox Grid.Row="1" Header="Items to be Cleaned (Click categories to expand and select individual files)">
+                <TreeView ItemsSource="{Binding ItemsToClean}" Margin="5"
+                          VirtualizingStackPanel.IsVirtualizing="True"
+                          VirtualizingStackPanel.VirtualizationMode="Recycling">
+                    <TreeView.Resources>
+                        <!-- Style for category items (parent level) -->
+                        <HierarchicalDataTemplate DataType="{x:Type vm:PrivacyCategoryViewModel}" 
+                                                  ItemsSource="{Binding Children}">
+                            <Grid Margin="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" 
+                                          VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Grid.Column="1" Text="{Binding CategoryName}" 
+                                           FontWeight="Bold" FontSize="13" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="15,0,15,0" Foreground="Gray">
+                                    <Run Text="{Binding SelectedCount, Mode=OneWay}"/><Run Text="/"/><Run Text="{Binding TotalItems, Mode=OneWay}"/><Run Text=" items"/>
+                                </TextBlock>
+                                <TextBlock Grid.Column="3" Text="{Binding TotalSize}" 
+                                           FontWeight="SemiBold" Foreground="DarkBlue" VerticalAlignment="Center" Width="80"/>
+                            </Grid>
+                        </HierarchicalDataTemplate>
+                        
+                        <!-- Style for file items (child level) -->
+                        <DataTemplate DataType="{x:Type vm:PrivacyFileViewModel}">
+                            <Grid Margin="2,1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" 
+                                          VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Grid.Column="1" Text="📄" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="Gray"/>
+                                <TextBlock Grid.Column="2" Text="{Binding FileName}" 
+                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                           ToolTip="{Binding FilePath}"/>
+                                <TextBlock Grid.Column="3" Text="{Binding Size}" 
+                                           Foreground="Gray" VerticalAlignment="Center" Width="70" TextAlignment="Right"/>
+                            </Grid>
+                        </DataTemplate>
+                    </TreeView.Resources>
+                    
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="TreeViewItem">
+                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                            <Setter Property="Padding" Value="3"/>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
+                </TreeView>
             </GroupBox>
         </Grid>
 

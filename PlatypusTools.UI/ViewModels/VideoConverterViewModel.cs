@@ -244,21 +244,32 @@ namespace PlatypusTools.UI.ViewModels
             {
                 var selectedTasks = ConversionTasks.Where(t => t.IsSelected).ToList();
                 TotalCount = selectedTasks.Count;
+                
+                // Update global status bar
+                StatusBarViewModel.Instance.StartOperation($"Converting videos...", TotalCount, true);
 
                 var progress = new Progress<(int completed, int total)>(p =>
                 {
                     CompletedCount = p.completed;
                     OverallProgress = (double)p.completed / p.total * 100;
                     StatusMessage = $"Converting {p.completed}/{p.total}...";
+                    StatusBarViewModel.Instance.UpdateProgress(p.completed, $"Converting {p.completed}/{p.total}...");
                 });
 
                 await _service.ConvertBatch(selectedTasks, progress, _cancellationTokenSource.Token);
 
                 StatusMessage = $"Completed {CompletedCount} of {TotalCount} conversions";
+                StatusBarViewModel.Instance.CompleteOperation($"Completed {CompletedCount} of {TotalCount} conversions");
+            }
+            catch (OperationCanceledException)
+            {
+                StatusMessage = "Conversion cancelled";
+                StatusBarViewModel.Instance.CompleteOperation("Conversion cancelled");
             }
             catch (Exception ex)
             {
                 StatusMessage = $"Error: {ex.Message}";
+                StatusBarViewModel.Instance.CompleteOperation($"Error: {ex.Message}");
             }
             finally
             {

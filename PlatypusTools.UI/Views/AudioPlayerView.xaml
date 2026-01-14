@@ -6,11 +6,9 @@
              xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="1000">
-    <UserControl.DataContext>
-        <vm:AudioPlayerViewModel />
-    </UserControl.DataContext>
-    
     <Grid>
+        <!-- ...existing code... -->
+        <!-- ...existing code... -->
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -22,6 +20,7 @@
         <ToolBar Grid.Row="0" Margin="5">
             <Button Content="📂 Open Files" Command="{Binding OpenFileCommand}" Padding="8,4" ToolTip="Open audio files"/>
             <Button Content="📁 Scan Folder" Command="{Binding OpenFolderCommand}" Padding="8,4" ToolTip="Scan folder for audio"/>
+            <Button Content="➕ Add to Queue" Command="{Binding ScanFolderAddToQueueCommand}" Padding="8,4" ToolTip="Scan folder and add to existing queue"/>
             <Separator/>
             <CheckBox Content="Include Subfolders" IsChecked="{Binding IncludeSubfolders}" VerticalAlignment="Center" Margin="5,0"/>
             <Separator/>
@@ -172,27 +171,36 @@
                 </ListBox>
                 
                 <!-- Library Track List -->
-                <DataGrid Grid.Row="2" ItemsSource="{Binding LibraryTracks}" 
+                <DataGrid x:Name="LibraryTrackGrid" Grid.Row="2" ItemsSource="{Binding LibraryTracks}" 
                           SelectedItem="{Binding SelectedLibraryTrack}"
                           AutoGenerateColumns="False" IsReadOnly="True"
                           CanUserResizeColumns="True" CanUserSortColumns="True"
-                          GridLinesVisibility="Horizontal" AlternatingRowBackground="#f8f8f8">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Title" Binding="{Binding DisplayTitle}" Width="*" MinWidth="150"/>
-                        <DataGridTextColumn Header="Artist" Binding="{Binding DisplayArtist}" Width="150"/>
-                        <DataGridTextColumn Header="Album" Binding="{Binding DisplayAlbum}" Width="150"/>
-                        <DataGridTextColumn Header="Duration" Binding="{Binding DurationFormatted}" Width="60"/>
-                        <DataGridTextColumn Header="Genre" Binding="{Binding Genre}" Width="80"/>
-                    </DataGrid.Columns>
-                    <DataGrid.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Play" Command="{Binding PlaySelectedCommand}"/>
-                            <MenuItem Header="Add to Queue" Command="{Binding AddToQueueCommand}"/>
-                            <Separator/>
-                            <MenuItem Header="Add All to Queue" Command="{Binding AddAllToQueueCommand}"/>
-                        </ContextMenu>
-                    </DataGrid.ContextMenu>
-                </DataGrid>
+                          ColumnHeaderHeight="32"
+                          GridLinesVisibility="Horizontal" AlternatingRowBackground="#f8f8f8"
+                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                <Setter Property="Padding" Value="8,4"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Title" Binding="{Binding DisplayTitle}" Width="*" MinWidth="150" CanUserResize="True"/>
+                            <DataGridTextColumn Header="Artist" Binding="{Binding DisplayArtist}" Width="150" MinWidth="80" CanUserResize="True"/>
+                            <DataGridTextColumn Header="Album" Binding="{Binding DisplayAlbum}" Width="150" MinWidth="80" CanUserResize="True"/>
+                            <DataGridTextColumn Header="Duration" Binding="{Binding DurationFormatted}" Width="60" MinWidth="50" CanUserResize="True"/>
+                            <DataGridTextColumn Header="Genre" Binding="{Binding Genre}" Width="80" MinWidth="60" CanUserResize="True"/>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Play" Command="{Binding PlaySelectedCommand}"/>
+                                <MenuItem Header="Add to Queue" Command="{Binding AddToQueueCommand}"/>
+                                <Separator/>
+                                <MenuItem Header="Add All to Queue" Command="{Binding AddAllToQueueCommand}"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
             </Grid>
             
             <!-- Queue Panel -->
@@ -205,13 +213,14 @@
                 </GroupBox.Header>
                 <Grid>
                     <ListBox ItemsSource="{Binding Queue}" 
-                             SelectedItem="{Binding CurrentTrack}"
+                             SelectedItem="{Binding SelectedQueueTrack}"
                              Background="Transparent" BorderThickness="0">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Grid Margin="2">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
@@ -228,6 +237,12 @@
                                             Command="{Binding DataContext.PlayTrackCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                             CommandParameter="{Binding}"
                                             ToolTip="Play this track"/>
+                                    
+                                    <Button Grid.Column="3" Content="✕" Width="24" Height="24" Margin="4,0,0,0"
+                                            Command="{Binding DataContext.RemoveFromQueueCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                            CommandParameter="{Binding}"
+                                            ToolTip="Remove from queue"
+                                            Foreground="Gray"/>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>

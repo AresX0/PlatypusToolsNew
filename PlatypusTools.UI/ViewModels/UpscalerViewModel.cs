@@ -54,6 +54,7 @@ namespace PlatypusTools.UI.ViewModels
         {
             _cts?.Cancel();
             Log += "Cancellation requested...\n";
+            StatusBarViewModel.Instance.CompleteOperation("Upscale cancelled");
         }
 
         public virtual async Task UpscaleAsync()
@@ -62,6 +63,10 @@ namespace PlatypusTools.UI.ViewModels
             IsRunning = true;
             _cts = new CancellationTokenSource();
             Log = string.Empty;
+            
+            var totalFiles = Files.Count;
+            var processedFiles = 0;
+            StatusBarViewModel.Instance.StartOperation("Upscaling videos...", totalFiles, true);
 
             foreach (var src in Files.ToList())
             {
@@ -72,6 +77,8 @@ namespace PlatypusTools.UI.ViewModels
                 {
                     var res = await _service.RunAsync(src, dest, SelectedScale, progress, _cts.Token);
                     Log += $"Result: ExitCode={res.ExitCode}\n";
+                    processedFiles++;
+                    StatusBarViewModel.Instance.UpdateProgress(processedFiles, $"Upscaling {processedFiles}/{totalFiles}...");
                 }
                 catch (OperationCanceledException) { Log += $"{src}: Cancelled\n"; break; }
                 catch (Exception ex) { Log += $"Error: {ex.Message}\n"; }
@@ -80,6 +87,7 @@ namespace PlatypusTools.UI.ViewModels
             _cts?.Dispose();
             _cts = null;
             IsRunning = false;
+            StatusBarViewModel.Instance.CompleteOperation($"Upscale complete ({processedFiles}/{totalFiles} files)");
         }
     }
 }

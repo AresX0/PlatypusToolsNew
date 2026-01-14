@@ -60,7 +60,10 @@
         <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,0,8">
             <CheckBox IsChecked="{Binding DryRun}" Content="Dry Run (Preview Only)" VerticalAlignment="Center" Margin="0,0,16,0" 
                       FontWeight="SemiBold"/>
-            <Button Content="Scan Recent" Command="{Binding ScanCommand}" Width="120" FontWeight="Bold" Background="LightBlue"/>
+            <Button Content="Scan All Recent" Command="{Binding ScanAllRecentCommand}" Width="120" FontWeight="Bold" Background="LightGreen" Margin="0,0,8,0"
+                    ToolTip="Scan all items in Windows Recent folder, Quick Access, etc."/>
+            <Button Content="Scan Matching" Command="{Binding ScanCommand}" Width="120" FontWeight="Bold" Background="LightBlue"
+                    ToolTip="Scan for shortcuts matching target directories"/>
             <Button Content="Remove Selected" Command="{Binding RemoveSelectedCommand}" Width="120" Margin="8,0,0,0" 
                     Background="LightCoral" FontWeight="Bold"/>
             <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="16,0,0,0" FontWeight="SemiBold"/>
@@ -68,35 +71,31 @@
         
         <!-- Results List -->
         <GroupBox Header="Found Shortcuts (Select items to remove)" Grid.Row="3">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                      <DataGrid ItemsSource="{Binding Results}" AutoGenerateColumns="False"
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <DataGrid x:Name="ResultsGrid" ItemsSource="{Binding Results}" AutoGenerateColumns="False"
                           CanUserAddRows="False" CanUserDeleteRows="False"
                           CanUserResizeColumns="True" CanUserSortColumns="True"
                           SelectionMode="Extended" IsReadOnly="True"
                           SelectedItem="{Binding SelectedResult}"
                           ColumnHeaderHeight="32"
-                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled"
-                          ColumnWidth="*">
-                        <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                <Setter Property="Padding" Value="8,4"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
+                          MinHeight="200"
+                          ColumnWidth="*"
+                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                            <Setter Property="Padding" Value="8,4"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
                     <DataGrid.Columns>
                         <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="60" CanUserResize="True" MinWidth="50"/>
                         <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="100" CanUserResize="True" MinWidth="80"/>
                         <DataGridTextColumn Header="Shortcut Path" Binding="{Binding Path}" Width="350" CanUserResize="True" MinWidth="200"/>
                         <DataGridTextColumn Header="Target" Binding="{Binding Target}" Width="*" CanUserResize="True" MinWidth="200"/>
                     </DataGrid.Columns>
-                    </DataGrid>
-                </ScrollViewer>
-            </Grid>
+                </DataGrid>
+            </ScrollViewer>
         </GroupBox>
         
         <!-- Summary -->

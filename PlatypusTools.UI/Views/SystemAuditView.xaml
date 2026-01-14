@@ -87,17 +87,15 @@
 
         <!-- Results Grid -->
         <GroupBox Header="Audit Results" Grid.Row="4" Margin="0,0,0,10">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                      <DataGrid ItemsSource="{Binding AuditItems}" AutoGenerateColumns="False" CanUserAddRows="False"
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <DataGrid ItemsSource="{Binding AuditItems}" AutoGenerateColumns="False" CanUserAddRows="False"
                           SelectionMode="Single"
                           CanUserResizeColumns="True" CanUserSortColumns="True"
                           ColumnHeaderHeight="32"
+                          MinHeight="200"
+                          ColumnWidth="*"
                           HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
-                        <DataGrid.ColumnHeaderStyle>
+                    <DataGrid.ColumnHeaderStyle>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="HorizontalContentAlignment" Value="Left"/>
                                 <Setter Property="Padding" Value="8,4"/>
@@ -156,9 +154,8 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                 </DataGrid.Columns>
-                    </DataGrid>
-                </ScrollViewer>
-            </Grid>
+            </DataGrid>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- Status Bar -->

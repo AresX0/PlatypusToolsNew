@@ -1,9 +1,15 @@
 <UserControl x:Class="PlatypusTools.UI.Controls.VideoTimeline.TimelineControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:PlatypusTools.UI.Controls.VideoTimeline">
+             xmlns:local="clr-namespace:PlatypusTools.UI.Controls.VideoTimeline"
+             xmlns:converters="clr-namespace:PlatypusTools.UI.Converters">
     
     <UserControl.Resources>
+        <converters:TimeSpanToPixelConverter x:Key="TimeSpanToPixelConverter"/>
+        <converters:DurationToWidthConverter x:Key="DurationToWidthConverter"/>
+        <converters:StringToBrushConverter x:Key="StringToBrushConverter"/>
+        <converters:IsSelectedToBorderBrushConverter x:Key="IsSelectedToBorderBrushConverter"/>
+        
         <Style x:Key="TrackHeaderStyle" TargetType="Border">
             <Setter Property="Width" Value="150"/>
             <Setter Property="Background" Value="#2D2D30"/>
@@ -157,25 +163,66 @@
                             <Border Style="{StaticResource TrackContentStyle}" Height="{Binding Height}">
                                 <Canvas x:Name="ClipsCanvas" Background="Transparent"
                                         AllowDrop="True">
-                                    <!-- Clips would be rendered here -->
                                     <ItemsControl ItemsSource="{Binding Clips}">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
                                                 <Canvas/>
                                             </ItemsPanelTemplate>
                                         </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemContainerStyle>
+                                            <Style TargetType="ContentPresenter">
+                                                <Setter Property="Canvas.Left">
+                                                    <Setter.Value>
+                                                        <MultiBinding Converter="{StaticResource TimeSpanToPixelConverter}">
+                                                            <Binding Path="StartPosition"/>
+                                                            <Binding Path="DataContext.PixelsPerSecond" 
+                                                                     RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                                        </MultiBinding>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ItemsControl.ItemContainerStyle>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Background="{Binding Color}" 
-                                                        CornerRadius="4" Margin="1"
-                                                        BorderBrush="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                        BorderThickness="2" Cursor="Hand">
-                                                    <Grid Margin="4,2">
-                                                        <TextBlock Text="{Binding Name}" Foreground="White"
-                                                                   TextTrimming="CharacterEllipsis"
-                                                                   FontSize="11"/>
-                                                    </Grid>
-                                                </Border>
+                                                <Grid Height="50" Tag="{Binding}">
+                                                    <Grid.Width>
+                                                        <MultiBinding Converter="{StaticResource DurationToWidthConverter}">
+                                                            <Binding Path="Duration"/>
+                                                            <Binding Path="DataContext.PixelsPerSecond" 
+                                                                     RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                                        </MultiBinding>
+                                                    </Grid.Width>
+                                                    
+                                                    <!-- Clip Body -->
+                                                    <Border Background="{Binding Color, Converter={StaticResource StringToBrushConverter}}" 
+                                                            CornerRadius="4" Cursor="Hand"
+                                                            BorderBrush="{Binding IsSelected, Converter={StaticResource IsSelectedToBorderBrushConverter}}"
+                                                            BorderThickness="2">
+                                                        <Grid Margin="8,2">
+                                                            <TextBlock Text="{Binding Name}" Foreground="White"
+                                                                       TextTrimming="CharacterEllipsis"
+                                                                       FontSize="11" VerticalAlignment="Center"/>
+                                                        </Grid>
+                                                    </Border>
+                                                    
+                                                    <!-- Left Trim Handle -->
+                                                    <Border x:Name="LeftTrimHandle" 
+                                                            Width="6" HorizontalAlignment="Left" 
+                                                            Background="Transparent" Cursor="SizeWE"
+                                                            ToolTip="Drag to trim start">
+                                                        <Rectangle Fill="#80FFFFFF" Width="2" 
+                                                                   HorizontalAlignment="Center" Margin="0,4"/>
+                                                    </Border>
+                                                    
+                                                    <!-- Right Trim Handle -->
+                                                    <Border x:Name="RightTrimHandle"
+                                                            Width="6" HorizontalAlignment="Right"
+                                                            Background="Transparent" Cursor="SizeWE"
+                                                            ToolTip="Drag to trim end">
+                                                        <Rectangle Fill="#80FFFFFF" Width="2" 
+                                                                   HorizontalAlignment="Center" Margin="0,4"/>
+                                                    </Border>
+                                                </Grid>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>

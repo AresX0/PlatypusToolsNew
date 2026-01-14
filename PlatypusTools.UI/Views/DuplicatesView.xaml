@@ -41,11 +41,19 @@
         <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
             <DataGrid ItemsSource="{Binding Groups}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
                       CanUserResizeColumns="True" CanUserSortColumns="True"
+                      ColumnHeaderHeight="32"
                       HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                        <Setter Property="Padding" Value="8,4"/>
+                        <Setter Property="FontWeight" Value="SemiBold"/>
+                    </Style>
+                </DataGrid.ColumnHeaderStyle>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Hash" Binding="{Binding Hash}" Width="250" CanUserResize="True" MinWidth="150" />
                     <DataGridTextColumn Header="# Files" Binding="{Binding Files.Count}" Width="80" CanUserResize="True" MinWidth="60" />
-                    <DataGridTemplateColumn Header="Files" Width="600" MinWidth="200">
+                    <DataGridTemplateColumn Header="Files" Width="600" MinWidth="200" CanUserResize="True">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <ItemsControl ItemsSource="{Binding Files}">

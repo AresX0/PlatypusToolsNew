@@ -1,4 +1,5 @@
 using PlatypusTools.Core.Services;
+using PlatypusTools.Core.Utilities;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -48,6 +49,7 @@ namespace PlatypusTools.UI.ViewModels
 
         public DiskSpaceAnalyzerViewModel()
         {
+            try { SimpleLogger.Info("DiskSpaceAnalyzerViewModel constructed"); } catch {}
             _analyzerService = new DiskSpaceAnalyzerService();
 
             AnalyzeCommand = new RelayCommand(async _ => await AnalyzeAsync(), _ => !IsAnalyzing && !string.IsNullOrWhiteSpace(RootPath));
@@ -119,15 +121,19 @@ namespace PlatypusTools.UI.ViewModels
             IsAnalyzing = true;
             StatusMessage = "Analyzing disk space...";
             DirectoryTree.Clear();
+            
+            // Update global status bar
+            StatusBarViewModel.Instance.StartOperation("Analyzing disk space...", 0, true);
 
             try
             {
-                var analysis = await Task.Run(() => 
-                {
-                    token.ThrowIfCancellationRequested();
-                    return _analyzerService.GetDirectoryTree(RootPath);
-                }, token);
-                
+                SimpleLogger.Info($"DiskSpaceAnalyzer: starting analysis for '{RootPath}'");
+
+                token.ThrowIfCancellationRequested();
+
+                // Await the analyzer service directly. Use maxDepth=10 for comprehensive view
+                var analysis = await _analyzerService.GetDirectoryTree(RootPath, maxDepth: 10);
+
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     var rootNode = CreateNodeViewModel(analysis);
@@ -138,14 +144,20 @@ namespace PlatypusTools.UI.ViewModels
 
                 StatusMessage = $"Analysis complete. Total size: {TotalSizeDisplay}";
                 ((RelayCommand)ExportCommand).RaiseCanExecuteChanged();
+                SimpleLogger.Info($"DiskSpaceAnalyzer: completed analysis for '{RootPath}' size={TotalSize}");
+                
+                StatusBarViewModel.Instance.CompleteOperation($"Analysis complete. Total size: {TotalSizeDisplay}");
             }
             catch (OperationCanceledException)
             {
                 StatusMessage = "Analysis cancelled";
+                StatusBarViewModel.Instance.CompleteOperation("Analysis cancelled");
             }
             catch (Exception ex)
             {
                 StatusMessage = $"Error: {ex.Message}";
+                try { SimpleLogger.Error("DiskSpaceAnalyzer AnalyzeAsync exception: " + ex.ToString()); } catch { }
+                StatusBarViewModel.Instance.CompleteOperation($"Error: {ex.Message}");
             }
             finally
             {

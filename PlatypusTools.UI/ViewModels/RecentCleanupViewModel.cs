@@ -15,7 +15,16 @@ namespace PlatypusTools.UI.ViewModels
         public ObservableCollection<string> ExclusionDirs { get; } = new ObservableCollection<string>();
 
         private string _targetDirs = "";
-        public string TargetDirs { get => _targetDirs; set { _targetDirs = value; RaisePropertyChanged(); } }
+        public string TargetDirs 
+        { 
+            get => _targetDirs; 
+            set 
+            { 
+                _targetDirs = value; 
+                RaisePropertyChanged(); 
+                ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
+            } 
+        }
 
         private bool _dryRun = true;
         public bool DryRun { get => _dryRun; set { _dryRun = value; RaisePropertyChanged(); } }
@@ -29,18 +38,20 @@ namespace PlatypusTools.UI.ViewModels
         public int SelectedCount => Results.Count(r => r.IsSelected);
 
         public ICommand ScanCommand { get; }
+        public ICommand ScanAllRecentCommand { get; }
         public ICommand BrowseCommand { get; }
         public ICommand ClearTargetDirsCommand { get; }
         public ICommand AddExclusionCommand { get; }
         public ICommand RemoveExclusionCommand { get; }
         public ICommand RemoveSelectedCommand { get; }
 
-        private string _statusMessage = "Ready. Enter target directories or click Browse.";
+        private string _statusMessage = "Ready. Enter target directories or click 'Scan All Recent' to see all recent items.";
         public string StatusMessage { get => _statusMessage; set { _statusMessage = value; RaisePropertyChanged(); } }
 
         public RecentCleanupViewModel()
         {
             ScanCommand = new RelayCommand(async _ => await Scan(), _ => !string.IsNullOrWhiteSpace(TargetDirs));
+            ScanAllRecentCommand = new RelayCommand(async _ => await ScanAllRecent());
             BrowseCommand = new RelayCommand(_ => Browse());
             ClearTargetDirsCommand = new RelayCommand(_ => { TargetDirs = ""; });
             AddExclusionCommand = new RelayCommand(_ => AddExclusion());
@@ -145,6 +156,96 @@ namespace PlatypusTools.UI.ViewModels
 
                 RaisePropertyChanged(nameof(SelectedCount));
                 StatusMessage = $"Found {Results.Count} matching shortcuts (preview mode)";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error scanning: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Scans all recent items in Windows Recent folder, Quick Access, Start Menu, etc.
+        /// </summary>
+        public async Task ScanAllRecent()
+        {
+            try
+            {
+                StatusMessage = "Scanning all recent items...";
+                Results.Clear();
+
+                await Task.Run(() =>
+                {
+                    // Scan Windows Recent folder
+                    var recentPath = Environment.GetFolderPath(Environment.SpecialFolder.Recent);
+                    if (Directory.Exists(recentPath))
+                    {
+                        foreach (var file in Directory.GetFiles(recentPath, "*.*", SearchOption.AllDirectories))
+                        {
+                            string target = "";
+                            string type = "Recent";
+                            
+                            // Get the file name as target info (simplified - full shortcut resolution would require COM interop)
+                            if (file.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase))
+                            {
+                                target = Path.GetFileNameWithoutExtension(file);
+                            }
+                            else
+                            {
+                                target = file;
+                            }
+                            
+                            var selectable = new RecentMatchSelectable
+                            {
+                                Type = type,
+                                Path = file,
+                                Target = target,
+                                IsSelected = false
+                            };
+                            selectable.PropertyChanged += (s, e) => 
+                            {
+                                if (e.PropertyName == nameof(RecentMatchSelectable.IsSelected))
+                                {
+                                    RaisePropertyChanged(nameof(SelectedCount));
+                                    ((RelayCommand)RemoveSelectedCommand).RaiseCanExecuteChanged();
+                                }
+                            };
+                            Application.Current.Dispatcher.Invoke(() => Results.Add(selectable));
+                        }
+                    }
+                    
+                    // Scan Quick Access (Pinned items)
+                    var quickAccessPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
+                        @"Microsoft\Windows\Recent\AutomaticDestinations");
+                    if (Directory.Exists(quickAccessPath))
+                    {
+                        foreach (var file in Directory.GetFiles(quickAccessPath, "*.*"))
+                        {
+                            var selectable = new RecentMatchSelectable
+                            {
+                                Type = "QuickAccess",
+                                Path = file,
+                                Target = Path.GetFileNameWithoutExtension(file),
+                                IsSelected = false
+                            };
+                            selectable.PropertyChanged += (s, e) => 
+                            {
+                                if (e.PropertyName == nameof(RecentMatchSelectable.IsSelected))
+                                {
+                                    RaisePropertyChanged(nameof(SelectedCount));
+                                    ((RelayCommand)RemoveSelectedCommand).RaiseCanExecuteChanged();
+                                }
+                            };
+                            Application.Current.Dispatcher.Invoke(() => Results.Add(selectable));
+                        }
+                    }
+                    
+                    // Scan Start Menu Recent folder
+                    var startMenuRecentPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.StartMenu), "Programs");
+                    // Note: We don't scan Start Menu programs - just listing this as a potential location
+                });
+
+                RaisePropertyChanged(nameof(SelectedCount));
+                StatusMessage = $"Found {Results.Count} recent items";
             }
             catch (Exception ex)
             {

@@ -1,8 +1,10 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using PlatypusTools.Core.Services;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -12,6 +14,11 @@ namespace PlatypusTools.UI.ViewModels
         private CancellationTokenSource? _cts;
 
         public ObservableCollection<string> Files { get; } = new ObservableCollection<string>();
+        public ObservableCollection<string> OutputFormats { get; } = new ObservableCollection<string> { "JPG", "PNG", "BMP", "GIF", "TIFF" };
+        
+        private string _selectedOutputFormat = "JPG";
+        public string SelectedOutputFormat { get => _selectedOutputFormat; set { _selectedOutputFormat = value; RaisePropertyChanged(); } }
+        
         public string OutputFolder { get; set; } = string.Empty;
         public int? MaxWidth { get; set; }
         public int? MaxHeight { get; set; }
@@ -30,22 +37,28 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand BrowseOutputCommand { get; }
         public ICommand ConvertCommand { get; }
         public ICommand CancelCommand { get; }
+        public ICommand ClearFilesCommand { get; }
+        public ICommand RemoveSelectedFileCommand { get; }
 
         public ImageConverterViewModel(Func<string, string, int?, int?, long, Task<bool>>? converter = null)
         {
+            try { SimpleLogger.Info("ImageConverterViewModel constructed"); } catch {}
             _converter = converter ?? DefaultConverterAsync;
             AddFilesCommand = new RelayCommand(_ => AddFiles());
             BrowseOutputCommand = new RelayCommand(_ => BrowseOutput());
-            ConvertCommand = new AsyncRelayCommand(ConvertAsync, () => !IsRunning);
+            ConvertCommand = new AsyncRelayCommand(ConvertAsync, () => !IsRunning && Files.Any());
             CancelCommand = new RelayCommand(_ => Cancel(), _ => IsRunning);
+            ClearFilesCommand = new RelayCommand(_ => { Files.Clear(); ((AsyncRelayCommand)ConvertCommand).RaiseCanExecuteChanged(); });
+            RemoveSelectedFileCommand = new RelayCommand(p => { if (p is string file) { Files.Remove(file); ((AsyncRelayCommand)ConvertCommand).RaiseCanExecuteChanged(); } });
         }
 
         private void AddFiles()
         {
-            var dlg = new Microsoft.Win32.OpenFileDialog { Multiselect = true, Filter = "Images|*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.tif;*.tiff|All Files|*.*" };
+            var dlg = new Microsoft.Win32.OpenFileDialog { Multiselect = true, Filter = "Images|*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.tif;*.tiff;*.webp|All Files|*.*" };
             if (dlg.ShowDialog() == true)
             {
                 foreach (var f in dlg.FileNames) Files.Add(f);
+                ((AsyncRelayCommand)ConvertCommand).RaiseCanExecuteChanged();
             }
         }
 
@@ -62,6 +75,20 @@ namespace PlatypusTools.UI.ViewModels
             Log += "Cancellation requested...\n";
         }
 
+        private string GetOutputExtension()
+        {
+            return SelectedOutputFormat.ToLower() switch
+            {
+                "jpg" => ".jpg",
+                "jpeg" => ".jpg",
+                "png" => ".png",
+                "bmp" => ".bmp",
+                "gif" => ".gif",
+                "tiff" => ".tiff",
+                _ => ".jpg"
+            };
+        }
+
         public virtual async Task ConvertAsync()
         {
             if (!Files.Any()) return;
@@ -74,6 +101,7 @@ namespace PlatypusTools.UI.ViewModels
 
                 int total = Files.Count;
                 int done = 0;
+                var extension = GetOutputExtension();
 
                 foreach (var src in Files.ToList())
                 {
@@ -82,7 +110,7 @@ namespace PlatypusTools.UI.ViewModels
                         Log += "Operation cancelled.\n";
                         break;
                     }
-                    var destName = System.IO.Path.GetFileNameWithoutExtension(src) + ".jpg";
+                    var destName = System.IO.Path.GetFileNameWithoutExtension(src) + extension;
                     var dest = string.IsNullOrWhiteSpace(OutputFolder) ? System.IO.Path.Combine(System.IO.Path.GetDirectoryName(src) ?? string.Empty, destName) : System.IO.Path.Combine(OutputFolder, destName);
                     bool ok = false;
                     try

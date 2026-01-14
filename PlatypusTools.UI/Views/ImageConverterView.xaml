@@ -6,6 +6,8 @@
              xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
              mc:Ignorable="d" d:DesignHeight="400" d:DesignWidth="600">
     <Grid Margin="8">
+        <!-- ...existing code... -->
+        <!-- ...existing code... -->
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -22,6 +24,10 @@
             <Button Content="Add Files..." Command="{Binding AddFilesCommand}" Width="120" />
             <Button Content="Convert" Command="{Binding ConvertCommand}" Width="120" Margin="8,0,0,0" />
             <Button Content="Cancel" Command="{Binding CancelCommand}" Width="90" Margin="8,0,0,0" />
+            <Button Content="Clear" Command="{Binding ClearFilesCommand}" Width="70" Margin="8,0,0,0" />
+            <Separator Margin="8,0"/>
+            <TextBlock VerticalAlignment="Center" Margin="0,0,4,0">Format:</TextBlock>
+            <ComboBox Width="70" ItemsSource="{Binding OutputFormats}" SelectedItem="{Binding SelectedOutputFormat}" Margin="0,0,8,0"/>
             <TextBlock VerticalAlignment="Center" Margin="8,0,0,0">JPG Quality:</TextBlock>
             <TextBox Width="60" Text="{Binding JpegQuality, UpdateSourceTrigger=PropertyChanged}" Margin="4,0,0,0" />
             <TextBlock VerticalAlignment="Center" Margin="8,0,0,0">Max W:</TextBlock>

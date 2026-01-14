@@ -8,10 +8,6 @@
              d:DesignHeight="700" d:DesignWidth="1200"
              Background="{DynamicResource BackgroundBrush}">
     
-    <UserControl.DataContext>
-        <vm:AudioLibraryViewModel/>
-    </UserControl.DataContext>
-    
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="220"/>
@@ -139,16 +135,18 @@
                 </Grid>
             </Border>
             <!-- Track List -->
-            <DataGrid Grid.Row="1"
+            <DataGrid x:Name="TrackDataGrid" Grid.Row="1"
                       ItemsSource="{Binding Tracks}"
                       SelectedItem="{Binding SelectedTrack}"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
                       SelectionMode="Extended"
                       ColumnHeaderHeight="32"
-                      HorizontalScrollBarVisibility="Disabled"
-                      VerticalScrollBarVisibility="Disabled"
-                      ColumnWidth="*">
+                      CanUserResizeColumns="True"
+                      CanUserSortColumns="True"
+                      MinHeight="250"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto">
                 <DataGrid.ColumnHeaderStyle>
                     <Style TargetType="DataGridColumnHeader">
                         <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -157,8 +155,8 @@
                     </Style>
                 </DataGrid.ColumnHeaderStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="#" Binding="{Binding TrackNumber}" Width="40" IsReadOnly="True" CanUserResize="True" />
-                    <DataGridTextColumn Header="Title" Binding="{Binding DisplayTitle}" Width="*" IsReadOnly="True" CanUserResize="True">
+                    <DataGridTextColumn Header="#" Binding="{Binding TrackNumber}" Width="50" MinWidth="40" IsReadOnly="True" CanUserResize="True" />
+                    <DataGridTextColumn Header="Title" Binding="{Binding DisplayTitle}" Width="250" MinWidth="150" IsReadOnly="True" CanUserResize="True">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontWeight" Value="Bold" />
@@ -166,11 +164,11 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="Artist" Binding="{Binding DisplayArtist}" Width="150" IsReadOnly="True" CanUserResize="True" />
-                    <DataGridTextColumn Header="Album" Binding="{Binding DisplayAlbum}" Width="150" IsReadOnly="True" CanUserResize="True" />
-                    <DataGridTextColumn Header="Genre" Binding="{Binding Genre}" Width="100" IsReadOnly="True" CanUserResize="True" />
-                    <DataGridTextColumn Header="Duration" Binding="{Binding DurationFormatted}" Width="70" IsReadOnly="True" CanUserResize="True" />
-                    <DataGridTextColumn Header="Plays" Binding="{Binding PlayCount}" Width="50" IsReadOnly="True" CanUserResize="True">
+                    <DataGridTextColumn Header="Artist" Binding="{Binding DisplayArtist}" Width="180" MinWidth="120" IsReadOnly="True" CanUserResize="True" />
+                    <DataGridTextColumn Header="Album" Binding="{Binding DisplayAlbum}" Width="180" MinWidth="120" IsReadOnly="True" CanUserResize="True" />
+                    <DataGridTextColumn Header="Genre" Binding="{Binding Genre}" Width="120" MinWidth="80" IsReadOnly="True" CanUserResize="True" />
+                    <DataGridTextColumn Header="Duration" Binding="{Binding DurationFormatted}" Width="80" MinWidth="70" IsReadOnly="True" CanUserResize="True" />
+                    <DataGridTextColumn Header="Plays" Binding="{Binding PlayCount}" Width="70" MinWidth="50" IsReadOnly="True" CanUserResize="True">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontSize" Value="10" />

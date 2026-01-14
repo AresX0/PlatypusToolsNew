@@ -110,8 +110,7 @@
                               ColumnHeaderHeight="32"
                               GridLinesVisibility="Horizontal"
                               HorizontalScrollBarVisibility="Disabled"
-                              VerticalScrollBarVisibility="Disabled"
-                              ColumnWidth="*">
+                              VerticalScrollBarVisibility="Disabled">
                         <DataGrid.ColumnHeaderStyle>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="HorizontalContentAlignment" Value="Left"/>

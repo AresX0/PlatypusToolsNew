@@ -152,11 +152,12 @@
                         
                         <DataGrid x:Name="ShortcutsGrid" AutoGenerateColumns="False" 
                                   CanUserAddRows="False" CanUserDeleteRows="False"
+                                  CanUserResizeColumns="True" CanUserSortColumns="True"
                                   Height="300">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Command" Binding="{Binding Name}" Width="200" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Shortcut" Binding="{Binding Shortcut}" Width="150"/>
-                                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Command" Binding="{Binding Name}" Width="200" IsReadOnly="True" CanUserResize="True" MinWidth="100"/>
+                                <DataGridTextColumn Header="Shortcut" Binding="{Binding Shortcut}" Width="150" CanUserResize="True" MinWidth="80"/>
+                                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" IsReadOnly="True" CanUserResize="True" MinWidth="100"/>
                             </DataGrid.Columns>
                         </DataGrid>
                         

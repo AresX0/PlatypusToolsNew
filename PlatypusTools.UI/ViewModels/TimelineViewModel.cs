@@ -120,8 +120,10 @@ namespace PlatypusTools.UI.ViewModels
         private double _zoomLevel = 1.0;
         private const double MinZoom = 0.1;
         private const double MaxZoom = 10.0;
+        private const double BasePixelsPerSecond = 50.0;
+        
         /// <summary>
-        /// Zoom level (pixels per second).
+        /// Zoom level (1.0 = default, higher = more zoomed in).
         /// </summary>
         public double ZoomLevel
         {
@@ -130,8 +132,15 @@ namespace PlatypusTools.UI.ViewModels
             {
                 value = Math.Clamp(value, MinZoom, MaxZoom);
                 SetProperty(ref _zoomLevel, value);
+                OnPropertyChanged(nameof(PixelsPerSecond));
             }
         }
+
+        /// <summary>
+        /// Computed pixels per second based on zoom level.
+        /// Used for clip positioning and width calculations.
+        /// </summary>
+        public double PixelsPerSecond => BasePixelsPerSecond * ZoomLevel;
 
         private bool _isPlaying;
         /// <summary>

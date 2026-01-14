@@ -48,7 +48,15 @@
                 <DataGrid ItemsSource="{Binding ItemsToClean}" AutoGenerateColumns="False" 
                           CanUserAddRows="False" CanUserDeleteRows="False" Margin="5"
                           CanUserResizeColumns="True" CanUserSortColumns="True"
+                          ColumnHeaderHeight="32"
                           HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                            <Setter Property="Padding" Value="8,4"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="200" CanUserResize="True" MinWidth="100" IsReadOnly="True"/>
                         <DataGridTextColumn Header="Files" Binding="{Binding Files}" Width="80" CanUserResize="True" MinWidth="60" IsReadOnly="True"/>

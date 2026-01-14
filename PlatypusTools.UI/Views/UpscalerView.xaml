@@ -31,9 +31,17 @@
                           CanUserAddRows="False" CanUserDeleteRows="False"
                           CanUserResizeColumns="True" CanUserSortColumns="True"
                           IsReadOnly="True"
+                          ColumnHeaderHeight="32"
                           HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                            <Setter Property="Padding" Value="8,4"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="File Name" Binding="{Binding}" Width="*" MinWidth="200" />
+                        <DataGridTextColumn Header="File Name" Binding="{Binding}" Width="*" MinWidth="200" CanUserResize="True"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </ScrollViewer>

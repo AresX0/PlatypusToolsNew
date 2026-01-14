@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using PlatypusTools.Core.Models.Audio;
+using PlatypusTools.Core.Services;
 using PlatypusTools.UI.Services;
 
 namespace PlatypusTools.UI.ViewModels;
@@ -14,6 +15,7 @@ namespace PlatypusTools.UI.ViewModels;
 /// </summary>
 public class AudioPlayerViewModel : BindableBase
 {
+    // constructor removed for diagnostics cleanup; original constructor remains later in file
     private readonly AudioPlayerService _playerService;
     
     private AudioTrack? _currentTrack;
@@ -273,7 +275,9 @@ public class AudioPlayerViewModel : BindableBase
     public ICommand ToggleMuteCommand { get; }
     public ICommand PlayTrackCommand { get; }
     public ICommand RemoveFromQueueCommand { get; }
+    public ICommand RemoveSelectedFromQueueCommand { get; }
     public ICommand ClearQueueCommand { get; }
+    public ICommand ScanFolderAddToQueueCommand { get; }
     
     // New commands
     public ICommand ToggleLibraryCommand { get; }
@@ -281,8 +285,24 @@ public class AudioPlayerViewModel : BindableBase
     public ICommand AddToQueueCommand { get; }
     public ICommand AddAllToQueueCommand { get; }
     
+    // Queue selection
+    private AudioTrack? _selectedQueueTrack;
+    public AudioTrack? SelectedQueueTrack
+    {
+        get => _selectedQueueTrack;
+        set => SetProperty(ref _selectedQueueTrack, value);
+    }
+    
+    private ObservableCollection<AudioTrack> _selectedQueueTracks = new();
+    public ObservableCollection<AudioTrack> SelectedQueueTracks
+    {
+        get => _selectedQueueTracks;
+        set => SetProperty(ref _selectedQueueTracks, value);
+    }
+    
     public AudioPlayerViewModel()
     {
+        try { SimpleLogger.Info("AudioPlayerViewModel constructed"); } catch {}
         _playerService = AudioPlayerService.Instance;
         _selectedPreset = EQPreset.Flat;
         
@@ -317,11 +337,20 @@ public class AudioPlayerViewModel : BindableBase
                 _playerService.RemoveFromQueue(track);
             UpdateQueue();
         });
+        RemoveSelectedFromQueueCommand = new RelayCommand(_ =>
+        {
+            if (SelectedQueueTrack != null)
+            {
+                _playerService.RemoveFromQueue(SelectedQueueTrack);
+                UpdateQueue();
+            }
+        });
         ClearQueueCommand = new RelayCommand(_ =>
         {
             _playerService.ClearQueue();
             UpdateQueue();
         });
+        ScanFolderAddToQueueCommand = new AsyncRelayCommand(ScanFolderAddToQueueAsync);
         
         // New commands
         ToggleLibraryCommand = new RelayCommand(_ => ViewModeIndex = ViewModeIndex == 0 ? 1 : 0);
@@ -421,6 +450,61 @@ public class AudioPlayerViewModel : BindableBase
                 await _playerService.PlayTrackAsync(tracks[0]);
                 StatusMessage = $"Loaded {tracks.Count} tracks";
                 ScanStatus = $"Found {tracks.Count} audio files";
+            }
+            else
+            {
+                StatusMessage = "No audio files found";
+                ScanStatus = "No audio files found in folder";
+            }
+            
+            IsScanning = false;
+        }
+    }
+    
+    /// <summary>
+    /// Scans a folder and adds tracks to the existing queue dynamically without replacing it.
+    /// </summary>
+    private async Task ScanFolderAddToQueueAsync()
+    {
+        using var dialog = new System.Windows.Forms.FolderBrowserDialog
+        {
+            Description = "Select folder to scan and add to queue"
+        };
+        
+        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            IsScanning = true;
+            ScanStatus = "Scanning folder...";
+            int addedCount = 0;
+            
+            // Scan asynchronously and add tracks as they are found
+            var tracks = await _playerService.ScanFolderAsync(dialog.SelectedPath, IncludeSubfolders);
+            
+            foreach (var track in tracks)
+            {
+                _playerService.AddToQueue(track);
+                addedCount++;
+                ScanStatus = $"Added {addedCount} tracks...";
+            }
+            
+            UpdateQueue();
+            
+            if (addedCount > 0)
+            {
+                // Add to library too
+                _allLibraryTracks.AddRange(tracks);
+                UpdateLibraryGroups();
+                FilterLibraryTracks();
+                RaisePropertyChanged(nameof(LibraryTrackCount));
+                
+                StatusMessage = $"Added {addedCount} tracks to queue";
+                ScanStatus = $"Added {addedCount} audio files to queue";
+                
+                // Start playing if nothing is playing
+                if (CurrentTrack == null && Queue.Count > 0)
+                {
+                    await _playerService.PlayTrackAsync(Queue[0]);
+                }
             }
             else
             {

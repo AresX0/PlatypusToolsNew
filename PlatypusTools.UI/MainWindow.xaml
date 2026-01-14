@@ -133,7 +133,9 @@
                         </ScrollViewer>
                     </TabItem>
                     <TabItem Header="Batch Upscale">
-                        <views:BatchUpscaleView DataContext="{Binding BatchUpscale}" />
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <views:BatchUpscaleView DataContext="{Binding BatchUpscale}" />
+                        </ScrollViewer>
                     </TabItem>
                     <TabItem Header="Bootable USB Creator">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
@@ -169,6 +171,7 @@
                     </ScrollViewer>
                 </Grid>
             </TabItem>
+                        <!-- Removed QuickActionsView reference due to missing definition -->
             <TabItem Header="Cleanup">
                 <TabControl>
                     <TabItem Header="Recent Cleaner">
@@ -230,9 +233,7 @@
                         </ScrollViewer>
                     </TabItem>
                     <TabItem Header="File Analyzer">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:FileAnalyzerView DataContext="{Binding FileAnalyzer}" />
-                        </ScrollViewer>
+                        <views:FileAnalyzerView DataContext="{Binding FileAnalyzer}" />
                     </TabItem>
                     <TabItem Header="Media Library">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
@@ -270,7 +271,9 @@
                         </ScrollViewer>
                     </TabItem>
                     <TabItem Header="Archive Manager">
-                        <views:ArchiveManagerView DataContext="{Binding ArchiveManager}" />
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <views:ArchiveManagerView DataContext="{Binding ArchiveManager}" />
+                        </ScrollViewer>
                     </TabItem>
                 </TabControl>
             </TabItem>
