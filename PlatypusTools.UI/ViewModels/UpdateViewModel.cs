@@ -38,6 +38,8 @@ namespace PlatypusTools.UI.ViewModels
                 {
                     RaisePropertyChanged(nameof(HasUpdate));
                     RaisePropertyChanged(nameof(UpdateMessage));
+                    ((AsyncRelayCommand)DownloadUpdateCommand).RaiseCanExecuteChanged();
+                    ((RelayCommand)ViewReleaseNotesCommand).RaiseCanExecuteChanged();
                 }
             }
         }
@@ -59,7 +61,13 @@ namespace PlatypusTools.UI.ViewModels
         public bool IsDownloading
         {
             get => _isDownloading;
-            set => SetProperty(ref _isDownloading, value);
+            set
+            {
+                if (SetProperty(ref _isDownloading, value))
+                {
+                    ((AsyncRelayCommand)DownloadUpdateCommand).RaiseCanExecuteChanged();
+                }
+            }
         }
 
         private double _downloadProgress;
@@ -73,7 +81,13 @@ namespace PlatypusTools.UI.ViewModels
         public string DownloadedFilePath
         {
             get => _downloadedFilePath;
-            set => SetProperty(ref _downloadedFilePath, value);
+            set
+            {
+                if (SetProperty(ref _downloadedFilePath, value))
+                {
+                    ((RelayCommand)InstallUpdateCommand).RaiseCanExecuteChanged();
+                }
+            }
         }
 
         private string _statusMessage = string.Empty;
