@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             xmlns:local="clr-namespace:PlatypusTools.UI.Views"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="1000">
     <Grid>
@@ -79,9 +80,9 @@
                             <TextBlock Text="Open files or scan a folder to start playing" FontSize="11" Foreground="#555" HorizontalAlignment="Center"/>
                         </StackPanel>
                         
-                        <!-- Spectrum Visualizer -->
-                        <Canvas x:Name="VisualizerCanvas" Height="80" VerticalAlignment="Bottom" Margin="15,0,15,15"
-                                Visibility="{Binding IsPlaying, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <!-- Audio Visualizer -->
+                        <local:AudioVisualizerView x:Name="VisualizerControl" 
+                                                   Visibility="{Binding IsPlaying, Converter={StaticResource BoolToVisibilityConverter}}"/>
                     </Grid>
                 </Border>
                 

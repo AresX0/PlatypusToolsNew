@@ -52,6 +52,12 @@
                         <TextBlock Text="AI Features"/>
                     </StackPanel>
                 </ListBoxItem>
+                <ListBoxItem Tag="Visualizer">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🎨" Width="24"/>
+                        <TextBlock Text="Audio Visualizer"/>
+                    </StackPanel>
+                </ListBoxItem>
                 <ListBoxItem Tag="Updates">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="🔄" Width="24"/>
@@ -265,6 +271,92 @@
                                     <TextBlock Text="Backup interval (days):" VerticalAlignment="Center"/>
                                     <TextBox x:Name="BackupIntervalText" Grid.Column="1" Text="7" Margin="8,0,0,0"/>
                                 </Grid>
+                            </StackPanel>
+                        </GroupBox>
+                    <!-- Backup Settings Panel continued -->
+                    </StackPanel>
+                    
+                    <!-- Audio Visualizer Settings -->
+                    <StackPanel x:Name="VisualizerPanel" Visibility="Collapsed">
+                        <TextBlock Text="Audio Visualizer" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
+                        
+                        <GroupBox Header="Visualizer Enable" Margin="0,0,0,16">
+                            <StackPanel Margin="8">
+                                <CheckBox x:Name="EnableVisualizerCheck" Content="Enable audio visualizer" IsChecked="True" Margin="0,4"/>
+                                <CheckBox x:Name="ShowVisualizerDuringPlaybackCheck" Content="Show visualizer during playback" IsChecked="True" Margin="0,4"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox Header="Visualizer Appearance" Margin="0,0,0,16">
+                            <StackPanel Margin="8">
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Preset:" VerticalAlignment="Center"/>
+                                    <ComboBox x:Name="VisualizerPresetCombo" Grid.Column="1" Margin="8,0,0,0">
+                                        <ComboBoxItem Content="Default" IsSelected="True"/>
+                                        <ComboBoxItem Content="Spectrum Analyzer"/>
+                                        <ComboBoxItem Content="Waveform"/>
+                                        <ComboBoxItem Content="Bars"/>
+                                        <ComboBoxItem Content="Circular"/>
+                                        <ComboBoxItem Content="Oscilloscope"/>
+                                    </ComboBox>
+                                </Grid>
+                                
+                                <Grid Margin="0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="60"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Opacity:" VerticalAlignment="Center"/>
+                                    <Slider x:Name="VisualizerOpacitySlider" Grid.Column="1" Minimum="0.1" Maximum="1.0" Value="0.9" Margin="8,0"/>
+                                    <TextBlock x:Name="OpacityValueText" Grid.Column="2" Text="90%" VerticalAlignment="Center" TextAlignment="Right"/>
+                                </Grid>
+                                
+                                <Grid Margin="0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="60"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Bar Count:" VerticalAlignment="Center"/>
+                                    <Slider x:Name="VisualizerBarCountSlider" Grid.Column="1" Minimum="8" Maximum="128" Value="32" 
+                                            IsSnapToTickEnabled="True" TickFrequency="8" Margin="8,0"/>
+                                    <TextBlock x:Name="BarCountValueText" Grid.Column="2" Text="32" VerticalAlignment="Center" TextAlignment="Right"/>
+                                </Grid>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox Header="Visualizer Colors" Margin="0,0,0,16">
+                            <StackPanel Margin="8">
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="100"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Primary Color:" VerticalAlignment="Center"/>
+                                    <Button x:Name="PrimaryColorButton" Grid.Column="1" Height="30" Background="#1E90FF" ToolTip="Click to change color"/>
+                                </Grid>
+                                
+                                <Grid Margin="0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="100"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Background Color:" VerticalAlignment="Center"/>
+                                    <Button x:Name="BackgroundColorButton" Grid.Column="1" Height="30" Background="#0A0E27" ToolTip="Click to change color"/>
+                                </Grid>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox Header="Advanced" Margin="0,0,0,16">
+                            <StackPanel Margin="8">
+                                <CheckBox x:Name="UseProjectMCheck" Content="Use projectM renderer (requires projectM library)" Margin="0,4"/>
+                                <CheckBox x:Name="EnableGPUAccelerationCheck" Content="Enable GPU acceleration" IsChecked="True" Margin="0,4"/>
+                                <CheckBox x:Name="EnableAudioNormalizationCheck" Content="Normalize audio input" IsChecked="True" Margin="0,4"/>
                             </StackPanel>
                         </GroupBox>
                     </StackPanel>
