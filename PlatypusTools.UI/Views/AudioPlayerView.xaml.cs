@@ -38,8 +38,6 @@ public partial class AudioPlayerView : UserControl
         if (_viewModel != null)
         {
             _viewModel.PropertyChanged += ViewModel_PropertyChanged;
-            UpdatePlaceholderVisibility();
-            UpdateEmptyQueueVisibility();
             
             // Initialize audio visualizer
             InitializeVisualizer();
@@ -76,30 +74,14 @@ public partial class AudioPlayerView : UserControl
         }
         else if (e.PropertyName == nameof(AudioPlayerViewModel.CurrentTrack))
         {
-            Dispatcher.Invoke(UpdatePlaceholderVisibility);
+            // Track changed, visualizer will update automatically
         }
-        else if (e.PropertyName == nameof(AudioPlayerViewModel.Queue) || 
-                 (sender is AudioPlayerViewModel vm && vm.Queue.Count == 0))
+        else if (e.PropertyName == nameof(AudioPlayerViewModel.Queue))
         {
-            Dispatcher.Invoke(UpdateEmptyQueueVisibility);
+            // Queue changed
         }
     }
     
-    private void UpdatePlaceholderVisibility()
-    {
-        NoTrackPlaceholder.Visibility = _viewModel?.CurrentTrack == null 
-            ? Visibility.Visible 
-            : Visibility.Collapsed;
-    }
-    
-    private void UpdateEmptyQueueVisibility()
-    {
-        EmptyQueueMessage.Visibility = (_viewModel?.Queue.Count ?? 0) == 0 
-            ? Visibility.Visible 
-            : Visibility.Collapsed;
-    }
-    
-    
-    // Old visualizer drawing methods replaced by integrated AudioVisualizerView
+// Old visualizer drawing methods replaced by integrated AudioVisualizerView
     // These methods are deprecated and kept only for reference
 }

@@ -45,14 +45,14 @@ namespace PlatypusTools.UI.ViewModels
 
         #region Commands
 
-        public ICommand CheckPrerequisitesCommand { get; private set; }
-        public ICommand OpenDownloadLinkCommand { get; private set; }
-        public ICommand ContinueWithoutPrerequisitesCommand { get; private set; }
+        public ICommand CheckPrerequisitesCommand { get; private set; } = null!;
+        public ICommand OpenDownloadLinkCommand { get; private set; } = null!;
+        public ICommand ContinueWithoutPrerequisitesCommand { get; private set; } = null!;
 
         private void InitializeCommands()
         {
             CheckPrerequisitesCommand = new AsyncRelayCommand(CheckPrerequisitesAsync);
-            OpenDownloadLinkCommand = new RelayCommand(param => OpenDownloadLink(param as PrerequisiteInfo));
+            OpenDownloadLinkCommand = new RelayCommand(param => OpenDownloadLink((param as PrerequisiteInfo)!));
             ContinueWithoutPrerequisitesCommand = new RelayCommand(_ => ContinueWithoutPrerequisites());
         }
 
@@ -89,7 +89,9 @@ namespace PlatypusTools.UI.ViewModels
         {
             if (prerequisite == null) return;
 
-            string url = prerequisite.DownloadUrlWindows ?? prerequisite.DownloadUrl;
+            string? url = prerequisite.DownloadUrlWindows ?? prerequisite.DownloadUrl;
+            
+            if (string.IsNullOrEmpty(url)) return;
             
             try
             {

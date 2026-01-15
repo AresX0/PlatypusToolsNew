@@ -37,17 +37,17 @@ namespace PlatypusTools.Core.Services
     /// </summary>
     public class PrerequisiteInfo
     {
-        public string Name { get; set; }
-        public string DisplayName { get; set; }
-        public string Description { get; set; }
-        public string ExecutableName { get; set; }
-        public string DownloadUrl { get; set; }
-        public string DownloadUrlWindows { get; set; }
-        public string DownloadUrlMac { get; set; }
-        public string DownloadUrlLinux { get; set; }
-        public string Instructions { get; set; }
+        public string? Name { get; set; }
+        public string? DisplayName { get; set; }
+        public string? Description { get; set; }
+        public string? ExecutableName { get; set; }
+        public string? DownloadUrl { get; set; }
+        public string? DownloadUrlWindows { get; set; }
+        public string? DownloadUrlMac { get; set; }
+        public string? DownloadUrlLinux { get; set; }
+        public string? Instructions { get; set; }
         public bool IsRequired { get; set; }
-        public string VersionCheckArgument { get; set; }
+        public string? VersionCheckArgument { get; set; }
 
         public PrerequisiteInfo()
         {
@@ -128,12 +128,12 @@ namespace PlatypusTools.Core.Services
             return missing;
         }
 
-        public PrerequisiteInfo GetPrerequisiteInfo(string toolName)
+        public PrerequisiteInfo? GetPrerequisiteInfo(string toolName)
         {
             return Prerequisites.TryGetValue(toolName.ToLower(), out var info) ? info : null;
         }
 
-        public async Task<string> GetToolVersionAsync(string toolName)
+        public async Task<string?> GetToolVersionAsync(string toolName)
         {
             if (!Prerequisites.ContainsKey(toolName.ToLower()))
                 return null;

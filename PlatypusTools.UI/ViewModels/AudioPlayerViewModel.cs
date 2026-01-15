@@ -7,6 +7,7 @@ using System.Windows.Input;
 using PlatypusTools.Core.Models.Audio;
 using PlatypusTools.Core.Services;
 using PlatypusTools.UI.Services;
+using System.Windows.Forms;
 
 namespace PlatypusTools.UI.ViewModels;
 
@@ -15,8 +16,9 @@ namespace PlatypusTools.UI.ViewModels;
 /// </summary>
 public class AudioPlayerViewModel : BindableBase
 {
-    // constructor removed for diagnostics cleanup; original constructor remains later in file
+    // Services
     private readonly AudioPlayerService _playerService;
+    private readonly LibraryIndexService _libraryIndexService;
     
     private AudioTrack? _currentTrack;
     private TimeSpan _position;
@@ -38,6 +40,7 @@ public class AudioPlayerViewModel : BindableBase
     private string _searchQuery = string.Empty;
     private bool _isScanning;
     private string _scanStatus = string.Empty;
+    private int _scanProgress;
     private AudioTrack? _selectedLibraryTrack;
     private LibraryGroup? _selectedGroup;
     
@@ -249,6 +252,20 @@ public class AudioPlayerViewModel : BindableBase
         set => SetProperty(ref _scanStatus, value);
     }
     
+    public int ScanProgress
+    {
+        get => _scanProgress;
+        set => SetProperty(ref _scanProgress, value);
+    }
+    
+    public int LibraryTrackCount => _allLibraryTracks.Count;
+    
+    public int LibraryArtistCount 
+        => _libraryIndexService?.GetCurrentIndex()?.Statistics?.ArtistCount ?? 0;
+    
+    public int LibraryAlbumCount 
+        => _libraryIndexService?.GetCurrentIndex()?.Statistics?.AlbumCount ?? 0;
+    
     public AudioTrack? SelectedLibraryTrack
     {
         get => _selectedLibraryTrack;
@@ -264,8 +281,6 @@ public class AudioPlayerViewModel : BindableBase
                 FilterLibraryTracks();
         }
     }
-    
-    public int LibraryTrackCount => _allLibraryTracks.Count;
     
     public ObservableCollection<AudioTrack> LibraryTracks { get; } = new();
     public ObservableCollection<LibraryGroup> LibraryGroups { get; } = new();
@@ -291,6 +306,8 @@ public class AudioPlayerViewModel : BindableBase
     public ICommand PlaySelectedCommand { get; }
     public ICommand AddToQueueCommand { get; }
     public ICommand AddAllToQueueCommand { get; }
+    public ICommand ScanLibraryCommand { get; }
+    public ICommand CancelScanCommand { get; }
     
     // Queue selection
     private AudioTrack? _selectedQueueTrack;
@@ -311,6 +328,7 @@ public class AudioPlayerViewModel : BindableBase
     {
         try { SimpleLogger.Info("AudioPlayerViewModel constructed"); } catch {}
         _playerService = AudioPlayerService.Instance;
+        _libraryIndexService = new LibraryIndexService();
         _selectedPreset = EQPreset.Flat;
         
         // Initialize EQ presets
@@ -386,6 +404,32 @@ public class AudioPlayerViewModel : BindableBase
             StatusMessage = $"Added {LibraryTracks.Count} tracks to queue";
         });
         
+        // Library Management Commands
+        ScanLibraryCommand = new AsyncRelayCommand(async () =>
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "Select Music Folder",
+                ValidateNames = false,
+                CheckFileExists = false,
+                CheckPathExists = true,
+                FileName = "Folder Selection"
+            };
+            
+            if (DialogHelper.ShowOpenFileDialog(dialog) == true)
+            {
+                var folder = System.IO.Path.GetDirectoryName(dialog.FileName);
+                if (System.IO.Directory.Exists(folder))
+                    await ScanLibraryDirectoryAsync(folder);
+            }
+        });
+        
+        CancelScanCommand = new RelayCommand(_ =>
+        {
+            IsScanning = false;
+            ScanStatus = "Scan cancelled";
+        });
+        
         // Set initial volume
         _playerService.Volume = _volume;
     }
@@ -393,9 +437,18 @@ public class AudioPlayerViewModel : BindableBase
     private void PlayPause()
     {
         if (IsPlaying)
+        {
             _playerService.Pause();
-        else
-            _playerService.Play();
+            return;
+        }
+
+        if (CurrentTrack == null && _playerService.Queue.Count > 0)
+        {
+            _ = _playerService.PlayTrackAsync(_playerService.Queue[0]);
+            return;
+        }
+
+        _playerService.Play();
     }
     
     private async Task OpenFileAsync()
@@ -436,35 +489,52 @@ public class AudioPlayerViewModel : BindableBase
             Description = "Select folder with audio files"
         };
         
-        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        // Show dialog with safe owner handling
+        var result = DialogHelper.ShowFolderDialog(dialog);
+        
+        if (result == System.Windows.Forms.DialogResult.OK)
         {
             IsScanning = true;
             ScanStatus = "Scanning folder...";
             
-            var tracks = await _playerService.ScanFolderAsync(dialog.SelectedPath, IncludeSubfolders);
-            
-            if (tracks.Count > 0)
+            try
             {
-                // Add to library
-                _allLibraryTracks.AddRange(tracks);
-                UpdateLibraryGroups();
-                FilterLibraryTracks();
-                RaisePropertyChanged(nameof(LibraryTrackCount));
+                var tracks = await _playerService.ScanFolderAsync(dialog.SelectedPath, IncludeSubfolders);
                 
-                // Set as queue and play
-                _playerService.SetQueue(tracks);
-                UpdateQueue();
-                await _playerService.PlayTrackAsync(tracks[0]);
-                StatusMessage = $"Loaded {tracks.Count} tracks";
-                ScanStatus = $"Found {tracks.Count} audio files";
+                if (tracks.Count > 0)
+                {
+                    // Add to library in one go
+                    UpdateLibraryGroups();
+                    FilterLibraryTracks();
+                    RaisePropertyChanged(nameof(LibraryTrackCount));
+                    
+                    // Set as queue and play
+                    _playerService.SetQueue(tracks);
+                    UpdateQueue();
+                    
+                    // Ensure CurrentTrack is updated before playing
+                    var firstTrack = tracks[0];
+                    CurrentTrack = firstTrack;
+                    
+                    await _playerService.PlayTrackAsync(firstTrack);
+                    StatusMessage = $"Loaded {tracks.Count} tracks";
+                    ScanStatus = $"Found {tracks.Count} audio files";
+                }
+                else
+                {
+                    StatusMessage = "No audio files found";
+                    ScanStatus = "No audio files found in folder";
+                }
             }
-            else
+            catch (Exception ex)
             {
-                StatusMessage = "No audio files found";
-                ScanStatus = "No audio files found in folder";
+                StatusMessage = $"Error scanning folder: {ex.Message}";
+                ScanStatus = "Scan failed";
             }
-            
-            IsScanning = false;
+            finally
+            {
+                IsScanning = false;
+            }
         }
     }
     
@@ -482,23 +552,39 @@ public class AudioPlayerViewModel : BindableBase
         {
             IsScanning = true;
             ScanStatus = "Scanning folder...";
-            int addedCount = 0;
             
-            // Scan asynchronously and add tracks as they are found
-            var tracks = await _playerService.ScanFolderAsync(dialog.SelectedPath, IncludeSubfolders);
-            
-            foreach (var track in tracks)
+            try
             {
-                _playerService.AddToQueue(track);
-                addedCount++;
-                ScanStatus = $"Added {addedCount} tracks...";
-            }
-            
-            UpdateQueue();
-            
-            if (addedCount > 0)
-            {
-                // Add to library too
+                // Scan asynchronously - all tracks at once
+                var tracks = await _playerService.ScanFolderAsync(dialog.SelectedPath, IncludeSubfolders);
+                
+                if (tracks.Count == 0)
+                {
+                    StatusMessage = "No audio files found";
+                    ScanStatus = "No audio files found in folder";
+                    return;
+                }
+                
+                // Add all tracks at once to avoid multiple UI updates
+                int addedCount = 0;
+                foreach (var track in tracks)
+                {
+                    _playerService.AddToQueue(track);
+                    addedCount++;
+                    
+                    // Update status less frequently to avoid freezing (every 10 tracks)
+                    if (addedCount % 10 == 0)
+                    {
+                        ScanStatus = $"Added {addedCount} tracks...";
+                        // Allow UI to refresh
+                        await Task.Delay(1);
+                    }
+                }
+                
+                // Single bulk update instead of multiple incremental updates
+                UpdateQueue();
+                
+                // Add to library in one go
                 _allLibraryTracks.AddRange(tracks);
                 UpdateLibraryGroups();
                 FilterLibraryTracks();
@@ -513,38 +599,16 @@ public class AudioPlayerViewModel : BindableBase
                     await _playerService.PlayTrackAsync(Queue[0]);
                 }
             }
-            else
+            finally
             {
-                StatusMessage = "No audio files found";
-                ScanStatus = "No audio files found in folder";
+                IsScanning = false;
             }
-            
-            IsScanning = false;
         }
     }
     
     private void UpdateLibraryGroups()
     {
-        LibraryGroups.Clear();
-        
-        IEnumerable<IGrouping<string, AudioTrack>> groups = OrganizeModeIndex switch
-        {
-            1 => _allLibraryTracks.GroupBy(t => t.DisplayArtist),
-            2 => _allLibraryTracks.GroupBy(t => t.DisplayAlbum),
-            3 => _allLibraryTracks.GroupBy(t => string.IsNullOrEmpty(t.Genre) ? "Unknown" : t.Genre),
-            4 => _allLibraryTracks.GroupBy(t => System.IO.Path.GetDirectoryName(t.FilePath) ?? "Unknown"),
-            _ => Enumerable.Empty<IGrouping<string, AudioTrack>>()
-        };
-        
-        foreach (var group in groups.OrderBy(g => g.Key))
-        {
-            LibraryGroups.Add(new LibraryGroup 
-            { 
-                Name = group.Key, 
-                TrackCount = group.Count(),
-                Tracks = group.ToList()
-            });
-        }
+        RebuildLibraryGroups();
     }
     
     private void FilterLibraryTracks()
@@ -579,6 +643,167 @@ public class AudioPlayerViewModel : BindableBase
         Queue.Clear();
         foreach (var track in _playerService.Queue)
             Queue.Add(track);
+    }
+    
+    /// <summary>
+    /// Initialize and load library index on startup.
+    /// </summary>
+    public async Task InitializeLibraryAsync()
+    {
+        try
+        {
+            IsScanning = true;
+            ScanStatus = "Loading library index...";
+            
+            var index = await _libraryIndexService.LoadOrCreateIndexAsync();
+            if (index?.Tracks != null)
+            {
+                _allLibraryTracks = new List<AudioTrack>();
+                foreach (var indexTrack in index.Tracks)
+                {
+                    // Convert Track (from index) to AudioTrack (legacy format used by player)
+                    var audioTrack = new AudioTrack
+                    {
+                        Title = indexTrack.DisplayTitle,
+                        Artist = indexTrack.DisplayArtist,
+                        Album = indexTrack.DisplayAlbum,
+                        FilePath = indexTrack.FilePath,
+                        Duration = TimeSpan.FromMilliseconds(indexTrack.DurationMs),
+                        Genre = indexTrack.Genre ?? string.Empty,
+                    };
+                    _allLibraryTracks.Add(audioTrack);
+                }
+                
+                RebuildLibraryGroups();
+                ScanStatus = $"Loaded {_allLibraryTracks.Count} tracks";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error loading library: {ex.Message}";
+        }
+        finally
+        {
+            IsScanning = false;
+        }
+    }
+    
+    /// <summary>
+    /// Scan a directory and add tracks to library index.
+    /// </summary>
+    public async Task ScanLibraryDirectoryAsync(string directory)
+    {
+        if (string.IsNullOrWhiteSpace(directory))
+            return;
+        
+        try
+        {
+            IsScanning = true;
+            ScanStatus = "Scanning...";
+            
+            // Scan and index
+            await _libraryIndexService.ScanAndIndexDirectoryAsync(
+                directory,
+                recursive: _includeSubfolders,
+                onProgressChanged: (current, total, status) =>
+                {
+                    ScanStatus = $"{status} ({current}/{total})";
+                });
+            
+            // Reload library
+            var index = _libraryIndexService.GetCurrentIndex();
+            if (index?.Tracks != null)
+            {
+                _allLibraryTracks.Clear();
+                foreach (var indexTrack in index.Tracks)
+                {
+                    var audioTrack = new AudioTrack
+                    {
+                        Title = indexTrack.DisplayTitle,
+                        Artist = indexTrack.DisplayArtist,
+                        Album = indexTrack.DisplayAlbum,
+                        FilePath = indexTrack.FilePath,
+                        Duration = TimeSpan.FromMilliseconds(indexTrack.DurationMs),
+                        Genre = indexTrack.Genre ?? string.Empty,
+                    };
+                    _allLibraryTracks.Add(audioTrack);
+                }
+                
+                RebuildLibraryGroups();
+                ScanStatus = $"Scanned complete: {_allLibraryTracks.Count} tracks";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error scanning library: {ex.Message}";
+        }
+        finally
+        {
+            IsScanning = false;
+        }
+    }
+    
+    /// <summary>
+    /// Search library tracks.
+    /// </summary>
+    public void SearchLibrary(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            RebuildLibraryGroups();
+            return;
+        }
+        
+        var results = _libraryIndexService.Search(query, SearchType.All);
+        _allLibraryTracks = new List<AudioTrack>();
+        foreach (var indexTrack in results)
+        {
+            var audioTrack = new AudioTrack
+            {
+                Title = indexTrack.DisplayTitle,
+                Artist = indexTrack.DisplayArtist,
+                Album = indexTrack.DisplayAlbum,
+                FilePath = indexTrack.FilePath,
+                Duration = TimeSpan.FromMilliseconds(indexTrack.DurationMs),
+                Genre = indexTrack.Genre ?? string.Empty,
+            };
+            _allLibraryTracks.Add(audioTrack);
+        }
+        
+        RebuildLibraryGroups();
+        ScanStatus = $"Found {results.Count} matches";
+    }
+    
+    /// <summary>
+    /// Rebuild library groups based on current organize mode.
+    /// </summary>
+    private void RebuildLibraryGroups()
+    {
+        _libraryGroups.Clear();
+        
+        if (_allLibraryTracks.Count == 0)
+            return;
+        
+        var groupedTracks = _organizeModeIndex switch
+        {
+            1 => _allLibraryTracks.GroupBy(t => t.DisplayArtist).ToDictionary(g => g.Key, g => g.ToList()),
+            2 => _allLibraryTracks.GroupBy(t => t.DisplayAlbum).ToDictionary(g => g.Key, g => g.ToList()),
+            3 => _allLibraryTracks.GroupBy(t => t.Genre ?? "Unknown").ToDictionary(g => g.Key, g => g.ToList()),
+            4 => _allLibraryTracks.GroupBy(t => System.IO.Path.GetDirectoryName(t.FilePath) ?? "Unknown").ToDictionary(g => g.Key, g => g.ToList()),
+            _ => new Dictionary<string, List<AudioTrack>> { { "All Tracks", _allLibraryTracks } }
+        };
+        
+        foreach (var group in groupedTracks.OrderBy(g => g.Key))
+        {
+            _libraryGroups.Add(new LibraryGroup
+            {
+                Name = group.Key,
+                TrackCount = group.Value.Count,
+                Tracks = group.Value,
+            });
+        }
+        
+        RaisePropertyChanged(nameof(LibraryGroups));
     }
     
     // Event handlers

@@ -21,6 +21,7 @@ namespace PlatypusTools.UI.ViewModels
 
         public StatusBarViewModel()
         {
+            Reset(); // Initialize to ready state
             CancelCommand = new RelayCommand(_ => Cancel(), _ => IsOperationRunning && _cancellationTokenSource != null);
         }
 

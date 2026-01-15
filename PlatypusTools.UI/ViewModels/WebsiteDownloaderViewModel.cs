@@ -141,7 +141,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand BrowseOutputCommand { get; }
         public ICommand ClearCommand { get; }
 
-        private async Task ScanUrlAsync()
+        public async Task ScanUrlAsync()
         {
             if (string.IsNullOrWhiteSpace(Url))
                 return;
@@ -196,7 +196,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private async Task StartDownloadAsync()
+        public async Task StartDownloadAsync()
         {
             if (string.IsNullOrWhiteSpace(OutputDirectory))
             {
@@ -289,25 +289,25 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private void Cancel()
+        public void Cancel()
         {
             _cancellationTokenSource?.Cancel();
             StatusMessage = "Cancelling...";
         }
 
-        private void SelectAll()
+        public void SelectAll()
         {
             foreach (var item in DownloadItems)
                 item.IsSelected = true;
         }
 
-        private void SelectNone()
+        public void SelectNone()
         {
             foreach (var item in DownloadItems)
                 item.IsSelected = false;
         }
 
-        private void BrowseOutput()
+        public void BrowseOutput()
         {
             var dialog = new Microsoft.Win32.SaveFileDialog
             {

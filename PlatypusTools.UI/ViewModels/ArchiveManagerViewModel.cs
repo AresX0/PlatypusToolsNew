@@ -149,7 +149,7 @@ namespace PlatypusTools.UI.ViewModels
         
         #region Methods
         
-        private void OpenArchive()
+        public void OpenArchive()
         {
             var dialog = new OpenFileDialog
             {
@@ -196,7 +196,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
         
-        private async Task ExtractAllAsync()
+        public async Task ExtractAllAsync()
         {
             var outputDir = SelectOutputDirectory();
             if (string.IsNullOrEmpty(outputDir)) return;
@@ -204,7 +204,7 @@ namespace PlatypusTools.UI.ViewModels
             await ExtractAsync(outputDir, null);
         }
         
-        private async Task ExtractSelectedAsync()
+        public async Task ExtractSelectedAsync()
         {
             if (!SelectedEntries.Any()) return;
             
@@ -263,7 +263,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
         
-        private void CreateArchive()
+        public void CreateArchive()
         {
             // Select files/folders to add
             var dialog = new OpenFileDialog
@@ -335,7 +335,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
         
-        private void AddFiles()
+        public void AddFiles()
         {
             var dialog = new OpenFileDialog
             {
@@ -383,7 +383,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
         
-        private async Task TestArchiveAsync()
+        public async Task TestArchiveAsync()
         {
             if (string.IsNullOrEmpty(CurrentArchivePath)) return;
             
@@ -414,13 +414,13 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
         
-        private void Cancel()
+        public void Cancel()
         {
             _cts?.Cancel();
             StatusMessage = "Cancelling...";
         }
         
-        private void SelectAll()
+        public void SelectAll()
         {
             SelectedEntries.Clear();
             foreach (var entry in Entries)
@@ -431,7 +431,7 @@ namespace PlatypusTools.UI.ViewModels
             RaiseCommandsCanExecuteChanged();
         }
         
-        private void SelectNone()
+        public void SelectNone()
         {
             foreach (var entry in Entries)
             {

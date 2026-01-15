@@ -288,14 +288,30 @@ public class AudioPlayerService
         
         try
         {
-            var files = Directory.EnumerateFiles(folderPath, "*.*", searchOption)
-                .Where(f => extensions.Contains(Path.GetExtension(f).ToLowerInvariant()));
+            // Run enumeration on background thread to avoid UI blocking
+            var files = await Task.Run(() =>
+                Directory.EnumerateFiles(folderPath, "*.*", searchOption)
+                    .Where(f => extensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
+                    .ToList()
+            );
             
-            foreach (var file in files)
+            // Load tracks asynchronously with a cap to avoid memory issues
+            using var semaphore = new System.Threading.SemaphoreSlim(4); // Max 4 concurrent loads
+            var tasks = files.Select(async file =>
             {
-                var track = await LoadTrackAsync(file);
-                if (track != null) tracks.Add(track);
-            }
+                await semaphore.WaitAsync();
+                try
+                {
+                    return await LoadTrackAsync(file);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            });
+            
+            var results = await Task.WhenAll(tasks);
+            tracks.AddRange(results.Where(t => t != null)!);
         }
         catch (Exception)
         {

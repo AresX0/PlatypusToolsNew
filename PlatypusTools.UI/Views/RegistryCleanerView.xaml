@@ -19,18 +19,18 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" Grid.Column="0">
-                    <Button Content="Scan for Issues" Command="{Binding ScanCommand}" Width="120" FontWeight="Bold" Margin="0,0,8,0" />
-                    <Button Content="Fix Selected" Command="{Binding FixSelectedCommand}" Width="100" Background="DarkGreen" Foreground="White" Margin="0,0,8,0" />
-                    <Button Content="Fix All" Command="{Binding FixAllCommand}" Width="100" Background="DarkOrange" Foreground="White" Margin="0,0,16,0" />
-                    <Button Content="Create Backup" Command="{Binding BackupCommand}" Width="120" Margin="0,0,8,0" />
-                    <Button Content="Select All" Command="{Binding SelectAllCommand}" Width="90" Margin="0,0,4,0" />
-                    <Button Content="Deselect All" Command="{Binding DeselectAllCommand}" Width="90" />
+                    <Button Content="Scan for Issues" Click="OnScanClick" Width="120" FontWeight="Bold" Margin="0,0,8,0" />
+                    <Button Content="Fix Selected" Click="OnFixSelectedClick" Width="100" Background="DarkGreen" Foreground="White" Margin="0,0,8,0" />
+                    <Button Content="Fix All" Click="OnFixAllClick" Width="100" Background="DarkOrange" Foreground="White" Margin="0,0,16,0" />
+                    <Button Content="Create Backup" Click="OnBackupClick" Width="120" Margin="0,0,8,0" />
+                    <Button Content="Select All" Click="OnSelectAllClick" Width="90" Margin="0,0,4,0" />
+                    <Button Content="Deselect All" Click="OnDeselectAllClick" Width="90" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,16,0">
+                    <TextBlock x:Name="TotalIssuesText" VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,16,0">
                         Issues: <Run Text="{Binding TotalIssues, Mode=OneWay}" />
                     </TextBlock>
-                    <TextBlock VerticalAlignment="Center" FontWeight="Bold" Foreground="Green">
+                    <TextBlock x:Name="FixedIssuesText" VerticalAlignment="Center" FontWeight="Bold" Foreground="Green">
                         Fixed: <Run Text="{Binding FixedIssues, Mode=OneWay}" />
                     </TextBlock>
                 </StackPanel>
@@ -40,7 +40,7 @@
         <!-- Issues List -->
         <GroupBox Header="Registry Issues" Grid.Row="1" Margin="0,0,0,8">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <DataGrid ItemsSource="{Binding Issues}"
+                <DataGrid x:Name="IssuesDataGrid" ItemsSource="{Binding Issues}"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
                           CanUserDeleteRows="False"
@@ -92,12 +92,14 @@
         <!-- Status Bar -->
         <StatusBar Grid.Row="2">
             <StatusBarItem>
-                <TextBlock Text="{Binding StatusMessage}" />
+                <TextBlock Text="{Binding DataContext.StatusMessage, RelativeSource={RelativeSource AncestorType=UserControl}}" />
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Scanning..." Margin="0,0,8,0" Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <ProgressBar Width="100" Height="16" IsIndeterminate="True" Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <TextBlock Text="Scanning..." Margin="0,0,8,0"
+                               Visibility="{Binding DataContext.IsScanning, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed, TargetNullValue=Collapsed}" />
+                    <ProgressBar Width="100" Height="16" IsIndeterminate="True"
+                                 Visibility="{Binding DataContext.IsScanning, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed, TargetNullValue=Collapsed}" />
                 </StackPanel>
             </StatusBarItem>
         </StatusBar>

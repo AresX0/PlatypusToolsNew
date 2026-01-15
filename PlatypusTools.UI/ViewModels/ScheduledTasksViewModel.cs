@@ -99,7 +99,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand CreateCommand { get; }
         public ICommand RunCommand { get; }
 
-        private async Task RefreshAsync()
+        public async Task RefreshAsync()
         {
             IsRefreshing = true;
             StatusMessage = "Loading scheduled tasks...";
@@ -144,7 +144,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private async Task EnableTaskAsync()
+        public async Task EnableTaskAsync()
         {
             if (SelectedTask == null) return;
 
@@ -164,7 +164,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private async Task DisableTaskAsync()
+        public async Task DisableTaskAsync()
         {
             if (SelectedTask == null) return;
 
@@ -184,7 +184,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private async Task DeleteTaskAsync()
+        public async Task DeleteTaskAsync()
         {
             if (SelectedTask == null) return;
 
@@ -214,7 +214,7 @@ namespace PlatypusTools.UI.ViewModels
             StatusMessage = "Task creation dialog not implemented yet";
         }
 
-        private async Task RunTaskAsync()
+        public async Task RunTaskAsync()
         {
             if (SelectedTask == null) return;
 

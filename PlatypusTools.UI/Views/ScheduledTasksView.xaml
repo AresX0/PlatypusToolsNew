@@ -19,19 +19,19 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" Grid.Column="0">
-                    <Button Content="Refresh" Command="{Binding RefreshCommand}" Width="90" Margin="0,0,8,0" />
-                    <Button Content="Enable" Command="{Binding EnableCommand}" Width="90" Background="DarkGreen" Foreground="White" Margin="0,0,8,0" />
-                    <Button Content="Disable" Command="{Binding DisableCommand}" Width="90" Background="DarkOrange" Foreground="White" Margin="0,0,8,0" />
-                    <Button Content="Run Now" Command="{Binding RunCommand}" Width="90" Margin="0,0,8,0" />
-                    <Button Content="Delete" Command="{Binding DeleteCommand}" Width="90" Background="DarkRed" Foreground="White" Margin="0,0,8,0" />
-                    <Button Content="Create Task" Command="{Binding CreateCommand}" Width="100" FontWeight="Bold" />
+                    <Button Content="Refresh" Click="OnRefreshClick" Width="90" Margin="0,0,8,0" />
+                    <Button Content="Enable" Click="OnEnableClick" Width="90" Background="DarkGreen" Foreground="White" Margin="0,0,8,0" />
+                    <Button Content="Disable" Click="OnDisableClick" Width="90" Background="DarkOrange" Foreground="White" Margin="0,0,8,0" />
+                    <Button Content="Run Now" Click="OnRunClick" Width="90" Margin="0,0,8,0" />
+                    <Button Content="Delete" Click="OnDeleteClick" Width="90" Background="DarkRed" Foreground="White" Margin="0,0,8,0" />
+                    <Button Content="Create Task" Click="OnCreateClick" Width="100" FontWeight="Bold" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <TextBlock VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,16,0">
-                        Total: <Run Text="{Binding TotalTasks, Mode=OneWay}" />
+                        Total: <Run x:Name="TotalTasksText" Text="{Binding TotalTasks, Mode=OneWay}" />
                     </TextBlock>
                     <TextBlock VerticalAlignment="Center" FontWeight="Bold" Foreground="Green">
-                        Enabled: <Run Text="{Binding EnabledTasks, Mode=OneWay}" />
+                        Enabled: <Run x:Name="EnabledTasksText" Text="{Binding EnabledTasks, Mode=OneWay}" />
                     </TextBlock>
                 </StackPanel>
             </Grid>
@@ -40,7 +40,7 @@
         <!-- Tasks List -->
         <GroupBox Header="Scheduled Tasks" Grid.Row="1" Margin="0,0,0,8">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <DataGrid ItemsSource="{Binding Tasks}"
+                <DataGrid x:Name="TasksDataGrid" ItemsSource="{Binding Tasks}"
                           SelectedItem="{Binding SelectedTask}"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
@@ -96,12 +96,14 @@
         <!-- Status Bar -->
         <StatusBar Grid.Row="2">
             <StatusBarItem>
-                <TextBlock Text="{Binding StatusMessage}" />
+                <TextBlock Text="{Binding DataContext.StatusMessage, RelativeSource={RelativeSource AncestorType=UserControl}}" />
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Loading..." Margin="0,0,8,0" Visibility="{Binding IsRefreshing, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <ProgressBar Width="100" Height="16" IsIndeterminate="True" Visibility="{Binding IsRefreshing, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <TextBlock Text="Loading..." Margin="0,0,8,0"
+                               Visibility="{Binding DataContext.IsRefreshing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed, TargetNullValue=Collapsed}" />
+                    <ProgressBar Width="100" Height="16" IsIndeterminate="True"
+                                 Visibility="{Binding DataContext.IsRefreshing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed, TargetNullValue=Collapsed}" />
                 </StackPanel>
             </StatusBarItem>
         </StatusBar>

@@ -5,7 +5,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows;
 using PlatypusTools.Core.Services;
+using System.Windows.Forms;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -131,7 +133,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand ClearCommand { get; }
         public ICommand CancelCommand { get; }
 
-        private async Task AnalyzeAsync()
+        public async Task AnalyzeAsync()
         {
             if (!Directory.Exists(DirectoryPath))
             {
@@ -162,37 +164,42 @@ namespace PlatypusTools.UI.ViewModels
                     return;
                 }
 
-                TotalFiles = result.TotalFiles;
-                TotalSize = result.TotalSize;
-                TotalDirectories = result.DirectoryStats.Count;
-
-                foreach (var stat in result.FilesByExtension.Values.OrderByDescending(s => s.TotalSize))
+                // Update UI on dispatcher thread
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
-                    FileTypeStats.Add(new FileTypeStatsViewModel(stat));
-                }
+                    TotalFiles = result.TotalFiles;
+                    TotalSize = result.TotalSize;
+                    TotalDirectories = result.DirectoryStats.Count;
 
-                foreach (var file in result.LargestFiles.Take(50))
-                {
-                    LargestFiles.Add(new FileInfoViewModel(file));
-                }
+                    foreach (var stat in result.FilesByExtension.Values.OrderByDescending(s => s.TotalSize))
+                    {
+                        FileTypeStats.Add(new FileTypeStatsViewModel(stat));
+                    }
 
-                foreach (var file in result.OldestFiles.Take(50))
-                {
-                    OldestFiles.Add(new FileInfoViewModel(file));
-                }
+                    foreach (var file in result.LargestFiles.Take(50))
+                    {
+                        LargestFiles.Add(new FileInfoViewModel(file));
+                    }
 
-                foreach (var file in result.NewestFiles.Take(50))
-                {
-                    NewestFiles.Add(new FileInfoViewModel(file));
-                }
+                    foreach (var file in result.OldestFiles.Take(50))
+                    {
+                        OldestFiles.Add(new FileInfoViewModel(file));
+                    }
 
-                foreach (var age in result.FilesByAge)
-                {
-                    FilesByAge.Add(new FileAgeViewModel { AgeRange = age.Key, Count = age.Value });
-                }
+                    foreach (var file in result.NewestFiles.Take(50))
+                    {
+                        NewestFiles.Add(new FileInfoViewModel(file));
+                    }
+
+                    foreach (var age in result.FilesByAge)
+                    {
+                        FilesByAge.Add(new FileAgeViewModel { AgeRange = age.Key, Count = age.Value });
+                    }
+
+                    OnPropertyChanged(nameof(TotalSizeFormatted));
+                });
 
                 StatusMessage = $"Analysis complete: {TotalFiles} files, {TotalSizeFormatted}";
-                OnPropertyChanged(nameof(TotalSizeFormatted));
                 try { SimpleLogger.Info($"FileAnalyzer: completed analysis for '{DirectoryPath}' files={TotalFiles} size={TotalSize}"); } catch {}
             }
             catch (OperationCanceledException)
@@ -213,10 +220,11 @@ namespace PlatypusTools.UI.ViewModels
         private void Cancel()
         {
             _cancellationTokenSource?.Cancel();
-            StatusMessage = "Cancelling...";
+            IsAnalyzing = false;
+            StatusMessage = "Cancelled";
         }
 
-        private async Task FindDuplicatesAsync()
+        public async Task FindDuplicatesAsync()
         {
             if (!Directory.Exists(DirectoryPath))
             {
@@ -250,7 +258,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private async Task BuildTreeAsync()
+        public async Task BuildTreeAsync()
         {
             if (!Directory.Exists(DirectoryPath))
             {
@@ -282,18 +290,28 @@ namespace PlatypusTools.UI.ViewModels
 
         private void BrowseDirectory()
         {
-            var dialog = new Microsoft.Win32.OpenFileDialog
+            try
             {
-                Title = "Select Directory",
-                FileName = "Folder Selection",
-                Filter = "Folders|*.none",
-                CheckFileExists = false,
-                CheckPathExists = true
-            };
+                SimpleLogger.Info("FileAnalyzer: BrowseDirectory called");
+                System.Windows.MessageBox.Show("BrowseDirectory called - debug", "Debug", System.Windows.MessageBoxButton.OK);
+                
+                using var dialog = new System.Windows.Forms.FolderBrowserDialog
+                {
+                    Description = "Select directory to analyze"
+                };
 
-            if (dialog.ShowDialog() == true)
+                // Get the main window handle for dialog parenting
+                var result = DialogHelper.ShowFolderDialog(dialog);
+                
+                if (result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrEmpty(dialog.SelectedPath))
+                {
+                    DirectoryPath = dialog.SelectedPath;
+                    StatusMessage = $"Selected: {dialog.SelectedPath}";
+                }
+            }
+            catch (Exception ex)
             {
-                DirectoryPath = Path.GetDirectoryName(dialog.FileName) ?? string.Empty;
+                StatusMessage = $"Error browsing directory: {ex.Message}";
             }
         }
 

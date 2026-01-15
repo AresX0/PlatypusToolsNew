@@ -80,7 +80,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand RestoreCommand { get; }
         public ICommand DeleteCommand { get; }
 
-        private async Task RefreshAsync()
+        public async Task RefreshAsync()
         {
             IsLoading = true;
             StatusMessage = "Loading restore points...";
@@ -117,7 +117,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private async Task CreatePointAsync()
+        public async Task CreatePointAsync()
         {
             if (string.IsNullOrWhiteSpace(NewPointDescription))
             {
@@ -154,7 +154,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private async Task RestoreAsync()
+        public async Task RestoreAsync()
         {
             if (SelectedPoint == null) return;
 
@@ -184,7 +184,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private async Task DeletePointAsync()
+        public async Task DeletePointAsync()
         {
             if (SelectedPoint == null) return;
 

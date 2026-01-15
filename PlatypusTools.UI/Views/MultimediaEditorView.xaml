@@ -342,18 +342,8 @@
                 </Grid>
             </TabItem>
 
-            <!-- Audio Player Tab -->
-            <TabItem Header="🎧 Audio Player">
-                <local:AudioPlayerView />
-            </TabItem>
-
-            <!-- Audio Library Tab -->
-            <TabItem Header="📚 Audio Library">
-                <local:AudioLibraryView />
-            </TabItem>
-
             <!-- Quick Actions Tab -->
-            <TabItem Header="⚡ Quick Actions">
+            <TabItem Header="⚡ Settings &amp; Tools">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         <GroupBox Header="Auto-Detection" Margin="0,0,0,15">

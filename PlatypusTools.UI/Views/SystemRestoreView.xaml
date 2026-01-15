@@ -22,17 +22,17 @@
                 <!-- Create Restore Point -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
                     <TextBlock VerticalAlignment="Center" Width="120">New Point Name:</TextBlock>
-                    <TextBox Width="350" Text="{Binding NewPointDescription, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
-                    <Button Content="Create Restore Point" Command="{Binding CreatePointCommand}" Width="150" FontWeight="Bold" Margin="0,0,16,0" />
-                    <Button Content="Refresh" Command="{Binding RefreshCommand}" Width="90" />
+                    <TextBox x:Name="NewPointNameTextBox" Width="350" Text="{Binding NewPointDescription, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
+                    <Button Content="Create Restore Point" Click="OnCreatePointClick" Width="150" FontWeight="Bold" Margin="0,0,16,0" />
+                    <Button Content="Refresh" Click="OnRefreshClick" Width="90" />
                 </StackPanel>
 
                 <!-- Manage Restore Points -->
                 <StackPanel Grid.Row="1" Orientation="Horizontal">
-                    <Button Content="Restore System" Command="{Binding RestoreCommand}" Width="120" Background="DarkBlue" Foreground="White" FontWeight="Bold" Margin="0,0,8,0" />
-                    <Button Content="Delete Point" Command="{Binding DeleteCommand}" Width="100" Background="DarkRed" Foreground="White" />
+                    <Button Content="Restore System" Click="OnRestoreClick" Width="120" Background="DarkBlue" Foreground="White" FontWeight="Bold" Margin="0,0,8,0" />
+                    <Button Content="Delete Point" Click="OnDeleteClick" Width="100" Background="DarkRed" Foreground="White" />
                     <TextBlock VerticalAlignment="Center" FontWeight="Bold" Margin="24,0,0,0">
-                        Total Points: <Run Text="{Binding TotalPoints, Mode=OneWay}" />
+                        Total Points: <Run x:Name="TotalPointsText" Text="{Binding TotalPoints, Mode=OneWay}" />
                     </TextBlock>
                 </StackPanel>
             </Grid>
@@ -41,7 +41,7 @@
         <!-- Restore Points List -->
         <GroupBox Header="Available Restore Points" Grid.Row="1" Margin="0,0,0,8">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <DataGrid ItemsSource="{Binding RestorePoints}"
+                <DataGrid x:Name="RestorePointsDataGrid" ItemsSource="{Binding RestorePoints}"
                           SelectedItem="{Binding SelectedPoint}"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
@@ -82,12 +82,14 @@
         <!-- Status Bar -->
         <StatusBar Grid.Row="2">
             <StatusBarItem>
-                <TextBlock Text="{Binding StatusMessage}" />
+                <TextBlock Text="{Binding DataContext.StatusMessage, RelativeSource={RelativeSource AncestorType=UserControl}}" />
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Working..." Margin="0,0,8,0" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <ProgressBar Width="100" Height="16" IsIndeterminate="True" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <TextBlock Text="Working..." Margin="0,0,8,0"
+                               Visibility="{Binding DataContext.IsLoading, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed, TargetNullValue=Collapsed}" />
+                    <ProgressBar Width="100" Height="16" IsIndeterminate="True"
+                                 Visibility="{Binding DataContext.IsLoading, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed, TargetNullValue=Collapsed}" />
                 </StackPanel>
             </StatusBarItem>
         </StatusBar>

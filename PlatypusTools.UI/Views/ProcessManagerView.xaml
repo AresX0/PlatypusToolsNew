@@ -20,12 +20,12 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" Grid.Column="0">
                     <TextBlock VerticalAlignment="Center" Width="80">Filter:</TextBlock>
-                    <TextBox Width="300" Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,16,0" />
-                    <Button Content="Refresh" Command="{Binding RefreshCommand}" Width="90" Margin="0,0,8,0" />
-                    <Button Content="Kill Process" Command="{Binding KillProcessCommand}" Width="100" Background="DarkRed" Foreground="White" FontWeight="Bold" />
+                    <TextBox x:Name="FilterTextBox" Width="300" Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,16,0" />
+                    <Button Content="Refresh" Click="OnRefreshClick" Width="90" Margin="0,0,8,0" />
+                    <Button Content="Kill Process" Click="OnKillProcessClick" Width="100" Background="DarkRed" Foreground="White" FontWeight="Bold" />
                 </StackPanel>
                 <TextBlock Grid.Column="1" VerticalAlignment="Center" FontWeight="Bold">
-                    Total Processes: <Run Text="{Binding TotalProcesses, Mode=OneWay}" />
+                    Total Processes: <Run x:Name="TotalProcessesText" Text="{Binding TotalProcesses, Mode=OneWay}" />
                 </TextBlock>
             </Grid>
         </GroupBox>
@@ -33,7 +33,7 @@
         <!-- Process List -->
         <GroupBox Header="Running Processes" Grid.Row="1" Margin="0,0,0,8">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <DataGrid ItemsSource="{Binding Processes}"
+                <DataGrid x:Name="ProcessesDataGrid" ItemsSource="{Binding Processes}"
                           SelectedItem="{Binding SelectedProcess}"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
@@ -41,12 +41,13 @@
                           CanUserResizeColumns="True"
                           CanUserSortColumns="True"
                           IsReadOnly="True"
-                          SelectionMode="Single"
+                          SelectionMode="Extended"
                           ColumnHeaderHeight="32"
                           MinHeight="250"
                           ColumnWidth="*"
                           HorizontalScrollBarVisibility="Disabled" 
-                          VerticalScrollBarVisibility="Disabled">
+                          VerticalScrollBarVisibility="Disabled"
+                          SelectionChanged="ProcessesDataGrid_SelectionChanged">
                     <DataGrid.ColumnHeaderStyle>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -79,12 +80,14 @@
         <!-- Status Bar -->
         <StatusBar Grid.Row="2">
             <StatusBarItem>
-                <TextBlock Text="{Binding StatusMessage}" />
+                <TextBlock Text="{Binding DataContext.StatusMessage, RelativeSource={RelativeSource AncestorType=UserControl}}" />
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Refreshing..." Margin="0,0,8,0" Visibility="{Binding IsRefreshing, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <ProgressBar Width="100" Height="16" IsIndeterminate="True" Visibility="{Binding IsRefreshing, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <TextBlock Text="Refreshing..." Margin="0,0,8,0"
+                               Visibility="{Binding DataContext.IsRefreshing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed, TargetNullValue=Collapsed}" />
+                    <ProgressBar Width="100" Height="16" IsIndeterminate="True"
+                                 Visibility="{Binding DataContext.IsRefreshing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed, TargetNullValue=Collapsed}" />
                 </StackPanel>
             </StatusBarItem>
         </StatusBar>

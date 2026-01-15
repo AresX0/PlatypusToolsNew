@@ -56,6 +56,7 @@ namespace PlatypusTools.UI.ViewModels
         }
 
         public ObservableCollection<ProcessInfoViewModel> Processes { get; } = new();
+        public ObservableCollection<ProcessInfoViewModel> SelectedProcesses { get; } = new();
         private ObservableCollection<ProcessInfoViewModel> _allProcesses = new();
 
         private ProcessInfoViewModel? _selectedProcess;
@@ -102,7 +103,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand LoadDetailsCommand { get; }
         public ICommand FilterCommand { get; }
 
-        private async Task RefreshAsync()
+        public async Task RefreshAsync()
         {
             IsRefreshing = true;
             StatusMessage = "Loading processes...";
@@ -145,7 +146,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private async Task KillProcessAsync()
+        public async Task KillProcessAsync()
         {
             if (SelectedProcess == null) return;
 
@@ -167,6 +168,43 @@ namespace PlatypusTools.UI.ViewModels
                 {
                     StatusMessage = $"Error killing process: {ex.Message}";
                 }
+            }
+        }
+
+        public async Task KillProcessesAsync(System.Collections.Generic.List<ProcessInfoViewModel> processes)
+        {
+            if (processes == null || processes.Count == 0) return;
+
+            var processNames = string.Join(", ", processes.Take(5).Select(p => p.ProcessName));
+            if (processes.Count > 5)
+                processNames += $" and {processes.Count - 5} more";
+
+            var result = System.Windows.MessageBox.Show(
+                $"Are you sure you want to kill {processes.Count} process(es)?\n\n{processNames}",
+                "Confirm Kill Processes",
+                System.Windows.MessageBoxButton.YesNo,
+                System.Windows.MessageBoxImage.Warning);
+
+            if (result == System.Windows.MessageBoxResult.Yes)
+            {
+                int killedCount = 0;
+                int failedCount = 0;
+
+                foreach (var process in processes)
+                {
+                    try
+                    {
+                        await Task.Run(() => _processManagerService.KillProcess(process.ProcessId));
+                        killedCount++;
+                    }
+                    catch
+                    {
+                        failedCount++;
+                    }
+                }
+
+                StatusMessage = $"Killed {killedCount} process(es)" + (failedCount > 0 ? $", {failedCount} failed" : "");
+                await RefreshAsync();
             }
         }
 

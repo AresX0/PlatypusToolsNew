@@ -20,16 +20,16 @@
         
         <!-- Toolbar -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
-            <Button Content="📂 Open Archive" Command="{Binding OpenArchiveCommand}" Width="120" Margin="0,0,8,0"/>
-            <Button Content="📦 Create Archive" Command="{Binding CreateArchiveCommand}" Width="120" Margin="0,0,8,0"/>
+            <Button Content="📂 Open Archive" Click="OnOpenArchiveClick" Width="120" Margin="0,0,8,0"/>
+            <Button Content="📦 Create Archive" Click="OnCreateArchiveClick" Width="120" Margin="0,0,8,0"/>
             <Separator Margin="8,0"/>
-            <Button Content="📤 Extract All" Command="{Binding ExtractAllCommand}" Width="100" Margin="0,0,8,0" 
+            <Button Content="📤 Extract All" Click="OnExtractAllClick" Width="100" Margin="0,0,8,0" 
                     Background="LightGreen" FontWeight="Bold"/>
-            <Button Content="📤 Extract Selected" Command="{Binding ExtractSelectedCommand}" Width="120" Margin="0,0,8,0"/>
+            <Button Content="📤 Extract Selected" Click="OnExtractSelectedClick" Width="120" Margin="0,0,8,0"/>
             <Separator Margin="8,0"/>
-            <Button Content="➕ Add Files" Command="{Binding AddFilesCommand}" Width="90" Margin="0,0,8,0"/>
-            <Button Content="🔍 Test" Command="{Binding TestArchiveCommand}" Width="70" Margin="0,0,8,0"/>
-            <Button Content="Cancel" Command="{Binding CancelCommand}" Width="80" Background="LightCoral"
+            <Button Content="➕ Add Files" Click="OnAddFilesClick" Width="90" Margin="0,0,8,0"/>
+            <Button Content="🔍 Test" Click="OnTestClick" Width="70" Margin="0,0,8,0"/>
+            <Button Content="Cancel" Click="OnCancelClick" Width="80" Background="LightCoral"
                     Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>
         </StackPanel>
         
@@ -88,9 +88,9 @@
                 
                 <!-- Selection toolbar -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
-                    <Button Content="Select All" Command="{Binding SelectAllCommand}" Width="80" Margin="0,0,8,0"/>
-                    <Button Content="Select None" Command="{Binding SelectNoneCommand}" Width="80" Margin="0,0,16,0"/>
-                    <TextBlock VerticalAlignment="Center" Foreground="Gray">
+                    <Button Content="Select All" Click="OnSelectAllClick" Width="80" Margin="0,0,8,0"/>
+                    <Button Content="Select None" Click="OnSelectNoneClick" Width="80" Margin="0,0,16,0"/>
+                    <TextBlock x:Name="SelectionInfoText" VerticalAlignment="Center" Foreground="Gray">
                         <Run Text="Selected: "/><Run Text="{Binding SelectedEntries.Count, Mode=OneWay}" FontWeight="Bold"/>
                         <Run Text=" of "/><Run Text="{Binding Entries.Count, Mode=OneWay}"/>
                     </TextBlock>
@@ -98,7 +98,7 @@
                 
                 <!-- Entries DataGrid -->
                 <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                    <DataGrid ItemsSource="{Binding Entries}"
+                    <DataGrid x:Name="EntriesDataGrid" ItemsSource="{Binding Entries}"
                               SelectedItem="{Binding SelectedEntry}"
                               AutoGenerateColumns="False"
                               CanUserAddRows="False"
@@ -167,10 +167,11 @@
         <!-- Status Bar -->
         <StatusBar Grid.Row="4" Margin="0,8,0,0">
             <StatusBarItem>
-                <TextBlock Text="{Binding StatusMessage}"/>
+                <TextBlock Text="{Binding DataContext.StatusMessage, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
-                <StackPanel Orientation="Horizontal" Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Orientation="Horizontal"
+                            Visibility="{Binding DataContext.IsProcessing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <ProgressBar Width="100" Height="16" IsIndeterminate="True" Margin="0,0,8,0"/>
                     <TextBlock Text="Processing..." Foreground="Gray"/>
                 </StackPanel>

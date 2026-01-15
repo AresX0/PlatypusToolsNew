@@ -26,9 +26,10 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding DirectoryPath, UpdateSourceTrigger=PropertyChanged}" 
+                <TextBox x:Name="DirectoryPathTextBox" Grid.Row="0" Grid.Column="0" Text="{Binding DirectoryPath, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
                          Height="25" VerticalContentAlignment="Center" Margin="0,0,5,0"/>
                 <Button Grid.Row="0" Grid.Column="1" Content="Browse..." Width="80" Height="25"
+                        Click="OnBrowseClick"
                         Command="{Binding BrowseDirectoryCommand}"/>
 
                 <CheckBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,5,0,0"
@@ -39,15 +40,15 @@
         <!-- Action Buttons -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
             <Button Content="Analyze" Width="100" Height="30" Margin="0,0,5,0"
-                    Command="{Binding AnalyzeCommand}"/>
+                    Click="OnAnalyzeClick"/>
             <Button Content="Find Duplicates" Width="120" Height="30" Margin="0,0,5,0"
-                    Command="{Binding FindDuplicatesCommand}"/>
+                    Click="OnFindDuplicatesClick"/>
             <Button Content="Build Tree" Width="100" Height="30" Margin="0,0,5,0"
-                    Command="{Binding BuildTreeCommand}"/>
+                    Click="OnBuildTreeClick"/>
             <Button Content="Export" Width="80" Height="30" Margin="0,0,5,0"
-                    Command="{Binding ExportCommand}"/>
+                    Click="OnExportClick"/>
             <Button Content="Clear" Width="80" Height="30" Margin="0,0,5,0"
-                    Command="{Binding ClearCommand}"/>
+                    Click="OnClearClick"/>
         </StackPanel>
 
         <!-- Summary Stats -->
@@ -63,13 +64,13 @@
                 </Grid.ColumnDefinitions>
                 
                 <TextBlock Grid.Column="0" Text="Total Files:" FontWeight="Bold" Margin="0,0,10,0"/>
-                <TextBlock Grid.Column="1" Text="{Binding TotalFiles}"/>
+                <TextBlock x:Name="TotalFilesText" Grid.Column="1" Text="{Binding TotalFiles}"/>
                 
                 <TextBlock Grid.Column="2" Text="Total Size:" FontWeight="Bold" Margin="10,0,10,0"/>
-                <TextBlock Grid.Column="3" Text="{Binding TotalSizeFormatted}"/>
+                <TextBlock x:Name="TotalSizeText" Grid.Column="3" Text="{Binding TotalSizeFormatted}"/>
                 
                 <TextBlock Grid.Column="4" Text="Directories:" FontWeight="Bold" Margin="10,0,10,0"/>
-                <TextBlock Grid.Column="5" Text="{Binding TotalDirectories}"/>
+                <TextBlock x:Name="TotalDirsText" Grid.Column="5" Text="{Binding TotalDirectories}"/>
             </Grid>
         </GroupBox>
 
@@ -78,7 +79,7 @@
             <!-- File Types Tab -->
             <TabItem Header="File Types">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                    <DataGrid ItemsSource="{Binding FileTypeStats}" 
+                    <DataGrid x:Name="FileTypesDataGrid" ItemsSource="{Binding FileTypeStats}" 
                               AutoGenerateColumns="False" CanUserAddRows="False" 
                               CanUserResizeColumns="True" CanUserSortColumns="True"
                               SelectionMode="Single"
@@ -103,7 +104,7 @@
             <!-- Largest Files Tab -->
             <TabItem Header="Largest Files">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                    <DataGrid ItemsSource="{Binding LargestFiles}" 
+                    <DataGrid x:Name="LargestFilesDataGrid" ItemsSource="{Binding LargestFiles}" 
                               AutoGenerateColumns="False" CanUserAddRows="False" 
                               CanUserResizeColumns="True" CanUserSortColumns="True"
                               SelectionMode="Single"
@@ -128,7 +129,7 @@
             <!-- Oldest Files Tab -->
             <TabItem Header="Oldest Files">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                    <DataGrid ItemsSource="{Binding OldestFiles}" 
+                    <DataGrid x:Name="OldestFilesDataGrid" ItemsSource="{Binding OldestFiles}" 
                               AutoGenerateColumns="False" CanUserAddRows="False" 
                               CanUserResizeColumns="True" CanUserSortColumns="True"
                               SelectionMode="Single"
@@ -154,7 +155,7 @@
             <!-- Newest Files Tab -->
             <TabItem Header="Newest Files">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                    <DataGrid ItemsSource="{Binding NewestFiles}" 
+                    <DataGrid x:Name="NewestFilesDataGrid" ItemsSource="{Binding NewestFiles}" 
                               AutoGenerateColumns="False" CanUserAddRows="False" 
                               CanUserResizeColumns="True" CanUserSortColumns="True"
                               SelectionMode="Single"
@@ -180,7 +181,7 @@
             <!-- File Age Distribution Tab -->
             <TabItem Header="Age Distribution">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                    <DataGrid ItemsSource="{Binding FilesByAge}" 
+                    <DataGrid x:Name="AgeDistributionDataGrid" ItemsSource="{Binding FilesByAge}" 
                               AutoGenerateColumns="False" CanUserAddRows="False" 
                               CanUserResizeColumns="True" CanUserSortColumns="True"
                               SelectionMode="Single"
@@ -204,7 +205,7 @@
             <!-- Duplicates Tab -->
             <TabItem Header="Duplicates">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                    <DataGrid ItemsSource="{Binding DuplicateGroups}" 
+                    <DataGrid x:Name="DuplicatesDataGrid" ItemsSource="{Binding DuplicateGroups}" 
                               AutoGenerateColumns="False" CanUserAddRows="False" 
                               CanUserResizeColumns="True" CanUserSortColumns="True"
                               SelectionMode="Single"
@@ -240,7 +241,7 @@
 
             <!-- Directory Tree Tab -->
             <TabItem Header="Tree">
-                <TreeView ItemsSource="{Binding TreeNodes}">
+                <TreeView x:Name="DirectoryTreeView" ItemsSource="{Binding TreeNodes}">
                     <TreeView.ItemTemplate>
                         <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                             <StackPanel Orientation="Horizontal">

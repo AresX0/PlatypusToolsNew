@@ -21,13 +21,13 @@
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
                         <TextBlock VerticalAlignment="Center" Width="80">Target Host:</TextBlock>
-                        <TextBox Width="300" Text="{Binding TargetHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
-                        <Button Content="Ping" Command="{Binding PingCommand}" Width="90" FontWeight="Bold" />
+                        <TextBox x:Name="TargetHostTextBox" Width="300" Text="{Binding TargetHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
+                        <Button Content="Ping" Click="OnPingClick" Width="90" FontWeight="Bold" />
                     </StackPanel>
 
                     <GroupBox Header="Ping Results" Grid.Row="1">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <ItemsControl ItemsSource="{Binding PingResults}">
+                            <ItemsControl x:Name="PingResultsControl" ItemsSource="{Binding PingResults}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding}" FontFamily="Consolas" Margin="4,2" />
@@ -49,13 +49,13 @@
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
                         <TextBlock VerticalAlignment="Center" Width="80">Target Host:</TextBlock>
-                        <TextBox Width="300" Text="{Binding TargetHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
-                        <Button Content="Trace Route" Command="{Binding TracerouteCommand}" Width="110" FontWeight="Bold" />
+                        <TextBox x:Name="TracerouteHostTextBox" Width="300" Text="{Binding TargetHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
+                        <Button Content="Trace Route" Click="OnTracerouteClick" Width="110" FontWeight="Bold" />
                     </StackPanel>
 
                     <GroupBox Header="Traceroute Results" Grid.Row="1">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <ItemsControl ItemsSource="{Binding PingResults}">
+                            <ItemsControl x:Name="TracerouteResultsControl" ItemsSource="{Binding PingResults}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding}" FontFamily="Consolas" Margin="4,2" />
@@ -75,12 +75,12 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <Button Grid.Row="0" Content="Refresh Connections" Command="{Binding RefreshConnectionsCommand}" 
+                    <Button Grid.Row="0" Content="Refresh Connections" Click="OnRefreshConnectionsClick" 
                             Width="150" HorizontalAlignment="Left" Margin="0,0,0,8" />
 
                     <GroupBox Header="Network Connections" Grid.Row="1">
                         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                            <DataGrid ItemsSource="{Binding Connections}"
+                            <DataGrid x:Name="ConnectionsDataGrid" ItemsSource="{Binding Connections}"
                                       AutoGenerateColumns="False"
                                       CanUserAddRows="False"
                                       CanUserDeleteRows="False"
@@ -118,12 +118,12 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <Button Grid.Row="0" Content="Refresh Adapters" Command="{Binding RefreshAdaptersCommand}" 
+                    <Button Grid.Row="0" Content="Refresh Adapters" Click="OnRefreshAdaptersClick" 
                             Width="150" HorizontalAlignment="Left" Margin="0,0,0,8" />
 
                     <GroupBox Header="Network Adapters" Grid.Row="1">
                         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                            <DataGrid ItemsSource="{Binding Adapters}"
+                            <DataGrid x:Name="AdaptersDataGrid" ItemsSource="{Binding Adapters}"
                                       AutoGenerateColumns="False"
                                       CanUserAddRows="False"
                                       CanUserDeleteRows="False"
@@ -159,12 +159,14 @@
         <!-- Status Bar -->
         <StatusBar Grid.Row="1">
             <StatusBarItem>
-                <TextBlock Text="{Binding StatusMessage}" />
+                <TextBlock Text="{Binding DataContext.StatusMessage, RelativeSource={RelativeSource AncestorType=UserControl}}" />
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Running..." Margin="0,0,8,0" Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <ProgressBar Width="100" Height="16" IsIndeterminate="True" Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <TextBlock Text="Running..." Margin="0,0,8,0"
+                               Visibility="{Binding DataContext.IsRunning, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed, TargetNullValue=Collapsed}" />
+                    <ProgressBar Width="100" Height="16" IsIndeterminate="True"
+                                 Visibility="{Binding DataContext.IsRunning, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed, TargetNullValue=Collapsed}" />
                 </StackPanel>
             </StatusBarItem>
         </StatusBar>

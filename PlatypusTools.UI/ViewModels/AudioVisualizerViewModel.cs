@@ -83,13 +83,13 @@ namespace PlatypusTools.UI.ViewModels
 
         #region Commands
 
-        public ICommand ToggleVisualizerCommand { get; private set; }
-        public ICommand SelectPresetCommand { get; private set; }
+        public ICommand ToggleVisualizerCommand { get; private set; } = null!;
+        public ICommand SelectPresetCommand { get; private set; } = null!;
 
         private void InitializeCommands()
         {
             ToggleVisualizerCommand = new RelayCommand(_ => ToggleVisualizer());
-            SelectPresetCommand = new RelayCommand(param => SelectPreset(param as string));
+            SelectPresetCommand = new RelayCommand(param => SelectPreset((param as string)!));
         }
 
         private void ToggleVisualizer()

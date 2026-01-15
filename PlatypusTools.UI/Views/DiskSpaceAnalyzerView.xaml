@@ -20,14 +20,14 @@
                 </Grid.RowDefinitions>
                 <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
                     <TextBlock VerticalAlignment="Center" Width="100">Root Path:</TextBlock>
-                    <TextBox Width="500" Text="{Binding RootPath, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
-                    <Button Content="Browse..." Command="{Binding BrowsePathCommand}" Width="90" Margin="0,0,8,0" />
-                    <Button Content="Analyze" Command="{Binding AnalyzeCommand}" Width="90" FontWeight="Bold" Margin="0,0,8,0" />
+                    <TextBox x:Name="RootPathTextBox" Width="500" Text="{Binding RootPath, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="0,0,8,0" />
+                    <Button Content="Browse..." Click="OnBrowseClick" Width="90" Margin="0,0,8,0" />
+                    <Button Content="Analyze" Click="OnAnalyzeClick" Width="90" FontWeight="Bold" Margin="0,0,8,0" />
                     <Button Content="Export" Command="{Binding ExportCommand}" Width="90" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Grid.Row="1">
                     <TextBlock VerticalAlignment="Center" Width="100">Total Size:</TextBlock>
-                    <TextBlock Text="{Binding TotalSizeDisplay}" FontWeight="Bold" FontSize="14" Foreground="DarkBlue" />
+                    <TextBlock x:Name="TotalSizeDisplayText" Text="{Binding TotalSizeDisplay}" FontWeight="Bold" FontSize="14" Foreground="DarkBlue" />
                 </StackPanel>
             </Grid>
         </GroupBox>
@@ -35,7 +35,7 @@
         <!-- Directory Tree -->
         <GroupBox Header="Directory Hierarchy" Grid.Row="1" Margin="0,0,0,8">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <TreeView ItemsSource="{Binding DirectoryTree}">
+                <TreeView x:Name="DirectoryTreeView" ItemsSource="{Binding DirectoryTree}">
                     <TreeView.ItemContainerStyle>
                         <Style TargetType="TreeViewItem">
                             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
@@ -70,8 +70,10 @@
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Analyzing..." Margin="0,0,8,0" Visibility="{Binding IsAnalyzing, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <ProgressBar Width="100" Height="16" IsIndeterminate="True" Visibility="{Binding IsAnalyzing, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <TextBlock Text="Analyzing..." Margin="0,0,8,0"
+                               Visibility="{Binding IsAnalyzing, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed, TargetNullValue=Collapsed}" />
+                    <ProgressBar Width="100" Height="16" IsIndeterminate="True"
+                                 Visibility="{Binding IsAnalyzing, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed, TargetNullValue=Collapsed}" />
                 </StackPanel>
             </StatusBarItem>
         </StatusBar>

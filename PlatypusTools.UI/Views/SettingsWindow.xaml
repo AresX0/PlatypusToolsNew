@@ -354,7 +354,6 @@
                         
                         <GroupBox Header="Advanced" Margin="0,0,0,16">
                             <StackPanel Margin="8">
-                                <CheckBox x:Name="UseProjectMCheck" Content="Use projectM renderer (requires projectM library)" Margin="0,4"/>
                                 <CheckBox x:Name="EnableGPUAccelerationCheck" Content="Enable GPU acceleration" IsChecked="True" Margin="0,4"/>
                                 <CheckBox x:Name="EnableAudioNormalizationCheck" Content="Normalize audio input" IsChecked="True" Margin="0,4"/>
                             </StackPanel>

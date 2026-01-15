@@ -238,11 +238,8 @@
                         </ScrollViewer>
                     </TabItem>
                     <TabItem Header="File Analyzer">
-                        <views:FileAnalyzerView DataContext="{Binding FileAnalyzer}" />
-                    </TabItem>
-                    <TabItem Header="Media Library">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:MediaLibraryView DataContext="{Binding MediaLibrary}" />
+                            <views:FileAnalyzerView DataContext="{Binding FileAnalyzer}" />
                         </ScrollViewer>
                     </TabItem>
                     <TabItem Header="Disk Space Analyzer">

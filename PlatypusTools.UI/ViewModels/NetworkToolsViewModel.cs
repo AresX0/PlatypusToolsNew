@@ -103,7 +103,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand RefreshConnectionsCommand { get; }
         public ICommand RefreshAdaptersCommand { get; }
 
-        private async Task PingAsync()
+        public async Task PingAsync()
         {
             if (string.IsNullOrWhiteSpace(TargetHost))
             {
@@ -142,7 +142,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private async Task TracerouteAsync()
+        public async Task TracerouteAsync()
         {
             if (string.IsNullOrWhiteSpace(TargetHost))
             {
@@ -177,7 +177,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private async Task RefreshConnectionsAsync()
+        public async Task RefreshConnectionsAsync()
         {
             IsRunning = true;
             StatusMessage = "Loading network connections...";
@@ -213,7 +213,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private async Task RefreshAdaptersAsync()
+        public async Task RefreshAdaptersAsync()
         {
             IsRunning = true;
             StatusMessage = "Loading network adapters...";

@@ -1043,11 +1043,11 @@
           }
         }
       },
-      "TagLibSharp/2.3.0": {
+      "TagLibSharp/2.2.0": {
         "runtime": {
           "lib/netstandard2.0/TagLibSharp.dll": {
-            "assemblyVersion": "2.3.0.0",
-            "fileVersion": "2.3.0.0"
+            "assemblyVersion": "2.2.0.0",
+            "fileVersion": "2.2.0.0"
           }
         }
       },
@@ -1073,7 +1073,7 @@
           "MetadataExtractor": "2.8.1",
           "SharpCompress": "0.38.0",
           "System.Management": "10.0.0",
-          "TagLibSharp": "2.3.0"
+          "TagLibSharp": "2.2.0"
         },
         "runtime": {
           "PlatypusTools.Core.dll": {
@@ -1208,12 +1208,12 @@
       "path": "system.management/10.0.0",
       "hashPath": "system.management.10.0.0.nupkg.sha512"
     },
-    "TagLibSharp/2.3.0": {
+    "TagLibSharp/2.2.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-Qo4z6ZjnIfbR3Us1Za5M2vQ97OWZPmODvVmepxZ8XW0UIVLGdO2T63/N3b23kCcyiwuIe0TQvMEQG8wUCCD1mA==",
-      "path": "taglibsharp/2.3.0",
-      "hashPath": "taglibsharp.2.3.0.nupkg.sha512"
+      "sha512": "sha512-X8UOWeaJgHGrN3xilg3O0lqowhUSwNEiGrE8ITDd1rCn14LqGCWKgn5GX++SW4vuXBMne8+pyic6aUvOFQMRlA==",
+      "path": "taglibsharp/2.2.0",
+      "hashPath": "taglibsharp.2.2.0.nupkg.sha512"
     },
     "XmpCore/6.1.10.1": {
       "type": "package",

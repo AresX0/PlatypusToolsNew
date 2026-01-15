@@ -73,7 +73,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand SelectAllCommand { get; }
         public ICommand DeselectAllCommand { get; }
 
-        private async Task ScanAsync()
+        public async Task ScanAsync()
         {
             IsScanning = true;
             StatusMessage = "Scanning registry for issues...";
@@ -113,7 +113,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private async Task FixSelectedAsync()
+        public async Task FixSelectedAsync()
         {
             var selectedIssues = Issues.Where(i => i.IsSelected && !i.IsFixed).ToList();
             if (!selectedIssues.Any()) return;
@@ -150,7 +150,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private async Task FixAllAsync()
+        public async Task FixAllAsync()
         {
             var unfixedIssues = Issues.Where(i => !i.IsFixed).ToList();
             if (!unfixedIssues.Any()) return;
@@ -186,7 +186,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private async Task BackupAsync()
+        public async Task BackupAsync()
         {
             try
             {
@@ -209,7 +209,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private void SelectAll()
+        public void SelectAll()
         {
             foreach (var issue in Issues.Where(i => !i.IsFixed))
             {
@@ -218,7 +218,7 @@ namespace PlatypusTools.UI.ViewModels
             ((RelayCommand)FixSelectedCommand).RaiseCanExecuteChanged();
         }
 
-        private void DeselectAll()
+        public void DeselectAll()
         {
             foreach (var issue in Issues)
             {

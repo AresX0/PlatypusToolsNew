@@ -11,20 +11,57 @@ namespace PlatypusTools.UI.Views
             Loaded += SystemRestoreView_Loaded;
         }
 
-        private void SystemRestoreView_Loaded(object sender, RoutedEventArgs e)
+        private async void SystemRestoreView_Loaded(object sender, RoutedEventArgs e)
         {
             this.UpdateLayout();
-            
-            // Make all columns auto-size first to establish proper geometry
-            if (this.FindName("DataGrid") is DataGrid grid)
+            if (DataContext is ViewModels.SystemRestoreViewModel vm)
             {
-                grid.UpdateLayout();
-                foreach (var column in grid.Columns)
-                {
-                    column.Width = double.NaN; // Auto-size
-                }
-                grid.UpdateLayout();
+                await vm.RefreshAsync();
+                RefreshUI(vm);
             }
+        }
+        
+        private async void OnRefreshClick(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ViewModels.SystemRestoreViewModel vm)
+            {
+                await vm.RefreshAsync();
+                RefreshUI(vm);
+            }
+        }
+        
+        private async void OnCreatePointClick(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ViewModels.SystemRestoreViewModel vm)
+            {
+                vm.NewPointDescription = NewPointNameTextBox.Text;
+                await vm.CreatePointAsync();
+                RefreshUI(vm);
+            }
+        }
+        
+        private async void OnRestoreClick(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ViewModels.SystemRestoreViewModel vm)
+            {
+                await vm.RestoreAsync();
+            }
+        }
+        
+        private async void OnDeleteClick(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ViewModels.SystemRestoreViewModel vm)
+            {
+                await vm.DeletePointAsync();
+                RefreshUI(vm);
+            }
+        }
+        
+        private void RefreshUI(ViewModels.SystemRestoreViewModel vm)
+        {
+            TotalPointsText.Text = vm.TotalPoints.ToString();
+            RestorePointsDataGrid.ItemsSource = null;
+            RestorePointsDataGrid.ItemsSource = vm.RestorePoints;
         }
     }
 }

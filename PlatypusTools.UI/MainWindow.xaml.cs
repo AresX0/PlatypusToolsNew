@@ -1,4 +1,5 @@
 using System.Windows;
+using PlatypusTools.UI.ViewModels;
 
 namespace PlatypusTools.UI
 {
@@ -9,6 +10,10 @@ namespace PlatypusTools.UI
             InitializeComponent();
             // Hook up closing for cleanup if needed
             this.Closed += (s, e) => { /* no-op */ };
+            this.Loaded += (s, e) =>
+            {
+                StatusBarViewModel.Instance.Reset();
+            };
         }
 
         private void ValidateDataContext_Click(object sender, RoutedEventArgs e)

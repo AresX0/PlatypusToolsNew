@@ -103,10 +103,11 @@ namespace PlatypusTools.UI.ViewModels
         private void Cancel()
         {
             _cancellationTokenSource?.Cancel();
-            StatusMessage = "Cancelling...";
+            IsAnalyzing = false;
+            StatusMessage = "Cancelled";
         }
 
-        private async Task AnalyzeAsync()
+        public async Task AnalyzeAsync()
         {
             if (string.IsNullOrWhiteSpace(RootPath) || !Directory.Exists(RootPath))
             {
@@ -218,7 +219,7 @@ namespace PlatypusTools.UI.ViewModels
                 dialog.SelectedPath = RootPath;
             }
 
-            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (DialogHelper.ShowFolderDialog(dialog) == System.Windows.Forms.DialogResult.OK)
             {
                 RootPath = dialog.SelectedPath;
             }
