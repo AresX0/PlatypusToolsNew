@@ -225,6 +225,11 @@
                     <views:MultimediaEditorView DataContext="{Binding MultimediaEditor}" />
                 </ScrollViewer>
             </TabItem>
+            <TabItem Header="🎵 Audio Player">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                    <views:AudioPlayerView DataContext="{Binding AudioPlayer}" />
+                </ScrollViewer>
+            </TabItem>
             <TabItem Header="Tools">
                 <TabControl>
                     <TabItem Header="Website Downloader">

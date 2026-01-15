@@ -148,4 +148,20 @@ namespace PlatypusTools.UI.Converters
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => value is true ? parameter : Binding.DoNothing;
     }
+
+    /// <summary>
+    /// Converts a double value to a height for UI elements
+    /// </summary>
+    public class DoubleToHeightConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is double d && double.IsNaN(d) == false && d > 0)
+                return d;
+            return 5.0; // Default height
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
 }

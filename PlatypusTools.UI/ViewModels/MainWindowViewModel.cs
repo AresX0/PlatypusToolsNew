@@ -42,6 +42,9 @@ namespace PlatypusTools.UI.ViewModels
                 PrivacyCleaner = new PrivacyCleanerViewModel();
                 VideoConverter = new VideoConverterViewModel();
                 
+                SimpleLogger.Debug("Creating AudioPlayerViewModel");
+                AudioPlayer = new AudioPlayerViewModel();
+                
                 SimpleLogger.Debug("Creating MetadataEditorViewModel");
                 MetadataEditor = new MetadataEditorViewModel();
                 
@@ -118,6 +121,7 @@ namespace PlatypusTools.UI.ViewModels
         public DiskCleanupViewModel DiskCleanup { get; }
         public PrivacyCleanerViewModel PrivacyCleaner { get; }
         public VideoConverterViewModel VideoConverter { get; }
+        public AudioPlayerViewModel AudioPlayer { get; }
         public MetadataEditorViewModel MetadataEditor { get; }
         public MultimediaEditorViewModel MultimediaEditor { get; }
         public SystemAuditViewModel SystemAudit { get; }
