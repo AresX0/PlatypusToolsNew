@@ -93,15 +93,6 @@
                 
                 <!-- Visualizer Mode Selector -->
                 <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,0">
-                    <TextBlock Text="Visualizer:" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <ComboBox Width="120" SelectedIndex="{Binding VisualizerModeIndex}">
-                        <ComboBoxItem Content="Bars"/>
-                        <ComboBoxItem Content="Mirror Bars"/>
-                        <ComboBoxItem Content="Waveform"/>
-                        <ComboBoxItem Content="Circular"/>
-                        <ComboBoxItem Content="None"/>
-                    </ComboBox>
-                    <Separator Margin="15,0"/>
                     <TextBlock Text="EQ:" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <ComboBox Width="120" ItemsSource="{Binding EQPresets}" 
                               SelectedItem="{Binding SelectedPreset}"

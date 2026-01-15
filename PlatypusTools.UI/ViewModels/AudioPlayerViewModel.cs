@@ -204,6 +204,13 @@ public class AudioPlayerViewModel : BindableBase
         get => _visualizerModeIndex;
         set => SetProperty(ref _visualizerModeIndex, value);
     }
+
+    private int _barCount = 32;
+    public int BarCount
+    {
+        get => _barCount;
+        set => SetProperty(ref _barCount, value);
+    }
     
     public int OrganizeModeIndex
     {

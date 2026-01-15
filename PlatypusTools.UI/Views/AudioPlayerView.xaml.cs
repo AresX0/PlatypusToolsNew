@@ -48,18 +48,9 @@ public partial class AudioPlayerView : UserControl
     
     private void InitializeVisualizer()
     {
-        if (VisualizerControl?.DataContext is AudioVisualizerViewModel vizViewModel)
+        if (VisualizerControl != null)
         {
-            // Initialize with default audio parameters (44100 Hz, 2 channels, 2048 samples)
-            vizViewModel.Initialize(44100, 2, 2048);
-        }
-        else if (VisualizerControl != null)
-        {
-            // Create and set AudioVisualizerViewModel as DataContext
-            var service = new PlatypusTools.Core.Services.AudioVisualizerService();
-            var vizVM = new AudioVisualizerViewModel(service);
-            vizVM.Initialize(44100, 2, 2048);
-            VisualizerControl.DataContext = vizVM;
+            // No special initialization needed - visualizer renders on its own
         }
     }
     
@@ -67,14 +58,20 @@ public partial class AudioPlayerView : UserControl
     {
         if (e.PropertyName == nameof(AudioPlayerViewModel.SpectrumData))
         {
-            // Old visualizer code is replaced by integrated AudioVisualizerView
-            // Dispatcher.Invoke(() => UpdateVisualizer(_viewModel?.SpectrumData ?? Array.Empty<double>()));
-            
-            // Update the integrated visualizer view
-            if (VisualizerControl?.DataContext is AudioVisualizerViewModel vizViewModel && _viewModel?.SpectrumData != null)
+            // Feed spectrum data to the native visualizer
+            if (VisualizerControl != null && _viewModel?.SpectrumData != null)
             {
-                var spectrumFloats = _viewModel.SpectrumData.Select(x => (float)x).ToArray();
-                vizViewModel.UpdateAudioData(spectrumFloats, spectrumFloats.Length);
+                var specData = _viewModel.SpectrumData;
+                string mode = _viewModel.VisualizerModeIndex switch
+                {
+                    0 => "Bars",
+                    1 => "Mirror",
+                    2 => "Waveform",
+                    3 => "Circular",
+                    _ => "Bars"
+                };
+                
+                VisualizerControl.UpdateSpectrumData(specData, mode, _viewModel.BarCount);
             }
         }
         else if (e.PropertyName == nameof(AudioPlayerViewModel.CurrentTrack))
