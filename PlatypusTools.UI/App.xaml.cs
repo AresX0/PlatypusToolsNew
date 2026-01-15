@@ -1,5 +1,6 @@
 using PlatypusTools.Core.Services;
 using PlatypusTools.UI.Views;
+using PlatypusTools.UI.ViewModels;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -116,14 +117,14 @@ namespace PlatypusTools.UI
             }
 
             // Set minimum log level from config if provided
-            if (!string.IsNullOrWhiteSpace(cfg.LogLevel) && Enum.TryParse<LogLevel>(cfg.LogLevel, true, out var lvl))
+            if (!string.IsNullOrWhiteSpace(cfg.LogLevel) && Enum.TryParse<Core.Services.LogLevel>(cfg.LogLevel, true, out var lvl))
             {
                 SimpleLogger.MinLevel = lvl;
             }
 
             // For debugging crashes during development, force verbose logging (Debug)
             // Remove or revert this line for production builds.
-            SimpleLogger.MinLevel = LogLevel.Debug;
+            SimpleLogger.MinLevel = Core.Services.LogLevel.Debug;
 
             SimpleLogger.Info($"Application starting. LogFile='{SimpleLogger.LogFile}', MinLevel={SimpleLogger.MinLevel}");
         }
@@ -132,15 +133,39 @@ namespace PlatypusTools.UI
         {
             try
             {
-                var checker = new DependencyCheckerService();
-                var result = await checker.CheckAllDependenciesAsync();
+                var checker = new PrerequisiteCheckerService();
+                var missing = await checker.GetMissingPrerequisitesAsync();
 
-                if (!result.AllDependenciesMet)
+                if (missing.Count > 0)
                 {
-                    var message = result.GetMissingDependenciesMessage();
-                    message += "\n\nSome features may not work without these dependencies.\n\nDo you want to continue anyway?";
+                    var prereqWindow = new PrerequisitesWindow
+                    {
+                        DataContext = new PrerequisitesViewModel(checker)
+                    };
 
-                    var msgResult = MessageBox.Show(message, "Missing Dependencies", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    // Close splash before showing prerequisites window
+                    _splashScreen?.Close();
+                    _splashScreen = null;
+
+                    var result = prereqWindow.ShowDialog();
+                    
+                    // If user clicked "Continue Anyway", we proceed
+                    // If they closed the window, we shutdown
+                    if (result == false)
+                    {
+                        Current.Shutdown();
+                        return;
+                    }
+                }
+
+                // Legacy DependencyCheckerService for other checks (WebView2, etc.)
+                var legacyChecker = new DependencyCheckerService();
+                var legacyResult = await legacyChecker.CheckAllDependenciesAsync();
+
+                if (!legacyResult.WebView2Installed)
+                {
+                    var message = "WebView2 Runtime is required for help and certain features.\n\nDo you want to continue anyway?";
+                    var msgResult = MessageBox.Show(message, "Missing WebView2", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                     if (msgResult == MessageBoxResult.No)
                     {
                         Current.Shutdown();

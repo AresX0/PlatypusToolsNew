@@ -1,0 +1,157 @@
+<Window x:Class="PlatypusTools.UI.PrerequisitesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Missing Prerequisites" 
+        Height="500" 
+        Width="700"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F5F5"
+        Foreground="#333333"
+        ResizeMode="CanResizeWithGrip"
+        ShowInTaskbar="True">
+    
+    <Grid>
+        <StackPanel Orientation="Vertical" Margin="20">
+            <!-- Header -->
+            <TextBlock 
+                Text="Missing Dependencies Detected" 
+                FontSize="18" 
+                FontWeight="Bold" 
+                Margin="0,0,0,10"
+                Foreground="#C92A2A"/>
+            
+            <TextBlock 
+                Text="PlatypusTools requires the following tools to function properly. Please install them and add them to your system PATH, then restart the application."
+                TextWrapping="Wrap"
+                Margin="0,0,0,20"
+                Foreground="#555555"/>
+
+            <!-- Missing Prerequisites List -->
+            <Border 
+                BorderBrush="#CCCCCC" 
+                BorderThickness="1" 
+                CornerRadius="4"
+                Margin="0,0,0,20">
+                <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding MissingPrerequisites}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border 
+                                    Padding="15" 
+                                    BorderBrush="#E8E8E8" 
+                                    BorderThickness="0,0,0,1"
+                                    Background="White">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Orientation="Vertical" Grid.Column="0">
+                                            <TextBlock 
+                                                Text="{Binding DisplayName}" 
+                                                FontSize="14" 
+                                                FontWeight="Bold"
+                                                Margin="0,0,0,5"/>
+                                            <TextBlock 
+                                                Text="{Binding Description}" 
+                                                FontSize="12"
+                                                TextWrapping="Wrap"
+                                                Foreground="#666666"
+                                                Margin="0,0,0,8"/>
+                                            <TextBlock 
+                                                Text="{Binding Instructions}" 
+                                                FontSize="11"
+                                                TextWrapping="Wrap"
+                                                Foreground="#888888"/>
+                                        </StackPanel>
+
+                                        <Button 
+                                            Grid.Column="1"
+                                            Content="Download" 
+                                            Command="{Binding DataContext.OpenDownloadLinkCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}"
+                                            Background="#1971C2"
+                                            Foreground="White"
+                                            Padding="12,6"
+                                            Margin="15,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource MaterialDesignRaisedButton}"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Action Buttons -->
+            <Grid Margin="0,20,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock 
+                    Grid.Column="0"
+                    Text="After installing, restart the application." 
+                    VerticalAlignment="Center"
+                    Foreground="#888888"/>
+
+                <Button 
+                    Grid.Column="1"
+                    Content="Check Again" 
+                    Command="{Binding CheckPrerequisitesCommand}"
+                    Background="#51CF66"
+                    Foreground="White"
+                    Padding="15,8"
+                    Margin="10,0"
+                    Style="{StaticResource MaterialDesignRaisedButton}"/>
+
+                <Button 
+                    Grid.Column="2"
+                    Content="Continue Anyway" 
+                    Command="{Binding ContinueWithoutPrerequisitesCommand}"
+                    Background="#868E96"
+                    Foreground="White"
+                    Padding="15,8"
+                    Style="{StaticResource MaterialDesignRaisedButton}"/>
+            </Grid>
+
+            <!-- Info Section -->
+            <Border 
+                Background="#FFF3BF" 
+                BorderBrush="#FDD835" 
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="12"
+                Margin="0,20,0,0">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock 
+                        Text="ℹ️ Information" 
+                        FontWeight="Bold"
+                        Foreground="#F57F17"
+                        Margin="0,0,0,5"/>
+                    <TextBlock 
+                        Text="For more information about these tools and PlatypusTools, visit:" 
+                        TextWrapping="Wrap"
+                        Foreground="#555555"/>
+                    <Hyperlink 
+                        NavigateUri="https://github.com/your-repo/PlatypusTools" 
+                        RequestNavigate="Hyperlink_RequestNavigate">
+                        <TextBlock Text="https://github.com/your-repo/PlatypusTools" Foreground="#1971C2"/>
+                    </Hyperlink>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- Loading Indicator -->
+        <Grid Background="#00000000" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}" ZIndex="100">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <ProgressBar IsIndeterminate="True" Width="100" Margin="0,0,0,10"/>
+                <TextBlock Text="Checking prerequisites..." TextAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
