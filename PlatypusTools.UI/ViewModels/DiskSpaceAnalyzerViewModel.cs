@@ -94,6 +94,31 @@ namespace PlatypusTools.UI.ViewModels
         private string _totalSizeDisplay = "0 bytes";
         public string TotalSizeDisplay { get => _totalSizeDisplay; set => SetProperty(ref _totalSizeDisplay, value); }
 
+        private bool _showHiddenFiles = false;
+        public bool ShowHiddenFiles 
+        { 
+            get => _showHiddenFiles; 
+            set 
+            { 
+                if (SetProperty(ref _showHiddenFiles, value))
+                    ApplyFilters();
+            } 
+        }
+
+        private bool _showSystemFiles = false;
+        public bool ShowSystemFiles 
+        { 
+            get => _showSystemFiles; 
+            set 
+            { 
+                if (SetProperty(ref _showSystemFiles, value))
+                    ApplyFilters();
+            } 
+        }
+
+        // Store the full unfiltered tree for reapplying filters
+        private DirectoryNodeViewModel? _unfilteredRootNode;
+
         public ICommand AnalyzeCommand { get; }
         public ICommand BrowsePathCommand { get; }
         public ICommand RefreshCommand { get; }
@@ -138,7 +163,8 @@ namespace PlatypusTools.UI.ViewModels
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     var rootNode = CreateNodeViewModel(analysis);
-                    DirectoryTree.Add(rootNode);
+                    _unfilteredRootNode = rootNode; // Store unfiltered copy
+                    ApplyFilters(); // Apply current filter settings
                     TotalSize = rootNode.Size; // Use the calculated size from the node
                     TotalSizeDisplay = FormatSize(TotalSize);
                 });
@@ -246,6 +272,56 @@ namespace PlatypusTools.UI.ViewModels
             {
                 StatusMessage = $"Export error: {ex.Message}";
             }
+        }
+
+        /// <summary>
+        /// Applies the current filter settings to the directory tree.
+        /// </summary>
+        private void ApplyFilters()
+        {
+            if (_unfilteredRootNode == null)
+                return;
+
+            DirectoryTree.Clear();
+            var filteredRoot = FilterNode(_unfilteredRootNode);
+            if (filteredRoot != null)
+                DirectoryTree.Add(filteredRoot);
+        }
+
+        /// <summary>
+        /// Recursively filters a node based on ShowHiddenFiles and ShowSystemFiles settings.
+        /// </summary>
+        private DirectoryNodeViewModel? FilterNode(DirectoryNodeViewModel source)
+        {
+            // If it's a hidden/system item and we're not showing those, skip it
+            if (!ShowHiddenFiles && source.IsHidden)
+                return null;
+            if (!ShowSystemFiles && source.IsSystem)
+                return null;
+
+            // Clone the node
+            var filtered = new DirectoryNodeViewModel
+            {
+                Name = source.Name,
+                FullPath = source.FullPath,
+                Size = source.Size,
+                SizeDisplay = source.SizeDisplay,
+                FileCount = source.FileCount,
+                IsExpanded = source.IsExpanded,
+                IsFile = source.IsFile,
+                IsHidden = source.IsHidden,
+                IsSystem = source.IsSystem
+            };
+
+            // Recursively filter children
+            foreach (var child in source.Children)
+            {
+                var filteredChild = FilterNode(child);
+                if (filteredChild != null)
+                    filtered.Children.Add(filteredChild);
+            }
+
+            return filtered;
         }
     }
 }

@@ -16,7 +16,13 @@
         <!-- Selection and Options -->
         <GroupBox Grid.Row="0" Margin="0,0,0,10">
             <GroupBox.Header>
-                <TextBlock Text="⚠️ Select Privacy Items to Clean - This will delete data!" FontWeight="Bold" Foreground="Red"/>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="⚠️ Select Privacy Items to Clean - This will delete data!" FontWeight="Bold" Foreground="Red"/>
+                    <Button Content="Select All Categories" Margin="20,0,5,0" Padding="8,2" FontSize="11"
+                            Click="OnSelectAllCategoriesClick" ToolTip="Check all data source categories"/>
+                    <Button Content="Clear All Categories" Padding="8,2" FontSize="11"
+                            Click="OnClearAllCategoriesClick" ToolTip="Uncheck all data source categories"/>
+                </StackPanel>
             </GroupBox.Header>
             <Grid Margin="5">
                 <Grid.ColumnDefinitions>

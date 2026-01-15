@@ -309,6 +309,10 @@ public class AudioPlayerViewModel : BindableBase
     public ICommand ScanLibraryCommand { get; }
     public ICommand CancelScanCommand { get; }
     
+    // Keyboard shortcut commands
+    public ICommand VolumeUpCommand { get; }
+    public ICommand VolumeDownCommand { get; }
+    
     // Queue selection
     private AudioTrack? _selectedQueueTrack;
     public AudioTrack? SelectedQueueTrack
@@ -428,6 +432,16 @@ public class AudioPlayerViewModel : BindableBase
         {
             IsScanning = false;
             ScanStatus = "Scan cancelled";
+        });
+        
+        // Keyboard shortcut commands
+        VolumeUpCommand = new RelayCommand(_ =>
+        {
+            Volume = Math.Min(1.0, Volume + 0.05); // +5%
+        });
+        VolumeDownCommand = new RelayCommand(_ =>
+        {
+            Volume = Math.Max(0.0, Volume - 0.05); // -5%
         });
         
         // Set initial volume
@@ -643,6 +657,9 @@ public class AudioPlayerViewModel : BindableBase
         Queue.Clear();
         foreach (var track in _playerService.Queue)
             Queue.Add(track);
+        
+        // Save queue for persistence across sessions
+        _ = _playerService.SaveQueueAsync();
     }
     
     /// <summary>
@@ -653,6 +670,16 @@ public class AudioPlayerViewModel : BindableBase
         try
         {
             IsScanning = true;
+            ScanStatus = "Loading saved queue...";
+            
+            // Load saved queue from previous session
+            var queueLoaded = await _playerService.LoadQueueAsync();
+            if (queueLoaded)
+            {
+                UpdateQueue();
+                StatusMessage = $"Restored {Queue.Count} tracks from previous session";
+            }
+            
             ScanStatus = "Loading library index...";
             
             var index = await _libraryIndexService.LoadOrCreateIndexAsync();

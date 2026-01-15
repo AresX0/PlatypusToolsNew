@@ -17,6 +17,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
                     <TextBlock VerticalAlignment="Center" Width="100">Root Path:</TextBlock>
@@ -25,9 +26,16 @@
                     <Button Content="Analyze" Click="OnAnalyzeClick" Width="90" FontWeight="Bold" Margin="0,0,8,0" />
                     <Button Content="Export" Command="{Binding ExportCommand}" Width="90" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Grid.Row="1">
+                <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8">
                     <TextBlock VerticalAlignment="Center" Width="100">Total Size:</TextBlock>
                     <TextBlock x:Name="TotalSizeDisplayText" Text="{Binding TotalSizeDisplay}" FontWeight="Bold" FontSize="14" Foreground="DarkBlue" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Grid.Row="2">
+                    <TextBlock VerticalAlignment="Center" Width="100">Visibility:</TextBlock>
+                    <CheckBox Content="Show Hidden Files" IsChecked="{Binding ShowHiddenFiles}" Margin="0,0,16,0" VerticalAlignment="Center"
+                              ToolTip="Show files and folders with Hidden attribute"/>
+                    <CheckBox Content="Show System Files" IsChecked="{Binding ShowSystemFiles}" VerticalAlignment="Center"
+                              ToolTip="Show files and folders with System attribute"/>
                 </StackPanel>
             </Grid>
         </GroupBox>

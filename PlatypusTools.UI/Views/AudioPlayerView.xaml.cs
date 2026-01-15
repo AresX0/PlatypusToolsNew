@@ -84,4 +84,50 @@ public partial class AudioPlayerView : UserControl
     
 // Old visualizer drawing methods replaced by integrated AudioVisualizerView
     // These methods are deprecated and kept only for reference
+    
+    /// <summary>
+    /// Removes all selected tracks from the queue (multi-select support).
+    /// </summary>
+    private void OnRemoveSelectedClick(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel == null) return;
+        
+        var selectedTracks = QueueListBox.SelectedItems
+            .Cast<PlatypusTools.Core.Models.Audio.AudioTrack>()
+            .ToList();
+        
+        if (selectedTracks.Count == 0)
+        {
+            MessageBox.Show("No tracks selected. Use Ctrl+Click or Shift+Click to select multiple tracks.",
+                            "No Selection", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        
+        foreach (var track in selectedTracks)
+        {
+            _viewModel.RemoveFromQueueCommand.Execute(track);
+        }
+    }
+    
+    /// <summary>
+    /// Clears the entire queue.
+    /// </summary>
+    private void OnClearQueueClick(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel == null) return;
+        
+        if (_viewModel.Queue.Count == 0)
+        {
+            MessageBox.Show("Queue is already empty.", "Clear Queue", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        
+        var result = MessageBox.Show($"Remove all {_viewModel.Queue.Count} tracks from the queue?",
+                                     "Clear Queue", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        
+        if (result == MessageBoxResult.Yes)
+        {
+            _viewModel.ClearQueueCommand.Execute(null);
+        }
+    }
 }

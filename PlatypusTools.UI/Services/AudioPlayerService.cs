@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -403,5 +404,128 @@ public class AudioPlayerService
                 track.Title = Path.GetFileNameWithoutExtension(track.FilePath);
             }
         });
+    }
+    
+    // Queue Persistence
+    private static readonly string QueueFilePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "PlatypusTools", "audio_queue.json");
+    
+    /// <summary>
+    /// Saves the current queue to a JSON file for persistence across sessions.
+    /// </summary>
+    public async Task SaveQueueAsync()
+    {
+        try
+        {
+            var queueData = new QueuePersistenceData
+            {
+                CurrentIndex = _currentIndex,
+                Volume = Volume,
+                IsMuted = IsMuted,
+                IsShuffle = _isShuffled,
+                RepeatMode = (int)Repeat,
+                Tracks = _queue.Select(t => new TrackPersistenceData
+                {
+                    FilePath = t.FilePath,
+                    Title = t.Title,
+                    Artist = t.Artist,
+                    Album = t.Album,
+                    Duration = t.Duration.Ticks
+                }).ToList()
+            };
+            
+            var directory = Path.GetDirectoryName(QueueFilePath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+            
+            var json = JsonSerializer.Serialize(queueData, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(QueueFilePath, json);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error saving queue: {ex.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// Loads the queue from the saved JSON file.
+    /// </summary>
+    public async Task<bool> LoadQueueAsync()
+    {
+        try
+        {
+            if (!File.Exists(QueueFilePath))
+                return false;
+            
+            var json = await File.ReadAllTextAsync(QueueFilePath);
+            var queueData = JsonSerializer.Deserialize<QueuePersistenceData>(json);
+            
+            if (queueData == null || queueData.Tracks == null || queueData.Tracks.Count == 0)
+                return false;
+            
+            // Filter to only existing files
+            var validTracks = new List<AudioTrack>();
+            foreach (var trackData in queueData.Tracks)
+            {
+                if (File.Exists(trackData.FilePath))
+                {
+                    validTracks.Add(new AudioTrack
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        FilePath = trackData.FilePath,
+                        Title = trackData.Title ?? Path.GetFileNameWithoutExtension(trackData.FilePath),
+                        Artist = trackData.Artist ?? "Unknown Artist",
+                        Album = trackData.Album ?? "Unknown Album",
+                        Duration = TimeSpan.FromTicks(trackData.Duration)
+                    });
+                }
+            }
+            
+            if (validTracks.Count == 0)
+                return false;
+            
+            _queue = validTracks;
+            _currentIndex = Math.Min(queueData.CurrentIndex, _queue.Count - 1);
+            if (_currentIndex < 0) _currentIndex = 0;
+            
+            Volume = queueData.Volume;
+            IsMuted = queueData.IsMuted;
+            _isShuffled = queueData.IsShuffle;
+            Repeat = (RepeatMode)queueData.RepeatMode;
+            
+            if (_isShuffled)
+                ShuffleQueue();
+            
+            TrackChanged?.Invoke(this, CurrentTrack);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading queue: {ex.Message}");
+            return false;
+        }
+    }
+    
+    /// <summary>
+    /// Data structure for queue persistence.
+    /// </summary>
+    private class QueuePersistenceData
+    {
+        public int CurrentIndex { get; set; }
+        public double Volume { get; set; } = 0.7;
+        public bool IsMuted { get; set; }
+        public bool IsShuffle { get; set; }
+        public int RepeatMode { get; set; }
+        public List<TrackPersistenceData> Tracks { get; set; } = new();
+    }
+    
+    private class TrackPersistenceData
+    {
+        public string FilePath { get; set; } = string.Empty;
+        public string? Title { get; set; }
+        public string? Artist { get; set; }
+        public string? Album { get; set; }
+        public long Duration { get; set; }
     }
 }
