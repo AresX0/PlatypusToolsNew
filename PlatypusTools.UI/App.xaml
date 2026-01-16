@@ -13,6 +13,7 @@
         <converters:InverseBooleanToBooleanConverter x:Key="InverseBooleanToBooleanConverter" />
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+        <converters:InverseNullToVisibilityConverter x:Key="InverseNullToVisibilityConverter" />
         <converters:BoolToThemeTextConverter x:Key="BoolToThemeTextConverter" />
         <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
         <converters:CountToVisibilityConverter x:Key="ZeroToVisibleConverter" />

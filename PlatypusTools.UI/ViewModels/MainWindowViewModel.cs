@@ -68,6 +68,9 @@ namespace PlatypusTools.UI.ViewModels
                 ScheduledTasks = new ScheduledTasksViewModel();
                 SystemRestore = new SystemRestoreViewModel();
                 ArchiveManager = new ArchiveManagerViewModel();
+                PdfTools = new PdfToolsViewModel();
+                BatchWatermark = new BatchWatermarkViewModel();
+                Screenshot = new ScreenshotViewModel();
                 BootableUSB = new BootableUSBViewModel();
                 EmptyFolderScanner = new EmptyFolderScannerViewModel();
 
@@ -136,6 +139,9 @@ namespace PlatypusTools.UI.ViewModels
         public ScheduledTasksViewModel ScheduledTasks { get; }
         public SystemRestoreViewModel SystemRestore { get; }
         public ArchiveManagerViewModel ArchiveManager { get; }
+        public PdfToolsViewModel PdfTools { get; }
+        public BatchWatermarkViewModel BatchWatermark { get; }
+        public ScreenshotViewModel Screenshot { get; }
         public BootableUSBViewModel BootableUSB { get; }
         public EmptyFolderScannerViewModel EmptyFolderScanner { get; }
         private string _selectedFolder = string.Empty;

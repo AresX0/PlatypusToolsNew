@@ -293,7 +293,6 @@ namespace PlatypusTools.UI.ViewModels
             try
             {
                 SimpleLogger.Info("FileAnalyzer: BrowseDirectory called");
-                System.Windows.MessageBox.Show("BrowseDirectory called - debug", "Debug", System.Windows.MessageBoxButton.OK);
                 
                 using var dialog = new System.Windows.Forms.FolderBrowserDialog
                 {

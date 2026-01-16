@@ -1,0 +1,240 @@
+<UserControl x:Class="PlatypusTools.UI.Views.PdfToolsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels">
+    
+    <UserControl.DataContext>
+        <vm:PdfToolsViewModel />
+    </UserControl.DataContext>
+    
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,10">
+            <TextBlock Text="PDF Tools" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimary}"/>
+            <TextBlock Text="Merge, split, rotate, extract pages, add watermarks, and convert images to PDF" 
+                       Foreground="{DynamicResource TextSecondary}" FontSize="12"/>
+        </StackPanel>
+        
+        <!-- Tools Toolbar - Horizontal across top -->
+        <Border Grid.Row="1" Background="{DynamicResource CardBackground}" CornerRadius="6" Padding="10" Margin="0,0,0,10">
+            <WrapPanel Orientation="Horizontal">
+                <!-- Merge -->
+                <Button Content="🔗 Merge PDFs" Command="{Binding MergeCommand}"
+                        Style="{DynamicResource PrimaryButton}" Margin="0,0,8,5" Padding="12,6"
+                        ToolTip="Combine multiple PDFs into one file"/>
+                
+                <!-- Split -->
+                <Button Content="✂️ Split PDF" Command="{Binding SplitCommand}"
+                        Style="{DynamicResource SecondaryButton}" Margin="0,0,8,5" Padding="12,6"
+                        ToolTip="Split selected PDF into individual pages"/>
+                
+                <!-- Rotate -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,8,5">
+                    <Button Content="🔄 Rotate" Command="{Binding RotateCommand}"
+                            Style="{DynamicResource SecondaryButton}" Padding="12,6"
+                            ToolTip="Rotate pages in selected PDF"/>
+                    <ComboBox SelectedIndex="0" Width="60" Margin="3,0,0,0" VerticalAlignment="Center"
+                              SelectionChanged="RotationCombo_SelectionChanged">
+                        <ComboBoxItem Content="90°"/>
+                        <ComboBoxItem Content="180°"/>
+                        <ComboBoxItem Content="270°"/>
+                    </ComboBox>
+                </StackPanel>
+                
+                <!-- Extract Pages -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,8,5">
+                    <Button Content="📤 Extract" Command="{Binding ExtractPagesCommand}"
+                            Style="{DynamicResource SecondaryButton}" Padding="12,6"
+                            ToolTip="Extract specific pages from PDF"/>
+                    <TextBox Text="{Binding PageRanges, UpdateSourceTrigger=PropertyChanged}" 
+                             Width="100" Margin="3,0,0,0" VerticalAlignment="Center"
+                             ToolTip="Page ranges (e.g., 1-3,5,7-10)"/>
+                </StackPanel>
+                
+                <!-- Delete Pages -->
+                <Button Content="🗑️ Delete Pages" Command="{Binding DeletePagesCommand}"
+                        Style="{DynamicResource SecondaryButton}" Margin="0,0,8,5" Padding="12,6"
+                        ToolTip="Delete specified pages from PDF"/>
+                
+                <!-- Watermark -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,8,5">
+                    <Button Content="💧 Watermark" Command="{Binding WatermarkCommand}"
+                            Style="{DynamicResource SecondaryButton}" Padding="12,6"
+                            ToolTip="Add text watermark to PDF"/>
+                    <TextBox Text="{Binding WatermarkText, UpdateSourceTrigger=PropertyChanged}" 
+                             Width="120" Margin="3,0,0,0" VerticalAlignment="Center"
+                             ToolTip="Watermark text"/>
+                </StackPanel>
+                
+                <!-- Images to PDF -->
+                <Button Content="🖼️ Images to PDF" Command="{Binding ImagesToPdfCommand}"
+                        Style="{DynamicResource SecondaryButton}" Margin="0,0,0,5" Padding="12,6"
+                        ToolTip="Convert image files to PDF"/>
+            </WrapPanel>
+        </Border>
+        
+        <!-- File List Toolbar -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,8">
+            <Button Content="📁 Add Files" Command="{Binding AddFilesCommand}" 
+                    Style="{DynamicResource PrimaryButton}" Padding="12,6" Margin="0,0,5,0"/>
+            <Button Content="🗑️ Remove" Command="{Binding RemoveSelectedCommand}" 
+                    Style="{DynamicResource SecondaryButton}" Padding="12,6" Margin="0,0,5,0"/>
+            <Button Content="🧹 Clear" Command="{Binding ClearFilesCommand}" 
+                    Style="{DynamicResource SecondaryButton}" Padding="12,6" Margin="0,0,10,0"/>
+            <Button Content="⬆️" Command="{Binding MoveUpCommand}" ToolTip="Move Up"
+                    Style="{DynamicResource SecondaryButton}" Width="35" Margin="0,0,3,0"/>
+            <Button Content="⬇️" Command="{Binding MoveDownCommand}" ToolTip="Move Down"
+                    Style="{DynamicResource SecondaryButton}" Width="35"/>
+            
+            <Separator Width="20" Background="Transparent"/>
+            <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}">
+                <Run Text="{Binding InputFiles.Count, Mode=OneWay}"/>
+                <Run Text=" files"/>
+            </TextBlock>
+        </StackPanel>
+        
+        <!-- Main Content Area - File List and Preview -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300" MinWidth="200"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="*" MinWidth="300"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- File List -->
+            <Border Grid.Column="0" Background="{DynamicResource CardBackground}" CornerRadius="6" Padding="8">
+                <ListBox ItemsSource="{Binding InputFiles}" 
+                         SelectedItem="{Binding SelectedFile}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         AllowDrop="True">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="35"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="50"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBlock Grid.Column="0" Text="{Binding TypeDisplay}" 
+                                           Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" FontSize="11"/>
+                                <TextBlock Grid.Column="1" Text="{Binding FileName}" 
+                                           Foreground="{DynamicResource TextPrimary}"
+                                           TextTrimming="CharacterEllipsis" FontSize="11"/>
+                                <TextBlock Grid.Column="2" Text="{Binding FileSizeFormatted}" 
+                                           Foreground="{DynamicResource TextSecondary}"
+                                           TextAlignment="Right" FontSize="10"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+            
+            <!-- Splitter -->
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" 
+                          Background="Transparent" Cursor="SizeWE"/>
+            
+            <!-- PDF Preview Panel -->
+            <Border Grid.Column="2" Background="{DynamicResource CardBackground}" CornerRadius="6" Padding="10">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Preview Header -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                        <TextBlock Text="Preview" FontWeight="SemiBold" FontSize="14" 
+                                   Foreground="{DynamicResource TextPrimary}"/>
+                        <TextBlock Text="{Binding SelectedFile.FileName, FallbackValue='Select a file to preview'}" 
+                                   Foreground="{DynamicResource TextSecondary}" FontSize="12"
+                                   TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                    
+                    <!-- Preview Content -->
+                    <Border Grid.Row="1" Background="{DynamicResource SurfaceBackground}" 
+                            CornerRadius="4" BorderThickness="1" 
+                            BorderBrush="{DynamicResource BorderBrush}">
+                        <Grid>
+                            <!-- No Selection Message -->
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                        Visibility="{Binding SelectedFile, Converter={StaticResource InverseNullToVisibilityConverter}}">
+                                <TextBlock Text="📄" FontSize="48" HorizontalAlignment="Center" Opacity="0.3"/>
+                                <TextBlock Text="Select a PDF to preview" 
+                                           Foreground="{DynamicResource TextSecondary}"
+                                           HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                            </StackPanel>
+                            
+                            <!-- Preview Image -->
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                                          HorizontalScrollBarVisibility="Auto"
+                                          Visibility="{Binding PreviewImage, Converter={StaticResource NullToVisibilityConverter}}">
+                                <Image Source="{Binding PreviewImage}" 
+                                       Stretch="Uniform" 
+                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </ScrollViewer>
+                            
+                            <!-- Loading Indicator -->
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                        Visibility="{Binding IsLoadingPreview, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <ProgressBar IsIndeterminate="True" Width="100" Height="4"/>
+                                <TextBlock Text="Loading preview..." 
+                                           Foreground="{DynamicResource TextSecondary}"
+                                           HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- Page Navigation -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0"
+                                Visibility="{Binding SelectedFile.IsPdf, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}">
+                        <Button Content="◀" Command="{Binding PreviousPageCommand}" 
+                                Style="{DynamicResource SecondaryButton}" Width="35" Padding="0"/>
+                        <TextBlock VerticalAlignment="Center" Margin="10,0" Foreground="{DynamicResource TextPrimary}">
+                            <Run Text="Page "/>
+                            <Run Text="{Binding CurrentPreviewPage}"/>
+                            <Run Text=" of "/>
+                            <Run Text="{Binding TotalPreviewPages}"/>
+                        </TextBlock>
+                        <Button Content="▶" Command="{Binding NextPageCommand}"
+                                Style="{DynamicResource SecondaryButton}" Width="35" Padding="0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+        
+        <!-- Status Bar with Progress -->
+        <Border Grid.Row="4" Background="{DynamicResource CardBackground}" CornerRadius="4" Padding="10" Margin="0,10,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" 
+                           Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
+                
+                <ProgressBar Grid.Column="1" Value="{Binding Progress}" Maximum="100" 
+                             Width="150" Height="6" Margin="15,0"
+                             Background="{DynamicResource ProgressBackground}"
+                             Foreground="{DynamicResource AccentBrush}"
+                             Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                
+                <Button Grid.Column="2" Content="❌ Cancel" Command="{Binding CancelCommand}"
+                        Style="{DynamicResource DangerButton}" Padding="10,4"
+                        Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

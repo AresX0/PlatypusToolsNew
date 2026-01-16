@@ -96,51 +96,33 @@
 
         <TabControl DockPanel.Dock="Top" Margin="8">
             <TabItem Header="File Cleaner">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                    <views:FileCleanerView DataContext="{Binding FileCleaner}" />
-                </ScrollViewer>
+                <controls:LazyTabContent ViewType="{x:Type views:FileCleanerView}" ViewDataContext="{Binding FileCleaner}" />
             </TabItem>
             <TabItem Header="Media Conversion">
                 <TabControl>
                     <TabItem Header="Video Converter">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:VideoConverterView DataContext="{Binding VideoConverter}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:VideoConverterView}" ViewDataContext="{Binding VideoConverter}" />
                     </TabItem>
                     <TabItem Header="Video Combiner">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:VideoCombinerView DataContext="{Binding VideoCombiner}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:VideoCombinerView}" ViewDataContext="{Binding VideoCombiner}" />
                     </TabItem>
                     <TabItem Header="Image Converter">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:ImageConverterView DataContext="{Binding ImageConverter}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:ImageConverterView}" ViewDataContext="{Binding ImageConverter}" />
                     </TabItem>
                     <TabItem Header="Image Resizer">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:ImageResizerView DataContext="{Binding ImageResizer}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:ImageResizerView}" ViewDataContext="{Binding ImageResizer}" />
                     </TabItem>
                     <TabItem Header="ICO Converter">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:IconConverterView DataContext="{Binding IconConverter}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:IconConverterView}" ViewDataContext="{Binding IconConverter}" />
                     </TabItem>
                     <TabItem Header="Upscaler">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:UpscalerView DataContext="{Binding Upscaler}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:UpscalerView}" ViewDataContext="{Binding Upscaler}" />
                     </TabItem>
                     <TabItem Header="Batch Upscale">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:BatchUpscaleView DataContext="{Binding BatchUpscale}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:BatchUpscaleView}" ViewDataContext="{Binding BatchUpscale}" />
                     </TabItem>
                     <TabItem Header="Bootable USB Creator">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:BootableUSBView DataContext="{Binding BootableUSB}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:BootableUSBView}" ViewDataContext="{Binding BootableUSB}" />
                     </TabItem>
                 </TabControl>
             </TabItem>
@@ -150,9 +132,7 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="300" />
                     </Grid.ColumnDefinitions>
-                    <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                        <views:DuplicatesView DataContext="{Binding Duplicates}" />
-                    </ScrollViewer>
+                    <controls:LazyTabContent Grid.Column="0" ViewType="{x:Type views:DuplicatesView}" ViewDataContext="{Binding Duplicates}" />
                     <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <Border BorderBrush="Gray" BorderThickness="1" Padding="8" Background="{DynamicResource WindowBackgroundBrush}">
                             <StackPanel>
@@ -175,107 +155,78 @@
             <TabItem Header="Cleanup">
                 <TabControl>
                     <TabItem Header="Recent Cleaner">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:RecentCleanupView DataContext="{Binding Recent}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:RecentCleanupView}" ViewDataContext="{Binding Recent}" />
                     </TabItem>
                     <TabItem Header="Disk Cleanup">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:DiskCleanupView DataContext="{Binding DiskCleanup}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:DiskCleanupView}" ViewDataContext="{Binding DiskCleanup}" />
                     </TabItem>
                     <TabItem Header="Privacy Cleaner">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:PrivacyCleanerView DataContext="{Binding PrivacyCleaner}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:PrivacyCleanerView}" ViewDataContext="{Binding PrivacyCleaner}" />
                     </TabItem>
                     <TabItem Header="Empty Folder Scanner">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:EmptyFolderScannerView DataContext="{Binding EmptyFolderScanner}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:EmptyFolderScannerView}" ViewDataContext="{Binding EmptyFolderScanner}" />
                     </TabItem>
                 </TabControl>
             </TabItem>
             <TabItem Header="Security">
                 <TabControl>
                     <TabItem Header="Folder Hider">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:HiderView DataContext="{Binding Hider}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:HiderView}" ViewDataContext="{Binding Hider}" />
                     </TabItem>
                     <TabItem Header="System Audit">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:SystemAuditView DataContext="{Binding SystemAudit}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:SystemAuditView}" ViewDataContext="{Binding SystemAudit}" />
                     </TabItem>
                     <TabItem Header="Startup Manager">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:StartupManagerView DataContext="{Binding StartupManager}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:StartupManagerView}" ViewDataContext="{Binding StartupManager}" />
                     </TabItem>
                 </TabControl>
             </TabItem>
             <TabItem Header="Metadata">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                    <views:MetadataEditorView DataContext="{Binding MetadataEditor}" />
-                </ScrollViewer>
+                <controls:LazyTabContent ViewType="{x:Type views:MetadataEditorView}" ViewDataContext="{Binding MetadataEditor}" />
             </TabItem>
             <TabItem Header="Multimedia Editor">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                    <views:MultimediaEditorView DataContext="{Binding MultimediaEditor}" />
-                </ScrollViewer>
+                <controls:LazyTabContent ViewType="{x:Type views:MultimediaEditorView}" ViewDataContext="{Binding MultimediaEditor}" />
             </TabItem>
             <TabItem Header="🎵 Audio Player">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                    <views:AudioPlayerView DataContext="{Binding AudioPlayer}" />
-                </ScrollViewer>
+                <controls:LazyTabContent ViewType="{x:Type views:AudioPlayerView}" ViewDataContext="{Binding AudioPlayer}" />
             </TabItem>
             <TabItem Header="Tools">
                 <TabControl>
                     <TabItem Header="Website Downloader">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:WebsiteDownloaderView DataContext="{Binding WebsiteDownloader}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:WebsiteDownloaderView}" ViewDataContext="{Binding WebsiteDownloader}" />
                     </TabItem>
                     <TabItem Header="File Analyzer">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:FileAnalyzerView DataContext="{Binding FileAnalyzer}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:FileAnalyzerView}" ViewDataContext="{Binding FileAnalyzer}" />
                     </TabItem>
                     <TabItem Header="Disk Space Analyzer">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:DiskSpaceAnalyzerView DataContext="{Binding DiskSpaceAnalyzer}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:DiskSpaceAnalyzerView}" ViewDataContext="{Binding DiskSpaceAnalyzer}" />
                     </TabItem>
                     <TabItem Header="Network Tools">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:NetworkToolsView DataContext="{Binding NetworkTools}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:NetworkToolsView}" ViewDataContext="{Binding NetworkTools}" />
                     </TabItem>
                     <TabItem Header="Process Manager">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:ProcessManagerView DataContext="{Binding ProcessManager}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:ProcessManagerView}" ViewDataContext="{Binding ProcessManager}" />
                     </TabItem>
                     <TabItem Header="Registry Cleaner">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:RegistryCleanerView DataContext="{Binding RegistryCleaner}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:RegistryCleanerView}" ViewDataContext="{Binding RegistryCleaner}" />
                     </TabItem>
                     <TabItem Header="Scheduled Tasks">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:ScheduledTasksView DataContext="{Binding ScheduledTasks}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:ScheduledTasksView}" ViewDataContext="{Binding ScheduledTasks}" />
                     </TabItem>
                     <TabItem Header="System Restore">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:SystemRestoreView DataContext="{Binding SystemRestore}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:SystemRestoreView}" ViewDataContext="{Binding SystemRestore}" />
                     </TabItem>
                     <TabItem Header="Archive Manager">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <views:ArchiveManagerView DataContext="{Binding ArchiveManager}" />
-                        </ScrollViewer>
+                        <controls:LazyTabContent ViewType="{x:Type views:ArchiveManagerView}" ViewDataContext="{Binding ArchiveManager}" />
+                    </TabItem>
+                    <TabItem Header="PDF Tools">
+                        <controls:LazyTabContent ViewType="{x:Type views:PdfToolsView}" ViewDataContext="{Binding PdfTools}" />
+                    </TabItem>
+                    <TabItem Header="Batch Watermark">
+                        <controls:LazyTabContent ViewType="{x:Type views:BatchWatermarkView}" ViewDataContext="{Binding BatchWatermark}" />
+                    </TabItem>
+                    <TabItem Header="Screenshot">
+                        <controls:LazyTabContent ViewType="{x:Type views:ScreenshotView}" ViewDataContext="{Binding Screenshot}" />
                     </TabItem>
                 </TabControl>
             </TabItem>

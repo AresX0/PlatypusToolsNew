@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <!-- Target .NET 10 for long-term support; requires .NET 10 SDK to build locally -->
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
@@ -19,7 +19,7 @@
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>PlatypusTools.UI</RootNamespace>
-    <Version>3.0.5</Version>
+    <Version>3.0.6</Version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2792.45" />
