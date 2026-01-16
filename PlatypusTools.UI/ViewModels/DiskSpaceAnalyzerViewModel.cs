@@ -263,14 +263,62 @@ namespace PlatypusTools.UI.ViewModels
 
                 if (dialog.ShowDialog() == true)
                 {
-                    // TODO: Implement basic export functionality
-                    // await Task.Run(() => _analyzerService.ExportToFile(dialog.FileName));
-                    StatusMessage = $"Export not yet implemented";
+                    StatusMessage = "Exporting...";
+                    
+                    await Task.Run(() =>
+                    {
+                        using var writer = new System.IO.StreamWriter(dialog.FileName);
+                        
+                        // Write header
+                        if (dialog.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                        {
+                            writer.WriteLine("Path,Size,Size (Bytes),File Count,Is Hidden,Is System");
+                            ExportNodeToCsv(writer, DirectoryTree.FirstOrDefault());
+                        }
+                        else
+                        {
+                            writer.WriteLine($"Disk Space Analysis Report");
+                            writer.WriteLine($"Generated: {DateTime.Now}");
+                            writer.WriteLine($"Root Path: {RootPath}");
+                            writer.WriteLine($"Total Size: {TotalSizeDisplay}");
+                            writer.WriteLine(new string('=', 80));
+                            writer.WriteLine();
+                            ExportNodeToText(writer, DirectoryTree.FirstOrDefault(), 0);
+                        }
+                    });
+                    
+                    StatusMessage = $"Exported to {System.IO.Path.GetFileName(dialog.FileName)}";
                 }
             }
             catch (Exception ex)
             {
                 StatusMessage = $"Export error: {ex.Message}";
+            }
+        }
+        
+        private void ExportNodeToCsv(System.IO.StreamWriter writer, DirectoryNodeViewModel? node)
+        {
+            if (node == null) return;
+            
+            writer.WriteLine($"\"{node.FullPath}\",\"{node.SizeDisplay}\",{node.Size},{node.FileCount},{node.IsHidden},{node.IsSystem}");
+            
+            foreach (var child in node.Children)
+            {
+                ExportNodeToCsv(writer, child);
+            }
+        }
+        
+        private void ExportNodeToText(System.IO.StreamWriter writer, DirectoryNodeViewModel? node, int indent)
+        {
+            if (node == null) return;
+            
+            var prefix = new string(' ', indent * 2);
+            var icon = node.IsFile ? "📄" : "📁";
+            writer.WriteLine($"{prefix}{icon} {node.Name} ({node.SizeDisplay})");
+            
+            foreach (var child in node.Children.OrderByDescending(c => c.Size))
+            {
+                ExportNodeToText(writer, child, indent + 1);
             }
         }
 

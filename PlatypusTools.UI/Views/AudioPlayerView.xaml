@@ -51,13 +51,13 @@
         
         <!-- Toolbar -->
         <ToolBar Grid.Row="0" Margin="5">
-            <Button Content="📂 Open Files" Command="{Binding OpenFileCommand}" Padding="8,4" ToolTip="Open audio files"/>
-            <Button Content="📁 Scan Folder" Command="{Binding OpenFolderCommand}" Padding="8,4" ToolTip="Scan folder for audio"/>
-            <Button Content="➕ Add to Queue" Command="{Binding ScanFolderAddToQueueCommand}" Padding="8,4" ToolTip="Scan folder and add to existing queue"/>
+            <Button Content="📂 Open Files" Click="OnOpenFilesClick" Padding="8,4" ToolTip="Open audio files (Ctrl+O)"/>
+            <Button Content="📁 Scan Folder" Click="OnScanFolderClick" Padding="8,4" ToolTip="Scan folder for audio"/>
+            <Button Content="➕ Add to Queue" Click="OnAddToQueueClick" Padding="8,4" ToolTip="Scan folder and add to existing queue"/>
             <Separator/>
             <CheckBox Content="Include Subfolders" IsChecked="{Binding IncludeSubfolders}" VerticalAlignment="Center" Margin="5,0"/>
             <Separator/>
-            <Button Content="📚 Library" Command="{Binding ToggleLibraryCommand}" Padding="8,4" ToolTip="Show/Hide Library Panel"/>
+            <Button Content="📚 Library" Click="OnToggleLibraryClick" Padding="8,4" ToolTip="Show/Hide Library Panel (Ctrl+L)"/>
             <Separator/>
             <Button Content="🗑️ Clear Queue" Command="{Binding ClearQueueCommand}" Padding="8,4" ToolTip="Clear all tracks from queue"/>
         </ToolBar>
@@ -128,7 +128,14 @@
                             
                             <!-- Queue Controls -->
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
-                                <Button Content="🗑 Remove Selected" Padding="8,4" Margin="0,0,5,0"
+                                <Button Content="� Add Files" Padding="8,4" Margin="0,0,5,0"
+                                        Click="OnOpenFilesClick" Background="#2196F3" Foreground="White"
+                                        ToolTip="Add audio files to queue"/>
+                                <Button Content="📁 Add Folder" Padding="8,4" Margin="0,0,10,0"
+                                        Click="OnScanFolderClick" Background="#4CAF50" Foreground="White"
+                                        ToolTip="Scan folder and add to queue"/>
+                                <Separator Margin="5,0"/>
+                                <Button Content="🗑 Remove Selected" Padding="8,4" Margin="5,0,5,0"
                                         x:Name="RemoveSelectedBtn" Click="OnRemoveSelectedClick"
                                         ToolTip="Remove selected tracks from queue (multi-select with Ctrl+Click)"/>
                                 <Button Content="🔄 Clear Queue" Padding="8,4"
@@ -186,55 +193,89 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             
-                            <!-- Library Scanning Section -->
-                            <GroupBox Grid.Row="0" Header="📚 Library Management" Margin="0,0,0,8">
+                            <!-- Library Folder Management Section -->
+                            <GroupBox Grid.Row="0" Header="📂 Library Folders" Margin="0,0,0,8">
                                 <Grid Margin="8">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
                                     
-                                    <!-- Scan Buttons -->
-                                    <Button Grid.Column="0" Grid.Row="0" Content="🔍 Scan Library" 
-                                            Width="140" Command="{Binding ScanLibraryCommand}" 
-                                            FontWeight="Bold" Margin="0,0,8,0"/>
+                                    <!-- Folder List -->
+                                    <ListBox Grid.Column="0" Grid.Row="0" x:Name="LibraryFoldersListBox"
+                                             ItemsSource="{Binding LibraryFolders}" 
+                                             SelectedItem="{Binding SelectedLibraryFolder}"
+                                             Height="80" Margin="0,0,8,0"
+                                             HorizontalContentAlignment="Stretch">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" ToolTip="{Binding}"/>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
                                     
-                                    <!-- Statistics -->
-                                    <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="Tracks:" FontWeight="Bold" Margin="0,0,4,0"/>
-                                        <TextBlock Text="{Binding LibraryTrackCount, FallbackValue=0}" Margin="0,0,15,0"/>
-                                        <TextBlock Text="Artists:" FontWeight="Bold" Margin="0,0,4,0"/>
-                                        <TextBlock Text="{Binding LibraryArtistCount, FallbackValue=0}" Margin="0,0,15,0"/>
-                                        <TextBlock Text="Albums:" FontWeight="Bold" Margin="0,0,4,0"/>
-                                        <TextBlock Text="{Binding LibraryAlbumCount, FallbackValue=0}"/>
+                                    <!-- Folder Buttons -->
+                                    <StackPanel Grid.Column="1" Grid.Row="0" VerticalAlignment="Top">
+                                        <Button Content="📁 Add Folder" Click="OnAddFolderToLibraryClick" 
+                                                Padding="10,6" Margin="0,0,0,5" Background="#4CAF50" Foreground="White"
+                                                ToolTip="Add a folder to your music library"/>
+                                        <Button Content="✕ Remove" Click="OnRemoveFolderFromLibraryClick" 
+                                                Padding="10,6" Margin="0,0,0,5"
+                                                ToolTip="Remove selected folder from library"/>
                                     </StackPanel>
                                     
-                                    <!-- Scan Status -->
-                                    <TextBlock Grid.Column="2" Grid.Row="0" Text="{Binding ScanStatus}" 
-                                               Foreground="#FF6600" FontWeight="Bold" VerticalAlignment="Center"
-                                               Margin="15,0,8,0"/>
+                                    <!-- Scan Controls -->
+                                    <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,0">
+                                        <Button Content="🔄 Scan All Folders" Click="OnScanAllFoldersClick" 
+                                                Padding="12,6" Margin="0,0,10,0" Background="#2196F3" Foreground="White"
+                                                FontWeight="Bold" ToolTip="Scan all folders and add files to library"/>
+                                        <CheckBox Content="Include Subfolders" IsChecked="{Binding IncludeSubfolders}" 
+                                                  VerticalAlignment="Center" Margin="10,0,15,0"/>
+                                        <TextBlock Text="{Binding ScanStatus}" Foreground="#FF6600" FontWeight="Bold" 
+                                                   VerticalAlignment="Center"/>
+                                        <Button Content="Cancel" Width="70" Margin="10,0,0,0"
+                                                Command="{Binding CancelScanCommand}"
+                                                Visibility="{Binding IsScanning, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    </StackPanel>
                                     
-                                    <!-- Cancel Button -->
-                                    <Button Grid.Column="3" Grid.Row="0" Content="Cancel" 
-                                            Width="80" Command="{Binding CancelScanCommand}"
-                                            Visibility="{Binding IsScanning, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                                    
-                                    <!-- Progress Bar -->
-                                    <ProgressBar Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="1" 
-                                                 Value="{Binding ScanProgress}" IsIndeterminate="{Binding IsScanning}"
-                                                 Height="20" Margin="0,8,0,0"/>
+                                    <!-- Statistics and Progress -->
+                                    <Grid Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="2" Margin="0,8,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <ProgressBar Grid.Column="0" Value="{Binding ScanProgress}" 
+                                                     IsIndeterminate="{Binding IsScanning}" Height="16"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="15,0,0,0">
+                                            <TextBlock Text="Tracks:" FontWeight="Bold" Margin="0,0,4,0"/>
+                                            <TextBlock Text="{Binding LibraryTrackCount, FallbackValue=0}" Margin="0,0,12,0"/>
+                                            <TextBlock Text="Artists:" FontWeight="Bold" Margin="0,0,4,0"/>
+                                            <TextBlock Text="{Binding LibraryArtistCount, FallbackValue=0}" Margin="0,0,12,0"/>
+                                            <TextBlock Text="Albums:" FontWeight="Bold" Margin="0,0,4,0"/>
+                                            <TextBlock Text="{Binding LibraryAlbumCount, FallbackValue=0}"/>
+                                        </StackPanel>
+                                    </Grid>
                                 </Grid>
                             </GroupBox>
                             
                             <!-- Library Toolbar -->
                             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
-                                <TextBlock Text="Organize by:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <Button Content="▶ Play Selected" Padding="8,4" Margin="0,0,5,0" 
+                                        Click="OnPlaySelectedLibraryClick" Background="#2196F3" Foreground="White"
+                                        ToolTip="Play selected track"/>
+                                <Button Content="➕ Add to Queue" Padding="8,4" Margin="0,0,5,0"
+                                        Click="OnAddSelectedToQueueClick" Background="#4CAF50" Foreground="White"
+                                        ToolTip="Add selected track to queue"/>
+                                <Button Content="➕ Add All" Padding="8,4" Margin="0,0,15,0"
+                                        Click="OnAddAllToQueueClick"
+                                        ToolTip="Add all visible tracks to queue"/>
+                                <Separator Margin="5,0"/>
+                                <TextBlock Text="Organize by:" VerticalAlignment="Center" Margin="5,0,8,0"/>
                                 <ComboBox Width="120" SelectedIndex="{Binding OrganizeModeIndex}">
                                     <ComboBoxItem Content="All Tracks"/>
                                     <ComboBoxItem Content="Artist"/>
@@ -324,29 +365,30 @@
                             <TextBlock Text="🎵" FontSize="50" HorizontalAlignment="Center" VerticalAlignment="Center" 
                                        Foreground="#4a4a6a"/>
                         </Border>
-                        <TextBlock Text="{Binding CurrentTrack.DisplayTitle, FallbackValue='No track'}" 
+                        <TextBlock x:Name="NowPlayingTitle" Text="No track" 
                                    FontSize="14" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,4"/>
-                        <TextBlock Text="{Binding CurrentTrack.DisplayArtist, FallbackValue='Unknown'}" 
+                        <TextBlock x:Name="NowPlayingArtist" Text="Unknown" 
                                    FontSize="12" Foreground="Gray" TextWrapping="Wrap" Margin="0,0,0,2"/>
-                        <TextBlock Text="{Binding CurrentTrack.DisplayAlbum, FallbackValue='Unknown'}" 
+                        <TextBlock x:Name="NowPlayingAlbum" Text="Unknown" 
                                    FontSize="11" Foreground="#999" TextWrapping="Wrap" Margin="0,0,0,12"/>
                         
-                        <ProgressBar Value="{Binding PositionSeconds}" Maximum="{Binding DurationSeconds}" 
+                        <ProgressBar x:Name="NowPlayingProgress" Value="0" Maximum="100" 
                                      Height="8" Margin="0,0,0,4"/>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{Binding PositionDisplay}" FontSize="11" Foreground="Gray"/>
-                            <TextBlock Grid.Column="1" Text="{Binding DurationDisplay}" FontSize="11" Foreground="Gray"/>
+                            <TextBlock x:Name="NowPlayingPosition" Grid.Column="0" Text="0:00" FontSize="11" Foreground="Gray"/>
+                            <TextBlock x:Name="NowPlayingDuration" Grid.Column="1" Text="0:00" FontSize="11" Foreground="Gray"/>
                         </Grid>
                         
                         <Separator Margin="0,12" Background="#ddd"/>
                         
-                        <Button Content="📂 Open Files" Command="{Binding OpenFileCommand}" Width="120" HorizontalAlignment="Left" Margin="0,0,0,4"/>
-                        <Button Content="📁 Scan Folder" Command="{Binding OpenFolderCommand}" Width="120" HorizontalAlignment="Left" Margin="0,0,0,4"/>
-                        <Button Content="🗑️ Clear Queue" Command="{Binding ClearQueueCommand}" Width="120" HorizontalAlignment="Left"/>
+                        <!-- Queue Stats -->
+                        <TextBlock x:Name="QueueCountText" Text="Queue: 0 tracks" FontSize="11" Foreground="Gray" Margin="0,0,0,4"/>
+                        <TextBlock x:Name="StatusText" Text="Ready" 
+                                   FontSize="11" Foreground="Gray" TextWrapping="Wrap"/>
                     </StackPanel>
                 </GroupBox>
                 </Grid>
@@ -364,43 +406,80 @@
                 
                 <!-- Left: Shuffle/Repeat -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="{Binding RepeatIcon}" Width="36" Height="36" 
-                            Command="{Binding CycleRepeatCommand}" 
-                            ToolTip="Cycle repeat mode"
-                            FontSize="16" Margin="0,0,5,0"
-                            Background="Transparent" BorderThickness="0"/>
+                    <Button Width="36" Height="36" 
+                            Click="OnCycleRepeatClick"
+                            ToolTip="Cycle repeat mode (R)"
+                            FontFamily="Segoe UI Symbol" FontSize="16" Margin="0,0,5,0"
+                            Background="Transparent" BorderThickness="0">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Content" Value="➡"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding RepeatMode}" Value="1">
+                                        <Setter Property="Content" Value="🔁"/>
+                                        <Setter Property="Foreground" Value="#2196F3"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding RepeatMode}" Value="2">
+                                        <Setter Property="Content" Value="🔂"/>
+                                        <Setter Property="Foreground" Value="#4CAF50"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                     <ToggleButton Content="🔀" Width="36" Height="36" 
                                   IsChecked="{Binding IsShuffle}"
-                                  ToolTip="Toggle shuffle"
-                                  FontSize="16"
+                                  ToolTip="Toggle shuffle (S)"
+                                  FontFamily="Segoe UI Symbol" FontSize="16"
                                   Background="Transparent" BorderThickness="0"/>
                 </StackPanel>
                 
                 <!-- Center: Transport Controls -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                    <Button Content="⏮" Width="44" Height="44" Command="{Binding PreviousCommand}" 
-                            FontSize="18" Background="Transparent" BorderThickness="0"
-                            ToolTip="Previous"/>
-                    <Button Content="{Binding PlayPauseIcon}" Width="36" Height="36" 
-                            Command="{Binding PlayPauseCommand}" 
-                            FontSize="18" Margin="15,0"
-                            Background="Transparent" BorderThickness="0"
-                            ToolTip="Play/Pause"/>
-                    <Button Content="⏭" Width="44" Height="44" Command="{Binding NextCommand}" 
-                            FontSize="18" Background="Transparent" BorderThickness="0"
-                            ToolTip="Next"/>
-                    <Button Content="⏹" Width="36" Height="36" Command="{Binding StopCommand}" 
-                            FontSize="14" Background="Transparent" BorderThickness="0" Margin="15,0,0,0"
+                    <Button Content="⏮" Width="44" Height="44" Click="OnPreviousClick"
+                            FontFamily="Segoe UI Symbol" FontSize="18" Background="Transparent" BorderThickness="0"
+                            ToolTip="Previous (Ctrl+Left)"/>
+                    <Button Width="50" Height="50" 
+                            Click="OnPlayPauseClick"
+                            FontFamily="Segoe UI Symbol" FontSize="24" Margin="15,0"
+                            Background="#2196F3" Foreground="White" 
+                            ToolTip="Play/Pause (Space)">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Content" Value="▶"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                                        <Setter Property="Content" Value="⏸"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Content="⏭" Width="44" Height="44" Click="OnNextClick"
+                            FontFamily="Segoe UI Symbol" FontSize="18" Background="Transparent" BorderThickness="0"
+                            ToolTip="Next (Ctrl+Right)"/>
+                    <Button Content="⏹" Width="36" Height="36" Click="OnStopClick"
+                            FontFamily="Segoe UI Symbol" FontSize="14" Background="Transparent" BorderThickness="0" Margin="15,0,0,0"
                             ToolTip="Stop"/>
                 </StackPanel>
                 
                 <!-- Right: Volume -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="🔊" 
-                            Width="30" Height="30"
-                            Command="{Binding ToggleMuteCommand}"
-                            FontSize="14" Background="Transparent" BorderThickness="0"
-                            ToolTip="Toggle mute"/>
+                    <Button Width="30" Height="30"
+                            Click="OnToggleMuteClick"
+                            FontFamily="Segoe UI Symbol" FontSize="14" Background="Transparent" BorderThickness="0"
+                            ToolTip="Toggle mute (M)">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Content" Value="🔊"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsMuted}" Value="True">
+                                        <Setter Property="Content" Value="🔇"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                     <Slider Width="100" Minimum="0" Maximum="1" Value="{Binding Volume}" 
                             VerticalAlignment="Center" Margin="5,0"/>
                     <TextBlock Text="{Binding VolumePercent, StringFormat={}{0}%}" 

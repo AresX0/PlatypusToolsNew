@@ -48,12 +48,36 @@ public class AudioPlayerViewModel : BindableBase
     private List<AudioTrack> _allLibraryTracks = new();
     private List<LibraryGroup> _libraryGroups = new();
     
+    // Library folder management
+    public ObservableCollection<string> LibraryFolders { get; } = new();
+    private string? _selectedLibraryFolder;
+    
+    public string? SelectedLibraryFolder
+    {
+        get => _selectedLibraryFolder;
+        set => SetProperty(ref _selectedLibraryFolder, value);
+    }
+    
     // Properties
     public AudioTrack? CurrentTrack
     {
         get => _currentTrack;
-        set => SetProperty(ref _currentTrack, value);
+        set 
+        {
+            if (SetProperty(ref _currentTrack, value))
+            {
+                // Explicitly notify dependent properties
+                RaisePropertyChanged(nameof(CurrentTrackTitle));
+                RaisePropertyChanged(nameof(CurrentTrackArtist));
+                RaisePropertyChanged(nameof(CurrentTrackAlbum));
+            }
+        }
     }
+    
+    // Helper properties for Now Playing panel (ensures proper binding updates)
+    public string CurrentTrackTitle => CurrentTrack?.DisplayTitle ?? "No track";
+    public string CurrentTrackArtist => CurrentTrack?.DisplayArtist ?? "Unknown";
+    public string CurrentTrackAlbum => CurrentTrack?.DisplayAlbum ?? "Unknown";
     
     public TimeSpan Position
     {
@@ -308,6 +332,9 @@ public class AudioPlayerViewModel : BindableBase
     public ICommand AddAllToQueueCommand { get; }
     public ICommand ScanLibraryCommand { get; }
     public ICommand CancelScanCommand { get; }
+    public ICommand AddFolderToLibraryCommand { get; }
+    public ICommand RemoveFolderFromLibraryCommand { get; }
+    public ICommand ScanAllLibraryFoldersCommand { get; }
     
     // Keyboard shortcut commands
     public ICommand VolumeUpCommand { get; }
@@ -434,6 +461,11 @@ public class AudioPlayerViewModel : BindableBase
             ScanStatus = "Scan cancelled";
         });
         
+        // Library Folder Management Commands
+        AddFolderToLibraryCommand = new RelayCommand(_ => AddFolderToLibrary());
+        RemoveFolderFromLibraryCommand = new RelayCommand(_ => RemoveFolderFromLibrary());
+        ScanAllLibraryFoldersCommand = new AsyncRelayCommand(ScanAllLibraryFoldersAsync);
+        
         // Keyboard shortcut commands
         VolumeUpCommand = new RelayCommand(_ =>
         {
@@ -446,6 +478,9 @@ public class AudioPlayerViewModel : BindableBase
         
         // Set initial volume
         _playerService.Volume = _volume;
+        
+        // Load saved library folders
+        LoadLibraryFolders();
     }
     
     private void PlayPause()
@@ -771,6 +806,190 @@ public class AudioPlayerViewModel : BindableBase
     }
     
     /// <summary>
+    /// Add a folder to the library folders list.
+    /// </summary>
+    private void AddFolderToLibrary()
+    {
+        using var dialog = new System.Windows.Forms.FolderBrowserDialog
+        {
+            Description = "Select folder to add to library",
+            ShowNewFolderButton = false
+        };
+        
+        var result = dialog.ShowDialog();
+        System.Diagnostics.Debug.WriteLine($"Dialog result: {result}, Path: {dialog.SelectedPath}");
+        
+        if (result == System.Windows.Forms.DialogResult.OK)
+        {
+            var folder = dialog.SelectedPath;
+            System.Diagnostics.Debug.WriteLine($"Adding folder: {folder}");
+            
+            if (!string.IsNullOrEmpty(folder) && !LibraryFolders.Contains(folder, StringComparer.OrdinalIgnoreCase))
+            {
+                // Add on UI thread to ensure ObservableCollection notifies properly
+                System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+                {
+                    LibraryFolders.Add(folder);
+                    RaisePropertyChanged(nameof(LibraryFolders));
+                });
+                SaveLibraryFolders();
+                StatusMessage = $"Added folder: {folder}";
+                System.Diagnostics.Debug.WriteLine($"LibraryFolders count: {LibraryFolders.Count}");
+            }
+            else if (LibraryFolders.Contains(folder, StringComparer.OrdinalIgnoreCase))
+            {
+                StatusMessage = "Folder already in library";
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Remove selected folder from the library folders list.
+    /// </summary>
+    private void RemoveFolderFromLibrary()
+    {
+        if (SelectedLibraryFolder != null)
+        {
+            LibraryFolders.Remove(SelectedLibraryFolder);
+            SaveLibraryFolders();
+            StatusMessage = "Folder removed from library";
+        }
+    }
+    
+    /// <summary>
+    /// Scan all library folders and add tracks to the library.
+    /// </summary>
+    private async Task ScanAllLibraryFoldersAsync()
+    {
+        if (LibraryFolders.Count == 0)
+        {
+            StatusMessage = "No folders added to library. Click 'Add Folder' first.";
+            return;
+        }
+        
+        try
+        {
+            IsScanning = true;
+            int totalTracksFound = 0;
+            
+            foreach (var folder in LibraryFolders.ToList())
+            {
+                if (!System.IO.Directory.Exists(folder))
+                {
+                    ScanStatus = $"Skipping missing folder: {folder}";
+                    continue;
+                }
+                
+                ScanStatus = $"Scanning: {System.IO.Path.GetFileName(folder)}...";
+                
+                await _libraryIndexService.ScanAndIndexDirectoryAsync(
+                    folder,
+                    recursive: _includeSubfolders,
+                    onProgressChanged: (current, total, status) =>
+                    {
+                        ScanStatus = $"{status} ({current}/{total})";
+                    });
+            }
+            
+            // Reload all library tracks
+            var index = _libraryIndexService.GetCurrentIndex();
+            if (index?.Tracks != null)
+            {
+                _allLibraryTracks.Clear();
+                foreach (var indexTrack in index.Tracks)
+                {
+                    var audioTrack = new AudioTrack
+                    {
+                        Title = indexTrack.DisplayTitle,
+                        Artist = indexTrack.DisplayArtist,
+                        Album = indexTrack.DisplayAlbum,
+                        FilePath = indexTrack.FilePath,
+                        Duration = TimeSpan.FromMilliseconds(indexTrack.DurationMs),
+                        Genre = indexTrack.Genre ?? string.Empty,
+                    };
+                    _allLibraryTracks.Add(audioTrack);
+                }
+                totalTracksFound = _allLibraryTracks.Count;
+                
+                RebuildLibraryGroups();
+                FilterLibraryTracks();
+                RaisePropertyChanged(nameof(LibraryTrackCount));
+                RaisePropertyChanged(nameof(LibraryArtistCount));
+                RaisePropertyChanged(nameof(LibraryAlbumCount));
+            }
+            
+            ScanStatus = $"Scan complete: {totalTracksFound} tracks";
+            StatusMessage = $"Library updated: {totalTracksFound} tracks from {LibraryFolders.Count} folders";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error scanning: {ex.Message}";
+            ScanStatus = "Scan failed";
+        }
+        finally
+        {
+            IsScanning = false;
+        }
+    }
+    
+    /// <summary>
+    /// Save library folders to settings file.
+    /// </summary>
+    private void SaveLibraryFolders()
+    {
+        try
+        {
+            var foldersPath = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "PlatypusTools",
+                "library_folders.json");
+            
+            var dir = System.IO.Path.GetDirectoryName(foldersPath);
+            if (!string.IsNullOrEmpty(dir) && !System.IO.Directory.Exists(dir))
+                System.IO.Directory.CreateDirectory(dir);
+            
+            var json = System.Text.Json.JsonSerializer.Serialize(LibraryFolders.ToList());
+            System.IO.File.WriteAllText(foldersPath, json);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error saving library folders: {ex.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// Load library folders from settings file.
+    /// </summary>
+    private void LoadLibraryFolders()
+    {
+        try
+        {
+            var foldersPath = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "PlatypusTools",
+                "library_folders.json");
+            
+            if (System.IO.File.Exists(foldersPath))
+            {
+                var json = System.IO.File.ReadAllText(foldersPath);
+                var folders = System.Text.Json.JsonSerializer.Deserialize<List<string>>(json);
+                if (folders != null)
+                {
+                    foreach (var folder in folders)
+                    {
+                        if (!LibraryFolders.Contains(folder))
+                            LibraryFolders.Add(folder);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading library folders: {ex.Message}");
+        }
+    }
+    
+    /// <summary>
     /// Search library tracks.
     /// </summary>
     public void SearchLibrary(string query)
@@ -836,12 +1055,20 @@ public class AudioPlayerViewModel : BindableBase
     // Event handlers
     private void OnTrackChanged(object? sender, AudioTrack? track)
     {
-        CurrentTrack = track;
-        if (track != null)
+        System.Diagnostics.Debug.WriteLine($"OnTrackChanged: {track?.DisplayTitle ?? "null"}");
+        
+        // Update on UI thread
+        System.Windows.Application.Current?.Dispatcher.Invoke(() =>
         {
-            Duration = _playerService.Duration;
-            StatusMessage = $"Now Playing: {track.DisplayArtist} - {track.DisplayTitle}";
-        }
+            CurrentTrack = track;
+            RaisePropertyChanged(nameof(CurrentTrack));
+            
+            if (track != null)
+            {
+                Duration = _playerService.Duration;
+                StatusMessage = $"Now Playing: {track.DisplayArtist} - {track.DisplayTitle}";
+            }
+        });
     }
     
     private void OnPositionChanged(object? sender, TimeSpan position)
