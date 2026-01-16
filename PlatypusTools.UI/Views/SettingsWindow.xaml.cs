@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using PlatypusTools.UI.Services;
@@ -9,19 +10,33 @@ namespace PlatypusTools.UI.Views
     /// </summary>
     public partial class SettingsWindow : Window
     {
-        private readonly StackPanel[] _panels;
+        private StackPanel[]? _panels;
         
         public SettingsWindow()
         {
             InitializeComponent();
             
-            _panels = new[] 
-            { 
-                GeneralPanel, AppearancePanel, KeyboardPanel, 
-                AIPanel, UpdatesPanel, BackupPanel, AdvancedPanel 
-            };
+            // Initialize panels array after InitializeComponent
+            InitializePanels();
             
             LoadSettings();
+        }
+        
+        private void InitializePanels()
+        {
+            try
+            {
+                _panels = new[] 
+                { 
+                    GeneralPanel, AppearancePanel, KeyboardPanel, 
+                    AIPanel, UpdatesPanel, BackupPanel, AdvancedPanel 
+                };
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error initializing panels: {ex.Message}");
+                _panels = Array.Empty<StackPanel>();
+            }
         }
         
         private void LoadSettings()
@@ -96,27 +111,29 @@ namespace PlatypusTools.UI.Views
         
         private void NavList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (NavList.SelectedItem is ListBoxItem item && item.Tag is string tag)
+            if (_panels == null || NavList?.SelectedItem is not ListBoxItem item || item.Tag is not string tag)
+                return;
+                
+            foreach (var panel in _panels)
             {
-                foreach (var panel in _panels)
-                {
+                if (panel != null)
                     panel.Visibility = Visibility.Collapsed;
-                }
-                
-                var targetPanel = tag switch
-                {
-                    "General" => GeneralPanel,
-                    "Appearance" => AppearancePanel,
-                    "Keyboard" => KeyboardPanel,
-                    "AI" => AIPanel,
-                    "Updates" => UpdatesPanel,
-                    "Backup" => BackupPanel,
-                    "Advanced" => AdvancedPanel,
-                    _ => GeneralPanel
-                };
-                
-                targetPanel.Visibility = Visibility.Visible;
             }
+            
+            var targetPanel = tag switch
+            {
+                "General" => GeneralPanel,
+                "Appearance" => AppearancePanel,
+                "Keyboard" => KeyboardPanel,
+                "AI" => AIPanel,
+                "Updates" => UpdatesPanel,
+                "Backup" => BackupPanel,
+                "Advanced" => AdvancedPanel,
+                _ => GeneralPanel
+            };
+            
+            if (targetPanel != null)
+                targetPanel.Visibility = Visibility.Visible;
         }
         
         private void CustomizeTheme_Click(object sender, RoutedEventArgs e)

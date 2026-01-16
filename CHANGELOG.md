@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.0.7 - 2025-01-16
+
+### Added
+- **Image Similarity Detection** - Find visually similar images in duplicates view:
+  - Perceptual hash (pHash) using DCT for robust similarity detection
+  - Difference hash (dHash) for edge-based comparison  
+  - Configurable similarity threshold (0-100%)
+  - Groups similar images for easy review
+  - Works alongside existing duplicate file detection
+
 ## v3.0.6 - 2025-02-14
 
 ### Added

@@ -5,6 +5,8 @@
     <Platform>x64</Platform>
     <EnableDefaultItems>false</EnableDefaultItems>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!-- Define variable for WiX to use - pointing to correct path -->
+    <DefineConstants>PlatypusTools.UI.TargetDir=$(MSBuildProjectDirectory)\..\PlatypusTools.UI\bin\$(Configuration)\net10.0-windows\win-x64\</DefineConstants>
   </PropertyGroup>
 
   <!-- Publish the UI project before building the installer -->
@@ -20,11 +22,5 @@
     <Compile Include="Product.wxs" />
     <Compile Include="Files.wxs" />
     <Compile Include="PublishFiles.wxs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\PlatypusTools.UI\PlatypusTools.UI.csproj">
-      <Name>PlatypusTools.UI</Name>
-    </ProjectReference>
   </ItemGroup>
 </Project>
