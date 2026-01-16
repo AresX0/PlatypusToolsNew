@@ -200,5 +200,160 @@ namespace PlatypusTools.Core.Services
                 return null;
             }
         }
+
+        /// <summary>
+        /// Scans all Windows recent item locations and returns a comprehensive list.
+        /// Includes Recent folder, Jump Lists, Quick Access, Favorites, and Start Menu recent items.
+        /// </summary>
+        public static IList<RecentMatch> ScanAllRecentItems()
+        {
+            var results = new List<RecentMatch>();
+            
+            // 1. Windows Recent folder (.lnk shortcuts)
+            try
+            {
+                var recentPath = Environment.GetFolderPath(Environment.SpecialFolder.Recent);
+                if (string.IsNullOrEmpty(recentPath))
+                {
+                    recentPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                        "Microsoft", "Windows", "Recent");
+                }
+                
+                if (Directory.Exists(recentPath))
+                {
+                    foreach (var file in Directory.GetFiles(recentPath, "*.*", SearchOption.TopDirectoryOnly))
+                    {
+                        string target = "";
+                        if (file.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase))
+                        {
+                            target = ResolveShortcutTarget(file) ?? Path.GetFileNameWithoutExtension(file);
+                        }
+                        else
+                        {
+                            target = file;
+                        }
+                        
+                        results.Add(new RecentMatch
+                        {
+                            Type = "Recent",
+                            Path = file,
+                            Target = target
+                        });
+                    }
+                }
+            }
+            catch { /* Continue on error */ }
+            
+            // 2. Jump Lists - AutomaticDestinations (most recent documents per app)
+            try
+            {
+                var autoDestPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "Microsoft", "Windows", "Recent", "AutomaticDestinations");
+                
+                if (Directory.Exists(autoDestPath))
+                {
+                    foreach (var file in Directory.GetFiles(autoDestPath, "*.automaticDestinations-ms"))
+                    {
+                        var appId = Path.GetFileNameWithoutExtension(file).Split('.')[0];
+                        results.Add(new RecentMatch
+                        {
+                            Type = "JumpList-Auto",
+                            Path = file,
+                            Target = $"App ID: {appId}"
+                        });
+                    }
+                }
+            }
+            catch { /* Continue on error */ }
+            
+            // 3. Jump Lists - CustomDestinations (pinned items per app)
+            try
+            {
+                var customDestPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "Microsoft", "Windows", "Recent", "CustomDestinations");
+                
+                if (Directory.Exists(customDestPath))
+                {
+                    foreach (var file in Directory.GetFiles(customDestPath, "*.customDestinations-ms"))
+                    {
+                        var appId = Path.GetFileNameWithoutExtension(file).Split('.')[0];
+                        results.Add(new RecentMatch
+                        {
+                            Type = "JumpList-Custom",
+                            Path = file,
+                            Target = $"App ID: {appId} (pinned)"
+                        });
+                    }
+                }
+            }
+            catch { /* Continue on error */ }
+            
+            // 4. Favorites folder
+            try
+            {
+                var favoritesPath = Environment.GetFolderPath(Environment.SpecialFolder.Favorites);
+                if (Directory.Exists(favoritesPath))
+                {
+                    foreach (var file in Directory.GetFiles(favoritesPath, "*.*", SearchOption.AllDirectories))
+                    {
+                        results.Add(new RecentMatch
+                        {
+                            Type = "Favorite",
+                            Path = file,
+                            Target = Path.GetFileNameWithoutExtension(file)
+                        });
+                    }
+                }
+            }
+            catch { /* Continue on error */ }
+            
+            // 5. Start Menu recent items (if any)
+            try
+            {
+                var startMenuPath = Environment.GetFolderPath(Environment.SpecialFolder.StartMenu);
+                var recentInStartMenu = Path.Combine(startMenuPath, "Recent");
+                if (Directory.Exists(recentInStartMenu))
+                {
+                    foreach (var file in Directory.GetFiles(recentInStartMenu, "*.lnk", SearchOption.AllDirectories))
+                    {
+                        var target = ResolveShortcutTarget(file) ?? Path.GetFileNameWithoutExtension(file);
+                        results.Add(new RecentMatch
+                        {
+                            Type = "StartMenu-Recent",
+                            Path = file,
+                            Target = target
+                        });
+                    }
+                }
+            }
+            catch { /* Continue on error */ }
+            
+            // 6. Office MRU locations (common paths)
+            try
+            {
+                var officeRecentPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "Microsoft", "Office", "Recent");
+                
+                if (Directory.Exists(officeRecentPath))
+                {
+                    foreach (var file in Directory.GetFiles(officeRecentPath, "*.lnk", SearchOption.AllDirectories))
+                    {
+                        var target = ResolveShortcutTarget(file) ?? Path.GetFileNameWithoutExtension(file);
+                        results.Add(new RecentMatch
+                        {
+                            Type = "Office-Recent",
+                            Path = file,
+                            Target = target
+                        });
+                    }
+                }
+            }
+            catch { /* Continue on error */ }
+            
+            return results;
+        }
     }
 }

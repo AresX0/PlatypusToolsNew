@@ -170,35 +170,28 @@ namespace PlatypusTools.UI.ViewModels
         {
             try
             {
-                StatusMessage = "Scanning all recent items...";
+                StatusMessage = "Scanning all recent items (Recent folder, Jump Lists, Favorites, Office)...";
                 Results.Clear();
 
                 await Task.Run(() =>
                 {
-                    // Scan Windows Recent folder
-                    var recentPath = Environment.GetFolderPath(Environment.SpecialFolder.Recent);
-                    if (Directory.Exists(recentPath))
+                    // Use the new comprehensive scanner in RecentCleaner
+                    var allRecentItems = RecentCleaner.ScanAllRecentItems();
+                    
+                    foreach (var item in allRecentItems)
                     {
-                        foreach (var file in Directory.GetFiles(recentPath, "*.*", SearchOption.AllDirectories))
+                        // Skip if in exclusion list
+                        var isExcluded = ExclusionDirs.Any(ex => 
+                            item.Target?.StartsWith(ex, StringComparison.OrdinalIgnoreCase) == true ||
+                            item.Path?.StartsWith(ex, StringComparison.OrdinalIgnoreCase) == true);
+                        
+                        if (!isExcluded)
                         {
-                            string target = "";
-                            string type = "Recent";
-                            
-                            // Get the file name as target info (simplified - full shortcut resolution would require COM interop)
-                            if (file.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase))
-                            {
-                                target = Path.GetFileNameWithoutExtension(file);
-                            }
-                            else
-                            {
-                                target = file;
-                            }
-                            
                             var selectable = new RecentMatchSelectable
                             {
-                                Type = type,
-                                Path = file,
-                                Target = target,
+                                Type = item.Type,
+                                Path = item.Path,
+                                Target = item.Target ?? "",
                                 IsSelected = false
                             };
                             selectable.PropertyChanged += (s, e) => 
@@ -212,40 +205,10 @@ namespace PlatypusTools.UI.ViewModels
                             Application.Current.Dispatcher.Invoke(() => Results.Add(selectable));
                         }
                     }
-                    
-                    // Scan Quick Access (Pinned items)
-                    var quickAccessPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
-                        @"Microsoft\Windows\Recent\AutomaticDestinations");
-                    if (Directory.Exists(quickAccessPath))
-                    {
-                        foreach (var file in Directory.GetFiles(quickAccessPath, "*.*"))
-                        {
-                            var selectable = new RecentMatchSelectable
-                            {
-                                Type = "QuickAccess",
-                                Path = file,
-                                Target = Path.GetFileNameWithoutExtension(file),
-                                IsSelected = false
-                            };
-                            selectable.PropertyChanged += (s, e) => 
-                            {
-                                if (e.PropertyName == nameof(RecentMatchSelectable.IsSelected))
-                                {
-                                    RaisePropertyChanged(nameof(SelectedCount));
-                                    ((RelayCommand)RemoveSelectedCommand).RaiseCanExecuteChanged();
-                                }
-                            };
-                            Application.Current.Dispatcher.Invoke(() => Results.Add(selectable));
-                        }
-                    }
-                    
-                    // Scan Start Menu Recent folder
-                    var startMenuRecentPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.StartMenu), "Programs");
-                    // Note: We don't scan Start Menu programs - just listing this as a potential location
                 });
 
                 RaisePropertyChanged(nameof(SelectedCount));
-                StatusMessage = $"Found {Results.Count} recent items";
+                StatusMessage = $"Found {Results.Count} recent items across all locations";
             }
             catch (Exception ex)
             {

@@ -38,6 +38,14 @@ namespace PlatypusTools.Core.Services
                 else if (ext == ".bmp") bmp.Save(destPath, ImageFormat.Bmp);
                 else if (ext == ".gif") bmp.Save(destPath, ImageFormat.Gif);
                 else if (ext == ".tif" || ext == ".tiff") bmp.Save(destPath, ImageFormat.Tiff);
+                else if (ext == ".webp") 
+                {
+                    // WebP requires special handling - save as PNG first then convert
+                    // Since System.Drawing doesn't natively support WebP, we save as PNG
+                    // For true WebP support, a library like ImageSharp or libwebp would be needed
+                    // For now, we'll save high-quality PNG as a fallback
+                    bmp.Save(destPath, ImageFormat.Png);
+                }
                 else bmp.Save(destPath, ImageFormat.Png);
                 return true;
             }

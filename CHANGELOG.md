@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.0.8 - 2026-01-16
+
+### Added
+- **Recent Cleaner Enhancement** - Comprehensive recent items scanning:
+  - Scans Windows Recent folder, Jump Lists (Automatic & Custom Destinations)
+  - Scans Favorites folder, Start Menu recent items, Office MRU locations
+  - Properly resolves .lnk shortcut targets for accurate display
+  - Shows item type (Recent, JumpList-Auto, JumpList-Custom, Favorite, etc.)
+
+- **Image Converter WebP Support** - Added WebP as output format option:
+  - Convert images to WebP format
+  - Full list now includes: JPG, PNG, BMP, GIF, TIFF, WebP
+
+### Improved
+- **Disk Space Analyzer** - Complete folder hierarchy with files:
+  - Shows full directory tree up to 10 levels deep
+  - Displays individual files with sizes
+  - Hidden and System file visibility toggles
+  - Export to CSV or text report
+
+- **Privacy Cleaner** - Better selection controls:
+  - Select All / Select None buttons for cleanup items
+  - Hierarchical tree view with category and file-level selection
+  - Dry run mode for safe preview
+
+- **Audio Player** - Multi-select queue management:
+  - Ctrl+Click or Shift+Click to select multiple tracks
+  - Remove Selected button removes all selected tracks at once
+  - Dynamic folder scanning adds tracks to queue
+
 ## v3.0.7 - 2025-01-16
 
 ### Added

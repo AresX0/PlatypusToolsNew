@@ -14,7 +14,7 @@ namespace PlatypusTools.UI.ViewModels
         private CancellationTokenSource? _cts;
 
         public ObservableCollection<string> Files { get; } = new ObservableCollection<string>();
-        public ObservableCollection<string> OutputFormats { get; } = new ObservableCollection<string> { "JPG", "PNG", "BMP", "GIF", "TIFF" };
+        public ObservableCollection<string> OutputFormats { get; } = new ObservableCollection<string> { "JPG", "PNG", "BMP", "GIF", "TIFF", "WebP" };
         
         private string _selectedOutputFormat = "JPG";
         public string SelectedOutputFormat { get => _selectedOutputFormat; set { _selectedOutputFormat = value; RaisePropertyChanged(); } }
@@ -85,6 +85,7 @@ namespace PlatypusTools.UI.ViewModels
                 "bmp" => ".bmp",
                 "gif" => ".gif",
                 "tiff" => ".tiff",
+                "webp" => ".webp",
                 _ => ".jpg"
             };
         }
