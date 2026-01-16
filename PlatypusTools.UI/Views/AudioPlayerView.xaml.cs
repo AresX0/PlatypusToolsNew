@@ -848,4 +848,120 @@ public partial class AudioPlayerView : UserControl
         QueueListBox.ItemsSource = null;
         QueueListBox.ItemsSource = queueItems;
     }
+    
+    #region Drag and Drop Queue Reordering
+    
+    private Point _dragStartPoint;
+    private bool _isDragging;
+    private object? _draggedItem;
+    
+    private void QueueListBox_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        _dragStartPoint = e.GetPosition(null);
+        _isDragging = false;
+        
+        // Get the item being clicked
+        var listBox = sender as ListBox;
+        if (listBox == null) return;
+        
+        var element = e.OriginalSource as DependencyObject;
+        while (element != null && element != listBox)
+        {
+            if (element is ListBoxItem item)
+            {
+                _draggedItem = item.DataContext;
+                break;
+            }
+            element = VisualTreeHelper.GetParent(element);
+        }
+    }
+    
+    private void QueueListBox_PreviewMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (e.LeftButton != System.Windows.Input.MouseButtonState.Pressed || _draggedItem == null)
+            return;
+        
+        Point position = e.GetPosition(null);
+        
+        // Check if we've moved enough to start a drag
+        if (Math.Abs(position.X - _dragStartPoint.X) > SystemParameters.MinimumHorizontalDragDistance ||
+            Math.Abs(position.Y - _dragStartPoint.Y) > SystemParameters.MinimumVerticalDragDistance)
+        {
+            if (!_isDragging)
+            {
+                _isDragging = true;
+                var listBox = sender as ListBox;
+                if (listBox != null && _draggedItem != null)
+                {
+                    DragDrop.DoDragDrop(listBox, _draggedItem, DragDropEffects.Move);
+                }
+                _isDragging = false;
+                _draggedItem = null;
+            }
+        }
+    }
+    
+    private void QueueListBox_DragOver(object sender, DragEventArgs e)
+    {
+        if (!e.Data.GetDataPresent(typeof(PlatypusTools.Core.Models.Audio.AudioTrack)))
+        {
+            e.Effects = DragDropEffects.None;
+        }
+        else
+        {
+            e.Effects = DragDropEffects.Move;
+        }
+        e.Handled = true;
+    }
+    
+    private void QueueListBox_Drop(object sender, DragEventArgs e)
+    {
+        var vm = GetViewModel();
+        if (vm == null) return;
+        
+        if (!e.Data.GetDataPresent(typeof(PlatypusTools.Core.Models.Audio.AudioTrack)))
+            return;
+        
+        var droppedTrack = e.Data.GetData(typeof(PlatypusTools.Core.Models.Audio.AudioTrack)) as PlatypusTools.Core.Models.Audio.AudioTrack;
+        if (droppedTrack == null) return;
+        
+        // Find the target item
+        var listBox = sender as ListBox;
+        if (listBox == null) return;
+        
+        // Get the item at the drop position
+        var targetElement = e.OriginalSource as DependencyObject;
+        PlatypusTools.Core.Models.Audio.AudioTrack? targetTrack = null;
+        
+        while (targetElement != null && targetElement != listBox)
+        {
+            if (targetElement is ListBoxItem item)
+            {
+                targetTrack = item.DataContext as PlatypusTools.Core.Models.Audio.AudioTrack;
+                break;
+            }
+            targetElement = VisualTreeHelper.GetParent(targetElement);
+        }
+        
+        if (targetTrack == null || targetTrack.Id == droppedTrack.Id)
+            return;
+        
+        // Get indices
+        var fromIndex = vm.Queue.ToList().FindIndex(t => t.Id == droppedTrack.Id);
+        var toIndex = vm.Queue.ToList().FindIndex(t => t.Id == targetTrack.Id);
+        
+        if (fromIndex >= 0 && toIndex >= 0 && fromIndex != toIndex)
+        {
+            // Move in the service
+            PlatypusTools.UI.Services.AudioPlayerService.Instance.MoveInQueue(fromIndex, toIndex);
+            
+            // Refresh the display
+            RefreshQueueListBox();
+            UpdateQueueCount();
+            
+            vm.StatusMessage = $"Moved '{droppedTrack.DisplayTitle}'";
+        }
+    }
+    
+    #endregion
 }

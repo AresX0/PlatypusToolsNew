@@ -340,6 +340,45 @@ public class AudioPlayerViewModel : BindableBase
     public ICommand VolumeUpCommand { get; }
     public ICommand VolumeDownCommand { get; }
     
+    // Context menu commands for queue
+    public ICommand PlayNextCommand { get; }
+    public ICommand RevealInExplorerCommand { get; }
+    public ICommand MoveUpInQueueCommand { get; }
+    public ICommand MoveDownInQueueCommand { get; }
+    
+    // Crossfade properties
+    private bool _crossfadeEnabled = true;
+    public bool CrossfadeEnabled
+    {
+        get => _crossfadeEnabled;
+        set
+        {
+            if (SetProperty(ref _crossfadeEnabled, value))
+                _playerService.CrossfadeEnabled = value;
+        }
+    }
+    
+    private int _crossfadeDurationMs = 2000;
+    public int CrossfadeDurationMs
+    {
+        get => _crossfadeDurationMs;
+        set
+        {
+            if (SetProperty(ref _crossfadeDurationMs, value))
+                _playerService.CrossfadeDurationMs = value;
+        }
+    }
+    
+    public double CrossfadeDurationSeconds
+    {
+        get => _crossfadeDurationMs / 1000.0;
+        set
+        {
+            CrossfadeDurationMs = (int)(value * 1000);
+            RaisePropertyChanged();
+        }
+    }
+    
     // Queue selection
     private AudioTrack? _selectedQueueTrack;
     public AudioTrack? SelectedQueueTrack
@@ -475,6 +514,55 @@ public class AudioPlayerViewModel : BindableBase
         {
             Volume = Math.Max(0.0, Volume - 0.05); // -5%
         });
+        
+        // Context menu commands for queue
+        PlayNextCommand = new RelayCommand(param =>
+        {
+            if (param is AudioTrack track)
+            {
+                _playerService.PlayNext(track);
+                UpdateQueue();
+                StatusMessage = $"'{track.DisplayTitle}' will play next";
+            }
+        });
+        
+        RevealInExplorerCommand = new RelayCommand(param =>
+        {
+            if (param is AudioTrack track)
+            {
+                _playerService.RevealInExplorer(track);
+            }
+        });
+        
+        MoveUpInQueueCommand = new RelayCommand(param =>
+        {
+            if (param is AudioTrack track)
+            {
+                var index = Queue.IndexOf(track);
+                if (index > 0)
+                {
+                    _playerService.MoveInQueue(index, index - 1);
+                    UpdateQueue();
+                }
+            }
+        });
+        
+        MoveDownInQueueCommand = new RelayCommand(param =>
+        {
+            if (param is AudioTrack track)
+            {
+                var index = Queue.IndexOf(track);
+                if (index >= 0 && index < Queue.Count - 1)
+                {
+                    _playerService.MoveInQueue(index, index + 1);
+                    UpdateQueue();
+                }
+            }
+        });
+        
+        // Sync crossfade settings with service
+        _playerService.CrossfadeEnabled = _crossfadeEnabled;
+        _playerService.CrossfadeDurationMs = _crossfadeDurationMs;
         
         // Set initial volume
         _playerService.Volume = _volume;

@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.0.9 - 2026-01-16
+
+### Added
+- **Audio Player Crossfade** - Smooth transitions between tracks:
+  - Configurable crossfade duration (0-5 seconds)
+  - Automatic fade-out of current track while fading-in next track
+  - Toggle crossfade on/off via settings
+  - Works with shuffle, repeat all, and normal playback modes
+
+- **Queue Context Menu** - Right-click options for queue management:
+  - Play Now - Immediately play the selected track
+  - Play Next - Insert track after currently playing
+  - Move Up/Down - Reorder tracks in queue
+  - Remove from Queue - Delete selected track
+  - Reveal in Explorer - Open containing folder
+
+- **Drag-and-Drop Queue Reordering** - Reorder tracks by dragging:
+  - Click and drag tracks to new positions
+  - Visual feedback during drag operation
+  - Automatic index adjustment for currently playing track
+
+### Improved
+- **Audio Player Service** - Enhanced queue management:
+  - PlayNext method for inserting tracks after current
+  - MoveInQueue method for programmatic reordering
+  - RevealInExplorer for quick file access
+  - Better shuffle index management during queue modifications
+
 ## v3.0.8 - 2026-01-16
 
 ### Added

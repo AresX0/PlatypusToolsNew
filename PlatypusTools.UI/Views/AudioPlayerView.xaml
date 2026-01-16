@@ -149,7 +149,37 @@
                                      ItemsSource="{Binding Queue}" 
                                      SelectedItem="{Binding SelectedQueueTrack}"
                                      SelectionMode="Extended"
-                                     Background="Transparent" BorderThickness="0">
+                                     Background="Transparent" BorderThickness="0"
+                                     AllowDrop="True"
+                                     PreviewMouseLeftButtonDown="QueueListBox_PreviewMouseLeftButtonDown"
+                                     PreviewMouseMove="QueueListBox_PreviewMouseMove"
+                                     Drop="QueueListBox_Drop"
+                                     DragOver="QueueListBox_DragOver">
+                            <ListBox.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="▶ Play Now" 
+                                              Command="{Binding PlayTrackCommand}" 
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                    <MenuItem Header="⏭ Play Next" 
+                                              Command="{Binding PlayNextCommand}" 
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                    <Separator/>
+                                    <MenuItem Header="⬆ Move Up" 
+                                              Command="{Binding MoveUpInQueueCommand}" 
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                    <MenuItem Header="⬇ Move Down" 
+                                              Command="{Binding MoveDownInQueueCommand}" 
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                    <Separator/>
+                                    <MenuItem Header="✕ Remove from Queue" 
+                                              Command="{Binding RemoveFromQueueCommand}" 
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                    <Separator/>
+                                    <MenuItem Header="📂 Reveal in Explorer" 
+                                              Command="{Binding RevealInExplorerCommand}" 
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                </ContextMenu>
+                            </ListBox.ContextMenu>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <Grid Margin="2">
