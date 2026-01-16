@@ -7,7 +7,7 @@
   "targets": {
     ".NETCoreApp,Version=v10.0": {},
     ".NETCoreApp,Version=v10.0/win-x64": {
-      "PlatypusTools.UI/3.0.4": {
+      "PlatypusTools.UI/3.0.5": {
         "dependencies": {
           "Microsoft.Web.WebView2": "1.0.2792.45",
           "PlatypusTools.Core": "3.0.4",
@@ -1158,7 +1158,7 @@
     }
   },
   "libraries": {
-    "PlatypusTools.UI/3.0.4": {
+    "PlatypusTools.UI/3.0.5": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
