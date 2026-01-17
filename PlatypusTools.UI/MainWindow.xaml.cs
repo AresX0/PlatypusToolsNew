@@ -1,5 +1,7 @@
 using System.Windows;
+using System.Windows.Controls;
 using PlatypusTools.UI.ViewModels;
+using PlatypusTools.UI.Services;
 
 namespace PlatypusTools.UI
 {
@@ -13,7 +15,85 @@ namespace PlatypusTools.UI
             this.Loaded += (s, e) =>
             {
                 StatusBarViewModel.Instance.Reset();
+                RefreshRecentWorkspacesMenu();
             };
+            
+            // Subscribe to workspace changes
+            RecentWorkspacesService.Instance.WorkspacesChanged += (s, e) => RefreshRecentWorkspacesMenu();
+        }
+
+        private void RefreshRecentWorkspacesMenu()
+        {
+            if (RecentWorkspacesMenu == null) return;
+            
+            RecentWorkspacesMenu.Items.Clear();
+            
+            var recentWorkspaces = RecentWorkspacesService.Instance.RecentWorkspaces;
+            
+            if (recentWorkspaces.Count == 0)
+            {
+                var placeholder = new MenuItem
+                {
+                    Header = "(No recent workspaces)",
+                    IsEnabled = false
+                };
+                RecentWorkspacesMenu.Items.Add(placeholder);
+            }
+            else
+            {
+                int index = 1;
+                foreach (var workspace in recentWorkspaces.Take(10))
+                {
+                    var menuItem = new MenuItem
+                    {
+                        Header = $"_{index}. {workspace.Name}",
+                        ToolTip = workspace.Path,
+                        Tag = workspace.Path
+                    };
+                    menuItem.Click += RecentWorkspaceItem_Click;
+                    RecentWorkspacesMenu.Items.Add(menuItem);
+                    index++;
+                }
+                
+                if (recentWorkspaces.Count > 10)
+                {
+                    RecentWorkspacesMenu.Items.Add(new Separator());
+                    var moreItem = new MenuItem
+                    {
+                        Header = "More...",
+                        Command = (DataContext as MainWindowViewModel)?.OpenRecentWorkspacesCommand
+                    };
+                    RecentWorkspacesMenu.Items.Add(moreItem);
+                }
+            }
+        }
+
+        private void RecentWorkspaceItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem && menuItem.Tag is string path)
+            {
+                var vm = DataContext as MainWindowViewModel;
+                if (vm != null)
+                {
+                    vm.SelectedFolder = path;
+                    RecentWorkspacesService.Instance.AddWorkspace(path);
+                }
+            }
+        }
+
+        private void ClearRecentList_Click(object sender, RoutedEventArgs e)
+        {
+            var result = MessageBox.Show(
+                "Are you sure you want to clear all recent workspaces?",
+                "Clear Recent Workspaces",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+                
+            if (result == MessageBoxResult.Yes)
+            {
+                RecentWorkspacesService.Instance.Clear();
+                RefreshRecentWorkspacesMenu();
+            }
         }
 
         private void ValidateDataContext_Click(object sender, RoutedEventArgs e)

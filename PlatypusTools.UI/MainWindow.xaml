@@ -23,7 +23,12 @@
                 <MenuItem Header="Save Workspace..." Command="{Binding SaveWorkspaceCommand}" InputGestureText="Ctrl+S" />
                 <MenuItem Header="Export Config..." Command="{Binding ExportConfigCommand}" InputGestureText="Ctrl+Shift+E" />
                 <MenuItem Header="Import Config..." Command="{Binding ImportConfigCommand}" InputGestureText="Ctrl+Shift+I" />
+                <Separator />
+                <MenuItem Header="Recent Workspaces" x:Name="RecentWorkspacesMenu">
+                    <MenuItem Header="(No recent workspaces)" IsEnabled="False" x:Name="NoRecentPlaceholder"/>
+                </MenuItem>
                 <MenuItem Header="Open Recent..." Command="{Binding OpenRecentWorkspacesCommand}" InputGestureText="Ctrl+R" />
+                <MenuItem Header="Clear Recent List" Click="ClearRecentList_Click" />
                 <Separator />
                 <MenuItem Header="Backup Settings..." Click="BackupSettings" />
                 <MenuItem Header="Restore Settings..." Click="RestoreSettings" />
@@ -95,114 +100,104 @@
         <controls:StatusBarControl DockPanel.Dock="Bottom"/>
 
         <TabControl DockPanel.Dock="Top" Margin="8">
-            <TabItem Header="File Cleaner">
-                <controls:LazyTabContent ViewType="{x:Type views:FileCleanerView}" ViewDataContext="{Binding FileCleaner}" />
-            </TabItem>
-            <TabItem Header="Media Conversion">
+            <!-- File Management -->
+            <TabItem Header="📁 File Management">
                 <TabControl>
-                    <TabItem Header="Video Converter">
-                        <controls:LazyTabContent ViewType="{x:Type views:VideoConverterView}" ViewDataContext="{Binding VideoConverter}" />
+                    <TabItem Header="File Cleaner">
+                        <controls:LazyTabContent ViewType="{x:Type views:FileCleanerView}" ViewDataContext="{Binding FileCleaner}" />
                     </TabItem>
-                    <TabItem Header="Video Combiner">
-                        <controls:LazyTabContent ViewType="{x:Type views:VideoCombinerView}" ViewDataContext="{Binding VideoCombiner}" />
-                    </TabItem>
-                    <TabItem Header="Image Converter">
-                        <controls:LazyTabContent ViewType="{x:Type views:ImageConverterView}" ViewDataContext="{Binding ImageConverter}" />
-                    </TabItem>
-                    <TabItem Header="Image Resizer">
-                        <controls:LazyTabContent ViewType="{x:Type views:ImageResizerView}" ViewDataContext="{Binding ImageResizer}" />
-                    </TabItem>
-                    <TabItem Header="ICO Converter">
-                        <controls:LazyTabContent ViewType="{x:Type views:IconConverterView}" ViewDataContext="{Binding IconConverter}" />
-                    </TabItem>
-                    <TabItem Header="Upscaler">
-                        <controls:LazyTabContent ViewType="{x:Type views:UpscalerView}" ViewDataContext="{Binding Upscaler}" />
-                    </TabItem>
-                    <TabItem Header="Batch Upscale">
-                        <controls:LazyTabContent ViewType="{x:Type views:BatchUpscaleView}" ViewDataContext="{Binding BatchUpscale}" />
-                    </TabItem>
-                    <TabItem Header="Bootable USB Creator">
-                        <controls:LazyTabContent ViewType="{x:Type views:BootableUSBView}" ViewDataContext="{Binding BootableUSB}" />
-                    </TabItem>
-                </TabControl>
-            </TabItem>
-            <TabItem Header="Duplicates">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="300" />
-                    </Grid.ColumnDefinitions>
-                    <controls:LazyTabContent Grid.Column="0" ViewType="{x:Type views:DuplicatesView}" ViewDataContext="{Binding Duplicates}" />
-                    <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <Border BorderBrush="Gray" BorderThickness="1" Padding="8" Background="{DynamicResource WindowBackgroundBrush}">
-                            <StackPanel>
-                                <TextBlock FontWeight="Bold">Auxiliary</TextBlock>
-                                <ContentControl Content="{Binding Duplicates.LastPreviewedFilePath}">
-                                    <ContentControl.ContentTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding}" TextWrapping="Wrap" />
-                                        </DataTemplate>
-                                    </ContentControl.ContentTemplate>
-                                </ContentControl>
-                                <views:PreviewPanel DataContext="{Binding Duplicates}" Visibility="{Binding Duplicates.PreviewVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                <views:StagingPanel DataContext="{Binding Duplicates.Staging}" Visibility="{Binding Duplicates.StagingVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                            </StackPanel>
-                        </Border>
-                    </ScrollViewer>
-                </Grid>
-            </TabItem>
-                        <!-- Removed QuickActionsView reference due to missing definition -->
-            <TabItem Header="Cleanup">
-                <TabControl>
-                    <TabItem Header="Recent Cleaner">
-                        <controls:LazyTabContent ViewType="{x:Type views:RecentCleanupView}" ViewDataContext="{Binding Recent}" />
-                    </TabItem>
-                    <TabItem Header="Disk Cleanup">
-                        <controls:LazyTabContent ViewType="{x:Type views:DiskCleanupView}" ViewDataContext="{Binding DiskCleanup}" />
-                    </TabItem>
-                    <TabItem Header="Privacy Cleaner">
-                        <controls:LazyTabContent ViewType="{x:Type views:PrivacyCleanerView}" ViewDataContext="{Binding PrivacyCleaner}" />
+                    <TabItem Header="Duplicates">
+                        <controls:LazyTabContent ViewType="{x:Type views:DuplicatesView}" ViewDataContext="{Binding Duplicates}" />
                     </TabItem>
                     <TabItem Header="Empty Folder Scanner">
                         <controls:LazyTabContent ViewType="{x:Type views:EmptyFolderScannerView}" ViewDataContext="{Binding EmptyFolderScanner}" />
                     </TabItem>
                 </TabControl>
             </TabItem>
-            <TabItem Header="Security">
+
+            <!-- Multimedia (hierarchical layout) -->
+            <TabItem Header="🎬 Multimedia">
                 <TabControl>
-                    <TabItem Header="Folder Hider">
-                        <controls:LazyTabContent ViewType="{x:Type views:HiderView}" ViewDataContext="{Binding Hider}" />
+                    <!-- Audio -->
+                    <TabItem Header="🎵 Audio">
+                        <TabControl>
+                            <TabItem Header="Audio Player">
+                                <controls:LazyTabContent ViewType="{x:Type views:AudioPlayerView}" ViewDataContext="{Binding AudioPlayer}" />
+                            </TabItem>
+                            <TabItem Header="Audio Trim">
+                                <views:NativeAudioTrimView />
+                            </TabItem>
+                        </TabControl>
                     </TabItem>
-                    <TabItem Header="System Audit">
-                        <controls:LazyTabContent ViewType="{x:Type views:SystemAuditView}" ViewDataContext="{Binding SystemAudit}" />
+                    
+                    <!-- Image -->
+                    <TabItem Header="🖼️ Image">
+                        <TabControl>
+                            <TabItem Header="Image Edit">
+                                <views:NativeImageEditView />
+                            </TabItem>
+                            <TabItem Header="Image Converter">
+                                <controls:LazyTabContent ViewType="{x:Type views:ImageConverterView}" ViewDataContext="{Binding ImageConverter}" />
+                            </TabItem>
+                            <TabItem Header="Image Resizer">
+                                <controls:LazyTabContent ViewType="{x:Type views:ImageResizerView}" ViewDataContext="{Binding ImageResizer}" />
+                            </TabItem>
+                            <TabItem Header="ICO Converter">
+                                <controls:LazyTabContent ViewType="{x:Type views:IconConverterView}" ViewDataContext="{Binding IconConverter}" />
+                            </TabItem>
+                            <TabItem Header="Batch Watermark">
+                                <controls:LazyTabContent ViewType="{x:Type views:BatchWatermarkView}" ViewDataContext="{Binding BatchWatermark}" />
+                            </TabItem>
+                        </TabControl>
                     </TabItem>
-                    <TabItem Header="Startup Manager">
-                        <controls:LazyTabContent ViewType="{x:Type views:StartupManagerView}" ViewDataContext="{Binding StartupManager}" />
+                    
+                    <!-- Video -->
+                    <TabItem Header="🎬 Video">
+                        <TabControl>
+                            <TabItem Header="Video Player">
+                                <views:NativeVideoPlayerView />
+                            </TabItem>
+                            <TabItem Header="Upscaler">
+                                <controls:LazyTabContent ViewType="{x:Type views:UpscalerView}" ViewDataContext="{Binding Upscaler}" />
+                            </TabItem>
+                            <TabItem Header="Batch Upscaler">
+                                <controls:LazyTabContent ViewType="{x:Type views:BatchUpscaleView}" ViewDataContext="{Binding BatchUpscale}" />
+                            </TabItem>
+                            <TabItem Header="Video Combiner">
+                                <controls:LazyTabContent ViewType="{x:Type views:VideoCombinerView}" ViewDataContext="{Binding VideoCombiner}" />
+                            </TabItem>
+                            <TabItem Header="Video Converter">
+                                <controls:LazyTabContent ViewType="{x:Type views:VideoConverterView}" ViewDataContext="{Binding VideoConverter}" />
+                            </TabItem>
+                        </TabControl>
+                    </TabItem>
+                    
+                    <!-- Media Library -->
+                    <TabItem Header="📚 Media Library">
+                        <controls:LazyTabContent ViewType="{x:Type views:MediaLibraryView}" ViewDataContext="{Binding MediaLibrary}" />
+                    </TabItem>
+                    
+                    <!-- External Tools (VLC, Audacity, GIMP) -->
+                    <TabItem Header="🔧 External Tools">
+                        <controls:LazyTabContent ViewType="{x:Type views:MultimediaEditorView}" ViewDataContext="{Binding MultimediaEditor}" />
                     </TabItem>
                 </TabControl>
             </TabItem>
-            <TabItem Header="Metadata">
-                <controls:LazyTabContent ViewType="{x:Type views:MetadataEditorView}" ViewDataContext="{Binding MetadataEditor}" />
-            </TabItem>
-            <TabItem Header="Multimedia Editor">
-                <controls:LazyTabContent ViewType="{x:Type views:MultimediaEditorView}" ViewDataContext="{Binding MultimediaEditor}" />
-            </TabItem>
-            <TabItem Header="🎵 Audio Player">
-                <controls:LazyTabContent ViewType="{x:Type views:AudioPlayerView}" ViewDataContext="{Binding AudioPlayer}" />
-            </TabItem>
-            <TabItem Header="Tools">
+
+            <!-- System -->
+            <TabItem Header="🖥️ System">
                 <TabControl>
-                    <TabItem Header="Website Downloader">
-                        <controls:LazyTabContent ViewType="{x:Type views:WebsiteDownloaderView}" ViewDataContext="{Binding WebsiteDownloader}" />
+                    <TabItem Header="Disk Cleanup">
+                        <controls:LazyTabContent ViewType="{x:Type views:DiskCleanupView}" ViewDataContext="{Binding DiskCleanup}" />
                     </TabItem>
-                    <TabItem Header="File Analyzer">
-                        <controls:LazyTabContent ViewType="{x:Type views:FileAnalyzerView}" ViewDataContext="{Binding FileAnalyzer}" />
+                    <TabItem Header="Privacy Cleaner">
+                        <controls:LazyTabContent ViewType="{x:Type views:PrivacyCleanerView}" ViewDataContext="{Binding PrivacyCleaner}" />
                     </TabItem>
-                    <TabItem Header="Disk Space Analyzer">
-                        <controls:LazyTabContent ViewType="{x:Type views:DiskSpaceAnalyzerView}" ViewDataContext="{Binding DiskSpaceAnalyzer}" />
+                    <TabItem Header="Recent Cleaner">
+                        <controls:LazyTabContent ViewType="{x:Type views:RecentCleanupView}" ViewDataContext="{Binding Recent}" />
                     </TabItem>
-                    <TabItem Header="Network Tools">
-                        <controls:LazyTabContent ViewType="{x:Type views:NetworkToolsView}" ViewDataContext="{Binding NetworkTools}" />
+                    <TabItem Header="Startup Manager">
+                        <controls:LazyTabContent ViewType="{x:Type views:StartupManagerView}" ViewDataContext="{Binding StartupManager}" />
                     </TabItem>
                     <TabItem Header="Process Manager">
                         <controls:LazyTabContent ViewType="{x:Type views:ProcessManagerView}" ViewDataContext="{Binding ProcessManager}" />
@@ -216,17 +211,52 @@
                     <TabItem Header="System Restore">
                         <controls:LazyTabContent ViewType="{x:Type views:SystemRestoreView}" ViewDataContext="{Binding SystemRestore}" />
                     </TabItem>
+                </TabControl>
+            </TabItem>
+
+            <!-- Security -->
+            <TabItem Header="🔒 Security">
+                <TabControl>
+                    <TabItem Header="Folder Hider">
+                        <controls:LazyTabContent ViewType="{x:Type views:HiderView}" ViewDataContext="{Binding Hider}" />
+                    </TabItem>
+                    <TabItem Header="System Audit">
+                        <controls:LazyTabContent ViewType="{x:Type views:SystemAuditView}" ViewDataContext="{Binding SystemAudit}" />
+                    </TabItem>
+                </TabControl>
+            </TabItem>
+
+            <!-- Metadata -->
+            <TabItem Header="📋 Metadata">
+                <controls:LazyTabContent ViewType="{x:Type views:MetadataEditorView}" ViewDataContext="{Binding MetadataEditor}" />
+            </TabItem>
+
+            <!-- Tools -->
+            <TabItem Header="🔧 Tools">
+                <TabControl>
+                    <TabItem Header="Website Downloader">
+                        <controls:LazyTabContent ViewType="{x:Type views:WebsiteDownloaderView}" ViewDataContext="{Binding WebsiteDownloader}" />
+                    </TabItem>
+                    <TabItem Header="File Analyzer">
+                        <controls:LazyTabContent ViewType="{x:Type views:FileAnalyzerView}" ViewDataContext="{Binding FileAnalyzer}" />
+                    </TabItem>
+                    <TabItem Header="Disk Space Analyzer">
+                        <controls:LazyTabContent ViewType="{x:Type views:DiskSpaceAnalyzerView}" ViewDataContext="{Binding DiskSpaceAnalyzer}" />
+                    </TabItem>
+                    <TabItem Header="Network Tools">
+                        <controls:LazyTabContent ViewType="{x:Type views:NetworkToolsView}" ViewDataContext="{Binding NetworkTools}" />
+                    </TabItem>
                     <TabItem Header="Archive Manager">
                         <controls:LazyTabContent ViewType="{x:Type views:ArchiveManagerView}" ViewDataContext="{Binding ArchiveManager}" />
                     </TabItem>
                     <TabItem Header="PDF Tools">
                         <controls:LazyTabContent ViewType="{x:Type views:PdfToolsView}" ViewDataContext="{Binding PdfTools}" />
                     </TabItem>
-                    <TabItem Header="Batch Watermark">
-                        <controls:LazyTabContent ViewType="{x:Type views:BatchWatermarkView}" ViewDataContext="{Binding BatchWatermark}" />
-                    </TabItem>
                     <TabItem Header="Screenshot">
                         <controls:LazyTabContent ViewType="{x:Type views:ScreenshotView}" ViewDataContext="{Binding Screenshot}" />
+                    </TabItem>
+                    <TabItem Header="Bootable USB Creator">
+                        <controls:LazyTabContent ViewType="{x:Type views:BootableUSBView}" ViewDataContext="{Binding BootableUSB}" />
                     </TabItem>
                 </TabControl>
             </TabItem>

@@ -413,7 +413,9 @@ namespace PlatypusTools.Core.Services
                             Name = "UAC (User Account Control)",
                             Description = uacEnabled ? "UAC is enabled" : "UAC is disabled",
                             Severity = uacEnabled ? AuditSeverity.Info : AuditSeverity.Critical,
-                            Status = uacEnabled ? AuditStatus.Pass : AuditStatus.Fail
+                            Status = uacEnabled ? AuditStatus.Pass : AuditStatus.Fail,
+                            CanAutoFix = !uacEnabled,
+                            FixAction = "reg add \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\" /v EnableLUA /t REG_DWORD /d 1 /f"
                         });
                     }
                 }
@@ -644,7 +646,9 @@ namespace PlatypusTools.Core.Services
                             Name = "Windows Defender - Real-time Protection",
                             Description = realtimeEnabled ? "Enabled" : "Disabled",
                             Severity = realtimeEnabled ? AuditSeverity.Info : AuditSeverity.Critical,
-                            Status = realtimeEnabled ? AuditStatus.Pass : AuditStatus.Fail
+                            Status = realtimeEnabled ? AuditStatus.Pass : AuditStatus.Fail,
+                            CanAutoFix = !realtimeEnabled,
+                            FixAction = "powershell -Command \"Set-MpPreference -DisableRealtimeMonitoring $false\""
                         });
 
                         items.Add(new AuditItem
@@ -653,7 +657,9 @@ namespace PlatypusTools.Core.Services
                             Name = "Windows Defender - Antivirus",
                             Description = antivirusEnabled ? "Enabled" : "Disabled",
                             Severity = antivirusEnabled ? AuditSeverity.Info : AuditSeverity.Critical,
-                            Status = antivirusEnabled ? AuditStatus.Pass : AuditStatus.Fail
+                            Status = antivirusEnabled ? AuditStatus.Pass : AuditStatus.Fail,
+                            CanAutoFix = !antivirusEnabled,
+                            FixAction = "powershell -Command \"Set-MpPreference -DisableRealtimeMonitoring $false\""
                         });
 
                         items.Add(new AuditItem
@@ -662,7 +668,9 @@ namespace PlatypusTools.Core.Services
                             Name = "Windows Defender - Antispyware",
                             Description = antispywareEnabled ? "Enabled" : "Disabled",
                             Severity = antispywareEnabled ? AuditSeverity.Info : AuditSeverity.Critical,
-                            Status = antispywareEnabled ? AuditStatus.Pass : AuditStatus.Fail
+                            Status = antispywareEnabled ? AuditStatus.Pass : AuditStatus.Fail,
+                            CanAutoFix = !antispywareEnabled,
+                            FixAction = "powershell -Command \"Set-MpPreference -DisableRealtimeMonitoring $false\""
                         });
 
                         // Get signature information

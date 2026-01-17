@@ -31,6 +31,184 @@
 
         <!-- Tabbed Interface for Each Application -->
         <TabControl Grid.Row="1" Margin="5">
+            <!-- Native Video Player Tab -->
+            <TabItem Header="▶️ Video Player">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Video Display -->
+                    <Border Grid.Row="0" Background="Black" CornerRadius="4">
+                        <MediaElement x:Name="NativeVideoPlayer" 
+                                      LoadedBehavior="Manual" 
+                                      UnloadedBehavior="Stop"
+                                      MediaOpened="NativeVideoPlayer_MediaOpened"
+                                      MediaEnded="NativeVideoPlayer_MediaEnded"
+                                      Stretch="Uniform"/>
+                    </Border>
+                    
+                    <!-- Video Controls -->
+                    <GroupBox Grid.Row="1" Header="Playback Controls" Margin="0,5,0,0">
+                        <StackPanel Margin="5">
+                            <Grid Margin="0,5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="VideoPositionText" Grid.Column="0" Text="00:00:00" VerticalAlignment="Center" Margin="0,0,10,0" FontFamily="Consolas"/>
+                                <Slider x:Name="VideoSeekSlider" Grid.Column="1" Minimum="0" Maximum="100" ValueChanged="VideoSeekSlider_ValueChanged" Margin="0,0,10,0"/>
+                                <TextBlock x:Name="VideoDurationText" Grid.Column="2" Text="00:00:00" VerticalAlignment="Center" FontFamily="Consolas"/>
+                            </Grid>
+                            <WrapPanel HorizontalAlignment="Center" Margin="0,5">
+                                <Button x:Name="VideoPlayButton" Content="▶ Play" Click="VideoPlay_Click" Width="80" Height="35" Margin="5" FontWeight="Bold"/>
+                                <Button x:Name="VideoPauseButton" Content="⏸ Pause" Click="VideoPause_Click" Width="80" Height="35" Margin="5"/>
+                                <Button x:Name="VideoStopButton" Content="⏹ Stop" Click="VideoStop_Click" Width="80" Height="35" Margin="5"/>
+                                <Button Content="⏪ -10s" Click="VideoBack_Click" Width="70" Height="35" Margin="5"/>
+                                <Button Content="⏩ +10s" Click="VideoForward_Click" Width="70" Height="35" Margin="5"/>
+                                <Button Content="⛶ Fullscreen" Click="VideoFullscreen_Click" Width="100" Height="35" Margin="5" ToolTip="Press Escape to exit fullscreen"/>
+                            </WrapPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5">
+                                <TextBlock Text="Volume:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <Slider x:Name="VideoVolumeSlider" Minimum="0" Maximum="1" Value="0.7" Width="150" ValueChanged="VideoVolume_ValueChanged"/>
+                                <Button Content="🔇 Mute" Click="VideoMute_Click" Width="70" Height="30" Margin="10,0,0,0"/>
+                            </StackPanel>
+                            <TextBlock HorizontalAlignment="Center" Margin="0,10,0,0" FontStyle="Italic" Foreground="#666">
+                                Native WPF video player - No external software required
+                            </TextBlock>
+                        </StackPanel>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+
+            <!-- Native Audio Trim Tab -->
+            <TabItem Header="✂️ Audio Trim">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Trim Settings -->
+                    <GroupBox Header="Trim Settings" Grid.Row="0" Margin="0,0,0,10">
+                        <Grid Margin="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Start Time:" VerticalAlignment="Center" Margin="0,0,10,5"/>
+                            <TextBox x:Name="AudioTrimStart" Grid.Row="0" Grid.Column="1" Text="00:00:00" Margin="0,0,20,5"/>
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="End Time:" VerticalAlignment="Center" Margin="0,0,10,5"/>
+                            <TextBox x:Name="AudioTrimEnd" Grid.Row="0" Grid.Column="3" Text="00:00:30" Margin="0,0,0,5"/>
+                            
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Output Format:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <ComboBox x:Name="AudioTrimFormat" Grid.Row="1" Grid.Column="1" SelectedIndex="0">
+                                <ComboBoxItem Content="MP3"/>
+                                <ComboBoxItem Content="WAV"/>
+                                <ComboBoxItem Content="FLAC"/>
+                                <ComboBoxItem Content="AAC"/>
+                                <ComboBoxItem Content="OGG"/>
+                            </ComboBox>
+                        </Grid>
+                    </GroupBox>
+                    
+                    <!-- Actions -->
+                    <GroupBox Header="Actions" Grid.Row="1" Margin="0,0,0,10">
+                        <WrapPanel Margin="10">
+                            <Button x:Name="AudioTrimButton" Content="✂️ Trim Audio" Click="AudioTrim_Click" Width="150" Height="40" Margin="0,0,10,5" FontWeight="Bold" Background="LightGreen"/>
+                            <Button x:Name="AudioPreviewButton" Content="▶ Preview" Click="AudioPreview_Click" Width="120" Height="40" Margin="0,0,10,5"/>
+                            <Button Content="📂 Open Output Folder" Click="OpenOutputFolder_Click" Width="160" Height="40" Margin="0,0,10,5"/>
+                        </WrapPanel>
+                    </GroupBox>
+                    
+                    <!-- Info Panel -->
+                    <GroupBox Header="Audio Trim - Powered by FFmpeg" Grid.Row="2">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="10">
+                                <TextBlock Text="Native Audio Trimming" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+                                    Trim audio files to specific start and end times. Uses FFmpeg for lossless audio processing when possible.
+                                </TextBlock>
+                                <TextBlock Text="Features:" FontWeight="Bold" Margin="0,0,0,5"/>
+                                <TextBlock Text="• Set precise start and end timestamps" Margin="15,0,0,3"/>
+                                <TextBlock Text="• Convert to different output formats" Margin="15,0,0,3"/>
+                                <TextBlock Text="• Preview selection before trimming" Margin="15,0,0,3"/>
+                                <TextBlock Text="• Batch processing support (select folder)" Margin="15,0,0,10"/>
+                                <Border Background="#E8F5E9" Padding="10" Margin="0,10,0,0" BorderBrush="#4CAF50" BorderThickness="1">
+                                    <TextBlock Text="💡 Tip: Use format HH:MM:SS for timestamps (e.g., 00:01:30 for 1 minute 30 seconds)" Foreground="#2E7D32" TextWrapping="Wrap"/>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+
+            <!-- Native Image Edit Tab -->
+            <TabItem Header="🖼️ Image Edit">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Quick Actions -->
+                    <GroupBox Header="Quick Image Operations" Grid.Row="0" Margin="0,0,0,10">
+                        <WrapPanel Margin="10">
+                            <Button x:Name="ImageRotateLeftButton" Content="↶ Rotate Left" Click="ImageRotateLeft_Click" Width="120" Height="35" Margin="0,0,5,5"/>
+                            <Button x:Name="ImageRotateRightButton" Content="↷ Rotate Right" Click="ImageRotateRight_Click" Width="120" Height="35" Margin="0,0,5,5"/>
+                            <Button x:Name="ImageFlipHButton" Content="↔ Flip Horizontal" Click="ImageFlipH_Click" Width="130" Height="35" Margin="0,0,5,5"/>
+                            <Button x:Name="ImageFlipVButton" Content="↕ Flip Vertical" Click="ImageFlipV_Click" Width="120" Height="35" Margin="0,0,5,5"/>
+                            <Button x:Name="ImageGrayscaleButton" Content="🎨 Grayscale" Click="ImageGrayscale_Click" Width="120" Height="35" Margin="0,0,5,5"/>
+                            <Button x:Name="ImageInvertButton" Content="🔄 Invert Colors" Click="ImageInvert_Click" Width="120" Height="35" Margin="0,0,5,5"/>
+                        </WrapPanel>
+                    </GroupBox>
+                    
+                    <!-- Image Preview -->
+                    <GroupBox Header="Image Preview" Grid.Row="1">
+                        <Grid>
+                            <Image x:Name="ImageEditPreview" Stretch="Uniform" Margin="5"/>
+                            <TextBlock Text="Select an image file to edit" 
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="#999" FontSize="14" FontStyle="Italic"
+                                       Visibility="{Binding IsImageFile, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                        </Grid>
+                    </GroupBox>
+                    
+                    <!-- Save Options -->
+                    <GroupBox Header="Save Options" Grid.Row="2" Margin="0,5,0,0">
+                        <Grid Margin="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Output Format:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <ComboBox x:Name="ImageOutputFormat" Grid.Column="1" SelectedIndex="0" Width="100">
+                                <ComboBoxItem Content="PNG"/>
+                                <ComboBoxItem Content="JPEG"/>
+                                <ComboBoxItem Content="BMP"/>
+                                <ComboBoxItem Content="GIF"/>
+                                <ComboBoxItem Content="WEBP"/>
+                            </ComboBox>
+                            <Button x:Name="ImageSaveButton" Grid.Column="2" Content="💾 Save As..." Click="ImageSave_Click" Width="120" Height="35" Margin="10,0,5,0" FontWeight="Bold" Background="LightGreen"/>
+                            <Button x:Name="ImageResetButton" Grid.Column="3" Content="↩ Reset" Click="ImageReset_Click" Width="80" Height="35"/>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+
             <!-- VLC Player Tab -->
             <TabItem Header="🎬 VLC Player">
                 <Grid Margin="5">

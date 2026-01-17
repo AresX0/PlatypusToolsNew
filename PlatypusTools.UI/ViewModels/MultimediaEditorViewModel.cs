@@ -466,37 +466,46 @@ namespace PlatypusTools.UI.ViewModels
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = VlcPath,
-                    Arguments = !string.IsNullOrEmpty(FilePath) ? $"\"{FilePath}\"" : string.Empty,
-                    UseShellExecute = true
+                    Arguments = !string.IsNullOrEmpty(FilePath) ? $"--no-video-title-show \"{FilePath}\"" : "--no-video-title-show",
+                    UseShellExecute = false
                 };
 
                 _embeddedVlcProcess = Process.Start(startInfo);
                 if (_embeddedVlcProcess != null)
                 {
-                    // Wait for window to be created
-                    await System.Threading.Tasks.Task.Delay(2000);
+                    // Wait for window to be created and ready for input
+                    _embeddedVlcProcess.WaitForInputIdle();
+                    await System.Threading.Tasks.Task.Delay(1500);
 
-                    if (!_embeddedVlcProcess.HasExited)
+                    IntPtr handle = IntPtr.Zero;
+                    // Try to get the handle multiple times
+                    for (int i = 0; i < 10 && handle == IntPtr.Zero; i++)
                     {
-                        var handle = _embeddedVlcProcess.MainWindowHandle;
-                        if (handle != IntPtr.Zero)
-                        {
-                            // Remove window border/caption
-                            var style = GetWindowLong(handle, GWL_STYLE);
-                            style &= ~(WS_CAPTION | WS_THICKFRAME);
-                            SetWindowLong(handle, GWL_STYLE, style);
+                        _embeddedVlcProcess.Refresh();
+                        handle = _embeddedVlcProcess.MainWindowHandle;
+                        if (handle == IntPtr.Zero)
+                            await System.Threading.Tasks.Task.Delay(300);
+                    }
 
-                            // Embed the window
-                            SetParent(handle, VlcHostHandle);
-                            SetWindowPos(handle, IntPtr.Zero, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOACTIVATE);
+                    if (!_embeddedVlcProcess.HasExited && handle != IntPtr.Zero)
+                    {
+                        // Remove window border/caption
+                        var style = GetWindowLong(handle, GWL_STYLE);
+                        style &= ~(WS_CAPTION | WS_THICKFRAME);
+                        SetWindowLong(handle, GWL_STYLE, style);
 
-                            EmbedVlc = true;
-                            StatusMessage = "VLC embedded in tab";
-                        }
-                        else
-                        {
-                            StatusMessage = "Could not get VLC window handle";
-                        }
+                        // Embed the window
+                        SetParent(handle, VlcHostHandle);
+                        
+                        // Resize to fill the host container
+                        SetWindowPos(handle, IntPtr.Zero, 0, 0, 800, 600, SWP_NOZORDER | SWP_NOACTIVATE);
+
+                        EmbedVlc = true;
+                        StatusMessage = "VLC embedded in tab - resize the window to fit";
+                    }
+                    else
+                    {
+                        StatusMessage = "Could not get VLC window handle - try clicking 'Open in VLC' instead";
                     }
                 }
             }
@@ -527,36 +536,43 @@ namespace PlatypusTools.UI.ViewModels
                 {
                     FileName = AudacityPath,
                     Arguments = !string.IsNullOrEmpty(FilePath) ? $"\"{FilePath}\"" : string.Empty,
-                    UseShellExecute = true
+                    UseShellExecute = false
                 };
 
                 _embeddedAudacityProcess = Process.Start(startInfo);
                 if (_embeddedAudacityProcess != null)
                 {
                     // Wait for window to be created
+                    _embeddedAudacityProcess.WaitForInputIdle();
                     await System.Threading.Tasks.Task.Delay(2000);
 
-                    if (!_embeddedAudacityProcess.HasExited)
+                    IntPtr handle = IntPtr.Zero;
+                    // Try to get the handle multiple times
+                    for (int i = 0; i < 10 && handle == IntPtr.Zero; i++)
                     {
-                        var handle = _embeddedAudacityProcess.MainWindowHandle;
-                        if (handle != IntPtr.Zero)
-                        {
-                            // Remove window border/caption
-                            var style = GetWindowLong(handle, GWL_STYLE);
-                            style &= ~(WS_CAPTION | WS_THICKFRAME);
-                            SetWindowLong(handle, GWL_STYLE, style);
+                        _embeddedAudacityProcess.Refresh();
+                        handle = _embeddedAudacityProcess.MainWindowHandle;
+                        if (handle == IntPtr.Zero)
+                            await System.Threading.Tasks.Task.Delay(300);
+                    }
 
-                            // Embed the window
-                            SetParent(handle, AudacityHostHandle);
-                            SetWindowPos(handle, IntPtr.Zero, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOACTIVATE);
+                    if (!_embeddedAudacityProcess.HasExited && handle != IntPtr.Zero)
+                    {
+                        // Remove window border/caption
+                        var style = GetWindowLong(handle, GWL_STYLE);
+                        style &= ~(WS_CAPTION | WS_THICKFRAME);
+                        SetWindowLong(handle, GWL_STYLE, style);
 
-                            EmbedAudacity = true;
-                            StatusMessage = "Audacity embedded in tab";
-                        }
-                        else
-                        {
-                            StatusMessage = "Could not get Audacity window handle";
-                        }
+                        // Embed the window
+                        SetParent(handle, AudacityHostHandle);
+                        SetWindowPos(handle, IntPtr.Zero, 0, 0, 800, 600, SWP_NOZORDER | SWP_NOACTIVATE);
+
+                        EmbedAudacity = true;
+                        StatusMessage = "Audacity embedded in tab - resize the window to fit";
+                    }
+                    else
+                    {
+                        StatusMessage = "Could not get Audacity window handle - try clicking 'Open in Audacity' instead";
                     }
                 }
             }
@@ -587,36 +603,43 @@ namespace PlatypusTools.UI.ViewModels
                 {
                     FileName = GimpPath,
                     Arguments = !string.IsNullOrEmpty(FilePath) ? $"\"{FilePath}\"" : string.Empty,
-                    UseShellExecute = true
+                    UseShellExecute = false
                 };
 
                 _embeddedGimpProcess = Process.Start(startInfo);
                 if (_embeddedGimpProcess != null)
                 {
-                    // Wait for window to be created
-                    await System.Threading.Tasks.Task.Delay(3000); // GIMP takes longer to start
+                    // Wait for window to be created - GIMP takes longer
+                    _embeddedGimpProcess.WaitForInputIdle();
+                    await System.Threading.Tasks.Task.Delay(4000); // GIMP takes longer to start
 
-                    if (!_embeddedGimpProcess.HasExited)
+                    IntPtr handle = IntPtr.Zero;
+                    // Try to get the handle multiple times
+                    for (int i = 0; i < 15 && handle == IntPtr.Zero; i++)
                     {
-                        var handle = _embeddedGimpProcess.MainWindowHandle;
-                        if (handle != IntPtr.Zero)
-                        {
-                            // Remove window border/caption
-                            var style = GetWindowLong(handle, GWL_STYLE);
-                            style &= ~(WS_CAPTION | WS_THICKFRAME);
-                            SetWindowLong(handle, GWL_STYLE, style);
+                        _embeddedGimpProcess.Refresh();
+                        handle = _embeddedGimpProcess.MainWindowHandle;
+                        if (handle == IntPtr.Zero)
+                            await System.Threading.Tasks.Task.Delay(500);
+                    }
 
-                            // Embed the window
-                            SetParent(handle, GimpHostHandle);
-                            SetWindowPos(handle, IntPtr.Zero, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOACTIVATE);
+                    if (!_embeddedGimpProcess.HasExited && handle != IntPtr.Zero)
+                    {
+                        // Remove window border/caption
+                        var style = GetWindowLong(handle, GWL_STYLE);
+                        style &= ~(WS_CAPTION | WS_THICKFRAME);
+                        SetWindowLong(handle, GWL_STYLE, style);
 
-                            EmbedGimp = true;
-                            StatusMessage = "GIMP embedded in tab";
-                        }
-                        else
-                        {
-                            StatusMessage = "Could not get GIMP window handle";
-                        }
+                        // Embed the window
+                        SetParent(handle, GimpHostHandle);
+                        SetWindowPos(handle, IntPtr.Zero, 0, 0, 800, 600, SWP_NOZORDER | SWP_NOACTIVATE);
+
+                        EmbedGimp = true;
+                        StatusMessage = "GIMP embedded in tab - resize the window to fit";
+                    }
+                    else
+                    {
+                        StatusMessage = "Could not get GIMP window handle - GIMP uses multiple windows, try 'Open in GIMP' instead";
                     }
                 }
             }

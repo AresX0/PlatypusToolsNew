@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlatypusTools Help Documentation</title>
+    <title>PlatypusTools v3.1.1 - Help Documentation</title>
     <style>
         :root {
             --primary: #2d5aa8;
@@ -15,6 +15,8 @@
             --text-muted: #666;
             --border: #ddd;
             --code-bg: #f4f4f4;
+            --success: #28a745;
+            --danger: #dc3545;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -34,12 +36,16 @@
         }
         header h1 { font-size: 2.5rem; margin-bottom: 10px; }
         header p { font-size: 1.2rem; opacity: 0.9; }
+        header .version { font-size: 0.9rem; opacity: 0.8; margin-top: 5px; }
         nav {
             background: var(--card-bg);
             padding: 15px 20px;
             border-radius: 8px;
             margin-bottom: 30px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
         nav ul { list-style: none; display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
         nav a { color: var(--primary); text-decoration: none; font-weight: 500; }
@@ -86,6 +92,15 @@
             margin: 15px 0;
             border-radius: 0 6px 6px 0;
         }
+        .new-badge {
+            background: var(--success);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
         .feature-card {
             background: var(--bg);
@@ -113,6 +128,14 @@
             border-top: 1px solid var(--border);
             margin-top: 40px;
         }
+        kbd {
+            background: #eee;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
         @media (max-width: 768px) {
             header h1 { font-size: 1.8rem; }
             nav ul { flex-direction: column; align-items: center; }
@@ -124,7 +147,8 @@
 
 <header>
     <h1>🦆 PlatypusTools</h1>
-    <p>Comprehensive Windows System Utility - User Documentation</p>
+    <p>Advanced File Management &amp; Media Tools Suite</p>
+    <div class="version">Version 3.1.1 | Built with .NET 10 / WPF</div>
 </header>
 
 <div class="container">
@@ -132,161 +156,234 @@
 <nav>
     <ul>
         <li><a href="#overview">Overview</a></li>
-        <li><a href="#file-cleaner">File Cleaner</a></li>
-        <li><a href="#media-conversion">Media Conversion</a></li>
-        <li><a href="#duplicates">Duplicates</a></li>
-        <li><a href="#cleanup">Cleanup</a></li>
+        <li><a href="#file-management">File Management</a></li>
+        <li><a href="#multimedia">Multimedia</a></li>
+        <li><a href="#system">System</a></li>
         <li><a href="#security">Security</a></li>
         <li><a href="#metadata">Metadata</a></li>
-        <li><a href="#configuration">Configuration</a></li>
+        <li><a href="#tools">Tools</a></li>
+        <li><a href="#keyboard">Keyboard Shortcuts</a></li>
         <li><a href="#troubleshooting">Troubleshooting</a></li>
     </ul>
 </nav>
 
 <section id="overview" class="section">
     <h2>Overview</h2>
-    <p>PlatypusTools is a powerful, all-in-one Windows system utility that combines file management, media conversion, system cleanup, security tools, and metadata editing into a single, easy-to-use application.</p>
+    <p>PlatypusTools is a powerful, all-in-one Windows system utility that combines file management, multimedia editing, system cleanup, security tools, and metadata editing into a single, modern WPF application.</p>
     
-    <h3>Key Features</h3>
+    <h3>What's New in v3.1.1</h3>
+    <ul>
+        <li><strong>Hierarchical Multimedia Tab</strong> - Reorganized into Audio, Image, Video, Media Library, and External Tools sub-tabs</li>
+        <li><strong>Native Video Player</strong> - Built-in video player with fullscreen support and popup controls</li>
+        <li><strong>Native Audio Trimmer</strong> - Trim audio files with precise start/end time selection</li>
+        <li><strong>Native Image Editor</strong> - Rotate, flip, grayscale, invert, and save in multiple formats</li>
+        <li><strong>Fullscreen Popup Controls</strong> - Hover at bottom of screen to show controls in fullscreen mode</li>
+        <li><strong>Improved System Audit</strong> - Enhanced security scanning with auto-fix capabilities</li>
+    </ul>
+    
+    <h3>Application Layout</h3>
+    <p>PlatypusTools is organized into the following main tabs:</p>
     <div class="grid">
         <div class="feature-card">
-            <h4>📁 File Cleaner</h4>
-            <p>Scan and clean folders based on file types, patterns, and age criteria.</p>
+            <h4>📁 File Management</h4>
+            <p>File Cleaner, Duplicates Scanner, Empty Folder Scanner</p>
         </div>
         <div class="feature-card">
-            <h4>🎬 Media Conversion</h4>
-            <p>Combine videos, convert images, and resize graphics with FFmpeg integration.</p>
+            <h4>🎬 Multimedia <span class="new-badge">Reorganized</span></h4>
+            <p>Audio, Image, Video tools with nested sub-tabs</p>
         </div>
         <div class="feature-card">
-            <h4>🔍 Duplicate Finder</h4>
-            <p>Detect and remove duplicate files using hash comparison.</p>
+            <h4>🖥️ System</h4>
+            <p>Disk Cleanup, Privacy Cleaner, Startup Manager, Process Manager, and more</p>
         </div>
         <div class="feature-card">
-            <h4>🧹 System Cleanup</h4>
-            <p>Disk cleanup, privacy cleaner, startup manager, and hash calculator.</p>
+            <h4>🔒 Security</h4>
+            <p>Folder Hider, System Audit with vulnerability scanning</p>
         </div>
         <div class="feature-card">
-            <h4>🔒 Security Tools</h4>
-            <p>Hide folders, scan for vulnerabilities, manage local users.</p>
+            <h4>📋 Metadata</h4>
+            <p>View and edit file metadata with ExifTool integration</p>
         </div>
         <div class="feature-card">
-            <h4>📊 Metadata Editor</h4>
-            <p>View and edit file metadata including EXIF, IPTC, and XMP tags.</p>
+            <h4>🔧 Tools</h4>
+            <p>Website Downloader, Network Tools, Archive Manager, PDF Tools, and more</p>
         </div>
     </div>
     
     <h3>System Requirements</h3>
     <ul>
-        <li>Windows 10/11 (64-bit recommended)</li>
-        <li>PowerShell 5.1 or later</li>
+        <li>Windows 10/11 (64-bit)</li>
+        <li>.NET 10 Runtime (included in self-contained build)</li>
         <li>Administrator privileges (for some features)</li>
-        <li>FFmpeg/FFprobe (for media operations)</li>
-        <li>ExifTool (for metadata operations)</li>
+        <li>FFmpeg/FFprobe (for media operations - auto-detected)</li>
+        <li>ExifTool (for metadata operations - optional)</li>
     </ul>
-
-    <h3>Installation</h3>
-    <p>PlatypusTools uses the following directory structure:</p>
-    <pre><code>C:\ProgramFiles\PlatypusUtils\
-├── Assets\          # Images and icons
-├── Data\            # Application data and configs
-├── Logs\            # Log files
-├── Tools\           # FFmpeg, ExifTool, etc.
-└── PlatypusTools_Help.html</code></pre>
 </section>
 
-<section id="file-cleaner" class="section">
-    <h2>📁 File Cleaner</h2>
-    <p>The File Cleaner tab helps you scan, filter, and clean files from specified directories.</p>
+<section id="file-management" class="section">
+    <h2>📁 File Management</h2>
+    <p>The File Management tab contains tools for organizing, cleaning, and managing your files.</p>
     
-    <h3>How to Use</h3>
+    <h3>File Cleaner</h3>
+    <p>Scan and clean folders based on file types, patterns, and naming conventions. This tool combines file scanning with batch renaming capabilities.</p>
+    
+    <h4>How to Use</h4>
     <ol>
         <li><strong>Browse</strong> - Click Browse to select the folder you want to clean</li>
         <li><strong>Set Filters</strong> - Choose file type filters (e.g., *.tmp, *.log)</li>
+        <li><strong>Configure Options</strong> - Set naming conventions, space/separator conversion</li>
         <li><strong>Scan</strong> - Click Scan to find matching files</li>
-        <li><strong>Review</strong> - Review the list of files found</li>
-        <li><strong>Clean</strong> - Click Clean to delete selected files</li>
+        <li><strong>Preview</strong> - Review the list of files and proposed changes</li>
+        <li><strong>Execute</strong> - Apply the cleaning/renaming operations</li>
     </ol>
     
-    <h3>Filter Options</h3>
+    <h4>Naming Options</h4>
     <table>
-        <tr><th>Filter</th><th>Description</th></tr>
-        <tr><td><code>*.tmp</code></td><td>Temporary files</td></tr>
-        <tr><td><code>*.log</code></td><td>Log files</td></tr>
-        <tr><td><code>*.bak</code></td><td>Backup files</td></tr>
-        <tr><td><code>Thumbs.db</code></td><td>Windows thumbnail cache</td></tr>
-        <tr><td><code>desktop.ini</code></td><td>Folder customization files</td></tr>
+        <tr><th>Option</th><th>Description</th></tr>
+        <tr><td>Space Conversion</td><td>Convert spaces to underscores, hyphens, or remove them</td></tr>
+        <tr><td>Case Conversion</td><td>Convert to lowercase, UPPERCASE, or Title Case</td></tr>
+        <tr><td>Symbol Removal</td><td>Remove special characters and symbols</td></tr>
+        <tr><td>Date Prefix/Suffix</td><td>Add date stamps to filenames</td></tr>
     </table>
     
-    <div class="tip">
-        <strong>Tip:</strong> Use the "Recursive" option to scan subdirectories as well.
-    </div>
-</section>
-
-<section id="media-conversion" class="section">
-    <h2>🎬 Media Conversion</h2>
-    <p>The Media Conversion tab provides tools for working with video and image files.</p>
+    <h3>Duplicates Scanner</h3>
+    <p>Find and remove duplicate files to free up disk space. Supports both exact hash matching and visual similarity detection for images.</p>
     
-    <h3>Video Combiner</h3>
-    <p>Merge multiple video files into a single output file.</p>
-    <ol>
-        <li>Add video files using the "Add Files" button</li>
-        <li>Arrange the order using Up/Down buttons</li>
-        <li>Set the output filename and location</li>
-        <li>Select output format (MP4, MKV, AVI, MOV)</li>
-        <li>Click "Combine" to merge the videos</li>
-    </ol>
-    
-    <h3>Graphics Conversion</h3>
-    <p>Convert images between different formats.</p>
-    <table>
-        <tr><th>Input Formats</th><th>Output Formats</th></tr>
-        <tr><td>JPG, JPEG, PNG, BMP, GIF, TIFF, WebP</td><td>JPG, PNG, BMP, GIF, TIFF, WebP, ICO</td></tr>
-    </table>
-    
-    <h3>Image Resize</h3>
-    <p>Resize images to specific dimensions or by percentage.</p>
+    <h4>Features</h4>
     <ul>
-        <li><strong>Fixed Size</strong> - Set exact width and height in pixels</li>
-        <li><strong>Percentage</strong> - Scale by a percentage (e.g., 50% = half size)</li>
-        <li><strong>Maintain Aspect Ratio</strong> - Keep original proportions</li>
+        <li><strong>Hash-based Detection</strong> - Find exact duplicates using MD5/SHA256 hashing</li>
+        <li><strong>Similar Images</strong> - Find visually similar images using perceptual hashing</li>
+        <li><strong>Staging Area</strong> - Stage files for review before deletion</li>
+        <li><strong>Smart Selection</strong> - Auto-select newest, oldest, largest, or smallest duplicates</li>
+        <li><strong>Preview</strong> - Preview files before deleting</li>
     </ul>
     
-    <div class="warning">
-        <strong>Note:</strong> Video operations require FFmpeg to be installed and configured in the Tools folder.
-    </div>
-</section>
-
-<section id="duplicates" class="section">
-    <h2>🔍 Duplicates</h2>
-    <p>Find and remove duplicate files to free up disk space.</p>
-    
-    <h3>Detection Methods</h3>
+    <h4>Selection Buttons</h4>
     <table>
-        <tr><th>Method</th><th>Speed</th><th>Accuracy</th><th>Description</th></tr>
-        <tr><td>MD5 Hash</td><td>Fast</td><td>High</td><td>128-bit hash, good for most uses</td></tr>
-        <tr><td>SHA256 Hash</td><td>Slower</td><td>Very High</td><td>256-bit hash, cryptographically secure</td></tr>
-        <tr><td>Filename</td><td>Very Fast</td><td>Low</td><td>Match by name only (may have false positives)</td></tr>
-        <tr><td>Size + Name</td><td>Fast</td><td>Medium</td><td>Match by size and filename</td></tr>
+        <tr><th>Button</th><th>Action</th></tr>
+        <tr><td>Select Newest</td><td>Select the most recently modified file in each group</td></tr>
+        <tr><td>Select Oldest</td><td>Select the oldest file in each group</td></tr>
+        <tr><td>Select Largest</td><td>Select the largest file in each group</td></tr>
+        <tr><td>Select Smallest</td><td>Select the smallest file in each group</td></tr>
+        <tr><td>Keep One Per Group</td><td>Keep one file and select all others for deletion</td></tr>
     </table>
     
-    <h3>How to Use</h3>
-    <ol>
-        <li>Select folder(s) to scan</li>
-        <li>Choose comparison method</li>
-        <li>Click "Scan for Duplicates"</li>
-        <li>Review groups of duplicate files</li>
-        <li>Select which copies to delete (keep at least one)</li>
-        <li>Click "Delete Selected" to remove duplicates</li>
-    </ol>
-    
     <div class="tip">
-        <strong>Tip:</strong> Always review duplicates before deleting. The tool keeps at least one copy by default.
+        <strong>Tip:</strong> Use the Staging feature to move files to a temporary location for review before permanent deletion.
     </div>
+    
+    <h3>Empty Folder Scanner</h3>
+    <p>Find and remove empty directories that clutter your file system.</p>
+    <ul>
+        <li>Recursive scanning of subdirectories</li>
+        <li>Option to delete or just list empty folders</li>
+        <li>Exclude patterns for system folders</li>
+    </ul>
 </section>
 
-<section id="cleanup" class="section">
-    <h2>🧹 Cleanup</h2>
-    <p>System maintenance and privacy tools.</p>
+<section id="multimedia" class="section">
+    <h2>🎬 Multimedia <span class="new-badge">Reorganized in v3.1.1</span></h2>
+    <p>The Multimedia tab is now organized into hierarchical sub-tabs for better organization.</p>
+    
+    <h3>🎵 Audio</h3>
+    
+    <h4>Audio Player</h4>
+    <p>Built-in audio player with playlist support and visualizations.</p>
+    <ul>
+        <li>Play MP3, WAV, FLAC, AAC, OGG, and more</li>
+        <li>Playlist management</li>
+        <li>Volume and seek controls</li>
+        <li>Repeat and shuffle modes</li>
+    </ul>
+    
+    <h4>Audio Trim <span class="new-badge">New</span></h4>
+    <p>Trim audio files with precise start and end time selection.</p>
+    <ol>
+        <li>Browse and load an audio file</li>
+        <li>Set the start time and end time</li>
+        <li>Preview the selection</li>
+        <li>Choose output format (MP3, WAV, AAC, FLAC, OGG)</li>
+        <li>Click Trim to create the trimmed file</li>
+    </ol>
+    <div class="tip">
+        <strong>Requires:</strong> FFmpeg must be available in your system PATH or Tools folder.
+    </div>
+    
+    <h3>🖼️ Image</h3>
+    
+    <h4>Image Edit <span class="new-badge">New</span></h4>
+    <p>Native image editor for quick transformations.</p>
+    <table>
+        <tr><th>Operation</th><th>Description</th></tr>
+        <tr><td>Rotate Left/Right</td><td>Rotate image 90° in either direction</td></tr>
+        <tr><td>Flip Horizontal</td><td>Mirror image horizontally</td></tr>
+        <tr><td>Flip Vertical</td><td>Mirror image vertically</td></tr>
+        <tr><td>Grayscale</td><td>Convert to black and white</td></tr>
+        <tr><td>Invert Colors</td><td>Invert all colors (negative effect)</td></tr>
+    </table>
+    <p><strong>Save Formats:</strong> PNG, JPEG, BMP, GIF, WebP</p>
+    
+    <h4>Image Converter</h4>
+    <p>Convert images between different formats with quality options.</p>
+    
+    <h4>Image Resizer</h4>
+    <p>Resize images by pixels or percentage while maintaining aspect ratio.</p>
+    
+    <h4>ICO Converter</h4>
+    <p>Create Windows icon files from images with multiple size options.</p>
+    
+    <h4>Batch Watermark</h4>
+    <p>Add text or image watermarks to multiple images at once.</p>
+    
+    <h3>🎬 Video</h3>
+    
+    <h4>Video Player <span class="new-badge">Enhanced</span></h4>
+    <p>Native video player with fullscreen support and popup controls.</p>
+    <ul>
+        <li>Play most video formats (MP4, MKV, AVI, MOV, WMV, etc.)</li>
+        <li>Fullscreen mode with auto-hiding controls</li>
+        <li>Volume and seek controls</li>
+        <li>Keyboard shortcuts for navigation</li>
+    </ul>
+    
+    <h4>Fullscreen Controls</h4>
+    <p>In fullscreen mode, move your mouse to the bottom of the screen to reveal the control panel:</p>
+    <ul>
+        <li>Play/Pause/Stop buttons</li>
+        <li>Seek slider with time display</li>
+        <li>Skip forward/backward (10 seconds)</li>
+        <li>Volume slider and mute button</li>
+        <li>Exit fullscreen button</li>
+    </ul>
+    <p>Controls auto-hide after 2.5 seconds of inactivity.</p>
+    
+    <h4>Video Upscaler</h4>
+    <p>Upscale videos to higher resolutions using AI-powered algorithms.</p>
+    
+    <h4>Batch Upscaler</h4>
+    <p>Process multiple videos for upscaling in batch mode.</p>
+    
+    <h4>Video Combiner</h4>
+    <p>Merge multiple video files into a single output file.</p>
+    
+    <h4>Video Converter</h4>
+    <p>Convert videos between different formats and codecs.</p>
+    
+    <h3>📚 Media Library</h3>
+    <p>Organize and browse your media collection with thumbnail previews.</p>
+    
+    <h3>🔧 External Tools</h3>
+    <p>Launch external media applications:</p>
+    <ul>
+        <li><strong>VLC Media Player</strong> - Advanced video playback</li>
+        <li><strong>Audacity</strong> - Audio editing</li>
+        <li><strong>GIMP</strong> - Image editing</li>
+    </ul>
+</section>
+
+<section id="system" class="section">
+    <h2>🖥️ System</h2>
+    <p>System maintenance, cleanup, and management tools.</p>
     
     <h3>Disk Cleanup</h3>
     <p>Remove Windows temporary files and caches to free disk space.</p>
@@ -300,7 +397,7 @@
     </ul>
     
     <h3>Privacy Cleaner</h3>
-    <p>Clear browsing data and identity traces.</p>
+    <p>Clear browsing data and identity traces from browsers and Windows.</p>
     <table>
         <tr><th>Browser</th><th>Data Cleaned</th></tr>
         <tr><td>Chrome</td><td>Cache, Cookies, History, Downloads, Autofill</td></tr>
@@ -308,42 +405,47 @@
         <tr><td>Edge</td><td>Cache, Cookies, History, Downloads</td></tr>
         <tr><td>Windows</td><td>Recent documents, Jump lists, Explorer history</td></tr>
     </table>
-
-    <h3>Recent Shortcuts</h3>
-    <p>The <strong>Recent Shortcuts</strong> tool removes references to files and directories from Windows UI components. It targets:
-    </p>
+    
+    <h3>Recent Cleaner</h3>
+    <p>Remove references to files and directories from Windows UI components:</p>
     <ul>
-        <li>Explorer Recent Items (shortcuts in <code>%APPDATA%\Microsoft\Windows\Recent</code>)</li>
+        <li>Explorer Recent Items</li>
         <li>Jump Lists (AutomaticDestinations and CustomDestinations)</li>
-        <li>Quick Access pinned items and <em>Favorites</em></li>
-        <li>Start menu "Recommended" / recent references where present</li>
+        <li>Quick Access pinned items</li>
+        <li>Start menu "Recommended" references</li>
     </ul>
-    <p><strong>Behavior:</strong> By default the tool runs in <em>dry-run</em> mode to preview matches. When executed, it can back up matched entries (shortcuts and jump files) to the configured output/backup folder before removing them. Matching respects the "Include Subfolders" option: when enabled any reference under a selected directory is removed; otherwise only items whose immediate parent matches are removed. Some removals (jump lists) will remove the whole jump-list file for the affected application to clear the references — a backup is recommended.</p>
-    <p class="tip"><strong>Tip:</strong> Use the Preview/Dry-run first and review the matches before applying; restart Explorer or affected applications after cleaning to ensure UI is refreshed.</p>
+    <div class="tip">
+        <strong>Tip:</strong> Use Preview/Dry-run first to review matches before applying changes.
+    </div>
     
     <h3>Startup Manager</h3>
     <p>Control which applications start automatically with Windows.</p>
     <ul>
-        <li>View all startup entries</li>
+        <li>View all startup entries from Registry and Startup folders</li>
         <li>Enable/disable individual items</li>
         <li>See startup impact rating</li>
         <li>Delete unwanted startup entries</li>
     </ul>
     
-    <h3>Hash Calculator</h3>
-    <p>Generate cryptographic checksums for files.</p>
-    <table>
-        <tr><th>Algorithm</th><th>Hash Length</th><th>Use Case</th></tr>
-        <tr><td>MD5</td><td>32 characters</td><td>Quick integrity check</td></tr>
-        <tr><td>SHA1</td><td>40 characters</td><td>Legacy compatibility</td></tr>
-        <tr><td>SHA256</td><td>64 characters</td><td>Secure verification</td></tr>
-        <tr><td>SHA512</td><td>128 characters</td><td>Maximum security</td></tr>
-    </table>
+    <h3>Process Manager</h3>
+    <p>View and manage running processes with detailed information.</p>
+    
+    <h3>Registry Cleaner</h3>
+    <p>Scan and clean invalid registry entries.</p>
+    <div class="warning">
+        <strong>Warning:</strong> Always create a backup before cleaning the registry.
+    </div>
+    
+    <h3>Scheduled Tasks</h3>
+    <p>View and manage Windows scheduled tasks.</p>
+    
+    <h3>System Restore</h3>
+    <p>Create and manage system restore points.</p>
 </section>
 
 <section id="security" class="section">
     <h2>🔒 Security</h2>
-    <p>Security scanning and folder protection tools.</p>
+    <p>Security scanning, folder protection, and system audit tools.</p>
     
     <h3>Folder Hider</h3>
     <p>Hide folders from normal view using Windows attributes.</p>
@@ -352,40 +454,55 @@
         <li>Click "Hide Folder" to apply hidden + system attributes</li>
         <li>Use "Unhide Folder" to reveal hidden folders</li>
     </ol>
-    
     <div class="warning">
-        <strong>Warning:</strong> Hidden folders can still be accessed if "Show hidden files" is enabled in Windows Explorer options. This is not encryption.
+        <strong>Warning:</strong> Hidden folders can still be accessed if "Show hidden files" is enabled in Windows Explorer. This is not encryption.
     </div>
     
-    <h3>Security Scan</h3>
-    <p>Check your system for common security issues:</p>
+    <h3>System Audit</h3>
+    <p>Comprehensive security audit of your system.</p>
+    
+    <h4>Audit Categories</h4>
+    <table>
+        <tr><th>Category</th><th>Checks</th></tr>
+        <tr><td>Firewall</td><td>Windows Firewall status and rules</td></tr>
+        <tr><td>Antivirus</td><td>Windows Defender and third-party AV status</td></tr>
+        <tr><td>Updates</td><td>Windows Update configuration</td></tr>
+        <tr><td>File Permissions</td><td>Critical directory ACLs</td></tr>
+        <tr><td>Administrative Accounts</td><td>Users with admin privileges</td></tr>
+        <tr><td>Startup Items</td><td>Potentially suspicious startup entries</td></tr>
+        <tr><td>Network Traffic</td><td>Inbound/Outbound firewall rules</td></tr>
+    </table>
+    
+    <h4>Audit Results</h4>
     <ul>
-        <li>Windows Firewall status</li>
-        <li>Antivirus software detection</li>
-        <li>Windows Update status</li>
-        <li>User Account Control (UAC) settings</li>
-        <li>Open network shares</li>
-        <li>Suspicious scheduled tasks</li>
-        <li>Outbound connection scan</li>
+        <li><strong style="color: green;">Pass</strong> - No issues detected</li>
+        <li><strong style="color: orange;">Warning</strong> - Potential concern, review recommended</li>
+        <li><strong style="color: red;">Critical / Fail</strong> - Security issue that should be addressed</li>
     </ul>
     
-    <h3>User Management</h3>
-    <p>Manage local Windows user accounts:</p>
+    <h4>Auto-Fix</h4>
+    <p>Some issues can be automatically fixed:</p>
     <ul>
-        <li>View all local users</li>
+        <li>Enable Windows Firewall</li>
+        <li>Enable Windows Defender</li>
+        <li>Fix critical permission issues</li>
+    </ul>
+    <div class="tip">
+        <strong>Note:</strong> Auto-fix requires Administrator privileges. Run PlatypusTools as Administrator for full functionality.
+    </div>
+    
+    <h4>User Management (Requires Admin)</h4>
+    <ul>
+        <li>Disable user accounts</li>
+        <li>Delete user accounts</li>
         <li>Reset user passwords</li>
-        <li>Enable/disable accounts</li>
         <li>Open Local Users and Groups MMC</li>
     </ul>
-    
-    <div class="warning">
-        <strong>Requires Administrator:</strong> User management features require running PlatypusTools as Administrator.
-    </div>
 </section>
 
 <section id="metadata" class="section">
-    <h2>📊 Metadata</h2>
-    <p>View and edit file metadata using ExifTool.</p>
+    <h2>� Metadata</h2>
+    <p>View and edit file metadata using ExifTool integration.</p>
     
     <h3>Supported Metadata Types</h3>
     <ul>
@@ -411,6 +528,70 @@
         <tr><td>Video</td><td>MP4, MOV, AVI, MKV, WMV</td></tr>
         <tr><td>Audio</td><td>MP3, FLAC, WAV, AAC, OGG</td></tr>
         <tr><td>Documents</td><td>PDF, DOCX, XLSX</td></tr>
+    </table>
+</section>
+
+<section id="tools" class="section">
+    <h2>🔧 Tools</h2>
+    <p>Additional utility tools for various tasks.</p>
+    
+    <h3>Website Downloader</h3>
+    <p>Download entire websites for offline viewing.</p>
+    
+    <h3>File Analyzer</h3>
+    <p>Analyze file types, sizes, and distributions in a directory.</p>
+    
+    <h3>Disk Space Analyzer</h3>
+    <p>Visualize disk usage with treemap and charts.</p>
+    
+    <h3>Network Tools</h3>
+    <p>Network diagnostics including ping, traceroute, and DNS lookup.</p>
+    
+    <h3>Archive Manager</h3>
+    <p>Create and extract ZIP, 7Z, and other archive formats.</p>
+    
+    <h3>PDF Tools</h3>
+    <p>Split, merge, and convert PDF files.</p>
+    
+    <h3>Screenshot</h3>
+    <p>Capture screenshots with region selection and annotation.</p>
+    
+    <h3>Bootable USB</h3>
+    <p>Create bootable USB drives from ISO files.</p>
+</section>
+
+<section id="keyboard" class="section">
+    <h2>⌨️ Keyboard Shortcuts</h2>
+    
+    <h3>Global Shortcuts</h3>
+    <table>
+        <tr><th>Shortcut</th><th>Action</th></tr>
+        <tr><td><kbd>F1</kbd></td><td>Open Help</td></tr>
+        <tr><td><kbd>Shift</kbd>+<kbd>F1</kbd></td><td>About PlatypusTools</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Save Configuration</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Q</kbd></td><td>Exit Application</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>L</kbd></td><td>View Log File</td></tr>
+    </table>
+    
+    <h3>Video/Audio Player Shortcuts</h3>
+    <table>
+        <tr><th>Shortcut</th><th>Action</th></tr>
+        <tr><td><kbd>Space</kbd></td><td>Play/Pause</td></tr>
+        <tr><td><kbd>Escape</kbd></td><td>Exit Fullscreen</td></tr>
+        <tr><td><kbd>←</kbd></td><td>Skip Back 10 seconds</td></tr>
+        <tr><td><kbd>→</kbd></td><td>Skip Forward 10 seconds</td></tr>
+        <tr><td><kbd>↑</kbd></td><td>Volume Up</td></tr>
+        <tr><td><kbd>↓</kbd></td><td>Volume Down</td></tr>
+        <tr><td><kbd>M</kbd></td><td>Toggle Mute</td></tr>
+        <tr><td>Double-click</td><td>Toggle Fullscreen / Exit Fullscreen</td></tr>
+    </table>
+    
+    <h3>File Lists</h3>
+    <table>
+        <tr><th>Shortcut</th><th>Action</th></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>A</kbd></td><td>Select All</td></tr>
+        <tr><td><kbd>Delete</kbd></td><td>Delete Selected</td></tr>
+        <tr><td><kbd>Enter</kbd></td><td>Open Selected</td></tr>
     </table>
 </section>
 
@@ -449,11 +630,12 @@
     
     <h4>Help Menu</h4>
     <ul>
-        <li><strong>Help Contents</strong> - Open this documentation</li>
+        <li><strong>Help Contents (F1)</strong> - Open this documentation</li>
         <li><strong>Quick Start</strong> - Brief getting started guide</li>
         <li><strong>Keyboard Shortcuts</strong> - List of keyboard shortcuts</li>
+        <li><strong>Check for Updates</strong> - Check GitHub for new versions</li>
         <li><strong>View Log</strong> - Open the most recent log file</li>
-        <li><strong>About</strong> - Version and application info</li>
+        <li><strong>About (Shift+F1)</strong> - Version and application info</li>
     </ul>
 </section>
 
@@ -464,9 +646,10 @@
     
     <h4>FFmpeg/ExifTool not found</h4>
     <ul>
-        <li>Ensure FFmpeg and ExifTool are installed in the Tools folder</li>
-        <li>Or set the correct path via File → Set Default Tools Folder</li>
+        <li>Ensure FFmpeg and ExifTool are installed in the Tools folder or system PATH</li>
+        <li>Set the correct path via File → Set Default Tools Folder</li>
         <li>Check that <code>ffmpeg.exe</code>, <code>ffprobe.exe</code>, and <code>exiftool.exe</code> are present</li>
+        <li>The app will auto-detect if these tools are in your system PATH</li>
     </ul>
     
     <h4>Access Denied errors</h4>
@@ -476,39 +659,46 @@
         <li>Check file/folder permissions</li>
     </ul>
     
-    <h4>Video conversion fails</h4>
+    <h4>Video/Audio playback issues</h4>
     <ul>
-        <li>Check that input files are valid video files</li>
-        <li>Ensure all videos have the same codec/resolution for combining</li>
-        <li>Check available disk space for output</li>
-        <li>Review the log file for FFmpeg error messages</li>
+        <li>Ensure Windows Media codecs are installed</li>
+        <li>Try converting the file to a more common format (MP4, MP3)</li>
+        <li>Check that the file is not corrupted</li>
     </ul>
     
-    <h4>Metadata editing doesn't save</h4>
+    <h4>System Audit Fix buttons not working</h4>
     <ul>
-        <li>Check that the file is not read-only</li>
-        <li>Some formats have limited metadata support</li>
-        <li>Ensure ExifTool is properly installed</li>
+        <li>Run PlatypusTools as Administrator for auto-fix features</li>
+        <li>Some issues cannot be auto-fixed and require manual intervention</li>
+        <li>Check the "CanAutoFix" status - only items with this enabled can be fixed</li>
+    </ul>
+    
+    <h4>Fullscreen controls not appearing</h4>
+    <ul>
+        <li>Move your mouse to the bottom 150 pixels of the screen</li>
+        <li>Controls appear on hover and auto-hide after 2.5 seconds</li>
+        <li>Use keyboard shortcuts as an alternative (Space, Escape, Arrow keys)</li>
     </ul>
     
     <h3>Log Files</h3>
-    <p>Logs are saved to <code>C:\ProgramFiles\PlatypusUtils\Logs\</code></p>
-    <p>Check log files for detailed error messages and operation history.</p>
+    <p>Logs are saved to the Logs folder in the application directory.</p>
+    <p>Access via Help → View Log or check <code>%APPDATA%\PlatypusTools\Logs\</code></p>
     
     <h3>Getting Help</h3>
     <p>If you encounter issues not covered here:</p>
     <ol>
         <li>Check the log files for error details</li>
-        <li>Ensure all dependencies are installed</li>
+        <li>Ensure all dependencies are installed (FFmpeg, ExifTool)</li>
         <li>Try running as Administrator</li>
-        <li>Reset configuration to defaults</li>
+        <li>Reset configuration to defaults (File → Reset Configuration)</li>
+        <li>Report issues on GitHub: <a href="https://github.com/dxsteel/PlatypusTools">github.com/dxsteel/PlatypusTools</a></li>
     </ol>
 </section>
 
 </div>
 
 <footer>
-    <p>PlatypusTools v1.0.0 | © 2024 PlatypusUtils | PowerShell + WPF</p>
+    <p>PlatypusTools v3.1.1 | © 2026 PlatypusTools Project | Built with .NET 10 / WPF</p>
 </footer>
 
 </body>

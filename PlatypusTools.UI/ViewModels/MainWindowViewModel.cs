@@ -37,7 +37,6 @@ namespace PlatypusTools.UI.ViewModels
                 IconConverter = new IconConverterViewModel();
                 Upscaler = new UpscalerViewModel();
                 BatchUpscale = new BatchUpscaleViewModel();
-                FileRenamer = new FileRenamerViewModel();
                 DiskCleanup = new DiskCleanupViewModel();
                 PrivacyCleaner = new PrivacyCleanerViewModel();
                 VideoConverter = new VideoConverterViewModel();
@@ -120,7 +119,6 @@ namespace PlatypusTools.UI.ViewModels
         public IconConverterViewModel IconConverter { get; }
         public UpscalerViewModel Upscaler { get; }
         public BatchUpscaleViewModel BatchUpscale { get; }
-        public FileRenamerViewModel FileRenamer { get; }
         public DiskCleanupViewModel DiskCleanup { get; }
         public PrivacyCleanerViewModel PrivacyCleaner { get; }
         public VideoConverterViewModel VideoConverter { get; }

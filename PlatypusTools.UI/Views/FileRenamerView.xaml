@@ -142,10 +142,12 @@
                               SelectedItem="{Binding SpaceHandling}" Margin="0,0,0,8">
                         <ComboBox.ItemsSource>
                             <x:Array Type="models:SpaceHandling">
-                                <models:SpaceHandling>KeepSpaces</models:SpaceHandling>
+                                <models:SpaceHandling>None</models:SpaceHandling>
                                 <models:SpaceHandling>SpacesToDashes</models:SpaceHandling>
                                 <models:SpaceHandling>SpacesToUnderscores</models:SpaceHandling>
                                 <models:SpaceHandling>RemoveSpaces</models:SpaceHandling>
+                                <models:SpaceHandling>DashesToSpaces</models:SpaceHandling>
+                                <models:SpaceHandling>UnderscoresToSpaces</models:SpaceHandling>
                             </x:Array>
                         </ComboBox.ItemsSource>
                     </ComboBox>

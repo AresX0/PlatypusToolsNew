@@ -166,6 +166,11 @@ namespace PlatypusTools.UI.Services
         }
         
         /// <summary>
+        /// Clears all recent workspaces (alias for ClearAll).
+        /// </summary>
+        public void Clear() => ClearAll();
+        
+        /// <summary>
         /// Gets workspaces filtered by module.
         /// </summary>
         public IEnumerable<RecentWorkspace> GetByModule(string module)

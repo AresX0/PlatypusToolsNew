@@ -43,10 +43,10 @@
                         </Grid.RowDefinitions>
                         
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Version:" FontWeight="Bold"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="VersionText" Text="3.0.0.0"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="VersionText" Text="3.1.1"/>
                         
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Build Date:" FontWeight="Bold"/>
-                        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="BuildDateText" Text="2025-01-15"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="BuildDateText" Text="2026-01-17"/>
                         
                         <TextBlock Grid.Row="2" Grid.Column="0" Text=".NET Version:" FontWeight="Bold"/>
                         <TextBlock Grid.Row="2" Grid.Column="1" x:Name="DotNetText" Text=""/>
@@ -60,12 +60,15 @@
                 <GroupBox Header="Features" Margin="0,0,0,15">
                     <StackPanel Margin="10">
                         <TextBlock Text="• File Cleaner &amp; Batch Renamer" Margin="0,2"/>
-                        <TextBlock Text="• Video/Image Converter &amp; Processor" Margin="0,2"/>
-                        <TextBlock Text="• Duplicate File Finder" Margin="0,2"/>
-                        <TextBlock Text="• System Cleanup Tools" Margin="0,2"/>
-                        <TextBlock Text="• Privacy &amp; Security Tools" Margin="0,2"/>
+                        <TextBlock Text="• Native Video/Audio Player with Fullscreen" Margin="0,2"/>
+                        <TextBlock Text="• Image Editor (Rotate, Flip, Effects)" Margin="0,2"/>
+                        <TextBlock Text="• Audio Trimmer with FFmpeg" Margin="0,2"/>
+                        <TextBlock Text="• Video/Image Converter &amp; Upscaler" Margin="0,2"/>
+                        <TextBlock Text="• Duplicate &amp; Similar Image Finder" Margin="0,2"/>
+                        <TextBlock Text="• System Cleanup &amp; Privacy Tools" Margin="0,2"/>
+                        <TextBlock Text="• Security Audit &amp; Folder Hider" Margin="0,2"/>
                         <TextBlock Text="• Metadata Editor with ExifTool" Margin="0,2"/>
-                        <TextBlock Text="• AI-Powered File Organization" Margin="0,2"/>
+                        <TextBlock Text="• Network Tools &amp; Archive Manager" Margin="0,2"/>
                     </StackPanel>
                 </GroupBox>
                 
@@ -75,8 +78,10 @@
                         <TextBlock Text="Developed with:" FontWeight="Bold" Margin="0,0,0,5"/>
                         <TextBlock Text="• .NET 10 / WPF" Margin="10,2,0,0"/>
                         <TextBlock Text="• CommunityToolkit.Mvvm" Margin="10,2,0,0"/>
+                        <TextBlock Text="• SixLabors.ImageSharp" Margin="10,2,0,0"/>
                         <TextBlock Text="• ExifTool by Phil Harvey" Margin="10,2,0,0"/>
-                        <TextBlock Text="• FFmpeg for video processing" Margin="10,2,0,0"/>
+                        <TextBlock Text="• FFmpeg/FFprobe for media processing" Margin="10,2,0,0"/>
+                        <TextBlock Text="• WiX Toolset for installer" Margin="10,2,0,0"/>
                     </StackPanel>
                 </GroupBox>
                 
@@ -94,7 +99,7 @@
         <!-- Footer -->
         <Border Grid.Row="2" Padding="20" Background="{DynamicResource SurfaceBrush}">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <TextBlock Text="© 2025 PlatypusTools Project" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                <TextBlock Text="© 2026 PlatypusTools Project" VerticalAlignment="Center" Margin="0,0,20,0"/>
                 <Button Content="Close" Width="80" Click="Close_Click"/>
             </StackPanel>
         </Border>
