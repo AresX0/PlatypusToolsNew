@@ -154,6 +154,21 @@ namespace PlatypusTools.UI.Services
         }
         
         /// <summary>
+        /// Removes a file from the recent files list.
+        /// </summary>
+        public void RemoveFile(string path)
+        {
+            var existing = _data.Files.FirstOrDefault(f => 
+                string.Equals(f.Path, path, StringComparison.OrdinalIgnoreCase));
+            if (existing != null)
+            {
+                _data.Files.Remove(existing);
+                SaveData();
+                RefreshCollections();
+            }
+        }
+        
+        /// <summary>
         /// Clears all recent workspaces.
         /// </summary>
         public void ClearAll()

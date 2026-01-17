@@ -156,11 +156,13 @@
             
             <!-- Track Content (Clips) -->
             <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto"
-                          VerticalScrollBarVisibility="Auto" x:Name="TracksScroll">
+                          VerticalScrollBarVisibility="Auto" x:Name="TracksScroll"
+                          AllowDrop="True">
                 <ItemsControl ItemsSource="{Binding Tracks}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Style="{StaticResource TrackContentStyle}" Height="{Binding Height}">
+                            <Border Style="{StaticResource TrackContentStyle}" Height="{Binding Height}"
+                                    AllowDrop="True">
                                 <Canvas x:Name="ClipsCanvas" Background="Transparent"
                                         AllowDrop="True">
                                     <ItemsControl ItemsSource="{Binding Clips}">

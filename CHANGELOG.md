@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.1.1.1 - 2026-01-17
+
+### Fixed
+- **Window Ownership Errors** - Fixed "Cannot set Owner property" errors:
+  - Help menu "View Help Documentation" now opens without access denied errors
+  - Tools menu "Credential Manager" no longer throws ownership exceptions
+  - Tools menu "Run Parity Tests" properly handles window ownership
+  - Added `GetSafeOwner()` helper to validate window ownership before setting
+  - Checks that MainWindow is loaded before using as owner
+  - Prevents circular reference when child window would be same as owner
+
+### Added
+- **Video Similarity Detection** - Find similar videos using perceptual hashing
+- **Transition Picker UI** - Visual selector for video transitions with categories and easing
+- **PDF Encryption/Decryption** - Password protect PDFs with permission controls
+- **Timeline Drag-Drop** - Drag media files directly onto timeline from File Explorer
+- **Metadata Templates** - Save, load, and apply metadata templates to files
+- **Archive Split/Password** - Create password-protected and multi-part split archives
+- **Recent Workspaces UI** - Redesigned with tabs, pinning, and filtering
+
 ## v3.1.0 - 2026-01-17
 
 ### Fixed

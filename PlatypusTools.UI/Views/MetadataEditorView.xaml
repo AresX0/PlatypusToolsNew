@@ -279,6 +279,179 @@
                     </Grid>
                 </Grid>
             </TabItem>
+            
+            <!-- Templates Tab -->
+            <TabItem Header="📋 Templates" DataContext="{Binding TemplateViewModel}">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="250"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- Templates List -->
+                    <Grid Grid.Column="0" Margin="0,0,10,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Template Actions -->
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                            <Button Content="➕ New" Command="{Binding CreateTemplateCommand}" Width="60" Margin="0,0,5,0"/>
+                            <Button Content="📥 Import" Command="{Binding ImportTemplateCommand}" Width="70" Margin="0,0,5,0"/>
+                            <Button Content="📤 Export" Command="{Binding ExportTemplateCommand}" Width="70"/>
+                        </StackPanel>
+                        
+                        <!-- Templates List -->
+                        <ListBox Grid.Row="1" ItemsSource="{Binding Templates}" SelectedItem="{Binding SelectedTemplate}"
+                                 BorderThickness="1" BorderBrush="#CCC">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        
+                                        <!-- Favorite Star -->
+                                        <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding IsFavorite, Converter={StaticResource FavoriteIconConverter}}"
+                                                   VerticalAlignment="Center" Margin="0,0,5,0" Foreground="Gold" FontSize="14"/>
+                                        
+                                        <!-- Template Name -->
+                                        <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding Name}" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        
+                                        <!-- Built-in Badge -->
+                                        <Border Grid.Column="2" Grid.Row="0" Background="LightBlue" CornerRadius="3" Padding="4,2"
+                                                Visibility="{Binding IsBuiltIn, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <TextBlock Text="Built-in" FontSize="10" Foreground="#333"/>
+                                        </Border>
+                                        
+                                        <!-- Category & Tag Count -->
+                                        <StackPanel Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Category}" Foreground="Gray" FontSize="11"/>
+                                            <TextBlock Text=" • " Foreground="Gray" FontSize="11"/>
+                                            <TextBlock Text="{Binding Tags.Count, StringFormat='{}{0} tags'}" Foreground="Gray" FontSize="11"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        
+                        <!-- Selected Template Actions -->
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,0">
+                            <Button Content="✏️ Edit" Command="{Binding EditTemplateCommand}" Width="60" Margin="0,0,5,0"/>
+                            <Button Content="📋 Copy" Command="{Binding DuplicateTemplateCommand}" Width="60" Margin="0,0,5,0"/>
+                            <Button Content="🗑️ Delete" Command="{Binding DeleteTemplateCommand}" Width="70" Background="LightCoral"/>
+                        </StackPanel>
+                    </Grid>
+                    
+                    <!-- Template Details & Apply -->
+                    <Grid Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Template Details -->
+                        <GroupBox Grid.Row="0" Header="Template Details" Margin="0,0,0,10">
+                            <Grid Margin="5">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Name:" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedTemplate.Name}" FontWeight="SemiBold"/>
+                                
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Category:" VerticalAlignment="Center" Margin="0,5,0,0"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedTemplate.Category}" Margin="0,5,0,0"/>
+                                
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Description:" VerticalAlignment="Top" Margin="0,5,0,0"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedTemplate.Description}" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                            </Grid>
+                        </GroupBox>
+                        
+                        <!-- Template Tags Preview -->
+                        <GroupBox Grid.Row="1" Header="Tags in Template" Margin="0,0,0,10" MaxHeight="150">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding SelectedTemplate.Tags}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="150"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="{Binding Key}" FontWeight="SemiBold"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Value}" TextTrimming="CharacterEllipsis" Foreground="Gray"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </GroupBox>
+                        
+                        <!-- Files to Apply To -->
+                        <GroupBox Grid.Row="2" Header="Files to Apply Template" Margin="0,0,0,10">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+                                    <Button Content="➕ Add Files" Command="{Binding AddFilesCommand}" Width="90" Margin="0,0,5,0"/>
+                                    <Button Content="📁 Add Folder" Command="{Binding AddFolderCommand}" Width="100" Margin="0,0,5,0"/>
+                                    <Button Content="❌ Clear" Command="{Binding ClearFilesCommand}" Width="70"/>
+                                </StackPanel>
+                                
+                                <ListBox Grid.Row="1" ItemsSource="{Binding SelectedFiles}" BorderThickness="1" BorderBrush="#CCC"/>
+                            </Grid>
+                        </GroupBox>
+                        
+                        <!-- Apply Options -->
+                        <GroupBox Grid.Row="3" Header="Apply Options" Margin="0,0,0,10">
+                            <StackPanel Margin="5">
+                                <CheckBox Content="Create backup before modifying" IsChecked="{Binding ApplyOptions.CreateBackup}" Margin="0,0,0,5"/>
+                                <CheckBox Content="Overwrite existing values" IsChecked="{Binding ApplyOptions.OverwriteExisting}" Margin="0,0,0,5"/>
+                                <CheckBox Content="Skip files on error (continue with others)" IsChecked="{Binding ApplyOptions.SkipOnError}"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <!-- Apply Actions -->
+                        <Grid Grid.Row="4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <ProgressBar Grid.Column="0" Value="{Binding Progress}" Maximum="100" Height="20" Margin="0,0,10,0"
+                                         Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            <Button Grid.Column="1" Content="🚀 Apply Template" Command="{Binding ApplyTemplateCommand}" 
+                                    Width="130" Height="32" Background="LightGreen" FontWeight="Bold" Margin="0,0,5,0"/>
+                            <Button Grid.Column="2" Content="❌ Cancel" Command="{Binding CancelOperationCommand}" 
+                                    Width="80" Height="32" Background="LightCoral"
+                                    Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </TabItem>
         </TabControl>
     </Grid>
 </UserControl>

@@ -1,17 +1,188 @@
 <Window x:Class="PlatypusTools.UI.Views.RecentWorkspacesWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Recent Workspaces" Height="300" Width="600" WindowStartupLocation="CenterOwner">
-    <Grid Margin="8">
+        xmlns:converters="clr-namespace:PlatypusTools.UI.Converters"
+        Title="Recent Workspaces" Height="500" Width="800" WindowStartupLocation="CenterOwner"
+        Background="#F0F0F0">
+    
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:RelativeTimeConverter x:Key="RelativeTimeConverter"/>
+    </Window.Resources>
+    
+    <Grid Margin="16">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <ListBox x:Name="List" />
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-            <Button Width="90" Margin="4" Click="Open_Click">Open</Button>
-            <Button Width="90" Margin="4" Click="Remove_Click">Remove</Button>
-            <Button Width="90" Margin="4" Click="Close_Click">Close</Button>
-        </StackPanel>
+        
+        <!-- Header -->
+        <TextBlock Grid.Row="0" Text="📂 Recent Workspaces &amp; Files" FontSize="20" FontWeight="SemiBold" 
+                   Foreground="#333" Margin="0,0,0,16"/>
+        
+        <!-- Tabs for Workspaces and Files -->
+        <TabControl Grid.Row="2" x:Name="MainTabs" Background="White">
+            <!-- Workspaces Tab -->
+            <TabItem Header="📁 Workspaces" Padding="12,6">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Filter/Search -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,8,0,8">
+                        <TextBlock Text="🔍" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBox x:Name="WorkspaceSearchBox" Width="250" Padding="4" 
+                                 TextChanged="OnWorkspaceSearchChanged"/>
+                        <Button Content="Clear" Margin="8,0,0,0" Padding="8,4" Click="OnClearWorkspaceSearch"/>
+                    </StackPanel>
+                    
+                    <!-- Workspaces List -->
+                    <ListBox Grid.Row="1" x:Name="WorkspacesList" BorderThickness="1" BorderBrush="#CCC"
+                             SelectionMode="Single" MouseDoubleClick="OnWorkspaceDoubleClick">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="4,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <!-- Folder Icon -->
+                                    <TextBlock Grid.Column="0" Grid.RowSpan="2" Text="📁" FontSize="28" 
+                                               VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                    
+                                    <!-- Name -->
+                                    <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding Name}" 
+                                               FontWeight="SemiBold" FontSize="14" TextTrimming="CharacterEllipsis"/>
+                                    
+                                    <!-- Path -->
+                                    <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding Path}" 
+                                               Foreground="Gray" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                    
+                                    <!-- Module Badge -->
+                                    <Border Grid.Column="2" Grid.Row="0" Background="LightBlue" CornerRadius="3" 
+                                            Padding="6,2" Margin="8,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Module}" FontSize="10" Foreground="#333"/>
+                                    </Border>
+                                    
+                                    <!-- Last Accessed -->
+                                    <TextBlock Grid.Column="3" Grid.Row="0" 
+                                               Text="{Binding LastAccessed, Converter={StaticResource RelativeTimeConverter}}"
+                                               Foreground="Gray" FontSize="11" VerticalAlignment="Center"/>
+                                    
+                                    <!-- Access Count -->
+                                    <TextBlock Grid.Column="2" Grid.ColumnSpan="2" Grid.Row="1" 
+                                               Text="{Binding AccessCount, StringFormat='Opened {0} times'}"
+                                               Foreground="Gray" FontSize="10" HorizontalAlignment="Right"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </TabItem>
+            
+            <!-- Recent Files Tab -->
+            <TabItem Header="📄 Recent Files" Padding="12,6">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Filter/Search -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,8,0,8">
+                        <TextBlock Text="🔍" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBox x:Name="FileSearchBox" Width="250" Padding="4" 
+                                 TextChanged="OnFileSearchChanged"/>
+                        <Button Content="Clear" Margin="8,0,0,0" Padding="8,4" Click="OnClearFileSearch"/>
+                    </StackPanel>
+                    
+                    <!-- Files List -->
+                    <ListBox Grid.Row="1" x:Name="FilesList" BorderThickness="1" BorderBrush="#CCC"
+                             SelectionMode="Single" MouseDoubleClick="OnFileDoubleClick">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="4,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <!-- File Icon -->
+                                    <TextBlock Grid.Column="0" Text="📄" FontSize="20" 
+                                               VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    
+                                    <!-- Name and Path -->
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" 
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Path}" Foreground="Gray" FontSize="10" 
+                                                   TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                    
+                                    <!-- Size -->
+                                    <TextBlock Grid.Column="2" Text="{Binding FileSizeDisplay}" 
+                                               Foreground="Gray" FontSize="11" VerticalAlignment="Center" Margin="8,0"/>
+                                    
+                                    <!-- Last Accessed -->
+                                    <TextBlock Grid.Column="3" 
+                                               Text="{Binding LastAccessed, Converter={StaticResource RelativeTimeConverter}}"
+                                               Foreground="Gray" FontSize="11" VerticalAlignment="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </TabItem>
+            
+            <!-- Pinned Tab -->
+            <TabItem Header="📌 Pinned" Padding="12,6">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Row="0" Text="Pin frequently used paths for quick access" 
+                               Foreground="Gray" Margin="0,8,0,8"/>
+                    
+                    <ListBox Grid.Row="1" x:Name="PinnedList" BorderThickness="1" BorderBrush="#CCC"
+                             MouseDoubleClick="OnPinnedDoubleClick"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        
+        <!-- Actions -->
+        <Grid Grid.Row="3" Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <Button Content="📌 Pin Selected" Width="110" Margin="0,0,8,0" Click="OnPinClick"/>
+                <Button Content="🗑️ Remove" Width="90" Margin="0,0,8,0" Click="OnRemoveClick"/>
+                <Button Content="🧹 Clear All" Width="90" Click="OnClearAllClick" Background="LightCoral"/>
+            </StackPanel>
+            
+            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <Button Content="Open" Width="100" Margin="0,0,8,0" IsDefault="True" 
+                        Background="LightGreen" FontWeight="Bold" Click="OnOpenClick"/>
+                <Button Content="Cancel" Width="80" IsCancel="True" Click="OnCloseClick"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

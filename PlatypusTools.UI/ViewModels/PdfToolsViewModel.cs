@@ -44,6 +44,8 @@ namespace PlatypusTools.UI.ViewModels
             RotateCommand = new AsyncRelayCommand(RotateAsync, () => SelectedFile != null);
             DeletePagesCommand = new AsyncRelayCommand(DeletePagesAsync, () => SelectedFile != null && !string.IsNullOrEmpty(PageRanges));
             WatermarkCommand = new AsyncRelayCommand(WatermarkAsync, () => SelectedFile != null && !string.IsNullOrEmpty(WatermarkText));
+            EncryptCommand = new AsyncRelayCommand(EncryptAsync, () => SelectedFile != null);
+            DecryptCommand = new AsyncRelayCommand(DecryptAsync, () => SelectedFile != null);
             ImagesToPdfCommand = new AsyncRelayCommand(ImagesToPdfAsync, () => InputFiles.Any());
             
             CancelCommand = new RelayCommand(_ => Cancel(), _ => IsProcessing);
@@ -197,6 +199,8 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand RotateCommand { get; }
         public ICommand DeletePagesCommand { get; }
         public ICommand WatermarkCommand { get; }
+        public ICommand EncryptCommand { get; }
+        public ICommand DecryptCommand { get; }
         public ICommand ImagesToPdfCommand { get; }
         public ICommand CancelCommand { get; }
         public ICommand PreviousPageCommand { get; }
@@ -496,6 +500,90 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
         
+        private async Task EncryptAsync()
+        {
+            if (SelectedFile?.IsPdf != true) return;
+            
+            // Show password dialog
+            var passwordWindow = new Views.PromptPasswordWindow
+            {
+                Title = "Encrypt PDF - Set Password",
+                Owner = System.Windows.Application.Current.MainWindow
+            };
+            
+            if (passwordWindow.ShowDialog() == true)
+            {
+                var password = passwordWindow.EnteredPassword;
+                if (string.IsNullOrEmpty(password))
+                {
+                    StatusMessage = "Password is required";
+                    return;
+                }
+                
+                var dialog = new SaveFileDialog
+                {
+                    Filter = "PDF Files (*.pdf)|*.pdf",
+                    Title = "Save Encrypted PDF",
+                    FileName = $"{Path.GetFileNameWithoutExtension(SelectedFile.FileName)}_encrypted.pdf"
+                };
+                
+                if (dialog.ShowDialog() == true)
+                {
+                    var options = new PdfEncryptionOptions
+                    {
+                        AllowPrint = true,
+                        AllowCopy = false,
+                        AllowModify = false,
+                        AllowAnnotations = false
+                    };
+                    
+                    await ExecuteWithProgress(async ct =>
+                    {
+                        await _service.EncryptPdfAsync(SelectedFile.FilePath, dialog.FileName, password, password, options, ct);
+                    }, "Encrypting PDF...");
+                }
+            }
+        }
+        
+        private async Task DecryptAsync()
+        {
+            if (SelectedFile?.IsPdf != true) return;
+            
+            // Check if file is encrypted
+            if (!_service.IsPdfEncrypted(SelectedFile.FilePath))
+            {
+                StatusMessage = "This PDF is not encrypted";
+                return;
+            }
+            
+            // Show password dialog
+            var passwordWindow = new Views.PromptPasswordWindow
+            {
+                Title = "Decrypt PDF - Enter Password",
+                Owner = System.Windows.Application.Current.MainWindow
+            };
+            
+            if (passwordWindow.ShowDialog() == true)
+            {
+                var password = passwordWindow.EnteredPassword;
+                
+                var dialog = new SaveFileDialog
+                {
+                    Filter = "PDF Files (*.pdf)|*.pdf",
+                    Title = "Save Decrypted PDF",
+                    FileName = $"{Path.GetFileNameWithoutExtension(SelectedFile.FileName)}_decrypted.pdf"
+                };
+                
+                if (dialog.ShowDialog() == true)
+                {
+                    await ExecuteWithProgress(async ct =>
+                    {
+                        await _service.DecryptPdfAsync(SelectedFile.FilePath, dialog.FileName, password, ct);
+                    }, "Decrypting PDF...");
+                }
+            }
+        }
+        
         private async Task ImagesToPdfAsync()
         {
             var imageFiles = InputFiles.Where(f => !f.IsPdf).Select(f => f.FilePath).ToList();
@@ -608,6 +696,8 @@ namespace PlatypusTools.UI.ViewModels
             (DeletePagesCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
             (WatermarkCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
             (ImagesToPdfCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
+            (EncryptCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
+            (DecryptCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
             (PreviousPageCommand as RelayCommand)?.RaiseCanExecuteChanged();
             (NextPageCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }

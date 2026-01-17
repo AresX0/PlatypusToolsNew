@@ -21,24 +21,41 @@
 
         <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
             <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Folder:</TextBlock>
-            <TextBox Width="300" Text="{Binding FolderPath, UpdateSourceTrigger=PropertyChanged}" />
-            <Button Content="Browse..." Command="{Binding BrowseCommand}" Width="80" Margin="8,0,0,0" />
-            <Button Content="Scan Duplicates" Command="{Binding ScanCommand}" Width="120" Margin="8,0,0,0" />
-            <Button Content="Find Similar Images" Command="{Binding ScanSimilarCommand}" Width="140" Margin="8,0,0,0" 
+            <TextBox Width="250" Text="{Binding FolderPath, UpdateSourceTrigger=PropertyChanged}" />
+            <Button Content="Browse..." Command="{Binding BrowseCommand}" Width="70" Margin="8,0,0,0" />
+            <Button Content="Scan Duplicates" Command="{Binding ScanCommand}" Width="110" Margin="8,0,0,0" />
+            <Button Content="Similar Images" Command="{Binding ScanSimilarCommand}" Width="110" Margin="4,0,0,0" 
                     ToolTip="Find visually similar images using perceptual hashing" />
-            <Button Content="Cancel" Command="{Binding CancelScanCommand}" Width="70" Margin="4,0,0,0" />
-            <Button Content="Staging" Command="{Binding ToggleStagingCommand}" Width="110" Margin="8,0,0,0" />
+            <Button Content="Similar Videos" Command="{Binding ScanSimilarVideosCommand}" Width="110" Margin="4,0,0,0" 
+                    ToolTip="Find similar videos by comparing key frames (requires FFmpeg)" />
+            <Button Content="Cancel" Command="{Binding CancelScanCommand}" Width="60" Margin="4,0,0,0" />
+            <Button Content="Staging" Command="{Binding ToggleStagingCommand}" Width="70" Margin="4,0,0,0" />
         </StackPanel>
         
-        <!-- Similarity Threshold Slider -->
+        <!-- Similarity Threshold Slider for Images -->
         <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8" 
                     Visibility="{Binding ShowSimilarImages, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Similarity Threshold:</TextBlock>
+            <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Image Similarity Threshold:</TextBlock>
             <Slider Width="150" Minimum="50" Maximum="100" 
                     Value="{Binding SimilarityThreshold}" 
                     TickFrequency="5" IsSnapToTickEnabled="True"
                     VerticalAlignment="Center" />
             <TextBlock Text="{Binding SimilarityThreshold, StringFormat={}{0}%}" 
+                       VerticalAlignment="Center" Margin="8,0,0,0" Width="40" />
+            <ProgressBar Width="200" Height="16" Margin="16,0,0,0"
+                         Value="{Binding ScanProgress}" Minimum="0" Maximum="100"
+                         Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}" />
+        </StackPanel>
+        
+        <!-- Similarity Threshold Slider for Videos -->
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8" 
+                    Visibility="{Binding ShowSimilarVideos, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Video Similarity Threshold:</TextBlock>
+            <Slider Width="150" Minimum="50" Maximum="100" 
+                    Value="{Binding VideoSimilarityThreshold}" 
+                    TickFrequency="5" IsSnapToTickEnabled="True"
+                    VerticalAlignment="Center" />
+            <TextBlock Text="{Binding VideoSimilarityThreshold, StringFormat={}{0}%}" 
                        VerticalAlignment="Center" Margin="8,0,0,0" Width="40" />
             <ProgressBar Width="200" Height="16" Margin="16,0,0,0"
                          Value="{Binding ScanProgress}" Minimum="0" Maximum="100"
@@ -128,6 +145,61 @@
                                                         <TextBlock Text="{Binding FileSizeText}" FontSize="10" Foreground="Gray" />
                                                     </StackPanel>
                                                     <TextBlock Text="{Binding Dimensions}" FontSize="10" Foreground="Gray" />
+                                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                        <Button Content="Open" Width="50" FontSize="10" Padding="2"
+                                                                Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                                                CommandParameter="{Binding FilePath}" />
+                                                        <Button Content="Folder" Width="50" FontSize="10" Padding="2" Margin="4,0,0,0"
+                                                                Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                                                CommandParameter="{Binding FilePath}" />
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+        
+        <!-- Similar Videos Grid View -->
+        <ScrollViewer Grid.Row="3" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                      Visibility="{Binding ShowSimilarVideos, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <ItemsControl ItemsSource="{Binding SimilarVideoGroups}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="#CCCCCC" BorderThickness="1" Margin="0,0,0,8" Padding="8" CornerRadius="4" Background="#F9F9F9">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" Margin="0,0,0,8" />
+                                <ItemsControl ItemsSource="{Binding Videos}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="#DDDDDD" BorderThickness="1" Margin="4" Padding="8" CornerRadius="4" Width="200" Background="White">
+                                                <StackPanel>
+                                                    <CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Right" Margin="0,0,0,4" />
+                                                    <Image Source="{Binding Thumbnail}" Width="160" Height="90" Stretch="Uniform" 
+                                                           HorizontalAlignment="Center" Margin="0,0,0,4" />
+                                                    <TextBlock Text="{Binding FileName}" TextTrimming="CharacterEllipsis" 
+                                                               FontSize="11" ToolTip="{Binding FilePath}" />
+                                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                        <TextBlock Text="{Binding SimilarityText}" FontSize="10" Foreground="Green" FontWeight="Bold" />
+                                                        <TextBlock Text=" | " FontSize="10" Foreground="Gray" />
+                                                        <TextBlock Text="{Binding FileSizeText}" FontSize="10" Foreground="Gray" />
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                        <TextBlock Text="{Binding Duration}" FontSize="10" Foreground="Gray" />
+                                                        <TextBlock Text=" | " FontSize="10" Foreground="Gray" />
+                                                        <TextBlock Text="{Binding Dimensions}" FontSize="10" Foreground="Gray" />
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding FrameRateText}" FontSize="10" Foreground="Gray" />
                                                     <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                                                         <Button Content="Open" Width="50" FontSize="10" Padding="2"
                                                                 Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 

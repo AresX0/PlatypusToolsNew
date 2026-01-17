@@ -298,12 +298,26 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand ScanFolderCommand { get; }
         public ICommand ExportToCsvCommand { get; }
         public ICommand OpenSelectedFileCommand { get; }
+        
+        /// <summary>
+        /// ViewModel for metadata templates management.
+        /// </summary>
+        public MetadataTemplateViewModel TemplateViewModel { get; }
 
         public MetadataEditorViewModel() : this(new MetadataServiceEnhanced()) { }
 
         public MetadataEditorViewModel(IMetadataService service)
         {
             _service = service;
+            
+            // Initialize the template ViewModel
+            TemplateViewModel = new MetadataTemplateViewModel();
+            
+            // Initialize templates directory
+            var templatesDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "PlatypusTools", "MetadataTemplates");
+            _ = TemplateViewModel.InitializeAsync(templatesDir);
 
             BrowseFileCommand = new RelayCommand(_ => BrowseFile());
             LoadMetadataCommand = new RelayCommand(_ => LoadMetadata(), _ => !string.IsNullOrEmpty(FilePath));

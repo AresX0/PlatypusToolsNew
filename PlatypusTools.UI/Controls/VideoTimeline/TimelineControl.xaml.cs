@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -6,6 +8,8 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using PlatypusTools.UI.ViewModels;
 using PlatypusTools.Core.Models.Video;
+
+using IOPath = System.IO.Path;
 
 namespace PlatypusTools.UI.Controls.VideoTimeline
 {
@@ -41,6 +45,11 @@ namespace PlatypusTools.UI.Controls.VideoTimeline
             InitializeComponent();
             Loaded += TimelineControl_Loaded;
             SizeChanged += TimelineControl_SizeChanged;
+            
+            // Enable file drop on the entire control
+            AllowDrop = true;
+            Drop += TimelineControl_Drop;
+            DragOver += TimelineControl_DragOver;
         }
         
         private void TimelineControl_Loaded(object sender, RoutedEventArgs e)
@@ -518,5 +527,147 @@ namespace PlatypusTools.UI.Controls.VideoTimeline
                 TracksScroll.ScrollToHorizontalOffset(playheadX - TracksScroll.ViewportWidth + 50);
             }
         }
+        
+        #region Drag and Drop
+        
+        private static readonly string[] VideoExtensions = { ".mp4", ".avi", ".mkv", ".mov", ".wmv", ".webm", ".m4v", ".flv" };
+        private static readonly string[] AudioExtensions = { ".mp3", ".wav", ".aac", ".flac", ".ogg", ".wma", ".m4a" };
+        private static readonly string[] ImageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff" };
+        
+        private void TimelineControl_DragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                if (files != null && files.Any(f => IsMediaFile(f)))
+                {
+                    e.Effects = DragDropEffects.Copy;
+                    e.Handled = true;
+                    return;
+                }
+            }
+            
+            e.Effects = DragDropEffects.None;
+            e.Handled = true;
+        }
+        
+        private void TimelineControl_Drop(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+                return;
+            
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files == null || files.Length == 0)
+                return;
+            
+            var vm = DataContext as TimelineViewModel;
+            if (vm == null) return;
+            
+            // Get drop position relative to tracks scroll
+            var dropPos = e.GetPosition(TracksScroll);
+            var dropTimeSeconds = (dropPos.X + TracksScroll.HorizontalOffset) / _pixelsPerSecond;
+            var dropTime = TimeSpan.FromSeconds(Math.Max(0, dropTimeSeconds));
+            
+            // Process each dropped file
+            foreach (var file in files.Where(f => IsMediaFile(f)))
+            {
+                AddMediaToTimeline(vm, file, dropTime);
+                // Offset next clip by 5 seconds to avoid overlap
+                dropTime = dropTime.Add(TimeSpan.FromSeconds(5));
+            }
+        }
+        
+        private void AddMediaToTimeline(TimelineViewModel vm, string filePath, TimeSpan position)
+        {
+            var ext = IOPath.GetExtension(filePath).ToLowerInvariant();
+            TimelineTrack? targetTrack = null;
+            TimeSpan duration = TimeSpan.FromSeconds(10); // Default duration
+            
+            if (VideoExtensions.Contains(ext))
+            {
+                // Add to first video track, or create one
+                targetTrack = vm.Tracks.FirstOrDefault(t => t.Type == TrackType.Video);
+                if (targetTrack == null)
+                {
+                    vm.AddVideoTrackCommand.Execute(null);
+                    targetTrack = vm.Tracks.FirstOrDefault(t => t.Type == TrackType.Video);
+                }
+                
+                // Try to get actual duration using FFprobe
+                duration = GetMediaDuration(filePath) ?? TimeSpan.FromSeconds(30);
+            }
+            else if (AudioExtensions.Contains(ext))
+            {
+                // Add to first audio track, or create one
+                targetTrack = vm.Tracks.FirstOrDefault(t => t.Type == TrackType.Audio);
+                if (targetTrack == null)
+                {
+                    vm.AddAudioTrackCommand.Execute(null);
+                    targetTrack = vm.Tracks.FirstOrDefault(t => t.Type == TrackType.Audio);
+                }
+                
+                duration = GetMediaDuration(filePath) ?? TimeSpan.FromSeconds(30);
+            }
+            else if (ImageExtensions.Contains(ext))
+            {
+                // Add images as title/overlay clips
+                targetTrack = vm.Tracks.FirstOrDefault(t => t.Type == TrackType.Title);
+                if (targetTrack == null)
+                {
+                    vm.AddTitleTrackCommand.Execute(null);
+                    targetTrack = vm.Tracks.FirstOrDefault(t => t.Type == TrackType.Title);
+                }
+                
+                duration = TimeSpan.FromSeconds(5); // Default image duration
+            }
+            
+            if (targetTrack != null)
+            {
+                vm.AddClip(targetTrack, filePath, position, duration);
+            }
+        }
+        
+        private bool IsMediaFile(string path)
+        {
+            var ext = IOPath.GetExtension(path).ToLowerInvariant();
+            return VideoExtensions.Contains(ext) || AudioExtensions.Contains(ext) || ImageExtensions.Contains(ext);
+        }
+        
+        private TimeSpan? GetMediaDuration(string filePath)
+        {
+            try
+            {
+                // Use FFprobe to get actual duration
+                using var process = new System.Diagnostics.Process
+                {
+                    StartInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "ffprobe",
+                        Arguments = $"-v quiet -show_entries format=duration -of csv=p=0 \"{filePath}\"",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true
+                    }
+                };
+                
+                process.Start();
+                var output = process.StandardOutput.ReadToEnd().Trim();
+                process.WaitForExit(5000);
+                
+                if (double.TryParse(output, System.Globalization.NumberStyles.Any, 
+                    System.Globalization.CultureInfo.InvariantCulture, out var seconds))
+                {
+                    return TimeSpan.FromSeconds(seconds);
+                }
+            }
+            catch
+            {
+                // FFprobe not available or error - use default
+            }
+            
+            return null;
+        }
+        
+        #endregion
     }
 }

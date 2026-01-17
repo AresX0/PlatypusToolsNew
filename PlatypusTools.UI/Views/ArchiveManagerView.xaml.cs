@@ -98,5 +98,13 @@ namespace PlatypusTools.UI.Views
                 SelectionInfoText.Text = $"Selected: {vm.SelectedEntries.Count} of {vm.Entries.Count}";
             }
         }
+        
+        private void OnPasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ViewModels.ArchiveManagerViewModel vm && sender is PasswordBox pb)
+            {
+                vm.Password = pb.Password;
+            }
+        }
     }
 }

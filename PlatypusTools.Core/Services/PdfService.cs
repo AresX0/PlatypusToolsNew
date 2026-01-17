@@ -415,6 +415,99 @@ public class PdfService
         ProgressChanged?.Invoke(this, new PdfProgressEventArgs(current, total, percentage, message));
     }
 
+    /// <summary>
+    /// Encrypts a PDF file with password protection.
+    /// </summary>
+    /// <param name="inputPath">Input PDF file path.</param>
+    /// <param name="outputPath">Output PDF file path.</param>
+    /// <param name="userPassword">Password to open the document (can be empty for owner-only protection).</param>
+    /// <param name="ownerPassword">Password for full access (required).</param>
+    /// <param name="options">Encryption options specifying permissions.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public async Task EncryptPdfAsync(string inputPath, string outputPath, string userPassword, string ownerPassword, 
+        PdfEncryptionOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        options ??= new PdfEncryptionOptions();
+        
+        await Task.Run(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ReportProgress(0, 1, "Opening PDF...");
+            
+            using var document = PdfReader.Open(inputPath, PdfDocumentOpenMode.Modify);
+            
+            // Set security settings
+            var securitySettings = document.SecuritySettings;
+            
+            // Set passwords
+            securitySettings.UserPassword = userPassword;
+            securitySettings.OwnerPassword = ownerPassword;
+            
+            // Set permissions
+            securitySettings.PermitAccessibilityExtractContent = options.AllowAccessibility;
+            securitySettings.PermitAnnotations = options.AllowAnnotations;
+            securitySettings.PermitAssembleDocument = options.AllowAssembly;
+            securitySettings.PermitExtractContent = options.AllowCopy;
+            securitySettings.PermitFormsFill = options.AllowFormFilling;
+            securitySettings.PermitFullQualityPrint = options.AllowFullQualityPrint;
+            securitySettings.PermitModifyDocument = options.AllowModify;
+            securitySettings.PermitPrint = options.AllowPrint;
+            
+            ReportProgress(1, 2, "Encrypting PDF...");
+            
+            document.Save(outputPath);
+            
+            ReportProgress(2, 2, "Encryption complete");
+        }, cancellationToken);
+    }
+
+    /// <summary>
+    /// Removes password protection from a PDF file.
+    /// </summary>
+    /// <param name="inputPath">Input PDF file path (encrypted).</param>
+    /// <param name="outputPath">Output PDF file path (unencrypted).</param>
+    /// <param name="password">Password to open the document.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public async Task DecryptPdfAsync(string inputPath, string outputPath, string password, CancellationToken cancellationToken = default)
+    {
+        await Task.Run(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ReportProgress(0, 1, "Opening encrypted PDF...");
+            
+            // Open with password
+            using var document = PdfReader.Open(inputPath, password, PdfDocumentOpenMode.Modify);
+            
+            ReportProgress(1, 2, "Removing encryption...");
+            
+            // Remove security by clearing passwords
+            document.SecuritySettings.UserPassword = string.Empty;
+            document.SecuritySettings.OwnerPassword = string.Empty;
+            
+            document.Save(outputPath);
+            
+            ReportProgress(2, 2, "Decryption complete");
+        }, cancellationToken);
+    }
+
+    /// <summary>
+    /// Checks if a PDF file is encrypted.
+    /// </summary>
+    /// <param name="path">PDF file path.</param>
+    /// <returns>True if the PDF is encrypted, false otherwise.</returns>
+    public bool IsPdfEncrypted(string path)
+    {
+        try
+        {
+            using var document = PdfReader.Open(path, PdfDocumentOpenMode.InformationOnly);
+            return false; // If we can open without password, it's not encrypted
+        }
+        catch (PdfReaderException)
+        {
+            return true; // Password required
+        }
+    }
+
     private record PageRange(int Start, int End);
 }
 
@@ -462,4 +555,34 @@ public class PdfWatermarkOptions
     public double FontSize { get; set; } = 48;
     public double Opacity { get; set; } = 0.3;
     public double Rotation { get; set; } = -45;
+}
+
+/// <summary>
+/// Options for PDF encryption.
+/// </summary>
+public class PdfEncryptionOptions
+{
+    /// <summary>Allow printing the document.</summary>
+    public bool AllowPrint { get; set; } = true;
+    
+    /// <summary>Allow full quality printing.</summary>
+    public bool AllowFullQualityPrint { get; set; } = true;
+    
+    /// <summary>Allow copying text and images.</summary>
+    public bool AllowCopy { get; set; } = true;
+    
+    /// <summary>Allow modifying the document.</summary>
+    public bool AllowModify { get; set; } = false;
+    
+    /// <summary>Allow adding annotations.</summary>
+    public bool AllowAnnotations { get; set; } = true;
+    
+    /// <summary>Allow filling form fields.</summary>
+    public bool AllowFormFilling { get; set; } = true;
+    
+    /// <summary>Allow accessibility content extraction.</summary>
+    public bool AllowAccessibility { get; set; } = true;
+    
+    /// <summary>Allow document assembly (inserting, rotating, deleting pages).</summary>
+    public bool AllowAssembly { get; set; } = false;
 }

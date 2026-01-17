@@ -128,6 +128,31 @@ namespace PlatypusTools.UI.ViewModels
             set => SetProperty(ref _password, value);
         }
         
+        private bool _enableSplitArchive;
+        /// <summary>
+        /// Whether to split the archive into multiple parts.
+        /// </summary>
+        public bool EnableSplitArchive
+        {
+            get => _enableSplitArchive;
+            set => SetProperty(ref _enableSplitArchive, value);
+        }
+        
+        private long _splitSizeMB = 100;
+        /// <summary>
+        /// Size of each archive part in MB.
+        /// </summary>
+        public long SplitSizeMB
+        {
+            get => _splitSizeMB;
+            set => SetProperty(ref _splitSizeMB, Math.Max(1, value));
+        }
+        
+        /// <summary>
+        /// Available split size options in MB.
+        /// </summary>
+        public long[] SplitSizeOptions { get; } = { 10, 25, 50, 100, 250, 500, 700, 1024, 2048, 4096 };
+        
         public ArchiveFormat[] AvailableFormats { get; } = Enum.GetValues<ArchiveFormat>();
         public CompressionLevel[] CompressionLevels { get; } = Enum.GetValues<CompressionLevel>();
         
@@ -303,7 +328,8 @@ namespace PlatypusTools.UI.ViewModels
                     Level = SelectedLevel,
                     Password = Password,
                     IncludeRootFolder = false,
-                    PreserveFolderStructure = true
+                    PreserveFolderStructure = true,
+                    SplitSizeBytes = EnableSplitArchive ? SplitSizeMB * 1024 * 1024 : 0
                 };
                 
                 var progress = new Progress<ArchiveProgress>(p =>

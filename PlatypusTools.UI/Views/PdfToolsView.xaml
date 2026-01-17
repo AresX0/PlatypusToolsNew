@@ -74,6 +74,16 @@
                              ToolTip="Watermark text"/>
                 </StackPanel>
                 
+                <!-- Encrypt -->
+                <Button Content="🔒 Encrypt" Command="{Binding EncryptCommand}"
+                        Style="{DynamicResource SecondaryButton}" Margin="0,0,8,5" Padding="12,6"
+                        ToolTip="Password protect selected PDF"/>
+                
+                <!-- Decrypt -->
+                <Button Content="🔓 Decrypt" Command="{Binding DecryptCommand}"
+                        Style="{DynamicResource SecondaryButton}" Margin="0,0,8,5" Padding="12,6"
+                        ToolTip="Remove password from PDF"/>
+                
                 <!-- Images to PDF -->
                 <Button Content="🖼️ Images to PDF" Command="{Binding ImagesToPdfCommand}"
                         Style="{DynamicResource SecondaryButton}" Margin="0,0,0,5" Padding="12,6"

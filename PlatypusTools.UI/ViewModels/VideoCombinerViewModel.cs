@@ -112,10 +112,11 @@ namespace PlatypusTools.UI.ViewModels
                 // Avoid showing modal dialogs during test runs or when no main window is present
                 try
                 {
-                    if (System.Windows.Application.Current?.MainWindow != null)
+                    var mainWnd = System.Windows.Application.Current?.MainWindow;
+                    if (mainWnd != null && mainWnd.IsLoaded)
                     {
                         var wnd = new PlatypusTools.UI.Views.ScriptOutputWindow(outStr);
-                        wnd.Owner = System.Windows.Application.Current.MainWindow;
+                        wnd.Owner = mainWnd;
                         wnd.ShowDialog();
                     }
                 }

@@ -15,11 +15,13 @@ namespace PlatypusTools.UI.ViewModels
     {
         private CancellationTokenSource? _scanCancellationTokenSource;
         private readonly ImageSimilarityService _similarityService;
+        private readonly VideoSimilarityService _videoSimilarityService;
 
         public DuplicatesViewModel()
         {
             Groups = new ObservableCollection<DuplicateGroupViewModel>();
             SimilarImageGroups = new ObservableCollection<SimilarImageGroupViewModel>();
+            SimilarVideoGroups = new ObservableCollection<SimilarVideoGroupViewModel>();
             UseRecycleBin = true; // default to safe operation
             _similarityService = new ImageSimilarityService();
             _similarityService.ProgressChanged += (s, p) => 
@@ -32,11 +34,23 @@ namespace PlatypusTools.UI.ViewModels
                 });
             };
             
+            _videoSimilarityService = new VideoSimilarityService();
+            _videoSimilarityService.ProgressChanged += (s, p) =>
+            {
+                App.Current?.Dispatcher.Invoke(() =>
+                {
+                    StatusMessage = $"{p.CurrentPhase} {p.CurrentFile} ({p.ProcessedFiles}/{p.TotalFiles})";
+                    ScanProgress = p.ProgressPercent;
+                    StatusBarViewModel.Instance.UpdateProgress(p.ProgressPercent, StatusMessage);
+                });
+            };
+            
             BrowseCommand = new RelayCommand(_ => Browse());
             ScanCommand = new RelayCommand(async _ => await ScanAsync(), _ => !IsScanning);
             ScanSimilarCommand = new RelayCommand(async _ => await ScanSimilarAsync(), _ => !IsScanning);
+            ScanSimilarVideosCommand = new RelayCommand(async _ => await ScanSimilarVideosAsync(), _ => !IsScanning);
             CancelScanCommand = new RelayCommand(_ => CancelScan(), _ => IsScanning);
-            DeleteSelectedCommand = new RelayCommand(_ => DeleteSelected(), _ => Groups.Any(g => g.Files.Any(f => f.IsSelected)) || SimilarImageGroups.Any(g => g.Images.Any(i => i.IsSelected)));
+            DeleteSelectedCommand = new RelayCommand(_ => DeleteSelected(), _ => Groups.Any(g => g.Files.Any(f => f.IsSelected)) || SimilarImageGroups.Any(g => g.Images.Any(i => i.IsSelected)) || SimilarVideoGroups.Any(g => g.Videos.Any(v => v.IsSelected)));
 
             OpenFileCommand = new RelayCommand(obj => OpenFile(obj as string));
             OpenFolderCommand = new RelayCommand(obj => OpenFolder(obj as string));
@@ -58,6 +72,8 @@ namespace PlatypusTools.UI.ViewModels
         
         public ObservableCollection<SimilarImageGroupViewModel> SimilarImageGroups { get; }
         
+        public ObservableCollection<SimilarVideoGroupViewModel> SimilarVideoGroups { get; }
+        
         private int _similarityThreshold = 90;
         public int SimilarityThreshold 
         { 
@@ -65,11 +81,25 @@ namespace PlatypusTools.UI.ViewModels
             set { _similarityThreshold = value; RaisePropertyChanged(); } 
         }
         
+        private int _videoSimilarityThreshold = 85;
+        public int VideoSimilarityThreshold 
+        { 
+            get => _videoSimilarityThreshold; 
+            set { _videoSimilarityThreshold = value; RaisePropertyChanged(); } 
+        }
+        
         private bool _showSimilarImages = false;
         public bool ShowSimilarImages 
         { 
             get => _showSimilarImages; 
             set { _showSimilarImages = value; RaisePropertyChanged(); } 
+        }
+        
+        private bool _showSimilarVideos = false;
+        public bool ShowSimilarVideos 
+        { 
+            get => _showSimilarVideos; 
+            set { _showSimilarVideos = value; RaisePropertyChanged(); } 
         }
         
         private double _scanProgress = 0;
@@ -101,6 +131,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand BrowseCommand { get; }
         public ICommand ScanCommand { get; }
         public ICommand ScanSimilarCommand { get; }
+        public ICommand ScanSimilarVideosCommand { get; }
         public ICommand CancelScanCommand { get; }
         public ICommand DeleteSelectedCommand { get; }
         public ICommand OpenFileCommand { get; }
@@ -208,9 +239,11 @@ namespace PlatypusTools.UI.ViewModels
             
             StatusBarViewModel.Instance.StartOperation("Scanning for similar images...", isCancellable: true);
             SimilarImageGroups.Clear();
+            SimilarVideoGroups.Clear();
             Groups.Clear();
             ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
             ((RelayCommand)ScanSimilarCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)ScanSimilarVideosCommand).RaiseCanExecuteChanged();
             ((RelayCommand)CancelScanCommand).RaiseCanExecuteChanged();
 
             try
@@ -251,6 +284,78 @@ namespace PlatypusTools.UI.ViewModels
                 ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
                 ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
                 ((RelayCommand)ScanSimilarCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)ScanSimilarVideosCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)CancelScanCommand).RaiseCanExecuteChanged();
+            }
+        }
+
+        private async Task ScanSimilarVideosAsync()
+        {
+            if (IsScanning) return;
+            if (string.IsNullOrWhiteSpace(FolderPath) || !Directory.Exists(FolderPath))
+            {
+                StatusMessage = "Please select a valid folder";
+                return;
+            }
+
+            _scanCancellationTokenSource?.Cancel();
+            _scanCancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = _scanCancellationTokenSource.Token;
+
+            IsScanning = true;
+            ShowSimilarImages = false;
+            ShowSimilarVideos = true;
+            StatusMessage = "Scanning for similar videos...";
+            ScanProgress = 0;
+            
+            StatusBarViewModel.Instance.StartOperation("Scanning for similar videos...", isCancellable: true);
+            SimilarImageGroups.Clear();
+            SimilarVideoGroups.Clear();
+            Groups.Clear();
+            ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)ScanSimilarCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)ScanSimilarVideosCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)CancelScanCommand).RaiseCanExecuteChanged();
+
+            try
+            {
+                var groups = await _videoSimilarityService.FindSimilarVideosAsync(
+                    new[] { FolderPath }, 
+                    VideoSimilarityThreshold, 
+                    true, 
+                    cancellationToken);
+                
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    foreach (var g in groups)
+                    {
+                        SimilarVideoGroups.Add(new SimilarVideoGroupViewModel(g));
+                    }
+                    
+                    StatusMessage = $"Found {SimilarVideoGroups.Count} similar video groups ({SimilarVideoGroups.Sum(g => g.Videos.Count)} total videos)";
+                }
+                else
+                {
+                    StatusMessage = "Scan canceled";
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                StatusMessage = "Scan canceled";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error scanning: {ex.Message}";
+            }
+            finally
+            {
+                IsScanning = false;
+                ScanProgress = 100;
+                StatusBarViewModel.Instance.CompleteOperation(StatusMessage);
+                ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)ScanSimilarCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)ScanSimilarVideosCommand).RaiseCanExecuteChanged();
                 ((RelayCommand)CancelScanCommand).RaiseCanExecuteChanged();
             }
         }

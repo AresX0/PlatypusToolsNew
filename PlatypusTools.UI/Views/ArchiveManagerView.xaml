@@ -3,10 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:PlatypusTools.UI.Converters"
              mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="900">
     
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:BoolToForegroundConverter x:Key="BoolToForegroundConverter"/>
     </UserControl.Resources>
     
     <Grid Margin="10">
@@ -64,17 +66,43 @@
             </GroupBox>
             
             <!-- Create Options -->
-            <GroupBox Header="Create Options" Grid.Column="1" Width="350">
-                <StackPanel Orientation="Horizontal" Margin="5">
-                    <TextBlock Text="Format:" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <ComboBox ItemsSource="{Binding AvailableFormats}" SelectedItem="{Binding SelectedFormat}" Width="80" Margin="0,0,16,0"/>
+            <GroupBox Header="Create Options" Grid.Column="1" Width="450">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
                     
-                    <TextBlock Text="Level:" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <ComboBox ItemsSource="{Binding CompressionLevels}" SelectedItem="{Binding SelectedLevel}" Width="80" Margin="0,0,16,0"/>
+                    <!-- Row 1: Format, Level, Password -->
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Format:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding AvailableFormats}" SelectedItem="{Binding SelectedFormat}" Width="80" Margin="0,0,16,0"/>
                     
-                    <TextBlock Text="Password:" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <PasswordBox Width="80"/>
-                </StackPanel>
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Level:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <ComboBox Grid.Row="0" Grid.Column="3" ItemsSource="{Binding CompressionLevels}" SelectedItem="{Binding SelectedLevel}" Width="80" Margin="0,0,16,0"/>
+                    
+                    <TextBlock Grid.Row="0" Grid.Column="4" Text="🔐 Password:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <PasswordBox Grid.Row="0" Grid.Column="5" Width="100" x:Name="PasswordBox" 
+                                 PasswordChanged="OnPasswordChanged" ToolTip="Leave empty for no encryption"/>
+                    
+                    <!-- Row 2: Split Options -->
+                    <CheckBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Content="Split archive:" 
+                              IsChecked="{Binding EnableSplitArchive}" VerticalAlignment="Center" Margin="0,8,8,0"/>
+                    <ComboBox Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" 
+                              ItemsSource="{Binding SplitSizeOptions}" 
+                              SelectedItem="{Binding SplitSizeMB}" 
+                              IsEnabled="{Binding EnableSplitArchive}"
+                              Width="80" Margin="0,8,8,0"/>
+                    <TextBlock Grid.Row="1" Grid.Column="4" Text="MB per part" VerticalAlignment="Center" Margin="0,8,0,0"
+                               Foreground="{Binding EnableSplitArchive, Converter={StaticResource BoolToForegroundConverter}}"/>
+                </Grid>
             </GroupBox>
         </Grid>
         

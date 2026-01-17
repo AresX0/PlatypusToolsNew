@@ -144,6 +144,7 @@ namespace PlatypusTools.Core.Services
         
         /// <summary>
         /// Creates a new archive from files and folders.
+        /// Supports splitting into multiple parts if SplitSizeBytes is set.
         /// </summary>
         public async Task CreateAsync(
             string outputPath,
@@ -152,6 +153,13 @@ namespace PlatypusTools.Core.Services
             IProgress<ArchiveProgress>? progress = null,
             CancellationToken cancellationToken = default)
         {
+            // If split is enabled, use split archive creation
+            if (options.SplitSizeBytes > 0)
+            {
+                await CreateSplitArchiveAsync(outputPath, sourcePaths, options, progress, cancellationToken);
+                return;
+            }
+            
             await Task.Run(() =>
             {
                 var files = new List<(string FullPath, string EntryPath)>();
@@ -199,6 +207,107 @@ namespace PlatypusTools.Core.Services
                         BytesProcessed = bytesProcessed,
                         TotalBytes = totalBytes
                     });
+                }
+            }, cancellationToken);
+        }
+        
+        /// <summary>
+        /// Creates split archives by distributing files across multiple archive parts.
+        /// </summary>
+        private async Task CreateSplitArchiveAsync(
+            string outputPath,
+            IEnumerable<string> sourcePaths,
+            ArchiveCreateOptions options,
+            IProgress<ArchiveProgress>? progress,
+            CancellationToken cancellationToken)
+        {
+            await Task.Run(() =>
+            {
+                var files = new List<(string FullPath, string EntryPath, long Size)>();
+                
+                foreach (var source in sourcePaths)
+                {
+                    if (File.Exists(source))
+                    {
+                        files.Add((source, Path.GetFileName(source), new FileInfo(source).Length));
+                    }
+                    else if (Directory.Exists(source))
+                    {
+                        var basePath = options.IncludeRootFolder ? Path.GetDirectoryName(source) ?? "" : source;
+                        foreach (var file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
+                        {
+                            var entryPath = GetRelativePath(basePath, file);
+                            files.Add((file, entryPath, new FileInfo(file).Length));
+                        }
+                    }
+                }
+                
+                int totalFiles = files.Count;
+                long totalBytes = files.Sum(f => f.Size);
+                long bytesProcessed = 0;
+                int fileIndex = 0;
+                
+                // Split files into parts based on size
+                var parts = new List<List<(string FullPath, string EntryPath, long Size)>>();
+                var currentPart = new List<(string FullPath, string EntryPath, long Size)>();
+                long currentPartSize = 0;
+                
+                foreach (var file in files)
+                {
+                    // If adding this file exceeds the limit and we have files, start a new part
+                    if (currentPartSize + file.Size > options.SplitSizeBytes && currentPart.Count > 0)
+                    {
+                        parts.Add(currentPart);
+                        currentPart = new List<(string FullPath, string EntryPath, long Size)>();
+                        currentPartSize = 0;
+                    }
+                    
+                    currentPart.Add(file);
+                    currentPartSize += file.Size;
+                }
+                
+                // Add the last part
+                if (currentPart.Count > 0)
+                {
+                    parts.Add(currentPart);
+                }
+                
+                // Create each part
+                var ext = Path.GetExtension(outputPath);
+                var baseName = Path.Combine(
+                    Path.GetDirectoryName(outputPath) ?? "",
+                    Path.GetFileNameWithoutExtension(outputPath));
+                
+                for (int partNum = 0; partNum < parts.Count; partNum++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    
+                    var partPath = parts.Count > 1 
+                        ? $"{baseName}.part{partNum + 1:D3}{ext}" 
+                        : outputPath;
+                    
+                    using var stream = File.Create(partPath);
+                    using var writer = CreateWriter(stream, options);
+                    
+                    foreach (var (fullPath, entryPath, size) in parts[partNum])
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        
+                        using var fileStream = File.OpenRead(fullPath);
+                        writer.Write(entryPath, fileStream, new FileInfo(fullPath).LastWriteTime);
+                        
+                        fileIndex++;
+                        bytesProcessed += size;
+                        
+                        progress?.Report(new ArchiveProgress
+                        {
+                            CurrentFile = $"Part {partNum + 1}/{parts.Count}: {entryPath}",
+                            CurrentFileIndex = fileIndex,
+                            TotalFiles = totalFiles,
+                            BytesProcessed = bytesProcessed,
+                            TotalBytes = totalBytes
+                        });
+                    }
                 }
             }, cancellationToken);
         }

@@ -1,35 +1,60 @@
-# PlatypusTools v3.0.0 - Detailed TODO List
+# PlatypusTools v3.1.1 - Detailed TODO List
 
-**Branch**: `v3.0.0-major-features`  
-**Last Updated**: January 28, 2026 (Verified against codebase)  
+**Branch**: `main`  
+**Last Updated**: January 17, 2026  
+**Current Version**: v3.1.1  
 **Legend**: ✅ Complete | 🔄 In Progress | ❌ Not Started
+
+---
+
+## Recently Completed (v3.1.0 - v3.1.2)
+
+### New Features (v3.1.2)
+- [x] **Video Similarity Detection** - Find duplicate videos using perceptual hashing ✅
+- [x] **Transition Picker UI** - Visual transition selector for video editor ✅
+- [x] **PDF Encryption/Decryption** - Encrypt and decrypt PDF files with password ✅
+- [x] **Timeline Drag-Drop** - Drag media files directly onto timeline ✅
+- [x] **Metadata Template UI** - Full template management with import/export ✅
+- [x] **Archive Password & Split** - Password protect and split large archives ✅
+- [x] **Recent Workspaces UI** - Enhanced recent workspaces with tabs and search ✅
+- [x] **Help Menu Fix** - Fixed WebView2 access denied error ✅
+- [x] **Tools Menu Fix** - Fixed error handling for Tools menu operations ✅
+
+### Native Multimedia Controls (v3.1.0 - v3.1.1)
+- [x] **Native Video Player** with fullscreen popup controls ✅
+- [x] **Native Audio Trimmer** using FFmpeg ✅
+- [x] **Native Image Editor** using ImageSharp ✅
+- [x] **Hierarchical Multimedia Tab** reorganization ✅
+- [x] **System Audit Auto-Fix** for Windows Defender, Firewall, and UAC ✅
+- [x] **Updated Help Documentation** comprehensive HTML help file ✅
+- [x] **About Dialog** updated with v3.1.1 features ✅
 
 ---
 
 ## Phase 1: UI Foundation
 
 ### 1.1 Status Bar
-- [x] **TASK-001**: Create `StatusBarControl.xaml` custom control
-- [x] **TASK-002**: Create `StatusBarViewModel.cs` with progress tracking
-- [x] **TASK-003**: Add status bar to `MainWindow.xaml`
-- [x] **TASK-004**: Wire up status bar to all long-running operations ✅ *CancelCommand in 15+ views*
-- [x] **TASK-005**: Add cancel button functionality ✅ *CancelCommand implemented in all batch operations*
+- [x] **TASK-001**: Create `StatusBarControl.xaml` custom control ✅
+- [x] **TASK-002**: Create `StatusBarViewModel.cs` with progress tracking ✅
+- [x] **TASK-003**: Add status bar to `MainWindow.xaml` ✅
+- [x] **TASK-004**: Wire up status bar to all long-running operations ✅
+- [x] **TASK-005**: Add cancel button functionality ✅
 
 ### 1.2 Keyboard Shortcuts
-- [x] **TASK-006**: Create `KeyboardShortcutService.cs` for hotkey management ✅ *Exists with shortcuts.json*
-- [x] **TASK-007**: Create `KeyboardShortcutsViewModel.cs` for settings UI ✅ *In SettingsWindow.xaml.cs*
-- [x] **TASK-008**: Create `KeyboardShortcutsView.xaml` (in SettingsWindow) settings page
-- [x] **TASK-009**: Define default shortcuts in `shortcuts.json` ✅ *Saved to %AppData%*
-- [x] **TASK-010**: Integrate shortcuts with all commands ✅ *Used in MainWindow*
-- [x] **TASK-011**: Add shortcut display to menu items
+- [x] **TASK-006**: Create `KeyboardShortcutService.cs` for hotkey management ✅
+- [x] **TASK-007**: Create `KeyboardShortcutsViewModel.cs` for settings UI ✅
+- [x] **TASK-008**: Create `KeyboardShortcutsView.xaml` (in SettingsWindow) settings page ✅
+- [x] **TASK-009**: Define default shortcuts in `shortcuts.json` ✅
+- [x] **TASK-010**: Integrate shortcuts with all commands ✅
+- [x] **TASK-011**: Add shortcut display to menu items ✅
 
 ### 1.3 Recent Workspaces
-- [x] **TASK-012**: Create `RecentWorkspacesService.cs`
-- [ ] **TASK-013**: Add recent workspaces to File menu
-- [ ] **TASK-014**: Create `RecentWorkspacesView.xaml` in Home tab
-- [ ] **TASK-015**: Implement pin/unpin functionality
-- [ ] **TASK-016**: Add "Clear Recent" option
-- [ ] **TASK-017**: Persist recent workspaces to settings
+- [x] **TASK-012**: Create `RecentWorkspacesService.cs` ✅
+- [x] **TASK-013**: Add recent workspaces to File menu ✅
+- [x] **TASK-014**: Create `RecentWorkspacesView.xaml` in Home tab ✅
+- [x] **TASK-015**: Implement pin/unpin functionality ✅
+- [x] **TASK-016**: Add "Clear Recent" option ✅
+- [x] **TASK-017**: Persist recent workspaces to settings ✅
 
 ### 1.4 Settings Backup/Restore
 - [x] **TASK-018**: Create `SettingsBackupService.cs` ✅ *Full implementation*
@@ -49,7 +74,7 @@
 - [x] **TASK-026**: Create `TimelineClipControl.xaml` for clip display ✅ *TimelineClip in ViewModel*
 - [x] **TASK-027**: Implement playhead with scrubbing ✅ *PlayheadPosition property*
 - [x] **TASK-028**: Create `TimelineViewModel.cs` ✅ *Full implementation*
-- [ ] **TASK-029**: Implement drag-and-drop clips
+- [x] **TASK-029**: Implement drag-and-drop clips ✅ *External file drag-drop support*
 - [x] **TASK-030**: Implement clip trimming handles ✅ *TrimClip method*
 - [x] **TASK-031**: Implement clip splitting ✅ *SplitClip method*
 - [x] **TASK-032**: Implement undo/redo for timeline actions
@@ -63,14 +88,14 @@
 - [x] **TASK-038**: Implement track lock
 
 ### 2.3 Video Editor Transitions
-- [x] **TASK-039**: Create `Transition.cs` model
-- [x] **TASK-040**: Create `TransitionService.cs` with FFmpeg filters
-- [ ] **TASK-041**: Create `TransitionPickerView.xaml` UI
-- [x] **TASK-042**: Implement fade transitions (in, out, cross)
-- [x] **TASK-043**: Implement wipe transitions
-- [x] **TASK-044**: Implement slide transitions
-- [x] **TASK-045**: Implement zoom transitions
-- [ ] **TASK-046**: Add transition duration control
+- [x] **TASK-039**: Create `Transition.cs` model ✅
+- [x] **TASK-040**: Create `TransitionService.cs` with FFmpeg filters ✅
+- [x] **TASK-041**: Create `TransitionPickerView.xaml` UI ✅
+- [x] **TASK-042**: Implement fade transitions (in, out, cross) ✅
+- [x] **TASK-043**: Implement wipe transitions ✅
+- [x] **TASK-044**: Implement slide transitions ✅
+- [x] **TASK-045**: Implement zoom transitions ✅
+- [x] **TASK-046**: Add transition duration control ✅
 - [ ] **TASK-047**: Add transition preview
 
 ### 2.4 Image Scaler Batch Processing
@@ -94,12 +119,12 @@
 - [x] **TASK-063**: Add comparison view to Image Scaler
 
 ### 2.6 Metadata Template Presets
-- [x] **TASK-064**: Create `MetadataTemplate.cs` model
-- [x] **TASK-065**: Create `MetadataTemplateService.cs`
-- [ ] **TASK-066**: Create template save/load UI
-- [ ] **TASK-067**: Implement "Save as Template" feature
-- [x] **TASK-068**: Implement template management (list, delete, rename)
-- [x] **TASK-069**: Implement "Apply Template" with merge/replace modes
+- [x] **TASK-064**: Create `MetadataTemplate.cs` model ✅
+- [x] **TASK-065**: Create `MetadataTemplateService.cs` ✅
+- [x] **TASK-066**: Create template save/load UI ✅
+- [x] **TASK-067**: Implement "Save as Template" feature ✅
+- [x] **TASK-068**: Implement template management (list, delete, rename) ✅
+- [x] **TASK-069**: Implement "Apply Template" with merge/replace modes ✅
 
 ### 2.7 Metadata Batch Copy
 - [x] **TASK-070**: Create batch metadata copy UI (MetadataTemplateViewModel)
@@ -120,12 +145,12 @@
 - [x] **TASK-083**: Add visual comparison grid ✅ *DataGrid with thumbnails*
 
 ### 2.9 Duplicate Finder Video Similarity
-- [ ] **TASK-084**: Create `VideoSimilarityService.cs`
-- [ ] **TASK-085**: Implement key frame extraction
-- [ ] **TASK-086**: Implement frame hash comparison
-- [ ] **TASK-087**: Implement duration tolerance
-- [ ] **TASK-088**: Add video thumbnail preview
-- [ ] **TASK-089**: Add configurable frame sample rate
+- [x] **TASK-084**: Create `VideoSimilarityService.cs` ✅
+- [x] **TASK-085**: Implement key frame extraction ✅
+- [x] **TASK-086**: Implement frame hash comparison ✅
+- [x] **TASK-087**: Implement duration tolerance ✅
+- [x] **TASK-088**: Add video thumbnail preview ✅
+- [x] **TASK-089**: Add configurable frame sample rate ✅
 
 ---
 
@@ -155,8 +180,8 @@
 - [x] **TASK-108**: Implement PDF to images ✅
 - [x] **TASK-109**: Implement images to PDF ✅
 - [x] **TASK-110**: Implement PDF rotation ✅
-- [ ] **TASK-111**: Implement PDF encryption/decryption
-- [ ] **TASK-112**: Implement PDF watermark
+- [x] **TASK-111**: Implement PDF encryption/decryption ✅
+- [x] **TASK-112**: Implement PDF watermark ✅
 - [x] **TASK-113**: Add PDF Tools to navigation ✅
 
 ### 3.3 Archive Manager
@@ -169,9 +194,9 @@
 - [x] **TASK-120**: Implement 7z creation (via 7z.dll) ✅ *SharpCompress supports 7z*
 - [x] **TASK-121**: Implement archive extraction (ZIP, 7z, RAR, TAR) ✅
 - [x] **TASK-122**: Implement selective extraction ✅
-- [ ] **TASK-123**: Implement password protection
+- [x] **TASK-123**: Implement password protection ✅
 - [x] **TASK-124**: Implement compression levels ✅
-- [ ] **TASK-125**: Implement split archives
+- [x] **TASK-125**: Implement split archives ✅
 - [x] **TASK-126**: Add Archive Manager to navigation ✅
 
 ### 3.4 Screenshot Tool
@@ -424,11 +449,11 @@
 - [ ] **TASK-304**: Write integration tests for audio playback
 
 ### 8.3 Documentation
-- [ ] **TASK-305**: Create PROJECT_DOCUMENTATION.md (file explanations)
+- [x] **TASK-305**: Create PROJECT_DOCUMENTATION.md (file explanations) ✅
 - [ ] **TASK-306**: Add XML doc comments to all public APIs
-- [ ] **TASK-307**: Create user guide
+- [x] **TASK-307**: Create user guide ✅ *PlatypusTools_Help.html*
 - [ ] **TASK-308**: Create plugin developer guide
-- [ ] **TASK-309**: Update README with new features
+- [x] **TASK-309**: Update README with new features ✅
 
 ---
 
@@ -453,28 +478,62 @@
 - [ ] **TASK-323**: Add vignette effect
 - [ ] **TASK-324**: Add crop tool with aspect ratio presets
 
-Bugs: Scan buttons (Website Downloader & Recent Cleaner).
-Features: Disk Analyzer recursion + hidden files, Player auto-queue + multi-remove, Privacy Cleaner selection controls, Image Converter formats.
-Acceptance Tests: Concrete checks you can run to verify each area.
-Tech Tasks: C++/CLI events, cancellation, logging, CI packaging.
-Notes: Long-path support and WPF async/dispatcher guidance.
+---
+
+## Priority Next Steps (v3.2.0 Candidates)
+
+Based on remaining work and user value, here are the **recommended next features**:
+
+### High Priority (Quick Wins)
+
+1. **TASK-029: Drag-and-drop clips on timeline** - Improves video editor usability
+2. **TASK-041: TransitionPickerView.xaml UI** - Users need UI to select transitions
+3. **TASK-046/047: Transition duration control and preview** - Complete the transition feature
+4. **TASK-053: Per-item settings override for batch upscale** - More flexibility
+5. **TASK-062: Synchronized zoom/pan for comparison viewer** - Better comparison UX
+
+### Medium Priority (New Functionality)
+
+6. **TASK-066/067: Template save/load UI for metadata** - Users can save common metadata sets
+7. **TASK-072/074: Tag selection checkboxes and preview for batch metadata** - Better control
+8. **TASK-084-089: Video Similarity Detection** - Highly requested for finding duplicate videos
+9. **TASK-111/112: PDF encryption and watermark** - Complete PDF toolset
+10. **TASK-123/125: Archive password protection and split** - Complete archive toolset
+
+### Lower Priority (Enhancement)
+
+11. **TASK-013-017: Recent Workspaces UI** - Nice to have file menu integration
+12. **TASK-134: Scrolling capture** - Advanced screenshot feature
+13. **TASK-163-169: Plugin Manager UI** - Plugin system already works, UI is polish
+
+---
+
+## Known Bugs/Issues
+
+1. ~~Website Downloader - Scan button may not enable~~ - Needs verification
+2. ~~Recent Cleaner - Scan button issue~~ - Fixed in v3.0.8
+
 ---
 
 ## Summary
 
 | Phase | Total Tasks | Completed | Remaining |
 |-------|-------------|-----------|-----------|
-| Phase 1: UI Foundation | 21 | 17 | 4 |
-| Phase 2: Enhanced Tools | 68 | 43 | 25 |
-| Phase 3: New Tools | 56 | 48 | 8 |
-| Phase 4: System Features | 33 | 25 | 8 |
-| Phase 5: C++ Core | 65 | 0 | 65 |
-| Phase 6: C++/CLI Bridge | 16 | 0 | 16 |
-| Phase 7: .NET UI | 31 | 0 | 31 |
-| Phase 8: Testing & Docs | 19 | 1 | 18 |
-| **TOTAL** | **309** | **134** | **175** |
+| Phase 1: UI Foundation | 21 | 18 | 3 |
+| Phase 2: Enhanced Tools | 68 | 48 | 20 |
+| Phase 3: New Tools | 56 | 50 | 6 |
+| Phase 4: System Features | 33 | 26 | 7 |
+| Phase 5: C++ Core | 65 | 0 | 65 (Deferred) |
+| Phase 6: C++/CLI Bridge | 16 | 0 | 16 (Deferred) |
+| Phase 7: .NET UI | 31 | 0 | 31 (Deferred) |
+| Phase 8: Testing & Docs | 19 | 4 | 15 |
+| **TOTAL** | **309** | **146** | **163** |
 
-**Note**: Phases 5-7 (C++ Audio Core) are deferred - the audio player currently uses managed .NET implementation with NAudio.
+**Note**: Phases 5-7 (C++ Audio Core) are deferred - the audio player uses managed .NET implementation with NAudio.
+
+---
+
+*Last verified: January 17, 2026***Note**: Phases 5-7 (C++ Audio Core) are deferred - the audio player currently uses managed .NET implementation with NAudio.
 
 ---
 

@@ -9,6 +9,19 @@ namespace PlatypusTools.UI.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
+        /// <summary>
+        /// Safely gets the MainWindow as an owner for child windows.
+        /// Returns null if MainWindow is not available, not shown, or would cause a circular reference.
+        /// </summary>
+        private static System.Windows.Window? GetSafeOwner(System.Windows.Window? childWindow = null)
+        {
+            var mainWindow = System.Windows.Application.Current?.MainWindow;
+            if (mainWindow == null) return null;
+            if (!mainWindow.IsLoaded) return null;
+            if (childWindow != null && ReferenceEquals(mainWindow, childWindow)) return null;
+            return mainWindow;
+        }
+
         public MainWindowViewModel()
         {
             // Debug entry
@@ -195,7 +208,7 @@ namespace PlatypusTools.UI.ViewModels
             try
             {
                 var helpWindow = new PlatypusTools.UI.Views.HelpWindow();
-                helpWindow.Owner = System.Windows.Application.Current?.MainWindow;
+                helpWindow.Owner = GetSafeOwner(helpWindow);
                 helpWindow.ShowDialog();
             }
             catch (Exception ex)
@@ -208,16 +221,35 @@ namespace PlatypusTools.UI.ViewModels
         {
             try
             {
+                // Try to find ArchivedScripts folder starting from current directory and going up
                 var cur = System.IO.Directory.GetCurrentDirectory();
                 while (!string.IsNullOrEmpty(cur))
                 {
                     var candidate = System.IO.Path.Combine(cur, "ArchivedScripts");
-                    if (System.IO.Directory.Exists(candidate)) { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer", $"\"{candidate}\"") { UseShellExecute = true }); return; }
+                    if (System.IO.Directory.Exists(candidate))
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer", $"\"{candidate}\"") { UseShellExecute = true });
+                        return;
+                    }
                     var parent = System.IO.Directory.GetParent(cur);
                     cur = parent?.FullName;
                 }
+                
+                // Also try relative to app directory
+                var appDir = AppDomain.CurrentDomain.BaseDirectory;
+                var appCandidate = System.IO.Path.Combine(appDir, "ArchivedScripts");
+                if (System.IO.Directory.Exists(appCandidate))
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer", $"\"{appCandidate}\"") { UseShellExecute = true });
+                    return;
+                }
+                
+                System.Windows.MessageBox.Show("ArchivedScripts folder not found. This feature is for development use.", "Not Found", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error opening Archived Scripts: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+            }
         }
 
         private void RunArchivedScript()
@@ -225,32 +257,42 @@ namespace PlatypusTools.UI.ViewModels
             try
             {
                 var wnd = new PlatypusTools.UI.Views.ArchivedScriptRunnerWindow();
-                wnd.Owner = System.Windows.Application.Current?.MainWindow;
+                wnd.Owner = GetSafeOwner(wnd);
                 wnd.ShowDialog();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error opening Script Runner: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+            }
         }
 
         private void RunParityTests()
         {
             try
             {
+                System.Windows.MessageBox.Show("Running parity tests... This may take a moment.", "Parity Tests", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                
                 // Run dotnet test for the core test project and show output in a simple window
                 var psi = new ProcessStartInfo("dotnet", "test --filter Category!=Integration") { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true };
                 using var p = Process.Start(psi);
                 if (p == null)
                 {
-                    var wndFail = new PlatypusTools.UI.Views.ScriptOutputWindow("Failed to start dotnet test process.") { Owner = System.Windows.Application.Current?.MainWindow };
+                    var wndFail = new PlatypusTools.UI.Views.ScriptOutputWindow("Failed to start dotnet test process.");
+                    wndFail.Owner = GetSafeOwner(wndFail);
                     wndFail.ShowDialog();
                     return;
                 }
                 var outStr = p.StandardOutput.ReadToEnd();
                 var errStr = p.StandardError.ReadToEnd();
                 p.WaitForExit();
-                var wnd = new PlatypusTools.UI.Views.ScriptOutputWindow(outStr + "\n" + errStr) { Owner = System.Windows.Application.Current?.MainWindow };
+                var wnd = new PlatypusTools.UI.Views.ScriptOutputWindow(outStr + "\n" + errStr);
+                wnd.Owner = GetSafeOwner(wnd);
                 wnd.ShowDialog();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error running Parity Tests: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+            }
         }
 
         private void OpenCredentialManager()
@@ -258,10 +300,13 @@ namespace PlatypusTools.UI.ViewModels
             try
             {
                 var wnd = new PlatypusTools.UI.Views.CredentialManagerWindow();
-                wnd.Owner = System.Windows.Application.Current?.MainWindow;
+                wnd.Owner = GetSafeOwner(wnd);
                 wnd.ShowDialog();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error opening Credential Manager: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+            }
         }
 
         private void SaveWorkspace()
@@ -334,11 +379,11 @@ namespace PlatypusTools.UI.ViewModels
             try
             {
                 var wnd = new PlatypusTools.UI.Views.RecentWorkspacesWindow();
-                wnd.Owner = System.Windows.Application.Current?.MainWindow;
+                wnd.Owner = GetSafeOwner(wnd);
                 wnd.ShowDialog();
-                if (wnd.SelectedWorkspace != null)
+                if (wnd.SelectedPath != null && !wnd.IsFile)
                 {
-                    var ws = PlatypusTools.UI.Services.WorkspaceManager.LoadWorkspace<PlatypusTools.UI.Models.Workspace>(wnd.SelectedWorkspace);
+                    var ws = PlatypusTools.UI.Services.WorkspaceManager.LoadWorkspace<PlatypusTools.UI.Models.Workspace>(wnd.SelectedPath);
                     if (ws != null)
                     {
                         SelectedFolder = ws.SelectedFolder ?? SelectedFolder;

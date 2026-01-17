@@ -179,4 +179,19 @@ namespace PlatypusTools.UI.Converters
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => throw new NotImplementedException();
     }
+    
+    /// <summary>
+    /// Converts boolean to foreground brush (Gray if false, Black if true)
+    /// </summary>
+    public class BoolToForegroundConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var isEnabled = value is bool b && b;
+            return new SolidColorBrush(isEnabled ? Colors.Black : Colors.Gray);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
 }
