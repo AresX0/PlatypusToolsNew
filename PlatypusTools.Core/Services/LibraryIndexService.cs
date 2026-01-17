@@ -33,6 +33,7 @@ namespace PlatypusTools.Core.Services
             {
                 WriteIndented = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                PropertyNameCaseInsensitive = true,
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             };
         }
@@ -44,13 +45,18 @@ namespace PlatypusTools.Core.Services
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"LoadOrCreateIndexAsync: Checking for index at {_indexFilePath}");
+                System.Diagnostics.Debug.WriteLine($"LoadOrCreateIndexAsync: File exists = {File.Exists(_indexFilePath)}");
+                
                 if (File.Exists(_indexFilePath))
                 {
                     var json = await File.ReadAllTextAsync(_indexFilePath);
+                    System.Diagnostics.Debug.WriteLine($"LoadOrCreateIndexAsync: Read {json.Length} chars from file");
                     _currentIndex = JsonSerializer.Deserialize<LibraryIndex>(json, _jsonOptions);
 
                     if (_currentIndex != null)
                     {
+                        System.Diagnostics.Debug.WriteLine($"LoadOrCreateIndexAsync: Deserialized index with {_currentIndex.Tracks?.Count ?? 0} tracks");
                         _currentIndex.RebuildIndices();
                         return _currentIndex;
                     }

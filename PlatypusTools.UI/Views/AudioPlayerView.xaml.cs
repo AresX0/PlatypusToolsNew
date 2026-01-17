@@ -23,14 +23,43 @@ internal class Win32Window : System.Windows.Forms.IWin32Window
 public partial class AudioPlayerView : UserControl
 {
     private AudioPlayerViewModel? _viewModel;
+    private bool _isUserSeeking = false;
+    private bool _servicesSubscribed = false;
     
     public AudioPlayerView()
     {
         InitializeComponent();
         Loaded += OnLoaded;
+        
+        // Subscribe to critical events immediately in constructor
+        // This ensures we don't miss any TrackChanged events
+        SubscribeToServiceEvents();
     }
     
-    private void OnLoaded(object sender, RoutedEventArgs e)
+    /// <summary>
+    /// Subscribe to service events. Can be called multiple times safely.
+    /// </summary>
+    private void SubscribeToServiceEvents()
+    {
+        if (_servicesSubscribed) return;
+        
+        // Subscribe to track changes from the service
+        PlatypusTools.UI.Services.AudioPlayerService.Instance.TrackChanged += OnServiceTrackChanged;
+        
+        // Subscribe to spectrum data for visualizer
+        PlatypusTools.UI.Services.AudioPlayerService.Instance.SpectrumDataUpdated += OnServiceSpectrumDataUpdated;
+        
+        // Subscribe to position changes for real-time updates
+        PlatypusTools.UI.Services.AudioPlayerService.Instance.PositionChanged += OnServicePositionChanged;
+        
+        // Subscribe to media ready for duration updates
+        PlatypusTools.UI.Services.AudioPlayerService.Instance.MediaReady += OnServiceMediaReady;
+        
+        _servicesSubscribed = true;
+        System.Diagnostics.Debug.WriteLine("AudioPlayerView: Subscribed to all service events");
+    }
+    
+    private async void OnLoaded(object sender, RoutedEventArgs e)
     {
         // Initialize DataGrid columns for proper resizing
         if (this.FindName("LibraryTrackGrid") is DataGrid grid)
@@ -54,10 +83,168 @@ public partial class AudioPlayerView : UserControl
             // Load library folders into the ListBox directly (bypass binding)
             LoadLibraryFoldersToUI();
             
-            // Start a timer to update position display
-            StartPositionTimer();
+            // Library index is loaded in ViewModel constructor now
+            // Just force refresh of the library grid to ensure it displays
+            await Task.Delay(100); // Give async init time to complete
+            RefreshLibraryTrackGrid();
+        }
+        
+        // Ensure events are subscribed (in case constructor didn't complete subscription)
+        SubscribeToServiceEvents();
+        
+        // Start a timer to update position display
+        StartPositionTimer();
+        
+        // Force initial update of visualizer settings
+        ForceVisualizerUpdate();
+        
+        // Check if there's already a track playing and update UI
+        var service = PlatypusTools.UI.Services.AudioPlayerService.Instance;
+        if (service.CurrentTrack != null)
+        {
+            System.Diagnostics.Debug.WriteLine($"OnLoaded: Found existing track '{service.CurrentTrack.DisplayTitle}', updating UI");
+            OnServiceTrackChanged(service, service.CurrentTrack);
         }
     }
+    
+    /// <summary>
+    /// Forces an update of the visualizer with current settings.
+    /// </summary>
+    private void ForceVisualizerUpdate()
+    {
+        if (VisualizerControl == null) return;
+        
+        int modeIndex = _viewModel?.VisualizerModeIndex ?? 0;
+        int barCount = _viewModel?.BarCount ?? 72;
+        int colorIndex = _viewModel?.ColorSchemeIndex ?? 0;
+        
+        string mode = GetVisualizerModeName(modeIndex);
+        VisualizerControl.SetColorScheme(colorIndex);
+        VisualizerControl.UpdateSpectrumData(Array.Empty<double>(), mode, barCount);
+        
+        System.Diagnostics.Debug.WriteLine($"ForceVisualizerUpdate: mode={mode}, bars={barCount}, color={colorIndex}");
+    }
+    
+    private void OnServiceTrackChanged(object? sender, PlatypusTools.Core.Models.Audio.AudioTrack? track)
+    {
+        Dispatcher.Invoke(() =>
+        {
+            System.Diagnostics.Debug.WriteLine($"OnServiceTrackChanged: Track = {track?.DisplayTitle ?? "null"}");
+            
+            if (track != null)
+            {
+                var service = PlatypusTools.UI.Services.AudioPlayerService.Instance;
+                
+                // Direct UI update - don't rely on bindings
+                NowPlayingTitle.Text = track.DisplayTitle;
+                NowPlayingArtist.Text = track.DisplayArtist;
+                NowPlayingAlbum.Text = track.DisplayAlbum;
+                
+                // Update duration from service if available, otherwise from track
+                var duration = service.Duration.TotalSeconds > 0 
+                    ? service.Duration 
+                    : track.Duration;
+                    
+                if (duration.TotalSeconds > 0)
+                {
+                    NowPlayingDuration.Text = duration.ToString(@"m\:ss");
+                    NowPlayingProgress.Maximum = duration.TotalSeconds;
+                }
+                
+                // Update ViewModel's CurrentTrack too
+                var vm = GetViewModel();
+                if (vm != null)
+                {
+                    vm.CurrentTrack = track;
+                }
+                
+                // Load album art
+                LoadAlbumArt(track);
+                
+                // Update queue count
+                UpdateQueueCount();
+                
+                System.Diagnostics.Debug.WriteLine($"OnServiceTrackChanged: Updated Now Playing to '{track.DisplayTitle}', Duration: {duration}");
+            }
+            else
+            {
+                NowPlayingTitle.Text = "No track";
+                NowPlayingArtist.Text = "Unknown";
+                NowPlayingAlbum.Text = "Unknown";
+                NowPlayingPosition.Text = "0:00";
+                NowPlayingDuration.Text = "0:00";
+                NowPlayingProgress.Value = 0;
+                NowPlayingProgress.Maximum = 100;
+                AlbumArtImage.Source = null;
+                AlbumArtPlaceholder.Visibility = Visibility.Visible;
+            }
+        });
+    }
+    
+    private void OnServicePositionChanged(object? sender, TimeSpan position)
+    {
+        // Don't use Invoke for high-frequency updates - use BeginInvoke
+        Dispatcher.BeginInvoke(() =>
+        {
+            if (!_isUserSeeking)
+            {
+                NowPlayingPosition.Text = position.ToString(@"m\:ss");
+                
+                var service = PlatypusTools.UI.Services.AudioPlayerService.Instance;
+                if (service.Duration.TotalSeconds > 0)
+                {
+                    NowPlayingProgress.Value = position.TotalSeconds;
+                }
+            }
+        });
+    }
+    
+    private void OnServiceMediaReady(object? sender, TimeSpan duration)
+    {
+        Dispatcher.Invoke(() =>
+        {
+            if (duration.TotalSeconds > 0)
+            {
+                NowPlayingDuration.Text = duration.ToString(@"m\:ss");
+                NowPlayingProgress.Maximum = duration.TotalSeconds;
+                System.Diagnostics.Debug.WriteLine($"OnServiceMediaReady: Duration = {duration}");
+            }
+        });
+    }
+    
+    private void OnServiceSpectrumDataUpdated(object? sender, double[] data)
+    {
+        // Use BeginInvoke for better performance with frequent updates
+        Dispatcher.BeginInvoke(() =>
+        {
+            if (VisualizerControl != null && data != null && data.Length > 0)
+            {
+                var vm = GetViewModel();
+                string mode = GetVisualizerModeName(vm?.VisualizerModeIndex ?? 0);
+                int barCount = vm?.BarCount ?? 72;
+                int colorIndex = vm?.ColorSchemeIndex ?? 0;
+                
+                VisualizerControl.SetColorScheme(colorIndex);
+                VisualizerControl.UpdateSpectrumData(data, mode, barCount);
+            }
+        });
+    }
+    
+    /// <summary>
+    /// Gets the visualizer mode name from the mode index.
+    /// </summary>
+    private static string GetVisualizerModeName(int index) => index switch
+    {
+        0 => "Bars",
+        1 => "Mirror",
+        2 => "Waveform",
+        3 => "Circular",
+        4 => "Radial",
+        5 => "Particles",
+        6 => "Aurora",
+        7 => "WaveGrid",
+        _ => "Bars"
+    };
     
     private System.Windows.Threading.DispatcherTimer? _positionTimer;
     
@@ -75,22 +262,63 @@ public partial class AudioPlayerView : UserControl
             try
             {
                 var service = PlatypusTools.UI.Services.AudioPlayerService.Instance;
+                var track = service.CurrentTrack;
+                var isPlaying = service.IsPlaying;
+                var queueCount = service.Queue.Count;
+                
+                // Debug: Log state every few seconds
+                if (DateTime.Now.Second % 5 == 0 && DateTime.Now.Millisecond < 300)
+                {
+                    System.Diagnostics.Debug.WriteLine($"PositionTimer: CurrentTrack={track?.DisplayTitle ?? "NULL"}, IsPlaying={isPlaying}, QueueCount={queueCount}, CurrentIndex={service.CurrentIndex}");
+                }
                 
                 // Always update position if there's a current track
-                if (service.CurrentTrack != null)
+                if (track != null)
                 {
                     var position = service.Position;
                     var duration = service.Duration;
                     
+                    // Update track info if it doesn't match
+                    if (NowPlayingTitle.Text != track.DisplayTitle)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"PositionTimer: Updating Now Playing to '{track.DisplayTitle}'");
+                        NowPlayingTitle.Text = track.DisplayTitle;
+                        NowPlayingArtist.Text = track.DisplayArtist;
+                        NowPlayingAlbum.Text = track.DisplayAlbum;
+                        LoadAlbumArt(track);
+                    }
+                    
                     // Update position display
                     NowPlayingPosition.Text = position.ToString(@"m\:ss");
                     
-                    // Update duration if available
+                    // Update duration and slider if available (and user isn't seeking)
                     if (duration.TotalSeconds > 0)
                     {
                         NowPlayingDuration.Text = duration.ToString(@"m\:ss");
                         NowPlayingProgress.Maximum = duration.TotalSeconds;
-                        NowPlayingProgress.Value = position.TotalSeconds;
+                        
+                        // Only update slider position if user is not dragging
+                        if (!_isUserSeeking)
+                        {
+                            NowPlayingProgress.Value = position.TotalSeconds;
+                        }
+                    }
+                }
+                else if (isPlaying && queueCount > 0)
+                {
+                    // This is a problem state: playing but no current track
+                    // Try to get the first track from the queue as a fallback
+                    System.Diagnostics.Debug.WriteLine($"PositionTimer WARNING: IsPlaying={isPlaying} but CurrentTrack is null with {queueCount} items in queue! CurrentIndex={service.CurrentIndex}");
+                    
+                    // Attempt recovery: get first track from queue
+                    var firstTrack = service.Queue.FirstOrDefault();
+                    if (firstTrack != null && NowPlayingTitle.Text == "No track")
+                    {
+                        System.Diagnostics.Debug.WriteLine($"PositionTimer: Attempting recovery with first queue track '{firstTrack.DisplayTitle}'");
+                        NowPlayingTitle.Text = firstTrack.DisplayTitle;
+                        NowPlayingArtist.Text = firstTrack.DisplayArtist;
+                        NowPlayingAlbum.Text = firstTrack.DisplayAlbum;
+                        LoadAlbumArt(firstTrack);
                     }
                 }
             }
@@ -160,16 +388,22 @@ public partial class AudioPlayerView : UserControl
             if (VisualizerControl != null && _viewModel?.SpectrumData != null)
             {
                 var specData = _viewModel.SpectrumData;
-                string mode = _viewModel.VisualizerModeIndex switch
-                {
-                    0 => "Bars",
-                    1 => "Mirror",
-                    2 => "Waveform",
-                    3 => "Circular",
-                    _ => "Bars"
-                };
+                string mode = GetVisualizerModeName(_viewModel.VisualizerModeIndex);
                 
                 VisualizerControl.UpdateSpectrumData(specData, mode, _viewModel.BarCount);
+            }
+        }
+        else if (e.PropertyName == nameof(AudioPlayerViewModel.VisualizerModeIndex) ||
+                 e.PropertyName == nameof(AudioPlayerViewModel.BarCount))
+        {
+            // Mode or bar count changed - update visualizer with current mode/barcount
+            if (VisualizerControl != null && _viewModel != null)
+            {
+                string mode = GetVisualizerModeName(_viewModel.VisualizerModeIndex);
+                System.Diagnostics.Debug.WriteLine($"Mode changed to: {mode} (index {_viewModel.VisualizerModeIndex})");
+                
+                // Update with empty data to trigger mode/bar change
+                VisualizerControl.UpdateSpectrumData(Array.Empty<double>(), mode, _viewModel.BarCount);
             }
         }
         else if (e.PropertyName == nameof(AudioPlayerViewModel.CurrentTrack))
@@ -198,20 +432,29 @@ public partial class AudioPlayerView : UserControl
     /// </summary>
     private void UpdateNowPlayingPanel()
     {
-        var vm = GetViewModel();
-        if (vm == null) return;
-        
         Dispatcher.Invoke(() =>
         {
-            var track = vm.CurrentTrack;
+            // Always get track directly from the service
+            var track = PlatypusTools.UI.Services.AudioPlayerService.Instance.CurrentTrack;
             if (track != null)
             {
                 NowPlayingTitle.Text = track.DisplayTitle;
                 NowPlayingArtist.Text = track.DisplayArtist;
                 NowPlayingAlbum.Text = track.DisplayAlbum;
-                NowPlayingDuration.Text = track.DurationFormatted;
-                NowPlayingProgress.Maximum = track.Duration.TotalSeconds > 0 ? track.Duration.TotalSeconds : 100;
+                
+                // Get duration from service if track duration is 0
+                var duration = track.Duration.TotalSeconds > 0 
+                    ? track.Duration 
+                    : PlatypusTools.UI.Services.AudioPlayerService.Instance.Duration;
+                    
+                NowPlayingDuration.Text = duration.TotalSeconds > 0 
+                    ? duration.ToString(@"m\:ss") 
+                    : track.DurationFormatted;
+                NowPlayingProgress.Maximum = duration.TotalSeconds > 0 ? duration.TotalSeconds : 300;
                 System.Diagnostics.Debug.WriteLine($"UpdateNowPlayingPanel: Set title to '{track.DisplayTitle}'");
+                
+                // Load album art
+                LoadAlbumArt(track);
             }
             else
             {
@@ -219,6 +462,8 @@ public partial class AudioPlayerView : UserControl
                 NowPlayingArtist.Text = "Unknown";
                 NowPlayingAlbum.Text = "Unknown";
                 NowPlayingDuration.Text = "0:00";
+                AlbumArtImage.Source = null;
+                AlbumArtPlaceholder.Visibility = Visibility.Visible;
             }
         });
     }
@@ -252,6 +497,81 @@ public partial class AudioPlayerView : UserControl
         });
     }
     
+    // ===== Seek Slider Handlers =====
+    
+    private void OnSeekSliderMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        _isUserSeeking = true;
+    }
+    
+    private void OnSeekSliderMouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (_isUserSeeking)
+        {
+            var slider = sender as Slider;
+            if (slider != null)
+            {
+                var newPosition = TimeSpan.FromSeconds(slider.Value);
+                PlatypusTools.UI.Services.AudioPlayerService.Instance.Seek(newPosition);
+            }
+            _isUserSeeking = false;
+        }
+    }
+    
+    private void OnSeekSliderValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        // Only seek if user is dragging (not programmatic update)
+        // The actual seek happens on mouse up
+    }
+    
+    /// <summary>
+    /// Loads album art from the audio file if available.
+    /// </summary>
+    private void LoadAlbumArt(PlatypusTools.Core.Models.Audio.AudioTrack? track)
+    {
+        Dispatcher.Invoke(() =>
+        {
+            if (track == null || string.IsNullOrEmpty(track.FilePath))
+            {
+                AlbumArtImage.Source = null;
+                AlbumArtPlaceholder.Visibility = Visibility.Visible;
+                return;
+            }
+            
+            try
+            {
+                // Try to load album art from the audio file using TagLib
+                var file = TagLib.File.Create(track.FilePath);
+                if (file.Tag.Pictures != null && file.Tag.Pictures.Length > 0)
+                {
+                    var pic = file.Tag.Pictures[0];
+                    using (var ms = new System.IO.MemoryStream(pic.Data.Data))
+                    {
+                        var bitmap = new System.Windows.Media.Imaging.BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                        bitmap.StreamSource = ms;
+                        bitmap.EndInit();
+                        bitmap.Freeze();
+                        
+                        AlbumArtImage.Source = bitmap;
+                        AlbumArtPlaceholder.Visibility = Visibility.Collapsed;
+                    }
+                }
+                else
+                {
+                    AlbumArtImage.Source = null;
+                    AlbumArtPlaceholder.Visibility = Visibility.Visible;
+                }
+            }
+            catch
+            {
+                AlbumArtImage.Source = null;
+                AlbumArtPlaceholder.Visibility = Visibility.Visible;
+            }
+        });
+    }
+
 // Old visualizer drawing methods replaced by integrated AudioVisualizerView
     // These methods are deprecated and kept only for reference
     
@@ -561,51 +881,14 @@ public partial class AudioPlayerView : UserControl
         var folderList = folders.ToList();
         StatusText.Text = $"Scanning {folderList.Count} folders...";
         
-        var allTracks = new List<PlatypusTools.Core.Models.Audio.AudioTrack>();
+        // Use the ViewModel's scan method which uses LibraryIndexService for persistence
+        await vm.ScanAllLibraryFoldersAsync();
         
-        foreach (var folder in folderList)
-        {
-            if (!System.IO.Directory.Exists(folder))
-            {
-                System.Diagnostics.Debug.WriteLine($"Skipping missing folder: {folder}");
-                continue;
-            }
-            
-            StatusText.Text = $"Scanning: {System.IO.Path.GetFileName(folder)}...";
-            
-            try
-            {
-                var tracks = await PlatypusTools.UI.Services.AudioPlayerService.Instance.ScanFolderAsync(
-                    folder, vm.IncludeSubfolders);
-                allTracks.AddRange(tracks);
-                System.Diagnostics.Debug.WriteLine($"Found {tracks.Count} tracks in {folder}");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error scanning {folder}: {ex.Message}");
-            }
-        }
-        
-        // Update UI
+        // Show completion message
         await Dispatcher.InvokeAsync(() =>
         {
-            // Update Library grid
-            vm.LibraryTracks.Clear();
-            foreach (var track in allTracks)
-                vm.LibraryTracks.Add(track);
-            
-            // Force ItemsSource update on the DataGrid
-            if (this.FindName("LibraryTrackGrid") is DataGrid grid)
-            {
-                grid.ItemsSource = allTracks;
-                System.Diagnostics.Debug.WriteLine($"LibraryTrackGrid ItemsSource set to {allTracks.Count} tracks");
-            }
-            
-            StatusText.Text = $"Library scan complete: {allTracks.Count} tracks from {folderList.Count} folders";
-            vm.StatusMessage = $"Library scan complete: {allTracks.Count} tracks";
-            
-            // Update stats display
-            MessageBox.Show($"Scan complete!\n\nFound {allTracks.Count} tracks in {folderList.Count} folders.",
+            StatusText.Text = $"Library scan complete: {vm.LibraryTrackCount} tracks from {folderList.Count} folders";
+            MessageBox.Show($"Scan complete!\n\nFound {vm.LibraryTrackCount} tracks in {folderList.Count} folders.",
                 "Scan Complete", MessageBoxButton.OK, MessageBoxImage.Information);
         });
     }
@@ -672,20 +955,91 @@ public partial class AudioPlayerView : UserControl
         await PlatypusTools.UI.Services.AudioPlayerService.Instance.PlayTrackAsync(vm.SelectedLibraryTrack);
     }
     
-    private void OnAddSelectedToQueueClick(object sender, RoutedEventArgs e)
+    private async void OnLibraryPlayClick(object sender, RoutedEventArgs e)
     {
         var vm = GetViewModel();
         if (vm == null) return;
         
-        if (vm.SelectedLibraryTrack == null)
+        // Try to get selection from DataGrid first
+        var selectedTrack = vm.SelectedLibraryTrack;
+        if (selectedTrack == null && LibraryTrackGrid != null)
+        {
+            selectedTrack = LibraryTrackGrid.SelectedItem as PlatypusTools.Core.Models.Audio.AudioTrack;
+        }
+        
+        if (selectedTrack == null)
         {
             MessageBox.Show("Please select a track from the library first.", "No Selection", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
         
-        PlatypusTools.UI.Services.AudioPlayerService.Instance.AddToQueue(vm.SelectedLibraryTrack);
-        vm.Queue.Add(vm.SelectedLibraryTrack);
-        vm.StatusMessage = $"Added '{vm.SelectedLibraryTrack.DisplayTitle}' to queue";
+        PlatypusTools.UI.Services.AudioPlayerService.Instance.AddToQueue(selectedTrack);
+        vm.Queue.Add(selectedTrack); // Also add to ViewModel queue for UI
+        await PlatypusTools.UI.Services.AudioPlayerService.Instance.PlayTrackAsync(selectedTrack);
+        RefreshQueueListBox();
+        UpdateQueueCount();
+        UpdateNowPlayingPanel();
+    }
+    
+    private void OnAddSelectedToQueueClick(object sender, RoutedEventArgs e)
+    {
+        var vm = GetViewModel();
+        if (vm == null) return;
+        
+        // Try to get selection from DataGrid first
+        var selectedTrack = vm.SelectedLibraryTrack;
+        if (selectedTrack == null && LibraryTrackGrid != null)
+        {
+            selectedTrack = LibraryTrackGrid.SelectedItem as PlatypusTools.Core.Models.Audio.AudioTrack;
+        }
+        
+        if (selectedTrack == null)
+        {
+            MessageBox.Show("Please select a track from the library first.", "No Selection", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        
+        PlatypusTools.UI.Services.AudioPlayerService.Instance.AddToQueue(selectedTrack);
+        vm.Queue.Add(selectedTrack); // Also add to ViewModel queue for UI
+        RefreshQueueListBox();
+        UpdateQueueCount();
+        vm.StatusMessage = $"Added '{selectedTrack.DisplayTitle}' to queue";
+        StatusText.Text = vm.StatusMessage;
+    }
+    
+    private async void OnToggleFavoriteClick(object sender, RoutedEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine("OnToggleFavoriteClick called");
+        
+        var vm = GetViewModel();
+        if (vm == null)
+        {
+            System.Diagnostics.Debug.WriteLine("OnToggleFavoriteClick: ViewModel is null");
+            return;
+        }
+        
+        // Try to get selection from DataGrid first
+        var selectedTrack = vm.SelectedLibraryTrack;
+        System.Diagnostics.Debug.WriteLine($"OnToggleFavoriteClick: SelectedLibraryTrack = {selectedTrack?.DisplayTitle ?? "null"}");
+        
+        if (selectedTrack == null && LibraryTrackGrid != null)
+        {
+            selectedTrack = LibraryTrackGrid.SelectedItem as PlatypusTools.Core.Models.Audio.AudioTrack;
+            System.Diagnostics.Debug.WriteLine($"OnToggleFavoriteClick: DataGrid.SelectedItem = {selectedTrack?.DisplayTitle ?? "null"}");
+        }
+        
+        if (selectedTrack != null)
+        {
+            System.Diagnostics.Debug.WriteLine($"OnToggleFavoriteClick: Toggling favorite for {selectedTrack.DisplayTitle}");
+            await vm.ToggleFavoriteAsync(selectedTrack);
+            // Refresh the DataGrid to show updated star
+            LibraryTrackGrid?.Items.Refresh();
+            System.Diagnostics.Debug.WriteLine($"OnToggleFavoriteClick: IsFavorite is now {selectedTrack.IsFavorite}");
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("OnToggleFavoriteClick: No track selected");
+        }
     }
     
     private void OnAddAllToQueueClick(object sender, RoutedEventArgs e)
@@ -693,19 +1047,30 @@ public partial class AudioPlayerView : UserControl
         var vm = GetViewModel();
         if (vm == null) return;
         
-        if (vm.LibraryTracks.Count == 0)
+        // Get tracks from the DataGrid ItemsSource or ViewModel
+        var tracks = vm.LibraryTracks.ToList();
+        if (tracks.Count == 0 && LibraryTrackGrid?.ItemsSource != null)
+        {
+            tracks = (LibraryTrackGrid.ItemsSource as IEnumerable<PlatypusTools.Core.Models.Audio.AudioTrack>)?.ToList() 
+                     ?? new List<PlatypusTools.Core.Models.Audio.AudioTrack>();
+        }
+        
+        if (tracks.Count == 0)
         {
             MessageBox.Show("No tracks in library. Please scan a folder first.", "Empty Library", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
         
-        foreach (var track in vm.LibraryTracks)
+        foreach (var track in tracks)
         {
             PlatypusTools.UI.Services.AudioPlayerService.Instance.AddToQueue(track);
-            vm.Queue.Add(track);
+            vm.Queue.Add(track); // Also add to ViewModel queue for UI
         }
         
-        vm.StatusMessage = $"Added {vm.LibraryTracks.Count} tracks to queue";
+        RefreshQueueListBox();
+        UpdateQueueCount();
+        vm.StatusMessage = $"Added {tracks.Count} tracks to queue";
+        StatusText.Text = vm.StatusMessage;
     }
     
     // ===== Playback Control Click Handlers =====
@@ -752,6 +1117,205 @@ public partial class AudioPlayerView : UserControl
         vm.IsMuted = !vm.IsMuted;
     }
     
+    // ===== Visualizer Control Handlers =====
+    
+    private void OnVisualizerModeChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (VisualizerControl == null) return;
+        
+        var combo = sender as ComboBox;
+        if (combo == null) return;
+        
+        int modeIndex = combo.SelectedIndex;
+        int barCount = _viewModel?.BarCount ?? 72;
+        int colorIndex = _viewModel?.ColorSchemeIndex ?? 0;
+        
+        string mode = GetVisualizerModeName(modeIndex);
+        VisualizerControl.SetColorScheme(colorIndex);
+        VisualizerControl.UpdateSpectrumData(Array.Empty<double>(), mode, barCount);
+        
+        System.Diagnostics.Debug.WriteLine($"OnVisualizerModeChanged: mode={mode}");
+    }
+    
+    private void OnBarCountChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (VisualizerControl == null) return;
+        
+        int modeIndex = _viewModel?.VisualizerModeIndex ?? 0;
+        int barCount = (int)e.NewValue;
+        int colorIndex = _viewModel?.ColorSchemeIndex ?? 0;
+        
+        string mode = GetVisualizerModeName(modeIndex);
+        VisualizerControl.SetColorScheme(colorIndex);
+        VisualizerControl.UpdateSpectrumData(Array.Empty<double>(), mode, barCount);
+        
+        System.Diagnostics.Debug.WriteLine($"OnBarCountChanged: bars={barCount}");
+    }
+    
+    private void OnColorSchemeChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (VisualizerControl == null) return;
+        
+        var combo = sender as ComboBox;
+        if (combo == null) return;
+        
+        int modeIndex = _viewModel?.VisualizerModeIndex ?? 0;
+        int barCount = _viewModel?.BarCount ?? 72;
+        int colorIndex = combo.SelectedIndex;
+        
+        string mode = GetVisualizerModeName(modeIndex);
+        VisualizerControl.SetColorScheme(colorIndex);
+        VisualizerControl.UpdateSpectrumData(Array.Empty<double>(), mode, barCount);
+        
+        System.Diagnostics.Debug.WriteLine($"OnColorSchemeChanged: color={colorIndex}");
+    }
+    
+    // ===== EQ Controls =====
+    
+    private void OnEqBassChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        // EQ changes are handled by ViewModel binding
+        System.Diagnostics.Debug.WriteLine($"EQ Bass changed to {e.NewValue} dB");
+    }
+    
+    private void OnEqMidChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        // EQ changes are handled by ViewModel binding
+        System.Diagnostics.Debug.WriteLine($"EQ Mid changed to {e.NewValue} dB");
+    }
+    
+    private void OnEqTrebleChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        // EQ changes are handled by ViewModel binding
+        System.Diagnostics.Debug.WriteLine($"EQ Treble changed to {e.NewValue} dB");
+    }
+    
+    private void OnEqResetClick(object sender, RoutedEventArgs e)
+    {
+        var vm = GetViewModel();
+        if (vm != null)
+        {
+            vm.EqBass = 0;
+            vm.EqMid = 0;
+            vm.EqTreble = 0;
+        }
+        PlatypusTools.UI.Services.AudioPlayerService.Instance.ResetEq();
+        System.Diagnostics.Debug.WriteLine("EQ Reset to flat");
+    }
+    
+    // ===== Fullscreen Visualizer Support =====
+    
+    private bool _isVisualizerFullscreen = false;
+    private Window? _fullscreenWindow;
+    
+    private void OnToggleFullscreenVisualizerClick(object sender, RoutedEventArgs e)
+    {
+        if (_isVisualizerFullscreen)
+        {
+            ExitFullscreenVisualizer();
+        }
+        else
+        {
+            EnterFullscreenVisualizer();
+        }
+    }
+    
+    private void EnterFullscreenVisualizer()
+    {
+        try
+        {
+            // Create a new fullscreen window for the visualizer
+            _fullscreenWindow = new Window
+            {
+                Title = "PlatypusTools Visualizer",
+                WindowState = WindowState.Maximized,
+                WindowStyle = WindowStyle.None,
+                Background = new SolidColorBrush(Color.FromRgb(10, 14, 39)),
+                Topmost = true
+            };
+            
+            // Create a new visualizer for fullscreen
+            var fullscreenVisualizer = new AudioVisualizerView();
+            
+            // Set initial color scheme
+            var vm = GetViewModel();
+            fullscreenVisualizer.SetColorScheme(vm?.ColorSchemeIndex ?? 0);
+            
+            _fullscreenWindow.Content = fullscreenVisualizer;
+            
+            // Subscribe to spectrum data for fullscreen visualizer
+            void OnSpectrumData(object? s, double[] data)
+            {
+                var viewModel = GetViewModel();
+                string mode = GetVisualizerModeName(viewModel?.VisualizerModeIndex ?? 0);
+                int barCount = viewModel?.BarCount ?? 72;
+                int colorIndex = viewModel?.ColorSchemeIndex ?? 0;
+                fullscreenVisualizer.Dispatcher.Invoke(() => 
+                {
+                    fullscreenVisualizer.SetColorScheme(colorIndex);
+                    fullscreenVisualizer.UpdateSpectrumData(data, mode, barCount);
+                });
+            }
+            
+            PlatypusTools.UI.Services.AudioPlayerService.Instance.SpectrumDataUpdated += OnSpectrumData;
+            
+            // Close on Escape or click
+            _fullscreenWindow.KeyDown += (s, args) =>
+            {
+                if (args.Key == System.Windows.Input.Key.Escape)
+                {
+                    PlatypusTools.UI.Services.AudioPlayerService.Instance.SpectrumDataUpdated -= OnSpectrumData;
+                    ExitFullscreenVisualizer();
+                }
+            };
+            
+            _fullscreenWindow.MouseDoubleClick += (s, args) =>
+            {
+                PlatypusTools.UI.Services.AudioPlayerService.Instance.SpectrumDataUpdated -= OnSpectrumData;
+                ExitFullscreenVisualizer();
+            };
+            
+            _fullscreenWindow.Closed += (s, args) =>
+            {
+                PlatypusTools.UI.Services.AudioPlayerService.Instance.SpectrumDataUpdated -= OnSpectrumData;
+                _isVisualizerFullscreen = false;
+                _fullscreenWindow = null;
+            };
+            
+            _fullscreenWindow.Show();
+            _isVisualizerFullscreen = true;
+            
+            if (FullscreenToggleBtn != null)
+                FullscreenToggleBtn.Content = "⛶"; // Change icon to indicate exit fullscreen
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error entering fullscreen: {ex.Message}");
+            MessageBox.Show($"Could not enter fullscreen mode: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+    
+    private void ExitFullscreenVisualizer()
+    {
+        try
+        {
+            if (_fullscreenWindow != null)
+            {
+                _fullscreenWindow.Close();
+                _fullscreenWindow = null;
+            }
+            
+            _isVisualizerFullscreen = false;
+            
+            if (FullscreenToggleBtn != null)
+                FullscreenToggleBtn.Content = "⛶"; // Reset icon
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error exiting fullscreen: {ex.Message}");
+        }
+    }
+
     /// <summary>
     /// Removes all selected tracks from the queue (multi-select support).
     /// </summary>
@@ -837,16 +1401,45 @@ public partial class AudioPlayerView : UserControl
     }
     
     /// <summary>
-    /// Refreshes the queue ListBox by re-setting its ItemsSource.
+    /// Syncs the ViewModel's Queue collection with the service's queue.
+    /// Does NOT reset ItemsSource to preserve XAML bindings.
     /// </summary>
     private void RefreshQueueListBox()
     {
         var vm = GetViewModel();
-        if (vm == null || QueueListBox == null) return;
+        if (vm == null) return;
         
-        var queueItems = vm.Queue.ToList();
-        QueueListBox.ItemsSource = null;
-        QueueListBox.ItemsSource = queueItems;
+        var service = PlatypusTools.UI.Services.AudioPlayerService.Instance;
+        
+        // Sync ViewModel Queue with service queue
+        vm.Queue.Clear();
+        foreach (var track in service.Queue)
+        {
+            vm.Queue.Add(track);
+        }
+        
+        // Update queue count display
+        UpdateQueueCount();
+    }
+    
+    /// <summary>
+    /// Refreshes the Library track grid by re-binding to ViewModel's LibraryTracks.
+    /// </summary>
+    private void RefreshLibraryTrackGrid()
+    {
+        var vm = GetViewModel();
+        if (vm == null || LibraryTrackGrid == null) return;
+        
+        // Force re-bind to LibraryTracks collection
+        var tracks = vm.LibraryTracks.ToList();
+        LibraryTrackGrid.ItemsSource = null;
+        LibraryTrackGrid.ItemsSource = tracks;
+        
+        // Update track count display
+        if (FindName("LibraryTrackCountText") is TextBlock countText)
+        {
+            countText.Text = $"{tracks.Count} tracks";
+        }
     }
     
     #region Drag and Drop Queue Reordering

@@ -13,6 +13,31 @@
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+        <converters:FavoriteIconConverter x:Key="FavoriteIconConverter" />
+        
+        <!-- Style for transparent button in DataGrid cells -->
+        <Style x:Key="TransparentButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#22000000"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
     
     <!-- Keyboard Shortcuts -->
@@ -45,7 +70,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
@@ -85,36 +109,175 @@
                     <Border Grid.Row="1" Background="#2a2a3e" Padding="8">
                         <StackPanel Orientation="Horizontal" Margin="0">
                             <TextBlock Text="Mode:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="White"/>
-                        <ComboBox Width="120" SelectedIndex="{Binding VisualizerModeIndex}" VerticalAlignment="Center">
+                        <ComboBox x:Name="VisualizerModeCombo" Width="100" SelectedIndex="{Binding VisualizerModeIndex, Mode=TwoWay}" 
+                                  VerticalAlignment="Center" SelectionChanged="OnVisualizerModeChanged">
                             <ComboBoxItem Content="Bars"/>
                             <ComboBoxItem Content="Mirror"/>
                             <ComboBoxItem Content="Waveform"/>
                             <ComboBoxItem Content="Circular"/>
+                            <ComboBoxItem Content="Radial"/>
+                            <ComboBoxItem Content="Particles"/>
+                            <ComboBoxItem Content="Aurora"/>
+                            <ComboBoxItem Content="Wave Grid"/>
                         </ComboBox>
-                        <Separator Margin="15,0" Background="#444"/>
-                        <TextBlock Text="Bars:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="White"/>
-                        <Slider Value="{Binding BarCount}" Minimum="8" Maximum="128" Width="100" VerticalAlignment="Center" 
-                               IsSnapToTickEnabled="True" TickFrequency="8"/>
-                        <TextBlock Text="{Binding BarCount}" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="White" Width="30"/>
-                        <Separator Margin="15,0" Background="#444"/>
+                        <Separator Margin="10,0" Background="#444"/>
+                        <TextBlock Text="Intensity:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="White"/>
+                        <Slider x:Name="BarCountSlider" Value="{Binding BarCount, Mode=TwoWay}" Minimum="8" Maximum="128" Width="80" 
+                                VerticalAlignment="Center" IsSnapToTickEnabled="True" TickFrequency="8"
+                                ValueChanged="OnBarCountChanged" ToolTip="Visualization detail level"/>
+                        <TextBlock Text="{Binding BarCount}" VerticalAlignment="Center" Margin="4,0,0,0" Foreground="White" Width="25"/>
+                        <Separator Margin="10,0" Background="#444"/>
+                        <TextBlock Text="Color:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="White"/>
+                        <ComboBox x:Name="ColorSchemeCombo" Width="100" SelectedIndex="{Binding ColorSchemeIndex, Mode=TwoWay}" 
+                                  VerticalAlignment="Center" SelectionChanged="OnColorSchemeChanged">
+                            <ComboBoxItem Content="Blue-Green"/>
+                            <ComboBoxItem Content="Rainbow"/>
+                            <ComboBoxItem Content="Fire"/>
+                            <ComboBoxItem Content="Purple"/>
+                            <ComboBoxItem Content="Neon"/>
+                            <ComboBoxItem Content="Ocean"/>
+                            <ComboBoxItem Content="Sunset"/>
+                            <ComboBoxItem Content="Mono"/>
+                        </ComboBox>
+                        <Separator Margin="10,0" Background="#444"/>
                         <TextBlock Text="EQ:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="White"/>
-                        <ComboBox Width="120" ItemsSource="{Binding EQPresets}" 
-                                  SelectedItem="{Binding SelectedPreset}"
-                                  DisplayMemberPath="Name" VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel Orientation="Vertical" Width="50">
+                                <TextBlock Text="Bass" HorizontalAlignment="Center" FontSize="10" Foreground="Gray"/>
+                                <Slider x:Name="EqBassSlider" Minimum="-12" Maximum="12" Value="{Binding EqBass, Mode=TwoWay}" 
+                                        Height="50" Orientation="Vertical" ToolTip="Bass (-12 to +12 dB)"
+                                        ValueChanged="OnEqBassChanged"/>
+                                <TextBlock Text="{Binding EqBass, StringFormat={}{0:F0}dB}" HorizontalAlignment="Center" FontSize="9" Foreground="Gray"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" Width="50">
+                                <TextBlock Text="Mid" HorizontalAlignment="Center" FontSize="10" Foreground="Gray"/>
+                                <Slider x:Name="EqMidSlider" Minimum="-12" Maximum="12" Value="{Binding EqMid, Mode=TwoWay}" 
+                                        Height="50" Orientation="Vertical" ToolTip="Mid (-12 to +12 dB)"
+                                        ValueChanged="OnEqMidChanged"/>
+                                <TextBlock Text="{Binding EqMid, StringFormat={}{0:F0}dB}" HorizontalAlignment="Center" FontSize="9" Foreground="Gray"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" Width="50">
+                                <TextBlock Text="Treble" HorizontalAlignment="Center" FontSize="10" Foreground="Gray"/>
+                                <Slider x:Name="EqTrebleSlider" Minimum="-12" Maximum="12" Value="{Binding EqTreble, Mode=TwoWay}" 
+                                        Height="50" Orientation="Vertical" ToolTip="Treble (-12 to +12 dB)"
+                                        ValueChanged="OnEqTrebleChanged"/>
+                                <TextBlock Text="{Binding EqTreble, StringFormat={}{0:F0}dB}" HorizontalAlignment="Center" FontSize="9" Foreground="Gray"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Button x:Name="EqResetBtn" Content="Reset" Width="50" Height="24"
+                                Background="#3a3a5e" Foreground="White" BorderThickness="0" FontSize="10"
+                                VerticalAlignment="Center" Margin="5,0,0,0" ToolTip="Reset EQ to flat"
+                                Click="OnEqResetClick"/>
+                        <Separator Margin="10,0" Background="#444"/>
+                        <Button x:Name="FullscreenToggleBtn" Content="⛶" FontSize="16" Width="32" Height="28"
+                                Background="#3a3a5e" Foreground="White" BorderThickness="0"
+                                VerticalAlignment="Center" ToolTip="Toggle Fullscreen Visualizer"
+                                Click="OnToggleFullscreenVisualizerClick"/>
                         </StackPanel>
                     </Border>
                 </Grid>
             </Border>
             
-            <!-- Player Controls - NOW IN GRID.ROW="3" AT BOTTOM -->
+            <!-- Player Controls - Below Visualizer, Above Tabs -->
+            <Border Grid.Row="1" Background="#f5f5f5" Padding="10,5">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- Left: Shuffle/Repeat -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Width="32" Height="32" 
+                                Click="OnCycleRepeatClick"
+                                ToolTip="Cycle repeat mode (R)"
+                                FontFamily="Segoe UI Symbol" FontSize="14" Margin="0,0,5,0"
+                                Background="Transparent" BorderThickness="0">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Content" Value="➡"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RepeatMode}" Value="1">
+                                            <Setter Property="Content" Value="🔁"/>
+                                            <Setter Property="Foreground" Value="#2196F3"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding RepeatMode}" Value="2">
+                                            <Setter Property="Content" Value="🔂"/>
+                                            <Setter Property="Foreground" Value="#4CAF50"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <ToggleButton Content="🔀" Width="32" Height="32" 
+                                      IsChecked="{Binding IsShuffle}"
+                                      ToolTip="Toggle shuffle (S)"
+                                      FontFamily="Segoe UI Symbol" FontSize="14"
+                                      Background="Transparent" BorderThickness="0"/>
+                    </StackPanel>
+                    
+                    <!-- Center: Transport Controls -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Button Content="⏮" Width="40" Height="40" Click="OnPreviousClick"
+                                FontFamily="Segoe UI Symbol" FontSize="16" Background="Transparent" BorderThickness="0"
+                                ToolTip="Previous (Ctrl+Left)"/>
+                        <Button Width="46" Height="46" 
+                                Click="OnPlayPauseClick"
+                                FontFamily="Segoe UI Symbol" FontSize="20" Margin="10,0"
+                                Background="#2196F3" Foreground="White" 
+                                ToolTip="Play/Pause (Space)">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Content" Value="▶"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                                            <Setter Property="Content" Value="⏸"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Button Content="⏭" Width="40" Height="40" Click="OnNextClick"
+                                FontFamily="Segoe UI Symbol" FontSize="16" Background="Transparent" BorderThickness="0"
+                                ToolTip="Next (Ctrl+Right)"/>
+                        <Button Content="⏹" Width="32" Height="32" Click="OnStopClick"
+                                FontFamily="Segoe UI Symbol" FontSize="12" Background="Transparent" BorderThickness="0" Margin="10,0,0,0"
+                                ToolTip="Stop"/>
+                    </StackPanel>
+                    
+                    <!-- Right: Volume -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Width="28" Height="28"
+                                Click="OnToggleMuteClick"
+                                FontFamily="Segoe UI Symbol" FontSize="12" Background="Transparent" BorderThickness="0"
+                                ToolTip="Toggle mute (M)">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Content" Value="🔊"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsMuted}" Value="True">
+                                            <Setter Property="Content" Value="🔇"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Slider Width="100" Minimum="0" Maximum="1" Value="{Binding Volume}" 
+                                VerticalAlignment="Center" Margin="5,0"/>
+                        <TextBlock Text="{Binding VolumePercent, StringFormat={}{0}%}" 
+                                   Width="35" VerticalAlignment="Center" Foreground="Gray" FontSize="11"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
             
             <!-- Bottom Panel: Queue or Library -->
             <Border Grid.Row="2" Background="White" CornerRadius="0">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="300"/>
+                        <ColumnDefinition Width="5"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     
                     <!-- Main Content Area -->
@@ -156,30 +319,35 @@
                                      Drop="QueueListBox_Drop"
                                      DragOver="QueueListBox_DragOver">
                             <ListBox.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="▶ Play Now" 
+                                <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                    <MenuItem Header="Play Now" 
                                               Command="{Binding PlayTrackCommand}" 
                                               CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                    <MenuItem Header="⏭ Play Next" 
+                                    <MenuItem Header="Play Next" 
                                               Command="{Binding PlayNextCommand}" 
                                               CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                     <Separator/>
-                                    <MenuItem Header="⬆ Move Up" 
+                                    <MenuItem Header="Move Up" 
                                               Command="{Binding MoveUpInQueueCommand}" 
                                               CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                    <MenuItem Header="⬇ Move Down" 
+                                    <MenuItem Header="Move Down" 
                                               Command="{Binding MoveDownInQueueCommand}" 
                                               CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                     <Separator/>
-                                    <MenuItem Header="✕ Remove from Queue" 
+                                    <MenuItem Header="Remove from Queue" 
                                               Command="{Binding RemoveFromQueueCommand}" 
                                               CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                     <Separator/>
-                                    <MenuItem Header="📂 Reveal in Explorer" 
+                                    <MenuItem Header="Reveal in Explorer" 
                                               Command="{Binding RevealInExplorerCommand}" 
                                               CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 </ContextMenu>
                             </ListBox.ContextMenu>
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <Grid Margin="2">
@@ -190,23 +358,30 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         
-                                        <StackPanel Grid.Column="0">
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding DisplayTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
                                             <TextBlock Text="{Binding DisplayArtist}" FontSize="11" Foreground="Gray" TextTrimming="CharacterEllipsis"/>
                                         </StackPanel>
                                         
                                         <TextBlock Grid.Column="1" Text="{Binding DurationFormatted}" 
-                                                   VerticalAlignment="Center" Margin="10,0" Foreground="Gray" FontSize="11"/>
+                                                   VerticalAlignment="Center" Margin="10,0" Foreground="Gray" FontSize="11"
+                                                   HorizontalAlignment="Right"/>
                                         
-                                        <Button Grid.Column="2" Content="▶" Width="24" Height="24" 
+                                        <Button Grid.Column="2" Width="32" Height="24" Margin="4,0"
                                                 Command="{Binding DataContext.PlayTrackCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                                 CommandParameter="{Binding}"
-                                                ToolTip="Play this track"/>
+                                                ToolTip="Play this track"
+                                                Background="#2196F3" Foreground="White" BorderThickness="0">
+                                            <TextBlock Text="▶" FontSize="11"/>
+                                        </Button>
                                         
-                                        <Button Grid.Column="3" Content="✕" Width="24" Height="24" Margin="4,0,0,0"
+                                        <Button Grid.Column="3" Width="32" Height="24" Margin="0"
                                                 Command="{Binding DataContext.RemoveFromQueueCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                                 CommandParameter="{Binding}"
-                                                ToolTip="Remove from queue"/>
+                                                ToolTip="Remove from queue"
+                                                Background="#f44336" Foreground="White" BorderThickness="0">
+                                            <TextBlock Text="✕" FontSize="11" FontWeight="Bold"/>
+                                        </Button>
                                     </Grid>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -216,7 +391,6 @@
                     <TabItem Header="Library">
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
@@ -287,7 +461,9 @@
                                             <TextBlock Text="Artists:" FontWeight="Bold" Margin="0,0,4,0"/>
                                             <TextBlock Text="{Binding LibraryArtistCount, FallbackValue=0}" Margin="0,0,12,0"/>
                                             <TextBlock Text="Albums:" FontWeight="Bold" Margin="0,0,4,0"/>
-                                            <TextBlock Text="{Binding LibraryAlbumCount, FallbackValue=0}"/>
+                                            <TextBlock Text="{Binding LibraryAlbumCount, FallbackValue=0}" Margin="0,0,12,0"/>
+                                            <TextBlock Text="⭐ Favorites:" FontWeight="Bold" Margin="0,0,4,0" Foreground="Gold"/>
+                                            <TextBlock Text="{Binding FavoriteCount, FallbackValue=0}" Foreground="Gold"/>
                                         </StackPanel>
                                     </Grid>
                                 </Grid>
@@ -312,6 +488,7 @@
                                     <ComboBoxItem Content="Album"/>
                                     <ComboBoxItem Content="Genre"/>
                                     <ComboBoxItem Content="Folder"/>
+                                    <ComboBoxItem Content="⭐ Favorites"/>
                                 </ComboBox>
                                 <Separator Margin="15,0"/>
                                 <TextBox Width="200" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" 
@@ -353,7 +530,7 @@
                                 </ListBox.ItemTemplate>
                             </ListBox>
                             
-                            <!-- Library Track List -->
+                            <!-- Library Track List - Scrollable -->
                             <DataGrid x:Name="LibraryTrackGrid" Grid.Row="3" ItemsSource="{Binding LibraryTracks}" 
                                       SelectedItem="{Binding SelectedLibraryTrack}"
                                       AutoGenerateColumns="False" IsReadOnly="True"
@@ -369,6 +546,18 @@
                                     </Style>
                                 </DataGrid.ColumnHeaderStyle>
                                 <DataGrid.Columns>
+                                    <DataGridTemplateColumn Header="⭐" Width="32" MinWidth="32" CanUserResize="False">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Content="{Binding IsFavorite, Converter={StaticResource FavoriteIconConverter}}" 
+                                                        Command="{Binding DataContext.ToggleFavoriteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{StaticResource TransparentButton}"
+                                                        ToolTip="Toggle Favorite"
+                                                        FontSize="14" Padding="2"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
                                     <DataGridTextColumn Header="Title" Binding="{Binding DisplayTitle}" Width="*" MinWidth="150" CanUserResize="True"/>
                                     <DataGridTextColumn Header="Artist" Binding="{Binding DisplayArtist}" Width="150" MinWidth="80" CanUserResize="True"/>
                                     <DataGridTextColumn Header="Album" Binding="{Binding DisplayAlbum}" Width="150" MinWidth="80" CanUserResize="True"/>
@@ -377,10 +566,11 @@
                                 </DataGrid.Columns>
                                 <DataGrid.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="Play" Command="{Binding PlaySelectedCommand}"/>
-                                        <MenuItem Header="Add to Queue" Command="{Binding AddToQueueCommand}"/>
+                                        <MenuItem Header="▶ Play" Click="OnLibraryPlayClick"/>
+                                        <MenuItem Header="➕ Add to Queue" Click="OnAddSelectedToQueueClick"/>
+                                        <MenuItem Header="⭐ Toggle Favorite" Click="OnToggleFavoriteClick"/>
                                         <Separator/>
-                                        <MenuItem Header="Add All to Queue" Command="{Binding AddAllToQueueCommand}"/>
+                                        <MenuItem Header="📋 Add All to Queue" Click="OnAddAllToQueueClick"/>
                                     </ContextMenu>
                                 </DataGrid.ContextMenu>
                             </DataGrid>
@@ -391,9 +581,15 @@
                 <!-- Track Info Panel -->
                 <GroupBox Grid.Column="2" Header="Now Playing" Margin="5,0,0,0">
                     <StackPanel Margin="8">
+                        <!-- Album Art -->
                         <Border Width="100" Height="100" Background="#2d2d44" CornerRadius="8" Margin="0,0,0,12" HorizontalAlignment="Center">
-                            <TextBlock Text="🎵" FontSize="50" HorizontalAlignment="Center" VerticalAlignment="Center" 
-                                       Foreground="#4a4a6a"/>
+                            <Grid>
+                                <Image x:Name="AlbumArtImage" Stretch="UniformToFill" 
+                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <TextBlock x:Name="AlbumArtPlaceholder" Text="🎵" FontSize="50" 
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                           Foreground="#4a4a6a"/>
+                            </Grid>
                         </Border>
                         <TextBlock x:Name="NowPlayingTitle" Text="No track" 
                                    FontSize="14" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,4"/>
@@ -402,8 +598,13 @@
                         <TextBlock x:Name="NowPlayingAlbum" Text="Unknown" 
                                    FontSize="11" Foreground="#999" TextWrapping="Wrap" Margin="0,0,0,12"/>
                         
-                        <ProgressBar x:Name="NowPlayingProgress" Value="0" Maximum="100" 
-                                     Height="8" Margin="0,0,0,4"/>
+                        <!-- Seekable Slider instead of ProgressBar -->
+                        <Slider x:Name="NowPlayingProgress" Value="0" Maximum="100" Minimum="0"
+                                Height="20" Margin="0,0,0,4"
+                                ValueChanged="OnSeekSliderValueChanged"
+                                PreviewMouseDown="OnSeekSliderMouseDown"
+                                PreviewMouseUp="OnSeekSliderMouseUp"
+                                IsMoveToPointEnabled="True"/>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -424,98 +625,5 @@
                 </Grid>
             </Border>
         </Grid>
-        
-                <!-- Playback Controls -->
-        <Border Grid.Row="3" Background="#f5f5f5" Padding="15,10">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                
-                <!-- Left: Shuffle/Repeat -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Width="36" Height="36" 
-                            Click="OnCycleRepeatClick"
-                            ToolTip="Cycle repeat mode (R)"
-                            FontFamily="Segoe UI Symbol" FontSize="16" Margin="0,0,5,0"
-                            Background="Transparent" BorderThickness="0">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Content" Value="➡"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding RepeatMode}" Value="1">
-                                        <Setter Property="Content" Value="🔁"/>
-                                        <Setter Property="Foreground" Value="#2196F3"/>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding RepeatMode}" Value="2">
-                                        <Setter Property="Content" Value="🔂"/>
-                                        <Setter Property="Foreground" Value="#4CAF50"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                    <ToggleButton Content="🔀" Width="36" Height="36" 
-                                  IsChecked="{Binding IsShuffle}"
-                                  ToolTip="Toggle shuffle (S)"
-                                  FontFamily="Segoe UI Symbol" FontSize="16"
-                                  Background="Transparent" BorderThickness="0"/>
-                </StackPanel>
-                
-                <!-- Center: Transport Controls -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                    <Button Content="⏮" Width="44" Height="44" Click="OnPreviousClick"
-                            FontFamily="Segoe UI Symbol" FontSize="18" Background="Transparent" BorderThickness="0"
-                            ToolTip="Previous (Ctrl+Left)"/>
-                    <Button Width="50" Height="50" 
-                            Click="OnPlayPauseClick"
-                            FontFamily="Segoe UI Symbol" FontSize="24" Margin="15,0"
-                            Background="#2196F3" Foreground="White" 
-                            ToolTip="Play/Pause (Space)">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Content" Value="▶"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsPlaying}" Value="True">
-                                        <Setter Property="Content" Value="⏸"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                    <Button Content="⏭" Width="44" Height="44" Click="OnNextClick"
-                            FontFamily="Segoe UI Symbol" FontSize="18" Background="Transparent" BorderThickness="0"
-                            ToolTip="Next (Ctrl+Right)"/>
-                    <Button Content="⏹" Width="36" Height="36" Click="OnStopClick"
-                            FontFamily="Segoe UI Symbol" FontSize="14" Background="Transparent" BorderThickness="0" Margin="15,0,0,0"
-                            ToolTip="Stop"/>
-                </StackPanel>
-                
-                <!-- Right: Volume -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Width="30" Height="30"
-                            Click="OnToggleMuteClick"
-                            FontFamily="Segoe UI Symbol" FontSize="14" Background="Transparent" BorderThickness="0"
-                            ToolTip="Toggle mute (M)">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Content" Value="🔊"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsMuted}" Value="True">
-                                        <Setter Property="Content" Value="🔇"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                    <Slider Width="100" Minimum="0" Maximum="1" Value="{Binding Volume}" 
-                            VerticalAlignment="Center" Margin="5,0"/>
-                    <TextBlock Text="{Binding VolumePercent, StringFormat={}{0}%}" 
-                               Width="35" VerticalAlignment="Center" Foreground="Gray" FontSize="11"/>
-                </StackPanel>
-            </Grid>
-        </Border>
     </Grid>
 </UserControl>

@@ -38,6 +38,7 @@ public class AudioTrack
     public DateTime? LastPlayed { get; set; }
     public DateTime DateAdded { get; set; } = DateTime.Now;
     public int Rating { get; set; } // 0-5 stars
+    public bool IsFavorite { get; set; } // User favorite flag
     
     // ReplayGain
     public double TrackGain { get; set; }

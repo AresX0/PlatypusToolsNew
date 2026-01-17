@@ -164,4 +164,19 @@ namespace PlatypusTools.UI.Converters
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => throw new NotImplementedException();
     }
+
+    /// <summary>
+    /// Converts boolean IsFavorite to star icon (filled or empty)
+    /// </summary>
+    public class FavoriteIconConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var isFavorite = value is bool b && b;
+            return isFavorite ? "★" : "☆";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
 }

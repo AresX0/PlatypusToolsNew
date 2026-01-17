@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.1.0 - 2026-01-17
+
+### Fixed
+- **Library Persistence** - Library now properly loads on app startup:
+  - Library index is now loaded in ViewModel constructor instead of View's OnLoaded
+  - Fixes issue where library appeared empty until manually rescanning
+  - Works with lazy-loaded tabs (library loads even before visiting Audio Player tab)
+
+### Improved
+- **Audio Player Layout** - Playback controls repositioned:
+  - Play/Pause, Skip, Stop, Volume controls moved from bottom to below visualizer
+  - Controls now appear above the Queue/Library tabs for better accessibility
+  - Cleaner visual hierarchy with controls near the visualizer
+
 ## v3.0.9 - 2026-01-16
 
 ### Added

@@ -19,6 +19,7 @@ public class AudioPlayerViewModel : BindableBase
     // Services
     private readonly AudioPlayerService _playerService;
     private readonly LibraryIndexService _libraryIndexService;
+    private readonly UserLibraryService _userLibraryService;
     
     private AudioTrack? _currentTrack;
     private TimeSpan _position;
@@ -229,14 +230,95 @@ public class AudioPlayerViewModel : BindableBase
     public int VisualizerModeIndex
     {
         get => _visualizerModeIndex;
-        set => SetProperty(ref _visualizerModeIndex, value);
+        set
+        {
+            if (SetProperty(ref _visualizerModeIndex, value))
+            {
+                RaisePropertyChanged(nameof(VisualizerModeName));
+            }
+        }
     }
+    
+    public string VisualizerModeName => _visualizerModeIndex switch
+    {
+        0 => "Bars",
+        1 => "Mirror",
+        2 => "Waveform",
+        3 => "Circular",
+        4 => "Radial",
+        5 => "Particles",
+        6 => "Aurora",
+        7 => "WaveGrid",
+        _ => "Bars"
+    };
 
-    private int _barCount = 32;
+    private int _barCount = 72;
     public int BarCount
     {
         get => _barCount;
-        set => SetProperty(ref _barCount, value);
+        set
+        {
+            if (SetProperty(ref _barCount, value))
+            {
+                RaisePropertyChanged(nameof(BarCount));
+            }
+        }
+    }
+    
+    private int _colorSchemeIndex = 0;
+    public int ColorSchemeIndex
+    {
+        get => _colorSchemeIndex;
+        set
+        {
+            if (SetProperty(ref _colorSchemeIndex, value))
+            {
+                RaisePropertyChanged(nameof(ColorSchemeIndex));
+            }
+        }
+    }
+    
+    // EQ properties (visual for now, actual audio processing requires NAudio)
+    private double _eqBass = 0;
+    public double EqBass
+    {
+        get => _eqBass;
+        set
+        {
+            if (SetProperty(ref _eqBass, Math.Round(value)))
+            {
+                RaisePropertyChanged(nameof(EqBass));
+                Services.AudioPlayerService.Instance.SetEqBass((int)_eqBass);
+            }
+        }
+    }
+    
+    private double _eqMid = 0;
+    public double EqMid
+    {
+        get => _eqMid;
+        set
+        {
+            if (SetProperty(ref _eqMid, Math.Round(value)))
+            {
+                RaisePropertyChanged(nameof(EqMid));
+                Services.AudioPlayerService.Instance.SetEqMid((int)_eqMid);
+            }
+        }
+    }
+    
+    private double _eqTreble = 0;
+    public double EqTreble
+    {
+        get => _eqTreble;
+        set
+        {
+            if (SetProperty(ref _eqTreble, Math.Round(value)))
+            {
+                RaisePropertyChanged(nameof(EqTreble));
+                Services.AudioPlayerService.Instance.SetEqTreble((int)_eqTreble);
+            }
+        }
     }
     
     public int OrganizeModeIndex
@@ -285,10 +367,12 @@ public class AudioPlayerViewModel : BindableBase
     public int LibraryTrackCount => _allLibraryTracks.Count;
     
     public int LibraryArtistCount 
-        => _libraryIndexService?.GetCurrentIndex()?.Statistics?.ArtistCount ?? 0;
+        => _allLibraryTracks.Select(t => t.DisplayArtist).Distinct().Count();
     
     public int LibraryAlbumCount 
-        => _libraryIndexService?.GetCurrentIndex()?.Statistics?.AlbumCount ?? 0;
+        => _allLibraryTracks.Select(t => t.DisplayAlbum).Distinct().Count();
+    
+    public int FavoriteCount => _userLibraryService?.FavoriteCount ?? 0;
     
     public AudioTrack? SelectedLibraryTrack
     {
@@ -346,6 +430,9 @@ public class AudioPlayerViewModel : BindableBase
     public ICommand MoveUpInQueueCommand { get; }
     public ICommand MoveDownInQueueCommand { get; }
     
+    // Favorites commands
+    public ICommand ToggleFavoriteCommand { get; }
+    
     // Crossfade properties
     private bool _crossfadeEnabled = true;
     public bool CrossfadeEnabled
@@ -397,13 +484,21 @@ public class AudioPlayerViewModel : BindableBase
     public AudioPlayerViewModel()
     {
         try { SimpleLogger.Info("AudioPlayerViewModel constructed"); } catch {}
+        Log("AudioPlayerViewModel: Constructor starting...");
         _playerService = AudioPlayerService.Instance;
         _libraryIndexService = new LibraryIndexService();
-        _selectedPreset = EQPreset.Flat;
+        _userLibraryService = new UserLibraryService();
+        
+        // Load user library data and library index asynchronously
+        _ = InitializeUserLibraryAsync();
+        _ = InitializeLibraryAsync();  // Load library index eagerly, not when view loads
         
         // Initialize EQ presets
         foreach (var preset in EQPreset.AllPresets)
             EQPresets.Add(preset);
+        
+        // Default to Rock preset
+        _selectedPreset = EQPresets.FirstOrDefault(p => p.Name == "Rock") ?? EQPreset.Flat;
         
         // Subscribe to service events
         _playerService.TrackChanged += OnTrackChanged;
@@ -560,6 +655,13 @@ public class AudioPlayerViewModel : BindableBase
             }
         });
         
+        // Favorites command
+        ToggleFavoriteCommand = new AsyncRelayCommand<AudioTrack>(async track =>
+        {
+            if (track != null)
+                await ToggleFavoriteAsync(track);
+        });
+        
         // Sync crossfade settings with service
         _playerService.CrossfadeEnabled = _crossfadeEnabled;
         _playerService.CrossfadeDurationMs = _crossfadeDurationMs;
@@ -579,13 +681,31 @@ public class AudioPlayerViewModel : BindableBase
             return;
         }
 
-        if (CurrentTrack == null && _playerService.Queue.Count > 0)
+        // If there's a current track loaded, just resume
+        if (CurrentTrack != null)
+        {
+            _playerService.Play();
+            return;
+        }
+        
+        // If a library track is selected, add it to queue and play
+        if (SelectedLibraryTrack != null)
+        {
+            _playerService.AddToQueue(SelectedLibraryTrack);
+            UpdateQueue();
+            _ = _playerService.PlayTrackAsync(SelectedLibraryTrack);
+            return;
+        }
+        
+        // If queue has tracks, play the first one
+        if (_playerService.Queue.Count > 0)
         {
             _ = _playerService.PlayTrackAsync(_playerService.Queue[0]);
             return;
         }
-
-        _playerService.Play();
+        
+        // Nothing to play
+        StatusMessage = "No track selected. Select a track from the library or add files to the queue.";
     }
     
     private async Task OpenFileAsync()
@@ -743,9 +863,30 @@ public class AudioPlayerViewModel : BindableBase
         }
     }
     
+    /// <summary>
+    /// Set the library tracks from an external source (used by code-behind after scanning).
+    /// This updates the internal list and refreshes all UI elements.
+    /// </summary>
+    public void SetLibraryTracks(IEnumerable<AudioTrack> tracks)
+    {
+        _allLibraryTracks = tracks.ToList();
+        SyncFavoritesWithTracks();
+        RebuildLibraryGroups();
+        FilterLibraryTracks();
+        
+        // Raise property changes for stats
+        RaisePropertyChanged(nameof(LibraryTrackCount));
+        RaisePropertyChanged(nameof(LibraryArtistCount));
+        RaisePropertyChanged(nameof(LibraryAlbumCount));
+        RaisePropertyChanged(nameof(FavoriteCount));
+        
+        System.Diagnostics.Debug.WriteLine($"SetLibraryTracks: {_allLibraryTracks.Count} tracks, {LibraryArtistCount} artists, {LibraryAlbumCount} albums");
+    }
+    
     private void UpdateLibraryGroups()
     {
         RebuildLibraryGroups();
+        FilterLibraryTracks();
     }
     
     private void FilterLibraryTracks()
@@ -754,8 +895,13 @@ public class AudioPlayerViewModel : BindableBase
         
         IEnumerable<AudioTrack> source = _allLibraryTracks;
         
-        // Filter by selected group
-        if (SelectedGroup != null && ShowGroups)
+        // Filter by favorites when mode 5 is selected
+        if (_organizeModeIndex == 5)
+        {
+            source = source.Where(t => t.IsFavorite);
+        }
+        // Filter by selected group for other modes
+        else if (SelectedGroup != null && ShowGroups)
         {
             source = SelectedGroup.Tracks;
         }
@@ -788,10 +934,16 @@ public class AudioPlayerViewModel : BindableBase
     /// <summary>
     /// Initialize and load library index on startup.
     /// </summary>
+    private static void Log(string message)
+    {
+        System.Diagnostics.Debug.WriteLine($"[AudioPlayerVM] {message}");
+    }
+    
     public async Task InitializeLibraryAsync()
     {
         try
         {
+            Log("InitializeLibraryAsync: Starting...");
             IsScanning = true;
             ScanStatus = "Loading saved queue...";
             
@@ -804,38 +956,79 @@ public class AudioPlayerViewModel : BindableBase
             }
             
             ScanStatus = "Loading library index...";
+            Log("InitializeLibraryAsync: About to call LoadOrCreateIndexAsync...");
             
             var index = await _libraryIndexService.LoadOrCreateIndexAsync();
-            if (index?.Tracks != null)
+            var loadedCount = index?.Tracks?.Count ?? 0;
+            Log($"InitializeLibraryAsync: Loaded index with {loadedCount} tracks");
+            
+            if (loadedCount > 0)
             {
-                _allLibraryTracks = new List<AudioTrack>();
-                foreach (var indexTrack in index.Tracks)
+                Log("InitializeLibraryAsync: About to populate _allLibraryTracks...");
+                
+                // Must update collections on UI thread
+                var dispatcher = System.Windows.Application.Current?.Dispatcher;
+                if (dispatcher == null)
                 {
-                    // Convert Track (from index) to AudioTrack (legacy format used by player)
-                    var audioTrack = new AudioTrack
-                    {
-                        Title = indexTrack.DisplayTitle,
-                        Artist = indexTrack.DisplayArtist,
-                        Album = indexTrack.DisplayAlbum,
-                        FilePath = indexTrack.FilePath,
-                        Duration = TimeSpan.FromMilliseconds(indexTrack.DurationMs),
-                        Genre = indexTrack.Genre ?? string.Empty,
-                    };
-                    _allLibraryTracks.Add(audioTrack);
+                    Log("InitializeLibraryAsync: WARNING - Dispatcher is null, updating directly");
+                    PopulateLibraryFromIndex(index!);
+                }
+                else
+                {
+                    await dispatcher.InvokeAsync(() => PopulateLibraryFromIndex(index!));
                 }
                 
-                RebuildLibraryGroups();
-                ScanStatus = $"Loaded {_allLibraryTracks.Count} tracks";
+                Log($"InitializeLibraryAsync: Done. _allLibraryTracks has {_allLibraryTracks.Count} tracks, LibraryTracks has {LibraryTracks.Count} tracks");
+            }
+            else
+            {
+                ScanStatus = "No library tracks found";
+                Log("InitializeLibraryAsync: No tracks in index");
             }
         }
         catch (Exception ex)
         {
+            Log($"InitializeLibraryAsync: ERROR - {ex}");
             StatusMessage = $"Error loading library: {ex.Message}";
         }
         finally
         {
             IsScanning = false;
         }
+    }
+    
+    private void PopulateLibraryFromIndex(LibraryIndex index)
+    {
+        Log($"PopulateLibraryFromIndex: Processing {index.Tracks?.Count ?? 0} tracks...");
+        
+        _allLibraryTracks = new List<AudioTrack>();
+        foreach (var indexTrack in index.Tracks!)
+        {
+            // Convert Track (from index) to AudioTrack (legacy format used by player)
+            var audioTrack = new AudioTrack
+            {
+                Title = indexTrack.DisplayTitle,
+                Artist = indexTrack.DisplayArtist,
+                Album = indexTrack.DisplayAlbum,
+                FilePath = indexTrack.FilePath,
+                Duration = TimeSpan.FromMilliseconds(indexTrack.DurationMs),
+                Genre = indexTrack.Genre ?? string.Empty,
+            };
+            _allLibraryTracks.Add(audioTrack);
+        }
+        
+        Log($"PopulateLibraryFromIndex: Built _allLibraryTracks with {_allLibraryTracks.Count} items");
+        
+        RebuildLibraryGroups();
+        FilterLibraryTracks();
+        SyncFavoritesWithTracks();
+        
+        Log($"PopulateLibraryFromIndex: After FilterLibraryTracks, LibraryTracks has {LibraryTracks.Count} items");
+        
+        ScanStatus = $"Library: {_allLibraryTracks.Count} tracks";
+        RaisePropertyChanged(nameof(LibraryTrackCount));
+        RaisePropertyChanged(nameof(LibraryArtistCount));
+        RaisePropertyChanged(nameof(LibraryAlbumCount));
     }
     
     /// <summary>
@@ -880,7 +1073,12 @@ public class AudioPlayerViewModel : BindableBase
                 }
                 
                 RebuildLibraryGroups();
+                FilterLibraryTracks();  // Populate the LibraryTracks ObservableCollection
+                SyncFavoritesWithTracks();
                 ScanStatus = $"Scanned complete: {_allLibraryTracks.Count} tracks";
+                RaisePropertyChanged(nameof(LibraryTrackCount));
+                RaisePropertyChanged(nameof(LibraryArtistCount));
+                RaisePropertyChanged(nameof(LibraryAlbumCount));
             }
         }
         catch (Exception ex)
@@ -947,7 +1145,7 @@ public class AudioPlayerViewModel : BindableBase
     /// <summary>
     /// Scan all library folders and add tracks to the library.
     /// </summary>
-    private async Task ScanAllLibraryFoldersAsync()
+    public async Task ScanAllLibraryFoldersAsync()
     {
         if (LibraryFolders.Count == 0)
         {
@@ -1000,6 +1198,7 @@ public class AudioPlayerViewModel : BindableBase
                 totalTracksFound = _allLibraryTracks.Count;
                 
                 RebuildLibraryGroups();
+                SyncFavoritesWithTracks();
                 FilterLibraryTracks();
                 RaisePropertyChanged(nameof(LibraryTrackCount));
                 RaisePropertyChanged(nameof(LibraryArtistCount));
@@ -1078,6 +1277,87 @@ public class AudioPlayerViewModel : BindableBase
     }
     
     /// <summary>
+    /// Initialize user library data (favorites, playlists, etc.)
+    /// </summary>
+    private async Task InitializeUserLibraryAsync()
+    {
+        try
+        {
+            var data = await _userLibraryService.LoadAsync();
+            System.Diagnostics.Debug.WriteLine($"User library loaded: {data.Favorites.Count} favorites, {data.Playlists.Count} playlists");
+            
+            // Sync favorite status into already loaded tracks
+            SyncFavoritesWithTracks();
+            
+            RaisePropertyChanged(nameof(FavoriteCount));
+            _userLibraryService.DataChanged += (s, e) =>
+            {
+                System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+                {
+                    RaisePropertyChanged(nameof(FavoriteCount));
+                    SyncFavoritesWithTracks();
+                });
+            };
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error initializing user library: {ex.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// Sync favorite status from UserLibraryService to loaded tracks.
+    /// </summary>
+    private void SyncFavoritesWithTracks()
+    {
+        foreach (var track in _allLibraryTracks)
+        {
+            track.IsFavorite = _userLibraryService.IsFavorite(track.FilePath);
+        }
+        FilterLibraryTracks();
+    }
+    
+    /// <summary>
+    /// Toggle favorite status for a track.
+    /// </summary>
+    public async Task ToggleFavoriteAsync(AudioTrack track)
+    {
+        if (track == null) return;
+        
+        try
+        {
+            var isFavorite = await _userLibraryService.ToggleFavoriteAsync(track.FilePath);
+            track.IsFavorite = isFavorite;
+            
+            RaisePropertyChanged(nameof(FavoriteCount));
+            StatusMessage = isFavorite ? $"Added to favorites: {track.DisplayTitle}" : $"Removed from favorites: {track.DisplayTitle}";
+            
+            // Refresh the track in the LibraryTracks collection to update UI
+            var index = LibraryTracks.IndexOf(track);
+            if (index >= 0)
+            {
+                LibraryTracks.RemoveAt(index);
+                LibraryTracks.Insert(index, track);
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"ToggleFavoriteAsync: {track.DisplayTitle} is now {(isFavorite ? "favorite" : "not favorite")}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error toggling favorite: {ex.Message}");
+            StatusMessage = $"Error toggling favorite: {ex.Message}";
+        }
+    }
+    
+    /// <summary>
+    /// Check if a track is favorited.
+    /// </summary>
+    public bool IsTrackFavorite(AudioTrack track)
+    {
+        return _userLibraryService.IsFavorite(track?.FilePath ?? string.Empty);
+    }
+    
+    /// <summary>
     /// Search library tracks.
     /// </summary>
     public void SearchLibrary(string query)
@@ -1105,6 +1385,7 @@ public class AudioPlayerViewModel : BindableBase
         }
         
         RebuildLibraryGroups();
+        SyncFavoritesWithTracks();
         ScanStatus = $"Found {results.Count} matches";
     }
     
@@ -1124,6 +1405,7 @@ public class AudioPlayerViewModel : BindableBase
             2 => _allLibraryTracks.GroupBy(t => t.DisplayAlbum).ToDictionary(g => g.Key, g => g.ToList()),
             3 => _allLibraryTracks.GroupBy(t => t.Genre ?? "Unknown").ToDictionary(g => g.Key, g => g.ToList()),
             4 => _allLibraryTracks.GroupBy(t => System.IO.Path.GetDirectoryName(t.FilePath) ?? "Unknown").ToDictionary(g => g.Key, g => g.ToList()),
+            5 => new Dictionary<string, List<AudioTrack>> { { "⭐ Favorites", _allLibraryTracks.Where(t => t.IsFavorite).ToList() } },
             _ => new Dictionary<string, List<AudioTrack>> { { "All Tracks", _allLibraryTracks } }
         };
         

@@ -54,11 +54,70 @@ public class AudioPlayerService
         set => _crossfadeDurationMs = Math.Clamp(value, 0, 5000);
     }
     
+    // EQ settings (affects visualization, actual audio EQ requires NAudio)
+    private int _eqBass = 0;
+    private int _eqMid = 0;
+    private int _eqTreble = 0;
+    
+    /// <summary>
+    /// Gets the current EQ bass setting (-12 to +12 dB).
+    /// </summary>
+    public int EqBass => _eqBass;
+    
+    /// <summary>
+    /// Gets the current EQ mid setting (-12 to +12 dB).
+    /// </summary>
+    public int EqMid => _eqMid;
+    
+    /// <summary>
+    /// Gets the current EQ treble setting (-12 to +12 dB).
+    /// </summary>
+    public int EqTreble => _eqTreble;
+    
+    /// <summary>
+    /// Sets the bass EQ value (-12 to +12 dB).
+    /// </summary>
+    public void SetEqBass(int value)
+    {
+        _eqBass = Math.Clamp(value, -12, 12);
+        System.Diagnostics.Debug.WriteLine($"EQ Bass set to {_eqBass} dB");
+    }
+    
+    /// <summary>
+    /// Sets the mid EQ value (-12 to +12 dB).
+    /// </summary>
+    public void SetEqMid(int value)
+    {
+        _eqMid = Math.Clamp(value, -12, 12);
+        System.Diagnostics.Debug.WriteLine($"EQ Mid set to {_eqMid} dB");
+    }
+    
+    /// <summary>
+    /// Sets the treble EQ value (-12 to +12 dB).
+    /// </summary>
+    public void SetEqTreble(int value)
+    {
+        _eqTreble = Math.Clamp(value, -12, 12);
+        System.Diagnostics.Debug.WriteLine($"EQ Treble set to {_eqTreble} dB");
+    }
+    
+    /// <summary>
+    /// Resets all EQ bands to flat (0 dB).
+    /// </summary>
+    public void ResetEq()
+    {
+        _eqBass = 0;
+        _eqMid = 0;
+        _eqTreble = 0;
+        System.Diagnostics.Debug.WriteLine("EQ Reset to flat");
+    }
+    
     // Events
     public event EventHandler<AudioTrack?>? TrackChanged;
     public event EventHandler<TimeSpan>? PositionChanged;
     public event EventHandler<bool>? PlaybackStateChanged;
     public event EventHandler<double[]>? SpectrumDataUpdated;
+    public event EventHandler<TimeSpan>? MediaReady; // Fired when media is ready with duration
     
     public enum RepeatMode { None, All, One }
     
@@ -91,6 +150,11 @@ public class AudioPlayerService
     public RepeatMode Repeat { get; set; } = RepeatMode.None;
     public IReadOnlyList<AudioTrack> Queue => _queue.AsReadOnly();
     
+    /// <summary>
+    /// Gets the current track index for debugging purposes.
+    /// </summary>
+    public int CurrentIndex => _currentIndex;
+    
     private AudioPlayerService()
     {
         _mediaPlayer = new MediaPlayer();
@@ -108,6 +172,10 @@ public class AudioPlayerService
         
         _visualizerTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
         _visualizerTimer.Tick += (s, e) => GenerateVisualizationData();
+        
+        // Start visualizer timer immediately so visualizer shows idle animation
+        _visualizerTimer.Start();
+        System.Diagnostics.Debug.WriteLine("AudioPlayerService: Visualizer timer started in constructor");
     }
     
     private void OnPositionTimerTick(object? sender, EventArgs e)
@@ -174,50 +242,60 @@ public class AudioPlayerService
     
     private void CompleteCrossfade()
     {
-        _crossfadeTimer?.Stop();
-        _crossfadeTimer = null;
-        
-        // Stop the old track
-        _mediaPlayer.Stop();
-        
-        // Swap players (conceptually - just update state)
-        var targetVolume = Volume;
-        _crossfadePlayer.Volume = targetVolume;
-        
-        // Move to next track index
-        _currentIndex = GetNextIndex();
-        
-        if (CurrentTrack != null)
+        try
         {
-            CurrentTrack.PlayCount++;
-            CurrentTrack.LastPlayed = DateTime.Now;
-        }
-        
-        // Open the track on main player and sync position
-        if (CurrentTrack != null)
-        {
-            _mediaPlayer.Open(new Uri(CurrentTrack.FilePath));
-            _mediaPlayer.Volume = targetVolume;
-        }
-        
-        // Stop crossfade player after short delay to allow main player to take over
-        Task.Delay(100).ContinueWith(_ =>
-        {
-            System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+            _crossfadeTimer?.Stop();
+            _crossfadeTimer = null;
+            
+            // Stop the old track
+            _mediaPlayer.Stop();
+            
+            // Swap players (conceptually - just update state)
+            var targetVolume = Volume;
+            _crossfadePlayer.Volume = targetVolume;
+            
+            // Move to next track index
+            _currentIndex = GetNextIndex();
+            
+            if (CurrentTrack != null)
             {
-                try
+                CurrentTrack.PlayCount++;
+                CurrentTrack.LastPlayed = DateTime.Now;
+            }
+            
+            // Open the track on main player and sync position
+            if (CurrentTrack != null && File.Exists(CurrentTrack.FilePath))
+            {
+                _mediaPlayer.Open(new Uri(CurrentTrack.FilePath));
+                _mediaPlayer.Volume = targetVolume;
+            }
+            
+            // Stop crossfade player after short delay to allow main player to take over
+            Task.Delay(100).ContinueWith(_ =>
+            {
+                var app = System.Windows.Application.Current;
+                if (app == null) return;
+                
+                app.Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    var pos = _crossfadePlayer.Position;
-                    _mediaPlayer.Position = pos;
-                    _mediaPlayer.Play();
-                    _crossfadePlayer.Stop();
-                }
-                catch { }
+                    try
+                    {
+                        var pos = _crossfadePlayer.Position;
+                        _mediaPlayer.Position = pos;
+                        _mediaPlayer.Play();
+                        _crossfadePlayer.Stop();
+                    }
+                    catch { }
+                }));
             });
-        });
-        
-        _isCrossfading = false;
-        TrackChanged?.Invoke(this, CurrentTrack);
+            
+            _isCrossfading = false;
+            TrackChanged?.Invoke(this, CurrentTrack);
+        }
+        catch
+        {
+            _isCrossfading = false;
+        }
     }
     
     private int GetNextIndex()
@@ -260,19 +338,35 @@ public class AudioPlayerService
     
     public async Task PlayTrackAsync(AudioTrack track)
     {
-        var index = _queue.FindIndex(t => t.Id == track.Id);
+        if (track == null) 
+        {
+            System.Diagnostics.Debug.WriteLine("PlayTrackAsync: track is null!");
+            return;
+        }
+        
+        System.Diagnostics.Debug.WriteLine($"PlayTrackAsync: track='{track.DisplayTitle}', queue.Count={_queue.Count}");
+        
+        // Find by ID or FilePath
+        var index = _queue.FindIndex(t => t.Id == track.Id || t.FilePath == track.FilePath);
         if (index < 0)
         {
             _queue.Add(track);
             index = _queue.Count - 1;
+            System.Diagnostics.Debug.WriteLine($"PlayTrackAsync: Added track to queue at index {index}");
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"PlayTrackAsync: Found track at index {index}");
         }
         
         _currentIndex = index;
+        System.Diagnostics.Debug.WriteLine($"PlayTrackAsync: Set _currentIndex to {_currentIndex}, CurrentTrack is {(CurrentTrack != null ? "valid" : "NULL")}");
         await PlayCurrentAsync();
     }
     
     public async Task PlayCurrentAsync()
     {
+        System.Diagnostics.Debug.WriteLine($"PlayCurrentAsync: _currentIndex={_currentIndex}, _queue.Count={_queue.Count}, CurrentTrack is {(CurrentTrack != null ? CurrentTrack.DisplayTitle : "NULL")}");
         if (CurrentTrack == null) return;
         
         try
@@ -287,12 +381,13 @@ public class AudioPlayerService
             CurrentTrack.PlayCount++;
             CurrentTrack.LastPlayed = DateTime.Now;
             
+            System.Diagnostics.Debug.WriteLine($"PlayCurrentAsync: Firing TrackChanged event with '{CurrentTrack.DisplayTitle}'");
             TrackChanged?.Invoke(this, CurrentTrack);
             PlaybackStateChanged?.Invoke(this, true);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Log error
+            System.Diagnostics.Debug.WriteLine($"PlayCurrentAsync: Exception - {ex.Message}");
         }
     }
     
@@ -405,6 +500,18 @@ public class AudioPlayerService
     {
         _queue = tracks.ToList();
         if (_isShuffled) ShuffleQueue();
+        
+        // Reset current index if it's out of bounds or if we're starting fresh
+        if (_currentIndex < 0 && _queue.Count > 0)
+        {
+            _currentIndex = 0; // Default to first track
+        }
+        else if (_currentIndex >= _queue.Count)
+        {
+            _currentIndex = _queue.Count > 0 ? 0 : -1;
+        }
+        
+        System.Diagnostics.Debug.WriteLine($"SetQueue: {_queue.Count} tracks, _currentIndex={_currentIndex}");
     }
     
     public void AddToQueue(AudioTrack track)
@@ -588,28 +695,103 @@ public class AudioPlayerService
     
     private void OnMediaOpened(object? sender, EventArgs e)
     {
-        // Media loaded successfully
+        // Media loaded successfully - update duration on the track
+        if (CurrentTrack != null && _mediaPlayer.NaturalDuration.HasTimeSpan)
+        {
+            CurrentTrack.Duration = _mediaPlayer.NaturalDuration.TimeSpan;
+            System.Diagnostics.Debug.WriteLine($"OnMediaOpened: Duration = {CurrentTrack.Duration}");
+            
+            // Fire MediaReady event with duration
+            MediaReady?.Invoke(this, _mediaPlayer.NaturalDuration.TimeSpan);
+            
+            // Re-fire track changed to update UI with duration
+            TrackChanged?.Invoke(this, CurrentTrack);
+        }
     }
     
     private void OnMediaFailed(object? sender, ExceptionEventArgs e)
     {
         // Handle media load failure
+        System.Diagnostics.Debug.WriteLine($"Media failed: {e.ErrorException?.Message}");
     }
     
     // Visualization
-    private readonly double[] _spectrumData = new double[32];
+    private readonly double[] _spectrumData = new double[128]; // Support up to 128 bars
+    private double[] _previousSpectrum = new double[128];
+    
     private void GenerateVisualizationData()
     {
         // Generate simulated spectrum data based on position
         // Real implementation would use NAudio or similar for actual FFT
-        if (!IsPlaying) return;
+        if (!IsPlaying)
+        {
+            // Still fire event with low idle data so visualizer can decide what to do
+            for (int i = 0; i < _spectrumData.Length; i++)
+            {
+                _spectrumData[i] = 0;
+            }
+            SpectrumDataUpdated?.Invoke(this, _spectrumData);
+            return;
+        }
         
         var t = Position.TotalSeconds;
+        
+        // Calculate EQ multipliers (convert dB to linear scale)
+        double bassMultiplier = Math.Pow(10, _eqBass / 20.0);
+        double midMultiplier = Math.Pow(10, _eqMid / 20.0);
+        double trebleMultiplier = Math.Pow(10, _eqTreble / 20.0);
+        
         for (int i = 0; i < _spectrumData.Length; i++)
         {
-            var baseValue = Math.Sin(t * (i + 1) * 0.5) * 0.5 + 0.5;
-            var noise = _random.NextDouble() * 0.3;
-            _spectrumData[i] = Math.Clamp(baseValue * 0.7 + noise, 0, 1);
+            // Create more dynamic spectrum based on position
+            double freq = (i + 1) * 0.4;
+            double baseValue = Math.Sin(t * freq) * 0.4 + 0.4;
+            
+            // Add harmonics
+            double harmonic1 = Math.Sin(t * freq * 2.1 + 0.5) * 0.15;
+            double harmonic2 = Math.Sin(t * freq * 0.5 + 1.2) * 0.1;
+            
+            // Bass emphasis for lower frequencies
+            double bassBoost = i < 20 ? (1.0 - i / 20.0) * 0.25 : 0;
+            
+            // Random variation
+            double noise = _random.NextDouble() * 0.15;
+            
+            // Calculate base raw value
+            double rawValue = baseValue + harmonic1 + harmonic2 + bassBoost + noise;
+            
+            // Apply EQ based on frequency band
+            // Bass: indices 0-30 (roughly 0-250 Hz)
+            // Mid: indices 31-80 (roughly 250-2000 Hz)
+            // Treble: indices 81-127 (roughly 2000+ Hz)
+            double eqMultiplier;
+            if (i <= 30)
+            {
+                // Bass region - blend with mid at boundary
+                double blend = i / 30.0;
+                eqMultiplier = bassMultiplier * (1 - blend * 0.3) + midMultiplier * (blend * 0.3);
+            }
+            else if (i <= 80)
+            {
+                // Mid region
+                double pos = (i - 30) / 50.0;
+                double bassBlend = 1 - Math.Min(pos * 3, 1);
+                double trebleBlend = Math.Max((pos - 0.66) * 3, 0);
+                double midBlend = 1 - bassBlend - trebleBlend;
+                eqMultiplier = bassMultiplier * bassBlend * 0.3 + midMultiplier * midBlend + trebleMultiplier * trebleBlend * 0.3;
+            }
+            else
+            {
+                // Treble region - blend with mid at boundary
+                double blend = (i - 80) / 47.0;
+                eqMultiplier = midMultiplier * (1 - blend) * 0.3 + trebleMultiplier * (0.7 + blend * 0.3);
+            }
+            
+            rawValue *= eqMultiplier;
+            
+            // Smooth with previous value
+            _spectrumData[i] = Math.Clamp(_previousSpectrum[i] * 0.3 + rawValue * 0.7, 0, 1);
+            _previousSpectrum[i] = _spectrumData[i];
         }
         
         SpectrumDataUpdated?.Invoke(this, _spectrumData);
