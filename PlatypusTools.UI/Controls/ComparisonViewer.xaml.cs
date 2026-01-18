@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -8,10 +9,12 @@ namespace PlatypusTools.UI.Controls
 {
     /// <summary>
     /// Before/after comparison viewer with slider, side-by-side, and overlay modes.
-    /// Used for comparing original and processed images.
+    /// Supports synchronized zoom and pan across images.
     /// </summary>
     public partial class ComparisonViewer : UserControl
     {
+        private bool _isSyncing = false;
+        
         public ComparisonViewer()
         {
             InitializeComponent();
@@ -86,6 +89,32 @@ namespace PlatypusTools.UI.Controls
             set => SetValue(ModeProperty, value);
         }
 
+        /// <summary>
+        /// The current zoom level (1.0 = 100%).
+        /// </summary>
+        public static readonly DependencyProperty ZoomLevelProperty =
+            DependencyProperty.Register(nameof(ZoomLevel), typeof(double), typeof(ComparisonViewer),
+                new PropertyMetadata(1.0, OnZoomLevelChanged));
+
+        public double ZoomLevel
+        {
+            get => (double)GetValue(ZoomLevelProperty);
+            set => SetValue(ZoomLevelProperty, System.Math.Clamp(value, 0.1, 10.0));
+        }
+
+        /// <summary>
+        /// Whether pan is synchronized between left and right images.
+        /// </summary>
+        public static readonly DependencyProperty SyncPanEnabledProperty =
+            DependencyProperty.Register(nameof(SyncPanEnabled), typeof(bool), typeof(ComparisonViewer),
+                new PropertyMetadata(true));
+
+        public bool SyncPanEnabled
+        {
+            get => (bool)GetValue(SyncPanEnabledProperty);
+            set => SetValue(SyncPanEnabledProperty, value);
+        }
+
         #endregion
 
         #region Methods
@@ -113,6 +142,14 @@ namespace PlatypusTools.UI.Controls
             if (d is ComparisonViewer viewer)
             {
                 viewer.UpdateModeUI();
+            }
+        }
+
+        private static void OnZoomLevelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is ComparisonViewer viewer)
+            {
+                viewer.ApplyZoom();
             }
         }
 
@@ -157,6 +194,109 @@ namespace PlatypusTools.UI.Controls
             }
         }
 
+        private void ApplyZoom()
+        {
+            // Apply zoom to all transforms
+            SliderZoomTransform.ScaleX = ZoomLevel;
+            SliderZoomTransform.ScaleY = ZoomLevel;
+            
+            LeftZoomTransform.ScaleX = ZoomLevel;
+            LeftZoomTransform.ScaleY = ZoomLevel;
+            
+            RightZoomTransform.ScaleX = ZoomLevel;
+            RightZoomTransform.ScaleY = ZoomLevel;
+            
+            OverlayZoomTransform.ScaleX = ZoomLevel;
+            OverlayZoomTransform.ScaleY = ZoomLevel;
+        }
+
+        #region Zoom Controls
+
+        private void ZoomIn_Click(object sender, RoutedEventArgs e)
+        {
+            ZoomLevel = System.Math.Min(ZoomLevel * 1.25, 10.0);
+        }
+
+        private void ZoomOut_Click(object sender, RoutedEventArgs e)
+        {
+            ZoomLevel = System.Math.Max(ZoomLevel / 1.25, 0.1);
+        }
+
+        private void ZoomReset_Click(object sender, RoutedEventArgs e)
+        {
+            ZoomLevel = 1.0;
+        }
+
+        private void ZoomFit_Click(object sender, RoutedEventArgs e)
+        {
+            // Reset to fit view
+            ZoomLevel = 1.0;
+            
+            // Reset scroll positions
+            SliderScrollViewer?.ScrollToHome();
+            LeftScrollViewer?.ScrollToHome();
+            RightScrollViewer?.ScrollToHome();
+            OverlayScrollViewer?.ScrollToHome();
+        }
+
+        private void ComparisonArea_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                // Zoom with Ctrl+Scroll
+                if (e.Delta > 0)
+                    ZoomLevel = System.Math.Min(ZoomLevel * 1.1, 10.0);
+                else
+                    ZoomLevel = System.Math.Max(ZoomLevel / 1.1, 0.1);
+                
+                e.Handled = true;
+            }
+        }
+
+        #endregion
+
+        #region Synchronized Scrolling
+
+        private void SyncScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            if (!SyncPanEnabled || _isSyncing) return;
+            
+            if (sender is not ScrollViewer source) return;
+            
+            // Prevent recursive syncing
+            _isSyncing = true;
+            
+            try
+            {
+                // Get the normalized scroll position (0-1)
+                double hRatio = source.ScrollableWidth > 0 ? source.HorizontalOffset / source.ScrollableWidth : 0;
+                double vRatio = source.ScrollableHeight > 0 ? source.VerticalOffset / source.ScrollableHeight : 0;
+                
+                // Apply to all other scroll viewers
+                SyncScrollViewer(SliderScrollViewer, hRatio, vRatio, source);
+                SyncScrollViewer(LeftScrollViewer, hRatio, vRatio, source);
+                SyncScrollViewer(RightScrollViewer, hRatio, vRatio, source);
+                SyncScrollViewer(OverlayScrollViewer, hRatio, vRatio, source);
+            }
+            finally
+            {
+                _isSyncing = false;
+            }
+        }
+
+        private void SyncScrollViewer(ScrollViewer? target, double hRatio, double vRatio, ScrollViewer source)
+        {
+            if (target == null || target == source) return;
+            
+            double newHOffset = hRatio * target.ScrollableWidth;
+            double newVOffset = vRatio * target.ScrollableHeight;
+            
+            target.ScrollToHorizontalOffset(newHOffset);
+            target.ScrollToVerticalOffset(newVOffset);
+        }
+
+        #endregion
+
         /// <summary>
         /// Loads images from file paths.
         /// </summary>
@@ -180,8 +320,8 @@ namespace PlatypusTools.UI.Controls
         /// </summary>
         public void Clear()
         {
-            LeftImage = null;
-            RightImage = null;
+            LeftImage = null!;
+            RightImage = null!;
         }
 
         #endregion

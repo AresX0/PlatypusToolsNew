@@ -148,6 +148,9 @@
                             <TabItem Header="Batch Watermark">
                                 <controls:LazyTabContent ViewType="{x:Type views:BatchWatermarkView}" ViewDataContext="{Binding BatchWatermark}" />
                             </TabItem>
+                            <TabItem Header="Image Scaler">
+                                <controls:LazyTabContent ViewType="{x:Type views:BatchUpscaleView}" ViewDataContext="{Binding BatchUpscale}" />
+                            </TabItem>
                         </TabControl>
                     </TabItem>
                     
@@ -159,9 +162,6 @@
                             </TabItem>
                             <TabItem Header="Upscaler">
                                 <controls:LazyTabContent ViewType="{x:Type views:UpscalerView}" ViewDataContext="{Binding Upscaler}" />
-                            </TabItem>
-                            <TabItem Header="Batch Upscaler">
-                                <controls:LazyTabContent ViewType="{x:Type views:BatchUpscaleView}" ViewDataContext="{Binding BatchUpscale}" />
                             </TabItem>
                             <TabItem Header="Video Combiner">
                                 <controls:LazyTabContent ViewType="{x:Type views:VideoCombinerView}" ViewDataContext="{Binding VideoCombiner}" />

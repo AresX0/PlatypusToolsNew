@@ -95,22 +95,37 @@
                 <StackPanel Margin="12">
                     <TextBlock Text="Preview" FontWeight="SemiBold" Margin="0,0,0,8"/>
                     
-                    <!-- Preview Box -->
-                    <Border Width="200" Height="120" Background="#222" CornerRadius="4" Margin="0,0,0,16">
-                        <Grid>
+                    <!-- Animated Preview Box -->
+                    <Border Width="200" Height="120" Background="#222" CornerRadius="4" Margin="0,0,0,8" ClipToBounds="True">
+                        <Grid x:Name="PreviewContainer">
+                            <!-- "Before" image placeholder (left half) -->
+                            <Border x:Name="PreviewBefore" Background="#4A90D9" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                <TextBlock Text="A" FontSize="48" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <!-- "After" image placeholder (right half - animates in) -->
+                            <Border x:Name="PreviewAfter" Background="#D94A4A" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0">
+                                <Border.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform x:Name="AfterScaleTransform" ScaleX="1" ScaleY="1" CenterX="100" CenterY="60"/>
+                                        <TranslateTransform x:Name="AfterTranslateTransform" X="0" Y="0"/>
+                                    </TransformGroup>
+                                </Border.RenderTransform>
+                                <TextBlock Text="B" FontSize="48" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <!-- Transition icon overlay -->
                             <TextBlock Text="{Binding SelectedTransition.Icon}" 
-                                       FontSize="48" 
+                                       FontSize="28" Opacity="0.4"
                                        HorizontalAlignment="Center" 
                                        VerticalAlignment="Center"
                                        Foreground="White"/>
-                            <TextBlock Text="Preview" 
-                                       Foreground="#888" 
-                                       HorizontalAlignment="Center" 
-                                       VerticalAlignment="Bottom"
-                                       Margin="0,0,0,8"
-                                       FontSize="10"/>
                         </Grid>
                     </Border>
+                    
+                    <!-- Play Preview Button -->
+                    <Button x:Name="PlayPreviewBtn" Content="▶ Play Preview" Width="120" Height="28"
+                            HorizontalAlignment="Center" Margin="0,0,0,16"
+                            Click="PlayPreview_Click"
+                            IsEnabled="{Binding HasSelection}"/>
                     
                     <TextBlock Text="Settings" FontWeight="SemiBold" Margin="0,0,0,8"/>
                     

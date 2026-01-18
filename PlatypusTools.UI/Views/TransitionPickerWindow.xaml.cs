@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using PlatypusTools.Core.Models.Video;
 
 namespace PlatypusTools.UI.Views
@@ -205,6 +206,137 @@ namespace PlatypusTools.UI.Views
         {
             DialogResult = false;
             Close();
+        }
+
+        private void PlayPreview_Click(object sender, RoutedEventArgs e)
+        {
+            if (SelectedTransition == null) return;
+            
+            // Reset state
+            PreviewAfter.Opacity = 0;
+            AfterTranslateTransform.X = 0;
+            AfterTranslateTransform.Y = 0;
+            AfterScaleTransform.ScaleX = 1;
+            AfterScaleTransform.ScaleY = 1;
+            
+            var duration = TimeSpan.FromSeconds(Duration);
+            var easeFunc = GetEasingFunction(SelectedEasing);
+            
+            var storyboard = new Storyboard();
+            
+            // Create animation based on transition type
+            switch (SelectedTransition.TransitionType)
+            {
+                case TransitionType.FadeIn:
+                case TransitionType.FadeOut:
+                case TransitionType.CrossDissolve:
+                case TransitionType.DipToBlack:
+                case TransitionType.DipToWhite:
+                    // Fade animation
+                    var fadeAnim = new DoubleAnimation(0, 1, duration) { EasingFunction = easeFunc };
+                    Storyboard.SetTarget(fadeAnim, PreviewAfter);
+                    Storyboard.SetTargetProperty(fadeAnim, new PropertyPath(OpacityProperty));
+                    storyboard.Children.Add(fadeAnim);
+                    break;
+                    
+                case TransitionType.WipeLeft:
+                case TransitionType.SlideLeft:
+                case TransitionType.Push:
+                    // Slide from right
+                    PreviewAfter.Opacity = 1;
+                    AfterTranslateTransform.X = 200;
+                    var slideLeftAnim = new DoubleAnimation(200, 0, duration) { EasingFunction = easeFunc };
+                    Storyboard.SetTarget(slideLeftAnim, PreviewAfter);
+                    Storyboard.SetTargetProperty(slideLeftAnim, new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.X)"));
+                    storyboard.Children.Add(slideLeftAnim);
+                    break;
+                    
+                case TransitionType.WipeRight:
+                case TransitionType.SlideRight:
+                    // Slide from left
+                    PreviewAfter.Opacity = 1;
+                    AfterTranslateTransform.X = -200;
+                    var slideRightAnim = new DoubleAnimation(-200, 0, duration) { EasingFunction = easeFunc };
+                    Storyboard.SetTarget(slideRightAnim, PreviewAfter);
+                    Storyboard.SetTargetProperty(slideRightAnim, new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.X)"));
+                    storyboard.Children.Add(slideRightAnim);
+                    break;
+                    
+                case TransitionType.WipeUp:
+                case TransitionType.SlideUp:
+                    // Slide from bottom
+                    PreviewAfter.Opacity = 1;
+                    AfterTranslateTransform.Y = 120;
+                    var slideUpAnim = new DoubleAnimation(120, 0, duration) { EasingFunction = easeFunc };
+                    Storyboard.SetTarget(slideUpAnim, PreviewAfter);
+                    Storyboard.SetTargetProperty(slideUpAnim, new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.Y)"));
+                    storyboard.Children.Add(slideUpAnim);
+                    break;
+                    
+                case TransitionType.WipeDown:
+                case TransitionType.SlideDown:
+                    // Slide from top
+                    PreviewAfter.Opacity = 1;
+                    AfterTranslateTransform.Y = -120;
+                    var slideDownAnim = new DoubleAnimation(-120, 0, duration) { EasingFunction = easeFunc };
+                    Storyboard.SetTarget(slideDownAnim, PreviewAfter);
+                    Storyboard.SetTargetProperty(slideDownAnim, new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.Y)"));
+                    storyboard.Children.Add(slideDownAnim);
+                    break;
+                    
+                case TransitionType.ZoomIn:
+                case TransitionType.CrossZoom:
+                    // Zoom in from center
+                    PreviewAfter.Opacity = 1;
+                    AfterScaleTransform.ScaleX = 0.1;
+                    AfterScaleTransform.ScaleY = 0.1;
+                    var zoomInX = new DoubleAnimation(0.1, 1, duration) { EasingFunction = easeFunc };
+                    var zoomInY = new DoubleAnimation(0.1, 1, duration) { EasingFunction = easeFunc };
+                    var zoomFade = new DoubleAnimation(0, 1, duration) { EasingFunction = easeFunc };
+                    Storyboard.SetTarget(zoomInX, PreviewAfter);
+                    Storyboard.SetTargetProperty(zoomInX, new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"));
+                    Storyboard.SetTarget(zoomInY, PreviewAfter);
+                    Storyboard.SetTargetProperty(zoomInY, new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"));
+                    storyboard.Children.Add(zoomInX);
+                    storyboard.Children.Add(zoomInY);
+                    break;
+                    
+                case TransitionType.ZoomOut:
+                    // Zoom out from large
+                    PreviewAfter.Opacity = 1;
+                    AfterScaleTransform.ScaleX = 2;
+                    AfterScaleTransform.ScaleY = 2;
+                    var zoomOutX = new DoubleAnimation(2, 1, duration) { EasingFunction = easeFunc };
+                    var zoomOutY = new DoubleAnimation(2, 1, duration) { EasingFunction = easeFunc };
+                    Storyboard.SetTarget(zoomOutX, PreviewAfter);
+                    Storyboard.SetTargetProperty(zoomOutX, new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"));
+                    Storyboard.SetTarget(zoomOutY, PreviewAfter);
+                    Storyboard.SetTargetProperty(zoomOutY, new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"));
+                    storyboard.Children.Add(zoomOutX);
+                    storyboard.Children.Add(zoomOutY);
+                    break;
+                    
+                default:
+                    // Default fade for other transitions
+                    var defaultFade = new DoubleAnimation(0, 1, duration) { EasingFunction = easeFunc };
+                    Storyboard.SetTarget(defaultFade, PreviewAfter);
+                    Storyboard.SetTargetProperty(defaultFade, new PropertyPath(OpacityProperty));
+                    storyboard.Children.Add(defaultFade);
+                    break;
+            }
+            
+            storyboard.Begin();
+        }
+        
+        private IEasingFunction? GetEasingFunction(string easing)
+        {
+            return easing switch
+            {
+                "Ease In" => new CubicEase { EasingMode = EasingMode.EaseIn },
+                "Ease Out" => new CubicEase { EasingMode = EasingMode.EaseOut },
+                "Ease In-Out" => new CubicEase { EasingMode = EasingMode.EaseInOut },
+                _ => null // Linear
+            };
         }
 
         #endregion

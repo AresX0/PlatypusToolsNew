@@ -35,6 +35,7 @@ public class AudioPlayerService
     private DispatcherTimer? _crossfadeTimer;
     private int _crossfadeDurationMs = 2000; // Default 2 seconds
     private bool _crossfadeEnabled = true;
+    private double _crossfadeOriginalVolume = 0.7; // Store volume before crossfade starts
     
     /// <summary>
     /// Gets or sets whether crossfade is enabled between tracks.
@@ -208,6 +209,9 @@ public class AudioPlayerService
         
         try
         {
+            // Store the original volume BEFORE we start fading
+            _crossfadeOriginalVolume = _mediaPlayer.Volume;
+            
             // Start next track on crossfade player at volume 0
             _crossfadePlayer.Open(new Uri(nextTrack.FilePath));
             _crossfadePlayer.Volume = 0;
@@ -216,7 +220,7 @@ public class AudioPlayerService
             // Start crossfade timer
             _crossfadeTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
             var startTime = DateTime.Now;
-            var fadeOutVolume = _mediaPlayer.Volume;
+            var fadeOutVolume = _crossfadeOriginalVolume;
             
             _crossfadeTimer.Tick += (s, e) =>
             {
@@ -250,9 +254,8 @@ public class AudioPlayerService
             // Stop the old track
             _mediaPlayer.Stop();
             
-            // Swap players (conceptually - just update state)
-            var targetVolume = Volume;
-            _crossfadePlayer.Volume = targetVolume;
+            // Use the stored original volume (NOT the faded-out volume)
+            var targetVolume = _crossfadeOriginalVolume;
             
             // Move to next track index
             _currentIndex = GetNextIndex();
@@ -263,31 +266,39 @@ public class AudioPlayerService
                 CurrentTrack.LastPlayed = DateTime.Now;
             }
             
-            // Open the track on main player and sync position
+            // Get the current position from crossfade player before we touch anything
+            var crossfadePosition = _crossfadePlayer.Position;
+            
+            // Open the track on main player
             if (CurrentTrack != null && File.Exists(CurrentTrack.FilePath))
             {
                 _mediaPlayer.Open(new Uri(CurrentTrack.FilePath));
                 _mediaPlayer.Volume = targetVolume;
-            }
-            
-            // Stop crossfade player after short delay to allow main player to take over
-            Task.Delay(100).ContinueWith(_ =>
-            {
-                var app = System.Windows.Application.Current;
-                if (app == null) return;
                 
-                app.Dispatcher.BeginInvoke(new Action(() =>
+                // Wait for media to open, then sync position and swap
+                _mediaPlayer.MediaOpened += OnCrossfadeMediaOpened;
+                void OnCrossfadeMediaOpened(object? s, EventArgs ev)
                 {
+                    _mediaPlayer.MediaOpened -= OnCrossfadeMediaOpened;
                     try
                     {
-                        var pos = _crossfadePlayer.Position;
-                        _mediaPlayer.Position = pos;
+                        // Sync position and ensure volume is correct
+                        _mediaPlayer.Position = crossfadePosition;
+                        _mediaPlayer.Volume = targetVolume;
                         _mediaPlayer.Play();
+                        
+                        // Now stop crossfade player
                         _crossfadePlayer.Stop();
+                        _crossfadePlayer.Volume = 0;
                     }
                     catch { }
-                }));
-            });
+                };
+            }
+            else
+            {
+                // No valid track, just stop crossfade player
+                _crossfadePlayer.Stop();
+            }
             
             _isCrossfading = false;
             TrackChanged?.Invoke(this, CurrentTrack);

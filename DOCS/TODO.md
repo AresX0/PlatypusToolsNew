@@ -1,9 +1,64 @@
-# PlatypusTools v3.1.1 - Detailed TODO List
+# PlatypusTools v3.3.0 - Detailed TODO List
 
 **Branch**: `main`  
 **Last Updated**: January 17, 2026  
-**Current Version**: v3.1.1  
+**Current Version**: v3.3.0 (in development)  
 **Legend**: ✅ Complete | 🔄 In Progress | ❌ Not Started
+
+---
+
+## Recently Completed (v3.3.0)
+
+### New Features (v3.3.0)
+- [x] **Scrolling Screenshot Capture** - Capture entire scrolling content (TASK-134) ✅
+  - Automatically scrolls and stitches images together
+  - Works with browsers, documents, and any scrollable window
+  - Added 📜 Scroll button to Screenshot tool toolbar
+- [x] **Audio Crossfade UI** - Visual controls for track transitions ✅
+  - Enable/disable crossfade with checkbox
+  - Adjustable duration slider (0-5 seconds)
+  - Smooth fade between tracks already implemented in service
+- [x] **Transition Preview Animation** - Live preview in transition picker (TASK-047) ✅
+  - Play button to preview selected transition
+  - Animated before/after panels showing transition effect
+  - Supports fade, slide, wipe, and zoom transitions
+- [x] **Synchronized Comparison Zoom** - Linked zoom/pan for image comparison (TASK-062) ✅
+  - Zoom in/out buttons with Ctrl+scroll support
+  - Reset and Fit to View buttons
+  - Sync Pan toggle to link both images
+  - Works in Slider, Side-by-Side, and Overlay modes
+
+---
+
+## Recently Completed (v3.2.0)
+
+### New Features (v3.2.0)
+- [x] **Forensics Analyzer** - New security tool for system forensic analysis ✅
+  - Lightweight Mode - Quick scan using single core, ~100MB output
+  - Deep Mode - Comprehensive analysis using all cores, GB-scale output
+  - Memory Analysis - Process inspection, suspicious process detection
+  - File System Analysis - Executable scanning, hidden file detection, SHA256 hashing
+  - Registry Analysis - Startup entry enumeration, suspicious run key detection
+  - Log Aggregation - Windows Event Log parsing, security event analysis
+  - Export Report - Generate detailed forensics reports in JSON or text format
+- [x] **Sleep Timer** - Audio Player enhancement with automatic playback stop ✅
+  - Set timer (15, 30, 45, 60, 90, 120 minutes)
+  - Countdown display in status bar
+  - Gradual fade-out before stopping
+  - Cancel timer option
+- [x] **Plugin Manager UI** - New tool for managing plugins ✅
+  - Browse installed plugins with status
+  - Install new plugins from file
+  - Enable/disable plugins without uninstalling
+  - Uninstall plugins with confirmation
+  - Reload all plugins to apply changes
+  - View plugin details (version, author, description)
+
+### Bug Fixes (v3.2.0)
+- [x] **Audio Player Library Persistence** - Library folders and tracks now properly load on startup ✅
+- [x] **Audio Player Play Selected** - Play Selected button now correctly plays the highlighted track ✅
+- [x] **Audio Player Organize By** - Organize dropdown now properly filters tracks by Artist, Album, Genre, etc. ✅
+- [x] **Audio Player DataGrid Init** - Fixed exception during initialization that prevented library loading ✅
 
 ---
 
@@ -96,7 +151,7 @@
 - [x] **TASK-044**: Implement slide transitions ✅
 - [x] **TASK-045**: Implement zoom transitions ✅
 - [x] **TASK-046**: Add transition duration control ✅
-- [ ] **TASK-047**: Add transition preview
+- [x] **TASK-047**: Add transition preview ✅
 
 ### 2.4 Image Scaler Batch Processing
 - [x] **TASK-048**: Create `BatchUpscaleJob.cs` model
@@ -114,9 +169,9 @@
 - [x] **TASK-058**: Create `ComparisonViewer.xaml` control
 - [x] **TASK-059**: Implement slider comparison mode
 - [x] **TASK-060**: Implement side-by-side mode
-- [x] **TASK-061**: Implement overlay toggle mode
-- [ ] **TASK-062**: Implement synchronized zoom/pan
-- [x] **TASK-063**: Add comparison view to Image Scaler
+- [x] **TASK-061**: Implement overlay toggle mode ✅
+- [x] **TASK-062**: Implement synchronized zoom/pan ✅
+- [x] **TASK-063**: Add comparison view to Image Scaler ✅
 
 ### 2.6 Metadata Template Presets
 - [x] **TASK-064**: Create `MetadataTemplate.cs` model ✅
@@ -207,7 +262,7 @@
 - [x] **TASK-131**: Implement full screen capture ✅
 - [x] **TASK-132**: Implement active window capture ✅
 - [x] **TASK-133**: Implement region selection ✅
-- [ ] **TASK-134**: Implement scrolling capture (optional)
+- [x] **TASK-134**: Implement scrolling capture ✅
 - [x] **TASK-135**: Create annotation toolbar ✅
 - [x] **TASK-136**: Implement arrow annotation ✅
 - [x] **TASK-137**: Implement rectangle annotation ✅
@@ -244,13 +299,13 @@
 - [x] **TASK-160**: Define `IFileProcessorPlugin` interface ✅ *IFileProcessorPlugin*
 - [x] **TASK-161**: Create `PluginManifest.cs` model ✅
 - [x] **TASK-162**: Create `PluginLoader.cs` service ✅ *In PluginService*
-- [ ] **TASK-163**: Create `PluginManagerViewModel.cs`
-- [ ] **TASK-164**: Create `PluginManagerView.xaml`
+- [x] **TASK-163**: Create `PluginManagerViewModel.cs` ✅ *v3.2.0*
+- [x] **TASK-164**: Create `PluginManagerView.xaml` ✅ *v3.2.0*
 - [x] **TASK-165**: Implement plugin discovery ✅ *ScanPlugins*
 - [x] **TASK-166**: Implement plugin loading/unloading ✅ *LoadPlugin/UnloadPlugin*
 - [ ] **TASK-167**: Implement plugin sandboxing
 - [ ] **TASK-168**: Create sample plugin
-- [ ] **TASK-169**: Add Plugin Manager to settings
+- [x] **TASK-169**: Add Plugin Manager to settings ✅ *v3.2.0*
 
 ### 4.3 Logging UI
 - [x] **TASK-170**: Create `LogViewerViewModel.cs` ✅ *Full implementation*
@@ -302,7 +357,7 @@
 - [ ] **TASK-206**: Implement seek
 - [ ] **TASK-207**: Implement volume control
 - [ ] **TASK-208**: Implement gapless playback
-- [ ] **TASK-209**: Implement crossfade
+- [x] **TASK-209**: Implement crossfade ✅ *(UI + managed implementation)*
 - [ ] **TASK-210**: Implement 10-band EQ
 - [ ] **TASK-211**: Implement preamp gain
 - [ ] **TASK-212**: Implement playback speed
@@ -480,31 +535,65 @@
 
 ---
 
-## Priority Next Steps (v3.2.0 Candidates)
+## Priority Next Steps (v3.3.0 Candidates)
 
 Based on remaining work and user value, here are the **recommended next features**:
 
-### High Priority (Quick Wins)
+### ✅ Completed in v3.3.0
 
-1. **TASK-029: Drag-and-drop clips on timeline** - Improves video editor usability
-2. **TASK-041: TransitionPickerView.xaml UI** - Users need UI to select transitions
-3. **TASK-046/047: Transition duration control and preview** - Complete the transition feature
-4. **TASK-053: Per-item settings override for batch upscale** - More flexibility
-5. **TASK-062: Synchronized zoom/pan for comparison viewer** - Better comparison UX
+1. ~~**TASK-047: Transition preview**~~ - ✅ Let users preview transitions before applying
+2. ~~**TASK-062: Synchronized zoom/pan for comparison viewer**~~ - ✅ Better before/after comparison UX
+3. ~~**TASK-134: Scrolling capture**~~ - ✅ Capture long web pages and documents
+4. ~~**Audio Crossfade UI**~~ - ✅ Smooth transitions between songs with UI controls
+
+### High Priority (Quick Wins - Remaining)
+
+1. **TASK-053: Per-item settings override for batch upscale** - More flexibility per file
+2. **TASK-072: Tag selection checkboxes for batch metadata** - Select which tags to copy
+3. **TASK-074: Preview before apply for batch metadata** - See changes before committing
 
 ### Medium Priority (New Functionality)
 
-6. **TASK-066/067: Template save/load UI for metadata** - Users can save common metadata sets
-7. **TASK-072/074: Tag selection checkboxes and preview for batch metadata** - Better control
-8. **TASK-084-089: Video Similarity Detection** - Highly requested for finding duplicate videos
-9. **TASK-111/112: PDF encryption and watermark** - Complete PDF toolset
-10. **TASK-123/125: Archive password protection and split** - Complete archive toolset
+4. **TASK-167: Plugin sandboxing** - Isolate plugins for security
+5. **TASK-168: Sample plugin** - Help developers create plugins
+6. **Advanced Image Editing (TASK-310-317)** - Text overlay, shape drawing, layers
+7. **Image Processing Filters (TASK-318-324)** - Blur, sharpen, contrast, crop tools
 
-### Lower Priority (Enhancement)
+### Audio Player Enhancements (Native .NET)
 
-11. **TASK-013-017: Recent Workspaces UI** - Nice to have file menu integration
-12. **TASK-134: Scrolling capture** - Advanced screenshot feature
-13. **TASK-163-169: Plugin Manager UI** - Plugin system already works, UI is polish
+11. **Playlist Management** - Create, edit, save playlists
+12. **Crossfade Between Tracks** - Smooth transitions between songs
+13. **Gapless Playback** - Seamless album playback
+14. **Lyrics Display** - LRC file parsing and synchronized lyrics
+15. **Visualizer Plugins** - Allow custom visualizers via plugin system
+
+### System & Quality
+
+16. **TASK-306: XML doc comments** - Document all public APIs
+17. **TASK-308: Plugin developer guide** - Help third-party developers
+18. **Unit Tests (TASK-291-300)** - Increase test coverage
+19. **Integration Tests (TASK-301-304)** - End-to-end testing
+
+---
+
+## v3.3.0 Feature Set (Implemented)
+
+### 🎯 Core Features (Complete)
+1. ✅ **Scrolling Screenshot Capture** - Capture entire scrolling content
+2. ✅ **Audio Crossfade UI** - Visual controls for smooth track transitions
+3. ✅ **Transition Preview** - Preview video transitions before applying
+4. ✅ **Synchronized Comparison Zoom** - Side-by-side zoom/pan for image comparison
+
+### 🔧 Future Enhancements (v3.4.0 Candidates)
+5. **Batch Metadata Tag Selection** - Choose which tags to copy/apply (TASK-072)
+6. **Per-file Batch Upscale Settings** - Override settings per file (TASK-053)
+7. **Sample Plugin + Developer Guide** - Bootstrap plugin ecosystem (TASK-168)
+8. **Advanced Image Editing** - Text overlay, shape drawing, layers (TASK-310-317)
+
+### 🐛 Bug Fixes & Polish
+9. Fix any reported issues from v3.2.0
+10. Performance improvements for large libraries
+11. UI polish based on user feedback
 
 ---
 
@@ -519,24 +608,20 @@ Based on remaining work and user value, here are the **recommended next features
 
 | Phase | Total Tasks | Completed | Remaining |
 |-------|-------------|-----------|-----------|
-| Phase 1: UI Foundation | 21 | 18 | 3 |
+| Phase 1: UI Foundation | 21 | 21 | 0 |
 | Phase 2: Enhanced Tools | 68 | 48 | 20 |
 | Phase 3: New Tools | 56 | 50 | 6 |
-| Phase 4: System Features | 33 | 26 | 7 |
+| Phase 4: System Features | 33 | 29 | 4 |
 | Phase 5: C++ Core | 65 | 0 | 65 (Deferred) |
 | Phase 6: C++/CLI Bridge | 16 | 0 | 16 (Deferred) |
 | Phase 7: .NET UI | 31 | 0 | 31 (Deferred) |
 | Phase 8: Testing & Docs | 19 | 4 | 15 |
-| **TOTAL** | **309** | **146** | **163** |
+| **TOTAL** | **309** | **152** | **157** |
 
 **Note**: Phases 5-7 (C++ Audio Core) are deferred - the audio player uses managed .NET implementation with NAudio.
 
 ---
 
-*Last verified: January 17, 2026***Note**: Phases 5-7 (C++ Audio Core) are deferred - the audio player currently uses managed .NET implementation with NAudio.
-
----
-
-*Last verified: January 28, 2026*
+*Last verified: January 17, 2026*
 
 

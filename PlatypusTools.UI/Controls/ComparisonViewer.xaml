@@ -34,6 +34,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         
@@ -47,26 +48,54 @@
                          GroupName="CompareMode" Margin="4,0,0,0"/>
         </StackPanel>
         
+        <!-- Zoom Controls -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
+            <Button x:Name="ZoomOutBtn" Content="−" Width="28" Height="28" FontSize="16" FontWeight="Bold"
+                    ToolTip="Zoom Out" Click="ZoomOut_Click"/>
+            <TextBlock x:Name="ZoomLevelText" Text="{Binding ZoomLevel, ElementName=Root, StringFormat={}{0:P0}}" 
+                       VerticalAlignment="Center" Margin="8,0" MinWidth="50" TextAlignment="Center"/>
+            <Button x:Name="ZoomInBtn" Content="+" Width="28" Height="28" FontSize="16" FontWeight="Bold"
+                    ToolTip="Zoom In" Click="ZoomIn_Click"/>
+            <Button x:Name="ZoomResetBtn" Content="↺" Width="28" Height="28" FontSize="14" Margin="8,0,0,0"
+                    ToolTip="Reset Zoom (100%)" Click="ZoomReset_Click"/>
+            <Button x:Name="ZoomFitBtn" Content="⊡" Width="28" Height="28" FontSize="14" Margin="4,0,0,0"
+                    ToolTip="Fit to View" Click="ZoomFit_Click"/>
+            <CheckBox x:Name="SyncPanCheckBox" Content="Sync Pan" IsChecked="{Binding SyncPanEnabled, ElementName=Root, Mode=TwoWay}"
+                      VerticalAlignment="Center" Margin="12,0,0,0" ToolTip="Synchronize pan position between images"/>
+        </StackPanel>
+        
         <!-- Comparison Area -->
-        <Grid Grid.Row="1" ClipToBounds="True">
+        <Grid Grid.Row="2" ClipToBounds="True"
+              MouseWheel="ComparisonArea_MouseWheel">
             
             <!-- Slider Mode -->
             <Grid x:Name="SliderContainer" 
                   Visibility="{Binding ElementName=SliderMode, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
                 
-                <!-- Right Image (After) - Full -->
-                <Image x:Name="RightImageSlider" 
-                       Source="{Binding RightImage, ElementName=Root}"
-                       Stretch="Uniform"/>
-                
-                <!-- Left Image (Before) - Clipped -->
-                <Image x:Name="LeftImageSlider" 
-                       Source="{Binding LeftImage, ElementName=Root}"
-                       Stretch="Uniform">
-                    <Image.Clip>
-                        <RectangleGeometry x:Name="LeftClip"/>
-                    </Image.Clip>
-                </Image>
+                <!-- Scrollable/Zoomable container -->
+                <ScrollViewer x:Name="SliderScrollViewer" 
+                              HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                              ScrollChanged="SyncScrollViewer_ScrollChanged">
+                    <Grid>
+                        <Grid.RenderTransform>
+                            <ScaleTransform x:Name="SliderZoomTransform" ScaleX="1" ScaleY="1"/>
+                        </Grid.RenderTransform>
+                        
+                        <!-- Right Image (After) - Full -->
+                        <Image x:Name="RightImageSlider" 
+                               Source="{Binding RightImage, ElementName=Root}"
+                               Stretch="None"/>
+                        
+                        <!-- Left Image (Before) - Clipped -->
+                        <Image x:Name="LeftImageSlider" 
+                               Source="{Binding LeftImage, ElementName=Root}"
+                               Stretch="None">
+                            <Image.Clip>
+                                <RectangleGeometry x:Name="LeftClip"/>
+                            </Image.Clip>
+                        </Image>
+                    </Grid>
+                </ScrollViewer>
                 
                 <!-- Slider Handle -->
                 <Canvas>
@@ -110,7 +139,16 @@
                 
                 <!-- Left (Before) -->
                 <Grid Grid.Column="0">
-                    <Image Source="{Binding LeftImage, ElementName=Root}" Stretch="Uniform"/>
+                    <ScrollViewer x:Name="LeftScrollViewer"
+                                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                  ScrollChanged="SyncScrollViewer_ScrollChanged">
+                        <Image x:Name="LeftImageSideBySide" 
+                               Source="{Binding LeftImage, ElementName=Root}" Stretch="None">
+                            <Image.RenderTransform>
+                                <ScaleTransform x:Name="LeftZoomTransform" ScaleX="1" ScaleY="1"/>
+                            </Image.RenderTransform>
+                        </Image>
+                    </ScrollViewer>
                     <TextBlock Text="Before" Foreground="White" FontWeight="Bold"
                                Background="#80000000" Padding="8,4"
                                HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8"/>
@@ -121,7 +159,16 @@
                 
                 <!-- Right (After) -->
                 <Grid Grid.Column="2">
-                    <Image Source="{Binding RightImage, ElementName=Root}" Stretch="Uniform"/>
+                    <ScrollViewer x:Name="RightScrollViewer"
+                                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                  ScrollChanged="SyncScrollViewer_ScrollChanged">
+                        <Image x:Name="RightImageSideBySide"
+                               Source="{Binding RightImage, ElementName=Root}" Stretch="None">
+                            <Image.RenderTransform>
+                                <ScaleTransform x:Name="RightZoomTransform" ScaleX="1" ScaleY="1"/>
+                            </Image.RenderTransform>
+                        </Image>
+                    </ScrollViewer>
                     <TextBlock Text="After" Foreground="White" FontWeight="Bold"
                                Background="#80000000" Padding="8,4"
                                HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8"/>
@@ -132,16 +179,25 @@
             <Grid x:Name="OverlayContainer"
                   Visibility="{Binding ElementName=OverlayMode, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
                 
-                <!-- Before Image -->
-                <Image x:Name="OverlayLeftImage"
-                       Source="{Binding LeftImage, ElementName=Root}" 
-                       Stretch="Uniform"/>
-                
-                <!-- After Image with Opacity -->
-                <Image x:Name="OverlayRightImage"
-                       Source="{Binding RightImage, ElementName=Root}" 
-                       Stretch="Uniform"
-                       Opacity="{Binding OverlayOpacity, ElementName=Root}"/>
+                <ScrollViewer x:Name="OverlayScrollViewer"
+                              HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <Grid>
+                        <Grid.RenderTransform>
+                            <ScaleTransform x:Name="OverlayZoomTransform" ScaleX="1" ScaleY="1"/>
+                        </Grid.RenderTransform>
+                        
+                        <!-- Before Image -->
+                        <Image x:Name="OverlayLeftImage"
+                               Source="{Binding LeftImage, ElementName=Root}" 
+                               Stretch="None"/>
+                        
+                        <!-- After Image with Opacity -->
+                        <Image x:Name="OverlayRightImage"
+                               Source="{Binding RightImage, ElementName=Root}" 
+                               Stretch="None"
+                               Opacity="{Binding OverlayOpacity, ElementName=Root}"/>
+                    </Grid>
+                </ScrollViewer>
                 
                 <!-- Current Label -->
                 <TextBlock x:Name="OverlayLabel" 

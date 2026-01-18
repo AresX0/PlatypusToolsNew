@@ -557,6 +557,32 @@ public partial class AudioPlayerView : UserControl
         });
     }
     
+    /// <summary>
+    /// Refreshes the queue display by syncing ViewModel Queue with service Queue.
+    /// This updates through the binding rather than breaking it.
+    /// </summary>
+    private void RefreshQueueDisplay()
+    {
+        var vm = GetViewModel();
+        if (vm == null) return;
+        
+        Dispatcher.Invoke(() =>
+        {
+            // Sync ViewModel queue with service queue
+            vm.Queue.Clear();
+            foreach (var track in PlatypusTools.UI.Services.AudioPlayerService.Instance.Queue)
+                vm.Queue.Add(track);
+            
+            // Ensure binding is active (restore if it was broken)
+            if (QueueListBox.ItemsSource != vm.Queue)
+            {
+                QueueListBox.ItemsSource = vm.Queue;
+            }
+            
+            UpdateQueueCount();
+        });
+    }
+    
     // ===== Seek Slider Handlers =====
     
     private void OnSeekSliderMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -685,19 +711,10 @@ public partial class AudioPlayerView : UserControl
             
             System.Diagnostics.Debug.WriteLine($"OnOpenFilesClick: Loaded {loadedCount} tracks total");
             
-            // Refresh queue display on UI thread
+            // Refresh queue display on UI thread - use helper to preserve binding
             await Dispatcher.InvokeAsync(() =>
             {
-                vm.Queue.Clear();
-                foreach (var track in PlatypusTools.UI.Services.AudioPlayerService.Instance.Queue)
-                    vm.Queue.Add(track);
-                
-                // FORCE ItemsSource update - bypass binding
-                var queueList = PlatypusTools.UI.Services.AudioPlayerService.Instance.Queue.ToList();
-                QueueListBox.ItemsSource = queueList;
-                    
-                // Update queue count display directly
-                UpdateQueueCount();
+                RefreshQueueDisplay();
                 System.Diagnostics.Debug.WriteLine($"OnOpenFilesClick: Queue now has {vm.Queue.Count} tracks, ListBox has {QueueListBox.Items.Count} items");
             });
             
@@ -760,18 +777,10 @@ public partial class AudioPlayerView : UserControl
             {
                 PlatypusTools.UI.Services.AudioPlayerService.Instance.SetQueue(tracks);
                 
-                // Refresh queue display on UI thread
+                // Refresh queue display on UI thread - use helper to preserve binding
                 await Dispatcher.InvokeAsync(() =>
                 {
-                    vm.Queue.Clear();
-                    foreach (var track in tracks)
-                        vm.Queue.Add(track);
-                    
-                    // FORCE ItemsSource update
-                    QueueListBox.ItemsSource = tracks.ToList();
-                    
-                    // Update queue count
-                    UpdateQueueCount();
+                    RefreshQueueDisplay();
                 });
                 
                 var firstTrack = tracks.FirstOrDefault();
@@ -1009,12 +1018,7 @@ public partial class AudioPlayerView : UserControl
             // Refresh queue display
             await Dispatcher.InvokeAsync(() =>
             {
-                vm.Queue.Clear();
-                foreach (var track in PlatypusTools.UI.Services.AudioPlayerService.Instance.Queue)
-                    vm.Queue.Add(track);
-                    
-                QueueListBox.ItemsSource = null;
-                QueueListBox.ItemsSource = vm.Queue;
+                RefreshQueueListBox();
             });
             
             vm.StatusMessage = $"Added {tracks.Count} tracks to queue";
@@ -1317,6 +1321,20 @@ public partial class AudioPlayerView : UserControl
         System.Diagnostics.Debug.WriteLine("EQ Reset to flat");
     }
     
+    private void OnCrossfadeEnabledChanged(object sender, RoutedEventArgs e)
+    {
+        var vm = GetViewModel();
+        if (vm != null)
+        {
+            System.Diagnostics.Debug.WriteLine($"Crossfade enabled: {vm.CrossfadeEnabled}");
+        }
+    }
+    
+    private void OnCrossfadeDurationChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        System.Diagnostics.Debug.WriteLine($"Crossfade duration changed to {e.NewValue:F1}s");
+    }
+    
     // ===== Fullscreen Visualizer Support =====
     
     private bool _isVisualizerFullscreen = false;
@@ -1516,7 +1534,7 @@ public partial class AudioPlayerView : UserControl
     
     /// <summary>
     /// Syncs the ViewModel's Queue collection with the service's queue.
-    /// Does NOT reset ItemsSource to preserve XAML bindings.
+    /// Also ensures XAML binding is active (in case it was broken previously).
     /// </summary>
     private void RefreshQueueListBox()
     {
@@ -1530,6 +1548,12 @@ public partial class AudioPlayerView : UserControl
         foreach (var track in service.Queue)
         {
             vm.Queue.Add(track);
+        }
+        
+        // Ensure binding is active (restore if it was broken)
+        if (QueueListBox.ItemsSource != vm.Queue)
+        {
+            QueueListBox.ItemsSource = vm.Queue;
         }
         
         // Update queue count display

@@ -2,6 +2,59 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.0.1 - 2026-01-18
+
+### Fixed
+- **Audio Player Queue Display** - Fixed queue not updating when adding files from Library tab
+  - Resolved binding issue where ItemsSource was being set to static lists
+  - Queue now updates immediately when using "Add All" from Library
+
+- **Crossfade Volume** - Fixed volume going silent after crossfade transition
+  - Volume now correctly restores to original level after track change
+  - Stored original volume before fade starts to preserve correct playback level
+
+### Changed
+- **Renamed Batch Upscaler to Image Scaler** - Better describes functionality
+- **Moved Image Scaler to Image tab** - More logical placement with other image tools
+
+### Added
+- **Video Combiner Transitions** - Added transition effects between combined clips:
+  - Enable Transitions checkbox to toggle feature
+  - 10 transition types: Cross Dissolve, Fade to Black/White, Wipe (4 directions), Slide (2 directions)
+  - Adjustable transition duration (0.25s - 5.0s)
+  - File reordering with Move Up/Down buttons
+  - Remove Selected button for file management
+  - Uses FFmpeg xfade filter for smooth video transitions
+  - Audio crossfade between clips
+
+## v3.3.0 - 2026-01-17
+
+### Added
+- **Scrolling Screenshot Capture** - Capture entire scrollable content:
+  - New 📜 Scroll button in Screenshot tool toolbar
+  - Automatically scrolls window and stitches images together
+  - Works with browsers, documents, and any scrollable window
+  - Uses overlap-based stitching for seamless results
+
+- **Audio Crossfade UI** - Visual controls for track transitions:
+  - Enable/disable crossfade checkbox in Audio Player toolbar
+  - Adjustable duration slider (0-5 seconds)
+  - Duration display shows current setting
+  - Smooth fade-out/fade-in between tracks
+
+- **Transition Preview Animation** - Live preview in transition picker:
+  - Play Preview button to see transition in action
+  - Animated before/after panels ("A" → "B")
+  - Supports all transition types: fade, slide, wipe, zoom
+  - Respects duration and easing settings
+
+- **Synchronized Comparison Zoom** - Linked zoom/pan for image comparison:
+  - Zoom in/out buttons (+/−) with percentage display
+  - Ctrl+Mouse wheel for smooth zooming
+  - Reset (100%) and Fit to View buttons
+  - Sync Pan toggle to link left/right image scrolling
+  - Works in Slider, Side-by-Side, and Overlay modes
+
 ## v3.2.0 - 2026-01-17
 
 ### Added

@@ -9,6 +9,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="150" />
@@ -18,15 +19,40 @@
             <TextBox Width="400" Text="{Binding OutputPath, UpdateSourceTrigger=PropertyChanged}" />
             <Button Content="Browse..." Command="{Binding BrowseOutputCommand}" Width="90" Margin="8,0,0,0" />
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8">
+        
+        <!-- Transition Settings -->
+        <GroupBox Header="Transition Settings" Grid.Row="1" Margin="0,0,0,8" Padding="5">
+            <StackPanel Orientation="Horizontal">
+                <CheckBox Content="Enable Transitions" IsChecked="{Binding EnableTransitions}" VerticalAlignment="Center" Margin="0,0,15,0"/>
+                <TextBlock Text="Transition:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <ComboBox Width="140" SelectedItem="{Binding SelectedTransition}" ItemsSource="{Binding AvailableTransitions}" 
+                          IsEnabled="{Binding EnableTransitions}" Margin="0,0,15,0"/>
+                <TextBlock Text="Duration:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <ComboBox Width="80" SelectedItem="{Binding TransitionDuration}" IsEnabled="{Binding EnableTransitions}">
+                    <ComboBoxItem Content="0.5s" Tag="0.5"/>
+                    <ComboBoxItem Content="1.0s" Tag="1.0"/>
+                    <ComboBoxItem Content="1.5s" Tag="1.5"/>
+                    <ComboBoxItem Content="2.0s" Tag="2.0"/>
+                    <ComboBoxItem Content="3.0s" Tag="3.0"/>
+                </ComboBox>
+                <Slider Width="100" Minimum="0.25" Maximum="5.0" Value="{Binding TransitionDurationSeconds}" 
+                        IsEnabled="{Binding EnableTransitions}" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                <TextBlock Text="{Binding TransitionDurationSeconds, StringFormat={}{0:F2}s}" VerticalAlignment="Center" Width="40"/>
+            </StackPanel>
+        </GroupBox>
+        
+        <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,0,8">
             <Button Content="Add Files..." Command="{Binding AddFilesCommand}" Width="120" />
-            <Button Content="Combine" Command="{Binding CombineCommand}" Width="120" Margin="8,0,0,0" />
+            <Button Content="Remove Selected" Command="{Binding RemoveSelectedCommand}" Width="120" Margin="8,0,0,0" />
+            <Button Content="Move Up" Command="{Binding MoveUpCommand}" Width="80" Margin="8,0,0,0" />
+            <Button Content="Move Down" Command="{Binding MoveDownCommand}" Width="80" Margin="8,0,0,0" />
+            <Button Content="Combine" Command="{Binding CombineCommand}" Width="120" Margin="8,0,0,0" Background="LightGreen" FontWeight="Bold"/>
             <Button Content="Cancel" Command="{Binding CancelCommand}" Width="90" Margin="8,0,0,0" />
             <TextBlock VerticalAlignment="Center" Margin="8,0,0,0">FFmpeg: <TextBlock Text="{Binding FfmpegFoundText}" FontWeight="Bold" /></TextBlock>
             <TextBlock VerticalAlignment="Center" Margin="8,0,0,0">Progress: <TextBlock Text="{Binding LastProgress}" FontWeight="Bold" /></TextBlock>
         </StackPanel>
-        <ListBox Grid.Row="2" ItemsSource="{Binding Files}" />
-        <ProgressBar Grid.Row="3" Height="16" Value="{Binding ProgressPercent}" IsIndeterminate="{Binding IsRunning}" Margin="0,8,0,0" Minimum="0" Maximum="100" Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}}" />
-        <TextBox Grid.Row="4" Text="{Binding Log}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" Margin="0,8,0,0" IsReadOnly="True" />
+        <ListBox Grid.Row="3" ItemsSource="{Binding Files}" SelectedItem="{Binding SelectedFile}" SelectionMode="Single"/>
+        <ProgressBar Grid.Row="4" Height="16" Value="{Binding ProgressPercent}" IsIndeterminate="{Binding IsRunning}" Margin="0,8,0,0" Minimum="0" Maximum="100" Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}}" />
+        <TextBox Grid.Row="5" Text="{Binding Log}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" Margin="0,8,0,0" IsReadOnly="True" />
     </Grid>
 </UserControl>

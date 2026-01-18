@@ -30,10 +30,40 @@ namespace PlatypusTools.UI.ViewModels
         private double _progressPercent;
         public double ProgressPercent { get => _progressPercent; set { _progressPercent = value; RaisePropertyChanged(); } }
 
+        // Transition support
+        private bool _enableTransitions;
+        public bool EnableTransitions { get => _enableTransitions; set { _enableTransitions = value; RaisePropertyChanged(); } }
+
+        private string _selectedTransition = "Cross Dissolve";
+        public string SelectedTransition { get => _selectedTransition; set { _selectedTransition = value; RaisePropertyChanged(); } }
+
+        private double _transitionDurationSeconds = 1.0;
+        public double TransitionDurationSeconds { get => _transitionDurationSeconds; set { _transitionDurationSeconds = value; RaisePropertyChanged(); } }
+
+        public ObservableCollection<string> AvailableTransitions { get; } = new ObservableCollection<string>
+        {
+            "None",
+            "Cross Dissolve",
+            "Fade to Black",
+            "Fade to White",
+            "Wipe Left",
+            "Wipe Right",
+            "Wipe Up",
+            "Wipe Down",
+            "Slide Left",
+            "Slide Right"
+        };
+
+        private string? _selectedFile;
+        public string? SelectedFile { get => _selectedFile; set { _selectedFile = value; RaisePropertyChanged(); } }
+
         public ICommand AddFilesCommand { get; }
         public ICommand BrowseOutputCommand { get; }
         public ICommand CombineCommand { get; }
         public ICommand CancelCommand { get; }
+        public ICommand RemoveSelectedCommand { get; }
+        public ICommand MoveUpCommand { get; }
+        public ICommand MoveDownCommand { get; }
 
         public VideoCombinerViewModel(VideoCombinerService combiner)
         {
@@ -43,6 +73,41 @@ namespace PlatypusTools.UI.ViewModels
             BrowseOutputCommand = new RelayCommand(_ => BrowseOutput());
             CombineCommand = new AsyncRelayCommand(CombineAsync, () => !IsRunning);
             CancelCommand = new RelayCommand(_ => Cancel(), _ => IsRunning);
+            RemoveSelectedCommand = new RelayCommand(_ => RemoveSelected(), _ => SelectedFile != null);
+            MoveUpCommand = new RelayCommand(_ => MoveUp(), _ => CanMoveUp());
+            MoveDownCommand = new RelayCommand(_ => MoveDown(), _ => CanMoveDown());
+        }
+
+        private void RemoveSelected()
+        {
+            if (SelectedFile != null && Files.Contains(SelectedFile))
+            {
+                Files.Remove(SelectedFile);
+                SelectedFile = null;
+            }
+        }
+
+        private bool CanMoveUp() => SelectedFile != null && Files.IndexOf(SelectedFile) > 0;
+        private bool CanMoveDown() => SelectedFile != null && Files.IndexOf(SelectedFile) < Files.Count - 1;
+
+        private void MoveUp()
+        {
+            if (SelectedFile == null) return;
+            var index = Files.IndexOf(SelectedFile);
+            if (index > 0)
+            {
+                Files.Move(index, index - 1);
+            }
+        }
+
+        private void MoveDown()
+        {
+            if (SelectedFile == null) return;
+            var index = Files.IndexOf(SelectedFile);
+            if (index < Files.Count - 1)
+            {
+                Files.Move(index, index + 1);
+            }
         }
 
         private void AddFiles()
@@ -106,7 +171,23 @@ namespace PlatypusTools.UI.ViewModels
             });
             try
             {
-                var result = await _combiner.CombineAsync(Files, OutputPath, progress, _cts.Token);
+                FFmpegResult result;
+                if (EnableTransitions && SelectedTransition != "None" && Files.Count > 1)
+                {
+                    // Use transition-aware combine
+                    result = await _combiner.CombineWithTransitionsAsync(
+                        Files, 
+                        OutputPath, 
+                        SelectedTransition,
+                        TransitionDurationSeconds,
+                        progress, 
+                        _cts.Token);
+                }
+                else
+                {
+                    // Use fast stream copy combine
+                    result = await _combiner.CombineAsync(Files, OutputPath, progress, _cts.Token);
+                }
                 var outStr = $"Exit: {result.ExitCode}\n\nStdOut:\n{result.StdOut}\n\nStdErr:\n{result.StdErr}";
                 Log += outStr + Environment.NewLine;
                 // Avoid showing modal dialogs during test runs or when no main window is present

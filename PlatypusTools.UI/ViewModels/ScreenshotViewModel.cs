@@ -37,6 +37,7 @@ namespace PlatypusTools.UI.ViewModels
             CapturePrimaryScreenCommand = new RelayCommand(_ => CapturePrimaryScreen());
             CaptureActiveWindowCommand = new RelayCommand(_ => CaptureActiveWindow());
             CaptureRegionCommand = new RelayCommand(_ => CaptureRegion());
+            CaptureScrollingCommand = new RelayCommand(_ => CaptureScrolling());
             
             SaveCommand = new RelayCommand(_ => Save(), _ => _currentScreenshot != null);
             CopyCommand = new RelayCommand(_ => CopyToClipboard(), _ => _currentScreenshot != null);
@@ -139,6 +140,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand CapturePrimaryScreenCommand { get; }
         public ICommand CaptureActiveWindowCommand { get; }
         public ICommand CaptureRegionCommand { get; }
+        public ICommand CaptureScrollingCommand { get; }
         
         public ICommand SaveCommand { get; }
         public ICommand CopyCommand { get; }
@@ -277,6 +279,46 @@ namespace PlatypusTools.UI.ViewModels
                 else
                 {
                     StatusMessage = "Region capture cancelled";
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                if (mainWindow != null)
+                {
+                    mainWindow.WindowState = WindowState.Normal;
+                }
+            }
+        }
+        
+        private async void CaptureScrolling()
+        {
+            Window? mainWindow = null;
+            try
+            {
+                mainWindow = Application.Current?.MainWindow;
+                if (mainWindow != null)
+                {
+                    mainWindow.WindowState = WindowState.Minimized;
+                }
+                
+                StatusMessage = "Select a window to capture scrolling content...";
+                await System.Threading.Tasks.Task.Delay(500);
+                
+                _currentScreenshot?.Dispose();
+                _currentScreenshot = await _captureService.CaptureScrollingWindowAsync();
+                
+                if (_currentScreenshot != null)
+                {
+                    UpdatePreview();
+                    StatusMessage = $"Captured scrolling content ({_currentScreenshot.Width}x{_currentScreenshot.Height})";
+                }
+                else
+                {
+                    StatusMessage = "Scrolling capture cancelled or failed";
                 }
             }
             catch (Exception ex)

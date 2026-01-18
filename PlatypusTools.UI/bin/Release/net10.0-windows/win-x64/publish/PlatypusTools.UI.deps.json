@@ -7,10 +7,10 @@
   "targets": {
     ".NETCoreApp,Version=v10.0": {},
     ".NETCoreApp,Version=v10.0/win-x64": {
-      "PlatypusTools.UI/3.1.1.1": {
+      "PlatypusTools.UI/3.2.0.1": {
         "dependencies": {
           "Microsoft.Web.WebView2": "1.0.2792.45",
-          "PlatypusTools.Core": "3.1.1.1",
+          "PlatypusTools.Core": "3.2.0",
           "Microsoft.Web.WebView2.Core": "1.0.2792.45",
           "Microsoft.Web.WebView2.WinForms": "1.0.2792.45",
           "Microsoft.Web.WebView2.Wpf": "1.0.2792.45",
@@ -1122,7 +1122,7 @@
           }
         }
       },
-      "PlatypusTools.Core/3.1.1.1": {
+      "PlatypusTools.Core/3.2.0": {
         "dependencies": {
           "HtmlAgilityPack": "1.12.4",
           "MetadataExtractor": "2.8.1",
@@ -1134,8 +1134,8 @@
         },
         "runtime": {
           "PlatypusTools.Core.dll": {
-            "assemblyVersion": "3.1.1.1",
-            "fileVersion": "3.1.1.1"
+            "assemblyVersion": "3.2.0.0",
+            "fileVersion": "3.2.0.0"
           }
         }
       },
@@ -1215,7 +1215,7 @@
     }
   },
   "libraries": {
-    "PlatypusTools.UI/3.1.1.1": {
+    "PlatypusTools.UI/3.2.0.1": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -1319,7 +1319,7 @@
       "path": "zstdsharp.port/0.8.1",
       "hashPath": "zstdsharp.port.0.8.1.nupkg.sha512"
     },
-    "PlatypusTools.Core/3.1.1.1": {
+    "PlatypusTools.Core/3.2.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

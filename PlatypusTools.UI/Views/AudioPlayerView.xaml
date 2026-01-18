@@ -169,6 +169,23 @@
                                 VerticalAlignment="Center" Margin="5,0,0,0" ToolTip="Reset EQ to flat"
                                 Click="OnEqResetClick"/>
                         <Separator Margin="10,0" Background="#444"/>
+                        <!-- Crossfade Controls -->
+                        <TextBlock Text="Crossfade:" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="White" FontSize="11"/>
+                        <CheckBox x:Name="CrossfadeEnabledCheckBox" 
+                                  IsChecked="{Binding CrossfadeEnabled, Mode=TwoWay}"
+                                  VerticalAlignment="Center" Margin="0,0,5,0"
+                                  ToolTip="Enable crossfade between tracks"
+                                  Checked="OnCrossfadeEnabledChanged" Unchecked="OnCrossfadeEnabledChanged"/>
+                        <Slider x:Name="CrossfadeDurationSlider" 
+                                Minimum="0" Maximum="5" Value="{Binding CrossfadeDurationSeconds, Mode=TwoWay}"
+                                Width="60" VerticalAlignment="Center"
+                                TickFrequency="0.5" IsSnapToTickEnabled="True"
+                                ToolTip="Crossfade duration in seconds"
+                                IsEnabled="{Binding CrossfadeEnabled}"
+                                ValueChanged="OnCrossfadeDurationChanged"/>
+                        <TextBlock Text="{Binding CrossfadeDurationSeconds, StringFormat={}{0:F1}s}" 
+                                   VerticalAlignment="Center" Foreground="Gray" FontSize="10" Margin="3,0,0,0"/>
+                        <Separator Margin="10,0" Background="#444"/>
                         <Button x:Name="FullscreenToggleBtn" Content="⛶" FontSize="16" Width="32" Height="28"
                                 Background="#3a3a5e" Foreground="White" BorderThickness="0"
                                 VerticalAlignment="Center" ToolTip="Toggle Fullscreen Visualizer"
