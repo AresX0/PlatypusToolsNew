@@ -38,9 +38,6 @@
       <Component Id="CMP_HtmlAgilityPack_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_HtmlAgilityPack_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\HtmlAgilityPack.dll" KeyPath="yes" />
       </Component>
-      <Component Id="CMP_ICSharpCode_SharpZipLib_dll" Guid="*" Directory="INSTALLFOLDER">
-        <File Id="FIL_ICSharpCode_SharpZipLib_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ICSharpCode.SharpZipLib.dll" KeyPath="yes" />
-      </Component>
       <Component Id="CMP_MetadataExtractor_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_MetadataExtractor_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\MetadataExtractor.dll" KeyPath="yes" />
       </Component>
@@ -89,9 +86,6 @@
       <Component Id="CMP_Microsoft_Win32_SystemEvents_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Microsoft_Win32_SystemEvents_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Win32.SystemEvents.dll" KeyPath="yes" />
       </Component>
-      <Component Id="CMP_Microsoft_Windows_SDK_NET_dll" Guid="*" Directory="INSTALLFOLDER">
-        <File Id="FIL_Microsoft_Windows_SDK_NET_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Windows.SDK.NET.dll" KeyPath="yes" />
-      </Component>
       <Component Id="CMP_mscordaccore_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_mscordaccore_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\mscordaccore.dll" KeyPath="yes" />
       </Component>
@@ -112,9 +106,6 @@
       </Component>
       <Component Id="CMP_netstandard_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_netstandard_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\netstandard.dll" KeyPath="yes" />
-      </Component>
-      <Component Id="CMP_PdfSharpCore_dll" Guid="*" Directory="INSTALLFOLDER">
-        <File Id="FIL_PdfSharpCore_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PdfSharpCore.dll" KeyPath="yes" />
       </Component>
       <Component Id="CMP_PenImc_cor3_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_PenImc_cor3_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PenImc_cor3.dll" KeyPath="yes" />
@@ -184,15 +175,6 @@
       </Component>
       <Component Id="CMP_ReachFramework_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_ReachFramework_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ReachFramework.dll" KeyPath="yes" />
-      </Component>
-      <Component Id="CMP_SharpCompress_dll" Guid="*" Directory="INSTALLFOLDER">
-        <File Id="FIL_SharpCompress_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\SharpCompress.dll" KeyPath="yes" />
-      </Component>
-      <Component Id="CMP_SixLabors_Fonts_dll" Guid="*" Directory="INSTALLFOLDER">
-        <File Id="FIL_SixLabors_Fonts_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\SixLabors.Fonts.dll" KeyPath="yes" />
-      </Component>
-      <Component Id="CMP_SixLabors_ImageSharp_dll" Guid="*" Directory="INSTALLFOLDER">
-        <File Id="FIL_SixLabors_ImageSharp_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\SixLabors.ImageSharp.dll" KeyPath="yes" />
       </Component>
       <Component Id="CMP_System_AppContext_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_System_AppContext_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.AppContext.dll" KeyPath="yes" />
@@ -806,17 +788,11 @@
       <Component Id="CMP_WindowsFormsIntegration_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_WindowsFormsIntegration_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\WindowsFormsIntegration.dll" KeyPath="yes" />
       </Component>
-      <Component Id="CMP_WinRT_Runtime_dll" Guid="*" Directory="INSTALLFOLDER">
-        <File Id="FIL_WinRT_Runtime_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\WinRT.Runtime.dll" KeyPath="yes" />
-      </Component>
       <Component Id="CMP_wpfgfx_cor3_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_wpfgfx_cor3_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\wpfgfx_cor3.dll" KeyPath="yes" />
       </Component>
       <Component Id="CMP_XmpCore_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_XmpCore_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\XmpCore.dll" KeyPath="yes" />
-      </Component>
-      <Component Id="CMP_ZstdSharp_dll" Guid="*" Directory="INSTALLFOLDER">
-        <File Id="FIL_ZstdSharp_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ZstdSharp.dll" KeyPath="yes" />
       </Component>
       <Directory Id="DIR_Assets" Name="Assets">
         <Component Id="CMP_Assets_PlatypusTools_Help_html" Guid="*" Directory="DIR_Assets">
@@ -882,9 +858,6 @@
       <Directory Id="DIR_de" Name="de">
         <Component Id="CMP_de_Microsoft_VisualBasic_Forms_resources_dll" Guid="*" Directory="DIR_de">
           <File Id="FIL_de_Microsoft_VisualBasic_Forms_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\Microsoft.VisualBasic.Forms.resources.dll" KeyPath="yes" />
-        </Component>
-        <Component Id="CMP_de_PdfSharpCore_resources_dll" Guid="*" Directory="DIR_de">
-          <File Id="FIL_de_PdfSharpCore_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\PdfSharpCore.resources.dll" KeyPath="yes" />
         </Component>
         <Component Id="CMP_de_PresentationCore_resources_dll" Guid="*" Directory="DIR_de">
           <File Id="FIL_de_PresentationCore_resources_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\de\PresentationCore.resources.dll" KeyPath="yes" />
@@ -1551,7 +1524,6 @@
       <ComponentRef Id="CMP_hostfxr_dll" />
       <ComponentRef Id="CMP_hostpolicy_dll" />
       <ComponentRef Id="CMP_HtmlAgilityPack_dll" />
-      <ComponentRef Id="CMP_ICSharpCode_SharpZipLib_dll" />
       <ComponentRef Id="CMP_MetadataExtractor_dll" />
       <ComponentRef Id="CMP_Microsoft_CSharp_dll" />
       <ComponentRef Id="CMP_Microsoft_DiaSymReader_Native_amd64_dll" />
@@ -1568,7 +1540,6 @@
       <ComponentRef Id="CMP_Microsoft_Win32_Registry_AccessControl_dll" />
       <ComponentRef Id="CMP_Microsoft_Win32_Registry_dll" />
       <ComponentRef Id="CMP_Microsoft_Win32_SystemEvents_dll" />
-      <ComponentRef Id="CMP_Microsoft_Windows_SDK_NET_dll" />
       <ComponentRef Id="CMP_mscordaccore_dll" />
       <ComponentRef Id="CMP_mscordaccore_amd64_amd64_10_0_125_57005_dll" />
       <ComponentRef Id="CMP_mscordbi_dll" />
@@ -1576,7 +1547,6 @@
       <ComponentRef Id="CMP_mscorrc_dll" />
       <ComponentRef Id="CMP_msquic_dll" />
       <ComponentRef Id="CMP_netstandard_dll" />
-      <ComponentRef Id="CMP_PdfSharpCore_dll" />
       <ComponentRef Id="CMP_PenImc_cor3_dll" />
       <ComponentRef Id="CMP_PlatypusTools_Core_dll" />
       <ComponentRef Id="CMP_PlatypusTools_UI_deps_json" />
@@ -1600,9 +1570,6 @@
       <ComponentRef Id="CMP_PresentationNative_cor3_dll" />
       <ComponentRef Id="CMP_PresentationUI_dll" />
       <ComponentRef Id="CMP_ReachFramework_dll" />
-      <ComponentRef Id="CMP_SharpCompress_dll" />
-      <ComponentRef Id="CMP_SixLabors_Fonts_dll" />
-      <ComponentRef Id="CMP_SixLabors_ImageSharp_dll" />
       <ComponentRef Id="CMP_System_AppContext_dll" />
       <ComponentRef Id="CMP_System_Buffers_dll" />
       <ComponentRef Id="CMP_System_CodeDom_dll" />
@@ -1807,10 +1774,8 @@
       <ComponentRef Id="CMP_WebView2Loader_dll" />
       <ComponentRef Id="CMP_WindowsBase_dll" />
       <ComponentRef Id="CMP_WindowsFormsIntegration_dll" />
-      <ComponentRef Id="CMP_WinRT_Runtime_dll" />
       <ComponentRef Id="CMP_wpfgfx_cor3_dll" />
       <ComponentRef Id="CMP_XmpCore_dll" />
-      <ComponentRef Id="CMP_ZstdSharp_dll" />
       <ComponentRef Id="CMP_Assets_PlatypusTools_Help_html" />
       <ComponentRef Id="CMP_Assets_platypus_swimming_mp4" />
       <ComponentRef Id="CMP_cs_Microsoft_VisualBasic_Forms_resources_dll" />
@@ -1831,7 +1796,6 @@
       <ComponentRef Id="CMP_cs_WindowsBase_resources_dll" />
       <ComponentRef Id="CMP_cs_WindowsFormsIntegration_resources_dll" />
       <ComponentRef Id="CMP_de_Microsoft_VisualBasic_Forms_resources_dll" />
-      <ComponentRef Id="CMP_de_PdfSharpCore_resources_dll" />
       <ComponentRef Id="CMP_de_PresentationCore_resources_dll" />
       <ComponentRef Id="CMP_de_PresentationFramework_resources_dll" />
       <ComponentRef Id="CMP_de_PresentationUI_resources_dll" />

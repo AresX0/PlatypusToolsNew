@@ -122,3 +122,6 @@ packages/
 # ===================
 _ReSharper*/
 *.DotSettings.user
+
+releases/
+archive/shotcutsource/

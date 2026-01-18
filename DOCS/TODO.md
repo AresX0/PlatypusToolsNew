@@ -1,9 +1,23 @@
-# PlatypusTools v3.3.0 - Detailed TODO List
+# PlatypusTools v3.4.0 - Detailed TODO List
 
 **Branch**: `main`  
-**Last Updated**: January 17, 2026  
-**Current Version**: v3.3.0 (in development)  
+**Last Updated**: January 26, 2026  
+**Current Version**: v3.2.1 (released)  
 **Legend**: ✅ Complete | 🔄 In Progress | ❌ Not Started
+
+---
+
+## Recently Completed (v3.2.1)
+
+### New Features (v3.2.1)
+- [x] **Shotcut-Inspired Video Editor Roadmap** - Added 64 tasks for professional NLE features ✅
+- [x] **Video Editor Insert Clip Fix** - Fixed compile errors in insert at playhead ✅
+
+### Bug Fixes (v3.2.0.1)
+- [x] **Queue Display Bug** - Fixed ItemsSource binding issue in Audio Player queue ✅
+- [x] **Crossfade Volume Bug** - Volume now properly restores after crossfade ✅
+- [x] **Renamed Batch Upscaler → Image Scaler** - Moved to Image tab section ✅
+- [x] **Video Combiner Transitions** - Added 10 transition types with duration control ✅
 
 ---
 
@@ -535,6 +549,34 @@
 
 ---
 
+## Truly Remaining Tasks (Actionable)
+
+### Phase 2 (3 tasks remaining)
+- [ ] **TASK-053**: Per-item settings override for batch upscale
+- [ ] **TASK-072**: Tag selection checkboxes for batch metadata
+- [ ] **TASK-074**: Preview before apply for batch metadata
+
+### Phase 4 (2 tasks remaining)
+- [ ] **TASK-167**: Plugin sandboxing (security isolation)
+- [ ] **TASK-168**: Sample plugin with documentation
+
+### Phase 8: Testing & Documentation (15 tasks)
+- [ ] **TASK-291-300**: Unit tests for services
+- [ ] **TASK-301-304**: Integration tests
+- [ ] **TASK-306**: XML doc comments
+- [ ] **TASK-308**: Plugin developer guide
+
+### Phase 9: Future Enhancements (15 tasks)
+- [ ] **TASK-310-317**: Advanced image editing (text overlay, shapes, layers)
+- [ ] **TASK-318-324**: Image processing filters (blur, sharpen, contrast)
+
+### Audio Player (Not in C++ phases)
+- [ ] Gapless playback
+- [ ] LRC lyrics parsing and display
+- [ ] 10-band parametric EQ (currently 3-band)
+
+---
+
 ## Priority Next Steps (v3.3.0 Candidates)
 
 Based on remaining work and user value, here are the **recommended next features**:
@@ -561,11 +603,16 @@ Based on remaining work and user value, here are the **recommended next features
 
 ### Audio Player Enhancements (Native .NET)
 
-11. **Playlist Management** - Create, edit, save playlists
-12. **Crossfade Between Tracks** - Smooth transitions between songs
-13. **Gapless Playback** - Seamless album playback
-14. **Lyrics Display** - LRC file parsing and synchronized lyrics
-15. **Visualizer Plugins** - Allow custom visualizers via plugin system
+**Already Implemented:**
+- ✅ **Playlist Management** - Create, edit, save playlists (`AudioLibraryViewModel.cs`, `Playlist` model)
+- ✅ **Crossfade Between Tracks** - Smooth transitions (`AudioPlayerService.cs`)
+- ✅ **EQ Controls** - Bass/Mid/Treble sliders in UI (`AudioPlayerView.xaml.cs`)
+- ✅ **Visualizer** - Spectrum analyzer (`AudioVisualizerViewModel.cs`, `AudioVisualizerService.cs`)
+
+**Still Needed:**
+11. **Gapless Playback** - Seamless album playback (not yet implemented)
+12. **Lyrics Display** - LRC file parsing and synchronized lyrics (models exist, no parser)
+13. **10-Band EQ** - Currently only 3-band in UI
 
 ### System & Quality
 
@@ -573,6 +620,18 @@ Based on remaining work and user value, here are the **recommended next features
 17. **TASK-308: Plugin developer guide** - Help third-party developers
 18. **Unit Tests (TASK-291-300)** - Increase test coverage
 19. **Integration Tests (TASK-301-304)** - End-to-end testing
+
+---
+
+## v3.2.0.1 Bug Fixes (Released)
+
+### 🐛 Bug Fixes
+- ✅ **Queue Display Bug** - ItemsSource binding was broken when using ToList()
+- ✅ **Crossfade Volume Bug** - Volume now properly stored and restored after crossfade
+- ✅ **Renamed Batch Upscaler → Image Scaler** - Moved to Image tab for better organization
+
+### ✨ Enhancements
+- ✅ **Video Combiner Transitions** - Added 10 transition types (fade, dissolve, wipe, slide, etc.)
 
 ---
 
@@ -590,6 +649,94 @@ Based on remaining work and user value, here are the **recommended next features
 7. **Sample Plugin + Developer Guide** - Bootstrap plugin ecosystem (TASK-168)
 8. **Advanced Image Editing** - Text overlay, shape drawing, layers (TASK-310-317)
 
+---
+
+## Phase 10: Shotcut-Inspired Video Editor Enhancements
+
+### 10.1 Multi-Track Timeline (Shotcut-Style)
+- [ ] **TASK-325**: Implement unlimited video/audio tracks (Shotcut supports unlimited)
+- [ ] **TASK-326**: Add track headers with lock/hide/mute controls
+- [ ] **TASK-327**: Implement track height resize (draggable dividers)
+- [ ] **TASK-328**: Add track compositing modes (over, add, saturate, multiply, screen)
+- [ ] **TASK-329**: Implement keyframeable track blend/opacity
+- [ ] **TASK-330**: Add track output routing (for multi-output export)
+
+### 10.2 Advanced Clip Operations
+- [ ] **TASK-331**: Implement ripple edit (shift all clips when inserting/deleting)
+- [ ] **TASK-332**: Implement rolling edit (trim adjacent clips together)
+- [ ] **TASK-333**: Implement slip edit (move clip content within boundaries)
+- [ ] **TASK-334**: Implement slide edit (move clip while adjusting neighbors)
+- [ ] **TASK-335**: Add clip markers (for audio sync points, cue marks)
+- [ ] **TASK-336**: Implement clip speed ramping (keyframeable speed)
+- [ ] **TASK-337**: Add reverse clip playback
+- [ ] **TASK-338**: Implement freeze frame insertion
+
+### 10.3 Keyframe Animation System
+- [ ] **TASK-339**: Create keyframe editor panel (similar to Shotcut's keyframes dock)
+- [ ] **TASK-340**: Implement keyframe interpolation (linear, smooth, ease in/out)
+- [ ] **TASK-341**: Add bezier curve editor for keyframes
+- [ ] **TASK-342**: Implement keyframe copy/paste across clips
+- [ ] **TASK-343**: Add keyframe snapping to playhead/markers
+
+### 10.4 Filters & Effects (Shotcut Has 300+)
+- [ ] **TASK-344**: Create filter dock/panel for browsing filters
+- [ ] **TASK-345**: Implement filter search and categorization
+- [ ] **TASK-346**: Add filter presets with save/load
+- [ ] **TASK-347**: Implement chroma key (green screen) filter
+- [ ] **TASK-348**: Implement stabilization filter (vidstab)
+- [ ] **TASK-349**: Implement lens correction filter
+- [ ] **TASK-350**: Implement noise reduction filter
+- [ ] **TASK-351**: Implement time remap filter (speed curves)
+- [ ] **TASK-352**: Implement 3-way color correction (shadows/mids/highlights)
+- [ ] **TASK-353**: Implement LUT support (.cube, .3dl files)
+- [ ] **TASK-354**: Implement audio filters (compressor, limiter, EQ)
+
+### 10.5 Text & Titles (Shotcut Text Features)
+- [ ] **TASK-355**: Create title generator with templates
+- [ ] **TASK-356**: Implement HTML-based rich text overlay (like Shotcut)
+- [ ] **TASK-357**: Add scrolling text (credits, ticker)
+- [ ] **TASK-358**: Implement 3D text with perspective
+- [ ] **TASK-359**: Add text animation presets (fade, slide, typewriter)
+- [ ] **TASK-360**: Implement text drop shadow and outline
+
+### 10.6 Audio Features (Shotcut Audio)
+- [ ] **TASK-361**: Implement audio waveform display on timeline clips
+- [ ] **TASK-362**: Add audio peak meters panel
+- [ ] **TASK-363**: Implement audio ducking (auto-lower music under voice)
+- [ ] **TASK-364**: Add audio fade handles on clips
+- [ ] **TASK-365**: Implement audio normalize filter
+- [ ] **TASK-366**: Add voice-over recording directly to timeline
+
+### 10.7 Preview & Playback
+- [ ] **TASK-367**: Implement proxy editing (lower res for editing, full res for export)
+- [ ] **TASK-368**: Add preview scaling options (1/4, 1/2, full resolution)
+- [ ] **TASK-369**: Implement frame-accurate preview with shuttle/jog controls
+- [ ] **TASK-370**: Add external monitor support
+- [ ] **TASK-371**: Implement loop playback region (in/out points)
+
+### 10.8 Export & Encoding (Shotcut Export Panel)
+- [ ] **TASK-372**: Create export panel with codec presets (YouTube, Vimeo, etc.)
+- [ ] **TASK-373**: Implement hardware encoding support (NVENC, QSV, AMF)
+- [ ] **TASK-374**: Add multi-pass encoding for quality
+- [ ] **TASK-375**: Implement chapter markers for MP4/MKV
+- [ ] **TASK-376**: Add export queue for batch rendering
+- [ ] **TASK-377**: Implement render preview (before full export)
+
+### 10.9 Project & Workflow
+- [ ] **TASK-378**: Implement project auto-save and recovery
+- [ ] **TASK-379**: Add project templates (common aspect ratios, frame rates)
+- [ ] **TASK-380**: Implement EDL/XML export for external editors
+- [ ] **TASK-381**: Add project notes/comments panel
+- [ ] **TASK-382**: Implement project archiving (collect media files)
+
+### 10.10 UI/UX Enhancements
+- [ ] **TASK-383**: Create customizable workspace layouts
+- [ ] **TASK-384**: Implement dockable panels (like Shotcut's dock system)
+- [ ] **TASK-385**: Add thumbnail strip for timeline clips
+- [ ] **TASK-386**: Implement timeline snapping (to clips, markers, playhead)
+- [ ] **TASK-387**: Add magnetic timeline mode (auto-close gaps)
+- [ ] **TASK-388**: Implement timeline zoom gestures (pinch, scroll wheel)
+
 ### 🐛 Bug Fixes & Polish
 9. Fix any reported issues from v3.2.0
 10. Performance improvements for large libraries
@@ -599,8 +746,7 @@ Based on remaining work and user value, here are the **recommended next features
 
 ## Known Bugs/Issues
 
-1. ~~Website Downloader - Scan button may not enable~~ - Needs verification
-2. ~~Recent Cleaner - Scan button issue~~ - Fixed in v3.0.8
+*No known issues at this time. Report any bugs via GitHub Issues.*
 
 ---
 
@@ -609,19 +755,25 @@ Based on remaining work and user value, here are the **recommended next features
 | Phase | Total Tasks | Completed | Remaining |
 |-------|-------------|-----------|-----------|
 | Phase 1: UI Foundation | 21 | 21 | 0 |
-| Phase 2: Enhanced Tools | 68 | 48 | 20 |
-| Phase 3: New Tools | 56 | 50 | 6 |
-| Phase 4: System Features | 33 | 29 | 4 |
-| Phase 5: C++ Core | 65 | 0 | 65 (Deferred) |
+| Phase 2: Enhanced Tools | 68 | 65 | 3 |
+| Phase 3: New Tools | 56 | 56 | 0 |
+| Phase 4: System Features | 33 | 31 | 2 |
+| Phase 5: C++ Core | 65 | 1 | 64 (Deferred) |
 | Phase 6: C++/CLI Bridge | 16 | 0 | 16 (Deferred) |
 | Phase 7: .NET UI | 31 | 0 | 31 (Deferred) |
 | Phase 8: Testing & Docs | 19 | 4 | 15 |
-| **TOTAL** | **309** | **152** | **157** |
+| Phase 9: Future | 15 | 0 | 15 |
+| Phase 10: Shotcut-Inspired | 64 | 0 | 64 |
+| **TOTAL** | **388** | **178** | **210** |
 
-**Note**: Phases 5-7 (C++ Audio Core) are deferred - the audio player uses managed .NET implementation with NAudio.
+**Notes:**
+- Phases 5-7 (C++ Audio Core) are **DEFERRED** - the audio player uses managed .NET implementation with `MediaPlayer` and NAudio
+- Phase 2-4 remaining tasks are minor enhancements (per-item settings, tag checkboxes, preview, plugin sandboxing, sample plugin)
+- Phase 8-9 are quality/polish items that can be done incrementally
+- Phase 10 (Shotcut-Inspired) adds professional NLE features from the open-source Shotcut editor
 
 ---
 
-*Last verified: January 17, 2026*
+*Last verified: January 26, 2026*
 
 

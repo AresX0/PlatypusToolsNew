@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.1 - 2026-01-26
+
+### Added
+- **Shotcut-Inspired Video Editor Roadmap** - Added 64 new tasks for professional NLE features:
+  - Multi-track timeline with unlimited video/audio tracks
+  - Advanced clip operations (ripple, rolling, slip, slide edits)
+  - Keyframe animation system with bezier curves
+  - 300+ filters and effects (chroma key, stabilization, LUTs)
+  - Text & titles with animations and 3D text
+  - Audio features (waveforms, ducking, voice-over recording)
+  - Proxy editing and preview scaling
+  - Hardware encoding support (NVENC, QSV, AMF)
+  - Project templates and auto-save
+
+### Fixed
+- **Video Editor Insert Clip** - Fixed compile error in insert at playhead feature
+  - Corrected method reference for media asset import
+  - Fixed null reference when accessing selected asset properties
+
 ## v3.2.0.1 - 2026-01-18
 
 ### Fixed
