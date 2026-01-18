@@ -1,0 +1,1 @@
+Could not find C:\Program Files\PlatypusTools\Tools\exiftool_files\perl5*.dll

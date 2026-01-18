@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.0 - 2026-01-17
+
+### Added
+- **Forensics Analyzer** - New security tool for system forensic analysis:
+  - **Lightweight Mode** - Quick scan using single core, ~100MB output, 24h log history
+  - **Deep Mode** - Comprehensive analysis using all cores, GB-scale output, 7-day log history
+  - **Memory Analysis** - Process memory inspection, suspicious process detection, memory hog identification
+  - **File System Analysis** - Executable scanning, hidden file detection, SHA256 hashing (deep mode)
+  - **Registry Analysis** - Startup entry enumeration, suspicious run key detection
+  - **Log Aggregation** - Windows Event Log parsing, security event analysis, error/warning categorization
+  - **Export Report** - Generate detailed forensics reports in JSON or text format
+
+- **Sleep Timer** - Audio Player enhancement:
+  - Set automatic playback stop timer (15, 30, 45, 60, 90, 120 minutes)
+  - Countdown display in status bar
+  - Gradual fade-out before stopping
+  - Cancel timer option
+
+- **Plugin Manager UI** - New tool for managing plugins:
+  - Browse installed plugins with status
+  - Install new plugins from file
+  - Enable/disable plugins without uninstalling
+  - Uninstall plugins with confirmation
+  - Reload all plugins to apply changes
+  - View plugin details (version, author, description)
+
+### Fixed
+- **Audio Player Library Persistence** - Library folders and tracks now properly load on startup
+- **Audio Player Play Selected** - Play Selected button now correctly plays the highlighted track
+- **Audio Player Organize By** - Organize dropdown now properly filters tracks by Artist, Album, Genre, etc.
+- **Audio Player DataGrid Init** - Fixed exception during initialization that prevented library loading
+
 ## v3.1.1.1 - 2026-01-17
 
 ### Fixed

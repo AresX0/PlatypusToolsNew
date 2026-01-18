@@ -75,7 +75,7 @@
 
         <!-- Exact Duplicates DataGrid -->
         <ScrollViewer Grid.Row="3" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                      Visibility="{Binding ShowSimilarImages, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                      Visibility="{Binding ShowDuplicatesGrid, Converter={StaticResource BooleanToVisibilityConverter}}">
             <DataGrid ItemsSource="{Binding Groups}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
                       CanUserResizeColumns="True" CanUserSortColumns="True"
                       ColumnHeaderHeight="32"

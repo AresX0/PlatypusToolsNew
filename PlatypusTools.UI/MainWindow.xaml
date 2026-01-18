@@ -223,6 +223,9 @@
                     <TabItem Header="System Audit">
                         <controls:LazyTabContent ViewType="{x:Type views:SystemAuditView}" ViewDataContext="{Binding SystemAudit}" />
                     </TabItem>
+                    <TabItem Header="Forensics Analyzer">
+                        <controls:LazyTabContent ViewType="{x:Type views:ForensicsAnalyzerView}" ViewDataContext="{Binding ForensicsAnalyzer}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
 
@@ -257,6 +260,9 @@
                     </TabItem>
                     <TabItem Header="Bootable USB Creator">
                         <controls:LazyTabContent ViewType="{x:Type views:BootableUSBView}" ViewDataContext="{Binding BootableUSB}" />
+                    </TabItem>
+                    <TabItem Header="Plugin Manager">
+                        <controls:LazyTabContent ViewType="{x:Type views:PluginManagerView}" ViewDataContext="{Binding PluginManager}" />
                     </TabItem>
                 </TabControl>
             </TabItem>

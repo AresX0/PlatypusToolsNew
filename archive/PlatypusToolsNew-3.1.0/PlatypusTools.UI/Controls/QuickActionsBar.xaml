@@ -1,0 +1,63 @@
+<UserControl x:Class="PlatypusTools.UI.Controls.QuickActionsBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{DynamicResource SurfaceBrush}">
+    
+    <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="8,4">
+        <DockPanel>
+            <!-- Left side - Quick actions -->
+            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                <Button x:Name="OpenBtn" ToolTip="Open Folder (Ctrl+O)" Click="Open_Click" Style="{StaticResource ToolbarButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📂" FontSize="16"/>
+                        <TextBlock Text="Open" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                
+                <Separator Style="{StaticResource ToolbarSeparatorStyle}"/>
+                
+                <Button x:Name="RefreshBtn" ToolTip="Refresh (F5)" Click="Refresh_Click" Style="{StaticResource ToolbarButtonStyle}">
+                    <TextBlock Text="🔄" FontSize="16"/>
+                </Button>
+                
+                <Button x:Name="UndoBtn" ToolTip="Undo (Ctrl+Z)" Click="Undo_Click" Style="{StaticResource ToolbarButtonStyle}">
+                    <TextBlock Text="↩" FontSize="16"/>
+                </Button>
+                
+                <Button x:Name="RedoBtn" ToolTip="Redo (Ctrl+Y)" Click="Redo_Click" Style="{StaticResource ToolbarButtonStyle}">
+                    <TextBlock Text="↪" FontSize="16"/>
+                </Button>
+                
+                <Separator Style="{StaticResource ToolbarSeparatorStyle}"/>
+                
+                <Button x:Name="SelectAllBtn" ToolTip="Select All (Ctrl+A)" Click="SelectAll_Click" Style="{StaticResource ToolbarButtonStyle}">
+                    <TextBlock Text="☑" FontSize="16"/>
+                </Button>
+                
+                <Button x:Name="DeselectBtn" ToolTip="Deselect All" Click="DeselectAll_Click" Style="{StaticResource ToolbarButtonStyle}">
+                    <TextBlock Text="☐" FontSize="16"/>
+                </Button>
+            </StackPanel>
+            
+            <!-- Right side - Search -->
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <TextBox x:Name="SearchBox" Width="200" Margin="0,0,5,0" 
+                         VerticalContentAlignment="Center"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
+                <Button x:Name="SearchBtn" ToolTip="Search" Click="Search_Click" Style="{StaticResource ToolbarButtonStyle}">
+                    <TextBlock Text="🔍" FontSize="16"/>
+                </Button>
+                <Button x:Name="ClearSearchBtn" ToolTip="Clear Search" Click="ClearSearch_Click" Style="{StaticResource ToolbarButtonStyle}">
+                    <TextBlock Text="✕" FontSize="14"/>
+                </Button>
+            </StackPanel>
+            
+            <!-- Center - Breadcrumb -->
+            <Border Margin="10,0">
+                <TextBlock x:Name="PathText" VerticalAlignment="Center" 
+                           TextTrimming="CharacterEllipsis"
+                           Text="{Binding CurrentPath, FallbackValue='Select a folder...'}"/>
+            </Border>
+        </DockPanel>
+    </Border>
+</UserControl>

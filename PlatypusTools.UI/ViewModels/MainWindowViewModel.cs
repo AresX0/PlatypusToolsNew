@@ -66,6 +66,9 @@ namespace PlatypusTools.UI.ViewModels
                 SimpleLogger.Debug("Creating SystemAuditViewModel");
                 SystemAudit = new SystemAuditViewModel();
                 
+                SimpleLogger.Debug("Creating ForensicsAnalyzerViewModel");
+                ForensicsAnalyzer = new ForensicsAnalyzerViewModel();
+                
                 SimpleLogger.Debug("Creating StartupManagerViewModel");
                 StartupManager = new StartupManagerViewModel();
                 
@@ -85,6 +88,9 @@ namespace PlatypusTools.UI.ViewModels
                 Screenshot = new ScreenshotViewModel();
                 BootableUSB = new BootableUSBViewModel();
                 EmptyFolderScanner = new EmptyFolderScannerViewModel();
+                
+                SimpleLogger.Debug("Creating PluginManagerViewModel");
+                PluginManager = new PluginManagerViewModel();
 
                 SimpleLogger.Debug("Creating commands");
                 BrowseCommand = new RelayCommand(_ => Browse());
@@ -139,6 +145,7 @@ namespace PlatypusTools.UI.ViewModels
         public MetadataEditorViewModel MetadataEditor { get; }
         public MultimediaEditorViewModel MultimediaEditor { get; }
         public SystemAuditViewModel SystemAudit { get; }
+        public ForensicsAnalyzerViewModel ForensicsAnalyzer { get; }
         public StartupManagerViewModel StartupManager { get; }
         public WebsiteDownloaderViewModel WebsiteDownloader { get; }
         public FileAnalyzerViewModel FileAnalyzer { get; }
@@ -155,6 +162,7 @@ namespace PlatypusTools.UI.ViewModels
         public ScreenshotViewModel Screenshot { get; }
         public BootableUSBViewModel BootableUSB { get; }
         public EmptyFolderScannerViewModel EmptyFolderScanner { get; }
+        public PluginManagerViewModel PluginManager { get; }
         private string _selectedFolder = string.Empty;
         public string SelectedFolder { get => _selectedFolder; set { _selectedFolder = value; RaisePropertyChanged(); PropagateSelectedFolder(); } }
 

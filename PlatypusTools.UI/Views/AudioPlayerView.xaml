@@ -246,8 +246,42 @@
                                 ToolTip="Stop"/>
                     </StackPanel>
                     
-                    <!-- Right: Volume -->
+                    <!-- Right: Volume + Sleep Timer -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- Sleep Timer -->
+                        <Border Background="#f0f0f0" CornerRadius="3" Padding="5,2" Margin="0,0,10,0"
+                                Visibility="{Binding SleepTimerEnabled, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="💤" FontSize="12" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                <TextBlock Text="{Binding SleepTimerStatusText}" FontSize="11" VerticalAlignment="Center" Foreground="#666"/>
+                                <Button Content="✕" Width="18" Height="18" FontSize="10"
+                                        Command="{Binding CancelSleepTimerCommand}"
+                                        Background="Transparent" BorderThickness="0" Margin="5,0,0,0"
+                                        ToolTip="Cancel sleep timer"/>
+                            </StackPanel>
+                        </Border>
+                        <Button Width="28" Height="28"
+                                FontFamily="Segoe UI Symbol" FontSize="12" Background="Transparent" BorderThickness="0"
+                                ToolTip="Set sleep timer" Margin="0,0,5,0">
+                            <Button.Content>
+                                <TextBlock Text="💤" FontSize="14"/>
+                            </Button.Content>
+                            <Button.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="15 minutes" Command="{Binding SetSleepTimerCommand}" CommandParameter="15"/>
+                                    <MenuItem Header="30 minutes" Command="{Binding SetSleepTimerCommand}" CommandParameter="30"/>
+                                    <MenuItem Header="45 minutes" Command="{Binding SetSleepTimerCommand}" CommandParameter="45"/>
+                                    <MenuItem Header="60 minutes" Command="{Binding SetSleepTimerCommand}" CommandParameter="60"/>
+                                    <MenuItem Header="90 minutes" Command="{Binding SetSleepTimerCommand}" CommandParameter="90"/>
+                                    <MenuItem Header="120 minutes" Command="{Binding SetSleepTimerCommand}" CommandParameter="120"/>
+                                    <Separator/>
+                                    <MenuItem Header="End of current track" Command="{Binding SetSleepTimerCommand}" CommandParameter="0"/>
+                                    <Separator/>
+                                    <MenuItem Header="Cancel timer" Command="{Binding CancelSleepTimerCommand}"/>
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                        </Button>
+                        <!-- Volume -->
                         <Button Width="28" Height="28"
                                 Click="OnToggleMuteClick"
                                 FontFamily="Segoe UI Symbol" FontSize="12" Background="Transparent" BorderThickness="0"
@@ -368,16 +402,16 @@
                                                    HorizontalAlignment="Right"/>
                                         
                                         <Button Grid.Column="2" Width="32" Height="24" Margin="4,0"
-                                                Command="{Binding DataContext.PlayTrackCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                                                CommandParameter="{Binding}"
+                                                Click="OnPlayTrackInQueueClick"
+                                                Tag="{Binding}"
                                                 ToolTip="Play this track"
                                                 Background="#2196F3" Foreground="White" BorderThickness="0">
                                             <TextBlock Text="▶" FontSize="11"/>
                                         </Button>
                                         
                                         <Button Grid.Column="3" Width="32" Height="24" Margin="0"
-                                                Command="{Binding DataContext.RemoveFromQueueCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                                                CommandParameter="{Binding}"
+                                                Click="OnRemoveTrackFromQueueClick"
+                                                Tag="{Binding}"
                                                 ToolTip="Remove from queue"
                                                 Background="#f44336" Foreground="White" BorderThickness="0">
                                             <TextBlock Text="✕" FontSize="11" FontWeight="Bold"/>
@@ -482,7 +516,9 @@
                                         ToolTip="Add all visible tracks to queue"/>
                                 <Separator Margin="5,0"/>
                                 <TextBlock Text="Organize by:" VerticalAlignment="Center" Margin="5,0,8,0"/>
-                                <ComboBox Width="120" SelectedIndex="{Binding OrganizeModeIndex}">
+                                <ComboBox x:Name="OrganizeByComboBox" Width="120" 
+                                          SelectedIndex="{Binding OrganizeModeIndex, Mode=TwoWay}"
+                                          SelectionChanged="OnOrganizeByChanged">
                                     <ComboBoxItem Content="All Tracks"/>
                                     <ComboBoxItem Content="Artist"/>
                                     <ComboBoxItem Content="Album"/>
@@ -532,7 +568,7 @@
                             
                             <!-- Library Track List - Scrollable -->
                             <DataGrid x:Name="LibraryTrackGrid" Grid.Row="3" ItemsSource="{Binding LibraryTracks}" 
-                                      SelectedItem="{Binding SelectedLibraryTrack}"
+                                      SelectedItem="{Binding SelectedLibraryTrack, Mode=TwoWay}"
                                       AutoGenerateColumns="False" IsReadOnly="True"
                                       CanUserResizeColumns="True" CanUserSortColumns="True"
                                       ColumnHeaderHeight="32"

@@ -1,0 +1,7 @@
+Update version to 3.0.2 for release and installer.
+
+- Product.wxs: Set <Package> Version="3.0.2"
+- PlatypusTools.Core.csproj: <Version>3.0.2</Version>
+- SettingsWindow.xaml: UI version text to 3.0.2
+
+Next: update UI project version, commit, tag, push, build MSI, and publish to releases.

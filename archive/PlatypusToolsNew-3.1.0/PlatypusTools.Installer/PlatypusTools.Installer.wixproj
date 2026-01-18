@@ -1,0 +1,26 @@
+<Project Sdk="WixToolset.Sdk/6.0.1">
+  <PropertyGroup>
+    <OutputName>PlatypusToolsSetup</OutputName>
+    <OutputType>Package</OutputType>
+    <Platform>x64</Platform>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!-- Define variable for WiX to use - pointing to correct path -->
+    <DefineConstants>PlatypusTools.UI.TargetDir=$(MSBuildProjectDirectory)\..\PlatypusTools.UI\bin\$(Configuration)\net10.0-windows\win-x64\</DefineConstants>
+  </PropertyGroup>
+
+  <!-- Publish the UI project before building the installer -->
+  <Target Name="PublishUIProject" BeforeTargets="Build">
+    <Exec Command="&quot;C:\Program Files\dotnet\dotnet.exe&quot; publish ..\PlatypusTools.UI\PlatypusTools.UI.csproj -c $(Configuration) -r win-x64 --self-contained true -p:PublishSingleFile=false -o ..\PlatypusTools.UI\bin\$(Configuration)\net10.0-windows\win-x64\publish" />
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="6.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Product.wxs" />
+    <Compile Include="Files.wxs" />
+    <Compile Include="PublishFiles.wxs" />
+  </ItemGroup>
+</Project>

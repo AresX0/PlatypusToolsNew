@@ -61,32 +61,67 @@ public partial class AudioPlayerView : UserControl
     
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        // Initialize DataGrid columns for proper resizing
-        if (this.FindName("LibraryTrackGrid") is DataGrid grid)
+        var logPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PlatypusTools", "debug_log.txt");
+        try
         {
-            grid.UpdateLayout();
-            foreach (var column in grid.Columns)
-            {
-                column.Width = double.NaN; // Auto-size
-            }
-            grid.UpdateLayout();
+            var dir = System.IO.Path.GetDirectoryName(logPath);
+            if (!string.IsNullOrEmpty(dir) && !System.IO.Directory.Exists(dir))
+                System.IO.Directory.CreateDirectory(dir);
+            System.IO.File.AppendAllText(logPath, $"\n[{DateTime.Now}] ===== OnLoaded STARTED =====\n");
+            System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] OnLoaded: DataContext type = {DataContext?.GetType().Name ?? "null"}\n");
+            
+            // Skip DataGrid column initialization - it causes exceptions and isn't needed
+            // The XAML already sets proper column widths
+            
+            _viewModel = DataContext as AudioPlayerViewModel;
+            System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] OnLoaded: Cast result _viewModel = {(_viewModel != null ? "SUCCESS" : "NULL")}\n");
+        }
+        catch (Exception ex)
+        {
+            try { System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] OnLoaded OUTER EXCEPTION: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}\n"); } catch { }
         }
         
-        _viewModel = DataContext as AudioPlayerViewModel;
         if (_viewModel != null)
         {
-            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
-            
-            // Initialize audio visualizer
-            InitializeVisualizer();
-            
-            // Load library folders into the ListBox directly (bypass binding)
-            LoadLibraryFoldersToUI();
-            
-            // Library index is loaded in ViewModel constructor now
-            // Just force refresh of the library grid to ensure it displays
-            await Task.Delay(100); // Give async init time to complete
-            RefreshLibraryTrackGrid();
+            try
+            {
+                var logPath2 = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PlatypusTools", "debug_log.txt");
+                System.IO.File.AppendAllText(logPath2, $"[{DateTime.Now}] OnLoaded: _viewModel assigned, subscribing to PropertyChanged\n");
+                
+                _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+                
+                System.IO.File.AppendAllText(logPath2, $"[{DateTime.Now}] OnLoaded: Calling InitializeVisualizer\n");
+                // Initialize audio visualizer
+                InitializeVisualizer();
+                
+                System.IO.File.AppendAllText(logPath2, $"[{DateTime.Now}] OnLoaded: Calling LoadLibraryFoldersToUI\n");
+                // Load library folders into the ListBox directly (bypass binding)
+                LoadLibraryFoldersToUI();
+                
+                System.IO.File.AppendAllText(logPath2, $"[{DateTime.Now}] OnLoaded: LoadLibraryFoldersToUI completed, IsScanning={_viewModel.IsScanning}\n");
+                
+                // Wait for ViewModel to finish loading library (watch IsScanning)
+                // The ViewModel's InitializeLibraryAsync sets IsScanning=true at start, false when done
+                int waitAttempts = 0;
+                const int maxWaitAttempts = 50; // 5 seconds max
+                while (_viewModel.IsScanning && waitAttempts < maxWaitAttempts)
+                {
+                    await Task.Delay(100);
+                    waitAttempts++;
+                }
+                
+                System.IO.File.AppendAllText(logPath2, $"[{DateTime.Now}] OnLoaded: Wait complete after {waitAttempts * 100}ms, LibraryTracks={_viewModel.LibraryTracks.Count}\n");
+                
+                // Now refresh the library grid - ViewModel should have data loaded
+                RefreshLibraryTrackGrid();
+                
+                System.IO.File.AppendAllText(logPath2, $"[{DateTime.Now}] OnLoaded: RefreshLibraryTrackGrid completed\n");
+            }
+            catch (Exception ex)
+            {
+                var logPath2 = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PlatypusTools", "debug_log.txt");
+                System.IO.File.AppendAllText(logPath2, $"[{DateTime.Now}] OnLoaded: EXCEPTION - {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}\n");
+            }
         }
         
         // Ensure events are subscribed (in case constructor didn't complete subscription)
@@ -343,27 +378,38 @@ public partial class AudioPlayerView : UserControl
                 "PlatypusTools",
                 "library_folders.json");
             
+            var logPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PlatypusTools", "debug_log.txt");
+            System.IO.File.AppendAllText(logPath, $"\n[{DateTime.Now}] LoadLibraryFoldersToUI: Looking for {foldersPath}, exists={System.IO.File.Exists(foldersPath)}\n");
+            
             if (System.IO.File.Exists(foldersPath))
             {
                 var json = System.IO.File.ReadAllText(foldersPath);
+                System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] LoadLibraryFoldersToUI: JSON length = {json.Length}\n");
                 var folders = System.Text.Json.JsonSerializer.Deserialize<List<string>>(json);
+                System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] LoadLibraryFoldersToUI: Deserialized {folders?.Count ?? 0} folders\n");
                 if (folders != null && folders.Count > 0)
                 {
                     var vm = GetViewModel();
+                    System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] LoadLibraryFoldersToUI: vm={vm != null}, LibraryFoldersListBox={LibraryFoldersListBox != null}\n");
                     if (vm != null)
                     {
                         vm.LibraryFolders.Clear();
                         foreach (var folder in folders)
                             vm.LibraryFolders.Add(folder);
+                        System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] LoadLibraryFoldersToUI: Added {folders.Count} folders to ViewModel\n");
                     }
                     
                     // Set ItemsSource directly
                     if (LibraryFoldersListBox != null)
                     {
                         LibraryFoldersListBox.ItemsSource = folders;
-                        System.Diagnostics.Debug.WriteLine($"LoadLibraryFoldersToUI: Loaded {folders.Count} folders");
+                        System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] LoadLibraryFoldersToUI: Set ItemsSource with {folders.Count} folders, Items.Count={LibraryFoldersListBox.Items.Count}\n");
                     }
                 }
+            }
+            else
+            {
+                System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] LoadLibraryFoldersToUI: File does not exist\n");
             }
         }
         catch (Exception ex)
@@ -424,6 +470,20 @@ public partial class AudioPlayerView : UserControl
         {
             if (StatusText != null && _viewModel != null)
                 StatusText.Text = _viewModel.StatusMessage;
+        }
+        else if (e.PropertyName == nameof(AudioPlayerViewModel.LibraryTracks) ||
+                 e.PropertyName == nameof(AudioPlayerViewModel.LibraryTrackCount))
+        {
+            // Library tracks changed - refresh the grid
+            Dispatcher.InvokeAsync(() => RefreshLibraryTrackGrid());
+        }
+        else if (e.PropertyName == nameof(AudioPlayerViewModel.IsScanning))
+        {
+            // When scanning finishes, refresh the grid
+            if (_viewModel != null && !_viewModel.IsScanning)
+            {
+                Dispatcher.InvokeAsync(() => RefreshLibraryTrackGrid());
+            }
         }
     }
     
@@ -865,6 +925,37 @@ public partial class AudioPlayerView : UserControl
         }
     }
     
+    /// <summary>
+    /// Plays a specific track from the queue when its play button is clicked.
+    /// </summary>
+    private async void OnPlayTrackInQueueClick(object sender, RoutedEventArgs e)
+    {
+        var vm = GetViewModel();
+        if (vm == null) return;
+        
+        if (sender is Button btn && btn.Tag is PlatypusTools.Core.Models.Audio.AudioTrack track)
+        {
+            await PlatypusTools.UI.Services.AudioPlayerService.Instance.PlayTrackAsync(track);
+            vm.StatusMessage = $"Playing: {track.DisplayTitle}";
+        }
+    }
+    
+    /// <summary>
+    /// Removes a specific track from the queue when its remove button is clicked.
+    /// </summary>
+    private void OnRemoveTrackFromQueueClick(object sender, RoutedEventArgs e)
+    {
+        var vm = GetViewModel();
+        if (vm == null) return;
+        
+        if (sender is Button btn && btn.Tag is PlatypusTools.Core.Models.Audio.AudioTrack track)
+        {
+            PlatypusTools.UI.Services.AudioPlayerService.Instance.RemoveFromQueue(track);
+            vm.Queue.Remove(track);
+            vm.StatusMessage = $"Removed: {track.DisplayTitle}";
+        }
+    }
+    
     private async void OnScanAllFoldersClick(object sender, RoutedEventArgs e)
     {
         var vm = GetViewModel();
@@ -944,15 +1035,25 @@ public partial class AudioPlayerView : UserControl
         var vm = GetViewModel();
         if (vm == null) return;
         
-        if (vm.SelectedLibraryTrack == null)
+        // Try to get selection from ViewModel, fallback to DataGrid directly
+        var selectedTrack = vm.SelectedLibraryTrack;
+        if (selectedTrack == null && LibraryTrackGrid != null)
+        {
+            selectedTrack = LibraryTrackGrid.SelectedItem as PlatypusTools.Core.Models.Audio.AudioTrack;
+        }
+        
+        if (selectedTrack == null)
         {
             MessageBox.Show("Please select a track from the library first.", "No Selection", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
         
-        PlatypusTools.UI.Services.AudioPlayerService.Instance.AddToQueue(vm.SelectedLibraryTrack);
-        vm.Queue.Add(vm.SelectedLibraryTrack);
-        await PlatypusTools.UI.Services.AudioPlayerService.Instance.PlayTrackAsync(vm.SelectedLibraryTrack);
+        PlatypusTools.UI.Services.AudioPlayerService.Instance.AddToQueue(selectedTrack);
+        vm.Queue.Add(selectedTrack);
+        await PlatypusTools.UI.Services.AudioPlayerService.Instance.PlayTrackAsync(selectedTrack);
+        RefreshQueueListBox();
+        UpdateQueueCount();
+        UpdateNowPlayingPanel();
     }
     
     private async void OnLibraryPlayClick(object sender, RoutedEventArgs e)
@@ -1071,6 +1172,19 @@ public partial class AudioPlayerView : UserControl
         UpdateQueueCount();
         vm.StatusMessage = $"Added {tracks.Count} tracks to queue";
         StatusText.Text = vm.StatusMessage;
+    }
+    
+    private void OnOrganizeByChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var vm = GetViewModel();
+        if (vm == null) return;
+        
+        // Force refresh the library grid after organize mode changes
+        if (sender is System.Windows.Controls.ComboBox combo)
+        {
+            vm.OrganizeModeIndex = combo.SelectedIndex;
+            RefreshLibraryTrackGrid();
+        }
     }
     
     // ===== Playback Control Click Handlers =====
@@ -1427,13 +1541,17 @@ public partial class AudioPlayerView : UserControl
     /// </summary>
     private void RefreshLibraryTrackGrid()
     {
+        var logPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PlatypusTools", "debug_log.txt");
         var vm = GetViewModel();
+        System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] RefreshLibraryTrackGrid: vm={vm != null}, LibraryTrackGrid={LibraryTrackGrid != null}\n");
         if (vm == null || LibraryTrackGrid == null) return;
         
         // Force re-bind to LibraryTracks collection
         var tracks = vm.LibraryTracks.ToList();
+        System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] RefreshLibraryTrackGrid: LibraryTracks has {tracks.Count} items, LibraryTrackCount={vm.LibraryTrackCount}\n");
         LibraryTrackGrid.ItemsSource = null;
         LibraryTrackGrid.ItemsSource = tracks;
+        System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] RefreshLibraryTrackGrid: Set ItemsSource, Grid.Items.Count={LibraryTrackGrid.Items.Count}\n");
         
         // Update track count display
         if (FindName("LibraryTrackCountText") is TextBlock countText)

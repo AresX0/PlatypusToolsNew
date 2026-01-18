@@ -92,15 +92,20 @@ namespace PlatypusTools.UI.ViewModels
         public bool ShowSimilarImages 
         { 
             get => _showSimilarImages; 
-            set { _showSimilarImages = value; RaisePropertyChanged(); } 
+            set { _showSimilarImages = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(ShowDuplicatesGrid)); } 
         }
         
         private bool _showSimilarVideos = false;
         public bool ShowSimilarVideos 
         { 
             get => _showSimilarVideos; 
-            set { _showSimilarVideos = value; RaisePropertyChanged(); } 
+            set { _showSimilarVideos = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(ShowDuplicatesGrid)); } 
         }
+        
+        /// <summary>
+        /// Shows the duplicates grid when neither similar images nor videos mode is active.
+        /// </summary>
+        public bool ShowDuplicatesGrid => !_showSimilarImages && !_showSimilarVideos;
         
         private double _scanProgress = 0;
         public double ScanProgress 
@@ -169,11 +174,15 @@ namespace PlatypusTools.UI.ViewModels
             var cancellationToken = _scanCancellationTokenSource.Token;
 
             IsScanning = true;
+            ShowSimilarImages = false;
+            ShowSimilarVideos = false;
             StatusMessage = "Scanning for duplicates...";
             
             // Update global status bar
             StatusBarViewModel.Instance.StartOperation("Scanning for duplicates...", isCancellable: true);
             Groups.Clear();
+            SimilarImageGroups.Clear();
+            SimilarVideoGroups.Clear();
             ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
             ((RelayCommand)CancelScanCommand).RaiseCanExecuteChanged();
 

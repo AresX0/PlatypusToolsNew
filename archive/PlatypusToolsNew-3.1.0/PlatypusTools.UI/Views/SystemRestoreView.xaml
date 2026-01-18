@@ -1,0 +1,104 @@
+<UserControl x:Class="PlatypusTools.UI.Views.SystemRestoreView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="1000">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Actions -->
+        <GroupBox Header="System Restore" Grid.Row="0" Margin="0,0,0,8">
+            <Grid Margin="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                
+                <!-- Create Restore Point -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                    <TextBlock VerticalAlignment="Center" Width="120">New Point Name:</TextBlock>
+                    <TextBox x:Name="NewPointNameTextBox" Width="350" Text="{Binding NewPointDescription, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
+                    <Button Content="Create Restore Point" Click="OnCreatePointClick" Width="150" FontWeight="Bold" Margin="0,0,16,0" />
+                    <Button Content="Refresh" Click="OnRefreshClick" Width="90" />
+                </StackPanel>
+
+                <!-- Manage Restore Points -->
+                <StackPanel Grid.Row="1" Orientation="Horizontal">
+                    <Button Content="Restore System" Click="OnRestoreClick" Width="120" Background="DarkBlue" Foreground="White" FontWeight="Bold" Margin="0,0,8,0" />
+                    <Button Content="Delete Point" Click="OnDeleteClick" Width="100" Background="DarkRed" Foreground="White" />
+                    <TextBlock VerticalAlignment="Center" FontWeight="Bold" Margin="24,0,0,0">
+                        Total Points: <Run x:Name="TotalPointsText" Text="{Binding TotalPoints, Mode=OneWay}" />
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <!-- Restore Points List -->
+        <GroupBox Header="Available Restore Points" Grid.Row="1" Margin="0,0,0,8">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <DataGrid x:Name="RestorePointsDataGrid" ItemsSource="{Binding RestorePoints}"
+                          SelectedItem="{Binding SelectedPoint}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserResizeColumns="True"
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          ColumnHeaderHeight="32"
+                          MinHeight="200"
+                          ColumnWidth="*"
+                          HorizontalScrollBarVisibility="Disabled" 
+                          VerticalScrollBarVisibility="Disabled">
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                            <Setter Property="Padding" Value="8,4"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Sequence #" Binding="{Binding SequenceNumber}" Width="100" MinWidth="80" IsReadOnly="True" CanUserResize="True"/>
+                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" MinWidth="250" IsReadOnly="True" CanUserResize="True"/>
+                        <DataGridTextColumn Header="Creation Time" Binding="{Binding CreationTime, StringFormat='yyyy-MM-dd HH:mm:ss'}" Width="160" MinWidth="140" IsReadOnly="True" CanUserResize="True"/>
+                        <DataGridTextColumn Header="Type" Binding="{Binding RestorePointType}" Width="150" MinWidth="120" IsReadOnly="True" CanUserResize="True"/>
+                        <DataGridTextColumn Header="Event" Binding="{Binding EventType}" Width="150" MinWidth="120" IsReadOnly="True" CanUserResize="True"/>
+                    </DataGrid.Columns>
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Restore to this Point" Command="{Binding RestoreCommand}" FontWeight="Bold" />
+                            <Separator />
+                            <MenuItem Header="Delete this Point" Command="{Binding DeleteCommand}" />
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                </DataGrid>
+            </ScrollViewer>
+        </GroupBox>
+
+        <!-- Status Bar -->
+        <StatusBar Grid.Row="2">
+            <StatusBarItem>
+                <TextBlock Text="{Binding DataContext.StatusMessage, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Working..." Margin="0,0,8,0"
+                               Visibility="{Binding DataContext.IsLoading, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed, TargetNullValue=Collapsed}" />
+                    <ProgressBar Width="100" Height="16" IsIndeterminate="True"
+                                 Visibility="{Binding DataContext.IsLoading, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed, TargetNullValue=Collapsed}" />
+                </StackPanel>
+            </StatusBarItem>
+        </StatusBar>
+
+        <Grid.Resources>
+            <Style TargetType="GroupBox">
+                <Setter Property="Padding" Value="4" />
+                <Setter Property="Margin" Value="0,0,0,4" />
+            </Style>
+        </Grid.Resources>
+    </Grid>
+</UserControl>

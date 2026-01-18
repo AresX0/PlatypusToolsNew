@@ -1,0 +1,443 @@
+<UserControl x:Class="PlatypusTools.UI.Views.MultimediaEditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:wfi="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
+             xmlns:local="clr-namespace:PlatypusTools.UI.Views"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="1000">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- File Selection at Top -->
+        <GroupBox Header="Media File" Grid.Row="0" Margin="5">
+            <Grid Margin="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="File:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBox Grid.Column="1" Text="{Binding FilePath}" IsReadOnly="True" Margin="0,0,10,0"/>
+                <Button Grid.Column="2" Content="Browse..." Command="{Binding BrowseFileCommand}" Width="80" Padding="5"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Tabbed Interface for Each Application -->
+        <TabControl Grid.Row="1" Margin="5">
+            <!-- VLC Player Tab -->
+            <TabItem Header="🎬 VLC Player">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- VLC Configuration -->
+                    <GroupBox Header="VLC Configuration" Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel Margin="5">
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="40"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="VLC Path:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox Grid.Column="1" Text="{Binding VlcPath}" IsReadOnly="True" Margin="0,0,10,0"/>
+                                <Button Grid.Column="2" Content="Browse..." Command="{Binding BrowseVlcCommand}" Padding="5" Margin="0,0,5,0"/>
+                                <TextBlock Grid.Column="3" Text="✔" Foreground="Green" FontSize="16" FontWeight="Bold" 
+                                           VerticalAlignment="Center" HorizontalAlignment="Center"
+                                           Visibility="{Binding IsVlcAvailable, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                <TextBlock Grid.Column="3" Text="✖" Foreground="Red" FontSize="16" FontWeight="Bold" 
+                                           VerticalAlignment="Center" HorizontalAlignment="Center"
+                                           Visibility="{Binding IsVlcAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                            </Grid>
+                            
+                            <Button Content="📥 Download VLC Player" Command="{Binding DownloadVlcCommand}" 
+                                    Width="200" HorizontalAlignment="Left" Padding="5"
+                                    Visibility="{Binding IsVlcAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- VLC Features -->
+                    <GroupBox Header="Features" Grid.Row="1" Margin="0,0,0,10">
+                        <WrapPanel Margin="5">
+                            <Button Content="Open in VLC" Command="{Binding OpenInVlcCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
+                                    ToolTip="Open selected file in VLC Media Player for playback and basic editing"/>
+                            <Button Content="Embed VLC Here" Command="{Binding EmbedVlcCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="LightBlue"
+                                    ToolTip="Embed VLC player directly in this tab"/>
+                            <Button Content="Convert Format" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Use VLC to convert video/audio format" IsEnabled="False"/>
+                            <Button Content="Extract Audio" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Extract audio track from video file" IsEnabled="False"/>
+                            <Button Content="Take Snapshot" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Capture frame from video" IsEnabled="False"/>
+                        </WrapPanel>
+                    </GroupBox>
+
+                    <!-- VLC Workspace -->
+                    <GroupBox Header="VLC Workspace" Grid.Row="2">
+                        <Grid>
+                            <!-- Embedded VLC Host -->
+                            <wfi:WindowsFormsHost x:Name="VlcHost" Loaded="VlcHost_Loaded" 
+                                                 Visibility="{Binding EmbedVlc, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            
+                            <!-- Information Panel (when not embedded) -->
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                                          Visibility="{Binding EmbedVlc, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                <StackPanel Margin="10">
+                                    <TextBlock Text="VLC Media Player Capabilities" FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
+                                    
+                                    <TextBlock Text="🎬 Playback Features:" FontWeight="Bold" Margin="0,0,0,8"/>
+                                    <TextBlock Text="• Play video and audio files in virtually all formats" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Stream network media (HTTP, RTSP, etc.)" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Playback speed control and frame-by-frame navigation" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Subtitle support with timing adjustment" Margin="15,0,0,10"/>
+                                    
+                                    <TextBlock Text="🔄 Conversion and Processing:" FontWeight="Bold" Margin="0,10,0,8"/>
+                                    <TextBlock Text="• Convert between media formats" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Extract audio from videos" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Apply video/audio effects and filters" Margin="15,0,0,10"/>
+                                    
+                                    <TextBlock Text="📸 Additional Features:" FontWeight="Bold" Margin="0,10,0,8"/>
+                                <TextBlock Text="• Capture video snapshots" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Record desktop or webcam" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Create video playlists" Margin="15,0,0,10"/>
+                                
+                                <Border Background="#E3F2FD" Padding="15" Margin="0,15,0,0" BorderBrush="#2196F3" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="💡 Quick Start:" FontWeight="Bold" Foreground="#1976D2" Margin="0,0,0,5"/>
+                                        <TextBlock Text="1. Select a video or audio file using the Browse button above" Foreground="#1976D2" Margin="0,0,0,3"/>
+                                        <TextBlock Text="2. Click 'Open in VLC' to launch the file in VLC Media Player" Foreground="#1976D2" Margin="0,0,0,3"/>
+                                        <TextBlock Text="3. Use VLC's built-in tools for playback, conversion, or editing" Foreground="#1976D2"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+
+            <!-- Audacity Tab -->
+            <TabItem Header="🎵 Audacity">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Audacity Configuration -->
+                    <GroupBox Header="Audacity Configuration" Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel Margin="5">
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="40"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="Audacity Path:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox Grid.Column="1" Text="{Binding AudacityPath}" IsReadOnly="True" Margin="0,0,10,0"/>
+                                <Button Grid.Column="2" Content="Browse..." Command="{Binding BrowseAudacityCommand}" Padding="5" Margin="0,0,5,0"/>
+                                <TextBlock Grid.Column="3" Text="✔" Foreground="Green" FontSize="16" FontWeight="Bold" 
+                                           VerticalAlignment="Center" HorizontalAlignment="Center"
+                                           Visibility="{Binding IsAudacityAvailable, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                <TextBlock Grid.Column="3" Text="✖" Foreground="Red" FontSize="16" FontWeight="Bold" 
+                                           VerticalAlignment="Center" HorizontalAlignment="Center"
+                                           Visibility="{Binding IsAudacityAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                            </Grid>
+                            
+                            <Button Content="📥 Download Audacity" Command="{Binding DownloadAudacityCommand}" 
+                                    Width="200" HorizontalAlignment="Left" Padding="5"
+                                    Visibility="{Binding IsAudacityAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Audacity Features -->
+                    <GroupBox Header="Features" Grid.Row="1" Margin="0,0,0,10">
+                        <WrapPanel Margin="5">
+                            <Button Content="Open in Audacity" Command="{Binding OpenInAudacityCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
+                                    ToolTip="Open selected audio file in Audacity for editing"/>
+                            <Button Content="Embed Audacity Here" Command="{Binding EmbedAudacityCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="LightBlue"
+                                    ToolTip="Embed Audacity directly in this tab"/>
+                            <Button Content="Record Audio" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Start audio recording in Audacity" IsEnabled="False"/>
+                            <Button Content="Apply Effects" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Apply audio effects and filters" IsEnabled="False"/>
+                            <Button Content="Noise Reduction" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Remove background noise" IsEnabled="False"/>
+                        </WrapPanel>
+                    </GroupBox>
+
+                    <!-- Audacity Workspace -->
+                    <GroupBox Header="Audacity Workspace" Grid.Row="2">
+                        <Grid>
+                            <!-- Embedded Audacity Host -->
+                            <wfi:WindowsFormsHost x:Name="AudacityHost" Loaded="AudacityHost_Loaded" 
+                                                 Visibility="{Binding EmbedAudacity, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            
+                            <!-- Information Panel (when not embedded) -->
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                                          Visibility="{Binding EmbedAudacity, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                <StackPanel Margin="10">
+                                    <TextBlock Text="Audacity Audio Editor Capabilities" FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
+                                
+                                <TextBlock Text="🎙️ Recording:" FontWeight="Bold" Margin="0,0,0,8"/>
+                                <TextBlock Text="• Record live audio from microphone or other input devices" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Multi-track recording for layering sounds" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Timer recording for scheduled captures" Margin="15,0,0,10"/>
+                                
+                                <TextBlock Text="✂️ Editing:" FontWeight="Bold" Margin="0,10,0,8"/>
+                                <TextBlock Text="• Cut, copy, paste, and delete audio segments" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Trim, split, and merge audio files" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Change tempo without affecting pitch" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Change pitch without affecting tempo" Margin="15,0,0,10"/>
+                                
+                                <TextBlock Text="🎚️ Effects and Processing:" FontWeight="Bold" Margin="0,10,0,8"/>
+                                <TextBlock Text="• Noise reduction and click removal" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Reverb, echo, phaser, and chorus effects" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Normalize, amplify, and compress audio" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Equalization and bass/treble adjustment" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Fade in/out and crossfade" Margin="15,0,0,10"/>
+                                
+                                <TextBlock Text="💾 Export:" FontWeight="Bold" Margin="0,10,0,8"/>
+                                <TextBlock Text="• Save in various formats: MP3, WAV, FLAC, OGG, etc." Margin="15,0,0,5"/>
+                                <TextBlock Text="• Batch processing for multiple files" Margin="15,0,0,10"/>
+                                
+                                <Border Background="#FFF3E0" Padding="15" Margin="0,15,0,0" BorderBrush="#FF9800" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="💡 Quick Start:" FontWeight="Bold" Foreground="#E65100" Margin="0,0,0,5"/>
+                                        <TextBlock Text="1. Select an audio file using the Browse button above" Foreground="#E65100" Margin="0,0,0,3"/>
+                                        <TextBlock Text="2. Click 'Open in Audacity' to load the file for editing" Foreground="#E65100" Margin="0,0,0,3"/>
+                                        <TextBlock Text="3. Use Audacity's tools for professional audio editing and enhancement" Foreground="#E65100"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+
+            <!-- GIMP Tab -->
+            <TabItem Header="🎨 GIMP">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- GIMP Configuration -->
+                    <GroupBox Header="GIMP Configuration" Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel Margin="5">
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="40"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="GIMP Path:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox Grid.Column="1" Text="{Binding GimpPath}" IsReadOnly="True" Margin="0,0,10,0"/>
+                                <Button Grid.Column="2" Content="Browse..." Command="{Binding BrowseGimpCommand}" Padding="5" Margin="0,0,5,0"/>
+                                <TextBlock Grid.Column="3" Text="✔" Foreground="Green" FontSize="16" FontWeight="Bold" 
+                                           VerticalAlignment="Center" HorizontalAlignment="Center"
+                                           Visibility="{Binding IsGimpAvailable, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                <TextBlock Grid.Column="3" Text="✖" Foreground="Red" FontSize="16" FontWeight="Bold" 
+                                           VerticalAlignment="Center" HorizontalAlignment="Center"
+                                           Visibility="{Binding IsGimpAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                            </Grid>
+                            
+                            <Button Content="📥 Download GIMP" Command="{Binding DownloadGimpCommand}" 
+                                    Width="200" HorizontalAlignment="Left" Padding="5"
+                                    Visibility="{Binding IsGimpAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- GIMP Features -->
+                    <GroupBox Header="Features" Grid.Row="1" Margin="0,0,0,10">
+                        <WrapPanel Margin="5">
+                            <Button Content="Open in GIMP" Command="{Binding OpenInGimpCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
+                                    ToolTip="Open selected image in GIMP for editing"/>
+                            <Button Content="Embed GIMP Here" Command="{Binding EmbedGimpCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="LightBlue"
+                                    ToolTip="Embed GIMP directly in this tab"/>
+                            <Button Content="Resize Image" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Resize or scale image" IsEnabled="False"/>
+                            <Button Content="Color Adjustment" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Adjust brightness, contrast, saturation" IsEnabled="False"/>
+                            <Button Content="Apply Filters" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Apply artistic filters and effects" IsEnabled="False"/>
+                        </WrapPanel>
+                    </GroupBox>
+
+                    <!-- GIMP Workspace -->
+                    <GroupBox Header="GIMP Workspace" Grid.Row="2">
+                        <Grid>
+                            <!-- Embedded GIMP Host -->
+                            <wfi:WindowsFormsHost x:Name="GimpHost" Loaded="GimpHost_Loaded" 
+                                                 Visibility="{Binding EmbedGimp, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            
+                            <!-- Information Panel (when not embedded) -->
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                                          Visibility="{Binding EmbedGimp, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                <StackPanel Margin="10">
+                                    <TextBlock Text="GIMP Image Editor Capabilities" FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
+                                    <TextBlock Text="(GNU Image Manipulation Program)" FontStyle="Italic" Foreground="#666" Margin="0,0,0,15"/>
+                                
+                                <TextBlock Text="🖼️ Photo Editing:" FontWeight="Bold" Margin="0,0,0,8"/>
+                                <TextBlock Text="• Professional photo retouching and restoration" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Red-eye removal and blemish correction" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Crop, rotate, and perspective correction" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Clone and healing tools" Margin="15,0,0,10"/>
+                                
+                                <TextBlock Text="🎨 Drawing and Design:" FontWeight="Bold" Margin="0,10,0,8"/>
+                                <TextBlock Text="• Full suite of painting tools (brushes, pencils, airbrush)" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Text tool with advanced typography" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Shapes, paths, and vector graphics" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Gradient and pattern fills" Margin="15,0,0,10"/>
+                                
+                                <TextBlock Text="🎭 Advanced Features:" FontWeight="Bold" Margin="0,10,0,8"/>
+                                <TextBlock Text="• Layer-based editing with masks and blend modes" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Advanced selection tools (magic wand, bezier, intelligent scissors)" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Channel operations and color management" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Animation support (GIF, video frames)" Margin="15,0,0,10"/>
+                                
+                                <TextBlock Text="🌈 Color and Effects:" FontWeight="Bold" Margin="0,10,0,8"/>
+                                <TextBlock Text="• Color correction (curves, levels, hue/saturation)" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Filters: blur, sharpen, distort, artistic effects" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Noise reduction and despeckle" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Lighting effects and lens distortion correction" Margin="15,0,0,10"/>
+                                
+                                <TextBlock Text="⚙️ Productivity:" FontWeight="Bold" Margin="0,10,0,8"/>
+                                <TextBlock Text="• Batch processing with script-fu" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Extensible with plugins and scripts" Margin="15,0,0,5"/>
+                                <TextBlock Text="• Support for many file formats (PSD, XCF, PNG, JPEG, etc.)" Margin="15,0,0,10"/>
+                                
+                                <Border Background="#F3E5F5" Padding="15" Margin="0,15,0,0" BorderBrush="#9C27B0" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="💡 Quick Start:" FontWeight="Bold" Foreground="#6A1B9A" Margin="0,0,0,5"/>
+                                        <TextBlock Text="1. Select an image file using the Browse button above" Foreground="#6A1B9A" Margin="0,0,0,3"/>
+                                        <TextBlock Text="2. Click 'Open in GIMP' to launch the professional image editor" Foreground="#6A1B9A" Margin="0,0,0,3"/>
+                                        <TextBlock Text="3. Use GIMP's powerful tools for photo editing, retouching, and graphic design" Foreground="#6A1B9A"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+
+            <!-- Quick Actions Tab -->
+            <TabItem Header="⚡ Settings &amp; Tools">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+                        <GroupBox Header="Auto-Detection" Margin="0,0,0,15">
+                            <StackPanel Margin="10">
+                                <Button Content="🔍 Auto-Detect All Applications" Command="{Binding AutoDetectApplicationsCommand}" 
+                                        Width="280" Height="45" Padding="5" FontWeight="Bold" FontSize="14" Margin="0,0,0,15"/>
+                                
+                                <TextBlock Text="Detected Applications:" FontWeight="Bold" FontSize="14" Margin="0,5,0,10"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Text="VLC Player: " Width="150" FontSize="13"/>
+                                    <TextBlock Text="✔ Installed" Foreground="Green" FontWeight="Bold" FontSize="13"
+                                               Visibility="{Binding IsVlcAvailable, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    <TextBlock Text="✖ Not Found" Foreground="Red" FontWeight="Bold" FontSize="13"
+                                               Visibility="{Binding IsVlcAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Text="Audacity: " Width="150" FontSize="13"/>
+                                    <TextBlock Text="✔ Installed" Foreground="Green" FontWeight="Bold" FontSize="13"
+                                               Visibility="{Binding IsAudacityAvailable, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    <TextBlock Text="✖ Not Found" Foreground="Red" FontWeight="Bold" FontSize="13"
+                                               Visibility="{Binding IsAudacityAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Text="GIMP: " Width="150" FontSize="13"/>
+                                    <TextBlock Text="✔ Installed" Foreground="Green" FontWeight="Bold" FontSize="13"
+                                               Visibility="{Binding IsGimpAvailable, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    <TextBlock Text="✖ Not Found" Foreground="Red" FontWeight="Bold" FontSize="13"
+                                               Visibility="{Binding IsGimpAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="File Information" Margin="0,0,0,15">
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Selected File:" FontWeight="Bold" Margin="0,0,15,10"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding FilePath}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="File Type:" FontWeight="Bold" Margin="0,0,15,10"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding FileType}" Margin="0,0,0,10"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Recommended App:" FontWeight="Bold" Margin="0,0,15,5"/>
+                                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+                                    <TextBlock Text="VLC Player 🎬" FontWeight="Bold" Foreground="#2196F3" Visibility="{Binding IsVideoFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    <TextBlock Text="Audacity 🎵" FontWeight="Bold" Foreground="#FF9800" Visibility="{Binding IsAudioFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    <TextBlock Text="GIMP 🎨" FontWeight="Bold" Foreground="#9C27B0" Visibility="{Binding IsImageFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                </StackPanel>
+                            </Grid>
+                        </GroupBox>
+
+                        <GroupBox Header="Download Applications" Margin="0,0,0,15">
+                            <StackPanel Margin="10">
+                                <TextBlock Text="Missing applications? Download them from the official websites:" Margin="0,0,0,15" TextWrapping="Wrap"/>
+                                <Button Content="📥 Download VLC Player (videolan.org)" Command="{Binding DownloadVlcCommand}" 
+                                        HorizontalAlignment="Stretch" Padding="10,8" Margin="0,0,0,8" Height="40"/>
+                                <Button Content="📥 Download Audacity (audacityteam.org)" Command="{Binding DownloadAudacityCommand}" 
+                                        HorizontalAlignment="Stretch" Padding="10,8" Margin="0,0,0,8" Height="40"/>
+                                <Button Content="📥 Download GIMP (gimp.org)" Command="{Binding DownloadGimpCommand}" 
+                                        HorizontalAlignment="Stretch" Padding="10,8" Height="40"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox Header="About Multimedia Editor">
+                            <StackPanel Margin="10">
+                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+                                    The Multimedia Editor integrates three professional open-source applications 
+                                    for comprehensive media editing capabilities:
+                                </TextBlock>
+                                <TextBlock Text="• VLC Player - Video and audio playback, format conversion" Margin="0,0,0,5"/>
+                                <TextBlock Text="• Audacity - Professional audio editing and recording" Margin="0,0,0,5"/>
+                                <TextBlock Text="• GIMP - Advanced image editing and graphic design" Margin="0,0,0,10"/>
+                                <TextBlock TextWrapping="Wrap" FontStyle="Italic" Foreground="#666">
+                                    Each application opens in its own window with full functionality. 
+                                    All applications are free and open-source.
+                                </TextBlock>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="#F0F0F0" BorderBrush="#CCCCCC" BorderThickness="0,1,0,0" Padding="10,5">
+            <TextBlock Text="{Binding StatusMessage}" Foreground="#333" FontSize="12"/>
+        </Border>
+    </Grid>
+</UserControl>

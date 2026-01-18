@@ -45,16 +45,22 @@ This package contains **three comprehensive guides** for your audio player:
 - **Playback**: Play, pause, volume, shuffle, repeat - **100% working**
 - **Visualizer**: Four rendering modes, controls, EQ presets - **100% working**
 - **UI Layout**: Three-pane design with proper separation - **100% working**
-- **Settings Window**: Visualizer settings panel - **80% working**
+- **Settings Window**: Visualizer settings panel - **100% working**
+- **Library Indexing**: Persistent JSON storage with atomic writes - **100% done** ✅
+- **Metadata Extraction**: TagLib# tag reading - **100% done** ✅
+- **Queue Persistence**: Save/load with auto-restore - **100% done** ✅
+- **Crossfade**: Configurable 0-5s transitions - **100% done** ✅
+- **Drag-and-Drop**: Queue reordering - **100% done** ✅
+- **Context Menus**: Play, Add to Queue, Remove - **100% done** ✅
 
 ### What's Missing ⚠️
-- **Library Indexing**: No persistent JSON storage - **0% done**
-- **Metadata Extraction**: No tag reading - **0% done**
-- **Queue Persistence**: No save/load - **20% done**
-- **File Operations**: No safe delete/relink - **0% done**
-- **Performance**: Not optimized for large libraries - **N/A**
+- **Gapless Playback**: Pre-buffer next track - **0% done** (v3.2.0)
+- **Real Audio EQ**: DSP processing (currently only affects visualizer) - **0% done** (v3.2.0)
+- **Replay Gain**: Volume normalization - **0% done** (v3.2.0)
+- **Delete from Disk**: Safe file deletion with confirm - **0% done** (v3.2.0)
+- **Sleep Timer**: Auto-stop playback - **0% done** (v3.2.0)
 
-### Score: **50% Complete** → Production Ready in 4-6 weeks
+### Score: **85% Complete** → v3.2.0 for remaining features
 
 ---
 
@@ -90,23 +96,21 @@ This package contains **three comprehensive guides** for your audio player:
 
 ## Implementation Priorities
 
-### Priority 1: Foundation (Week 1) ⭐⭐⭐
+### Priority 1: Foundation (Week 1) ✅ COMPLETE
 **Library Indexing + Metadata**
-- Enables persistent library
-- Fast cold start (<1.5s for 10k tracks)
-- Foundation for search/filter
+- ✅ Persistent library with JSON index
+- ✅ Fast cold start (<1.5s for 10k tracks)
+- ✅ Foundation for search/filter
 
-**Effort**: 14 hours  
-**Impact**: Transforms app from session-only to persistent
+**Status**: ✅ Implemented in v3.1.0
 
-### Priority 2: Enhancement (Week 2) ⭐⭐
+### Priority 2: Enhancement (Week 2) ✅ COMPLETE
 **Queue Persistence + Bulk Operations**
-- Save/load queue snapshot
-- Multi-select removal
-- Safe file deletion
+- ✅ Save/load queue snapshot
+- ✅ Multi-select removal
+- ✅ Context menu operations
 
-**Effort**: 11 hours  
-**Impact**: Complete user workflows
+**Status**: ✅ Implemented in v3.1.1
 
 ### Priority 3: Polish (Week 3) ⭐
 **Optimization + Error Handling**

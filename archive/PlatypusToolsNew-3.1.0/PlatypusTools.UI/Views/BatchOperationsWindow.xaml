@@ -1,0 +1,137 @@
+<Window x:Class="PlatypusTools.UI.Views.BatchOperationsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Batch Operations" 
+        Width="600" Height="500"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource BackgroundBrush}">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Operation Selection -->
+        <GroupBox Grid.Row="0" Header="Operation" Margin="0,0,0,10">
+            <StackPanel Margin="10">
+                <ComboBox x:Name="OperationCombo" SelectedIndex="0" Margin="0,0,0,10">
+                    <ComboBoxItem>Rename Files</ComboBoxItem>
+                    <ComboBoxItem>Move Files</ComboBoxItem>
+                    <ComboBoxItem>Copy Files</ComboBoxItem>
+                    <ComboBoxItem>Delete Files</ComboBoxItem>
+                    <ComboBoxItem>Change Extension</ComboBoxItem>
+                    <ComboBoxItem>Add Prefix</ComboBoxItem>
+                    <ComboBoxItem>Add Suffix</ComboBoxItem>
+                    <ComboBoxItem>Replace Text</ComboBoxItem>
+                    <ComboBoxItem>Sequence Number</ComboBoxItem>
+                </ComboBox>
+                
+                <!-- Operation-specific options -->
+                <Grid x:Name="RenameOptionsPanel">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Find:" 
+                               VerticalAlignment="Center"/>
+                    <TextBox x:Name="FindText" Grid.Row="0" Grid.Column="1" 
+                             Margin="0,0,0,5"/>
+                    
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Replace:" 
+                               VerticalAlignment="Center"/>
+                    <TextBox x:Name="ReplaceText" Grid.Row="1" Grid.Column="1"/>
+                </Grid>
+                
+                <StackPanel x:Name="DestinationPanel" Visibility="Collapsed" 
+                            Orientation="Horizontal" Margin="0,5,0,0">
+                    <TextBlock Text="Destination:" VerticalAlignment="Center" 
+                               Width="80"/>
+                    <TextBox x:Name="DestinationPath" Width="350" Margin="0,0,10,0"/>
+                    <Button Content="Browse..." Click="BrowseDestination_Click"/>
+                </StackPanel>
+                
+                <StackPanel x:Name="PrefixSuffixPanel" Visibility="Collapsed" 
+                            Orientation="Horizontal" Margin="0,5,0,0">
+                    <TextBlock x:Name="PrefixSuffixLabel" Text="Prefix:" 
+                               VerticalAlignment="Center" Width="80"/>
+                    <TextBox x:Name="PrefixSuffixText" Width="200"/>
+                </StackPanel>
+                
+                <StackPanel x:Name="SequencePanel" Visibility="Collapsed" 
+                            Orientation="Horizontal" Margin="0,5,0,0">
+                    <TextBlock Text="Start at:" VerticalAlignment="Center" Width="80"/>
+                    <TextBox x:Name="SequenceStart" Text="1" Width="60" Margin="0,0,15,0"/>
+                    <TextBlock Text="Digits:" VerticalAlignment="Center"/>
+                    <TextBox x:Name="SequenceDigits" Text="3" Width="40" Margin="5,0"/>
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+        
+        <!-- File List -->
+        <GroupBox Grid.Row="1" Header="Files">
+            <Grid Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+                    <Button Content="Add Files..." Click="AddFiles_Click" 
+                            Margin="0,0,5,0" Padding="10,5"/>
+                    <Button Content="Add Folder..." Click="AddFolder_Click" 
+                            Margin="0,0,5,0" Padding="10,5"/>
+                    <Button Content="Remove Selected" Click="RemoveSelected_Click" 
+                            Margin="0,0,5,0" Padding="10,5"/>
+                    <Button Content="Clear All" Click="ClearAll_Click" 
+                            Padding="10,5"/>
+                </StackPanel>
+                
+                <ListView x:Name="FilesList" Grid.Row="1" 
+                          SelectionMode="Extended">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Original Name" Width="200" 
+                                            DisplayMemberBinding="{Binding OriginalName}"/>
+                            <GridViewColumn Header="New Name" Width="200" 
+                                            DisplayMemberBinding="{Binding NewName}"/>
+                            <GridViewColumn Header="Status" Width="100" 
+                                            DisplayMemberBinding="{Binding Status}"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Grid>
+        </GroupBox>
+        
+        <!-- Progress -->
+        <Grid Grid.Row="2" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <ProgressBar x:Name="ProgressBar" Grid.Column="0" Height="20" Margin="0,0,10,0"/>
+            <TextBlock x:Name="ProgressText" Grid.Column="1" Text="0 / 0" 
+                       VerticalAlignment="Center" Width="80" TextAlignment="Right"/>
+        </Grid>
+        
+        <!-- Buttons -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" 
+                    HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="Preview" Width="80" Margin="0,0,10,0" 
+                    Click="Preview_Click"/>
+            <Button x:Name="ExecuteButton" Content="Execute" Width="100" 
+                    Margin="0,0,10,0" Click="Execute_Click"/>
+            <Button Content="Close" Width="80" Click="Close_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -217,6 +217,16 @@ namespace PlatypusTools.UI.Services
             }
             _loadedPlugins.Clear();
         }
+
+        /// <summary>
+        /// Reloads all plugins by shutting down and rediscovering them.
+        /// </summary>
+        public void ReloadAllPlugins()
+        {
+            ShutdownAll();
+            LoadPluginConfig();
+            DiscoverAndLoadPlugins();
+        }
     }
 
     public class PluginMenuItem

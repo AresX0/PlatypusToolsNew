@@ -1,0 +1,629 @@
+<UserControl x:Class="PlatypusTools.UI.Views.AudioPlayerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             xmlns:local="clr-namespace:PlatypusTools.UI.Views"
+             xmlns:converters="clr-namespace:PlatypusTools.UI.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1000">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+        <converters:FavoriteIconConverter x:Key="FavoriteIconConverter" />
+        
+        <!-- Style for transparent button in DataGrid cells -->
+        <Style x:Key="TransparentButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#22000000"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    
+    <!-- Keyboard Shortcuts -->
+    <UserControl.InputBindings>
+        <!-- Space: Play/Pause -->
+        <KeyBinding Key="Space" Command="{Binding PlayPauseCommand}" />
+        <!-- Ctrl+Right: Next track -->
+        <KeyBinding Key="Right" Modifiers="Ctrl" Command="{Binding NextCommand}" />
+        <!-- Ctrl+Left: Previous track -->
+        <KeyBinding Key="Left" Modifiers="Ctrl" Command="{Binding PreviousCommand}" />
+        <!-- Up: Volume up -->
+        <KeyBinding Key="Up" Command="{Binding VolumeUpCommand}" />
+        <!-- Down: Volume down -->
+        <KeyBinding Key="Down" Command="{Binding VolumeDownCommand}" />
+        <!-- M: Toggle mute -->
+        <KeyBinding Key="M" Command="{Binding ToggleMuteCommand}" />
+        <!-- S: Toggle shuffle -->
+        <KeyBinding Key="S" Command="{Binding ToggleShuffleCommand}" />
+        <!-- R: Cycle repeat mode -->
+        <KeyBinding Key="R" Command="{Binding CycleRepeatCommand}" />
+        <!-- Ctrl+O: Open files -->
+        <KeyBinding Key="O" Modifiers="Ctrl" Command="{Binding OpenFileCommand}" />
+        <!-- Ctrl+L: Toggle library view -->
+        <KeyBinding Key="L" Modifiers="Ctrl" Command="{Binding ToggleLibraryCommand}" />
+        <!-- Delete: Remove selected from queue -->
+        <KeyBinding Key="Delete" Command="{Binding RemoveSelectedFromQueueCommand}" />
+    </UserControl.InputBindings>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Toolbar -->
+        <ToolBar Grid.Row="0" Margin="5">
+            <Button Content="📂 Open Files" Click="OnOpenFilesClick" Padding="8,4" ToolTip="Open audio files (Ctrl+O)"/>
+            <Button Content="📁 Scan Folder" Click="OnScanFolderClick" Padding="8,4" ToolTip="Scan folder for audio"/>
+            <Button Content="➕ Add to Queue" Click="OnAddToQueueClick" Padding="8,4" ToolTip="Scan folder and add to existing queue"/>
+            <Separator/>
+            <CheckBox Content="Include Subfolders" IsChecked="{Binding IncludeSubfolders}" VerticalAlignment="Center" Margin="5,0"/>
+            <Separator/>
+            <Button Content="📚 Library" Click="OnToggleLibraryClick" Padding="8,4" ToolTip="Show/Hide Library Panel (Ctrl+L)"/>
+            <Separator/>
+            <Button Content="🗑️ Clear Queue" Command="{Binding ClearQueueCommand}" Padding="8,4" ToolTip="Clear all tracks from queue"/>
+        </ToolBar>
+        
+        <!-- Main Content -->
+        <Grid Grid.Row="1" Margin="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="250"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            
+            <!-- Top Panel: Visualizer + Controls (Separate Pane) -->
+            <Border Grid.Row="0" Background="#1a1a2e" CornerRadius="8" Margin="0,0,0,5">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Audio Visualizer (Always Visible) -->
+                    <local:AudioVisualizerView x:Name="VisualizerControl" Grid.Row="0"/>
+                    
+                    <!-- Visualizer Controls -->
+                    <Border Grid.Row="1" Background="#2a2a3e" Padding="8">
+                        <StackPanel Orientation="Horizontal" Margin="0">
+                            <TextBlock Text="Mode:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="White"/>
+                        <ComboBox x:Name="VisualizerModeCombo" Width="100" SelectedIndex="{Binding VisualizerModeIndex, Mode=TwoWay}" 
+                                  VerticalAlignment="Center" SelectionChanged="OnVisualizerModeChanged">
+                            <ComboBoxItem Content="Bars"/>
+                            <ComboBoxItem Content="Mirror"/>
+                            <ComboBoxItem Content="Waveform"/>
+                            <ComboBoxItem Content="Circular"/>
+                            <ComboBoxItem Content="Radial"/>
+                            <ComboBoxItem Content="Particles"/>
+                            <ComboBoxItem Content="Aurora"/>
+                            <ComboBoxItem Content="Wave Grid"/>
+                        </ComboBox>
+                        <Separator Margin="10,0" Background="#444"/>
+                        <TextBlock Text="Intensity:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="White"/>
+                        <Slider x:Name="BarCountSlider" Value="{Binding BarCount, Mode=TwoWay}" Minimum="8" Maximum="128" Width="80" 
+                                VerticalAlignment="Center" IsSnapToTickEnabled="True" TickFrequency="8"
+                                ValueChanged="OnBarCountChanged" ToolTip="Visualization detail level"/>
+                        <TextBlock Text="{Binding BarCount}" VerticalAlignment="Center" Margin="4,0,0,0" Foreground="White" Width="25"/>
+                        <Separator Margin="10,0" Background="#444"/>
+                        <TextBlock Text="Color:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="White"/>
+                        <ComboBox x:Name="ColorSchemeCombo" Width="100" SelectedIndex="{Binding ColorSchemeIndex, Mode=TwoWay}" 
+                                  VerticalAlignment="Center" SelectionChanged="OnColorSchemeChanged">
+                            <ComboBoxItem Content="Blue-Green"/>
+                            <ComboBoxItem Content="Rainbow"/>
+                            <ComboBoxItem Content="Fire"/>
+                            <ComboBoxItem Content="Purple"/>
+                            <ComboBoxItem Content="Neon"/>
+                            <ComboBoxItem Content="Ocean"/>
+                            <ComboBoxItem Content="Sunset"/>
+                            <ComboBoxItem Content="Mono"/>
+                        </ComboBox>
+                        <Separator Margin="10,0" Background="#444"/>
+                        <TextBlock Text="EQ:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="White"/>
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel Orientation="Vertical" Width="50">
+                                <TextBlock Text="Bass" HorizontalAlignment="Center" FontSize="10" Foreground="Gray"/>
+                                <Slider x:Name="EqBassSlider" Minimum="-12" Maximum="12" Value="{Binding EqBass, Mode=TwoWay}" 
+                                        Height="50" Orientation="Vertical" ToolTip="Bass (-12 to +12 dB)"
+                                        ValueChanged="OnEqBassChanged"/>
+                                <TextBlock Text="{Binding EqBass, StringFormat={}{0:F0}dB}" HorizontalAlignment="Center" FontSize="9" Foreground="Gray"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" Width="50">
+                                <TextBlock Text="Mid" HorizontalAlignment="Center" FontSize="10" Foreground="Gray"/>
+                                <Slider x:Name="EqMidSlider" Minimum="-12" Maximum="12" Value="{Binding EqMid, Mode=TwoWay}" 
+                                        Height="50" Orientation="Vertical" ToolTip="Mid (-12 to +12 dB)"
+                                        ValueChanged="OnEqMidChanged"/>
+                                <TextBlock Text="{Binding EqMid, StringFormat={}{0:F0}dB}" HorizontalAlignment="Center" FontSize="9" Foreground="Gray"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" Width="50">
+                                <TextBlock Text="Treble" HorizontalAlignment="Center" FontSize="10" Foreground="Gray"/>
+                                <Slider x:Name="EqTrebleSlider" Minimum="-12" Maximum="12" Value="{Binding EqTreble, Mode=TwoWay}" 
+                                        Height="50" Orientation="Vertical" ToolTip="Treble (-12 to +12 dB)"
+                                        ValueChanged="OnEqTrebleChanged"/>
+                                <TextBlock Text="{Binding EqTreble, StringFormat={}{0:F0}dB}" HorizontalAlignment="Center" FontSize="9" Foreground="Gray"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Button x:Name="EqResetBtn" Content="Reset" Width="50" Height="24"
+                                Background="#3a3a5e" Foreground="White" BorderThickness="0" FontSize="10"
+                                VerticalAlignment="Center" Margin="5,0,0,0" ToolTip="Reset EQ to flat"
+                                Click="OnEqResetClick"/>
+                        <Separator Margin="10,0" Background="#444"/>
+                        <Button x:Name="FullscreenToggleBtn" Content="⛶" FontSize="16" Width="32" Height="28"
+                                Background="#3a3a5e" Foreground="White" BorderThickness="0"
+                                VerticalAlignment="Center" ToolTip="Toggle Fullscreen Visualizer"
+                                Click="OnToggleFullscreenVisualizerClick"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+            
+            <!-- Player Controls - Below Visualizer, Above Tabs -->
+            <Border Grid.Row="1" Background="#f5f5f5" Padding="10,5">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- Left: Shuffle/Repeat -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Width="32" Height="32" 
+                                Click="OnCycleRepeatClick"
+                                ToolTip="Cycle repeat mode (R)"
+                                FontFamily="Segoe UI Symbol" FontSize="14" Margin="0,0,5,0"
+                                Background="Transparent" BorderThickness="0">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Content" Value="➡"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RepeatMode}" Value="1">
+                                            <Setter Property="Content" Value="🔁"/>
+                                            <Setter Property="Foreground" Value="#2196F3"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding RepeatMode}" Value="2">
+                                            <Setter Property="Content" Value="🔂"/>
+                                            <Setter Property="Foreground" Value="#4CAF50"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <ToggleButton Content="🔀" Width="32" Height="32" 
+                                      IsChecked="{Binding IsShuffle}"
+                                      ToolTip="Toggle shuffle (S)"
+                                      FontFamily="Segoe UI Symbol" FontSize="14"
+                                      Background="Transparent" BorderThickness="0"/>
+                    </StackPanel>
+                    
+                    <!-- Center: Transport Controls -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Button Content="⏮" Width="40" Height="40" Click="OnPreviousClick"
+                                FontFamily="Segoe UI Symbol" FontSize="16" Background="Transparent" BorderThickness="0"
+                                ToolTip="Previous (Ctrl+Left)"/>
+                        <Button Width="46" Height="46" 
+                                Click="OnPlayPauseClick"
+                                FontFamily="Segoe UI Symbol" FontSize="20" Margin="10,0"
+                                Background="#2196F3" Foreground="White" 
+                                ToolTip="Play/Pause (Space)">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Content" Value="▶"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                                            <Setter Property="Content" Value="⏸"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Button Content="⏭" Width="40" Height="40" Click="OnNextClick"
+                                FontFamily="Segoe UI Symbol" FontSize="16" Background="Transparent" BorderThickness="0"
+                                ToolTip="Next (Ctrl+Right)"/>
+                        <Button Content="⏹" Width="32" Height="32" Click="OnStopClick"
+                                FontFamily="Segoe UI Symbol" FontSize="12" Background="Transparent" BorderThickness="0" Margin="10,0,0,0"
+                                ToolTip="Stop"/>
+                    </StackPanel>
+                    
+                    <!-- Right: Volume -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Width="28" Height="28"
+                                Click="OnToggleMuteClick"
+                                FontFamily="Segoe UI Symbol" FontSize="12" Background="Transparent" BorderThickness="0"
+                                ToolTip="Toggle mute (M)">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Content" Value="🔊"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsMuted}" Value="True">
+                                            <Setter Property="Content" Value="🔇"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Slider Width="100" Minimum="0" Maximum="1" Value="{Binding Volume}" 
+                                VerticalAlignment="Center" Margin="5,0"/>
+                        <TextBlock Text="{Binding VolumePercent, StringFormat={}{0}%}" 
+                                   Width="35" VerticalAlignment="Center" Foreground="Gray" FontSize="11"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            
+            <!-- Bottom Panel: Queue or Library -->
+            <Border Grid.Row="2" Background="White" CornerRadius="0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="5"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- Main Content Area -->
+                    <TabControl Grid.Column="0" Margin="5">
+                    <TabItem Header="Queue" IsSelected="{Binding IsPlayerView}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <!-- Queue Controls -->
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
+                                <Button Content="� Add Files" Padding="8,4" Margin="0,0,5,0"
+                                        Click="OnOpenFilesClick" Background="#2196F3" Foreground="White"
+                                        ToolTip="Add audio files to queue"/>
+                                <Button Content="📁 Add Folder" Padding="8,4" Margin="0,0,10,0"
+                                        Click="OnScanFolderClick" Background="#4CAF50" Foreground="White"
+                                        ToolTip="Scan folder and add to queue"/>
+                                <Separator Margin="5,0"/>
+                                <Button Content="🗑 Remove Selected" Padding="8,4" Margin="5,0,5,0"
+                                        x:Name="RemoveSelectedBtn" Click="OnRemoveSelectedClick"
+                                        ToolTip="Remove selected tracks from queue (multi-select with Ctrl+Click)"/>
+                                <Button Content="🔄 Clear Queue" Padding="8,4"
+                                        x:Name="ClearQueueBtn" Click="OnClearQueueClick"
+                                        ToolTip="Remove all tracks from queue"/>
+                                <TextBlock Text="{Binding Queue.Count, StringFormat='({0} tracks)'}" 
+                                           VerticalAlignment="Center" Margin="10,0,0,0" Foreground="Gray"/>
+                            </StackPanel>
+                            
+                            <ListBox Grid.Row="1" x:Name="QueueListBox"
+                                     ItemsSource="{Binding Queue}" 
+                                     SelectedItem="{Binding SelectedQueueTrack}"
+                                     SelectionMode="Extended"
+                                     Background="Transparent" BorderThickness="0"
+                                     AllowDrop="True"
+                                     PreviewMouseLeftButtonDown="QueueListBox_PreviewMouseLeftButtonDown"
+                                     PreviewMouseMove="QueueListBox_PreviewMouseMove"
+                                     Drop="QueueListBox_Drop"
+                                     DragOver="QueueListBox_DragOver">
+                            <ListBox.ContextMenu>
+                                <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                    <MenuItem Header="Play Now" 
+                                              Command="{Binding PlayTrackCommand}" 
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                    <MenuItem Header="Play Next" 
+                                              Command="{Binding PlayNextCommand}" 
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                    <Separator/>
+                                    <MenuItem Header="Move Up" 
+                                              Command="{Binding MoveUpInQueueCommand}" 
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                    <MenuItem Header="Move Down" 
+                                              Command="{Binding MoveDownInQueueCommand}" 
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                    <Separator/>
+                                    <MenuItem Header="Remove from Queue" 
+                                              Command="{Binding RemoveFromQueueCommand}" 
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                    <Separator/>
+                                    <MenuItem Header="Reveal in Explorer" 
+                                              Command="{Binding RevealInExplorerCommand}" 
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                </ContextMenu>
+                            </ListBox.ContextMenu>
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding DisplayTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding DisplayArtist}" FontSize="11" Foreground="Gray" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                        
+                                        <TextBlock Grid.Column="1" Text="{Binding DurationFormatted}" 
+                                                   VerticalAlignment="Center" Margin="10,0" Foreground="Gray" FontSize="11"
+                                                   HorizontalAlignment="Right"/>
+                                        
+                                        <Button Grid.Column="2" Width="32" Height="24" Margin="4,0"
+                                                Command="{Binding DataContext.PlayTrackCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                CommandParameter="{Binding}"
+                                                ToolTip="Play this track"
+                                                Background="#2196F3" Foreground="White" BorderThickness="0">
+                                            <TextBlock Text="▶" FontSize="11"/>
+                                        </Button>
+                                        
+                                        <Button Grid.Column="3" Width="32" Height="24" Margin="0"
+                                                Command="{Binding DataContext.RemoveFromQueueCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                CommandParameter="{Binding}"
+                                                ToolTip="Remove from queue"
+                                                Background="#f44336" Foreground="White" BorderThickness="0">
+                                            <TextBlock Text="✕" FontSize="11" FontWeight="Bold"/>
+                                        </Button>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Library">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <!-- Library Folder Management Section -->
+                            <GroupBox Grid.Row="0" Header="📂 Library Folders" Margin="0,0,0,8">
+                                <Grid Margin="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <!-- Folder List -->
+                                    <ListBox Grid.Column="0" Grid.Row="0" x:Name="LibraryFoldersListBox"
+                                             ItemsSource="{Binding LibraryFolders}" 
+                                             SelectedItem="{Binding SelectedLibraryFolder}"
+                                             Height="80" Margin="0,0,8,0"
+                                             HorizontalContentAlignment="Stretch">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" ToolTip="{Binding}"/>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                    
+                                    <!-- Folder Buttons -->
+                                    <StackPanel Grid.Column="1" Grid.Row="0" VerticalAlignment="Top">
+                                        <Button Content="📁 Add Folder" Click="OnAddFolderToLibraryClick" 
+                                                Padding="10,6" Margin="0,0,0,5" Background="#4CAF50" Foreground="White"
+                                                ToolTip="Add a folder to your music library"/>
+                                        <Button Content="✕ Remove" Click="OnRemoveFolderFromLibraryClick" 
+                                                Padding="10,6" Margin="0,0,0,5"
+                                                ToolTip="Remove selected folder from library"/>
+                                    </StackPanel>
+                                    
+                                    <!-- Scan Controls -->
+                                    <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,0">
+                                        <Button Content="🔄 Scan All Folders" Click="OnScanAllFoldersClick" 
+                                                Padding="12,6" Margin="0,0,10,0" Background="#2196F3" Foreground="White"
+                                                FontWeight="Bold" ToolTip="Scan all folders and add files to library"/>
+                                        <CheckBox Content="Include Subfolders" IsChecked="{Binding IncludeSubfolders}" 
+                                                  VerticalAlignment="Center" Margin="10,0,15,0"/>
+                                        <TextBlock Text="{Binding ScanStatus}" Foreground="#FF6600" FontWeight="Bold" 
+                                                   VerticalAlignment="Center"/>
+                                        <Button Content="Cancel" Width="70" Margin="10,0,0,0"
+                                                Command="{Binding CancelScanCommand}"
+                                                Visibility="{Binding IsScanning, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    </StackPanel>
+                                    
+                                    <!-- Statistics and Progress -->
+                                    <Grid Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="2" Margin="0,8,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <ProgressBar Grid.Column="0" Value="{Binding ScanProgress}" 
+                                                     IsIndeterminate="{Binding IsScanning}" Height="16"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="15,0,0,0">
+                                            <TextBlock Text="Tracks:" FontWeight="Bold" Margin="0,0,4,0"/>
+                                            <TextBlock Text="{Binding LibraryTrackCount, FallbackValue=0}" Margin="0,0,12,0"/>
+                                            <TextBlock Text="Artists:" FontWeight="Bold" Margin="0,0,4,0"/>
+                                            <TextBlock Text="{Binding LibraryArtistCount, FallbackValue=0}" Margin="0,0,12,0"/>
+                                            <TextBlock Text="Albums:" FontWeight="Bold" Margin="0,0,4,0"/>
+                                            <TextBlock Text="{Binding LibraryAlbumCount, FallbackValue=0}" Margin="0,0,12,0"/>
+                                            <TextBlock Text="⭐ Favorites:" FontWeight="Bold" Margin="0,0,4,0" Foreground="Gold"/>
+                                            <TextBlock Text="{Binding FavoriteCount, FallbackValue=0}" Foreground="Gold"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Grid>
+                            </GroupBox>
+                            
+                            <!-- Library Toolbar -->
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Button Content="▶ Play Selected" Padding="8,4" Margin="0,0,5,0" 
+                                        Click="OnPlaySelectedLibraryClick" Background="#2196F3" Foreground="White"
+                                        ToolTip="Play selected track"/>
+                                <Button Content="➕ Add to Queue" Padding="8,4" Margin="0,0,5,0"
+                                        Click="OnAddSelectedToQueueClick" Background="#4CAF50" Foreground="White"
+                                        ToolTip="Add selected track to queue"/>
+                                <Button Content="➕ Add All" Padding="8,4" Margin="0,0,15,0"
+                                        Click="OnAddAllToQueueClick"
+                                        ToolTip="Add all visible tracks to queue"/>
+                                <Separator Margin="5,0"/>
+                                <TextBlock Text="Organize by:" VerticalAlignment="Center" Margin="5,0,8,0"/>
+                                <ComboBox Width="120" SelectedIndex="{Binding OrganizeModeIndex}">
+                                    <ComboBoxItem Content="All Tracks"/>
+                                    <ComboBoxItem Content="Artist"/>
+                                    <ComboBoxItem Content="Album"/>
+                                    <ComboBoxItem Content="Genre"/>
+                                    <ComboBoxItem Content="Folder"/>
+                                    <ComboBoxItem Content="⭐ Favorites"/>
+                                </ComboBox>
+                                <Separator Margin="15,0"/>
+                                <TextBox Width="200" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" 
+                                         VerticalAlignment="Center">
+                                    <TextBox.Style>
+                                        <Style TargetType="TextBox">
+                                            <Style.Triggers>
+                                                <Trigger Property="Text" Value="">
+                                                    <Setter Property="Background">
+                                                        <Setter.Value>
+                                                            <VisualBrush Stretch="None" AlignmentX="Left">
+                                                                <VisualBrush.Visual>
+                                                                    <TextBlock Text="🔍 Search library..." Foreground="Gray" Margin="5,0"/>
+                                                                </VisualBrush.Visual>
+                                                            </VisualBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBox.Style>
+                                </TextBox>
+                                <Separator Margin="15,0"/>
+                                <TextBlock Text="{Binding LibraryTrackCount, StringFormat={}{0} tracks}" VerticalAlignment="Center" Foreground="Gray"/>
+                            </StackPanel>
+                            
+                            <!-- Groups List (Artists/Albums/Genres) -->
+                            <ListBox Grid.Row="2" Height="80" ItemsSource="{Binding LibraryGroups}" 
+                                     SelectedItem="{Binding SelectedGroup}"
+                                     Visibility="{Binding ShowGroups, Converter={StaticResource BoolToVisibilityConverter}}"
+                                     Margin="0,0,0,8">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Margin="5,3">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Width="200"/>
+                                            <TextBlock Text="{Binding TrackCount, StringFormat=({0})}" Foreground="Gray"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            
+                            <!-- Library Track List - Scrollable -->
+                            <DataGrid x:Name="LibraryTrackGrid" Grid.Row="3" ItemsSource="{Binding LibraryTracks}" 
+                                      SelectedItem="{Binding SelectedLibraryTrack}"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      CanUserResizeColumns="True" CanUserSortColumns="True"
+                                      ColumnHeaderHeight="32"
+                                      GridLinesVisibility="Horizontal" AlternatingRowBackground="#f8f8f8"
+                                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                                <DataGrid.ColumnHeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader">
+                                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                        <Setter Property="Padding" Value="8,4"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </Style>
+                                </DataGrid.ColumnHeaderStyle>
+                                <DataGrid.Columns>
+                                    <DataGridTemplateColumn Header="⭐" Width="32" MinWidth="32" CanUserResize="False">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Content="{Binding IsFavorite, Converter={StaticResource FavoriteIconConverter}}" 
+                                                        Command="{Binding DataContext.ToggleFavoriteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{StaticResource TransparentButton}"
+                                                        ToolTip="Toggle Favorite"
+                                                        FontSize="14" Padding="2"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTextColumn Header="Title" Binding="{Binding DisplayTitle}" Width="*" MinWidth="150" CanUserResize="True"/>
+                                    <DataGridTextColumn Header="Artist" Binding="{Binding DisplayArtist}" Width="150" MinWidth="80" CanUserResize="True"/>
+                                    <DataGridTextColumn Header="Album" Binding="{Binding DisplayAlbum}" Width="150" MinWidth="80" CanUserResize="True"/>
+                                    <DataGridTextColumn Header="Duration" Binding="{Binding DurationFormatted}" Width="60" MinWidth="50" CanUserResize="True"/>
+                                    <DataGridTextColumn Header="Genre" Binding="{Binding Genre}" Width="80" MinWidth="60" CanUserResize="True"/>
+                                </DataGrid.Columns>
+                                <DataGrid.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="▶ Play" Click="OnLibraryPlayClick"/>
+                                        <MenuItem Header="➕ Add to Queue" Click="OnAddSelectedToQueueClick"/>
+                                        <MenuItem Header="⭐ Toggle Favorite" Click="OnToggleFavoriteClick"/>
+                                        <Separator/>
+                                        <MenuItem Header="📋 Add All to Queue" Click="OnAddAllToQueueClick"/>
+                                    </ContextMenu>
+                                </DataGrid.ContextMenu>
+                            </DataGrid>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+                
+                <!-- Track Info Panel -->
+                <GroupBox Grid.Column="2" Header="Now Playing" Margin="5,0,0,0">
+                    <StackPanel Margin="8">
+                        <!-- Album Art -->
+                        <Border Width="100" Height="100" Background="#2d2d44" CornerRadius="8" Margin="0,0,0,12" HorizontalAlignment="Center">
+                            <Grid>
+                                <Image x:Name="AlbumArtImage" Stretch="UniformToFill" 
+                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <TextBlock x:Name="AlbumArtPlaceholder" Text="🎵" FontSize="50" 
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                           Foreground="#4a4a6a"/>
+                            </Grid>
+                        </Border>
+                        <TextBlock x:Name="NowPlayingTitle" Text="No track" 
+                                   FontSize="14" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,4"/>
+                        <TextBlock x:Name="NowPlayingArtist" Text="Unknown" 
+                                   FontSize="12" Foreground="Gray" TextWrapping="Wrap" Margin="0,0,0,2"/>
+                        <TextBlock x:Name="NowPlayingAlbum" Text="Unknown" 
+                                   FontSize="11" Foreground="#999" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        
+                        <!-- Seekable Slider instead of ProgressBar -->
+                        <Slider x:Name="NowPlayingProgress" Value="0" Maximum="100" Minimum="0"
+                                Height="20" Margin="0,0,0,4"
+                                ValueChanged="OnSeekSliderValueChanged"
+                                PreviewMouseDown="OnSeekSliderMouseDown"
+                                PreviewMouseUp="OnSeekSliderMouseUp"
+                                IsMoveToPointEnabled="True"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="NowPlayingPosition" Grid.Column="0" Text="0:00" FontSize="11" Foreground="Gray"/>
+                            <TextBlock x:Name="NowPlayingDuration" Grid.Column="1" Text="0:00" FontSize="11" Foreground="Gray"/>
+                        </Grid>
+                        
+                        <Separator Margin="0,12" Background="#ddd"/>
+                        
+                        <!-- Queue Stats -->
+                        <TextBlock x:Name="QueueCountText" Text="Queue: 0 tracks" FontSize="11" Foreground="Gray" Margin="0,0,0,4"/>
+                        <TextBlock x:Name="StatusText" Text="Ready" 
+                                   FontSize="11" Foreground="Gray" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </GroupBox>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>
