@@ -825,6 +825,9 @@
         <File Id="FIL_ZstdSharp_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ZstdSharp.dll" KeyPath="yes" />
       </Component>
       <Directory Id="DIR_Assets" Name="Assets">
+        <Component Id="CMP_Assets_PlatypusToolsIntro_mp4" Guid="*" Directory="DIR_Assets">
+          <File Id="FIL_Assets_PlatypusToolsIntro_mp4" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\PlatypusToolsIntro.mp4" KeyPath="yes" />
+        </Component>
         <Component Id="CMP_Assets_PlatypusTools_Help_html" Guid="*" Directory="DIR_Assets">
           <File Id="FIL_Assets_PlatypusTools_Help_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\PlatypusTools_Help.html" KeyPath="yes" />
         </Component>
@@ -4545,6 +4548,7 @@
       <ComponentRef Id="CMP_wpfgfx_cor3_dll" />
       <ComponentRef Id="CMP_XmpCore_dll" />
       <ComponentRef Id="CMP_ZstdSharp_dll" />
+      <ComponentRef Id="CMP_Assets_PlatypusToolsIntro_mp4" />
       <ComponentRef Id="CMP_Assets_PlatypusTools_Help_html" />
       <ComponentRef Id="CMP_Assets_platypus_swimming_mp4" />
       <ComponentRef Id="CMP_cs_Microsoft_VisualBasic_Forms_resources_dll" />

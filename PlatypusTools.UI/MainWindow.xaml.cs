@@ -234,7 +234,7 @@ namespace PlatypusTools.UI
         {
             MessageBox.Show(
                 "PLATYPUSTOOLS - Advanced File Management Suite\n\n" +
-                "Version: 2.0 (WPF Edition)\n" +
+                "Version: 3.2.2.1\n" +
                 "Built with: .NET 10 / WPF\n\n" +
                 "FEATURES:\n" +
                 "• File Cleaner & Batch Renamer\n" +
