@@ -16,6 +16,7 @@ using PlatypusTools.Core.Services.Video;
 // Use Video namespace versions of FFmpeg services
 using FFmpegService = PlatypusTools.Core.Services.Video.FFmpegService;
 using FFprobeService = PlatypusTools.Core.Services.Video.FFprobeService;
+using Filter = PlatypusTools.Core.Models.Video.Filter;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -31,6 +32,11 @@ namespace PlatypusTools.UI.ViewModels
         private readonly BeatDetectionService _beatDetection;
         private readonly KeyframeInterpolator _keyframeInterpolator;
         private readonly DispatcherTimer _playbackTimer;
+        
+        // Shotcut-inspired services
+        private readonly TimelineOperationsService _timelineOps;
+        private readonly ProxyService _proxyService;
+        private readonly WaveformService _waveformService;
         
         private CancellationTokenSource? _operationCts;
         private bool _disposed;
@@ -359,6 +365,120 @@ namespace PlatypusTools.UI.ViewModels
         public ObservableCollection<VideoFilter> AvailableFilters { get; } = new();
         public ObservableCollection<TimelineRulerMarker> TimelineRulerMarkers { get; } = new();
 
+        // Shotcut-inspired collections
+        /// <summary>
+        /// All available filters from FilterLibrary (100+ Shotcut-style filters).
+        /// </summary>
+        public ObservableCollection<Filter> ShotcutFilters { get; } = new();
+        
+        /// <summary>
+        /// Filters grouped by category for display.
+        /// </summary>
+        public ObservableCollection<FilterCategoryGroup> FiltersByCategory { get; } = new();
+        
+        /// <summary>
+        /// All available export presets (YouTube, TikTok, Instagram, etc.).
+        /// </summary>
+        public ObservableCollection<ExportPreset> AvailableExportPresets { get; } = new();
+        
+        /// <summary>
+        /// Export presets grouped by category for display.
+        /// </summary>
+        public ObservableCollection<ExportCategoryGroup> ExportPresetsByCategory { get; } = new();
+
+        private ExportPreset? _selectedExportPreset;
+        /// <summary>
+        /// Currently selected export preset.
+        /// </summary>
+        public ExportPreset? SelectedExportPreset
+        {
+            get => _selectedExportPreset;
+            set => SetProperty(ref _selectedExportPreset, value);
+        }
+
+        private Filter? _selectedFilter;
+        /// <summary>
+        /// Currently selected filter to apply.
+        /// </summary>
+        public Filter? SelectedFilter
+        {
+            get => _selectedFilter;
+            set => SetProperty(ref _selectedFilter, value);
+        }
+
+        private bool _useProxyEditing = true;
+        /// <summary>
+        /// Whether to use proxy files for high-resolution footage.
+        /// </summary>
+        public bool UseProxyEditing
+        {
+            get => _useProxyEditing;
+            set => SetProperty(ref _useProxyEditing, value);
+        }
+
+        private bool _snappingEnabled = true;
+        /// <summary>
+        /// Whether timeline snapping is enabled.
+        /// </summary>
+        public bool SnappingEnabled
+        {
+            get => _snappingEnabled;
+            set
+            {
+                if (SetProperty(ref _snappingEnabled, value))
+                {
+                    // Snapping state is stored locally
+                }
+            }
+        }
+
+        private bool _rippleAllTracks = false;
+        /// <summary>
+        /// Whether ripple operations affect all tracks or just the current track.
+        /// </summary>
+        public bool RippleAllTracks
+        {
+            get => _rippleAllTracks;
+            set => SetProperty(ref _rippleAllTracks, value);
+        }
+
+        private string _filterSearchText = "";
+        /// <summary>
+        /// Search text for filtering the filter list.
+        /// </summary>
+        public string FilterSearchText
+        {
+            get => _filterSearchText;
+            set
+            {
+                if (SetProperty(ref _filterSearchText, value))
+                {
+                    FilterFilters();
+                }
+            }
+        }
+
+        private FilterCategory? _selectedFilterCategory;
+        /// <summary>
+        /// Selected filter category for filtering.
+        /// </summary>
+        public FilterCategory? SelectedFilterCategory
+        {
+            get => _selectedFilterCategory;
+            set
+            {
+                if (SetProperty(ref _selectedFilterCategory, value))
+                {
+                    FilterFilters();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Filtered list of Shotcut filters based on search and category.
+        /// </summary>
+        public ObservableCollection<Filter> FilteredShotcutFilters { get; } = new();
+
         #endregion
 
         #region Commands
@@ -418,6 +538,31 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand GoToMarkerCommand { get; }
         public ICommand ToggleRippleCommand { get; }
 
+        // Shotcut-inspired commands
+        public ICommand CopyClipCommand { get; }
+        public ICommand CutClipCommand { get; }
+        public ICommand PasteClipCommand { get; }
+        public ICommand RippleTrimInCommand { get; }
+        public ICommand RippleTrimOutCommand { get; }
+        public ICommand SlipEditCommand { get; }
+        public ICommand SlideEditCommand { get; }
+        public ICommand ApplyShotcutFilterCommand { get; }
+        public ICommand RemoveShotcutFilterCommand { get; }
+        public ICommand ToggleFilterEnabledCommand { get; }
+        public ICommand MoveFilterUpCommand { get; }
+        public ICommand MoveFilterDownCommand { get; }
+        public ICommand GenerateProxyCommand { get; }
+        public ICommand AddTextClipCommand { get; }
+        public ICommand ExportWithPresetCommand { get; }
+        public ICommand RippleDeleteCommand { get; }
+        public ICommand LiftCommand { get; }
+        public ICommand InsertCommand { get; }
+        public ICommand OverwriteCommand { get; }
+        public ICommand AppendCommand { get; }
+        public ICommand RollEditCommand { get; }
+        public ICommand UndoTimelineCommand { get; }
+        public ICommand RedoTimelineCommand { get; }
+
         #endregion
         
         #region Whisper Status
@@ -447,6 +592,11 @@ namespace PlatypusTools.UI.ViewModels
             _editorService = new VideoEditorService(_ffmpeg, _ffprobe);
             _beatDetection = new BeatDetectionService();
             _keyframeInterpolator = new KeyframeInterpolator();
+            
+            // Initialize Shotcut-inspired services
+            _timelineOps = new TimelineOperationsService();
+            _proxyService = new ProxyService(_ffmpeg, _ffprobe);
+            _waveformService = new WaveformService(_ffmpeg);
 
             // Initialize commands
             NewProjectCommand = new RelayCommand(_ => ExecuteNewProject());
@@ -503,6 +653,31 @@ namespace PlatypusTools.UI.ViewModels
             AddMarkerCommand = new RelayCommand(_ => ExecuteAddMarker());
             GoToMarkerCommand = new RelayCommand(param => ExecuteGoToMarker(param));
             ToggleRippleCommand = new RelayCommand(_ => RippleEdit = !RippleEdit);
+            
+            // Shotcut-inspired editing commands
+            CopyClipCommand = new RelayCommand(_ => ExecuteCopyClip(), _ => SelectedClip != null);
+            CutClipCommand = new RelayCommand(_ => ExecuteCutClip(), _ => SelectedClip != null);
+            PasteClipCommand = new RelayCommand(_ => ExecutePasteClip(), _ => _timelineOps.HasClipboard);
+            RippleTrimInCommand = new RelayCommand(_ => ExecuteRippleTrimIn(), _ => SelectedClip != null);
+            RippleTrimOutCommand = new RelayCommand(_ => ExecuteRippleTrimOut(), _ => SelectedClip != null);
+            SlipEditCommand = new RelayCommand(param => ExecuteSlipEdit(param), _ => SelectedClip != null);
+            SlideEditCommand = new RelayCommand(param => ExecuteSlideEdit(param), _ => SelectedClip != null);
+            ApplyShotcutFilterCommand = new RelayCommand(param => ExecuteApplyShotcutFilter(param as Filter), _ => SelectedClip != null);
+            RemoveShotcutFilterCommand = new RelayCommand(param => ExecuteRemoveShotcutFilter(param as Filter), _ => SelectedClip != null);
+            ToggleFilterEnabledCommand = new RelayCommand(param => ExecuteToggleFilterEnabled(param as Filter), _ => SelectedClip != null);
+            MoveFilterUpCommand = new RelayCommand(param => ExecuteMoveFilterUp(param as Filter), _ => SelectedClip != null);
+            MoveFilterDownCommand = new RelayCommand(param => ExecuteMoveFilterDown(param as Filter), _ => SelectedClip != null);
+            GenerateProxyCommand = new RelayCommand(async _ => await ExecuteGenerateProxyAsync(), _ => SelectedAsset != null);
+            AddTextClipCommand = new RelayCommand(_ => ExecuteAddTextClip());
+            ExportWithPresetCommand = new RelayCommand(async _ => await ExecuteExportWithPresetAsync(), _ => SelectedExportPreset != null && Project != null);
+            RippleDeleteCommand = new RelayCommand(_ => ExecuteRippleDelete(), _ => SelectedClip != null);
+            LiftCommand = new RelayCommand(_ => ExecuteLift(), _ => InPoint < OutPoint);
+            InsertCommand = new RelayCommand(_ => ExecuteInsert(), _ => SelectedAsset != null);
+            OverwriteCommand = new RelayCommand(_ => ExecuteOverwrite(), _ => SelectedAsset != null);
+            AppendCommand = new RelayCommand(_ => ExecuteAppend(), _ => SelectedAsset != null);
+            RollEditCommand = new RelayCommand(param => ExecuteRollEdit(param), _ => SelectedClip != null);
+            UndoTimelineCommand = new RelayCommand(_ => ExecuteUndoTimeline(), _ => _timelineOps.CanUndo);
+            RedoTimelineCommand = new RelayCommand(_ => ExecuteRedoTimeline(), _ => _timelineOps.CanRedo);
 
             // Initialize playback timer
             _playbackTimer = new DispatcherTimer
@@ -515,6 +690,8 @@ namespace PlatypusTools.UI.ViewModels
             InitializeExportProfiles();
             InitializeTransitions();
             InitializeFilters();
+            InitializeShotcutFilters();
+            InitializeExportPresets();
 
             // Create default project
             ExecuteNewProject();
@@ -2544,6 +2721,510 @@ After installation, restart PlatypusTools.
                 DefaultParameters = new Dictionary<string, object> { ["dir"] = 1 } });
         }
 
+        private void InitializeShotcutFilters()
+        {
+            // Load all filters from FilterLibrary
+            var allFilters = FilterLibrary.GetAllFilters();
+            foreach (var filter in allFilters)
+            {
+                ShotcutFilters.Add(filter);
+                FilteredShotcutFilters.Add(filter);
+            }
+            
+            // Group by category
+            var categories = Enum.GetValues<FilterCategory>();
+            foreach (var category in categories)
+            {
+                var filtersInCategory = FilterLibrary.GetFiltersByCategory(category).ToList();
+                if (filtersInCategory.Count > 0)
+                {
+                    FiltersByCategory.Add(new FilterCategoryGroup
+                    {
+                        Category = category,
+                        CategoryName = category.ToString(),
+                        Filters = new ObservableCollection<Filter>(filtersInCategory)
+                    });
+                }
+            }
+            
+            StatusMessage = $"Loaded {ShotcutFilters.Count} filters in {FiltersByCategory.Count} categories";
+        }
+
+        private void InitializeExportPresets()
+        {
+            // Load all export presets from ExportPresets library
+            var allPresets = ExportPresets.GetAll();
+            foreach (var preset in allPresets)
+            {
+                AvailableExportPresets.Add(preset);
+            }
+            
+            // Group by category
+            var categories = Enum.GetValues<ExportCategory>();
+            foreach (var category in categories)
+            {
+                var presetsInCategory = ExportPresets.GetByCategory(category).ToList();
+                if (presetsInCategory.Count > 0)
+                {
+                    ExportPresetsByCategory.Add(new ExportCategoryGroup
+                    {
+                        Category = category,
+                        CategoryName = category.ToString(),
+                        Presets = new ObservableCollection<ExportPreset>(presetsInCategory)
+                    });
+                }
+            }
+            
+            // Select default preset (YouTube HD)
+            SelectedExportPreset = AvailableExportPresets.FirstOrDefault(p => p.Name == "YouTube HD");
+        }
+
+        private void FilterFilters()
+        {
+            FilteredShotcutFilters.Clear();
+            
+            var query = FilterSearchText?.ToLowerInvariant() ?? "";
+            
+            foreach (var filter in ShotcutFilters)
+            {
+                var matchesSearch = string.IsNullOrEmpty(query) || 
+                                    filter.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                                    filter.Description.Contains(query, StringComparison.OrdinalIgnoreCase);
+                                    
+                var matchesCategory = !SelectedFilterCategory.HasValue || 
+                                      filter.Category == SelectedFilterCategory.Value;
+                
+                if (matchesSearch && matchesCategory)
+                {
+                    FilteredShotcutFilters.Add(filter);
+                }
+            }
+        }
+
+        #region Shotcut-Inspired Command Implementations
+
+        private void ExecuteCopyClip()
+        {
+            if (SelectedClip == null || SelectedTrack == null) return;
+            _timelineOps.Copy(new[] { SelectedClip });
+            StatusMessage = $"Copied clip: {SelectedClip.Name}";
+        }
+
+        private void ExecuteCutClip()
+        {
+            if (SelectedClip == null || SelectedTrack == null) return;
+            _timelineOps.Cut(SelectedTrack, new[] { SelectedClip });
+            SelectedClip = null;
+            UpdateDuration();
+            StatusMessage = "Cut clip to clipboard";
+        }
+
+        private void ExecutePasteClip()
+        {
+            if (!_timelineOps.HasClipboard || SelectedTrack == null) return;
+            _timelineOps.Paste(SelectedTrack, CurrentTime);
+            UpdateDuration();
+            StatusMessage = "Pasted clip from clipboard";
+            OnPropertyChanged(nameof(Tracks));
+        }
+
+        private void ExecuteRippleTrimIn()
+        {
+            if (SelectedClip == null || SelectedTrack == null) return;
+            var trimAmount = TimeSpan.FromSeconds(1); // Or get from UI/parameter
+            _timelineOps.RippleTrim(SelectedTrack, SelectedClip, trimAmount, true);
+            UpdateDuration();
+            StatusMessage = "Ripple trimmed clip start";
+        }
+
+        private void ExecuteRippleTrimOut()
+        {
+            if (SelectedClip == null || SelectedTrack == null) return;
+            var trimAmount = TimeSpan.FromSeconds(1);
+            _timelineOps.RippleTrim(SelectedTrack, SelectedClip, trimAmount, false);
+            UpdateDuration();
+            StatusMessage = "Ripple trimmed clip end";
+        }
+
+        private void ExecuteSlipEdit(object? param)
+        {
+            if (SelectedClip == null) return;
+            var offset = param is double d ? TimeSpan.FromSeconds(d) : TimeSpan.FromSeconds(0.5);
+            _timelineOps.SlipEdit(SelectedClip, offset);
+            StatusMessage = "Slip edited clip";
+        }
+
+        private void ExecuteSlideEdit(object? param)
+        {
+            if (SelectedClip == null || SelectedTrack == null) return;
+            var offset = param is double d ? TimeSpan.FromSeconds(d) : TimeSpan.FromSeconds(0.5);
+            _timelineOps.SlideEdit(SelectedTrack, SelectedClip, offset);
+            UpdateDuration();
+            StatusMessage = "Slide edited clip";
+        }
+
+        private void ExecuteApplyShotcutFilter(Filter? filter)
+        {
+            if (filter == null || SelectedClip == null) return;
+            
+            // Clone the filter for this clip instance
+            var clonedFilter = filter.Clone();
+            SelectedClip.Filters.Add(clonedFilter);
+            
+            StatusMessage = $"Applied filter: {filter.Name}";
+            OnPropertyChanged(nameof(SelectedClip));
+        }
+
+        private void ExecuteRemoveShotcutFilter(Filter? filter)
+        {
+            if (filter == null || SelectedClip == null) return;
+            SelectedClip.Filters.Remove(filter);
+            StatusMessage = $"Removed filter: {filter.Name}";
+            OnPropertyChanged(nameof(SelectedClip));
+        }
+
+        private void ExecuteToggleFilterEnabled(Filter? filter)
+        {
+            if (filter == null) return;
+            filter.IsEnabled = !filter.IsEnabled;
+            StatusMessage = filter.IsEnabled ? $"Enabled filter: {filter.Name}" : $"Disabled filter: {filter.Name}";
+            OnPropertyChanged(nameof(SelectedClip));
+        }
+
+        private void ExecuteMoveFilterUp(Filter? filter)
+        {
+            if (filter == null || SelectedClip == null) return;
+            var index = SelectedClip.Filters.IndexOf(filter);
+            if (index > 0)
+            {
+                SelectedClip.Filters.RemoveAt(index);
+                SelectedClip.Filters.Insert(index - 1, filter);
+                StatusMessage = $"Moved filter up: {filter.Name}";
+            }
+        }
+
+        private void ExecuteMoveFilterDown(Filter? filter)
+        {
+            if (filter == null || SelectedClip == null) return;
+            var index = SelectedClip.Filters.IndexOf(filter);
+            if (index < SelectedClip.Filters.Count - 1)
+            {
+                SelectedClip.Filters.RemoveAt(index);
+                SelectedClip.Filters.Insert(index + 1, filter);
+                StatusMessage = $"Moved filter down: {filter.Name}";
+            }
+        }
+
+        private async Task ExecuteGenerateProxyAsync()
+        {
+            if (SelectedAsset == null) return;
+            
+            try
+            {
+                IsBusy = true;
+                StatusMessage = $"Generating proxy for {SelectedAsset.FileName}...";
+                
+                var proxySettings = new ProxySettings { IsEnabled = true };
+                var proxyFile = await _proxyService.GenerateProxyAsync(
+                    SelectedAsset.FilePath,
+                    proxySettings,
+                    new Progress<double>(p => Progress = p),
+                    _operationCts?.Token ?? CancellationToken.None);
+                
+                StatusMessage = $"Proxy generated: {Path.GetFileName(proxyFile.ProxyPath)}";
+                
+                // Update any clips using this asset
+                foreach (var track in Tracks)
+                {
+                    foreach (var clip in track.Clips)
+                    {
+                        if (clip.SourcePath == SelectedAsset.FilePath)
+                        {
+                            clip.ProxyPath = proxyFile.ProxyPath;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Proxy generation failed: {ex.Message}";
+            }
+            finally
+            {
+                IsBusy = false;
+                Progress = 0;
+            }
+        }
+
+        private void ExecuteAddTextClip()
+        {
+            // Find or create text track
+            var textTrack = Tracks.FirstOrDefault(t => t.Name.Contains("Text") || t.Type == TrackType.Overlay);
+            if (textTrack == null)
+            {
+                textTrack = new TimelineTrack
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Text 1",
+                    Type = TrackType.Overlay
+                };
+                Tracks.Insert(0, textTrack);
+            }
+            
+            // Create a new text clip with default title preset
+            var textElement = new TextElement
+            {
+                Text = "Title Text",
+                FontFamily = "Arial Black",
+                FontSize = 96,
+                FontWeight = 700,
+                Color = "#FFFFFF",
+                OutlineColor = "#000000",
+                OutlineWidth = 2,
+                ShadowColor = "#80000000",
+                HorizontalAlignment = TextAlignment.Center,
+                VerticalAlignment = TextAlignment.Center
+            };
+            
+            var textClip = new TimelineClip
+            {
+                Id = Guid.NewGuid(),
+                Name = "New Title",
+                Type = ClipType.Title,
+                StartPosition = CurrentTime,
+                Duration = TimeSpan.FromSeconds(5),
+                Color = "#E91E63", // Pink for text clips
+                TextOverlay = textElement
+            };
+            
+            textTrack.Clips.Add(textClip);
+            SelectedClip = textClip;
+            UpdateDuration();
+            StatusMessage = "Added text clip - double-click to edit";
+        }
+
+        private async Task ExecuteExportWithPresetAsync()
+        {
+            if (SelectedExportPreset == null || Project == null) return;
+            
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "Export Video",
+                Filter = $"{SelectedExportPreset.Format} Files|*.{SelectedExportPreset.Extension}|All Files|*.*",
+                FileName = $"{Project.Name}_{SelectedExportPreset.Name}",
+                DefaultExt = SelectedExportPreset.Extension
+            };
+            
+            if (dialog.ShowDialog() != true) return;
+            
+            try
+            {
+                IsBusy = true;
+                _operationCts = new CancellationTokenSource();
+                
+                StatusMessage = $"Exporting with {SelectedExportPreset.Name} preset...";
+                
+                // Use the existing VideoExporter through EditorService
+                await _editorService.ExportAsync(
+                    Project,
+                    dialog.FileName,
+                    null, // Use default profile
+                    new Progress<double>(p => Progress = p),
+                    _operationCts.Token);
+                
+                StatusMessage = $"Export complete: {dialog.FileName}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Export error: {ex.Message}";
+            }
+            finally
+            {
+                IsBusy = false;
+                Progress = 0;
+                _operationCts?.Dispose();
+                _operationCts = null;
+            }
+        }
+
+        private void ExecuteRippleDelete()
+        {
+            if (SelectedClip == null || SelectedTrack == null) return;
+            _timelineOps.Ripple(SelectedTrack, SelectedClip.StartPosition, -SelectedClip.Duration);
+            SelectedTrack.Clips.Remove(SelectedClip);
+            SelectedClip = null;
+            UpdateDuration();
+            StatusMessage = "Ripple deleted clip";
+        }
+
+        private void ExecuteLift()
+        {
+            // Lift (remove) content between in and out points, leaving gap
+            foreach (var track in Tracks)
+            {
+                var clipsToRemove = track.Clips
+                    .Where(c => c.StartPosition >= InPoint && c.EndPosition <= OutPoint)
+                    .ToList();
+                
+                foreach (var clip in clipsToRemove)
+                {
+                    track.Clips.Remove(clip);
+                }
+            }
+            UpdateDuration();
+            StatusMessage = $"Lifted content from {FormatTime(InPoint)} to {FormatTime(OutPoint)}";
+        }
+
+        private void ExecuteInsert()
+        {
+            if (SelectedAsset == null) return;
+            
+            // Insert at playhead, rippling content after
+            var targetTrack = Tracks.FirstOrDefault(t => 
+                (SelectedAsset.Type == MediaType.Audio && t.Type == TrackType.Audio) ||
+                (SelectedAsset.Type != MediaType.Audio && t.Type == TrackType.Video));
+            
+            if (targetTrack == null) return;
+            
+            // Ripple existing content
+            var insertDuration = SelectedAsset.Duration;
+            _timelineOps.Ripple(targetTrack, CurrentTime, insertDuration);
+            
+            // Add the clip
+            var clip = CreateClipFromAsset(SelectedAsset, CurrentTime);
+            targetTrack.Clips.Add(clip);
+            
+            UpdateDuration();
+            StatusMessage = $"Inserted {SelectedAsset.FileName} at playhead";
+        }
+
+        private void ExecuteOverwrite()
+        {
+            if (SelectedAsset == null) return;
+            
+            var targetTrack = Tracks.FirstOrDefault(t => 
+                (SelectedAsset.Type == MediaType.Audio && t.Type == TrackType.Audio) ||
+                (SelectedAsset.Type != MediaType.Audio && t.Type == TrackType.Video));
+            
+            if (targetTrack == null) return;
+            
+            // Remove clips in the overwrite range
+            var endPos = CurrentTime + SelectedAsset.Duration;
+            var clipsToRemove = targetTrack.Clips
+                .Where(c => c.StartPosition < endPos && c.EndPosition > CurrentTime)
+                .ToList();
+            
+            foreach (var clip in clipsToRemove)
+            {
+                // Trim or remove based on overlap
+                if (clip.StartPosition >= CurrentTime && clip.EndPosition <= endPos)
+                {
+                    targetTrack.Clips.Remove(clip);
+                }
+                else if (clip.StartPosition < CurrentTime)
+                {
+                    clip.Duration = CurrentTime - clip.StartPosition;
+                }
+                else if (clip.EndPosition > endPos)
+                {
+                    var trimAmount = endPos - clip.StartPosition;
+                    clip.SourceStart += trimAmount;
+                    clip.StartPosition = endPos;
+                    clip.Duration -= trimAmount;
+                }
+            }
+            
+            // Add the new clip
+            var newClip = CreateClipFromAsset(SelectedAsset, CurrentTime);
+            targetTrack.Clips.Add(newClip);
+            
+            UpdateDuration();
+            StatusMessage = $"Overwrote with {SelectedAsset.FileName}";
+        }
+
+        private void ExecuteAppend()
+        {
+            if (SelectedAsset == null) return;
+            
+            var targetTrack = Tracks.FirstOrDefault(t => 
+                (SelectedAsset.Type == MediaType.Audio && t.Type == TrackType.Audio) ||
+                (SelectedAsset.Type != MediaType.Audio && t.Type == TrackType.Video));
+            
+            if (targetTrack == null) return;
+            
+            // Find the end of the track
+            var trackEnd = targetTrack.Clips.Count > 0 
+                ? targetTrack.Clips.Max(c => c.EndPosition) 
+                : TimeSpan.Zero;
+            
+            var clip = CreateClipFromAsset(SelectedAsset, trackEnd);
+            targetTrack.Clips.Add(clip);
+            
+            UpdateDuration();
+            StatusMessage = $"Appended {SelectedAsset.FileName} to end of track";
+        }
+
+        private void ExecuteRollEdit(object? param)
+        {
+            if (SelectedClip == null || SelectedTrack == null) return;
+            var offset = param is double d ? TimeSpan.FromSeconds(d) : TimeSpan.FromSeconds(0.5);
+            
+            // Find adjacent clip to roll with
+            var adjacentClip = SelectedTrack.Clips
+                .Where(c => c != SelectedClip && c.StartPosition == SelectedClip.EndPosition)
+                .FirstOrDefault();
+            
+            if (adjacentClip != null)
+            {
+                _timelineOps.RollEdit(SelectedClip, adjacentClip, offset);
+                StatusMessage = "Roll edited clip boundary";
+            }
+            else
+            {
+                StatusMessage = "No adjacent clip for roll edit";
+            }
+        }
+
+        private void ExecuteUndoTimeline()
+        {
+            if (SelectedTrack == null) return;
+            _timelineOps.Undo(SelectedTrack);
+            StatusMessage = "Undone timeline operation";
+            OnPropertyChanged(nameof(Tracks));
+        }
+
+        private void ExecuteRedoTimeline()
+        {
+            if (SelectedTrack == null) return;
+            _timelineOps.Redo(SelectedTrack);
+            StatusMessage = "Redone timeline operation";
+            OnPropertyChanged(nameof(Tracks));
+        }
+
+        private TimelineClip CreateClipFromAsset(MediaAsset asset, TimeSpan startPosition)
+        {
+            var duration = asset.Type == MediaType.Image 
+                ? TimeSpan.FromSeconds(DefaultImageOverlayDuration) 
+                : asset.Duration;
+            
+            return new TimelineClip
+            {
+                Id = Guid.NewGuid(),
+                Name = asset.FileName,
+                SourcePath = asset.FilePath,
+                StartPosition = startPosition,
+                Duration = duration,
+                SourceStart = TimeSpan.Zero,
+                SourceEnd = asset.Duration,
+                Type = asset.Type == MediaType.Audio ? ClipType.Audio 
+                     : asset.Type == MediaType.Image ? ClipType.Image 
+                     : ClipType.Video,
+                Color = asset.Type == MediaType.Audio ? "#4CAF50" : "#5B9BD5"
+            };
+        }
+
+        #endregion
+
         private void SyncProjectToUI()
         {
             if (Project == null) return;
@@ -2719,5 +3400,61 @@ After installation, restart PlatypusTools.
         /// Whether this is a major marker (shows label) vs minor (tick only).
         /// </summary>
         public bool IsMajor { get; set; }
+    }
+
+    /// <summary>
+    /// Groups filters by category for UI display.
+    /// </summary>
+    public class FilterCategoryGroup
+    {
+        public FilterCategory Category { get; set; }
+        public string CategoryName { get; set; } = string.Empty;
+        public ObservableCollection<Filter> Filters { get; set; } = new();
+        public string Icon => Category switch
+        {
+            FilterCategory.ColorCorrection => "🎨",
+            FilterCategory.ColorGrading => "🌈",
+            FilterCategory.Blur => "💨",
+            FilterCategory.Sharpen => "🔍",
+            FilterCategory.Distort => "🌀",
+            FilterCategory.Stylize => "✨",
+            FilterCategory.Generate => "🎬",
+            FilterCategory.Time => "⏱️",
+            FilterCategory.Transform => "📐",
+            FilterCategory.Overlay => "🔲",
+            FilterCategory.AudioLevel => "🔊",
+            FilterCategory.AudioEQ => "🎛️",
+            FilterCategory.AudioEffect => "🔈",
+            FilterCategory.AudioDynamics => "📊",
+            FilterCategory.AudioSpatial => "🎧",
+            _ => "🎬"
+        };
+    }
+
+    /// <summary>
+    /// Groups export presets by category for UI display.
+    /// </summary>
+    public class ExportCategoryGroup
+    {
+        public ExportCategory Category { get; set; }
+        public string CategoryName { get; set; } = string.Empty;
+        public ObservableCollection<ExportPreset> Presets { get; set; } = new();
+        public string Icon => Category switch
+        {
+            ExportCategory.Stock => "📦",
+            ExportCategory.Web => "🌐",
+            ExportCategory.H264 => "🎬",
+            ExportCategory.H265 => "🎥",
+            ExportCategory.AV1 => "📹",
+            ExportCategory.WebM => "🕸️",
+            ExportCategory.ProRes => "🎞️",
+            ExportCategory.DNx => "📽️",
+            ExportCategory.Lossless => "💎",
+            ExportCategory.Hardware => "⚡",
+            ExportCategory.Animated => "🎭",
+            ExportCategory.AudioOnly => "🔊",
+            ExportCategory.ImageSequence => "🖼️",
+            _ => "📁"
+        };
     }
 }

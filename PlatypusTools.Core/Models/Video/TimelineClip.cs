@@ -192,9 +192,29 @@ namespace PlatypusTools.Core.Models.Video
         }
         
         /// <summary>
-        /// Applied effects/filters.
+        /// Applied effects/filters (legacy).
         /// </summary>
         public List<ClipEffect> Effects { get; set; } = new();
+
+        /// <summary>
+        /// Applied filters with keyframeable parameters (Shotcut-style).
+        /// </summary>
+        public List<Filter> Filters { get; set; } = new();
+
+        /// <summary>
+        /// Text overlay for title/subtitle clips.
+        /// </summary>
+        public TextElement? TextOverlay { get; set; }
+
+        /// <summary>
+        /// Proxy file path for high-resolution footage.
+        /// </summary>
+        public string? ProxyPath { get; set; }
+
+        /// <summary>
+        /// Whether to use proxy file for preview.
+        /// </summary>
+        public bool UseProxy { get; set; } = true;
         
         /// <summary>
         /// Keyframes for animation (legacy).
@@ -364,13 +384,17 @@ namespace PlatypusTools.Core.Models.Video
         public TimeSpan Time { get; set; }
         public string Property { get; set; } = string.Empty;
         public object Value { get; set; } = default!;
-        public EasingType Easing { get; set; } = EasingType.Linear;
+        /// <summary>
+        /// Easing type - uses simple legacy types for compatibility.
+        /// </summary>
+        public LegacyEasingType Easing { get; set; } = LegacyEasingType.Linear;
     }
 
     /// <summary>
-    /// Easing functions for keyframe interpolation.
+    /// Legacy easing functions for keyframe interpolation (kept for backward compatibility).
+    /// For new code, use EasingType from Filter.cs which has more options.
     /// </summary>
-    public enum EasingType
+    public enum LegacyEasingType
     {
         Linear,
         EaseIn,
