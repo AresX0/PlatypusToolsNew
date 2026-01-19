@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
 namespace PlatypusTools.Core.Models.Video
@@ -8,8 +10,23 @@ namespace PlatypusTools.Core.Models.Video
     /// Represents a clip on a timeline track.
     /// A clip is a segment of a source file placed at a specific position and duration.
     /// </summary>
-    public class TimelineClip
+    public class TimelineClip : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+        
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        
+        protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+
         // Support both string and Guid IDs for compatibility
         private Guid _guidId;
         private string _stringId = string.Empty;
@@ -39,10 +56,15 @@ namespace PlatypusTools.Core.Models.Video
             }
         }
         
+        private string _name = string.Empty;
         /// <summary>
         /// Display name for the clip.
         /// </summary>
-        public string Name { get; set; } = string.Empty;
+        public string Name
+        {
+            get => _name;
+            set => SetField(ref _name, value);
+        }
         
         /// <summary>
         /// Path to the source media file.
@@ -54,10 +76,23 @@ namespace PlatypusTools.Core.Models.Video
         /// </summary>
         public ClipType Type { get; set; } = ClipType.Video;
         
+        private TimeSpan _startPosition;
         /// <summary>
         /// Start position of this clip on the timeline.
         /// </summary>
-        public TimeSpan StartPosition { get; set; }
+        public TimeSpan StartPosition
+        {
+            get => _startPosition;
+            set
+            {
+                if (SetField(ref _startPosition, value))
+                {
+                    OnPropertyChanged(nameof(StartTime));
+                    OnPropertyChanged(nameof(EndPosition));
+                    OnPropertyChanged(nameof(EndTime));
+                }
+            }
+        }
 
         /// <summary>
         /// Alias for StartPosition for export compatibility.
@@ -79,10 +114,22 @@ namespace PlatypusTools.Core.Models.Video
             set => Duration = value - StartPosition;
         }
         
+        private TimeSpan _duration;
         /// <summary>
         /// Duration of the clip on the timeline.
         /// </summary>
-        public TimeSpan Duration { get; set; }
+        public TimeSpan Duration
+        {
+            get => _duration;
+            set
+            {
+                if (SetField(ref _duration, value))
+                {
+                    OnPropertyChanged(nameof(EndPosition));
+                    OnPropertyChanged(nameof(EndTime));
+                }
+            }
+        }
         
         /// <summary>
         /// Start point within the source file (in point).

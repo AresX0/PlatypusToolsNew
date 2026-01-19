@@ -618,6 +618,56 @@ namespace PlatypusTools.UI.Views
             var ext = Path.GetExtension(sourcePath).ToLowerInvariant();
             Log($"[PREVIEW] Loading file with extension: {ext}");
 
+            // Check if this is an image file - handle separately from video
+            var imageExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff", ".tif", ".ico"
+            };
+
+            if (imageExtensions.Contains(ext))
+            {
+                Log($"[PREVIEW] Loading IMAGE file: {sourcePath}");
+                
+                // Stop VLC if it was playing
+                if (_mediaPlayer != null)
+                {
+                    _mediaPlayer.Stop();
+                }
+                _currentMedia?.Dispose();
+                _currentMedia = null;
+                
+                // Hide video players, show image
+                _useFFmpegPreview = false;
+                VlcVideoView.Visibility = Visibility.Collapsed;
+                PreviewMediaElement.Visibility = Visibility.Collapsed;
+                FFmpegWarningBorder.Visibility = Visibility.Collapsed;
+                PreviewFrameImage.Visibility = Visibility.Visible;
+                
+                try
+                {
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.UriSource = new Uri(sourcePath, UriKind.Absolute);
+                    bitmap.EndInit();
+                    bitmap.Freeze();
+                    
+                    PreviewFrameImage.Source = bitmap;
+                    Log($"[PREVIEW] Image loaded: {bitmap.PixelWidth}x{bitmap.PixelHeight}");
+                    
+                    // Set a default duration for images (5 seconds)
+                    if (vm != null)
+                    {
+                        vm.Duration = TimeSpan.FromSeconds(5);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log($"[PREVIEW] Error loading image: {ex.Message}");
+                }
+                return;
+            }
+
             try
             {
                 // Use LibVLC for all video playback - it handles any format
