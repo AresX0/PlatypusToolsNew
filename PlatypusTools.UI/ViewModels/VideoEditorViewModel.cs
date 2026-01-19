@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using PlatypusTools.Core.Models.Video;
@@ -17,6 +18,7 @@ using PlatypusTools.Core.Services.Video;
 using FFmpegService = PlatypusTools.Core.Services.Video.FFmpegService;
 using FFprobeService = PlatypusTools.Core.Services.Video.FFprobeService;
 using Filter = PlatypusTools.Core.Models.Video.Filter;
+using MessageBox = System.Windows.MessageBox;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -712,7 +714,7 @@ namespace PlatypusTools.UI.ViewModels
             MoveFilterDownCommand = new RelayCommand(param => ExecuteMoveFilterDown(param as Filter), _ => SelectedClip != null);
             GenerateProxyCommand = new RelayCommand(async _ => await ExecuteGenerateProxyAsync(), _ => SelectedAsset != null);
             AddTextClipCommand = new RelayCommand(_ => ExecuteAddTextClip());
-            ExportWithPresetCommand = new RelayCommand(async _ => await ExecuteExportWithPresetAsync(), _ => Tracks.Any(t => t.Clips.Count > 0));
+            ExportWithPresetCommand = new RelayCommand(async _ => await ExecuteExportWithPresetAsync()); // Always enabled - shows message if no clips
             RippleDeleteCommand = new RelayCommand(_ => ExecuteRippleDelete(), _ => SelectedClip != null);
             LiftCommand = new RelayCommand(_ => ExecuteLift(), _ => InPoint < OutPoint);
             InsertCommand = new RelayCommand(_ => ExecuteInsert(), _ => SelectedAsset != null);
@@ -3041,8 +3043,8 @@ After installation, restart PlatypusTools.
                 OutlineColor = "#000000",
                 OutlineWidth = 2,
                 ShadowColor = "#80000000",
-                HorizontalAlignment = TextAlignment.Center,
-                VerticalAlignment = TextAlignment.Center
+                HorizontalAlignment = Core.Models.Video.TextAlignment.Center,
+                VerticalAlignment = Core.Models.Video.TextAlignment.Center
             };
             
             var textClip = new TimelineClip
@@ -3096,19 +3098,88 @@ After installation, restart PlatypusTools.
                 
                 StatusMessage = $"Exporting with {preset.Name} preset...";
                 
-                // Use the existing VideoExporter through EditorService
-                await _editorService.ExportAsync(
-                    Project ?? _editorService.CreateProject("Export"),
+                // Verify there's content to export
+                if (!Tracks.Any(t => t.Clips.Count > 0))
+                {
+                    StatusMessage = "No clips on timeline to export";
+                    MessageBox.Show("No clips on timeline to export.", "Export Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                
+                // Log what we're about to export
+                var clipInfo = new System.Text.StringBuilder();
+                clipInfo.AppendLine("Clips to export:");
+                foreach (var track in Tracks)
+                {
+                    foreach (var clip in track.Clips)
+                    {
+                        clipInfo.AppendLine($"  - {clip.Name}: {clip.SourcePath} (exists: {File.Exists(clip.SourcePath)})");
+                    }
+                }
+                System.Diagnostics.Debug.WriteLine(clipInfo.ToString());
+                
+                // Use the MLT exporter (Shotcut backend) for professional-grade export
+                var mltExporter = new MltExporter();
+                
+                // Check if melt is available
+                if (!mltExporter.IsMeltAvailable())
+                {
+                    var meltSearched = "Searched locations:\n- Application folder\n- C:\\Program Files\\Shotcut\n- Archive shotcut folder";
+                    MessageBox.Show($"MLT/melt.exe not found.\n\n{meltSearched}\n\nPlease install Shotcut or copy melt.exe to the application folder.",
+                        "MLT Not Found", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                
+                var mltSettings = new MltExportSettings
+                {
+                    Width = preset.Width ?? 1920,
+                    Height = preset.Height ?? 1080,
+                    FrameRate = preset.FrameRate ?? 30,
+                    VideoCodec = preset.VideoCodec ?? "libx264",
+                    Preset = preset.Preset ?? "medium",
+                    Crf = preset.Crf ?? 18,
+                    AudioCodec = preset.AudioCodec ?? "aac",
+                    AudioBitrate = int.TryParse(preset.AudioBitrate?.Replace("k", ""), out var ab) ? ab : 256,
+                    Format = preset.Container ?? "mp4"
+                };
+                
+                var result = await mltExporter.ExportAsync(
+                    Tracks.ToList(),
                     dialog.FileName,
-                    null, // Use default profile
-                    new Progress<double>(p => Progress = p),
+                    mltSettings,
+                    new Progress<double>(p => 
+                    {
+                        Progress = p * 100;
+                        StatusMessage = $"Exporting... {p * 100:F0}%";
+                    }),
                     _operationCts.Token);
                 
-                StatusMessage = $"Export complete: {dialog.FileName}";
+                if (result.Success)
+                {
+                    var fileInfo = new FileInfo(dialog.FileName);
+                    var fileSizeMb = fileInfo.Exists ? fileInfo.Length / (1024.0 * 1024.0) : 0;
+                    StatusMessage = $"Export complete: {dialog.FileName} ({fileSizeMb:F1} MB)";
+                    System.Diagnostics.Debug.WriteLine(result.Log);
+                    MessageBox.Show($"Export complete!\n\nFile: {dialog.FileName}\nSize: {fileSizeMb:F1} MB\nDuration: {result.Duration.TotalSeconds:F1}s", 
+                        "Export Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    StatusMessage = $"Export failed: {result.ErrorMessage}";
+                    System.Diagnostics.Debug.WriteLine(result.Log);
+                    
+                    // Show full log for debugging
+                    var logPath = Path.Combine(Path.GetTempPath(), "PlatypusTools_MltExportLog.txt");
+                    File.WriteAllText(logPath, result.Log);
+                    
+                    MessageBox.Show($"Export failed:\n{result.ErrorMessage}\n\nFull log saved to:\n{logPath}", 
+                        "Export Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             catch (Exception ex)
             {
                 StatusMessage = $"Export error: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"Export exception: {ex}");
             }
             finally
             {
