@@ -1,0 +1,221 @@
+<UserControl x:Class="PlatypusTools.UI.Views.ShotcutNativeEditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:controls="clr-namespace:PlatypusTools.UI.Controls.VideoEditor"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="1200"
+             Background="#1E1E1E"
+             Loaded="UserControl_Loaded">
+    
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="PanelBg" Color="#252525"/>
+        <SolidColorBrush x:Key="HeaderBg" Color="#2D2D2D"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#3D3D3D"/>
+        <SolidColorBrush x:Key="TextColor" Color="#CCCCCC"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#4488FF"/>
+        
+        <Style x:Key="PanelHeader" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource HeaderBg}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="Padding" Value="8,4"/>
+        </Style>
+        
+        <Style x:Key="PanelHeaderText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="11"/>
+        </Style>
+    </UserControl.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="200"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Top Toolbar (like Shotcut) -->
+        <Border Grid.Row="0" Background="{StaticResource HeaderBg}" 
+                BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1"
+                Padding="4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- File operations -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <Button Content="📁 Open" Padding="8,4" Margin="2,0"
+                            Click="OpenFile_Click"/>
+                    <Button Content="💾 Save" Padding="8,4" Margin="2,0"
+                            Click="SaveProject_Click"/>
+                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,2"/>
+                    <Button Content="↩ Undo" Padding="8,4" Margin="2,0"/>
+                    <Button Content="↪ Redo" Padding="8,4" Margin="2,0"/>
+                </StackPanel>
+                
+                <!-- Export -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Content="📤 Export" Padding="12,4" 
+                            Background="{StaticResource AccentColor}"
+                            Foreground="White"
+                            Click="Export_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- Main content area -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250" MinWidth="150"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="250" MinWidth="150"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Left Panel: Playlist/Media Bin (like Shotcut) -->
+            <Border Grid.Column="0" Background="{StaticResource PanelBg}"
+                    BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,1,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Tabs: Playlist | Recent -->
+                    <Border Grid.Row="0" Style="{StaticResource PanelHeader}">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton x:Name="PlaylistTab" Content="Playlist" 
+                                         IsChecked="True" GroupName="LeftTabs"
+                                         Foreground="{StaticResource TextColor}"
+                                         Margin="0,0,12,0"/>
+                            <RadioButton x:Name="RecentTab" Content="Recent" 
+                                         GroupName="LeftTabs"
+                                         Foreground="{StaticResource TextColor}"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- Playlist content -->
+                    <Grid Grid.Row="1">
+                        <!-- Toolbar -->
+                        <Border Background="{StaticResource HeaderBg}" 
+                                VerticalAlignment="Top" Height="28">
+                            <StackPanel Orientation="Horizontal" Margin="4,0">
+                                <Button Content="➕" Width="24" ToolTip="Add Files"
+                                        Click="AddToPlaylist_Click"/>
+                                <Button Content="➖" Width="24" ToolTip="Remove Selected"
+                                        Click="RemoveFromPlaylist_Click"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Playlist items -->
+                        <ListBox x:Name="PlaylistBox" 
+                                 Margin="0,28,0,0"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 SelectionChanged="PlaylistBox_SelectionChanged"
+                                 MouseDoubleClick="PlaylistBox_MouseDoubleClick"
+                                 AllowDrop="True"
+                                 Drop="PlaylistBox_Drop"
+                                 PreviewMouseLeftButtonDown="PlaylistBox_PreviewMouseLeftButtonDown"
+                                 PreviewMouseMove="PlaylistBox_PreviewMouseMove">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <!-- Thumbnail -->
+                                        <Border Grid.Column="0" Background="#333333" 
+                                                Width="56" Height="32" CornerRadius="2">
+                                            <Image Source="{Binding Thumbnail}" 
+                                                   Stretch="UniformToFill"/>
+                                        </Border>
+                                        
+                                        <!-- Info -->
+                                        <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                            <TextBlock Text="{Binding Name}" 
+                                                       Foreground="{StaticResource TextColor}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       FontSize="11"/>
+                                            <TextBlock Text="{Binding DurationText}" 
+                                                       Foreground="#888888"
+                                                       FontSize="10"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Grid>
+            </Border>
+            
+            <!-- Splitter -->
+            <GridSplitter Grid.Column="1" Width="5" 
+                          HorizontalAlignment="Stretch" 
+                          Background="{StaticResource BorderColor}"/>
+            
+            <!-- Center: Video Player -->
+            <controls:VideoPlayerPanel x:Name="VideoPlayer" Grid.Column="2"/>
+            
+            <!-- Splitter -->
+            <GridSplitter Grid.Column="3" Width="5" 
+                          HorizontalAlignment="Stretch" 
+                          Background="{StaticResource BorderColor}"/>
+            
+            <!-- Right Panel: Properties/Filters -->
+            <Border Grid.Column="4" Background="{StaticResource PanelBg}"
+                    BorderBrush="{StaticResource BorderColor}" BorderThickness="1,0,0,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Tabs -->
+                    <Border Grid.Row="0" Style="{StaticResource PanelHeader}">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton x:Name="PropertiesTab" Content="Properties" 
+                                         IsChecked="True" GroupName="RightTabs"
+                                         Foreground="{StaticResource TextColor}"
+                                         Margin="0,0,12,0"/>
+                            <RadioButton x:Name="FiltersTab" Content="Filters" 
+                                         GroupName="RightTabs"
+                                         Foreground="{StaticResource TextColor}"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- Properties Panel -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="PropertiesPanel" Margin="8">
+                            <TextBlock Text="No clip selected" 
+                                       Foreground="#666666"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,20,0,0"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+        
+        <!-- Splitter -->
+        <GridSplitter Grid.Row="2" Height="5" 
+                      HorizontalAlignment="Stretch" 
+                      Background="{StaticResource BorderColor}"/>
+        
+        <!-- Bottom: Timeline -->
+        <controls:TimelinePanel x:Name="Timeline" Grid.Row="3"
+                                TimelineModel="{Binding TimelineModel}"
+                                ClipSelected="Timeline_ClipSelected"
+                                PositionChanged="Timeline_PositionChanged"/>
+    </Grid>
+</UserControl>

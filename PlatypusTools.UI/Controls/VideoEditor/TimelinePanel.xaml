@@ -1,0 +1,213 @@
+<UserControl x:Class="PlatypusTools.UI.Controls.VideoEditor.TimelinePanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:PlatypusTools.UI.Controls.VideoEditor"
+             mc:Ignorable="d"
+             d:DesignHeight="200" d:DesignWidth="800"
+             Background="#1E1E1E">
+    
+    <UserControl.Resources>
+        <!-- Shotcut-style timeline colors -->
+        <SolidColorBrush x:Key="TimelineBg" Color="#2D2D2D"/>
+        <SolidColorBrush x:Key="TrackHeaderBg" Color="#383838"/>
+        <SolidColorBrush x:Key="TrackBg" Color="#252525"/>
+        <SolidColorBrush x:Key="TrackBorderBrush" Color="#444444"/>
+        <SolidColorBrush x:Key="VideoClipColor" Color="#5B8A5B"/>
+        <SolidColorBrush x:Key="AudioClipColor" Color="#5B5B8A"/>
+        <SolidColorBrush x:Key="SelectedClipBorder" Color="#FFCC00"/>
+        <SolidColorBrush x:Key="PlayheadColor" Color="#FF4444"/>
+        <SolidColorBrush x:Key="TextColor" Color="#CCCCCC"/>
+        <SolidColorBrush x:Key="ButtonHoverBg" Color="#484848"/>
+    </UserControl.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Timeline toolbar (like Shotcut) -->
+        <Border Grid.Row="0" Background="{StaticResource TrackHeaderBg}" 
+                BorderBrush="{StaticResource TrackBorderBrush}" BorderThickness="0,0,0,1"
+                Padding="4">
+            <StackPanel Orientation="Horizontal">
+                <!-- Menu button -->
+                <Button x:Name="MenuButton" Content="☰" Width="28" Height="24" 
+                        Background="Transparent" Foreground="{StaticResource TextColor}"
+                        BorderThickness="0" ToolTip="Timeline Menu"/>
+                
+                <!-- Cut -->
+                <Button x:Name="CutButton" Content="✂" Width="28" Height="24"
+                        Background="Transparent" Foreground="{StaticResource TextColor}"
+                        BorderThickness="0" ToolTip="Cut (S)" Click="CutButton_Click"/>
+                
+                <!-- Copy -->
+                <Button x:Name="CopyButton" Content="📋" Width="28" Height="24"
+                        Background="Transparent" Foreground="{StaticResource TextColor}"
+                        BorderThickness="0" ToolTip="Copy (C)"/>
+                
+                <!-- Paste -->
+                <Button x:Name="PasteButton" Content="📄" Width="28" Height="24"
+                        Background="Transparent" Foreground="{StaticResource TextColor}"
+                        BorderThickness="0" ToolTip="Paste"/>
+                
+                <Separator Width="1" Background="{StaticResource TrackBorderBrush}" Margin="4,0"/>
+                
+                <!-- Append -->
+                <Button x:Name="AppendButton" Content="➕" Width="28" Height="24"
+                        Background="Transparent" Foreground="{StaticResource TextColor}"
+                        BorderThickness="0" ToolTip="Append to Track (A)"/>
+                
+                <!-- Remove -->
+                <Button x:Name="RemoveButton" Content="🗑" Width="28" Height="24"
+                        Background="Transparent" Foreground="{StaticResource TextColor}"
+                        BorderThickness="0" ToolTip="Remove (X)" Click="RemoveButton_Click"/>
+                
+                <!-- Lift -->
+                <Button x:Name="LiftButton" Content="⬆" Width="28" Height="24"
+                        Background="Transparent" Foreground="{StaticResource TextColor}"
+                        BorderThickness="0" ToolTip="Lift (Z)"/>
+                
+                <Separator Width="1" Background="{StaticResource TrackBorderBrush}" Margin="4,0"/>
+                
+                <!-- Insert Track -->
+                <Button x:Name="InsertTrackButton" Content="🎞" Width="28" Height="24"
+                        Background="Transparent" Foreground="{StaticResource TextColor}"
+                        BorderThickness="0" ToolTip="Insert Track"/>
+                
+                <!-- Toggle Ripple -->
+                <ToggleButton x:Name="RippleToggle" Content="🔗" Width="28" Height="24"
+                              Background="Transparent" Foreground="{StaticResource TextColor}"
+                              BorderThickness="0" ToolTip="Ripple Edit Mode"/>
+                
+                <Separator Width="1" Background="{StaticResource TrackBorderBrush}" Margin="4,0"/>
+                
+                <!-- Zoom controls -->
+                <Button x:Name="ZoomOutButton" Content="➖" Width="28" Height="24"
+                        Background="Transparent" Foreground="{StaticResource TextColor}"
+                        BorderThickness="0" ToolTip="Zoom Out" Click="ZoomOutButton_Click"/>
+                
+                <Slider x:Name="ZoomSlider" Width="100" Minimum="0.1" Maximum="5" Value="1"
+                        VerticalAlignment="Center" Margin="4,0"
+                        ValueChanged="ZoomSlider_ValueChanged"/>
+                
+                <Button x:Name="ZoomInButton" Content="➕" Width="28" Height="24"
+                        Background="Transparent" Foreground="{StaticResource TextColor}"
+                        BorderThickness="0" ToolTip="Zoom In" Click="ZoomInButton_Click"/>
+                
+                <Button x:Name="ZoomFitButton" Content="⬜" Width="28" Height="24"
+                        Background="Transparent" Foreground="{StaticResource TextColor}"
+                        BorderThickness="0" ToolTip="Zoom to Fit" Click="ZoomFitButton_Click"/>
+            </StackPanel>
+        </Border>
+        
+        <!-- Timeline content -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Track headers -->
+            <ScrollViewer x:Name="TrackHeaderScroll" Grid.Column="0" 
+                          VerticalScrollBarVisibility="Hidden"
+                          HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl x:Name="TrackHeaders" ItemsSource="{Binding Tracks}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{StaticResource TrackHeaderBg}"
+                                    BorderBrush="{StaticResource TrackBorderBrush}"
+                                    BorderThickness="0,0,1,1"
+                                    Height="50" Padding="4">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <TextBlock Text="{Binding Name}" 
+                                               Foreground="{StaticResource TextColor}"
+                                               FontWeight="Bold" FontSize="11"/>
+                                    
+                                    <StackPanel Grid.Row="1" Orientation="Horizontal" 
+                                                VerticalAlignment="Center">
+                                        <!-- Mute -->
+                                        <ToggleButton Content="🔇" Width="20" Height="18"
+                                                      IsChecked="{Binding IsMuted}"
+                                                      Background="Transparent"
+                                                      Foreground="{StaticResource TextColor}"
+                                                      BorderThickness="0" FontSize="10"
+                                                      ToolTip="Mute Track"/>
+                                        <!-- Hide -->
+                                        <ToggleButton Content="👁" Width="20" Height="18"
+                                                      IsChecked="{Binding IsHidden}"
+                                                      Background="Transparent"
+                                                      Foreground="{StaticResource TextColor}"
+                                                      BorderThickness="0" FontSize="10"
+                                                      ToolTip="Hide Track"/>
+                                        <!-- Lock -->
+                                        <ToggleButton Content="🔒" Width="20" Height="18"
+                                                      IsChecked="{Binding IsLocked}"
+                                                      Background="Transparent"
+                                                      Foreground="{StaticResource TextColor}"
+                                                      BorderThickness="0" FontSize="10"
+                                                      ToolTip="Lock Track"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            
+            <!-- Track clips area with scrolling -->
+            <ScrollViewer x:Name="TimelineScroll" Grid.Column="1"
+                          HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Auto"
+                          ScrollChanged="TimelineScroll_ScrollChanged">
+                <Grid x:Name="TimelineGrid" 
+                      MouseLeftButtonDown="TimelineGrid_MouseLeftButtonDown"
+                      MouseMove="TimelineGrid_MouseMove"
+                      MouseLeftButtonUp="TimelineGrid_MouseLeftButtonUp"
+                      AllowDrop="True"
+                      Drop="TimelineGrid_Drop"
+                      DragOver="TimelineGrid_DragOver"
+                      Background="{StaticResource TimelineBg}">
+                    
+                    <!-- Ruler at top -->
+                    <local:ScrubBar x:Name="TimelineRuler" 
+                                    Height="30" 
+                                    VerticalAlignment="Top"
+                                    Position="{Binding Position, Mode=TwoWay}"
+                                    Duration="{Binding Duration}"/>
+                    
+                    <!-- Tracks container -->
+                    <ItemsControl x:Name="TracksContainer" 
+                                  ItemsSource="{Binding Tracks}"
+                                  Margin="0,30,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Canvas x:Name="TrackCanvas" 
+                                        Background="{StaticResource TrackBg}"
+                                        Height="50"
+                                        Tag="{Binding}">
+                                    <!-- Clips will be added programmatically -->
+                                </Canvas>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    
+                    <!-- Playhead line -->
+                    <Canvas x:Name="PlayheadCanvas" IsHitTestVisible="False">
+                        <Rectangle x:Name="PlayheadLine" 
+                                   Fill="{StaticResource PlayheadColor}"
+                                   Width="2"
+                                   Height="{Binding ActualHeight, ElementName=TimelineGrid}"/>
+                    </Canvas>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>
