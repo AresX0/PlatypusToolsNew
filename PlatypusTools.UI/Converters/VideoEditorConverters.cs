@@ -332,4 +332,25 @@ namespace PlatypusTools.UI.Converters
             throw new NotImplementedException();
         }
     }
+
+    /// <summary>
+    /// Converts zero count to Visibility.Visible, non-zero to Visibility.Collapsed.
+    /// Used for "no items" empty state messages.
+    /// </summary>
+    public class ZeroToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is int count)
+            {
+                return count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+            return Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

@@ -536,138 +536,184 @@
 
                             <Separator Background="#6B7280" Margin="0,8"/>
 
-                            <!-- Shotcut-Style Filters (100+ filters) -->
+                            <!-- Shotcut-Style Filters Panel -->
                             <Expander IsExpanded="True" Foreground="White">
                                 <Expander.Header>
-                                    <TextBlock Text="🎨 Filters (100+)" FontWeight="SemiBold" Foreground="White"/>
+                                    <TextBlock Text="🎨 Filters" FontWeight="SemiBold" Foreground="White"/>
                                 </Expander.Header>
-                                <StackPanel Margin="0,8,0,0">
-                                    <!-- Filter search -->
-                                    <TextBox Text="{Binding FilterSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                             Style="{StaticResource DarkTextBoxStyle}"
-                                             Tag="🔍 Search filters..." Margin="0,0,0,8"/>
+                                <Grid Margin="0,8,0,0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="150"/>
+                                    </Grid.RowDefinitions>
                                     
-                                    <!-- Filter categories -->
-                                    <ItemsControl ItemsSource="{Binding FiltersByCategory}" MaxHeight="200">
+                                    <!-- Filter search -->
+                                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                                        <TextBox x:Name="FilterSearchBox"
+                                                 Text="{Binding FilterSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                 Style="{StaticResource DarkTextBoxStyle}"
+                                                 Padding="24,6,6,6"/>
+                                        <TextBlock Text="🔍" IsHitTestVisible="False" 
+                                                   VerticalAlignment="Center" Margin="6,0,0,0"
+                                                   Foreground="#6B7280"/>
+                                    </Grid>
+                                    
+                                    <!-- Filter category tabs -->
+                                    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" 
+                                                  VerticalScrollBarVisibility="Disabled" Margin="0,0,0,6">
+                                        <StackPanel Orientation="Horizontal">
+                                            <RadioButton Content="All" GroupName="FilterCategory" IsChecked="True"
+                                                         Style="{StaticResource FilterCategoryTabStyle}" Margin="0,0,2,0"/>
+                                            <RadioButton Content="Color" GroupName="FilterCategory"
+                                                         Style="{StaticResource FilterCategoryTabStyle}" Margin="0,0,2,0"/>
+                                            <RadioButton Content="Blur" GroupName="FilterCategory"
+                                                         Style="{StaticResource FilterCategoryTabStyle}" Margin="0,0,2,0"/>
+                                            <RadioButton Content="Stylize" GroupName="FilterCategory"
+                                                         Style="{StaticResource FilterCategoryTabStyle}" Margin="0,0,2,0"/>
+                                            <RadioButton Content="Transform" GroupName="FilterCategory"
+                                                         Style="{StaticResource FilterCategoryTabStyle}" Margin="0,0,2,0"/>
+                                            <RadioButton Content="Audio" GroupName="FilterCategory"
+                                                         Style="{StaticResource FilterCategoryTabStyle}"/>
+                                        </StackPanel>
+                                    </ScrollViewer>
+                                    
+                                    <!-- Filter list (Shotcut style - vertical list) -->
+                                    <ListBox Grid.Row="2" 
+                                             ItemsSource="{Binding FilteredShotcutFilters}"
+                                             SelectedItem="{Binding SelectedFilterToAdd}"
+                                             Background="#3B3F47" BorderThickness="0"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="2,1">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="24"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding Icon}" 
+                                                               FontSize="14" VerticalAlignment="Center"/>
+                                                    <StackPanel Grid.Column="1" Margin="4,0">
+                                                        <TextBlock Text="{Binding DisplayName}" 
+                                                                   Foreground="White" FontSize="11"/>
+                                                        <TextBlock Text="{Binding Category}" 
+                                                                   Foreground="#6B7280" FontSize="9"/>
+                                                    </StackPanel>
+                                                    <Button Grid.Column="2" Content="+" 
+                                                            Command="{Binding DataContext.ApplyShotcutFilterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Style="{StaticResource SmallButtonStyle}"
+                                                            Padding="8,2" FontWeight="Bold"
+                                                            ToolTip="Add filter to clip"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                        <ListBox.ItemContainerStyle>
+                                            <Style TargetType="ListBoxItem">
+                                                <Setter Property="Padding" Value="4,2"/>
+                                                <Setter Property="Background" Value="Transparent"/>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ListBoxItem">
+                                                            <Border Background="{TemplateBinding Background}" 
+                                                                    Padding="{TemplateBinding Padding}"
+                                                                    CornerRadius="3">
+                                                                <ContentPresenter/>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#5B616A"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter Property="Background" Value="#0EA5E9"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
+                                    </ListBox>
+                                </Grid>
+                            </Expander>
+
+                            <!-- Applied Filters Section (Shotcut style) -->
+                            <Border Background="#2D3138" CornerRadius="4" Padding="8" Margin="0,12,0,0">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,8">
+                                        <TextBlock Text="Applied Filters" FontWeight="SemiBold" 
+                                                   Foreground="White" FontSize="12"/>
+                                        <TextBlock DockPanel.Dock="Right" 
+                                                   Text="{Binding SelectedClip.Filters.Count, StringFormat='({0})'}"
+                                                   Foreground="#6B7280" FontSize="11"/>
+                                    </DockPanel>
+                                    
+                                    <!-- Applied filters list with parameters -->
+                                    <ItemsControl ItemsSource="{Binding SelectedClip.Filters}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Expander IsExpanded="False" Foreground="White" Margin="0,2">
-                                                    <Expander.Header>
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Text="{Binding Icon}" FontSize="12" Margin="0,0,4,0"/>
-                                                            <TextBlock Text="{Binding CategoryName}" FontSize="11" FontWeight="SemiBold"/>
-                                                            <TextBlock Text="{Binding Filters.Count, StringFormat=' ({0})'}" 
-                                                                       Foreground="#9CA3AF" FontSize="10" VerticalAlignment="Center"/>
-                                                        </StackPanel>
-                                                    </Expander.Header>
-                                                    <ItemsControl ItemsSource="{Binding Filters}" Margin="12,4,0,0">
-                                                        <ItemsControl.ItemsPanel>
-                                                            <ItemsPanelTemplate>
-                                                                <WrapPanel/>
-                                                            </ItemsPanelTemplate>
-                                                        </ItemsControl.ItemsPanel>
-                                                        <ItemsControl.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <Button Command="{Binding DataContext.ApplyShotcutFilterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                        CommandParameter="{Binding}"
-                                                                        Style="{StaticResource SmallButtonStyle}"
-                                                                        Padding="5,2" Margin="1"
-                                                                        ToolTip="{Binding Description}">
-                                                                    <StackPanel Orientation="Horizontal">
-                                                                        <TextBlock Text="{Binding Icon}" FontSize="10" Margin="0,0,3,0"/>
-                                                                        <TextBlock Text="{Binding Name}" FontSize="10"/>
+                                                <Border Background="#3B3F47" CornerRadius="4" Margin="0,2" Padding="0">
+                                                    <Expander IsExpanded="True" Foreground="White">
+                                                        <Expander.Header>
+                                                            <DockPanel Width="180">
+                                                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                                                    <ToggleButton IsChecked="{Binding IsEnabled, Mode=TwoWay}" 
+                                                                                  Width="20" Height="18" Margin="2,0"
+                                                                                  Background="Transparent" BorderThickness="0"
+                                                                                  ToolTip="Enable/Disable">
+                                                                        <TextBlock Text="👁" FontSize="9" 
+                                                                                   Opacity="{Binding IsEnabled, Converter={StaticResource BoolToOpacityConverter}}"/>
+                                                                    </ToggleButton>
+                                                                    <Button Content="✕" 
+                                                                            Command="{Binding DataContext.RemoveShotcutFilterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                            CommandParameter="{Binding}"
+                                                                            Background="Transparent" Foreground="#EF4444" 
+                                                                            BorderThickness="0" Padding="4,0" Cursor="Hand" FontSize="10"/>
+                                                                </StackPanel>
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <TextBlock Text="{Binding Icon}" FontSize="11" Margin="0,0,6,0"/>
+                                                                    <TextBlock Text="{Binding DisplayName}" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
+                                                                </StackPanel>
+                                                            </DockPanel>
+                                                        </Expander.Header>
+                                                        
+                                                        <!-- Filter parameters -->
+                                                        <ItemsControl ItemsSource="{Binding Parameters}" Margin="8,4,8,8">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <StackPanel Margin="0,4">
+                                                                        <DockPanel>
+                                                                            <TextBlock Text="{Binding DisplayName}" 
+                                                                                       Foreground="#D1D5DB" FontSize="10"/>
+                                                                            <TextBlock DockPanel.Dock="Right" 
+                                                                                       Text="{Binding Value, StringFormat='{}{0:F2}'}" 
+                                                                                       Foreground="#0EA5E9" FontSize="10"/>
+                                                                        </DockPanel>
+                                                                        <Slider Minimum="{Binding Minimum}" 
+                                                                                Maximum="{Binding Maximum}"
+                                                                                Value="{Binding Value, Mode=TwoWay}"
+                                                                                Style="{StaticResource DarkSliderStyle}"
+                                                                                Margin="0,2,0,0"/>
                                                                     </StackPanel>
-                                                                </Button>
-                                                            </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
-                                                    </ItemsControl>
-                                                </Expander>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </Expander>
+                                                </Border>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
+                                    
+                                    <!-- Empty state -->
+                                    <TextBlock Text="No filters applied. Select a filter above to add it."
+                                               Foreground="#6B7280" FontSize="10" TextWrapping="Wrap"
+                                               Visibility="{Binding SelectedClip.Filters.Count, Converter={StaticResource ZeroToVisibilityConverter}}"
+                                               Margin="0,8,0,0"/>
                                 </StackPanel>
-                            </Expander>
+                            </Border>
 
-                            <!-- Applied Shotcut Filters -->
-                            <TextBlock Text="Applied Filters:" Foreground="#D1D5DB" FontSize="11" Margin="0,8,0,4"/>
-                            <ItemsControl ItemsSource="{Binding SelectedClip.Filters}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="#3B3F47" CornerRadius="4" Padding="6,4" Margin="0,2"
-                                                Opacity="{Binding IsEnabled, Converter={StaticResource BoolToOpacityConverter}}">
-                                            <DockPanel>
-                                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                                    <Button Content="▲" 
-                                                            Command="{Binding DataContext.MoveFilterUpCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                            CommandParameter="{Binding}"
-                                                            Style="{StaticResource SmallButtonStyle}" Padding="3,0" FontSize="8"/>
-                                                    <Button Content="▼" 
-                                                            Command="{Binding DataContext.MoveFilterDownCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                            CommandParameter="{Binding}"
-                                                            Style="{StaticResource SmallButtonStyle}" Padding="3,0" FontSize="8"/>
-                                                    <ToggleButton IsChecked="{Binding IsEnabled, Mode=TwoWay}" 
-                                                                  Style="{StaticResource TrackToggleButtonStyle}"
-                                                                  Width="22" Height="18" Margin="2,0"
-                                                                  ToolTip="Enable/Disable Filter">
-                                                        <TextBlock Text="👁" FontSize="9"/>
-                                                    </ToggleButton>
-                                                    <Button Content="✕" 
-                                                            Command="{Binding DataContext.RemoveShotcutFilterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                            CommandParameter="{Binding}"
-                                                            Background="Transparent" Foreground="#EF4444" 
-                                                            BorderThickness="0" Padding="4,0" Cursor="Hand" FontSize="10"/>
-                                                </StackPanel>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="{Binding Icon}" FontSize="10" Margin="0,0,4,0"/>
-                                                    <TextBlock Text="{Binding Name}" Foreground="White" FontSize="11"/>
-                                                </StackPanel>
-                                            </DockPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-
-                            <!-- Legacy Filters (kept for compatibility) -->
-                            <Expander IsExpanded="False" Foreground="White" Margin="0,8,0,0">
-                                <Expander.Header>
-                                    <TextBlock Text="Quick Filters" FontSize="11" Foreground="#9CA3AF"/>
-                                </Expander.Header>
-                                <ItemsControl ItemsSource="{Binding AvailableFilters}" Margin="0,4,0,0">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel/>
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Button Content="{Binding Name}" 
-                                                    Command="{Binding DataContext.ApplyFilterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding}"
-                                                    Style="{StaticResource SmallButtonStyle}"
-                                                    Padding="6,3" Margin="2"
-                                                    ToolTip="{Binding Category}"/>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </Expander>
-
-                            <!-- Legacy Applied Filters -->
-                            <ItemsControl ItemsSource="{Binding SelectedClip.Effects}" Margin="0,4,0,0">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="#3B3F47" CornerRadius="4" Padding="6,4" Margin="0,2">
-                                            <DockPanel>
-                                                <Button DockPanel.Dock="Right" Content="✕" 
-                                                        Command="{Binding DataContext.RemoveFilterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                        CommandParameter="{Binding}"
-                                                        Background="Transparent" Foreground="#EF4444" 
-                                                        BorderThickness="0" Padding="4,0" Cursor="Hand"/>
-                                                <TextBlock Text="{Binding Name}" Foreground="White" FontSize="11"/>
-                                            </DockPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                            <!-- Quick Filters removed - replaced by Shotcut filters above -->
 
                             <Separator Background="#6B7280" Margin="0,8"/>
 

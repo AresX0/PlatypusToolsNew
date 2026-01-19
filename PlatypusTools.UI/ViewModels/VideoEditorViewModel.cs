@@ -479,6 +479,16 @@ namespace PlatypusTools.UI.ViewModels
         /// </summary>
         public ObservableCollection<Filter> FilteredShotcutFilters { get; } = new();
 
+        private Filter? _selectedFilterToAdd;
+        /// <summary>
+        /// Currently selected filter in the filter list (for preview).
+        /// </summary>
+        public Filter? SelectedFilterToAdd
+        {
+            get => _selectedFilterToAdd;
+            set => SetProperty(ref _selectedFilterToAdd, value);
+        }
+
         #endregion
 
         #region Commands
