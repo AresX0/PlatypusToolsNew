@@ -1,10 +1,8 @@
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -17,7 +15,7 @@ namespace PlatypusTools.UI.ViewModels
     /// <summary>
     /// ViewModel for the Forensics Analyzer view.
     /// </summary>
-    public class ForensicsAnalyzerViewModel : INotifyPropertyChanged
+    public class ForensicsAnalyzerViewModel : BindableBase
     {
         private readonly ForensicsAnalyzerService _service;
         private CancellationTokenSource? _cts;
@@ -452,25 +450,6 @@ namespace PlatypusTools.UI.ViewModels
         private static string EscapeCsv(string value)
         {
             return value.Replace("\"", "\"\"").Replace("\n", " ").Replace("\r", "");
-        }
-
-        #endregion
-
-        #region INotifyPropertyChanged
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-        {
-            if (Equals(field, value)) return false;
-            field = value;
-            OnPropertyChanged(propertyName);
-            return true;
         }
 
         #endregion

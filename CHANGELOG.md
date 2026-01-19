@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.3.0 - 2026-01-19
+
+### Added
+- **ViewModel Base Consolidation (OPT-004)** - Refactored 12 ViewModels to use unified BindableBase pattern:
+  - DuplicateFileViewModel, HiderEditViewModel, VideoConverterViewModel
+  - SystemAuditViewModel, MultimediaEditorViewModel, PluginManagerViewModel
+  - ForensicsAnalyzerViewModel, MetadataEditorViewModel, VideoEditorViewModel
+  - Eliminated ~150 lines of duplicated INotifyPropertyChanged boilerplate
+
+- **Lazy Tab Loading (OPT-003)** - All 35 ViewModels now load on-demand for faster startup
+
+- **Tab Visibility Settings (OPT-001)** - Control which tabs appear via Settings window
+
+- **Independent Tab Launch (OPT-002)** - Each tab can now be loaded independently
+
+### Fixed
+- **Startup Manager UI** - Fixed "Open Location" button overlapping, increased row height to 40px
+- **Folder Hider UI** - Fixed "Remove" button text cutoff, widened button to 70px
+
+---
+
 ## v3.2.1 - 2026-01-26
 
 ### Added

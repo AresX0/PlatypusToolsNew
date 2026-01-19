@@ -4,27 +4,26 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using PlatypusTools.Core.Services;
 
 namespace PlatypusTools.UI.ViewModels
 {
-    public class MetadataTag : INotifyPropertyChanged
+    public class MetadataTag : BindableBase
     {
         private string _key = string.Empty;
         public string Key
         {
             get => _key;
-            set { _key = value; OnPropertyChanged(); }
+            set => SetProperty(ref _key, value);
         }
 
         private string _originalValue = string.Empty;
         public string OriginalValue
         {
             get => _originalValue;
-            set { _originalValue = value; OnPropertyChanged(); }
+            set => SetProperty(ref _originalValue, value);
         }
 
         private string _value = string.Empty;
@@ -47,17 +46,11 @@ namespace PlatypusTools.UI.ViewModels
         public bool IsModified
         {
             get => _isModified;
-            set { _isModified = value; OnPropertyChanged(); }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            set => SetProperty(ref _isModified, value);
         }
     }
 
-    public class FolderFileMetadata : INotifyPropertyChanged
+    public class FolderFileMetadata : BindableBase
     {
         public string FullPath { get; set; } = string.Empty;
         public string FileName { get; set; } = string.Empty;
@@ -73,15 +66,9 @@ namespace PlatypusTools.UI.ViewModels
         public DateTime DateCreated { get; set; }
         public DateTime DateModified { get; set; }
         public int TagCount { get; set; }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 
-    public class MetadataEditorViewModel : INotifyPropertyChanged
+    public class MetadataEditorViewModel : BindableBase
     {
         private readonly IMetadataService _service;
 
@@ -778,12 +765,6 @@ namespace PlatypusTools.UI.ViewModels
             {
                 FolderStatusMessage = $"Failed to open file: {ex.Message}";
             }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

@@ -42,7 +42,7 @@ This script:
 .\Build-Release.ps1 -Archive
 
 # Verify specific version
-.\Build-Release.ps1 -Version "3.2.2.5"
+.\Build-Release.ps1 -Version "3.2.3.0"
 ```
 
 ### Build Outputs

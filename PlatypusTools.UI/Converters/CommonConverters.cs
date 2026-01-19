@@ -194,4 +194,46 @@ namespace PlatypusTools.UI.Converters
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => throw new NotImplementedException();
     }
+
+    /// <summary>
+    /// Converts a tab key to Visibility based on settings.
+    /// Pass the tab key as ConverterParameter.
+    /// Usage: Visibility="{Binding Source={x:Static services:SettingsManager.Current}, 
+    ///        Converter={StaticResource TabVisibilityConverter}, ConverterParameter='Multimedia.Audio'}"
+    /// </summary>
+    public class TabVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var tabKey = parameter as string;
+            if (string.IsNullOrEmpty(tabKey)) return Visibility.Visible;
+
+            var settings = value as Services.AppSettings ?? Services.SettingsManager.Current;
+            return settings.IsTabVisible(tabKey) ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Multi-value converter for tab visibility that responds to VisibleTabs dictionary changes.
+    /// Bind to both the AppSettings.VisibleTabs and pass tab key as parameter.
+    /// </summary>
+    public class TabVisibilityMultiConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            var tabKey = parameter as string;
+            if (string.IsNullOrEmpty(tabKey)) return Visibility.Visible;
+
+            // values[0] = VisibleTabs dictionary (for change notification)
+            // We still use SettingsManager.Current for the actual lookup
+            var settings = Services.SettingsManager.Current;
+            return settings.IsTabVisible(tabKey) ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
 }

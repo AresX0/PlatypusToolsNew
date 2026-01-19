@@ -1,9 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using PlatypusTools.Core.Services;
@@ -11,7 +8,7 @@ using PlatypusTools.Core.Utilities;
 
 namespace PlatypusTools.UI.ViewModels
 {
-    public class SystemAuditViewModel : INotifyPropertyChanged
+    public class SystemAuditViewModel : BindableBase
     {
         private readonly ISystemAuditService _service;
 
@@ -661,12 +658,6 @@ namespace PlatypusTools.UI.ViewModels
             TotalIssues = AuditItems.Count(i => i.Status == AuditStatus.Fail);
             CriticalIssues = AuditItems.Count(i => i.Severity == AuditSeverity.Critical && i.Status == AuditStatus.Fail);
             WarningIssues = AuditItems.Count(i => i.Severity == AuditSeverity.Warning && i.Status == AuditStatus.Fail);
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

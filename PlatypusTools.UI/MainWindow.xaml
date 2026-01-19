@@ -5,6 +5,7 @@
         xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
         xmlns:views="clr-namespace:PlatypusTools.UI.Views"
         xmlns:controls="clr-namespace:PlatypusTools.UI.Controls"
+        xmlns:services="clr-namespace:PlatypusTools.UI.Services"
         Title="PlatypusTools" Height="700" Width="1200" Icon="Assets/platypus.png">
     <Window.DataContext>
         <vm:MainWindowViewModel />
@@ -101,30 +102,37 @@
 
         <TabControl DockPanel.Dock="Top" Margin="8">
             <!-- File Management -->
-            <TabItem Header="📁 File Management">
+            <TabItem Header="📁 File Management" 
+                     Visibility="{Binding FileManagement, Source={x:Static services:TabVisibilityService.Instance}}">
                 <TabControl>
-                    <TabItem Header="File Cleaner">
+                    <TabItem Header="File Cleaner" 
+                             Visibility="{Binding FileCleaner, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:FileCleanerView}" ViewDataContext="{Binding FileCleaner}" />
                     </TabItem>
-                    <TabItem Header="Duplicates">
+                    <TabItem Header="Duplicates"
+                             Visibility="{Binding Duplicates, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:DuplicatesView}" ViewDataContext="{Binding Duplicates}" />
                     </TabItem>
-                    <TabItem Header="Empty Folder Scanner">
+                    <TabItem Header="Empty Folder Scanner"
+                             Visibility="{Binding EmptyFolderScanner, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:EmptyFolderScannerView}" ViewDataContext="{Binding EmptyFolderScanner}" />
                     </TabItem>
                 </TabControl>
             </TabItem>
 
             <!-- Multimedia (hierarchical layout) -->
-            <TabItem Header="🎬 Multimedia">
+            <TabItem Header="🎬 Multimedia"
+                     Visibility="{Binding Multimedia, Source={x:Static services:TabVisibilityService.Instance}}">
                 <TabControl>
                     <!-- Audio -->
                     <TabItem Header="🎵 Audio">
                         <TabControl>
-                            <TabItem Header="Audio Player">
+                            <TabItem Header="Audio Player"
+                                     Visibility="{Binding AudioPlayer, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <controls:LazyTabContent ViewType="{x:Type views:AudioPlayerView}" ViewDataContext="{Binding AudioPlayer}" />
                             </TabItem>
-                            <TabItem Header="Audio Trim">
+                            <TabItem Header="Audio Trim"
+                                     Visibility="{Binding AudioTrim, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <views:NativeAudioTrimView />
                             </TabItem>
                         </TabControl>
@@ -133,22 +141,28 @@
                     <!-- Image -->
                     <TabItem Header="🖼️ Image">
                         <TabControl>
-                            <TabItem Header="Image Edit">
+                            <TabItem Header="Image Edit"
+                                     Visibility="{Binding ImageEdit, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <views:NativeImageEditView />
                             </TabItem>
-                            <TabItem Header="Image Converter">
+                            <TabItem Header="Image Converter"
+                                     Visibility="{Binding ImageConverter, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <controls:LazyTabContent ViewType="{x:Type views:ImageConverterView}" ViewDataContext="{Binding ImageConverter}" />
                             </TabItem>
-                            <TabItem Header="Image Resizer">
+                            <TabItem Header="Image Resizer"
+                                     Visibility="{Binding ImageResizer, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <controls:LazyTabContent ViewType="{x:Type views:ImageResizerView}" ViewDataContext="{Binding ImageResizer}" />
                             </TabItem>
-                            <TabItem Header="ICO Converter">
+                            <TabItem Header="ICO Converter"
+                                     Visibility="{Binding IconConverter, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <controls:LazyTabContent ViewType="{x:Type views:IconConverterView}" ViewDataContext="{Binding IconConverter}" />
                             </TabItem>
-                            <TabItem Header="Batch Watermark">
+                            <TabItem Header="Batch Watermark"
+                                     Visibility="{Binding BatchWatermark, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <controls:LazyTabContent ViewType="{x:Type views:BatchWatermarkView}" ViewDataContext="{Binding BatchWatermark}" />
                             </TabItem>
-                            <TabItem Header="Image Scaler">
+                            <TabItem Header="Image Scaler"
+                                     Visibility="{Binding ImageScaler, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <controls:LazyTabContent ViewType="{x:Type views:BatchUpscaleView}" ViewDataContext="{Binding BatchUpscale}" />
                             </TabItem>
                         </TabControl>
@@ -157,114 +171,145 @@
                     <!-- Video -->
                     <TabItem Header="🎬 Video">
                         <TabControl>
-                            <TabItem Header="Video Player">
+                            <TabItem Header="Video Player"
+                                     Visibility="{Binding VideoPlayer, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <views:NativeVideoPlayerView />
                             </TabItem>
-                            <TabItem Header="Video Editor">
+                            <TabItem Header="Video Editor"
+                                     Visibility="{Binding VideoEditor, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <views:ShotcutNativeEditorView />
                             </TabItem>
-                            <TabItem Header="Upscaler">
+                            <TabItem Header="Upscaler"
+                                     Visibility="{Binding Upscaler, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <controls:LazyTabContent ViewType="{x:Type views:UpscalerView}" ViewDataContext="{Binding Upscaler}" />
                             </TabItem>
-                            <TabItem Header="Video Combiner">
+                            <TabItem Header="Video Combiner"
+                                     Visibility="{Binding VideoCombiner, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <controls:LazyTabContent ViewType="{x:Type views:VideoCombinerView}" ViewDataContext="{Binding VideoCombiner}" />
                             </TabItem>
-                            <TabItem Header="Video Converter">
+                            <TabItem Header="Video Converter"
+                                     Visibility="{Binding VideoConverter, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <controls:LazyTabContent ViewType="{x:Type views:VideoConverterView}" ViewDataContext="{Binding VideoConverter}" />
                             </TabItem>
                         </TabControl>
                     </TabItem>
                     
                     <!-- Media Library -->
-                    <TabItem Header="📚 Media Library">
+                    <TabItem Header="📚 Media Library"
+                             Visibility="{Binding MediaLibrary, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:MediaLibraryView}" ViewDataContext="{Binding MediaLibrary}" />
                     </TabItem>
                     
                     <!-- External Tools (VLC, Audacity, GIMP) -->
-                    <TabItem Header="🔧 External Tools">
+                    <TabItem Header="🔧 External Tools"
+                             Visibility="{Binding ExternalTools, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:MultimediaEditorView}" ViewDataContext="{Binding MultimediaEditor}" />
                     </TabItem>
                 </TabControl>
             </TabItem>
 
             <!-- System -->
-            <TabItem Header="🖥️ System">
+            <TabItem Header="🖥️ System"
+                     Visibility="{Binding System, Source={x:Static services:TabVisibilityService.Instance}}">
                 <TabControl>
-                    <TabItem Header="Disk Cleanup">
+                    <TabItem Header="Disk Cleanup"
+                             Visibility="{Binding DiskCleanup, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:DiskCleanupView}" ViewDataContext="{Binding DiskCleanup}" />
                     </TabItem>
-                    <TabItem Header="Privacy Cleaner">
+                    <TabItem Header="Privacy Cleaner"
+                             Visibility="{Binding PrivacyCleaner, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:PrivacyCleanerView}" ViewDataContext="{Binding PrivacyCleaner}" />
                     </TabItem>
-                    <TabItem Header="Recent Cleaner">
+                    <TabItem Header="Recent Cleaner"
+                             Visibility="{Binding RecentCleaner, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:RecentCleanupView}" ViewDataContext="{Binding Recent}" />
                     </TabItem>
-                    <TabItem Header="Startup Manager">
+                    <TabItem Header="Startup Manager"
+                             Visibility="{Binding StartupManager, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:StartupManagerView}" ViewDataContext="{Binding StartupManager}" />
                     </TabItem>
-                    <TabItem Header="Process Manager">
+                    <TabItem Header="Process Manager"
+                             Visibility="{Binding ProcessManager, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:ProcessManagerView}" ViewDataContext="{Binding ProcessManager}" />
                     </TabItem>
-                    <TabItem Header="Registry Cleaner">
+                    <TabItem Header="Registry Cleaner"
+                             Visibility="{Binding RegistryCleaner, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:RegistryCleanerView}" ViewDataContext="{Binding RegistryCleaner}" />
                     </TabItem>
-                    <TabItem Header="Scheduled Tasks">
+                    <TabItem Header="Scheduled Tasks"
+                             Visibility="{Binding ScheduledTasks, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:ScheduledTasksView}" ViewDataContext="{Binding ScheduledTasks}" />
                     </TabItem>
-                    <TabItem Header="System Restore">
+                    <TabItem Header="System Restore"
+                             Visibility="{Binding SystemRestore, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:SystemRestoreView}" ViewDataContext="{Binding SystemRestore}" />
                     </TabItem>
                 </TabControl>
             </TabItem>
 
             <!-- Security -->
-            <TabItem Header="🔒 Security">
+            <TabItem Header="🔒 Security"
+                     Visibility="{Binding Security, Source={x:Static services:TabVisibilityService.Instance}}">
                 <TabControl>
-                    <TabItem Header="Folder Hider">
+                    <TabItem Header="Folder Hider"
+                             Visibility="{Binding FolderHider, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:HiderView}" ViewDataContext="{Binding Hider}" />
                     </TabItem>
-                    <TabItem Header="System Audit">
+                    <TabItem Header="System Audit"
+                             Visibility="{Binding SystemAudit, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:SystemAuditView}" ViewDataContext="{Binding SystemAudit}" />
                     </TabItem>
-                    <TabItem Header="Forensics Analyzer">
+                    <TabItem Header="Forensics Analyzer"
+                             Visibility="{Binding ForensicsAnalyzer, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:ForensicsAnalyzerView}" ViewDataContext="{Binding ForensicsAnalyzer}" />
                     </TabItem>
                 </TabControl>
             </TabItem>
 
             <!-- Metadata -->
-            <TabItem Header="📋 Metadata">
+            <TabItem Header="📋 Metadata"
+                     Visibility="{Binding Metadata, Source={x:Static services:TabVisibilityService.Instance}}">
                 <controls:LazyTabContent ViewType="{x:Type views:MetadataEditorView}" ViewDataContext="{Binding MetadataEditor}" />
             </TabItem>
 
             <!-- Tools -->
-            <TabItem Header="🔧 Tools">
+            <TabItem Header="🔧 Tools"
+                     Visibility="{Binding Tools, Source={x:Static services:TabVisibilityService.Instance}}">
                 <TabControl>
-                    <TabItem Header="Website Downloader">
+                    <TabItem Header="Website Downloader"
+                             Visibility="{Binding WebsiteDownloader, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:WebsiteDownloaderView}" ViewDataContext="{Binding WebsiteDownloader}" />
                     </TabItem>
-                    <TabItem Header="File Analyzer">
+                    <TabItem Header="File Analyzer"
+                             Visibility="{Binding FileAnalyzer, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:FileAnalyzerView}" ViewDataContext="{Binding FileAnalyzer}" />
                     </TabItem>
-                    <TabItem Header="Disk Space Analyzer">
+                    <TabItem Header="Disk Space Analyzer"
+                             Visibility="{Binding DiskSpaceAnalyzer, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:DiskSpaceAnalyzerView}" ViewDataContext="{Binding DiskSpaceAnalyzer}" />
                     </TabItem>
-                    <TabItem Header="Network Tools">
+                    <TabItem Header="Network Tools"
+                             Visibility="{Binding NetworkTools, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:NetworkToolsView}" ViewDataContext="{Binding NetworkTools}" />
                     </TabItem>
-                    <TabItem Header="Archive Manager">
+                    <TabItem Header="Archive Manager"
+                             Visibility="{Binding ArchiveManager, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:ArchiveManagerView}" ViewDataContext="{Binding ArchiveManager}" />
                     </TabItem>
-                    <TabItem Header="PDF Tools">
+                    <TabItem Header="PDF Tools"
+                             Visibility="{Binding PdfTools, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:PdfToolsView}" ViewDataContext="{Binding PdfTools}" />
                     </TabItem>
-                    <TabItem Header="Screenshot">
+                    <TabItem Header="Screenshot"
+                             Visibility="{Binding Screenshot, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:ScreenshotView}" ViewDataContext="{Binding Screenshot}" />
                     </TabItem>
-                    <TabItem Header="Bootable USB Creator">
+                    <TabItem Header="Bootable USB Creator"
+                             Visibility="{Binding BootableUSB, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:BootableUSBView}" ViewDataContext="{Binding BootableUSB}" />
                     </TabItem>
-                    <TabItem Header="Plugin Manager">
+                    <TabItem Header="Plugin Manager"
+                             Visibility="{Binding PluginManager, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:PluginManagerView}" ViewDataContext="{Binding PluginManager}" />
                     </TabItem>
                 </TabControl>

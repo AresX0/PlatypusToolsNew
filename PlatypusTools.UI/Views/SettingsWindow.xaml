@@ -70,6 +70,12 @@
                         <TextBlock Text="Backup &amp; Restore"/>
                     </StackPanel>
                 </ListBoxItem>
+                <ListBoxItem Tag="TabVisibility">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📑" Width="24"/>
+                        <TextBlock Text="Tab Visibility"/>
+                    </StackPanel>
+                </ListBoxItem>
                 <ListBoxItem Tag="Advanced">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="🔧" Width="24"/>
@@ -242,7 +248,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.2.2.5"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.2.3.0"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="Gray" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" Width="160" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
@@ -274,6 +280,105 @@
                             </StackPanel>
                         </GroupBox>
                     <!-- Backup Settings Panel continued -->
+                    </StackPanel>
+                    
+                    <!-- Tab Visibility Settings -->
+                    <StackPanel x:Name="TabVisibilityPanel" Visibility="Collapsed">
+                        <TextBlock Text="Tab Visibility" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
+                        <TextBlock Text="Choose which tabs appear in the main window. Changes take effect immediately." 
+                                   TextWrapping="Wrap" Margin="0,0,0,16" Foreground="Gray"/>
+                        
+                        <!-- File Management -->
+                        <GroupBox Header="📁 File Management" Margin="0,0,0,12">
+                            <StackPanel Margin="8">
+                                <CheckBox x:Name="TabFileManagement" Content="📁 File Management (entire section)" IsChecked="True" FontWeight="SemiBold" Margin="0,4"/>
+                                <CheckBox x:Name="TabFileCleaner" Content="    File Cleaner" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabDuplicates" Content="    Duplicates" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabEmptyFolderScanner" Content="    Empty Folder Scanner" IsChecked="True" Margin="16,4,0,4"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <!-- Multimedia -->
+                        <GroupBox Header="🎬 Multimedia" Margin="0,0,0,12">
+                            <StackPanel Margin="8">
+                                <CheckBox x:Name="TabMultimedia" Content="🎬 Multimedia (entire section)" IsChecked="True" FontWeight="SemiBold" Margin="0,4"/>
+                                
+                                <TextBlock Text="Audio" FontWeight="SemiBold" Margin="16,8,0,4"/>
+                                <CheckBox x:Name="TabAudioPlayer" Content="    Audio Player" IsChecked="True" Margin="32,4,0,4"/>
+                                <CheckBox x:Name="TabAudioTrim" Content="    Audio Trim" IsChecked="True" Margin="32,4,0,4"/>
+                                
+                                <TextBlock Text="Image" FontWeight="SemiBold" Margin="16,8,0,4"/>
+                                <CheckBox x:Name="TabImageEdit" Content="    Image Edit" IsChecked="True" Margin="32,4,0,4"/>
+                                <CheckBox x:Name="TabImageConverter" Content="    Image Converter" IsChecked="True" Margin="32,4,0,4"/>
+                                <CheckBox x:Name="TabImageResizer" Content="    Image Resizer" IsChecked="True" Margin="32,4,0,4"/>
+                                <CheckBox x:Name="TabIconConverter" Content="    ICO Converter" IsChecked="True" Margin="32,4,0,4"/>
+                                <CheckBox x:Name="TabBatchWatermark" Content="    Batch Watermark" IsChecked="True" Margin="32,4,0,4"/>
+                                <CheckBox x:Name="TabImageScaler" Content="    Image Scaler" IsChecked="True" Margin="32,4,0,4"/>
+                                
+                                <TextBlock Text="Video" FontWeight="SemiBold" Margin="16,8,0,4"/>
+                                <CheckBox x:Name="TabVideoPlayer" Content="    Video Player" IsChecked="True" Margin="32,4,0,4"/>
+                                <CheckBox x:Name="TabVideoEditor" Content="    Video Editor" IsChecked="True" Margin="32,4,0,4"/>
+                                <CheckBox x:Name="TabUpscaler" Content="    Upscaler" IsChecked="True" Margin="32,4,0,4"/>
+                                <CheckBox x:Name="TabVideoCombiner" Content="    Video Combiner" IsChecked="True" Margin="32,4,0,4"/>
+                                <CheckBox x:Name="TabVideoConverter" Content="    Video Converter" IsChecked="True" Margin="32,4,0,4"/>
+                                
+                                <CheckBox x:Name="TabMediaLibrary" Content="    📚 Media Library" IsChecked="True" Margin="16,8,0,4"/>
+                                <CheckBox x:Name="TabExternalTools" Content="    🔧 External Tools" IsChecked="True" Margin="16,4,0,4"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <!-- System -->
+                        <GroupBox Header="🖥️ System" Margin="0,0,0,12">
+                            <StackPanel Margin="8">
+                                <CheckBox x:Name="TabSystem" Content="🖥️ System (entire section)" IsChecked="True" FontWeight="SemiBold" Margin="0,4"/>
+                                <CheckBox x:Name="TabDiskCleanup" Content="    Disk Cleanup" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabPrivacyCleaner" Content="    Privacy Cleaner" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabRecentCleaner" Content="    Recent Cleaner" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabStartupManager" Content="    Startup Manager" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabProcessManager" Content="    Process Manager" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabRegistryCleaner" Content="    Registry Cleaner" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabScheduledTasks" Content="    Scheduled Tasks" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabSystemRestore" Content="    System Restore" IsChecked="True" Margin="16,4,0,4"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <!-- Security -->
+                        <GroupBox Header="🔒 Security" Margin="0,0,0,12">
+                            <StackPanel Margin="8">
+                                <CheckBox x:Name="TabSecurity" Content="🔒 Security (entire section)" IsChecked="True" FontWeight="SemiBold" Margin="0,4"/>
+                                <CheckBox x:Name="TabFolderHider" Content="    Folder Hider" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabSystemAudit" Content="    System Audit" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabForensicsAnalyzer" Content="    Forensics Analyzer" IsChecked="True" Margin="16,4,0,4"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <!-- Metadata -->
+                        <GroupBox Header="📋 Metadata" Margin="0,0,0,12">
+                            <StackPanel Margin="8">
+                                <CheckBox x:Name="TabMetadata" Content="📋 Metadata" IsChecked="True" FontWeight="SemiBold" Margin="0,4"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <!-- Tools -->
+                        <GroupBox Header="🔧 Tools" Margin="0,0,0,12">
+                            <StackPanel Margin="8">
+                                <CheckBox x:Name="TabTools" Content="🔧 Tools (entire section)" IsChecked="True" FontWeight="SemiBold" Margin="0,4"/>
+                                <CheckBox x:Name="TabWebsiteDownloader" Content="    Website Downloader" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabFileAnalyzer" Content="    File Analyzer" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabDiskSpaceAnalyzer" Content="    Disk Space Analyzer" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabNetworkTools" Content="    Network Tools" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabArchiveManager" Content="    Archive Manager" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabPdfTools" Content="    PDF Tools" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabScreenshot" Content="    Screenshot" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabBootableUSB" Content="    Bootable USB Creator" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabPluginManager" Content="    Plugin Manager" IsChecked="True" Margin="16,4,0,4"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <Button Content="Show All Tabs" Width="120" Margin="0,0,8,0" Click="ShowAllTabs_Click"/>
+                            <Button Content="Hide All Tabs" Width="120" Click="HideAllTabs_Click"/>
+                        </StackPanel>
                     </StackPanel>
                     
                     <!-- Audio Visualizer Settings -->

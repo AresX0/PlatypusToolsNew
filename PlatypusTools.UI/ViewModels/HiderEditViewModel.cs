@@ -1,9 +1,8 @@
 using PlatypusTools.Core.Models;
-using System.ComponentModel;
 
 namespace PlatypusTools.UI.ViewModels
 {
-    public class HiderEditViewModel : INotifyPropertyChanged
+    public class HiderEditViewModel : BindableBase
     {
         public HiderEditViewModel() { }
         public HiderEditViewModel(HiderRecord rec)
@@ -16,17 +15,15 @@ namespace PlatypusTools.UI.ViewModels
         }
 
         private string _folderPath = string.Empty;
-        public string FolderPath { get => _folderPath; set { _folderPath = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FolderPath))); } }
+        public string FolderPath { get => _folderPath; set => SetProperty(ref _folderPath, value); }
 
         private string? _password;
-        public string? Password { get => _password; set { _password = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Password))); } }
+        public string? Password { get => _password; set => SetProperty(ref _password, value); }
 
         private bool _aclRestricted;
-        public bool AclRestricted { get => _aclRestricted; set { _aclRestricted = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AclRestricted))); } }
+        public bool AclRestricted { get => _aclRestricted; set => SetProperty(ref _aclRestricted, value); }
 
         private bool _efsEnabled;
-        public bool EfsEnabled { get => _efsEnabled; set { _efsEnabled = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(EfsEnabled))); } }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
+        public bool EfsEnabled { get => _efsEnabled; set => SetProperty(ref _efsEnabled, value); }
     }
 }

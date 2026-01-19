@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 using PlatypusTools.UI.Services;
@@ -14,7 +13,7 @@ namespace PlatypusTools.UI.ViewModels
     /// <summary>
     /// Plugin information for UI display.
     /// </summary>
-    public class PluginInfo : INotifyPropertyChanged
+    public class PluginInfo : BindableBase
     {
         public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
@@ -28,23 +27,14 @@ namespace PlatypusTools.UI.ViewModels
         public bool IsEnabled
         {
             get => _isEnabled;
-            set
-            {
-                if (_isEnabled != value)
-                {
-                    _isEnabled = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsEnabled)));
-                }
-            }
+            set => SetProperty(ref _isEnabled, value);
         }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
     }
 
     /// <summary>
     /// ViewModel for the Plugin Manager view.
     /// </summary>
-    public class PluginManagerViewModel : INotifyPropertyChanged
+    public class PluginManagerViewModel : BindableBase
     {
         private readonly PluginService _pluginService;
 
@@ -292,25 +282,6 @@ namespace PlatypusTools.UI.ViewModels
             _pluginService.ReloadAllPlugins();
             RefreshPlugins();
             Status = "Plugins reloaded";
-        }
-
-        #endregion
-
-        #region INotifyPropertyChanged
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-        {
-            if (Equals(field, value)) return false;
-            field = value;
-            OnPropertyChanged(propertyName);
-            return true;
         }
 
         #endregion

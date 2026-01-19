@@ -34,8 +34,8 @@
     Archives existing artifacts, then performs a complete clean build.
     
 .EXAMPLE
-    .\Build-Release.ps1 -Version "3.2.2.5"
-    Performs a clean build and verifies all outputs are version 3.2.2.5
+    .\Build-Release.ps1 -Version "3.2.3.0"
+    Performs a clean build and verifies all outputs are version 3.2.3.0
     
 .NOTES
     CRITICAL: Always use this script for release builds to avoid stale file issues.

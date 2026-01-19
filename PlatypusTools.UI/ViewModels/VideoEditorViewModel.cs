@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -26,7 +24,7 @@ namespace PlatypusTools.UI.ViewModels
     /// ViewModel for the CapCut-class video editor.
     /// Supports multi-track timeline, keyframes, beat sync, AI tools, and export.
     /// </summary>
-    public class VideoEditorViewModel : INotifyPropertyChanged, IDisposable
+    public class VideoEditorViewModel : BindableBase, IDisposable
     {
         private readonly VideoEditorService _editorService;
         private readonly FFmpegService _ffmpeg;
@@ -3467,25 +3465,6 @@ After installation, restart PlatypusTools.
         private static string FormatTime(TimeSpan time)
         {
             return $"{(int)time.TotalHours:D2}:{time.Minutes:D2}:{time.Seconds:D2}.{time.Milliseconds / 10:D2}";
-        }
-
-        #endregion
-
-        #region INotifyPropertyChanged
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-        {
-            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-            field = value;
-            OnPropertyChanged(propertyName);
-            return true;
         }
 
         #endregion

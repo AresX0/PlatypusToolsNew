@@ -1,10 +1,6 @@
-using System;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-
 namespace PlatypusTools.UI.ViewModels
 {
-    public class DuplicateFileViewModel : INotifyPropertyChanged
+    public class DuplicateFileViewModel : BindableBase
     {
         public DuplicateFileViewModel(string path)
         {
@@ -12,10 +8,8 @@ namespace PlatypusTools.UI.ViewModels
         }
 
         private bool _isSelected;
-        public bool IsSelected { get => _isSelected; set { _isSelected = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected))); } }
+        public bool IsSelected { get => _isSelected; set => SetProperty(ref _isSelected, value); }
 
         public string Path { get; }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
     }
 }

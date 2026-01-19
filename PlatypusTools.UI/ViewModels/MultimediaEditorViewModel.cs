@@ -1,16 +1,14 @@
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows.Input;
 
 namespace PlatypusTools.UI.ViewModels
 {
-    public class MultimediaEditorViewModel : INotifyPropertyChanged
+    public class MultimediaEditorViewModel : BindableBase
     {
         // Win32 API imports for embedding windows
         [DllImport("user32.dll", SetLastError = true)]
@@ -809,12 +807,6 @@ namespace PlatypusTools.UI.ViewModels
             {
                 StatusMessage = $"Error embedding GIMP: {ex.Message}";
             }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

@@ -22,104 +22,82 @@ namespace PlatypusTools.UI.ViewModels
             return mainWindow;
         }
 
+        #region Lazy ViewModel Initialization
+        
+        // Lazy<T> wrappers for all ViewModels - only created when first accessed
+        private readonly Lazy<RecentCleanupViewModel> _recent = new(() => new RecentCleanupViewModel());
+        private readonly Lazy<FileCleanerViewModel> _fileCleaner = new(() => new FileCleanerViewModel());
+        private readonly Lazy<HiderViewModel> _hider = new(() => new HiderViewModel());
+        private readonly Lazy<DuplicatesViewModel> _duplicates = new(() => new DuplicatesViewModel());
+        private readonly Lazy<VideoCombinerViewModel> _videoCombiner = new(() => new VideoCombinerViewModel(new PlatypusTools.Core.Services.VideoCombinerService()));
+        private readonly Lazy<ImageConverterViewModel> _imageConverter = new(() => new ImageConverterViewModel());
+        private readonly Lazy<ImageResizerViewModel> _imageResizer = new(() => new ImageResizerViewModel());
+        private readonly Lazy<IconConverterViewModel> _iconConverter = new(() => new IconConverterViewModel());
+        private readonly Lazy<UpscalerViewModel> _upscaler = new(() => new UpscalerViewModel());
+        private readonly Lazy<BatchUpscaleViewModel> _batchUpscale = new(() => new BatchUpscaleViewModel());
+        private readonly Lazy<DiskCleanupViewModel> _diskCleanup = new(() => new DiskCleanupViewModel());
+        private readonly Lazy<PrivacyCleanerViewModel> _privacyCleaner = new(() => new PrivacyCleanerViewModel());
+        private readonly Lazy<VideoConverterViewModel> _videoConverter = new(() => new VideoConverterViewModel());
+        private readonly Lazy<AudioPlayerViewModel> _audioPlayer = new(() => new AudioPlayerViewModel());
+        private readonly Lazy<MetadataEditorViewModel> _metadataEditor = new(() => new MetadataEditorViewModel());
+        private readonly Lazy<MultimediaEditorViewModel> _multimediaEditor = new(() => new MultimediaEditorViewModel());
+        private readonly Lazy<SystemAuditViewModel> _systemAudit = new(() => new SystemAuditViewModel());
+        private readonly Lazy<ForensicsAnalyzerViewModel> _forensicsAnalyzer = new(() => new ForensicsAnalyzerViewModel());
+        private readonly Lazy<StartupManagerViewModel> _startupManager = new(() => new StartupManagerViewModel());
+        private readonly Lazy<WebsiteDownloaderViewModel> _websiteDownloader = new(() => new WebsiteDownloaderViewModel());
+        private readonly Lazy<FileAnalyzerViewModel> _fileAnalyzer = new(() => new FileAnalyzerViewModel());
+        private readonly Lazy<MediaLibraryViewModel> _mediaLibrary = new(() => new MediaLibraryViewModel());
+        private readonly Lazy<DiskSpaceAnalyzerViewModel> _diskSpaceAnalyzer = new(() => new DiskSpaceAnalyzerViewModel());
+        private readonly Lazy<NetworkToolsViewModel> _networkTools = new(() => new NetworkToolsViewModel());
+        private readonly Lazy<ProcessManagerViewModel> _processManager = new(() => new ProcessManagerViewModel());
+        private readonly Lazy<RegistryCleanerViewModel> _registryCleaner = new(() => new RegistryCleanerViewModel());
+        private readonly Lazy<ScheduledTasksViewModel> _scheduledTasks = new(() => new ScheduledTasksViewModel());
+        private readonly Lazy<SystemRestoreViewModel> _systemRestore = new(() => new SystemRestoreViewModel());
+        private readonly Lazy<ArchiveManagerViewModel> _archiveManager = new(() => new ArchiveManagerViewModel());
+        private readonly Lazy<PdfToolsViewModel> _pdfTools = new(() => new PdfToolsViewModel());
+        private readonly Lazy<BatchWatermarkViewModel> _batchWatermark = new(() => new BatchWatermarkViewModel());
+        private readonly Lazy<ScreenshotViewModel> _screenshot = new(() => new ScreenshotViewModel());
+        private readonly Lazy<BootableUSBViewModel> _bootableUSB = new(() => new BootableUSBViewModel());
+        private readonly Lazy<EmptyFolderScannerViewModel> _emptyFolderScanner = new(() => new EmptyFolderScannerViewModel());
+        private readonly Lazy<PluginManagerViewModel> _pluginManager = new(() => new PluginManagerViewModel());
+        
+        #endregion
+
         public MainWindowViewModel()
         {
             // Debug entry
-            SimpleLogger.Debug("Initializing MainWindowViewModel");
+            SimpleLogger.Debug("Initializing MainWindowViewModel with lazy loading");
             
             try
             {
-                SimpleLogger.Debug("Creating RecentCleanupViewModel");
-                Recent = new RecentCleanupViewModel();
-                
-                SimpleLogger.Debug("Creating FileCleanerViewModel");
-                FileCleaner = new FileCleanerViewModel();
-                
-                SimpleLogger.Debug("Creating HiderViewModel");
-                Hider = new HiderViewModel();
-                
-                SimpleLogger.Debug("Creating DuplicatesViewModel");
-                Duplicates = new DuplicatesViewModel();
-                
-                SimpleLogger.Debug("Creating VideoCombinerViewModel");
-                VideoCombiner = new VideoCombinerViewModel(new PlatypusTools.Core.Services.VideoCombinerService());
-                
-                SimpleLogger.Debug("Creating ImageConverterViewModel");
-                ImageConverter = new ImageConverterViewModel();
-                ImageResizer = new ImageResizerViewModel();
-                IconConverter = new IconConverterViewModel();
-                Upscaler = new UpscalerViewModel();
-                BatchUpscale = new BatchUpscaleViewModel();
-                DiskCleanup = new DiskCleanupViewModel();
-                PrivacyCleaner = new PrivacyCleanerViewModel();
-                VideoConverter = new VideoConverterViewModel();
-                
-                SimpleLogger.Debug("Creating AudioPlayerViewModel");
-                AudioPlayer = new AudioPlayerViewModel();
-                
-                SimpleLogger.Debug("Creating MetadataEditorViewModel");
-                MetadataEditor = new MetadataEditorViewModel();
-                
-                SimpleLogger.Debug("Creating MultimediaEditorViewModel");
-                MultimediaEditor = new MultimediaEditorViewModel();
-                
-                SimpleLogger.Debug("Creating SystemAuditViewModel");
-                SystemAudit = new SystemAuditViewModel();
-                
-                SimpleLogger.Debug("Creating ForensicsAnalyzerViewModel");
-                ForensicsAnalyzer = new ForensicsAnalyzerViewModel();
-                
-                SimpleLogger.Debug("Creating StartupManagerViewModel");
-                StartupManager = new StartupManagerViewModel();
-                
-                SimpleLogger.Debug("Creating remaining ViewModels");
-                WebsiteDownloader = new WebsiteDownloaderViewModel();
-                FileAnalyzer = new FileAnalyzerViewModel();
-                MediaLibrary = new MediaLibraryViewModel();
-                DiskSpaceAnalyzer = new DiskSpaceAnalyzerViewModel();
-                NetworkTools = new NetworkToolsViewModel();
-                ProcessManager = new ProcessManagerViewModel();
-                RegistryCleaner = new RegistryCleanerViewModel();
-                ScheduledTasks = new ScheduledTasksViewModel();
-                SystemRestore = new SystemRestoreViewModel();
-                ArchiveManager = new ArchiveManagerViewModel();
-                PdfTools = new PdfToolsViewModel();
-                BatchWatermark = new BatchWatermarkViewModel();
-                Screenshot = new ScreenshotViewModel();
-                BootableUSB = new BootableUSBViewModel();
-                EmptyFolderScanner = new EmptyFolderScannerViewModel();
-                
-                SimpleLogger.Debug("Creating PluginManagerViewModel");
-                PluginManager = new PluginManagerViewModel();
-
                 SimpleLogger.Debug("Creating commands");
                 BrowseCommand = new RelayCommand(_ => Browse());
-            SaveWorkspaceCommand = new RelayCommand(_ => SaveWorkspace());
-            ExportConfigCommand = new RelayCommand(_ => ExportConfig());
-            ImportConfigCommand = new RelayCommand(_ => ImportConfig());
-            OpenRecentWorkspacesCommand = new RelayCommand(_ => OpenRecentWorkspaces());
-            ExitCommand = new RelayCommand(_ => System.Windows.Application.Current?.Shutdown());
-            OpenHelpCommand = new RelayCommand(_ => OpenHelp());
-            OpenArchivedScriptsCommand = new RelayCommand(_ => OpenArchivedScripts());
-            RunArchivedScriptCommand = new RelayCommand(_ => RunArchivedScript());
-            RunParityTestsCommand = new RelayCommand(_ => RunParityTests());
-            OpenCredentialManagerCommand = new RelayCommand(_ => OpenCredentialManager());
-            ToggleStagingInDuplicatesCommand = new RelayCommand(_ => Duplicates.StagingVisible = !Duplicates.StagingVisible);
-            TogglePreviewPanelCommand = new RelayCommand(_ => Duplicates.PreviewVisible = !Duplicates.PreviewVisible);
-            ToggleThemeCommand = new RelayCommand(_ => ToggleTheme());
+                SaveWorkspaceCommand = new RelayCommand(_ => SaveWorkspace());
+                ExportConfigCommand = new RelayCommand(_ => ExportConfig());
+                ImportConfigCommand = new RelayCommand(_ => ImportConfig());
+                OpenRecentWorkspacesCommand = new RelayCommand(_ => OpenRecentWorkspaces());
+                ExitCommand = new RelayCommand(_ => System.Windows.Application.Current?.Shutdown());
+                OpenHelpCommand = new RelayCommand(_ => OpenHelp());
+                OpenArchivedScriptsCommand = new RelayCommand(_ => OpenArchivedScripts());
+                RunArchivedScriptCommand = new RelayCommand(_ => RunArchivedScript());
+                RunParityTestsCommand = new RelayCommand(_ => RunParityTests());
+                OpenCredentialManagerCommand = new RelayCommand(_ => OpenCredentialManager());
+                ToggleStagingInDuplicatesCommand = new RelayCommand(_ => Duplicates.StagingVisible = !Duplicates.StagingVisible);
+                TogglePreviewPanelCommand = new RelayCommand(_ => Duplicates.PreviewVisible = !Duplicates.PreviewVisible);
+                ToggleThemeCommand = new RelayCommand(_ => ToggleTheme());
 
                 SimpleLogger.Debug("Commands created successfully");
-            // Apply theme from settings
-            try
-            {
-                var s = PlatypusTools.UI.Services.SettingsManager.Load();
-                IsDarkTheme = string.Equals(s.Theme, PlatypusTools.UI.Services.ThemeManager.Dark, StringComparison.OrdinalIgnoreCase);
-                PlatypusTools.UI.Services.ThemeManager.ApplyTheme(s.Theme);
-            }
-            catch { }
+                
+                // Apply theme from settings
+                try
+                {
+                    var s = PlatypusTools.UI.Services.SettingsManager.Load();
+                    IsDarkTheme = string.Equals(s.Theme, PlatypusTools.UI.Services.ThemeManager.Dark, StringComparison.OrdinalIgnoreCase);
+                    PlatypusTools.UI.Services.ThemeManager.ApplyTheme(s.Theme);
+                }
+                catch { }
             
-                SimpleLogger.Debug("MainWindowViewModel initialized successfully");
-                // Debug exit
+                SimpleLogger.Debug("MainWindowViewModel initialized successfully (ViewModels will be created on-demand)");
             }
             catch (Exception ex)
             {
@@ -128,41 +106,46 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        public RecentCleanupViewModel Recent { get; }
-        public FileCleanerViewModel FileCleaner { get; }
-        public HiderViewModel Hider { get; }
-        public DuplicatesViewModel Duplicates { get; }
-        public VideoCombinerViewModel VideoCombiner { get; } 
-        public ImageConverterViewModel ImageConverter { get; }
-        public ImageResizerViewModel ImageResizer { get; }
-        public IconConverterViewModel IconConverter { get; }
-        public UpscalerViewModel Upscaler { get; }
-        public BatchUpscaleViewModel BatchUpscale { get; }
-        public DiskCleanupViewModel DiskCleanup { get; }
-        public PrivacyCleanerViewModel PrivacyCleaner { get; }
-        public VideoConverterViewModel VideoConverter { get; }
-        public AudioPlayerViewModel AudioPlayer { get; }
-        public MetadataEditorViewModel MetadataEditor { get; }
-        public MultimediaEditorViewModel MultimediaEditor { get; }
-        public SystemAuditViewModel SystemAudit { get; }
-        public ForensicsAnalyzerViewModel ForensicsAnalyzer { get; }
-        public StartupManagerViewModel StartupManager { get; }
-        public WebsiteDownloaderViewModel WebsiteDownloader { get; }
-        public FileAnalyzerViewModel FileAnalyzer { get; }
-        public MediaLibraryViewModel MediaLibrary { get; }
-        public DiskSpaceAnalyzerViewModel DiskSpaceAnalyzer { get; }
-        public NetworkToolsViewModel NetworkTools { get; }
-        public ProcessManagerViewModel ProcessManager { get; }
-        public RegistryCleanerViewModel RegistryCleaner { get; }
-        public ScheduledTasksViewModel ScheduledTasks { get; }
-        public SystemRestoreViewModel SystemRestore { get; }
-        public ArchiveManagerViewModel ArchiveManager { get; }
-        public PdfToolsViewModel PdfTools { get; }
-        public BatchWatermarkViewModel BatchWatermark { get; }
-        public ScreenshotViewModel Screenshot { get; }
-        public BootableUSBViewModel BootableUSB { get; }
-        public EmptyFolderScannerViewModel EmptyFolderScanner { get; }
-        public PluginManagerViewModel PluginManager { get; }
+        #region ViewModel Properties (Lazy-loaded)
+        
+        public RecentCleanupViewModel Recent => _recent.Value;
+        public FileCleanerViewModel FileCleaner => _fileCleaner.Value;
+        public HiderViewModel Hider => _hider.Value;
+        public DuplicatesViewModel Duplicates => _duplicates.Value;
+        public VideoCombinerViewModel VideoCombiner => _videoCombiner.Value;
+        public ImageConverterViewModel ImageConverter => _imageConverter.Value;
+        public ImageResizerViewModel ImageResizer => _imageResizer.Value;
+        public IconConverterViewModel IconConverter => _iconConverter.Value;
+        public UpscalerViewModel Upscaler => _upscaler.Value;
+        public BatchUpscaleViewModel BatchUpscale => _batchUpscale.Value;
+        public DiskCleanupViewModel DiskCleanup => _diskCleanup.Value;
+        public PrivacyCleanerViewModel PrivacyCleaner => _privacyCleaner.Value;
+        public VideoConverterViewModel VideoConverter => _videoConverter.Value;
+        public AudioPlayerViewModel AudioPlayer => _audioPlayer.Value;
+        public MetadataEditorViewModel MetadataEditor => _metadataEditor.Value;
+        public MultimediaEditorViewModel MultimediaEditor => _multimediaEditor.Value;
+        public SystemAuditViewModel SystemAudit => _systemAudit.Value;
+        public ForensicsAnalyzerViewModel ForensicsAnalyzer => _forensicsAnalyzer.Value;
+        public StartupManagerViewModel StartupManager => _startupManager.Value;
+        public WebsiteDownloaderViewModel WebsiteDownloader => _websiteDownloader.Value;
+        public FileAnalyzerViewModel FileAnalyzer => _fileAnalyzer.Value;
+        public MediaLibraryViewModel MediaLibrary => _mediaLibrary.Value;
+        public DiskSpaceAnalyzerViewModel DiskSpaceAnalyzer => _diskSpaceAnalyzer.Value;
+        public NetworkToolsViewModel NetworkTools => _networkTools.Value;
+        public ProcessManagerViewModel ProcessManager => _processManager.Value;
+        public RegistryCleanerViewModel RegistryCleaner => _registryCleaner.Value;
+        public ScheduledTasksViewModel ScheduledTasks => _scheduledTasks.Value;
+        public SystemRestoreViewModel SystemRestore => _systemRestore.Value;
+        public ArchiveManagerViewModel ArchiveManager => _archiveManager.Value;
+        public PdfToolsViewModel PdfTools => _pdfTools.Value;
+        public BatchWatermarkViewModel BatchWatermark => _batchWatermark.Value;
+        public ScreenshotViewModel Screenshot => _screenshot.Value;
+        public BootableUSBViewModel BootableUSB => _bootableUSB.Value;
+        public EmptyFolderScannerViewModel EmptyFolderScanner => _emptyFolderScanner.Value;
+        public PluginManagerViewModel PluginManager => _pluginManager.Value;
+        
+        #endregion
+
         private string _selectedFolder = string.Empty;
         public string SelectedFolder { get => _selectedFolder; set { _selectedFolder = value; RaisePropertyChanged(); PropagateSelectedFolder(); } }
 

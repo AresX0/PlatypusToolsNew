@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using PlatypusTools.UI.Services;
@@ -29,7 +30,7 @@ namespace PlatypusTools.UI.Views
                 _panels = new[] 
                 { 
                     GeneralPanel, AppearancePanel, KeyboardPanel, 
-                    AIPanel, UpdatesPanel, BackupPanel, AdvancedPanel 
+                    AIPanel, UpdatesPanel, BackupPanel, TabVisibilityPanel, VisualizerPanel, AdvancedPanel 
                 };
             }
             catch (System.Exception ex)
@@ -128,12 +129,18 @@ namespace PlatypusTools.UI.Views
                 "AI" => AIPanel,
                 "Updates" => UpdatesPanel,
                 "Backup" => BackupPanel,
+                "TabVisibility" => TabVisibilityPanel,
+                "Visualizer" => VisualizerPanel,
                 "Advanced" => AdvancedPanel,
                 _ => GeneralPanel
             };
             
             if (targetPanel != null)
                 targetPanel.Visibility = Visibility.Visible;
+            
+            // Load tab visibility settings when switching to that panel
+            if (tag == "TabVisibility")
+                LoadTabVisibilitySettings();
         }
         
         private void CustomizeTheme_Click(object sender, RoutedEventArgs e)
@@ -304,8 +311,151 @@ namespace PlatypusTools.UI.Views
             
             settings.CheckForUpdatesOnStartup = AutoCheckUpdatesCheck.IsChecked == true;
             
+            // Save tab visibility settings
+            SaveTabVisibilitySettings(settings);
+            
             SettingsManager.Save(settings);
+            
+            // Refresh tab visibility in the main UI immediately
+            TabVisibilityService.Instance.RefreshFromSettings();
         }
+        
+        #region Tab Visibility
+        
+        /// <summary>
+        /// Maps checkbox names to tab keys for settings storage.
+        /// </summary>
+        private static readonly Dictionary<string, string> TabCheckboxMapping = new()
+        {
+            // File Management
+            { "TabFileManagement", "FileManagement" },
+            { "TabFileCleaner", "FileManagement.FileCleaner" },
+            { "TabDuplicates", "FileManagement.Duplicates" },
+            { "TabEmptyFolderScanner", "FileManagement.EmptyFolderScanner" },
+            
+            // Multimedia
+            { "TabMultimedia", "Multimedia" },
+            { "TabAudioPlayer", "Multimedia.Audio.AudioPlayer" },
+            { "TabAudioTrim", "Multimedia.Audio.AudioTrim" },
+            { "TabImageEdit", "Multimedia.Image.ImageEdit" },
+            { "TabImageConverter", "Multimedia.Image.ImageConverter" },
+            { "TabImageResizer", "Multimedia.Image.ImageResizer" },
+            { "TabIconConverter", "Multimedia.Image.IconConverter" },
+            { "TabBatchWatermark", "Multimedia.Image.BatchWatermark" },
+            { "TabImageScaler", "Multimedia.Image.ImageScaler" },
+            { "TabVideoPlayer", "Multimedia.Video.VideoPlayer" },
+            { "TabVideoEditor", "Multimedia.Video.VideoEditor" },
+            { "TabUpscaler", "Multimedia.Video.Upscaler" },
+            { "TabVideoCombiner", "Multimedia.Video.VideoCombiner" },
+            { "TabVideoConverter", "Multimedia.Video.VideoConverter" },
+            { "TabMediaLibrary", "Multimedia.MediaLibrary" },
+            { "TabExternalTools", "Multimedia.ExternalTools" },
+            
+            // System
+            { "TabSystem", "System" },
+            { "TabDiskCleanup", "System.DiskCleanup" },
+            { "TabPrivacyCleaner", "System.PrivacyCleaner" },
+            { "TabRecentCleaner", "System.RecentCleaner" },
+            { "TabStartupManager", "System.StartupManager" },
+            { "TabProcessManager", "System.ProcessManager" },
+            { "TabRegistryCleaner", "System.RegistryCleaner" },
+            { "TabScheduledTasks", "System.ScheduledTasks" },
+            { "TabSystemRestore", "System.SystemRestore" },
+            
+            // Security
+            { "TabSecurity", "Security" },
+            { "TabFolderHider", "Security.FolderHider" },
+            { "TabSystemAudit", "Security.SystemAudit" },
+            { "TabForensicsAnalyzer", "Security.ForensicsAnalyzer" },
+            
+            // Metadata
+            { "TabMetadata", "Metadata" },
+            
+            // Tools
+            { "TabTools", "Tools" },
+            { "TabWebsiteDownloader", "Tools.WebsiteDownloader" },
+            { "TabFileAnalyzer", "Tools.FileAnalyzer" },
+            { "TabDiskSpaceAnalyzer", "Tools.DiskSpaceAnalyzer" },
+            { "TabNetworkTools", "Tools.NetworkTools" },
+            { "TabArchiveManager", "Tools.ArchiveManager" },
+            { "TabPdfTools", "Tools.PdfTools" },
+            { "TabScreenshot", "Tools.Screenshot" },
+            { "TabBootableUSB", "Tools.BootableUSB" },
+            { "TabPluginManager", "Tools.PluginManager" },
+        };
+        
+        private void LoadTabVisibilitySettings()
+        {
+            try
+            {
+                var settings = SettingsManager.Current;
+                
+                foreach (var kvp in TabCheckboxMapping)
+                {
+                    var checkbox = FindName(kvp.Key) as System.Windows.Controls.CheckBox;
+                    if (checkbox != null)
+                    {
+                        checkbox.IsChecked = settings.IsTabVisible(kvp.Value);
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading tab visibility: {ex.Message}");
+            }
+        }
+        
+        private void SaveTabVisibilitySettings(AppSettings settings)
+        {
+            try
+            {
+                foreach (var kvp in TabCheckboxMapping)
+                {
+                    var checkbox = FindName(kvp.Key) as System.Windows.Controls.CheckBox;
+                    if (checkbox != null)
+                    {
+                        settings.SetTabVisible(kvp.Value, checkbox.IsChecked == true);
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error saving tab visibility: {ex.Message}");
+            }
+        }
+        
+        private void ShowAllTabs_Click(object sender, RoutedEventArgs e)
+        {
+            SetAllTabsVisibility(true);
+        }
+        
+        private void HideAllTabs_Click(object sender, RoutedEventArgs e)
+        {
+            var result = MessageBox.Show(
+                "This will hide all tabs. You can restore them later from Settings. Continue?",
+                "Hide All Tabs",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+                
+            if (result == MessageBoxResult.Yes)
+            {
+                SetAllTabsVisibility(false);
+            }
+        }
+        
+        private void SetAllTabsVisibility(bool visible)
+        {
+            foreach (var kvp in TabCheckboxMapping)
+            {
+                var checkbox = FindName(kvp.Key) as System.Windows.Controls.CheckBox;
+                if (checkbox != null)
+                {
+                    checkbox.IsChecked = visible;
+                }
+            }
+        }
+        
+        #endregion
     }
     
     public class ShortcutDisplayItem

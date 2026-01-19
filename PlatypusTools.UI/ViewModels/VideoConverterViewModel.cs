@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -12,7 +11,7 @@ using PlatypusTools.Core.Services;
 
 namespace PlatypusTools.UI.ViewModels
 {
-    public class VideoConverterViewModel : INotifyPropertyChanged
+    public class VideoConverterViewModel : BindableBase
     {
         private readonly IVideoConverterService _service;
         private CancellationTokenSource? _cancellationTokenSource;
@@ -321,12 +320,6 @@ namespace PlatypusTools.UI.ViewModels
             var extension = "." + TargetFormat.ToString().ToLower();
             
             return Path.Combine(outputDir ?? string.Empty, fileName + extension);
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
