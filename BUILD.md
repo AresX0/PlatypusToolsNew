@@ -2,7 +2,58 @@
 
 Complete instructions for building PlatypusTools.NET from source, including the MSI installer.
 
+## ⚠️ CRITICAL: Avoiding Stale Build Issues
+
+> **WARNING**: The MSI installer build system has a known pitfall that can cause the installer to package OLD files instead of your latest changes. **ALWAYS follow the release build process below.**
+
+### The Problem
+The MSI build sources files from:
+```
+PlatypusTools.UI\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\
+```
+
+The `PublishFiles.wxs` file references these files by path. If you:
+- Build without cleaning first
+- Use cached files from a previous build
+- Forget to regenerate `PublishFiles.wxs`
+
+...the MSI will contain **old files** even though you made code changes!
+
+### The Solution: Use Build-Release.ps1
+
+**For ALL release builds, use the automated script:**
+
+```powershell
+cd C:\Projects\PlatypusToolsNew
+.\Build-Release.ps1
+```
+
+This script:
+1. ✅ Cleans ALL bin/obj/publish directories
+2. ✅ Publishes fresh files to the correct MSI source location
+3. ✅ Regenerates `PublishFiles.wxs` with current files
+4. ✅ Builds the MSI from clean state
+5. ✅ Creates the self-contained single-file EXE
+6. ✅ Verifies version numbers match
+
+**Optional flags:**
+```powershell
+# Archive existing builds before cleaning
+.\Build-Release.ps1 -Archive
+
+# Verify specific version
+.\Build-Release.ps1 -Version "3.2.2.5"
+```
+
+### Build Outputs
+After running `Build-Release.ps1`:
+- **Self-contained EXE**: `publish\PlatypusTools.UI.exe` (~191 MB)
+- **MSI Installer**: `PlatypusTools.Installer\bin\x64\Release\PlatypusToolsSetup.msi` (~152 MB)
+
+---
+
 ## Table of Contents
+- [Critical Build Warning](#️-critical-avoiding-stale-build-issues)
 - [Prerequisites](#prerequisites)
 - [Getting the Source Code](#getting-the-source-code)
 - [Building the Application](#building-the-application)
@@ -141,6 +192,94 @@ PlatypusTools.UI\bin\Release\net10.0-windows\
 ```
 
 ## Building the MSI Installer
+
+### ⚠️ IMPORTANT: MSI Build Process
+
+**The MSI build is the most error-prone part of the release process.** The installer packages files from a SPECIFIC location, and if those files are stale, the MSI will contain old code.
+
+### Recommended: Use Build-Release.ps1
+
+```powershell
+cd C:\Projects\PlatypusToolsNew
+.\Build-Release.ps1
+```
+
+This handles everything automatically. See [Critical Build Warning](#️-critical-avoiding-stale-build-issues).
+
+### Manual Build Process (NOT recommended for releases)
+
+If you must build manually, follow these steps **EXACTLY**:
+
+#### Step 1: Clean ALL build directories
+
+```powershell
+cd C:\Projects\PlatypusToolsNew
+
+# Remove ALL cached builds - DO NOT SKIP THIS
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue `
+    publish, `
+    PlatypusTools.UI\bin, `
+    PlatypusTools.UI\obj, `
+    PlatypusTools.Core\bin, `
+    PlatypusTools.Core\obj, `
+    PlatypusTools.Installer\bin, `
+    PlatypusTools.Installer\obj
+```
+
+#### Step 2: Publish to MSI source location
+
+```powershell
+# This creates the files the MSI will package
+dotnet publish PlatypusTools.UI\PlatypusTools.UI.csproj `
+    -c Release `
+    -r win-x64 `
+    --self-contained true `
+    -p:PublishSingleFile=false `
+    -p:PublishTrimmed=false
+
+# Verify the publish directory exists with your files
+$msiSource = "PlatypusTools.UI\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish"
+Get-ChildItem $msiSource -Recurse | Measure-Object | Select-Object Count
+```
+
+#### Step 3: Regenerate PublishFiles.wxs
+
+> **CRITICAL**: This step MUST be done after every publish!
+
+```powershell
+cd PlatypusTools.Installer
+powershell -ExecutionPolicy Bypass -File .\GeneratePublishWxs.ps1 -Configuration Release
+cd ..
+
+# Verify component count matches file count
+# Should show "Generated PublishFiles.wxs with XXXX components"
+```
+
+#### Step 4: Build the MSI
+
+```powershell
+dotnet restore PlatypusTools.Installer\PlatypusTools.Installer.wixproj
+dotnet build PlatypusTools.Installer\PlatypusTools.Installer.wixproj -c Release
+
+# Verify MSI was created with current timestamp
+Get-Item PlatypusTools.Installer\bin\x64\Release\PlatypusToolsSetup.msi | 
+    Select-Object Name, Length, LastWriteTime
+```
+
+#### Step 5: Build self-contained EXE
+
+```powershell
+dotnet publish PlatypusTools.UI\PlatypusTools.UI.csproj `
+    -c Release `
+    -r win-x64 `
+    --self-contained true `
+    -p:PublishSingleFile=true `
+    -p:PublishTrimmed=false `
+    -o publish
+
+# Verify EXE version
+(Get-Item publish\PlatypusTools.UI.exe).VersionInfo.FileVersion
+```
 
 ### Prerequisites for MSI Build
 
@@ -362,27 +501,76 @@ dotnet build PlatypusTools.Installer\PlatypusTools.Installer.wixproj -c Release
 
 ## Clean Build
 
-If experiencing persistent issues:
+If experiencing persistent issues, or **before ANY release build**:
+
+### Recommended: Use Build-Release.ps1 with Archive
+
+```powershell
+cd C:\Projects\PlatypusToolsNew
+
+# Archive existing builds, then clean and rebuild
+.\Build-Release.ps1 -Archive
+```
+
+This archives all existing builds to `LocalArchive\OldBuilds_<timestamp>\` before cleaning.
+
+### Manual Clean Build
 
 ```powershell
 # Navigate to solution directory
-cd C:\Projects\Platypustools\PlatypusTools.Net
+cd C:\Projects\PlatypusToolsNew
 
 # Clean all projects
 dotnet clean
 
-# Remove bin and obj folders (PowerShell)
-Get-ChildItem -Recurse -Directory -Filter "bin" | Remove-Item -Recurse -Force
-Get-ChildItem -Recurse -Directory -Filter "obj" | Remove-Item -Recurse -Force
+# Remove ALL bin, obj, and publish folders (PowerShell)
+$foldersToRemove = @(
+    "publish",
+    "releases",
+    "PlatypusTools.UI\bin",
+    "PlatypusTools.UI\obj", 
+    "PlatypusTools.Core\bin",
+    "PlatypusTools.Core\obj",
+    "PlatypusTools.Installer\bin",
+    "PlatypusTools.Installer\obj",
+    "PlatypusTools.Installer\publish",
+    "PlatypusTools.Core.Tests\bin",
+    "PlatypusTools.Core.Tests\obj",
+    "tests\PlatypusTools.Core.Tests\bin",
+    "tests\PlatypusTools.Core.Tests\obj",
+    "tests\PlatypusTools.UI.Tests\bin",
+    "tests\PlatypusTools.UI.Tests\obj"
+)
+
+foreach ($folder in $foldersToRemove) {
+    if (Test-Path $folder) {
+        Remove-Item -Path $folder -Recurse -Force
+        Write-Host "Removed: $folder"
+    }
+}
 
 # Restore packages
 dotnet restore
 
-# Rebuild
+# Rebuild (see MSI section for full release build)
 dotnet build -c Release
+```
 
-# Build installer
-dotnet build PlatypusTools.Installer\PlatypusTools.Installer.wixproj -c Release
+### Archive Instead of Delete
+
+To preserve old builds for debugging or comparison:
+
+```powershell
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$archiveDir = "LocalArchive\OldBuilds_$timestamp"
+New-Item -ItemType Directory -Path $archiveDir -Force
+
+# Copy before removing
+Copy-Item -Path "publish" -Destination "$archiveDir\publish" -Recurse -Force -ErrorAction SilentlyContinue
+Copy-Item -Path "PlatypusTools.Installer\bin" -Destination "$archiveDir\Installer_bin" -Recurse -Force -ErrorAction SilentlyContinue
+Copy-Item -Path "PlatypusTools.UI\bin" -Destination "$archiveDir\UI_bin" -Recurse -Force -ErrorAction SilentlyContinue
+
+Write-Host "Archived to: $archiveDir"
 ```
 
 ## Performance Notes

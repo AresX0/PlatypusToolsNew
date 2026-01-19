@@ -1,40 +1,103 @@
 # PlatypusTools MSI Installer
 
-This project creates a Windows Installer (MSI) package for PlatypusTools using the WiX Toolset v5.
+This project creates a Windows Installer (MSI) package for PlatypusTools using the WiX Toolset v6.
+
+## ⚠️ CRITICAL: Building the Installer Correctly
+
+> **WARNING**: The MSI build has a known pitfall that can cause it to package OLD files. **ALWAYS use the Build-Release.ps1 script.**
+
+### The Problem
+
+The MSI sources files from:
+```
+PlatypusTools.UI\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\
+```
+
+The `PublishFiles.wxs` references these files. If stale files exist in this directory, or if `PublishFiles.wxs` is not regenerated, the MSI will contain **outdated code**.
+
+### The Solution
+
+**Always use the release build script from the project root:**
+
+```powershell
+cd C:\Projects\PlatypusToolsNew
+.\Build-Release.ps1
+```
+
+This script:
+1. Cleans ALL build directories
+2. Publishes fresh files to the MSI source location
+3. Regenerates `PublishFiles.wxs`
+4. Builds the MSI
+
+---
 
 ## Prerequisites
 
 - .NET 10 SDK
-- WiX Toolset v5.0.2 (installed via dotnet tool)
+- WiX Toolset v6.0.1 (installed via dotnet tool)
 - Visual Studio 2022 or higher (recommended)
 
 ## Building the Installer
 
-### From Command Line
+### ✅ RECOMMENDED: Use Build-Release.ps1
 
-1. Build the main application first:
-   ```powershell
-   cd ..\PlatypusTools.UI
-   dotnet build -c Release
-   ```
+```powershell
+cd C:\Projects\PlatypusToolsNew
+.\Build-Release.ps1
+```
 
-2. Build the installer:
-   ```powershell
-   cd ..\PlatypusTools.Installer
-   dotnet build
-   ```
+### Manual Build (NOT RECOMMENDED)
 
-3. The MSI file will be output to:
-   ```
-   bin\Debug\PlatypusToolsSetup.msi
-   ```
+If you must build manually, follow these steps **exactly**:
 
-### From Visual Studio
+```powershell
+# 1. CLEAN all build directories
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue `
+    ..\publish, `
+    ..\PlatypusTools.UI\bin, `
+    ..\PlatypusTools.UI\obj, `
+    .\bin, .\obj
 
-1. Set the build configuration to Release
-2. Build the PlatypusTools.UI project first
-3. Build the PlatypusTools.Installer project
-4. The MSI will be in the bin\Release folder
+# 2. PUBLISH to MSI source location (NOT single-file)
+dotnet publish ..\PlatypusTools.UI\PlatypusTools.UI.csproj `
+    -c Release -r win-x64 --self-contained true `
+    -p:PublishSingleFile=false -p:PublishTrimmed=false
+
+# 3. REGENERATE PublishFiles.wxs
+powershell -ExecutionPolicy Bypass -File .\GeneratePublishWxs.ps1 -Configuration Release
+
+# 4. BUILD the MSI
+dotnet restore .\PlatypusTools.Installer.wixproj
+dotnet build .\PlatypusTools.Installer.wixproj -c Release
+```
+
+### Output Locations
+
+| Artifact | Location | Approximate Size |
+|----------|----------|-----------------|
+| MSI Installer | `bin\x64\Release\PlatypusToolsSetup.msi` | ~152 MB |
+
+---
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `Product.wxs` | Main installer definition, version number |
+| `PublishFiles.wxs` | **Auto-generated** - lists all files to package |
+| `GeneratePublishWxs.ps1` | Script to regenerate PublishFiles.wxs |
+| `Shortcuts.wxs` | Start menu and desktop shortcuts |
+
+### PublishFiles.wxs
+
+This file is **automatically generated** by `GeneratePublishWxs.ps1`. 
+
+**DO NOT EDIT MANUALLY** - it will be overwritten.
+
+The script scans the publish directory and creates WiX component entries for every file.
+
+---
 
 ## What Gets Installed
 

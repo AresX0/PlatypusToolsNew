@@ -1,34 +1,134 @@
 # Build & Packaging
 
-Requirements:
-- Install .NET 10 SDK (https://dotnet.microsoft.com/en-us/download/dotnet/10.0) — ensure `dotnet --list-sdks` shows a 10.x entry
-- For installer: WiX Toolset (https://wixtoolset.org) or MSIX packaging tools
+## ⚠️ CRITICAL: Use the Build Script for Releases
 
-Build:
-- Ensure .NET 10 SDK is installed and the repo root contains `global.json` to pin SDK (optional)
-- dotnet build .\PlatypusTools.sln
+**DO NOT manually build releases.** Use the automated script:
 
-Run UI locally:
-- dotnet run --project PlatypusTools.UI\PlatypusTools.UI.csproj
+```powershell
+cd C:\Projects\PlatypusToolsNew
+.\Build-Release.ps1
+```
 
-Publish single-file exe (win-x64):
-- dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true -p:PublishTrimmed=false -o publish --self-contained true PlatypusTools.UI\PlatypusTools.UI.csproj
+This script handles all the steps required to produce correct builds. See [BUILD.md](BUILD.md) for details on why this is necessary.
 
-Create installer (recommended approach):
-- Use WiX: create a WiX project that packages the published folder into an MSI.
-- Or create MSIX using MSIX Packaging Tool (manual or CI).
+### The Stale Build Problem
 
-Notes:
-- We will port each PowerShell feature into the Core library under `Services` and then call from UI.
-- Start with dry-run behaviors & unit tests to ensure safety for destructive operations.
+The MSI installer sources files from:
+```
+PlatypusTools.UI\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\
+```
 
-Logging:
-- The app reads `appsettings.json` from the application directory at startup.
-- Supported keys:
-  - `LogFile`: path to the log file (e.g., `C:\Logs\platypustools.log`). If omitted, the app writes to `%LOCALAPPDATA%\\PlatypusTools\\logs\\platypustools.log` by default.
-  - `LogLevel`: minimum log level (Trace, Debug, Info, Warn, Error). Case-insensitive; default is `Info`.
+If you don't:
+1. Clean all build directories
+2. Publish fresh files to the correct location
+3. Regenerate `PublishFiles.wxs`
 
-Sample `appsettings.json`:
+...the MSI will contain **OLD FILES** from previous builds!
+
+---
+
+## Requirements
+
+- **[.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)** — verify with `dotnet --list-sdks`
+- **[WiX Toolset 6.0](https://wixtoolset.org)** — install via `dotnet tool install --global wix --version 6.0.1`
+
+## Quick Build Commands
+
+### Release Build (RECOMMENDED)
+
+```powershell
+.\Build-Release.ps1           # Standard clean build
+.\Build-Release.ps1 -Archive  # Archive old builds first
+```
+
+### Development Build
+
+```powershell
+dotnet build .\PlatypusTools.sln
+```
+
+### Run UI Locally
+
+```powershell
+dotnet run --project PlatypusTools.UI\PlatypusTools.UI.csproj
+```
+
+---
+
+## Build Outputs
+
+| Artifact | Location | Size |
+|----------|----------|------|
+| Self-contained EXE | `publish\PlatypusTools.UI.exe` | ~191 MB |
+| MSI Installer | `PlatypusTools.Installer\bin\x64\Release\PlatypusToolsSetup.msi` | ~152 MB |
+
+---
+
+## Release Checklist
+
+Before uploading to GitHub:
+
+1. ✅ Update version in ALL files:
+   - `PlatypusTools.UI\PlatypusTools.UI.csproj`
+   - `PlatypusTools.Core\PlatypusTools.Core.csproj`
+   - `PlatypusTools.Installer\Product.wxs`
+   - `PlatypusTools.UI\MainWindow.xaml.cs`
+   - `PlatypusTools.UI\Views\SettingsWindow.xaml`
+   - `PlatypusTools.UI\Views\AboutWindow.xaml`
+   - `PlatypusTools.UI\Assets\PlatypusTools_Help.html`
+
+2. ✅ Run `Build-Release.ps1`
+
+3. ✅ Verify build outputs:
+   ```powershell
+   # Check EXE version
+   (Get-Item publish\PlatypusTools.UI.exe).VersionInfo.FileVersion
+   
+   # Check MSI timestamp (should be recent)
+   Get-Item PlatypusTools.Installer\bin\x64\Release\PlatypusToolsSetup.msi | Select-Object LastWriteTime
+   ```
+
+4. ✅ Test the MSI on a clean machine
+
+5. ✅ Create GitHub release:
+   ```powershell
+   git add -A
+   git commit -m "Release vX.Y.Z.W"
+   git tag -a vX.Y.Z.W -m "Version X.Y.Z.W"
+   git push origin main --tags
+   
+   gh release create vX.Y.Z.W `
+       --title "PlatypusTools vX.Y.Z.W" `
+       --notes "Release notes here" `
+       "publish\PlatypusTools.UI.exe" `
+       "PlatypusTools.Installer\bin\x64\Release\PlatypusToolsSetup.msi"
+   ```
+
+---
+
+## Directory Structure
+
+### Build Directories (cleaned on release build)
+
+| Directory | Purpose |
+|-----------|---------|
+| `publish\` | Single-file EXE output |
+| `PlatypusTools.UI\bin\` | UI project build output |
+| `PlatypusTools.UI\bin\Release\...\publish\` | **MSI source files** |
+| `PlatypusTools.Installer\bin\` | MSI output |
+
+### Archive Directories (preserved)
+
+| Directory | Purpose |
+|-----------|---------|
+| `LocalArchive\` | Archived old builds |
+| `archive\` | Archived source references |
+
+---
+
+## Logging Configuration
+
+The app reads `appsettings.json` from the application directory:
 
 ```json
 {
@@ -37,32 +137,43 @@ Sample `appsettings.json`:
 }
 ```
 
-Tip: Set a custom `LogFile` when running in CI or a managed environment to collect logs centrally.
+| Key | Description | Default |
+|-----|-------------|---------|
+| `LogFile` | Path to log file | `%LOCALAPPDATA%\PlatypusTools\logs\platypustools.log` |
+| `LogLevel` | Minimum level (Trace, Debug, Info, Warn, Error) | `Info` |
 
-Troubleshooting: dotnet not found in terminal
-- If `dotnet` is installed but not visible in a terminal, add its install folder to your **user** PATH. The .NET SDK is typically installed at `C:\Program Files\dotnet`.
+---
 
-- To add the folder to your current session (temporary):
+## Troubleshooting
+
+### dotnet not found
 
 ```powershell
+# Add to PATH temporarily
 $env:Path = "C:\Program Files\dotnet;$env:Path"
+
+# Add to PATH permanently
+$u = [Environment]::GetEnvironmentVariable('Path', 'User')
+if ($u -notmatch 'dotnet') { 
+    [Environment]::SetEnvironmentVariable('Path', "$u;C:\Program Files\dotnet", 'User') 
+}
 ```
 
-- To persist the change for the current user (recommended):
+### MSI contains old files
+
+1. Did you use `Build-Release.ps1`? If not, use it.
+2. Check `PublishFiles.wxs` was regenerated (look for component count message)
+3. Verify MSI timestamp is after your code changes
+
+### WiX build fails
 
 ```powershell
-# Append the dotnet folder to the user PATH
-$u = [Environment]::GetEnvironmentVariable('Path', 'User')
-if (-not $u) { $u = 'C:\Program Files\dotnet' } elseif ($u -notmatch 'C:\\Program Files\\dotnet') { $u = "$u;C:\Program Files\dotnet" }
-[Environment]::SetEnvironmentVariable('Path', $u, 'User')
+# Reinstall WiX
+dotnet tool uninstall --global wix
+dotnet tool install --global wix --version 6.0.1
 ```
 
-After persisting the change, **restart your terminal or VS Code** to pick up the new PATH. Verify with `dotnet --list-sdks`.
+---
 
-- If you prefer an elevated approach, `setx` can be used but be wary of path length truncation on older Windows versions.
-
-- If `dotnet` is not installed, install the .NET 10 SDK from https://dotnet.microsoft.com/download/dotnet/10.0 and re-open your terminal.
-
-Archive of PowerShell scripts
-- Historical PowerShell scripts and helper scripts have been copied to `ArchivedScripts/` for archival and reference, and will remain intact. The new .NET implementation and all code are under `PlatypusTools.Net/`.
+**Last Updated**: January 19, 2026
 
