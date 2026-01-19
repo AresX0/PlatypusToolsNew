@@ -3,7 +3,24 @@ param(
     [string]$Configuration = "Release"
 )
 
-$publishRoot = Resolve-Path (Join-Path $PSScriptRoot "..\PlatypusTools.UI\bin\$Configuration\net10.0-windows\win-x64\publish")
+# Try multiple possible paths for .NET 10 Windows target frameworks
+$possiblePaths = @(
+    "..\PlatypusTools.UI\bin\$Configuration\net10.0-windows10.0.19041.0\win-x64\publish",
+    "..\PlatypusTools.UI\bin\$Configuration\net10.0-windows\win-x64\publish"
+)
+
+$publishRoot = $null
+foreach ($path in $possiblePaths) {
+    $fullPath = Join-Path $PSScriptRoot $path
+    if (Test-Path $fullPath) {
+        $publishRoot = Resolve-Path $fullPath
+        break
+    }
+}
+
+if (-not $publishRoot) {
+    throw "Publish directory not found. Tried: $($possiblePaths -join ', ')"
+}
 if (-not (Test-Path $publishRoot)) {
     throw "Publish directory not found: $publishRoot"
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace PlatypusTools.Core.Models.Video
 {
@@ -9,7 +10,34 @@ namespace PlatypusTools.Core.Models.Video
     /// </summary>
     public class TimelineClip
     {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        // Support both string and Guid IDs for compatibility
+        private Guid _guidId;
+        private string _stringId = string.Empty;
+
+        [JsonIgnore]
+        public Guid Id
+        {
+            get => _guidId;
+            set
+            {
+                _guidId = value;
+                _stringId = value.ToString();
+            }
+        }
+
+        [JsonPropertyName("id")]
+        public string StringId
+        {
+            get => _stringId.Length > 0 ? _stringId : _guidId.ToString();
+            set
+            {
+                _stringId = value;
+                if (Guid.TryParse(value, out var guid))
+                    _guidId = guid;
+                else
+                    _guidId = Guid.NewGuid();
+            }
+        }
         
         /// <summary>
         /// Display name for the clip.
@@ -30,6 +58,26 @@ namespace PlatypusTools.Core.Models.Video
         /// Start position of this clip on the timeline.
         /// </summary>
         public TimeSpan StartPosition { get; set; }
+
+        /// <summary>
+        /// Alias for StartPosition for export compatibility.
+        /// </summary>
+        [JsonIgnore]
+        public TimeSpan StartTime
+        {
+            get => StartPosition;
+            set => StartPosition = value;
+        }
+
+        /// <summary>
+        /// End time on timeline for export compatibility.
+        /// </summary>
+        [JsonIgnore]
+        public TimeSpan EndTime
+        {
+            get => EndPosition;
+            set => Duration = value - StartPosition;
+        }
         
         /// <summary>
         /// Duration of the clip on the timeline.
@@ -40,11 +88,31 @@ namespace PlatypusTools.Core.Models.Video
         /// Start point within the source file (in point).
         /// </summary>
         public TimeSpan SourceStart { get; set; }
+
+        /// <summary>
+        /// Alias for SourceStart for export compatibility.
+        /// </summary>
+        [JsonIgnore]
+        public TimeSpan TrimIn
+        {
+            get => SourceStart;
+            set => SourceStart = value;
+        }
         
         /// <summary>
         /// End point within the source file (out point).
         /// </summary>
         public TimeSpan SourceEnd { get; set; }
+
+        /// <summary>
+        /// Alias for SourceEnd for export compatibility.
+        /// </summary>
+        [JsonIgnore]
+        public TimeSpan TrimOut
+        {
+            get => SourceEnd;
+            set => SourceEnd = value;
+        }
         
         /// <summary>
         /// Original duration of the source file.
@@ -53,8 +121,14 @@ namespace PlatypusTools.Core.Models.Video
         
         /// <summary>
         /// Speed multiplier (1.0 = normal, 2.0 = 2x, 0.5 = half speed).
+        /// Range: 0.1x to 100x
         /// </summary>
         public double Speed { get; set; } = 1.0;
+
+        /// <summary>
+        /// Speed curve for variable speed (slow-mo ramps).
+        /// </summary>
+        public SpeedCurve? SpeedCurve { get; set; }
         
         /// <summary>
         /// Volume of the clip (0.0 - 2.0).
@@ -69,6 +143,7 @@ namespace PlatypusTools.Core.Models.Video
         /// <summary>
         /// Whether the clip is selected in the UI.
         /// </summary>
+        [JsonIgnore]
         public bool IsSelected { get; set; }
         
         /// <summary>
@@ -95,6 +170,26 @@ namespace PlatypusTools.Core.Models.Video
         /// Transition at the end of this clip.
         /// </summary>
         public Transition? TransitionOut { get; set; }
+
+        /// <summary>
+        /// Alias for TransitionIn.
+        /// </summary>
+        [JsonIgnore]
+        public Transition? InTransition
+        {
+            get => TransitionIn;
+            set => TransitionIn = value;
+        }
+
+        /// <summary>
+        /// Alias for TransitionOut.
+        /// </summary>
+        [JsonIgnore]
+        public Transition? OutTransition
+        {
+            get => TransitionOut;
+            set => TransitionOut = value;
+        }
         
         /// <summary>
         /// Applied effects/filters.
@@ -102,14 +197,138 @@ namespace PlatypusTools.Core.Models.Video
         public List<ClipEffect> Effects { get; set; } = new();
         
         /// <summary>
-        /// Keyframes for animation.
+        /// Keyframes for animation (legacy).
         /// </summary>
         public List<Keyframe> Keyframes { get; set; } = new();
+
+        /// <summary>
+        /// Transform keyframes for position, scale, rotation animation.
+        /// </summary>
+        public List<KeyframeTrack> TransformKeyframes { get; set; } = new();
+
+        /// <summary>
+        /// Color grading settings.
+        /// </summary>
+        public ColorGradingSettings? ColorGrading { get; set; }
+
+        /// <summary>
+        /// Chroma key (green screen) settings.
+        /// </summary>
+        public ChromaKeySettings? ChromaKey { get; set; }
+
+        /// <summary>
+        /// Overlay settings (for overlay tracks).
+        /// </summary>
+        public OverlaySettings? OverlaySettings { get; set; }
+
+        /// <summary>
+        /// Audio fade in duration.
+        /// </summary>
+        public TimeSpan AudioFadeIn { get; set; } = TimeSpan.Zero;
+
+        /// <summary>
+        /// Audio fade in duration in seconds (for binding).
+        /// </summary>
+        [JsonIgnore]
+        public double AudioFadeInSeconds
+        {
+            get => AudioFadeIn.TotalSeconds;
+            set => AudioFadeIn = TimeSpan.FromSeconds(value);
+        }
+
+        /// <summary>
+        /// Audio fade out duration.
+        /// </summary>
+        public TimeSpan AudioFadeOut { get; set; } = TimeSpan.Zero;
+
+        /// <summary>
+        /// Audio fade out duration in seconds (for binding).
+        /// </summary>
+        [JsonIgnore]
+        public double AudioFadeOutSeconds
+        {
+            get => AudioFadeOut.TotalSeconds;
+            set => AudioFadeOut = TimeSpan.FromSeconds(value);
+        }
+
+        /// <summary>
+        /// FFmpeg input index (used during export).
+        /// </summary>
+        [JsonIgnore]
+        public int InputIndex { get; set; }
         
         /// <summary>
         /// End position on the timeline (calculated).
         /// </summary>
+        [JsonIgnore]
         public TimeSpan EndPosition => StartPosition + Duration;
+
+        /// <summary>
+        /// Effective duration after speed adjustment.
+        /// </summary>
+        [JsonIgnore]
+        public TimeSpan EffectiveDuration => TimeSpan.FromTicks((long)(Duration.Ticks / Speed));
+    }
+
+    /// <summary>
+    /// Color grading settings for a clip.
+    /// </summary>
+    public class ColorGradingSettings
+    {
+        /// <summary>
+        /// Brightness adjustment (-1 to 1, 0 = no change).
+        /// </summary>
+        public double Brightness { get; set; } = 0;
+
+        /// <summary>
+        /// Contrast adjustment (0 to 2, 1 = no change).
+        /// </summary>
+        public double Contrast { get; set; } = 1;
+
+        /// <summary>
+        /// Saturation adjustment (0 to 2, 1 = no change).
+        /// </summary>
+        public double Saturation { get; set; } = 1;
+
+        /// <summary>
+        /// Gamma adjustment (0.1 to 10, 1 = no change).
+        /// </summary>
+        public double Gamma { get; set; } = 1;
+
+        /// <summary>
+        /// Color temperature shift (-1 = cool, 0 = neutral, 1 = warm).
+        /// </summary>
+        public double Temperature { get; set; } = 0;
+
+        /// <summary>
+        /// Tint adjustment (-1 = green, 0 = neutral, 1 = magenta).
+        /// </summary>
+        public double Tint { get; set; } = 0;
+
+        /// <summary>
+        /// Vibrance adjustment (0 to 2, 1 = no change).
+        /// </summary>
+        public double Vibrance { get; set; } = 1;
+
+        /// <summary>
+        /// Shadows adjustment (-1 to 1).
+        /// </summary>
+        public double Shadows { get; set; } = 0;
+
+        /// <summary>
+        /// Highlights adjustment (-1 to 1).
+        /// </summary>
+        public double Highlights { get; set; } = 0;
+
+        /// <summary>
+        /// Blacks level adjustment (-1 to 1).
+        /// </summary>
+        public double Blacks { get; set; } = 0;
+
+        /// <summary>
+        /// Whites level adjustment (-1 to 1).
+        /// </summary>
+        public double Whites { get; set; } = 0;
     }
 
     /// <summary>

@@ -66,5 +66,71 @@ namespace PlatypusTools.Core.Services
             }
             catch { return -1; }
         }
+
+        /// <summary>
+        /// Gets basic media information from a file.
+        /// </summary>
+        /// <param name="path">Path to media file.</param>
+        /// <param name="ffprobePath">Optional path to ffprobe.</param>
+        /// <returns>Media info or null if failed.</returns>
+        public static MediaProbeInfo? GetMediaInfo(string path, string? ffprobePath = null)
+        {
+            if (!File.Exists(path)) return null;
+            var exe = ffprobePath ?? FindFfprobe();
+            if (exe == null) return null;
+
+            var args = $"-v error -show_entries format=duration:stream=width,height,codec_type,sample_rate,channels -of json \"{path}\"";
+            var psi = new ProcessStartInfo(exe, args)
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            try
+            {
+                using var p = Process.Start(psi);
+                if (p == null) return null;
+                var output = p.StandardOutput.ReadToEnd();
+                p.WaitForExit(5000);
+
+                var info = new MediaProbeInfo();
+                
+                // Parse duration
+                var durationMatch = System.Text.RegularExpressions.Regex.Match(output, @"""duration""\s*:\s*""?([0-9.]+)""?");
+                if (durationMatch.Success && double.TryParse(durationMatch.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var duration))
+                {
+                    info.Duration = TimeSpan.FromSeconds(duration);
+                }
+
+                // Parse video dimensions
+                var widthMatch = System.Text.RegularExpressions.Regex.Match(output, @"""width""\s*:\s*(\d+)");
+                var heightMatch = System.Text.RegularExpressions.Regex.Match(output, @"""height""\s*:\s*(\d+)");
+                if (widthMatch.Success) info.Width = int.Parse(widthMatch.Groups[1].Value);
+                if (heightMatch.Success) info.Height = int.Parse(heightMatch.Groups[1].Value);
+
+                // Parse audio info
+                var sampleRateMatch = System.Text.RegularExpressions.Regex.Match(output, @"""sample_rate""\s*:\s*""?(\d+)""?");
+                var channelsMatch = System.Text.RegularExpressions.Regex.Match(output, @"""channels""\s*:\s*(\d+)");
+                if (sampleRateMatch.Success) info.AudioSampleRate = int.Parse(sampleRateMatch.Groups[1].Value);
+                if (channelsMatch.Success) info.AudioChannels = int.Parse(channelsMatch.Groups[1].Value);
+
+                return info;
+            }
+            catch { return null; }
+        }
+    }
+
+    /// <summary>
+    /// Basic media probe information.
+    /// </summary>
+    public class MediaProbeInfo
+    {
+        public TimeSpan Duration { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
+        public int AudioSampleRate { get; set; } = 44100;
+        public int AudioChannels { get; set; } = 2;
     }
 }

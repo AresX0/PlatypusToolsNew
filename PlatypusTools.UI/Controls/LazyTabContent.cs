@@ -93,15 +93,9 @@ namespace PlatypusTools.UI.Controls
                                 fe.DataContext = ViewDataContext;
                             }
                             
-                            // Wrap in ScrollViewer for consistency
-                            var scrollViewer = new ScrollViewer
-                            {
-                                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-                                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
-                                Content = fe
-                            };
-                            
-                            Content = scrollViewer;
+                            // Don't wrap in ScrollViewer - let views manage their own scrolling
+                            // Views like VideoEditorView have complex layouts with internal scrolling
+                            Content = fe;
                         }
                         else
                         {

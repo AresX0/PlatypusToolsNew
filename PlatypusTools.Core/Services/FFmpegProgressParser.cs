@@ -5,6 +5,41 @@ namespace PlatypusTools.Core.Services
 {
     public static class FFmpegProgressParser
     {
+        /// <summary>
+        /// Parses FFmpeg progress output and returns normalized progress (0-1).
+        /// </summary>
+        /// <param name="line">FFmpeg stderr output line.</param>
+        /// <param name="totalDuration">Total duration of the media.</param>
+        /// <returns>Progress value from 0 to 1, or null if line doesn't contain time info.</returns>
+        public static double? ParseProgressLine(string line, TimeSpan totalDuration)
+        {
+            if (string.IsNullOrWhiteSpace(line) || totalDuration.TotalSeconds <= 0)
+                return null;
+
+            // Try to parse "time=HH:MM:SS.mm" format from stderr
+            var timeIdx = line.IndexOf("time=", StringComparison.OrdinalIgnoreCase);
+            if (timeIdx >= 0)
+            {
+                var timeStart = timeIdx + 5;
+                var timeEnd = line.IndexOf(' ', timeStart);
+                if (timeEnd < 0) timeEnd = line.Length;
+
+                var timeStr = line[timeStart..timeEnd].Trim();
+                if (TimeSpan.TryParse(timeStr, out var currentTime))
+                {
+                    return Math.Min(1.0, currentTime.TotalSeconds / totalDuration.TotalSeconds);
+                }
+            }
+
+            // Try out_time_ms format
+            if (TryParseOutTimeMs(line, out var ms))
+            {
+                return Math.Min(1.0, ms / 1000.0 / totalDuration.TotalSeconds);
+            }
+
+            return null;
+        }
+
         // Parses lines produced by ffmpeg -progress pipe:1, e.g. "out_time_ms=12345" or "out_time=00:00:12.345"
         public static bool TryParseOutTimeMs(string line, out long outTimeMs)
         {

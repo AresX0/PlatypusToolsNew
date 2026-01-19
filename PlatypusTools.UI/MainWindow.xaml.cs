@@ -10,8 +10,11 @@ namespace PlatypusTools.UI
         public MainWindow()
         {
             InitializeComponent();
-            // Hook up closing for cleanup if needed
-            this.Closed += (s, e) => { /* no-op */ };
+            
+            // Hook up closing for cleanup and exit prompt
+            this.Closing += MainWindow_Closing;
+            this.Closed += MainWindow_Closed;
+            
             this.Loaded += (s, e) =>
             {
                 StatusBarViewModel.Instance.Reset();
@@ -20,6 +23,86 @@ namespace PlatypusTools.UI
             
             // Subscribe to workspace changes
             RecentWorkspacesService.Instance.WorkspacesChanged += (s, e) => RefreshRecentWorkspacesMenu();
+        }
+        
+        private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // Show custom exit dialog with clear options
+            var dialog = new Window
+            {
+                Title = "Exit PlatypusTools",
+                Width = 380,
+                Height = 140,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = this,
+                ResizeMode = ResizeMode.NoResize,
+                WindowStyle = WindowStyle.ToolWindow,
+                ShowInTaskbar = false
+            };
+            
+            var mainPanel = new StackPanel { Margin = new Thickness(15) };
+            mainPanel.Children.Add(new TextBlock 
+            { 
+                Text = "What would you like to do?", 
+                FontSize = 14, 
+                Margin = new Thickness(0, 0, 0, 15),
+                HorizontalAlignment = HorizontalAlignment.Center
+            });
+            
+            var buttonPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center };
+            
+            var exitBtn = new Button { Content = "Exit Application", Width = 120, Height = 30, Margin = new Thickness(5) };
+            var minimizeBtn = new Button { Content = "Minimize", Width = 100, Height = 30, Margin = new Thickness(5) };
+            var cancelBtn = new Button { Content = "Cancel", Width = 80, Height = 30, Margin = new Thickness(5) };
+            
+            string? choice = null;
+            exitBtn.Click += (s, args) => { choice = "exit"; dialog.Close(); };
+            minimizeBtn.Click += (s, args) => { choice = "minimize"; dialog.Close(); };
+            cancelBtn.Click += (s, args) => { choice = "cancel"; dialog.Close(); };
+            
+            buttonPanel.Children.Add(exitBtn);
+            buttonPanel.Children.Add(minimizeBtn);
+            buttonPanel.Children.Add(cancelBtn);
+            mainPanel.Children.Add(buttonPanel);
+            dialog.Content = mainPanel;
+            
+            dialog.ShowDialog();
+            
+            switch (choice)
+            {
+                case "exit":
+                    // User wants to exit - let the close proceed
+                    break;
+                    
+                case "minimize":
+                    // Minimize to taskbar instead of closing
+                    e.Cancel = true;
+                    this.WindowState = WindowState.Minimized;
+                    break;
+                    
+                case "cancel":
+                default:
+                    // Cancel the close
+                    e.Cancel = true;
+                    break;
+            }
+        }
+        
+        private void MainWindow_Closed(object? sender, System.EventArgs e)
+        {
+            // Force complete shutdown - kill all processes
+            try
+            {
+                // Shutdown the application completely
+                Application.Current.Shutdown();
+                
+                // Force kill the process to ensure complete cleanup
+                System.Diagnostics.Process.GetCurrentProcess().Kill();
+            }
+            catch
+            {
+                // Ignore errors during shutdown
+            }
         }
 
         private void RefreshRecentWorkspacesMenu()

@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using Microsoft.Win32;
+using LibVLCSharp.Shared;
 
 namespace PlatypusTools.UI.Views
 {
@@ -10,11 +11,60 @@ namespace PlatypusTools.UI.Views
     {
         private DispatcherTimer? _timer;
         private string? _currentFilePath;
+        
+        // LibVLC for universal video playback
+        private static LibVLC? _libVLC;
+        private MediaPlayer? _mediaPlayer;
+        private Media? _currentMedia;
 
         public NativeVideoPlayerView()
         {
             InitializeComponent();
+            InitializeLibVLC();
             InitializeTimer();
+            
+            Loaded += NativeVideoPlayerView_Loaded;
+            Unloaded += NativeVideoPlayerView_Unloaded;
+        }
+        
+        private void InitializeLibVLC()
+        {
+            try
+            {
+                if (_libVLC == null)
+                {
+                    LibVLCSharp.Shared.Core.Initialize();
+                    _libVLC = new LibVLC("--no-video-title-show", "--quiet");
+                }
+                
+                _mediaPlayer = new MediaPlayer(_libVLC);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[VLC] Init failed: {ex.Message}");
+            }
+        }
+        
+        private void NativeVideoPlayerView_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Ensure we have a MediaPlayer (recreate if was disposed)
+            if (_mediaPlayer == null && _libVLC != null)
+            {
+                _mediaPlayer = new MediaPlayer(_libVLC);
+            }
+            
+            // Attach media player to VideoView after control is loaded
+            if (_mediaPlayer != null && VlcVideoView.MediaPlayer == null)
+            {
+                VlcVideoView.MediaPlayer = _mediaPlayer;
+            }
+        }
+        
+        private void NativeVideoPlayerView_Unloaded(object sender, RoutedEventArgs e)
+        {
+            // Just pause, don't dispose - we might come back to this tab
+            _timer?.Stop();
+            _mediaPlayer?.Pause();
         }
 
         private void InitializeTimer()
@@ -25,10 +75,10 @@ namespace PlatypusTools.UI.Views
 
         private void Timer_Tick(object? sender, EventArgs e)
         {
-            if (VideoPlayer.NaturalDuration.HasTimeSpan)
+            if (_mediaPlayer != null && _mediaPlayer.Length > 0)
             {
-                var duration = VideoPlayer.NaturalDuration.TimeSpan;
-                var position = VideoPlayer.Position;
+                var duration = TimeSpan.FromMilliseconds(_mediaPlayer.Length);
+                var position = TimeSpan.FromMilliseconds(_mediaPlayer.Time);
                 SeekSlider.Maximum = duration.TotalSeconds;
                 SeekSlider.Value = position.TotalSeconds;
                 PositionText.Text = position.ToString(@"hh\:mm\:ss");
@@ -47,43 +97,61 @@ namespace PlatypusTools.UI.Views
             {
                 _currentFilePath = dialog.FileName;
                 VideoFilePathBox.Text = dialog.FileName;
-                VideoPlayer.Source = new Uri(dialog.FileName);
-                VideoPlayer.Volume = VolumeSlider.Value;
+                LoadVideo(dialog.FileName);
             }
         }
-
-        private void VideoPlayer_MediaOpened(object sender, RoutedEventArgs e)
+        
+        private async void LoadVideo(string path)
         {
-            if (VideoPlayer.NaturalDuration.HasTimeSpan)
+            if (_libVLC == null || _mediaPlayer == null) return;
+            
+            try
             {
-                var duration = VideoPlayer.NaturalDuration.TimeSpan;
-                SeekSlider.Maximum = duration.TotalSeconds;
-                DurationText.Text = duration.ToString(@"hh\:mm\:ss");
+                // Dispose previous media
+                _currentMedia?.Dispose();
+                
+                // Create new media
+                _currentMedia = new Media(_libVLC, path, FromType.FromPath);
+                _mediaPlayer.Media = _currentMedia;
+                
+                // Set volume
+                _mediaPlayer.Volume = (int)(VolumeSlider.Value * 100);
+                
+                // Parse to get duration
+                await _currentMedia.Parse(MediaParseOptions.ParseLocal);
+                
+                if (_currentMedia.Duration > 0)
+                {
+                    var duration = TimeSpan.FromMilliseconds(_currentMedia.Duration);
+                    SeekSlider.Maximum = duration.TotalSeconds;
+                    DurationText.Text = duration.ToString(@"hh\:mm\:ss");
+                }
+                
+                _timer?.Start();
+                
+                // Auto-play when video is loaded
+                _mediaPlayer.Play();
             }
-            _timer?.Start();
-        }
-
-        private void VideoPlayer_MediaEnded(object sender, RoutedEventArgs e)
-        {
-            _timer?.Stop();
-            VideoPlayer.Position = TimeSpan.Zero;
-            SeekSlider.Value = 0;
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading video: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void Play_Click(object sender, RoutedEventArgs e)
         {
-            VideoPlayer.Play();
+            _mediaPlayer?.Play();
             _timer?.Start();
         }
 
         private void Pause_Click(object sender, RoutedEventArgs e)
         {
-            VideoPlayer.Pause();
+            _mediaPlayer?.Pause();
         }
 
         private void Stop_Click(object sender, RoutedEventArgs e)
         {
-            VideoPlayer.Stop();
+            _mediaPlayer?.Stop();
             _timer?.Stop();
             SeekSlider.Value = 0;
             PositionText.Text = "00:00:00";
@@ -91,239 +159,222 @@ namespace PlatypusTools.UI.Views
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            var newPosition = VideoPlayer.Position - TimeSpan.FromSeconds(10);
-            if (newPosition < TimeSpan.Zero) newPosition = TimeSpan.Zero;
-            VideoPlayer.Position = newPosition;
+            if (_mediaPlayer == null) return;
+            var newTime = _mediaPlayer.Time - 10000; // 10 seconds in ms
+            if (newTime < 0) newTime = 0;
+            _mediaPlayer.Time = newTime;
         }
 
         private void Forward_Click(object sender, RoutedEventArgs e)
         {
-            if (VideoPlayer.NaturalDuration.HasTimeSpan)
-            {
-                var newPosition = VideoPlayer.Position + TimeSpan.FromSeconds(10);
-                if (newPosition > VideoPlayer.NaturalDuration.TimeSpan)
-                    newPosition = VideoPlayer.NaturalDuration.TimeSpan;
-                VideoPlayer.Position = newPosition;
-            }
+            if (_mediaPlayer == null || _mediaPlayer.Length <= 0) return;
+            var newTime = _mediaPlayer.Time + 10000; // 10 seconds in ms
+            if (newTime > _mediaPlayer.Length) newTime = _mediaPlayer.Length;
+            _mediaPlayer.Time = newTime;
         }
 
         private void SeekSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (!VideoPlayer.NaturalDuration.HasTimeSpan) return;
-            var difference = Math.Abs(VideoPlayer.Position.TotalSeconds - e.NewValue);
+            if (_mediaPlayer == null || _mediaPlayer.Length <= 0) return;
+            var currentSeconds = _mediaPlayer.Time / 1000.0;
+            var difference = Math.Abs(currentSeconds - e.NewValue);
             if (difference > 0.5)
             {
-                VideoPlayer.Position = TimeSpan.FromSeconds(e.NewValue);
+                _mediaPlayer.Time = (long)(e.NewValue * 1000);
             }
         }
 
         private void Volume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (VideoPlayer != null)
+            if (_mediaPlayer != null)
             {
-                VideoPlayer.Volume = e.NewValue;
+                _mediaPlayer.Volume = (int)(e.NewValue * 100);
             }
         }
 
         private void Mute_Click(object sender, RoutedEventArgs e)
         {
-            VideoPlayer.IsMuted = !VideoPlayer.IsMuted;
+            if (_mediaPlayer != null)
+            {
+                _mediaPlayer.Mute = !_mediaPlayer.Mute;
+            }
         }
 
         private void Fullscreen_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(_currentFilePath))
+            if (string.IsNullOrEmpty(_currentFilePath) || _libVLC == null)
             {
                 MessageBox.Show("Please select a video file first.", "No Video", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            var currentPosition = VideoPlayer.Position;
-            var wasPlaying = _timer?.IsEnabled ?? false;
-            VideoPlayer.Pause();
+            var currentTime = _mediaPlayer?.Time ?? 0;
+            var wasPlaying = _mediaPlayer?.IsPlaying ?? false;
+            _mediaPlayer?.Pause();
 
+            // Create fullscreen window with VLC
             var fullscreenWindow = new Window
             {
-                Title = "Video Player - Fullscreen",
+                Title = "Fullscreen - ESC to exit, Space=Play/Pause, Arrows=Seek",
                 WindowState = WindowState.Maximized,
                 WindowStyle = WindowStyle.None,
                 Background = System.Windows.Media.Brushes.Black,
-                ResizeMode = System.Windows.ResizeMode.NoResize
+                ResizeMode = ResizeMode.NoResize
             };
 
-            // Create main grid
+            // Create VLC video view for fullscreen
+            var fsVlcView = new LibVLCSharp.WPF.VideoView { Background = System.Windows.Media.Brushes.Black };
+#pragma warning disable CA2000 // Dispose properly handled in cleanupFullscreen
+            MediaPlayer? fsMediaPlayer = new MediaPlayer(_libVLC);
+#pragma warning restore CA2000
+            Media? fsMedia = null;
+            bool disposed = false;
+            
+            Action cleanupFullscreen = () =>
+            {
+                if (disposed) return;
+                disposed = true;
+                
+                fsMedia?.Dispose();
+                fsMedia = null;
+                
+                if (fsMediaPlayer != null)
+                {
+                    fsMediaPlayer.Stop();
+                    fsMediaPlayer.Dispose();
+                    fsMediaPlayer = null;
+                }
+            };
+            
+            fullscreenWindow.Closed += (s, args) => cleanupFullscreen();
+
             var mainGrid = new Grid();
-            
-            // Media element
-            var fullscreenPlayer = new MediaElement
-            {
-                LoadedBehavior = MediaState.Manual,
-                UnloadedBehavior = MediaState.Stop,
-                Stretch = System.Windows.Media.Stretch.Uniform,
-                Source = new Uri(_currentFilePath),
-                Volume = VolumeSlider.Value
-            };
-            mainGrid.Children.Add(fullscreenPlayer);
-
-            // Control panel overlay (initially hidden)
-            var controlPanel = new Border
-            {
-                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(200, 30, 30, 30)),
-                Height = 100,
-                VerticalAlignment = VerticalAlignment.Bottom,
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                CornerRadius = new CornerRadius(8, 8, 0, 0),
-                Margin = new Thickness(50, 0, 50, 0),
-                Visibility = Visibility.Collapsed
-            };
-
-            var controlStack = new StackPanel { Margin = new Thickness(20, 10, 20, 10) };
-            
-            // Seek slider row
-            var seekGrid = new Grid { Margin = new Thickness(0, 0, 0, 10) };
-            seekGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
-            seekGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            seekGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
-            
-            var posText = new TextBlock { Text = "00:00:00", Foreground = System.Windows.Media.Brushes.White, VerticalAlignment = VerticalAlignment.Center, FontFamily = new System.Windows.Media.FontFamily("Consolas") };
-            Grid.SetColumn(posText, 0);
-            var seekSlider = new Slider { Minimum = 0, Maximum = 100, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 10, 0) };
-            Grid.SetColumn(seekSlider, 1);
-            var durText = new TextBlock { Text = "00:00:00", Foreground = System.Windows.Media.Brushes.White, VerticalAlignment = VerticalAlignment.Center, FontFamily = new System.Windows.Media.FontFamily("Consolas") };
-            Grid.SetColumn(durText, 2);
-            seekGrid.Children.Add(posText);
-            seekGrid.Children.Add(seekSlider);
-            seekGrid.Children.Add(durText);
-            controlStack.Children.Add(seekGrid);
-
-            // Buttons row
-            var buttonPanel = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Center };
-            var btnStyle = new Style(typeof(Button));
-            
-            var playBtn = new Button { Content = "▶ Play", Width = 80, Height = 35, Margin = new Thickness(5) };
-            var pauseBtn = new Button { Content = "⏸ Pause", Width = 80, Height = 35, Margin = new Thickness(5) };
-            var stopBtn = new Button { Content = "⏹ Stop", Width = 80, Height = 35, Margin = new Thickness(5) };
-            var backBtn = new Button { Content = "⏪ -10s", Width = 70, Height = 35, Margin = new Thickness(5) };
-            var fwdBtn = new Button { Content = "⏩ +10s", Width = 70, Height = 35, Margin = new Thickness(5) };
-            var exitBtn = new Button { Content = "✕ Exit", Width = 70, Height = 35, Margin = new Thickness(5), Background = System.Windows.Media.Brushes.IndianRed };
-            
-            var volLabel = new TextBlock { Text = "Vol:", Foreground = System.Windows.Media.Brushes.White, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(15, 0, 5, 0) };
-            var volSlider = new Slider { Minimum = 0, Maximum = 1, Value = VolumeSlider.Value, Width = 100, VerticalAlignment = VerticalAlignment.Center };
-            var muteBtn = new Button { Content = "🔇", Width = 40, Height = 35, Margin = new Thickness(5) };
-
-            buttonPanel.Children.Add(playBtn);
-            buttonPanel.Children.Add(pauseBtn);
-            buttonPanel.Children.Add(stopBtn);
-            buttonPanel.Children.Add(backBtn);
-            buttonPanel.Children.Add(fwdBtn);
-            buttonPanel.Children.Add(volLabel);
-            buttonPanel.Children.Add(volSlider);
-            buttonPanel.Children.Add(muteBtn);
-            buttonPanel.Children.Add(exitBtn);
-            controlStack.Children.Add(buttonPanel);
-
-            controlPanel.Child = controlStack;
-            mainGrid.Children.Add(controlPanel);
-
+            mainGrid.Children.Add(fsVlcView);
             fullscreenWindow.Content = mainGrid;
-
-            // Timer for position updates
-            var fsTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
-            fsTimer.Tick += (s, args) =>
-            {
-                if (fullscreenPlayer.NaturalDuration.HasTimeSpan)
-                {
-                    var dur = fullscreenPlayer.NaturalDuration.TimeSpan;
-                    var pos = fullscreenPlayer.Position;
-                    seekSlider.Maximum = dur.TotalSeconds;
-                    seekSlider.Value = pos.TotalSeconds;
-                    posText.Text = pos.ToString(@"hh\:mm\:ss");
-                    durText.Text = dur.ToString(@"hh\:mm\:ss");
-                }
-            };
-
-            // Show/hide control panel on mouse movement
-            DateTime lastMouseMove = DateTime.Now;
-            DispatcherTimer hideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
-            hideTimer.Tick += (s, args) =>
-            {
-                if ((DateTime.Now - lastMouseMove).TotalSeconds > 2.5)
-                {
-                    controlPanel.Visibility = Visibility.Collapsed;
-                    fullscreenWindow.Cursor = System.Windows.Input.Cursors.None;
-                }
-            };
-            hideTimer.Start();
-
-            mainGrid.MouseMove += (s, args) =>
-            {
-                lastMouseMove = DateTime.Now;
-                fullscreenWindow.Cursor = System.Windows.Input.Cursors.Arrow;
-                var pos = args.GetPosition(mainGrid);
-                // Show controls when mouse is in bottom 150px
-                if (pos.Y > mainGrid.ActualHeight - 150)
-                {
-                    controlPanel.Visibility = Visibility.Visible;
-                }
-            };
-
-            // Button handlers
-            playBtn.Click += (s, args) => { fullscreenPlayer.Play(); fsTimer.Start(); };
-            pauseBtn.Click += (s, args) => fullscreenPlayer.Pause();
-            stopBtn.Click += (s, args) => { fullscreenPlayer.Stop(); fsTimer.Stop(); };
-            backBtn.Click += (s, args) =>
-            {
-                var newPos = fullscreenPlayer.Position - TimeSpan.FromSeconds(10);
-                if (newPos < TimeSpan.Zero) newPos = TimeSpan.Zero;
-                fullscreenPlayer.Position = newPos;
-            };
-            fwdBtn.Click += (s, args) =>
-            {
-                if (fullscreenPlayer.NaturalDuration.HasTimeSpan)
-                {
-                    var newPos = fullscreenPlayer.Position + TimeSpan.FromSeconds(10);
-                    if (newPos > fullscreenPlayer.NaturalDuration.TimeSpan)
-                        newPos = fullscreenPlayer.NaturalDuration.TimeSpan;
-                    fullscreenPlayer.Position = newPos;
-                }
-            };
-            volSlider.ValueChanged += (s, args) => fullscreenPlayer.Volume = args.NewValue;
-            muteBtn.Click += (s, args) => fullscreenPlayer.IsMuted = !fullscreenPlayer.IsMuted;
             
+            // Set up VLC and controls window when fullscreen is loaded
+            fullscreenWindow.Loaded += (s, args) =>
+            {
+                if (fsMediaPlayer == null) return;
+                
+                // Attach media player and start playback
+                fsVlcView.MediaPlayer = fsMediaPlayer;
+                fsMedia = new Media(_libVLC, _currentFilePath, FromType.FromPath);
+                fsMediaPlayer.Media = fsMedia;
+                fsMediaPlayer.Volume = (int)(VolumeSlider.Value * 100);
+                fsMediaPlayer.Play();
+                fsMediaPlayer.Time = currentTime;
+                
+                // Create overlay window for controls (due to WPF airspace issues)
+                var controlsWindow = new Window
+                {
+                    WindowStyle = WindowStyle.None,
+                    AllowsTransparency = true,
+                    Background = System.Windows.Media.Brushes.Transparent,
+                    ShowInTaskbar = false,
+                    Topmost = true,
+                    Owner = fullscreenWindow,
+                    WindowState = WindowState.Maximized
+                };
+                
+                var controlsPanel = new Border
+                {
+                    Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(220, 30, 30, 30)),
+                    VerticalAlignment = VerticalAlignment.Bottom,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    CornerRadius = new CornerRadius(10, 10, 0, 0),
+                    Padding = new Thickness(25, 15, 25, 15)
+                };
+                
+                var controlsStack = new StackPanel();
+                
+                // Time display and progress
+                var timeRow = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 8) };
+                var fsPositionText = new TextBlock { Text = "00:00:00", Foreground = System.Windows.Media.Brushes.White, FontFamily = new System.Windows.Media.FontFamily("Consolas"), Margin = new Thickness(0, 0, 10, 0) };
+                var fsSeekSlider = new Slider { Minimum = 0, Maximum = 100, Width = 400, VerticalAlignment = VerticalAlignment.Center };
+                var fsDurationText = new TextBlock { Text = "00:00:00", Foreground = System.Windows.Media.Brushes.White, FontFamily = new System.Windows.Media.FontFamily("Consolas"), Margin = new Thickness(10, 0, 0, 0) };
+                timeRow.Children.Add(fsPositionText);
+                timeRow.Children.Add(fsSeekSlider);
+                timeRow.Children.Add(fsDurationText);
+                controlsStack.Children.Add(timeRow);
+                
+                // Buttons row
+                var buttonRow = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 5, 0, 0) };
+                var backBtn = new Button { Content = "⏪", Width = 45, Height = 35, Margin = new Thickness(3), FontSize = 16, Background = System.Windows.Media.Brushes.DimGray, Foreground = System.Windows.Media.Brushes.White };
+                var playBtn = new Button { Content = "▶", Width = 50, Height = 40, Margin = new Thickness(3), FontSize = 18, Background = System.Windows.Media.Brushes.DimGray, Foreground = System.Windows.Media.Brushes.White };
+                var pauseBtn = new Button { Content = "⏸", Width = 50, Height = 40, Margin = new Thickness(3), FontSize = 18, Background = System.Windows.Media.Brushes.DimGray, Foreground = System.Windows.Media.Brushes.White };
+                var fwdBtn = new Button { Content = "⏩", Width = 45, Height = 35, Margin = new Thickness(3), FontSize = 16, Background = System.Windows.Media.Brushes.DimGray, Foreground = System.Windows.Media.Brushes.White };
+                var exitBtn = new Button { Content = "✕ Exit", Width = 60, Height = 35, Margin = new Thickness(15, 0, 0, 0), FontSize = 14, Background = System.Windows.Media.Brushes.DarkRed, Foreground = System.Windows.Media.Brushes.White };
+                
+                playBtn.Click += (s2, a2) => fsMediaPlayer?.Play();
+                pauseBtn.Click += (s2, a2) => fsMediaPlayer?.Pause();
+                backBtn.Click += (s2, a2) => { if (fsMediaPlayer != null) fsMediaPlayer.Time = Math.Max(0, fsMediaPlayer.Time - 10000); };
+                fwdBtn.Click += (s2, a2) => { if (fsMediaPlayer != null) fsMediaPlayer.Time = Math.Min(fsMediaPlayer.Length, fsMediaPlayer.Time + 10000); };
+                exitBtn.Click += (s2, a2) => fullscreenWindow.Close();
+                
+                buttonRow.Children.Add(backBtn);
+                buttonRow.Children.Add(playBtn);
+                buttonRow.Children.Add(pauseBtn);
+                buttonRow.Children.Add(fwdBtn);
+                buttonRow.Children.Add(exitBtn);
+                controlsStack.Children.Add(buttonRow);
+                
+                controlsPanel.Child = controlsStack;
+                var overlayGrid = new Grid { Background = System.Windows.Media.Brushes.Transparent };
+                overlayGrid.Children.Add(controlsPanel);
+                controlsWindow.Content = overlayGrid;
+                
+                // Auto-hide timer
+                DateTime lastMove = DateTime.Now;
+                var hideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+                hideTimer.Tick += (s2, a2) =>
+                {
+                    if ((DateTime.Now - lastMove).TotalSeconds > 5)
+                    {
+                        controlsPanel.Visibility = Visibility.Collapsed;
+                        fullscreenWindow.Cursor = System.Windows.Input.Cursors.None;
+                    }
+                };
+                hideTimer.Start();
+                
+                // Show controls on mouse move
+                overlayGrid.MouseMove += (s2, a2) =>
+                {
+                    lastMove = DateTime.Now;
+                    fullscreenWindow.Cursor = System.Windows.Input.Cursors.Arrow;
+                    controlsPanel.Visibility = Visibility.Visible;
+                };
+                
+                // Timer to update position
+                var updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+                updateTimer.Tick += (s2, a2) =>
+                {
+                    if (fsMediaPlayer != null && fsMediaPlayer.Length > 0)
+                    {
+                        fsSeekSlider.Maximum = fsMediaPlayer.Length / 1000.0;
+                        fsSeekSlider.Value = fsMediaPlayer.Time / 1000.0;
+                        fsPositionText.Text = TimeSpan.FromMilliseconds(fsMediaPlayer.Time).ToString(@"hh\\:mm\\:ss");
+                        fsDurationText.Text = TimeSpan.FromMilliseconds(fsMediaPlayer.Length).ToString(@"hh\\:mm\\:ss");
+                    }
+                };
+                updateTimer.Start();
+                
+                fullscreenWindow.Closed += (s2, a2) => { updateTimer.Stop(); hideTimer.Stop(); controlsWindow.Close(); };
+                controlsWindow.Show();
+            };
+
             Action exitFullscreen = () =>
             {
-                var exitPosition = fullscreenPlayer.Position;
-                fsTimer.Stop();
-                hideTimer.Stop();
-                fullscreenPlayer.Stop();
+                var exitTime = fsMediaPlayer?.Time ?? 0;
+                cleanupFullscreen();
                 fullscreenWindow.Close();
-                VideoPlayer.Position = exitPosition;
-                if (wasPlaying) VideoPlayer.Play();
-                _timer?.Start();
-            };
-            exitBtn.Click += (s, args) => exitFullscreen();
-
-            seekSlider.ValueChanged += (s, args) =>
-            {
-                if (fullscreenPlayer.NaturalDuration.HasTimeSpan)
+                
+                // Resume main player
+                if (_mediaPlayer != null)
                 {
-                    var diff = Math.Abs(fullscreenPlayer.Position.TotalSeconds - args.NewValue);
-                    if (diff > 1)
-                        fullscreenPlayer.Position = TimeSpan.FromSeconds(args.NewValue);
+                    _mediaPlayer.Time = exitTime;
+                    if (wasPlaying) _mediaPlayer.Play();
                 }
-            };
-
-            fullscreenPlayer.MediaOpened += (s, args) =>
-            {
-                fullscreenPlayer.Position = currentPosition;
-                fullscreenPlayer.Play();
-                fsTimer.Start();
-            };
-
-            fullscreenPlayer.MediaEnded += (s, args) =>
-            {
-                fullscreenPlayer.Position = TimeSpan.Zero;
-                fullscreenPlayer.Play();
             };
 
             fullscreenWindow.KeyDown += (s, args) =>
@@ -334,42 +385,23 @@ namespace PlatypusTools.UI.Views
                         exitFullscreen();
                         break;
                     case System.Windows.Input.Key.Space:
-                        if (fullscreenPlayer.CanPause)
+                        if (fsMediaPlayer != null)
                         {
-                            var pos = fullscreenPlayer.Position;
-                            fullscreenPlayer.Pause();
-                            fullscreenPlayer.Position = pos;
+                            if (fsMediaPlayer.IsPlaying) fsMediaPlayer.Pause();
+                            else fsMediaPlayer.Play();
                         }
                         break;
                     case System.Windows.Input.Key.Left:
-                        var backPos = fullscreenPlayer.Position - TimeSpan.FromSeconds(10);
-                        if (backPos < TimeSpan.Zero) backPos = TimeSpan.Zero;
-                        fullscreenPlayer.Position = backPos;
+                        if (fsMediaPlayer != null) fsMediaPlayer.Time = Math.Max(0, fsMediaPlayer.Time - 10000);
                         break;
                     case System.Windows.Input.Key.Right:
-                        if (fullscreenPlayer.NaturalDuration.HasTimeSpan)
-                        {
-                            var fwdPos = fullscreenPlayer.Position + TimeSpan.FromSeconds(10);
-                            if (fwdPos > fullscreenPlayer.NaturalDuration.TimeSpan)
-                                fwdPos = fullscreenPlayer.NaturalDuration.TimeSpan;
-                            fullscreenPlayer.Position = fwdPos;
-                        }
-                        break;
-                    case System.Windows.Input.Key.Up:
-                        fullscreenPlayer.Volume = Math.Min(1.0, fullscreenPlayer.Volume + 0.1);
-                        volSlider.Value = fullscreenPlayer.Volume;
-                        break;
-                    case System.Windows.Input.Key.Down:
-                        fullscreenPlayer.Volume = Math.Max(0.0, fullscreenPlayer.Volume - 0.1);
-                        volSlider.Value = fullscreenPlayer.Volume;
-                        break;
-                    case System.Windows.Input.Key.M:
-                        fullscreenPlayer.IsMuted = !fullscreenPlayer.IsMuted;
+                        if (fsMediaPlayer != null) fsMediaPlayer.Time = Math.Min(fsMediaPlayer.Length, fsMediaPlayer.Time + 10000);
                         break;
                 }
             };
 
-            fullscreenPlayer.MouseLeftButtonDown += (s, args) =>
+            // Double-click to exit
+            fsVlcView.MouseLeftButtonDown += (s, args) =>
             {
                 if (args.ClickCount == 2)
                     exitFullscreen();

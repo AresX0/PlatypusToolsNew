@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="900">
     <Grid Margin="5">
@@ -26,14 +27,9 @@
             </Grid>
         </GroupBox>
 
-        <!-- Video Display -->
+        <!-- Video Display using LibVLC -->
         <Border Grid.Row="1" Background="Black" CornerRadius="4">
-            <MediaElement x:Name="VideoPlayer" 
-                          LoadedBehavior="Manual" 
-                          UnloadedBehavior="Stop"
-                          MediaOpened="VideoPlayer_MediaOpened"
-                          MediaEnded="VideoPlayer_MediaEnded"
-                          Stretch="Uniform"/>
+            <vlc:VideoView x:Name="VlcVideoView" Background="Black"/>
         </Border>
         
         <!-- Video Controls -->
@@ -63,7 +59,7 @@
                     <Button Content="🔇 Mute" Click="Mute_Click" Width="70" Height="30" Margin="10,0,0,0"/>
                 </StackPanel>
                 <TextBlock HorizontalAlignment="Center" Margin="0,10,0,0" FontStyle="Italic" Foreground="#666">
-                    Native WPF video player - No external software required
+                    LibVLC-powered video player - Plays any format (AVI, MKV, MP4, WebM, etc.)
                 </TextBlock>
             </StackPanel>
         </GroupBox>

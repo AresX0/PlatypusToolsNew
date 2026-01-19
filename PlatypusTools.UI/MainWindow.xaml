@@ -160,6 +160,9 @@
                             <TabItem Header="Video Player">
                                 <views:NativeVideoPlayerView />
                             </TabItem>
+                            <TabItem Header="Video Editor">
+                                <controls:LazyTabContent ViewType="{x:Type views:VideoEditorView}" />
+                            </TabItem>
                             <TabItem Header="Upscaler">
                                 <controls:LazyTabContent ViewType="{x:Type views:UpscalerView}" ViewDataContext="{Binding Upscaler}" />
                             </TabItem>

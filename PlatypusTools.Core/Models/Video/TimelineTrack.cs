@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Text.Json.Serialization;
 
 namespace PlatypusTools.Core.Models.Video
 {
@@ -9,7 +10,35 @@ namespace PlatypusTools.Core.Models.Video
     /// </summary>
     public class TimelineTrack
     {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        // Support both string and Guid IDs
+        private Guid _guidId;
+        private string _stringId = string.Empty;
+
+        [JsonIgnore]
+        public Guid Id
+        {
+            get => _guidId;
+            set
+            {
+                _guidId = value;
+                _stringId = value.ToString();
+            }
+        }
+
+        [JsonPropertyName("id")]
+        public string StringId
+        {
+            get => _stringId.Length > 0 ? _stringId : _guidId.ToString();
+            set
+            {
+                _stringId = value;
+                if (Guid.TryParse(value, out var guid))
+                    _guidId = guid;
+                else
+                    _guidId = Guid.NewGuid();
+            }
+        }
+
         public string Name { get; set; } = string.Empty;
         public TrackType Type { get; set; } = TrackType.Video;
         public int Order { get; set; }
@@ -69,6 +98,7 @@ namespace PlatypusTools.Core.Models.Video
         Audio,
         Title,
         Effects,
-        Adjustment
+        Adjustment,
+        Overlay
     }
 }
