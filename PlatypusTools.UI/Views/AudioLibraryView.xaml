@@ -147,13 +147,6 @@
                       MinHeight="250"
                       HorizontalScrollBarVisibility="Auto"
                       VerticalScrollBarVisibility="Auto">
-                <DataGrid.ColumnHeaderStyle>
-                    <Style TargetType="DataGridColumnHeader">
-                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                        <Setter Property="Padding" Value="8,4"/>
-                        <Setter Property="FontWeight" Value="SemiBold"/>
-                    </Style>
-                </DataGrid.ColumnHeaderStyle>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="#" Binding="{Binding TrackNumber}" Width="50" MinWidth="40" IsReadOnly="True" CanUserResize="True" />
                     <DataGridTextColumn Header="Title" Binding="{Binding DisplayTitle}" Width="250" MinWidth="150" IsReadOnly="True" CanUserResize="True">

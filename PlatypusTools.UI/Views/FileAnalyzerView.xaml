@@ -85,13 +85,6 @@
                               SelectionMode="Single"
                               ColumnHeaderHeight="32"
                               HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
-                        <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                <Setter Property="Padding" Value="8,4"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Extension" Binding="{Binding Extension}" Width="150" MinWidth="100" CanUserResize="True" IsReadOnly="True"/>
                             <DataGridTextColumn Header="Count" Binding="{Binding Count}" Width="100" MinWidth="80" CanUserResize="True" IsReadOnly="True"/>
@@ -110,13 +103,6 @@
                               SelectionMode="Single"
                               ColumnHeaderHeight="32"
                               HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
-                        <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                <Setter Property="Padding" Value="8,4"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" MinWidth="150" CanUserResize="True" IsReadOnly="True"/>
                             <DataGridTextColumn Header="Size" Binding="{Binding SizeFormatted}" Width="120" MinWidth="100" CanUserResize="True" IsReadOnly="True"/>
@@ -135,13 +121,6 @@
                               SelectionMode="Single"
                               ColumnHeaderHeight="32"
                               HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
-                        <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                <Setter Property="Padding" Value="8,4"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" MinWidth="150" CanUserResize="True" IsReadOnly="True"/>
                             <DataGridTextColumn Header="Created" Binding="{Binding Created, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="150" MinWidth="120" CanUserResize="True" IsReadOnly="True"/>
@@ -161,13 +140,6 @@
                               SelectionMode="Single"
                               ColumnHeaderHeight="32"
                               HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
-                        <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                <Setter Property="Padding" Value="8,4"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" MinWidth="150" CanUserResize="True" IsReadOnly="True"/>
                             <DataGridTextColumn Header="Created" Binding="{Binding Created, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="150" MinWidth="120" CanUserResize="True" IsReadOnly="True"/>
@@ -187,13 +159,6 @@
                               SelectionMode="Single"
                               ColumnHeaderHeight="32"
                               HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
-                        <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                <Setter Property="Padding" Value="8,4"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Age Range" Binding="{Binding AgeRange}" Width="*" MinWidth="150" CanUserResize="True" IsReadOnly="True"/>
                             <DataGridTextColumn Header="File Count" Binding="{Binding Count}" Width="150" MinWidth="100" CanUserResize="True" IsReadOnly="True"/>
@@ -211,13 +176,6 @@
                               SelectionMode="Single"
                               ColumnHeaderHeight="32"
                               HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
-                        <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                <Setter Property="Padding" Value="8,4"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Hash" Binding="{Binding Hash}" Width="250" MinWidth="150" CanUserResize="True" IsReadOnly="True"/>
                             <DataGridTextColumn Header="Size" Binding="{Binding SizeFormatted}" Width="120" MinWidth="100" CanUserResize="True" IsReadOnly="True"/>

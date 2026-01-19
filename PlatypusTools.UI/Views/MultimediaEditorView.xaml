@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:wfi="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
+             xmlns:winforms="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
              xmlns:local="clr-namespace:PlatypusTools.UI.Views"
              mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="1000">
@@ -31,8 +32,8 @@
 
         <!-- Tabbed Interface for Each Application -->
         <TabControl Grid.Row="1" Margin="5">
-            <!-- Native Video Player Tab -->
-            <TabItem Header="▶️ Video Player">
+            <!-- Native Video Player Tab - HIDDEN (available in Video tab) -->
+            <TabItem Header="▶️ Video Player" Visibility="Collapsed">
                 <Grid Margin="5">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -83,8 +84,8 @@
                 </Grid>
             </TabItem>
 
-            <!-- Native Audio Trim Tab -->
-            <TabItem Header="✂️ Audio Trim">
+            <!-- Native Audio Trim Tab - HIDDEN (available in Audio tab) -->
+            <TabItem Header="✂️ Audio Trim" Visibility="Collapsed">
                 <Grid Margin="5">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -153,8 +154,8 @@
                 </Grid>
             </TabItem>
 
-            <!-- Native Image Edit Tab -->
-            <TabItem Header="🖼️ Image Edit">
+            <!-- Native Image Edit Tab - HIDDEN (available in Image tab) -->
+            <TabItem Header="🖼️ Image Edit" Visibility="Collapsed">
                 <Grid Margin="5">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -267,7 +268,9 @@
                         <Grid>
                             <!-- Embedded VLC Host -->
                             <wfi:WindowsFormsHost x:Name="VlcHost" Loaded="VlcHost_Loaded" 
-                                                 Visibility="{Binding EmbedVlc, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                                 Visibility="{Binding EmbedVlc, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <winforms:Panel x:Name="VlcPanel" Dock="Fill"/>
+                            </wfi:WindowsFormsHost>
                             
                             <!-- Information Panel (when not embedded) -->
                             <ScrollViewer VerticalScrollBarVisibility="Auto" 
@@ -364,7 +367,9 @@
                         <Grid>
                             <!-- Embedded Audacity Host -->
                             <wfi:WindowsFormsHost x:Name="AudacityHost" Loaded="AudacityHost_Loaded" 
-                                                 Visibility="{Binding EmbedAudacity, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                                 Visibility="{Binding EmbedAudacity, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <winforms:Panel x:Name="AudacityPanel" Dock="Fill"/>
+                            </wfi:WindowsFormsHost>
                             
                             <!-- Information Panel (when not embedded) -->
                             <ScrollViewer VerticalScrollBarVisibility="Auto" 
@@ -467,7 +472,9 @@
                         <Grid>
                             <!-- Embedded GIMP Host -->
                             <wfi:WindowsFormsHost x:Name="GimpHost" Loaded="GimpHost_Loaded" 
-                                                 Visibility="{Binding EmbedGimp, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                                 Visibility="{Binding EmbedGimp, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <winforms:Panel x:Name="GimpPanel" Dock="Fill"/>
+                            </wfi:WindowsFormsHost>
                             
                             <!-- Information Panel (when not embedded) -->
                             <ScrollViewer VerticalScrollBarVisibility="Auto" 
@@ -520,6 +527,112 @@
                 </Grid>
             </TabItem>
 
+            <!-- Shotcut Tab -->
+            <TabItem Header="🎬 Shotcut">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Shotcut Configuration -->
+                    <GroupBox Header="Shotcut Configuration" Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel Margin="5">
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="40"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="Shotcut Path:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox Grid.Column="1" Text="{Binding ShotcutPath}" IsReadOnly="True" Margin="0,0,10,0"/>
+                                <Button Grid.Column="2" Content="Browse..." Command="{Binding BrowseShotcutCommand}" Padding="5" Margin="0,0,5,0"/>
+                                <TextBlock Grid.Column="3" Text="✔" Foreground="Green" FontSize="16" FontWeight="Bold" 
+                                           VerticalAlignment="Center" HorizontalAlignment="Center"
+                                           Visibility="{Binding IsShotcutAvailable, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                <TextBlock Grid.Column="3" Text="✖" Foreground="Red" FontSize="16" FontWeight="Bold" 
+                                           VerticalAlignment="Center" HorizontalAlignment="Center"
+                                           Visibility="{Binding IsShotcutAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                            </Grid>
+                            
+                            <Button Content="📥 Download Shotcut" Command="{Binding DownloadShotcutCommand}" 
+                                    Width="200" HorizontalAlignment="Left" Padding="5"
+                                    Visibility="{Binding IsShotcutAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Shotcut Features -->
+                    <GroupBox Header="Features" Grid.Row="1" Margin="0,0,0,10">
+                        <WrapPanel Margin="5">
+                            <Button Content="Open in Shotcut" Command="{Binding OpenInShotcutCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
+                                    ToolTip="Open selected video file in Shotcut for editing"/>
+                            <Button Content="Launch Shotcut" Command="{Binding OpenInShotcutCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="LightGreen"
+                                    ToolTip="Launch Shotcut video editor"/>
+                            <Button Content="Embed Shotcut Here" Command="{Binding EmbedShotcutCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="LightBlue"
+                                    ToolTip="Embed Shotcut directly in this tab (experimental)"/>
+                        </WrapPanel>
+                    </GroupBox>
+
+                    <!-- Shotcut Workspace -->
+                    <GroupBox Header="Shotcut Workspace" Grid.Row="2">
+                        <Grid>
+                            <!-- Embedded Shotcut Host -->
+                            <wfi:WindowsFormsHost x:Name="ShotcutHost" Loaded="ShotcutHost_Loaded" 
+                                                 Visibility="{Binding EmbedShotcut, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <winforms:Panel x:Name="ShotcutPanel" Dock="Fill"/>
+                            </wfi:WindowsFormsHost>
+                            
+                            <!-- Information Panel (when not embedded) -->
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                                          Visibility="{Binding EmbedShotcut, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                <StackPanel Margin="10">
+                                    <TextBlock Text="Shotcut Video Editor Capabilities" FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
+                                    <TextBlock Text="(Free, Open Source, Cross-Platform)" FontStyle="Italic" Foreground="#666" Margin="0,0,0,15"/>
+                                
+                                    <TextBlock Text="🎬 Video Editing:" FontWeight="Bold" Margin="0,0,0,8"/>
+                                    <TextBlock Text="• Multi-track timeline with drag-and-drop" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Support for hundreds of video and audio formats" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• 4K and HDR video support" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Trimming, cutting, and splitting clips" Margin="15,0,0,10"/>
+                                    
+                                    <TextBlock Text="🎨 Effects and Transitions:" FontWeight="Bold" Margin="0,10,0,8"/>
+                                    <TextBlock Text="• Video filters (blur, color grading, etc.)" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Audio filters and normalization" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Transitions and crossfades" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Keyframe animation" Margin="15,0,0,10"/>
+                                    
+                                    <TextBlock Text="📤 Export Options:" FontWeight="Bold" Margin="0,10,0,8"/>
+                                    <TextBlock Text="• Export to MP4, WebM, MKV, and more" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• YouTube, Vimeo, and social media presets" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Hardware encoding (NVIDIA, AMD, Intel)" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• MLT XML project format" Margin="15,0,0,10"/>
+                                    
+                                    <Border Background="#E8F5E9" Padding="15" Margin="0,15,0,0" BorderBrush="#4CAF50" BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock Text="💡 Quick Start:" FontWeight="Bold" Foreground="#2E7D32" Margin="0,0,0,5"/>
+                                            <TextBlock Text="1. Select a video file using the Browse button above" Foreground="#2E7D32" Margin="0,0,0,3"/>
+                                            <TextBlock Text="2. Click 'Open in Shotcut' to edit your video" Foreground="#2E7D32" Margin="0,0,0,3"/>
+                                            <TextBlock Text="3. Use the multi-track timeline to combine clips, add effects, and export" Foreground="#2E7D32"/>
+                                        </StackPanel>
+                                    </Border>
+                                    
+                                    <Border Background="#FFF3E0" Padding="15" Margin="0,15,0,0" BorderBrush="#FF9800" BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock Text="💡 Alternative: Native Editor" FontWeight="Bold" Foreground="#E65100" Margin="0,0,0,5"/>
+                                            <TextBlock Text="PlatypusTools also includes a built-in video editor in the Video tab → Video Editor." Foreground="#E65100" TextWrapping="Wrap" Margin="0,0,0,3"/>
+                                            <TextBlock Text="It's modeled after Shotcut's interface and works without external software!" Foreground="#E65100" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+
             <!-- Quick Actions Tab -->
             <TabItem Header="⚡ Settings &amp; Tools">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -550,6 +663,13 @@
                                                Visibility="{Binding IsGimpAvailable, Converter={StaticResource BoolToVisibilityConverter}}"/>
                                     <TextBlock Text="✖ Not Found" Foreground="Red" FontWeight="Bold" FontSize="13"
                                                Visibility="{Binding IsGimpAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Text="Shotcut: " Width="150" FontSize="13"/>
+                                    <TextBlock Text="✔ Installed" Foreground="Green" FontWeight="Bold" FontSize="13"
+                                               Visibility="{Binding IsShotcutAvailable, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    <TextBlock Text="✖ Not Found" Foreground="Red" FontWeight="Bold" FontSize="13"
+                                               Visibility="{Binding IsShotcutAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
                                 </StackPanel>
                             </StackPanel>
                         </GroupBox>
@@ -589,6 +709,8 @@
                                 <Button Content="📥 Download Audacity (audacityteam.org)" Command="{Binding DownloadAudacityCommand}" 
                                         HorizontalAlignment="Stretch" Padding="10,8" Margin="0,0,0,8" Height="40"/>
                                 <Button Content="📥 Download GIMP (gimp.org)" Command="{Binding DownloadGimpCommand}" 
+                                        HorizontalAlignment="Stretch" Padding="10,8" Margin="0,0,0,8" Height="40"/>
+                                <Button Content="📥 Download Shotcut (shotcut.org)" Command="{Binding DownloadShotcutCommand}" 
                                         HorizontalAlignment="Stretch" Padding="10,8" Height="40"/>
                             </StackPanel>
                         </GroupBox>
@@ -596,12 +718,13 @@
                         <GroupBox Header="About Multimedia Editor">
                             <StackPanel Margin="10">
                                 <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
-                                    The Multimedia Editor integrates three professional open-source applications 
+                                    The Multimedia Editor integrates four professional open-source applications 
                                     for comprehensive media editing capabilities:
                                 </TextBlock>
                                 <TextBlock Text="• VLC Player - Video and audio playback, format conversion" Margin="0,0,0,5"/>
                                 <TextBlock Text="• Audacity - Professional audio editing and recording" Margin="0,0,0,5"/>
-                                <TextBlock Text="• GIMP - Advanced image editing and graphic design" Margin="0,0,0,10"/>
+                                <TextBlock Text="• GIMP - Advanced image editing and graphic design" Margin="0,0,0,5"/>
+                                <TextBlock Text="• Shotcut - Full-featured video editing with multi-track timeline" Margin="0,0,0,10"/>
                                 <TextBlock TextWrapping="Wrap" FontStyle="Italic" Foreground="#666">
                                     Each application opens in its own window with full functionality. 
                                     All applications are free and open-source.

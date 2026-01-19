@@ -70,11 +70,19 @@ namespace PlatypusTools.UI.ViewModels
             set { _gimpPath = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsGimpAvailable)); }
         }
 
+        private string _shotcutPath = string.Empty;
+        public string ShotcutPath
+        {
+            get => _shotcutPath;
+            set { _shotcutPath = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsShotcutAvailable)); }
+        }
+
         // Availability properties
         public bool IsVlcAvailable => !string.IsNullOrEmpty(VlcPath) && File.Exists(VlcPath);
         public bool IsAudacityAvailable => !string.IsNullOrEmpty(AudacityPath) && File.Exists(AudacityPath);
         public bool IsGimpAvailable => !string.IsNullOrEmpty(GimpPath) && File.Exists(GimpPath);
-        public bool HasMissingApplications => !IsVlcAvailable || !IsAudacityAvailable || !IsGimpAvailable;
+        public bool IsShotcutAvailable => !string.IsNullOrEmpty(ShotcutPath) && File.Exists(ShotcutPath);
+        public bool HasMissingApplications => !IsVlcAvailable || !IsAudacityAvailable || !IsGimpAvailable || !IsShotcutAvailable;
 
         // Embedding properties
         private bool _embedVlc;
@@ -98,6 +106,13 @@ namespace PlatypusTools.UI.ViewModels
             set { _embedGimp = value; OnPropertyChanged(); }
         }
 
+        private bool _embedShotcut;
+        public bool EmbedShotcut
+        {
+            get => _embedShotcut;
+            set { _embedShotcut = value; OnPropertyChanged(); }
+        }
+
         private IntPtr _vlcHostHandle;
         public IntPtr VlcHostHandle
         {
@@ -117,6 +132,13 @@ namespace PlatypusTools.UI.ViewModels
         {
             get => _gimpHostHandle;
             set { _gimpHostHandle = value; OnPropertyChanged(); }
+        }
+
+        private IntPtr _shotcutHostHandle;
+        public IntPtr ShotcutHostHandle
+        {
+            get => _shotcutHostHandle;
+            set { _shotcutHostHandle = value; OnPropertyChanged(); }
         }
 
         // File type detection
@@ -143,16 +165,20 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand DownloadVlcCommand { get; }
         public ICommand DownloadAudacityCommand { get; }
         public ICommand DownloadGimpCommand { get; }
+        public ICommand DownloadShotcutCommand { get; }
         public ICommand EmbedVlcCommand { get; }
         public ICommand EmbedAudacityCommand { get; }
         public ICommand EmbedGimpCommand { get; }
+        public ICommand EmbedShotcutCommand { get; }
+        public ICommand OpenInShotcutCommand { get; }
+        public ICommand BrowseShotcutCommand { get; }
 
         public MultimediaEditorViewModel()
         {
             BrowseFileCommand = new RelayCommand(_ => BrowseFile());
-            OpenInVlcCommand = new RelayCommand(_ => OpenInVlc(), _ => IsVlcAvailable && !string.IsNullOrEmpty(FilePath));
-            OpenInAudacityCommand = new RelayCommand(_ => OpenInAudacity(), _ => IsAudacityAvailable && !string.IsNullOrEmpty(FilePath));
-            OpenInGimpCommand = new RelayCommand(_ => OpenInGimp(), _ => IsGimpAvailable && !string.IsNullOrEmpty(FilePath));
+            OpenInVlcCommand = new RelayCommand(_ => OpenInVlc(), _ => IsVlcAvailable);
+            OpenInAudacityCommand = new RelayCommand(_ => OpenInAudacity(), _ => IsAudacityAvailable);
+            OpenInGimpCommand = new RelayCommand(_ => OpenInGimp(), _ => IsGimpAvailable);
             BrowseVlcCommand = new RelayCommand(_ => BrowseApplication("VLC"));
             BrowseAudacityCommand = new RelayCommand(_ => BrowseApplication("Audacity"));
             BrowseGimpCommand = new RelayCommand(_ => BrowseApplication("GIMP"));
@@ -163,6 +189,10 @@ namespace PlatypusTools.UI.ViewModels
             EmbedVlcCommand = new RelayCommand(_ => EmbedVlcApp(), _ => IsVlcAvailable);
             EmbedAudacityCommand = new RelayCommand(_ => EmbedAudacityApp(), _ => IsAudacityAvailable);
             EmbedGimpCommand = new RelayCommand(_ => EmbedGimpApp(), _ => IsGimpAvailable);
+            EmbedShotcutCommand = new RelayCommand(_ => EmbedShotcutApp(), _ => IsShotcutAvailable);
+            OpenInShotcutCommand = new RelayCommand(_ => OpenInShotcut(), _ => IsShotcutAvailable);
+            BrowseShotcutCommand = new RelayCommand(_ => BrowseApplication("Shotcut"));
+            DownloadShotcutCommand = new RelayCommand(_ => DownloadShotcut());
 
             AutoDetectApplications();
         }
@@ -214,9 +244,9 @@ namespace PlatypusTools.UI.ViewModels
 
         private void OpenInVlc()
         {
-            if (!File.Exists(FilePath) || !IsVlcAvailable)
+            if (!IsVlcAvailable)
             {
-                StatusMessage = "VLC not available or file not found";
+                StatusMessage = "VLC not available";
                 return;
             }
 
@@ -225,11 +255,11 @@ namespace PlatypusTools.UI.ViewModels
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = VlcPath,
-                    Arguments = $"\"{FilePath}\"",
+                    Arguments = !string.IsNullOrEmpty(FilePath) && File.Exists(FilePath) ? $"\"{FilePath}\"" : "",
                     UseShellExecute = true
                 };
                 Process.Start(startInfo);
-                StatusMessage = $"Opened in VLC: {Path.GetFileName(FilePath)}";
+                StatusMessage = !string.IsNullOrEmpty(FilePath) ? $"Opened in VLC: {Path.GetFileName(FilePath)}" : "VLC launched";
             }
             catch (Exception ex)
             {
@@ -239,9 +269,9 @@ namespace PlatypusTools.UI.ViewModels
 
         private void OpenInAudacity()
         {
-            if (!File.Exists(FilePath) || !IsAudacityAvailable)
+            if (!IsAudacityAvailable)
             {
-                StatusMessage = "Audacity not available or file not found";
+                StatusMessage = "Audacity not available";
                 return;
             }
 
@@ -250,11 +280,11 @@ namespace PlatypusTools.UI.ViewModels
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = AudacityPath,
-                    Arguments = $"\"{FilePath}\"",
+                    Arguments = !string.IsNullOrEmpty(FilePath) && File.Exists(FilePath) ? $"\"{FilePath}\"" : "",
                     UseShellExecute = true
                 };
                 Process.Start(startInfo);
-                StatusMessage = $"Opened in Audacity: {Path.GetFileName(FilePath)}";
+                StatusMessage = !string.IsNullOrEmpty(FilePath) ? $"Opened in Audacity: {Path.GetFileName(FilePath)}" : "Audacity launched";
             }
             catch (Exception ex)
             {
@@ -264,9 +294,9 @@ namespace PlatypusTools.UI.ViewModels
 
         private void OpenInGimp()
         {
-            if (!File.Exists(FilePath) || !IsGimpAvailable)
+            if (!IsGimpAvailable)
             {
-                StatusMessage = "GIMP not available or file not found";
+                StatusMessage = "GIMP not available";
                 return;
             }
 
@@ -275,11 +305,11 @@ namespace PlatypusTools.UI.ViewModels
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = GimpPath,
-                    Arguments = $"\"{FilePath}\"",
+                    Arguments = !string.IsNullOrEmpty(FilePath) && File.Exists(FilePath) ? $"\"{FilePath}\"" : "",
                     UseShellExecute = true
                 };
                 Process.Start(startInfo);
-                StatusMessage = $"Opened in GIMP: {Path.GetFileName(FilePath)}";
+                StatusMessage = !string.IsNullOrEmpty(FilePath) ? $"Opened in GIMP: {Path.GetFileName(FilePath)}" : "GIMP launched";
             }
             catch (Exception ex)
             {
@@ -307,6 +337,9 @@ namespace PlatypusTools.UI.ViewModels
                         break;
                     case "GIMP":
                         GimpPath = dialog.FileName;
+                        break;
+                    case "Shotcut":
+                        ShotcutPath = dialog.FileName;
                         break;
                 }
                 StatusMessage = $"{appName} path set: {dialog.FileName}";
@@ -349,9 +382,12 @@ namespace PlatypusTools.UI.ViewModels
                 }
             }
 
-            // Try to find GIMP
+            // Try to find GIMP (check GIMP 3 first, then GIMP 2)
             var gimpPaths = new[]
             {
+                @"C:\Program Files\GIMP 3\bin\gimp.exe",
+                @"C:\Program Files (x86)\GIMP 3\bin\gimp.exe",
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "GIMP 3", "bin", "gimp.exe"),
                 @"C:\Program Files\GIMP 2\bin\gimp-2.10.exe",
                 @"C:\Program Files (x86)\GIMP 2\bin\gimp-2.10.exe",
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "GIMP 2", "bin", "gimp-2.10.exe")
@@ -366,14 +402,33 @@ namespace PlatypusTools.UI.ViewModels
                 }
             }
 
+            // Try to find Shotcut
+            var shotcutPaths = new[]
+            {
+                @"C:\Program Files\Shotcut\shotcut.exe",
+                @"C:\Program Files (x86)\Shotcut\shotcut.exe",
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Shotcut", "shotcut.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "Shotcut", "shotcut.exe")
+            };
+
+            foreach (var path in shotcutPaths)
+            {
+                if (File.Exists(path))
+                {
+                    ShotcutPath = path;
+                    break;
+                }
+            }
+
             UpdateApplicationAvailability();
             
             var foundApps = new List<string>();
             if (IsVlcAvailable) foundApps.Add("VLC");
             if (IsAudacityAvailable) foundApps.Add("Audacity");
             if (IsGimpAvailable) foundApps.Add("GIMP");
+            if (IsShotcutAvailable) foundApps.Add("Shotcut");
             
-            if (foundApps.Count == 3)
+            if (foundApps.Count == 4)
             {
                 StatusMessage = "✔ All applications detected successfully!";
             }
@@ -392,6 +447,7 @@ namespace PlatypusTools.UI.ViewModels
             OnPropertyChanged(nameof(IsVlcAvailable));
             OnPropertyChanged(nameof(IsAudacityAvailable));
             OnPropertyChanged(nameof(IsGimpAvailable));
+            OnPropertyChanged(nameof(IsShotcutAvailable));
             OnPropertyChanged(nameof(HasMissingApplications));
         }
 
@@ -446,27 +502,130 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
+        private void DownloadShotcut()
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "https://www.shotcut.org/download/",
+                    UseShellExecute = true
+                });
+                StatusMessage = "Opening Shotcut download page in your browser...";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error opening download page: {ex.Message}";
+            }
+        }
+
+        private void OpenInShotcut()
+        {
+            if (!IsShotcutAvailable)
+            {
+                StatusMessage = "Shotcut not available";
+                return;
+            }
+
+            try
+            {
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = ShotcutPath,
+                    Arguments = !string.IsNullOrEmpty(FilePath) && File.Exists(FilePath) ? $"\"{FilePath}\"" : "",
+                    UseShellExecute = true
+                };
+                Process.Start(startInfo);
+                StatusMessage = string.IsNullOrEmpty(FilePath) 
+                    ? "Opened Shotcut" 
+                    : $"Opened in Shotcut: {Path.GetFileName(FilePath)}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error opening Shotcut: {ex.Message}";
+            }
+        }
+
+        private Process? _embeddedShotcutProcess;
+
+        private async void EmbedShotcutApp()
+        {
+            if (!IsShotcutAvailable)
+            {
+                StatusMessage = "Shotcut not available";
+                return;
+            }
+
+            EmbedShotcut = true;
+            StatusMessage = "Launching Shotcut for embedding...";
+
+            try
+            {
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = ShotcutPath,
+                    UseShellExecute = false
+                };
+
+                _embeddedShotcutProcess = Process.Start(startInfo);
+
+                if (_embeddedShotcutProcess != null)
+                {
+                    await System.Threading.Tasks.Task.Delay(3000); // Wait for Shotcut to initialize
+
+                    if (!_embeddedShotcutProcess.HasExited && ShotcutHostHandle != IntPtr.Zero)
+                    {
+                        var handle = _embeddedShotcutProcess.MainWindowHandle;
+                        if (handle != IntPtr.Zero)
+                        {
+                            SetParent(handle, ShotcutHostHandle);
+                            int style = GetWindowLong(handle, GWL_STYLE);
+                            style &= ~WS_CAPTION;
+                            style &= ~WS_THICKFRAME;
+                            SetWindowLong(handle, GWL_STYLE, style);
+                            SetWindowPos(handle, IntPtr.Zero, 0, 0, 1000, 700, SWP_NOZORDER | SWP_NOACTIVATE);
+                            StatusMessage = "Shotcut embedded successfully!";
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error embedding Shotcut: {ex.Message}";
+                EmbedShotcut = false;
+            }
+        }
+
         private async void EmbedVlcApp()
         {
             if (!IsVlcAvailable || VlcHostHandle == IntPtr.Zero)
             {
-                StatusMessage = "VLC not available or host window not ready";
+                StatusMessage = "VLC not available or host window not ready. Make sure you're on the VLC tab.";
+                EmbedVlc = false;
                 return;
             }
 
             try
             {
                 // Kill existing embedded process if any
-                if (_embeddedVlcProcess != null && !_embeddedVlcProcess.HasExited)
+                if (_embeddedVlcProcess != null)
                 {
-                    _embeddedVlcProcess.Kill();
-                    _embeddedVlcProcess.Dispose();
+                    try
+                    {
+                        if (!_embeddedVlcProcess.HasExited)
+                            _embeddedVlcProcess.Kill();
+                        _embeddedVlcProcess.Dispose();
+                    }
+                    catch { }
+                    _embeddedVlcProcess = null;
                 }
 
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = VlcPath,
-                    Arguments = !string.IsNullOrEmpty(FilePath) ? $"--no-video-title-show \"{FilePath}\"" : "--no-video-title-show",
+                    Arguments = !string.IsNullOrEmpty(FilePath) && File.Exists(FilePath) 
+                        ? $"--no-video-title-show \"{FilePath}\"" 
+                        : "--no-video-title-show",
                     UseShellExecute = false
                 };
 
@@ -474,13 +633,14 @@ namespace PlatypusTools.UI.ViewModels
                 if (_embeddedVlcProcess != null)
                 {
                     // Wait for window to be created and ready for input
-                    _embeddedVlcProcess.WaitForInputIdle();
+                    try { _embeddedVlcProcess.WaitForInputIdle(5000); } catch { }
                     await System.Threading.Tasks.Task.Delay(1500);
 
                     IntPtr handle = IntPtr.Zero;
                     // Try to get the handle multiple times
                     for (int i = 0; i < 10 && handle == IntPtr.Zero; i++)
                     {
+                        if (_embeddedVlcProcess.HasExited) break;
                         _embeddedVlcProcess.Refresh();
                         handle = _embeddedVlcProcess.MainWindowHandle;
                         if (handle == IntPtr.Zero)
@@ -506,12 +666,14 @@ namespace PlatypusTools.UI.ViewModels
                     else
                     {
                         StatusMessage = "Could not get VLC window handle - try clicking 'Open in VLC' instead";
+                        EmbedVlc = false;
                     }
                 }
             }
             catch (Exception ex)
             {
                 StatusMessage = $"Error embedding VLC: {ex.Message}";
+                EmbedVlc = false;
             }
         }
 

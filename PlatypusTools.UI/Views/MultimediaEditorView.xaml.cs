@@ -655,7 +655,15 @@ namespace PlatypusTools.UI.Views
         {
             if (DataContext is MultimediaEditorViewModel viewModel && sender is System.Windows.Forms.Integration.WindowsFormsHost host)
             {
-                viewModel.VlcHostHandle = host.Handle;
+                // Get the Panel's handle for embedding, or fall back to host handle
+                if (host.Child is System.Windows.Forms.Panel panel)
+                {
+                    viewModel.VlcHostHandle = panel.Handle;
+                }
+                else
+                {
+                    viewModel.VlcHostHandle = host.Handle;
+                }
             }
         }
 
@@ -663,7 +671,15 @@ namespace PlatypusTools.UI.Views
         {
             if (DataContext is MultimediaEditorViewModel viewModel && sender is System.Windows.Forms.Integration.WindowsFormsHost host)
             {
-                viewModel.AudacityHostHandle = host.Handle;
+                // Get the Panel's handle for embedding, or fall back to host handle
+                if (host.Child is System.Windows.Forms.Panel panel)
+                {
+                    viewModel.AudacityHostHandle = panel.Handle;
+                }
+                else
+                {
+                    viewModel.AudacityHostHandle = host.Handle;
+                }
             }
         }
 
@@ -671,7 +687,31 @@ namespace PlatypusTools.UI.Views
         {
             if (DataContext is MultimediaEditorViewModel viewModel && sender is System.Windows.Forms.Integration.WindowsFormsHost host)
             {
-                viewModel.GimpHostHandle = host.Handle;
+                // Get the Panel's handle for embedding, or fall back to host handle
+                if (host.Child is System.Windows.Forms.Panel panel)
+                {
+                    viewModel.GimpHostHandle = panel.Handle;
+                }
+                else
+                {
+                    viewModel.GimpHostHandle = host.Handle;
+                }
+            }
+        }
+
+        private void ShotcutHost_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (DataContext is MultimediaEditorViewModel viewModel && sender is System.Windows.Forms.Integration.WindowsFormsHost host)
+            {
+                // Get the Panel's handle for embedding, or fall back to host handle
+                if (host.Child is System.Windows.Forms.Panel panel)
+                {
+                    viewModel.ShotcutHostHandle = panel.Handle;
+                }
+                else
+                {
+                    viewModel.ShotcutHostHandle = host.Handle;
+                }
             }
         }
 

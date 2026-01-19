@@ -212,10 +212,11 @@ namespace PlatypusTools.Core.Services.Video
             args.Append($"-r {settings.FrameRate} ");
             args.Append($"-pix_fmt {settings.PixelFormat} ");
 
-            // Audio
+            // Audio - always downmix to stereo for compatibility with native AAC encoder
             if (clip.Volume > 0 && !clip.IsMuted)
             {
                 args.Append($"-c:a {settings.AudioCodec} ");
+                args.Append("-ac 2 "); // Stereo downmix for 5.1/7.1 compatibility
                 args.Append($"-b:a {settings.AudioBitrate}k ");
                 if (Math.Abs(clip.Volume - 1.0) > 0.01)
                 {
@@ -386,10 +387,11 @@ namespace PlatypusTools.Core.Services.Video
             args.Append($"-crf {settings.Crf} ");
             args.Append($"-pix_fmt {settings.PixelFormat} ");
 
-            // Audio codec
+            // Audio codec - always downmix to stereo for compatibility
             if (audioOutputs.Count > 0)
             {
                 args.Append($"-c:a {settings.AudioCodec} ");
+                args.Append("-ac 2 "); // Stereo downmix for 5.1/7.1 compatibility
                 args.Append($"-b:a {settings.AudioBitrate}k ");
             }
 
@@ -409,8 +411,11 @@ namespace PlatypusTools.Core.Services.Video
             StringBuilder log,
             CancellationToken ct)
         {
-            var psi = new ProcessStartInfo(_ffmpegPath, args)
+            // Use Arguments property instead of constructor to avoid escaping issues
+            var psi = new ProcessStartInfo
             {
+                FileName = _ffmpegPath,
+                Arguments = args,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,

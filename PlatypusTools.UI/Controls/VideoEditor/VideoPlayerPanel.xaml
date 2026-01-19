@@ -11,9 +11,11 @@
     <UserControl.Resources>
         <SolidColorBrush x:Key="PlayerBg" Color="#000000"/>
         <SolidColorBrush x:Key="ControlsBg" Color="#2D2D2D"/>
-        <SolidColorBrush x:Key="ButtonColor" Color="#CCCCCC"/>
+        <SolidColorBrush x:Key="ButtonColor" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="ButtonHover" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="AccentColor" Color="#4488FF"/>
+        <SolidColorBrush x:Key="TextColor" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="TextColorDim" Color="#AAAAAA"/>
         
         <Style x:Key="TransportButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -145,21 +147,21 @@
                     <Button Style="{StaticResource TransportButton}" 
                             ToolTip="Skip to Start (Home)"
                             Click="SkipToStart_Click">
-                        <TextBlock Text="⏮" FontSize="14"/>
+                        <TextBlock Text="⏮" FontSize="14" Foreground="White"/>
                     </Button>
                     
                     <!-- Previous frame -->
                     <Button Style="{StaticResource TransportButton}" 
                             ToolTip="Previous Frame (←)"
                             Click="PreviousFrame_Click">
-                        <TextBlock Text="⏪" FontSize="14"/>
+                        <TextBlock Text="⏪" FontSize="14" Foreground="White"/>
                     </Button>
                     
                     <!-- Rewind -->
                     <Button Style="{StaticResource TransportButton}" 
                             ToolTip="Rewind (J)"
                             Click="Rewind_Click">
-                        <TextBlock Text="◀◀" FontSize="12"/>
+                        <TextBlock Text="◀◀" FontSize="12" Foreground="White"/>
                     </Button>
                     
                     <!-- Play/Pause -->
@@ -168,28 +170,28 @@
                             Width="44" Height="44"
                             ToolTip="Play/Pause (Space)"
                             Click="PlayPause_Click">
-                        <TextBlock x:Name="PlayPauseIcon" Text="▶" FontSize="20"/>
+                        <TextBlock x:Name="PlayPauseIcon" Text="▶" FontSize="20" Foreground="White"/>
                     </Button>
                     
                     <!-- Fast Forward -->
                     <Button Style="{StaticResource TransportButton}" 
                             ToolTip="Fast Forward (L)"
                             Click="FastForward_Click">
-                        <TextBlock Text="▶▶" FontSize="12"/>
+                        <TextBlock Text="▶▶" FontSize="12" Foreground="White"/>
                     </Button>
                     
                     <!-- Next frame -->
                     <Button Style="{StaticResource TransportButton}" 
                             ToolTip="Next Frame (→)"
                             Click="NextFrame_Click">
-                        <TextBlock Text="⏩" FontSize="14"/>
+                        <TextBlock Text="⏩" FontSize="14" Foreground="White"/>
                     </Button>
                     
                     <!-- Skip to end -->
                     <Button Style="{StaticResource TransportButton}" 
                             ToolTip="Skip to End (End)"
                             Click="SkipToEnd_Click">
-                        <TextBlock Text="⏭" FontSize="14"/>
+                        <TextBlock Text="⏭" FontSize="14" Foreground="White"/>
                     </Button>
                     
                     <Separator Width="1" Background="#444444" Margin="8,4"/>
@@ -228,7 +230,7 @@
                             Style="{StaticResource TransportButton}"
                             Width="28" Height="28"
                             Click="Mute_Click">
-                        <TextBlock x:Name="VolumeIcon" Text="🔊" FontSize="14"/>
+                        <TextBlock x:Name="VolumeIcon" Text="🔊" FontSize="14" Foreground="White"/>
                     </Button>
                     <Slider x:Name="VolumeSlider" 
                             Width="80" 

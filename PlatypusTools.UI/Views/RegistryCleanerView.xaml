@@ -52,13 +52,6 @@
                           ColumnWidth="*"
                           HorizontalScrollBarVisibility="Disabled" 
                           VerticalScrollBarVisibility="Disabled">
-                    <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                <Setter Property="Padding" Value="8,4"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
                     <DataGrid.Columns>
 
                         <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="60" MinWidth="50" CanUserResize="True"/>

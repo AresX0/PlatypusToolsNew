@@ -54,13 +54,6 @@
                           ColumnWidth="*"
                           HorizontalScrollBarVisibility="Disabled" 
                           VerticalScrollBarVisibility="Disabled">
-                    <DataGrid.ColumnHeaderStyle>
-                        <Style TargetType="DataGridColumnHeader">
-                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                            <Setter Property="Padding" Value="8,4"/>
-                            <Setter Property="FontWeight" Value="SemiBold"/>
-                        </Style>
-                    </DataGrid.ColumnHeaderStyle>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Sequence #" Binding="{Binding SequenceNumber}" Width="100" MinWidth="80" IsReadOnly="True" CanUserResize="True"/>
                         <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" MinWidth="250" IsReadOnly="True" CanUserResize="True"/>

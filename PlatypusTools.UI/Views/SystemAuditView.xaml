@@ -95,14 +95,7 @@
                           MinHeight="200"
                           ColumnWidth="*"
                           HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
-                    <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                <Setter Property="Padding" Value="8,4"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
-                     <DataGrid.Columns>
+                    <DataGrid.Columns>
                         <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="150" CanUserResize="True" MinWidth="100" IsReadOnly="True"/>
                         <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200" CanUserResize="True" MinWidth="100" IsReadOnly="True"/>
                         <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="300" CanUserResize="True" MinWidth="150" IsReadOnly="True"/>

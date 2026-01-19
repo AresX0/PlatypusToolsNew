@@ -120,6 +120,11 @@ namespace PlatypusTools.UI.Models.VideoEditor
         /// </summary>
         public TimeSpan SourceDuration { get; set; }
 
+        /// <summary>
+        /// Indicates if this clip represents audio only (extracted from video)
+        /// </summary>
+        public bool IsAudioOnly { get; set; }
+
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

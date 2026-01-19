@@ -266,8 +266,8 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="" Binding="{Binding LevelIcon}" Width="40" MinWidth="30" CanUserResize="True"/>
                         <DataGridTextColumn Header="Time" Binding="{Binding TimeGenerated, StringFormat={}{0:yyyy-MM-dd HH:mm:ss}}" Width="150" MinWidth="120" CanUserResize="True"/>
-                        <DataGridTextColumn Header="Event ID" Binding="{Binding EventId}" Width="80" MinWidth="60\" CanUserResize="True"/>
-                        <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="180\" MinWidth="100" CanUserResize="True"/>
+                        <DataGridTextColumn Header="Event ID" Binding="{Binding EventId}" Width="80" MinWidth="60" CanUserResize="True"/>
+                        <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="180" MinWidth="100" CanUserResize="True"/>
                         <DataGridTextColumn Header="Message" Binding="{Binding Message}" Width="*" MinWidth="200" CanUserResize="True"/>
                         <DataGridTextColumn Header="Reason" Binding="{Binding SuspicionReason}" Width="200" MinWidth="120" CanUserResize="True"/>
                     </DataGrid.Columns>

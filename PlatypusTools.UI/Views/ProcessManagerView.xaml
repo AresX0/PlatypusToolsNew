@@ -48,13 +48,6 @@
                           HorizontalScrollBarVisibility="Disabled" 
                           VerticalScrollBarVisibility="Disabled"
                           SelectionChanged="ProcessesDataGrid_SelectionChanged">
-                    <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                <Setter Property="Padding" Value="8,4"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="PID" Binding="{Binding ProcessId}" Width="80" MinWidth="60" IsReadOnly="True" CanUserResize="True"/>
                         <DataGridTextColumn Header="Process Name" Binding="{Binding ProcessName}" Width="200" MinWidth="150" IsReadOnly="True" CanUserResize="True"/>

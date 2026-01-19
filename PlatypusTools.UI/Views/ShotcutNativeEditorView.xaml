@@ -13,8 +13,55 @@
         <SolidColorBrush x:Key="PanelBg" Color="#252525"/>
         <SolidColorBrush x:Key="HeaderBg" Color="#2D2D2D"/>
         <SolidColorBrush x:Key="BorderColor" Color="#3D3D3D"/>
-        <SolidColorBrush x:Key="TextColor" Color="#CCCCCC"/>
+        <SolidColorBrush x:Key="TextColor" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="TextColorDim" Color="#BBBBBB"/>
         <SolidColorBrush x:Key="AccentColor" Color="#4488FF"/>
+        <SolidColorBrush x:Key="ButtonBg" Color="#3D3D3D"/>
+        <SolidColorBrush x:Key="ButtonHoverBg" Color="#4D4D4D"/>
+        
+        <!-- Dark theme button style -->
+        <Style x:Key="DarkButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource ButtonBg}"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter x:Name="contentPresenter" 
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              TextBlock.Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource ButtonHoverBg}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="{StaticResource AccentColor}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="contentPresenter" Property="TextBlock.Foreground" Value="#888888"/>
+                                <Setter TargetName="border" Property="Opacity" Value="0.6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Small icon button -->
+        <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource DarkButton}">
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Padding" Value="2"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
         
         <Style x:Key="PanelHeader" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource HeaderBg}"/>
@@ -28,7 +75,78 @@
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontSize" Value="11"/>
         </Style>
+        
+        <!-- Dark RadioButton style with white text -->
+        <Style x:Key="DarkRadioButton" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse x:Name="radio" Width="12" Height="12" 
+                                     Stroke="#888888" StrokeThickness="1" 
+                                     Fill="Transparent" Margin="0,0,6,0"/>
+                            <ContentPresenter VerticalAlignment="Center">
+                                <ContentPresenter.Resources>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#FFFFFF"/>
+                                    </Style>
+                                </ContentPresenter.Resources>
+                            </ContentPresenter>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="radio" Property="Fill" Value="#4488FF"/>
+                                <Setter TargetName="radio" Property="Stroke" Value="#4488FF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Dark ListBox style -->
+        <Style TargetType="ListBox" x:Key="DarkListBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+        </Style>
+        
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border Background="{TemplateBinding Background}" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#3D3D3D"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#4488FF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
+    
+    <!-- Context Menus -->
+    <UserControl.ContextMenu>
+        <ContextMenu>
+            <MenuItem Header="Open File..." Click="OpenFile_Click"/>
+            <MenuItem Header="Save Project" Click="SaveProject_Click"/>
+            <Separator/>
+            <MenuItem Header="Export Video..." Click="Export_Click"/>
+        </ContextMenu>
+    </UserControl.ContextMenu>
     
     <Grid>
         <Grid.RowDefinitions>
@@ -51,21 +169,30 @@
                 
                 <!-- File operations -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <Button Content="📁 Open" Padding="8,4" Margin="2,0"
-                            Click="OpenFile_Click"/>
-                    <Button Content="💾 Save" Padding="8,4" Margin="2,0"
-                            Click="SaveProject_Click"/>
+                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="OpenFile_Click">
+                        <TextBlock Text="📁 Open" Foreground="White"/>
+                    </Button>
+                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="SaveProject_Click">
+                        <TextBlock Text="💾 Save" Foreground="White"/>
+                    </Button>
                     <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,2"/>
-                    <Button Content="↩ Undo" Padding="8,4" Margin="2,0"/>
-                    <Button Content="↪ Redo" Padding="8,4" Margin="2,0"/>
+                    <Button Style="{StaticResource DarkButton}" Margin="2,0">
+                        <TextBlock Text="↩ Undo" Foreground="White"/>
+                    </Button>
+                    <Button Style="{StaticResource DarkButton}" Margin="2,0">
+                        <TextBlock Text="↪ Redo" Foreground="White"/>
+                    </Button>
                 </StackPanel>
                 
                 <!-- Export -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
-                    <Button Content="📤 Export" Padding="12,4" 
+                    <Button Padding="12,4" 
                             Background="{StaticResource AccentColor}"
-                            Foreground="White"
-                            Click="Export_Click"/>
+                            BorderThickness="0"
+                            Style="{StaticResource DarkButton}"
+                            Click="Export_Click">
+                        <TextBlock Text="📤 Export" Foreground="White"/>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
@@ -94,11 +221,11 @@
                         <StackPanel Orientation="Horizontal">
                             <RadioButton x:Name="PlaylistTab" Content="Playlist" 
                                          IsChecked="True" GroupName="LeftTabs"
-                                         Foreground="{StaticResource TextColor}"
+                                         Style="{StaticResource DarkRadioButton}"
                                          Margin="0,0,12,0"/>
                             <RadioButton x:Name="RecentTab" Content="Recent" 
                                          GroupName="LeftTabs"
-                                         Foreground="{StaticResource TextColor}"/>
+                                         Style="{StaticResource DarkRadioButton}"/>
                         </StackPanel>
                     </Border>
                     
@@ -108,10 +235,18 @@
                         <Border Background="{StaticResource HeaderBg}" 
                                 VerticalAlignment="Top" Height="28">
                             <StackPanel Orientation="Horizontal" Margin="4,0">
-                                <Button Content="➕" Width="24" ToolTip="Add Files"
-                                        Click="AddToPlaylist_Click"/>
-                                <Button Content="➖" Width="24" ToolTip="Remove Selected"
-                                        Click="RemoveFromPlaylist_Click"/>
+                                <Button Style="{StaticResource IconButton}" ToolTip="Add Files"
+                                        Click="AddToPlaylist_Click">
+                                    <TextBlock Text="➕" Foreground="White"/>
+                                </Button>
+                                <Button Style="{StaticResource IconButton}" ToolTip="Remove Selected"
+                                        Click="RemoveFromPlaylist_Click">
+                                    <TextBlock Text="➖" Foreground="White"/>
+                                </Button>
+                                <Button Style="{StaticResource IconButton}" ToolTip="Add to Timeline"
+                                        Click="AddToTimeline_Click" Margin="8,0,0,0">
+                                    <TextBlock Text="▶" Foreground="White"/>
+                                </Button>
                             </StackPanel>
                         </Border>
                         
@@ -126,6 +261,16 @@
                                  Drop="PlaylistBox_Drop"
                                  PreviewMouseLeftButtonDown="PlaylistBox_PreviewMouseLeftButtonDown"
                                  PreviewMouseMove="PlaylistBox_PreviewMouseMove">
+                            <ListBox.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Open in Player" Click="OpenInPlayer_Click"/>
+                                    <MenuItem Header="Add to Timeline" Click="AddToTimeline_Click"/>
+                                    <MenuItem Header="Add Video to V1" Click="AddVideoToTimeline_Click"/>
+                                    <MenuItem Header="Extract Audio to A1" Click="ExtractAudioToTimeline_Click"/>
+                                    <Separator/>
+                                    <MenuItem Header="Remove from Playlist" Click="RemoveFromPlaylist_Click"/>
+                                </ContextMenu>
+                            </ListBox.ContextMenu>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <Grid Margin="2">
@@ -144,11 +289,11 @@
                                         <!-- Info -->
                                         <StackPanel Grid.Column="1" Margin="8,0,0,0">
                                             <TextBlock Text="{Binding Name}" 
-                                                       Foreground="{StaticResource TextColor}"
+                                                       Foreground="#FFFFFF"
                                                        TextTrimming="CharacterEllipsis"
                                                        FontSize="11"/>
                                             <TextBlock Text="{Binding DurationText}" 
-                                                       Foreground="#888888"
+                                                       Foreground="#AAAAAA"
                                                        FontSize="10"/>
                                         </StackPanel>
                                     </Grid>
@@ -186,11 +331,11 @@
                         <StackPanel Orientation="Horizontal">
                             <RadioButton x:Name="PropertiesTab" Content="Properties" 
                                          IsChecked="True" GroupName="RightTabs"
-                                         Foreground="{StaticResource TextColor}"
+                                         Style="{StaticResource DarkRadioButton}"
                                          Margin="0,0,12,0"/>
                             <RadioButton x:Name="FiltersTab" Content="Filters" 
                                          GroupName="RightTabs"
-                                         Foreground="{StaticResource TextColor}"/>
+                                         Style="{StaticResource DarkRadioButton}"/>
                         </StackPanel>
                     </Border>
                     
@@ -198,7 +343,7 @@
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                         <StackPanel x:Name="PropertiesPanel" Margin="8">
                             <TextBlock Text="No clip selected" 
-                                       Foreground="#666666"
+                                       Foreground="#999999"
                                        HorizontalAlignment="Center"
                                        Margin="0,20,0,0"/>
                         </StackPanel>

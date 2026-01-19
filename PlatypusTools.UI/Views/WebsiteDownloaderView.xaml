@@ -89,13 +89,6 @@
                           SelectionMode="Single" IsReadOnly="True"
                           ColumnHeaderHeight="32"
                           HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
-                    <DataGrid.ColumnHeaderStyle>
-                        <Style TargetType="DataGridColumnHeader">
-                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                            <Setter Property="Padding" Value="8,4"/>
-                            <Setter Property="FontWeight" Value="SemiBold"/>
-                        </Style>
-                    </DataGrid.ColumnHeaderStyle>
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Header="Select" Width="60" CanUserResize="True" MinWidth="50">
                             <DataGridTemplateColumn.CellTemplate>

@@ -18,8 +18,43 @@
         <SolidColorBrush x:Key="AudioClipColor" Color="#5B5B8A"/>
         <SolidColorBrush x:Key="SelectedClipBorder" Color="#FFCC00"/>
         <SolidColorBrush x:Key="PlayheadColor" Color="#FF4444"/>
-        <SolidColorBrush x:Key="TextColor" Color="#CCCCCC"/>
+        <SolidColorBrush x:Key="TextColor" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="TextColorDim" Color="#BBBBBB"/>
         <SolidColorBrush x:Key="ButtonHoverBg" Color="#484848"/>
+        
+        <!-- Dark toolbar button style with white text -->
+        <Style x:Key="ToolbarButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                CornerRadius="2" Padding="2">
+                            <ContentPresenter x:Name="contentPresenter" 
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              TextBlock.Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#484848"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#5A5A5A"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="contentPresenter" Property="TextBlock.Foreground" Value="#666666"/>
+                                <Setter TargetName="border" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
     
     <Grid>
@@ -34,72 +69,73 @@
                 Padding="4">
             <StackPanel Orientation="Horizontal">
                 <!-- Menu button -->
-                <Button x:Name="MenuButton" Content="☰" Width="28" Height="24" 
-                        Background="Transparent" Foreground="{StaticResource TextColor}"
-                        BorderThickness="0" ToolTip="Timeline Menu"/>
+                <Button x:Name="MenuButton" Style="{StaticResource ToolbarButton}" ToolTip="Timeline Menu">
+                    <TextBlock Text="☰" Foreground="White"/>
+                </Button>
                 
                 <!-- Cut -->
-                <Button x:Name="CutButton" Content="✂" Width="28" Height="24"
-                        Background="Transparent" Foreground="{StaticResource TextColor}"
-                        BorderThickness="0" ToolTip="Cut (S)" Click="CutButton_Click"/>
+                <Button x:Name="CutButton" Style="{StaticResource ToolbarButton}" ToolTip="Cut (S)" Click="CutButton_Click">
+                    <TextBlock Text="✂" Foreground="White"/>
+                </Button>
                 
                 <!-- Copy -->
-                <Button x:Name="CopyButton" Content="📋" Width="28" Height="24"
-                        Background="Transparent" Foreground="{StaticResource TextColor}"
-                        BorderThickness="0" ToolTip="Copy (C)"/>
+                <Button x:Name="CopyButton" Style="{StaticResource ToolbarButton}" ToolTip="Copy (C)">
+                    <TextBlock Text="📋" Foreground="White"/>
+                </Button>
                 
                 <!-- Paste -->
-                <Button x:Name="PasteButton" Content="📄" Width="28" Height="24"
-                        Background="Transparent" Foreground="{StaticResource TextColor}"
-                        BorderThickness="0" ToolTip="Paste"/>
+                <Button x:Name="PasteButton" Style="{StaticResource ToolbarButton}" ToolTip="Paste">
+                    <TextBlock Text="📄" Foreground="White"/>
+                </Button>
                 
                 <Separator Width="1" Background="{StaticResource TrackBorderBrush}" Margin="4,0"/>
                 
                 <!-- Append -->
-                <Button x:Name="AppendButton" Content="➕" Width="28" Height="24"
-                        Background="Transparent" Foreground="{StaticResource TextColor}"
-                        BorderThickness="0" ToolTip="Append to Track (A)"/>
+                <Button x:Name="AppendButton" Style="{StaticResource ToolbarButton}" ToolTip="Append to Track (A)">
+                    <TextBlock Text="➕" Foreground="White"/>
+                </Button>
                 
                 <!-- Remove -->
-                <Button x:Name="RemoveButton" Content="🗑" Width="28" Height="24"
-                        Background="Transparent" Foreground="{StaticResource TextColor}"
-                        BorderThickness="0" ToolTip="Remove (X)" Click="RemoveButton_Click"/>
+                <Button x:Name="RemoveButton" Style="{StaticResource ToolbarButton}" ToolTip="Remove (X)" Click="RemoveButton_Click">
+                    <TextBlock Text="🗑" Foreground="White"/>
+                </Button>
                 
                 <!-- Lift -->
-                <Button x:Name="LiftButton" Content="⬆" Width="28" Height="24"
-                        Background="Transparent" Foreground="{StaticResource TextColor}"
-                        BorderThickness="0" ToolTip="Lift (Z)"/>
+                <Button x:Name="LiftButton" Style="{StaticResource ToolbarButton}" ToolTip="Lift (Z)">
+                    <TextBlock Text="⬆" Foreground="White"/>
+                </Button>
                 
                 <Separator Width="1" Background="{StaticResource TrackBorderBrush}" Margin="4,0"/>
                 
                 <!-- Insert Track -->
-                <Button x:Name="InsertTrackButton" Content="🎞" Width="28" Height="24"
-                        Background="Transparent" Foreground="{StaticResource TextColor}"
-                        BorderThickness="0" ToolTip="Insert Track"/>
+                <Button x:Name="InsertTrackButton" Style="{StaticResource ToolbarButton}" ToolTip="Insert Track">
+                    <TextBlock Text="🎞" Foreground="White"/>
+                </Button>
                 
                 <!-- Toggle Ripple -->
-                <ToggleButton x:Name="RippleToggle" Content="🔗" Width="28" Height="24"
-                              Background="Transparent" Foreground="{StaticResource TextColor}"
-                              BorderThickness="0" ToolTip="Ripple Edit Mode"/>
+                <ToggleButton x:Name="RippleToggle" Width="28" Height="24"
+                              Background="Transparent" BorderThickness="0" ToolTip="Ripple Edit Mode">
+                    <TextBlock Text="🔗" Foreground="White"/>
+                </ToggleButton>
                 
                 <Separator Width="1" Background="{StaticResource TrackBorderBrush}" Margin="4,0"/>
                 
                 <!-- Zoom controls -->
-                <Button x:Name="ZoomOutButton" Content="➖" Width="28" Height="24"
-                        Background="Transparent" Foreground="{StaticResource TextColor}"
-                        BorderThickness="0" ToolTip="Zoom Out" Click="ZoomOutButton_Click"/>
+                <Button x:Name="ZoomOutButton" Style="{StaticResource ToolbarButton}" ToolTip="Zoom Out" Click="ZoomOutButton_Click">
+                    <TextBlock Text="➖" Foreground="White"/>
+                </Button>
                 
                 <Slider x:Name="ZoomSlider" Width="100" Minimum="0.1" Maximum="5" Value="1"
                         VerticalAlignment="Center" Margin="4,0"
                         ValueChanged="ZoomSlider_ValueChanged"/>
                 
-                <Button x:Name="ZoomInButton" Content="➕" Width="28" Height="24"
-                        Background="Transparent" Foreground="{StaticResource TextColor}"
-                        BorderThickness="0" ToolTip="Zoom In" Click="ZoomInButton_Click"/>
+                <Button x:Name="ZoomInButton" Style="{StaticResource ToolbarButton}" ToolTip="Zoom In" Click="ZoomInButton_Click">
+                    <TextBlock Text="➕" Foreground="White"/>
+                </Button>
                 
-                <Button x:Name="ZoomFitButton" Content="⬜" Width="28" Height="24"
-                        Background="Transparent" Foreground="{StaticResource TextColor}"
-                        BorderThickness="0" ToolTip="Zoom to Fit" Click="ZoomFitButton_Click"/>
+                <Button x:Name="ZoomFitButton" Style="{StaticResource ToolbarButton}" ToolTip="Zoom to Fit" Click="ZoomFitButton_Click">
+                    <TextBlock Text="⬜" Foreground="White"/>
+                </Button>
             </StackPanel>
         </Border>
         
@@ -114,13 +150,17 @@
             <ScrollViewer x:Name="TrackHeaderScroll" Grid.Column="0" 
                           VerticalScrollBarVisibility="Hidden"
                           HorizontalScrollBarVisibility="Disabled">
-                <ItemsControl x:Name="TrackHeaders" ItemsSource="{Binding Tracks}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Background="{StaticResource TrackHeaderBg}"
-                                    BorderBrush="{StaticResource TrackBorderBrush}"
-                                    BorderThickness="0,0,1,1"
-                                    Height="50" Padding="4">
+                <Grid>
+                    <!-- Spacer to match timeline ruler height -->
+                    <Border Height="30" VerticalAlignment="Top" Background="{StaticResource TrackHeaderBg}"/>
+                    
+                    <ItemsControl x:Name="TrackHeaders" ItemsSource="{Binding Tracks}" Margin="0,30,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource TrackHeaderBg}"
+                                        BorderBrush="{StaticResource TrackBorderBrush}"
+                                        BorderThickness="0,0,1,1"
+                                        Height="50" Padding="4">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -134,32 +174,36 @@
                                     <StackPanel Grid.Row="1" Orientation="Horizontal" 
                                                 VerticalAlignment="Center">
                                         <!-- Mute -->
-                                        <ToggleButton Content="🔇" Width="20" Height="18"
+                                        <ToggleButton Width="20" Height="18"
                                                       IsChecked="{Binding IsMuted}"
                                                       Background="Transparent"
-                                                      Foreground="{StaticResource TextColor}"
-                                                      BorderThickness="0" FontSize="10"
-                                                      ToolTip="Mute Track"/>
+                                                      BorderThickness="0"
+                                                      ToolTip="Mute Track">
+                                            <TextBlock Text="🔇" Foreground="White" FontSize="10"/>
+                                        </ToggleButton>
                                         <!-- Hide -->
-                                        <ToggleButton Content="👁" Width="20" Height="18"
+                                        <ToggleButton Width="20" Height="18"
                                                       IsChecked="{Binding IsHidden}"
                                                       Background="Transparent"
-                                                      Foreground="{StaticResource TextColor}"
-                                                      BorderThickness="0" FontSize="10"
-                                                      ToolTip="Hide Track"/>
+                                                      BorderThickness="0"
+                                                      ToolTip="Hide Track">
+                                            <TextBlock Text="👁" Foreground="White" FontSize="10"/>
+                                        </ToggleButton>
                                         <!-- Lock -->
-                                        <ToggleButton Content="🔒" Width="20" Height="18"
+                                        <ToggleButton Width="20" Height="18"
                                                       IsChecked="{Binding IsLocked}"
                                                       Background="Transparent"
-                                                      Foreground="{StaticResource TextColor}"
-                                                      BorderThickness="0" FontSize="10"
-                                                      ToolTip="Lock Track"/>
+                                                      BorderThickness="0"
+                                                      ToolTip="Lock Track">
+                                            <TextBlock Text="🔒" Foreground="White" FontSize="10"/>
+                                        </ToggleButton>
                                     </StackPanel>
                                 </Grid>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
+                </Grid>
             </ScrollViewer>
             
             <!-- Track clips area with scrolling -->
@@ -171,10 +215,47 @@
                       MouseLeftButtonDown="TimelineGrid_MouseLeftButtonDown"
                       MouseMove="TimelineGrid_MouseMove"
                       MouseLeftButtonUp="TimelineGrid_MouseLeftButtonUp"
+                      MouseRightButtonDown="TimelineGrid_MouseRightButtonDown"
                       AllowDrop="True"
                       Drop="TimelineGrid_Drop"
                       DragOver="TimelineGrid_DragOver"
                       Background="{StaticResource TimelineBg}">
+                    
+                    <!-- Context Menu for Timeline -->
+                    <Grid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Split at Playhead" Click="SplitAtPlayhead_Click" InputGestureText="S">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="✂" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator/>
+                            <MenuItem Header="Insert Clip..." Click="InsertClip_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="📥" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Append to Track" Click="AppendToTrack_Click" InputGestureText="A">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="➕" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator/>
+                            <MenuItem Header="Remove Clip" Click="RemoveClip_Click" InputGestureText="X">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="🗑" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Lift (Leave Gap)" Click="LiftClip_Click" InputGestureText="Z">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="⬆" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator/>
+                            <MenuItem Header="Add Video Track" Click="AddVideoTrack_Click"/>
+                            <MenuItem Header="Add Audio Track" Click="AddAudioTrack_Click"/>
+                        </ContextMenu>
+                    </Grid.ContextMenu>
                     
                     <!-- Ruler at top -->
                     <local:ScrubBar x:Name="TimelineRuler" 

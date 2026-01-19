@@ -196,7 +196,7 @@
             </Border>
             
             <!-- Player Controls - Below Visualizer, Above Tabs -->
-            <Border Grid.Row="1" Background="#f5f5f5" Padding="10,5">
+            <Border Grid.Row="1" Background="{DynamicResource ControlBackgroundBrush}" Padding="10,5">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -266,11 +266,11 @@
                     <!-- Right: Volume + Sleep Timer -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                         <!-- Sleep Timer -->
-                        <Border Background="#f0f0f0" CornerRadius="3" Padding="5,2" Margin="0,0,10,0"
+                        <Border Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="3" Padding="5,2" Margin="0,0,10,0"
                                 Visibility="{Binding SleepTimerEnabled, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="💤" FontSize="12" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                                <TextBlock Text="{Binding SleepTimerStatusText}" FontSize="11" VerticalAlignment="Center" Foreground="#666"/>
+                                <TextBlock Text="{Binding SleepTimerStatusText}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 <Button Content="✕" Width="18" Height="18" FontSize="10"
                                         Command="{Binding CancelSleepTimerCommand}"
                                         Background="Transparent" BorderThickness="0" Margin="5,0,0,0"
@@ -323,7 +323,7 @@
             </Border>
             
             <!-- Bottom Panel: Queue or Library -->
-            <Border Grid.Row="2" Background="White" CornerRadius="0">
+            <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="0">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -591,13 +591,6 @@
                                       ColumnHeaderHeight="32"
                                       GridLinesVisibility="Horizontal" AlternatingRowBackground="#f8f8f8"
                                       HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                                <DataGrid.ColumnHeaderStyle>
-                                    <Style TargetType="DataGridColumnHeader">
-                                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                        <Setter Property="Padding" Value="8,4"/>
-                                        <Setter Property="FontWeight" Value="SemiBold"/>
-                                    </Style>
-                                </DataGrid.ColumnHeaderStyle>
                                 <DataGrid.Columns>
                                     <DataGridTemplateColumn Header="⭐" Width="32" MinWidth="32" CanUserResize="False">
                                         <DataGridTemplateColumn.CellTemplate>

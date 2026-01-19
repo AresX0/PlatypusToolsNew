@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -107,6 +108,16 @@ namespace PlatypusTools.UI.Controls.VideoEditor
                 TrackHeaders.ItemsSource = TimelineModel.Tracks;
                 TracksContainer.ItemsSource = TimelineModel.Tracks;
                 TimelineRuler.Duration = TimelineModel.Duration;
+                
+                // Subscribe to model property changes
+                TimelineModel.PropertyChanged += (s, e) =>
+                {
+                    if (e.PropertyName == nameof(TimelineModel.Duration))
+                    {
+                        TimelineRuler.Duration = TimelineModel.Duration;
+                        RedrawAllClips();
+                    }
+                };
             }
         }
 
@@ -520,6 +531,106 @@ namespace PlatypusTools.UI.Controls.VideoEditor
                     }
                 }
             }
+        }
+
+        private void SplitAtPlayhead_Click(object sender, RoutedEventArgs e)
+        {
+            SplitAtPlayhead();
+        }
+
+        private void InsertClip_Click(object sender, RoutedEventArgs e)
+        {
+            // Raise an event to let the parent handle file selection
+            OnInsertClipRequested();
+        }
+
+        private void AppendToTrack_Click(object sender, RoutedEventArgs e)
+        {
+            OnAppendToTrackRequested();
+        }
+
+        private void RemoveClip_Click(object sender, RoutedEventArgs e)
+        {
+            RemoveSelectedClips();
+        }
+
+        private void LiftClip_Click(object sender, RoutedEventArgs e)
+        {
+            LiftSelectedClips();
+        }
+
+        private void AddVideoTrack_Click(object sender, RoutedEventArgs e)
+        {
+            if (TimelineModel != null)
+            {
+                var trackNumber = TimelineModel.Tracks.Count(t => t.Type == TrackType.Video) + 1;
+                TimelineModel.Tracks.Add(new TimelineTrack
+                {
+                    Name = $"V{trackNumber}",
+                    Type = TrackType.Video
+                });
+                RedrawAllClips();
+            }
+        }
+
+        private void AddAudioTrack_Click(object sender, RoutedEventArgs e)
+        {
+            if (TimelineModel != null)
+            {
+                var trackNumber = TimelineModel.Tracks.Count(t => t.Type == TrackType.Audio) + 1;
+                TimelineModel.Tracks.Add(new TimelineTrack
+                {
+                    Name = $"A{trackNumber}",
+                    Type = TrackType.Audio
+                });
+                RedrawAllClips();
+            }
+        }
+
+        private void TimelineGrid_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Select clip at position before showing context menu
+            var point = e.GetPosition(TimelineGrid);
+            if (point.Y >= 30) // Below ruler
+            {
+                var clickTime = PixelsToTime(point.X);
+                int trackIndex = (int)((point.Y - 30) / 50);
+                
+                if (TimelineModel != null && trackIndex >= 0 && trackIndex < TimelineModel.Tracks.Count)
+                {
+                    var track = TimelineModel.Tracks[trackIndex];
+                    var clipAtPoint = track.Clips.FirstOrDefault(c => 
+                        clickTime >= c.StartTime && clickTime < c.EndTime);
+                    
+                    if (clipAtPoint != null)
+                    {
+                        TimelineModel.ClearSelection();
+                        clipAtPoint.IsSelected = true;
+                        UpdateClipVisual(clipAtPoint);
+                        ClipSelected?.Invoke(this, clipAtPoint);
+                    }
+                }
+            }
+        }
+
+        // Events for external handling
+        public event EventHandler? InsertClipRequested;
+        public event EventHandler? AppendToTrackRequested;
+
+        protected virtual void OnInsertClipRequested()
+        {
+            InsertClipRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        protected virtual void OnAppendToTrackRequested()
+        {
+            AppendToTrackRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void LiftSelectedClips()
+        {
+            // Lift removes clip but leaves gap (unlike Ripple Delete)
+            RemoveSelectedClips();
         }
 
         private void SplitClip(TimelineTrack track, TimelineClip clip, TimeSpan splitPoint)

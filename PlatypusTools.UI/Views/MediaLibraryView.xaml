@@ -59,13 +59,6 @@
                           HeadersVisibility="Column"
                           HorizontalScrollBarVisibility="Disabled" 
                           VerticalScrollBarVisibility="Disabled">
-                        <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                <Setter Property="Padding" Value="8,4"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="250" MinWidth="150" CanUserResize="True"/>
                             <DataGridTextColumn Header="Type" Binding="{Binding FileType}" Width="60" MinWidth="50" CanUserResize="True"/>
