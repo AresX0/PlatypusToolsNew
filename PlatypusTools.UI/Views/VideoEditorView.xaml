@@ -99,81 +99,78 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Toolbar -->
-        <Border Grid.Row="0" Background="#4B5058" Padding="8">
+        <!-- Toolbar - Shotcut-style compact layout -->
+        <Border Grid.Row="0" Background="#4B5058" Padding="4,2">
             <DockPanel>
-                <!-- Left tools -->
+                <!-- Left tools - File & Edit operations -->
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
-                    <Button Content="📁 New" Command="{Binding NewProjectCommand}" 
-                            Style="{StaticResource ToolbarButtonStyle}" Margin="0,0,4,0"/>
-                    <Button Content="📂 Open" Command="{Binding OpenProjectCommand}" 
-                            Style="{StaticResource ToolbarButtonStyle}" Margin="0,0,4,0"/>
-                    <Button Content="💾 Save" Command="{Binding SaveProjectCommand}" 
-                            Style="{StaticResource ToolbarButtonStyle}" Margin="0,0,12,0"/>
+                    <Button Content="📁" Command="{Binding NewProjectCommand}" 
+                            Style="{StaticResource ToolbarButtonStyle}" ToolTip="New Project" 
+                            Width="28" Height="24" FontSize="14" Padding="0" Margin="0,0,2,0"/>
+                    <Button Content="📂" Command="{Binding OpenProjectCommand}" 
+                            Style="{StaticResource ToolbarButtonStyle}" ToolTip="Open Project"
+                            Width="28" Height="24" FontSize="14" Padding="0" Margin="0,0,2,0"/>
+                    <Button Content="💾" Command="{Binding SaveProjectCommand}" 
+                            Style="{StaticResource ToolbarButtonStyle}" ToolTip="Save Project"
+                            Width="28" Height="24" FontSize="14" Padding="0" Margin="0,0,6,0"/>
                     
-                    <Separator Style="{StaticResource VerticalSeparatorStyle}"/>
+                    <Rectangle Width="1" Fill="#666" Margin="4,2"/>
                     
-                    <Button Content="↩ Undo" Command="{Binding UndoCommand}" 
-                            Style="{StaticResource ToolbarButtonStyle}" Margin="12,0,4,0"/>
-                    <Button Content="↪ Redo" Command="{Binding RedoCommand}" 
-                            Style="{StaticResource ToolbarButtonStyle}" Margin="0,0,12,0"/>
+                    <Button Content="↩" Command="{Binding UndoCommand}" 
+                            Style="{StaticResource ToolbarButtonStyle}" ToolTip="Undo (Ctrl+Z)"
+                            Width="28" Height="24" FontSize="14" Padding="0" Margin="6,0,2,0"/>
+                    <Button Content="↪" Command="{Binding RedoCommand}" 
+                            Style="{StaticResource ToolbarButtonStyle}" ToolTip="Redo (Ctrl+Y)"
+                            Width="28" Height="24" FontSize="14" Padding="0" Margin="0,0,6,0"/>
                     
-                    <Separator Style="{StaticResource VerticalSeparatorStyle}"/>
+                    <Rectangle Width="1" Fill="#666" Margin="4,2"/>
                     
-                    <Button Content="📥 Insert" Command="{Binding InsertAtPlayheadCommand}" 
-                            Style="{StaticResource ToolbarButtonStyle}" Margin="12,0,4,0"
-                            ToolTip="Insert selected media at playhead (V) - pushes clips right"/>
-                    <Button Content="✂ Split" Command="{Binding SplitClipCommand}" 
-                            Style="{StaticResource ToolbarButtonStyle}" Margin="0,0,4,0"
-                            ToolTip="Split clip at playhead (S)"/>
-                    <Button Content="🗑 Delete" Command="{Binding DeleteClipCommand}" 
-                            Style="{StaticResource ToolbarButtonStyle}" Margin="0,0,4,0"
-                            ToolTip="Delete selected clip or clip at playhead (Del)"/>
-                    <Button Content="📋 Duplicate" Command="{Binding DuplicateClipCommand}" 
-                            Style="{StaticResource ToolbarButtonStyle}" Margin="0,0,4,0"/>
-                    <Button Content="🎭 + Overlay" Command="{Binding AddAsOverlayCommand}" 
-                            Style="{StaticResource ToolbarButtonStyle}" Margin="0,0,4,0"
-                            ToolTip="Add overlay at playhead position"/>
-                    <Button Content="📝 Text" Command="{Binding AddTextClipCommand}" 
-                            Style="{StaticResource ToolbarButtonStyle}" Margin="0,0,4,0"
-                            ToolTip="Add text/title clip (T)"/>
-                    <Button Content="📦 Proxy" Command="{Binding GenerateProxyCommand}" 
-                            Style="{StaticResource ToolbarButtonStyle}" Margin="0,0,12,0"
-                            ToolTip="Generate proxy for selected media"/>
+                    <!-- Clip operations -->
+                    <Button Content="📥" Command="{Binding InsertAtPlayheadCommand}" 
+                            Style="{StaticResource ToolbarButtonStyle}" ToolTip="Insert at Playhead (V)"
+                            Width="28" Height="24" FontSize="14" Padding="0" Margin="6,0,2,0"/>
+                    <Button Content="✂" Command="{Binding SplitClipCommand}" 
+                            Style="{StaticResource ToolbarButtonStyle}" ToolTip="Split at Playhead (S)"
+                            Width="28" Height="24" FontSize="14" Padding="0" Margin="0,0,2,0"/>
+                    <Button Content="🗑" Command="{Binding DeleteClipCommand}" 
+                            Style="{StaticResource ToolbarButtonStyle}" ToolTip="Delete Clip (Del)"
+                            Width="28" Height="24" FontSize="14" Padding="0" Margin="0,0,2,0"/>
+                    <Button Content="📋" Command="{Binding DuplicateClipCommand}" 
+                            Style="{StaticResource ToolbarButtonStyle}" ToolTip="Duplicate Clip (Ctrl+D)"
+                            Width="28" Height="24" FontSize="14" Padding="0" Margin="0,0,2,0"/>
+                    <Button Content="🎭" Command="{Binding AddAsOverlayCommand}" 
+                            Style="{StaticResource ToolbarButtonStyle}" ToolTip="Add Overlay (O)"
+                            Width="28" Height="24" FontSize="14" Padding="0" Margin="0,0,2,0"/>
+                    <Button Content="📝" Command="{Binding AddTextClipCommand}" 
+                            Style="{StaticResource ToolbarButtonStyle}" ToolTip="Add Text (T)"
+                            Width="28" Height="24" FontSize="14" Padding="0" Margin="0,0,2,0"/>
+                    <Button Content="📦" Command="{Binding GenerateProxyCommand}" 
+                            Style="{StaticResource ToolbarButtonStyle}" ToolTip="Generate Proxy"
+                            Width="28" Height="24" FontSize="14" Padding="0" Margin="0,0,2,0"/>
                 </StackPanel>
 
-                <!-- Right tools -->
+                <!-- Right tools - AI features and Export -->
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <Button Content="🎵 Detect Beats" Command="{Binding DetectBeatsCommand}" 
-                            Style="{StaticResource AccentButtonStyle}" Margin="0,0,4,0"/>
-                    <Button Content="🔄 Beat Sync" Command="{Binding ApplyBeatSyncCommand}" 
-                            Style="{StaticResource AccentButtonStyle}" Margin="0,0,4,0"/>
-                    <Button Content="💬 Auto Caption" Command="{Binding GenerateCaptionsCommand}" 
-                            Style="{StaticResource AccentButtonStyle}" Margin="0,0,12,0"/>
+                    <Button Content="🎵 Beats" Command="{Binding DetectBeatsCommand}" 
+                            Style="{StaticResource AccentButtonStyle}" FontSize="11" Padding="6,3" Height="24"
+                            ToolTip="Detect audio beats"/>
+                    <Button Content="🔄 Sync" Command="{Binding ApplyBeatSyncCommand}" 
+                            Style="{StaticResource AccentButtonStyle}" FontSize="11" Padding="6,3" Height="24"
+                            ToolTip="Sync cuts to beats" Margin="2,0"/>
+                    <Button Content="💬 Caption" Command="{Binding GenerateCaptionsCommand}" 
+                            Style="{StaticResource AccentButtonStyle}" FontSize="11" Padding="6,3" Height="24"
+                            ToolTip="Auto-generate captions (AI)" Margin="0,0,8,0"/>
                     
-                    <Separator Style="{StaticResource VerticalSeparatorStyle}"/>
+                    <Rectangle Width="1" Fill="#666" Margin="4,2"/>
                     
-                    <!-- Export with presets -->
-                    <StackPanel Orientation="Horizontal" Margin="12,0,0,0">
-                        <ComboBox ItemsSource="{Binding AvailableExportPresets}"
-                                  SelectedItem="{Binding SelectedExportPreset}"
-                                  DisplayMemberPath="Name"
-                                  Width="150" Margin="0,0,4,0"
-                                  ToolTip="Select export preset (YouTube, TikTok, ProRes, etc.)">
-                            <ComboBox.GroupStyle>
-                                <GroupStyle>
-                                    <GroupStyle.HeaderTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="#0EA5E9"/>
-                                        </DataTemplate>
-                                    </GroupStyle.HeaderTemplate>
-                                </GroupStyle>
-                            </ComboBox.GroupStyle>
-                        </ComboBox>
-                        <Button Content="📤 Export" Command="{Binding ExportWithPresetCommand}" 
-                                Style="{StaticResource PrimaryButtonStyle}"
-                                ToolTip="{Binding SelectedExportPreset.Description}"/>
-                    </StackPanel>
+                    <!-- Export - compact preset selector -->
+                    <ComboBox ItemsSource="{Binding AvailableExportPresets}"
+                              SelectedItem="{Binding SelectedExportPreset}"
+                              DisplayMemberPath="Name"
+                              Width="120" Height="24" FontSize="11" Margin="8,0,2,0"
+                              ToolTip="Export preset"/>
+                    <Button Content="📤 Export" Command="{Binding ExportWithPresetCommand}" 
+                            Style="{StaticResource PrimaryButtonStyle}" FontSize="11" Padding="8,3" Height="24"/>
                 </StackPanel>
                 
                 <StackPanel/>
@@ -385,156 +382,127 @@
                 </Border>
             </Grid>
 
-            <!-- Right Panel - Properties/Inspector -->
+            <!-- Right Panel - Properties/Inspector (Shotcut-style collapsible) -->
             <Border Grid.Column="2" Background="#4B5058" Margin="1,0,0,0">
                 <DockPanel>
-                    <Border DockPanel.Dock="Top" Background="#5B616A" Padding="12,8">
-                        <TextBlock Text="Inspector" FontWeight="SemiBold" Foreground="White"/>
+                    <Border DockPanel.Dock="Top" Background="#5B616A" Padding="8,6">
+                        <TextBlock Text="Inspector" FontWeight="SemiBold" Foreground="White" FontSize="12"/>
                     </Border>
 
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="12" Visibility="{Binding HasSelectedClip, Converter={StaticResource BoolToVisibilityConverter}}">
-                            <!-- Clip properties -->
-                            <TextBlock Text="📎 Clip Properties" FontWeight="SemiBold" 
-                                       Foreground="White" Margin="0,0,0,8"/>
+                        <StackPanel Margin="8" Visibility="{Binding HasSelectedClip, Converter={StaticResource BoolToVisibilityConverter}}">
                             
-                            <StackPanel Margin="0,0,0,12">
-                                <TextBlock Text="Name" Foreground="#D1D5DB" FontSize="11"/>
-                                <TextBox Text="{Binding SelectedClip.Name, UpdateSourceTrigger=PropertyChanged}"
-                                         Style="{StaticResource DarkTextBoxStyle}"/>
-                            </StackPanel>
+                            <!-- Clip Properties - Collapsed by default -->
+                            <Expander IsExpanded="True" Foreground="White" Margin="0,0,0,4">
+                                <Expander.Header>
+                                    <TextBlock Text="📎 Clip Properties" FontWeight="SemiBold" Foreground="White" FontSize="11"/>
+                                </Expander.Header>
+                                <StackPanel Margin="0,6,0,0">
+                                    <TextBlock Text="Name" Foreground="#D1D5DB" FontSize="10"/>
+                                    <TextBox Text="{Binding SelectedClip.Name, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource DarkTextBoxStyle}" FontSize="11" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Expander>
 
                             <!-- Duration Controls -->
-                            <TextBlock Text="⏱ Duration" FontWeight="SemiBold" 
-                                       Foreground="White" Margin="0,0,0,8"/>
-                            
-                            <DockPanel Margin="0,0,0,8">
-                                <TextBlock Text="{Binding SelectedClip.Duration, Converter={StaticResource TimeSpanFormatConverter}}" 
-                                           Foreground="#0EA5E9" VerticalAlignment="Center" FontFamily="Consolas"/>
-                            </DockPanel>
-                            
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                <Button Content="−1s" Command="{Binding TrimClipCommand}" CommandParameter="1"
-                                        Style="{StaticResource SmallButtonStyle}" Padding="8,3" Margin="0,0,4,0"
-                                        ToolTip="Trim 1 second from end"/>
-                                <Button Content="−0.5s" Command="{Binding TrimClipCommand}" CommandParameter="0.5"
-                                        Style="{StaticResource SmallButtonStyle}" Padding="8,3" Margin="0,0,8,0"
-                                        ToolTip="Trim 0.5 seconds from end"/>
-                                <Button Content="+0.5s" Command="{Binding ExtendClipCommand}" CommandParameter="0.5"
-                                        Style="{StaticResource SmallButtonStyle}" Padding="8,3" Margin="0,0,4,0"
-                                        ToolTip="Extend by 0.5 seconds"/>
-                                <Button Content="+1s" Command="{Binding ExtendClipCommand}" CommandParameter="1"
-                                        Style="{StaticResource SmallButtonStyle}" Padding="8,3"
-                                        ToolTip="Extend by 1 second"/>
-                            </StackPanel>
-
-                            <Separator Background="#6B7280" Margin="0,8"/>
+                            <Expander IsExpanded="True" Foreground="White" Margin="0,0,0,4">
+                                <Expander.Header>
+                                    <TextBlock Text="⏱ Duration" FontWeight="SemiBold" Foreground="White" FontSize="11"/>
+                                </Expander.Header>
+                                <StackPanel Margin="0,6,0,0">
+                                    <TextBlock Text="{Binding SelectedClip.Duration, Converter={StaticResource TimeSpanFormatConverter}}" 
+                                               Foreground="#0EA5E9" FontFamily="Consolas" FontSize="13" Margin="0,0,0,6"/>
+                                    <WrapPanel>
+                                        <Button Content="−1s" Command="{Binding TrimClipCommand}" CommandParameter="1"
+                                                Style="{StaticResource SmallButtonStyle}" Padding="6,2" Margin="0,0,2,2"/>
+                                        <Button Content="−0.5s" Command="{Binding TrimClipCommand}" CommandParameter="0.5"
+                                                Style="{StaticResource SmallButtonStyle}" Padding="6,2" Margin="0,0,2,2"/>
+                                        <Button Content="+0.5s" Command="{Binding ExtendClipCommand}" CommandParameter="0.5"
+                                                Style="{StaticResource SmallButtonStyle}" Padding="6,2" Margin="0,0,2,2"/>
+                                        <Button Content="+1s" Command="{Binding ExtendClipCommand}" CommandParameter="1"
+                                                Style="{StaticResource SmallButtonStyle}" Padding="6,2"/>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Expander>
 
                             <!-- Speed Controls -->
-                            <TextBlock Text="⏱ Speed" FontWeight="SemiBold" 
-                                       Foreground="White" Margin="0,8,0,8"/>
-                            
-                            <StackPanel Margin="0,0,0,8">
-                                <Slider Minimum="0.1" Maximum="4" 
-                                        Value="{Binding SelectedClip.Speed}"
-                                        Style="{StaticResource DarkSliderStyle}"/>
-                                <TextBlock Text="{Binding SelectedClip.Speed, StringFormat='{}{0:F2}x'}" 
-                                           Foreground="White" HorizontalAlignment="Center" Margin="0,4,0,0"/>
-                            </StackPanel>
-                            
-                            <!-- Speed presets -->
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                <Button Content="0.25x" Tag="0.25" Click="SpeedPreset_Click"
-                                        Style="{StaticResource SmallButtonStyle}" Padding="6,3" Margin="0,0,4,0"/>
-                                <Button Content="0.5x" Tag="0.5" Click="SpeedPreset_Click"
-                                        Style="{StaticResource SmallButtonStyle}" Padding="6,3" Margin="0,0,4,0"/>
-                                <Button Content="1x" Tag="1" Click="SpeedPreset_Click"
-                                        Style="{StaticResource SmallButtonStyle}" Padding="6,3" Margin="0,0,4,0"/>
-                                <Button Content="1.5x" Tag="1.5" Click="SpeedPreset_Click"
-                                        Style="{StaticResource SmallButtonStyle}" Padding="6,3" Margin="0,0,4,0"/>
-                                <Button Content="2x" Tag="2" Click="SpeedPreset_Click"
-                                        Style="{StaticResource SmallButtonStyle}" Padding="6,3"/>
-                            </StackPanel>
-
-                            <Separator Background="#6B7280" Margin="0,8"/>
+                            <Expander IsExpanded="True" Foreground="White" Margin="0,0,0,4">
+                                <Expander.Header>
+                                    <TextBlock Text="⏱ Speed" FontWeight="SemiBold" Foreground="White" FontSize="11"/>
+                                </Expander.Header>
+                                <StackPanel Margin="0,6,0,0">
+                                    <Slider Minimum="0.1" Maximum="4" Value="{Binding SelectedClip.Speed}"
+                                            Style="{StaticResource DarkSliderStyle}"/>
+                                    <TextBlock Text="{Binding SelectedClip.Speed, StringFormat='{}{0:F2}x'}" 
+                                               Foreground="White" HorizontalAlignment="Center" FontSize="11" Margin="0,2,0,4"/>
+                                    <WrapPanel>
+                                        <Button Content="0.25x" Tag="0.25" Click="SpeedPreset_Click"
+                                                Style="{StaticResource SmallButtonStyle}" Padding="4,2" Margin="0,0,2,0" FontSize="10"/>
+                                        <Button Content="0.5x" Tag="0.5" Click="SpeedPreset_Click"
+                                                Style="{StaticResource SmallButtonStyle}" Padding="4,2" Margin="0,0,2,0" FontSize="10"/>
+                                        <Button Content="1x" Tag="1" Click="SpeedPreset_Click"
+                                                Style="{StaticResource SmallButtonStyle}" Padding="4,2" Margin="0,0,2,0" FontSize="10"/>
+                                        <Button Content="1.5x" Tag="1.5" Click="SpeedPreset_Click"
+                                                Style="{StaticResource SmallButtonStyle}" Padding="4,2" Margin="0,0,2,0" FontSize="10"/>
+                                        <Button Content="2x" Tag="2" Click="SpeedPreset_Click"
+                                                Style="{StaticResource SmallButtonStyle}" Padding="4,2" FontSize="10"/>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Expander>
 
                             <!-- Audio Controls -->
-                            <TextBlock Text="🔊 Audio" FontWeight="SemiBold" 
-                                       Foreground="White" Margin="0,8,0,8"/>
-
-                            <StackPanel Margin="0,0,0,8">
-                                <DockPanel>
-                                    <TextBlock Text="Volume" Foreground="#D1D5DB" FontSize="11"/>
-                                    <TextBlock DockPanel.Dock="Right" 
-                                               Text="{Binding SelectedClip.Volume, StringFormat='{}{0:P0}'}" 
-                                               Foreground="#0EA5E9" FontSize="11" FontWeight="SemiBold"/>
-                                </DockPanel>
-                                <Slider Minimum="0" Maximum="2" 
-                                        Value="{Binding SelectedClip.Volume}"
-                                        Style="{StaticResource DarkSliderStyle}"/>
-                            </StackPanel>
-                            
-                            <!-- Volume presets -->
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                <Button Content="🔇 Mute" Tag="0" Click="VolumePreset_Click"
-                                        Style="{StaticResource SmallButtonStyle}" Padding="6,3" Margin="0,0,4,0"/>
-                                <Button Content="50%" Tag="0.5" Click="VolumePreset_Click"
-                                        Style="{StaticResource SmallButtonStyle}" Padding="6,3" Margin="0,0,4,0"/>
-                                <Button Content="100%" Tag="1" Click="VolumePreset_Click"
-                                        Style="{StaticResource SmallButtonStyle}" Padding="6,3" Margin="0,0,4,0"/>
-                                <Button Content="150%" Tag="1.5" Click="VolumePreset_Click"
-                                        Style="{StaticResource SmallButtonStyle}" Padding="6,3" Margin="0,0,4,0"/>
-                                <Button Content="200%" Tag="2" Click="VolumePreset_Click"
-                                        Style="{StaticResource SmallButtonStyle}" Padding="6,3"/>
-                            </StackPanel>
-
-                            <!-- Audio Fade -->
-                            <Grid Margin="0,0,0,8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition/>
-                                    <ColumnDefinition/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0" Margin="0,0,4,0">
-                                    <TextBlock Text="Fade In (sec)" Foreground="#D1D5DB" FontSize="11"/>
-                                    <TextBox Text="{Binding SelectedClip.AudioFadeInSeconds, StringFormat=F1, UpdateSourceTrigger=LostFocus}"
-                                             Style="{StaticResource DarkTextBoxStyle}"/>
+                            <Expander IsExpanded="False" Foreground="White" Margin="0,0,0,4">
+                                <Expander.Header>
+                                    <TextBlock Text="🔊 Audio" FontWeight="SemiBold" Foreground="White" FontSize="11"/>
+                                </Expander.Header>
+                                <StackPanel Margin="0,6,0,0">
+                                    <DockPanel Margin="0,0,0,4">
+                                        <TextBlock Text="Volume" Foreground="#D1D5DB" FontSize="10"/>
+                                        <TextBlock DockPanel.Dock="Right" 
+                                                   Text="{Binding SelectedClip.Volume, StringFormat='{}{0:P0}'}" 
+                                                   Foreground="#0EA5E9" FontSize="10"/>
+                                    </DockPanel>
+                                    <Slider Minimum="0" Maximum="2" Value="{Binding SelectedClip.Volume}"
+                                            Style="{StaticResource DarkSliderStyle}"/>
+                                    <WrapPanel Margin="0,6,0,0">
+                                        <Button Content="🔇" Tag="0" Click="VolumePreset_Click"
+                                                Style="{StaticResource SmallButtonStyle}" Padding="4,2" Margin="0,0,2,2"/>
+                                        <Button Content="50%" Tag="0.5" Click="VolumePreset_Click"
+                                                Style="{StaticResource SmallButtonStyle}" Padding="4,2" Margin="0,0,2,2" FontSize="10"/>
+                                        <Button Content="100%" Tag="1" Click="VolumePreset_Click"
+                                                Style="{StaticResource SmallButtonStyle}" Padding="4,2" Margin="0,0,2,2" FontSize="10"/>
+                                        <Button Content="200%" Tag="2" Click="VolumePreset_Click"
+                                                Style="{StaticResource SmallButtonStyle}" Padding="4,2" FontSize="10"/>
+                                    </WrapPanel>
                                 </StackPanel>
-                                <StackPanel Grid.Column="1" Margin="4,0,0,0">
-                                    <TextBlock Text="Fade Out (sec)" Foreground="#D1D5DB" FontSize="11"/>
-                                    <TextBox Text="{Binding SelectedClip.AudioFadeOutSeconds, StringFormat=F1, UpdateSourceTrigger=LostFocus}"
-                                             Style="{StaticResource DarkTextBoxStyle}"/>
-                                </StackPanel>
-                            </Grid>
-
-                            <Separator Background="#6B7280" Margin="0,8"/>
+                            </Expander>
 
                             <!-- Opacity -->
-                            <TextBlock Text="👁 Opacity" FontWeight="SemiBold" 
-                                       Foreground="White" Margin="0,8,0,8"/>
-                            
-                            <StackPanel Margin="0,0,0,8">
-                                <Slider Minimum="0" Maximum="1" 
-                                        Value="{Binding SelectedClip.Opacity}"
-                                        Style="{StaticResource DarkSliderStyle}"/>
-                                <TextBlock Text="{Binding SelectedClip.Opacity, StringFormat='{}{0:P0}'}" 
-                                           Foreground="White" HorizontalAlignment="Center"/>
-                            </StackPanel>
-
-                            <Separator Background="#6B7280" Margin="0,8"/>
+                            <Expander IsExpanded="False" Foreground="White" Margin="0,0,0,4">
+                                <Expander.Header>
+                                    <TextBlock Text="👁 Opacity" FontWeight="SemiBold" Foreground="White" FontSize="11"/>
+                                </Expander.Header>
+                                <StackPanel Margin="0,6,0,0">
+                                    <Slider Minimum="0" Maximum="1" Value="{Binding SelectedClip.Opacity}"
+                                            Style="{StaticResource DarkSliderStyle}"/>
+                                    <TextBlock Text="{Binding SelectedClip.Opacity, StringFormat='{}{0:P0}'}" 
+                                               Foreground="White" HorizontalAlignment="Center" FontSize="11"/>
+                                </StackPanel>
+                            </Expander>
 
                             <!-- Background Removal -->
-                            <TextBlock Text="🎭 Background" FontWeight="SemiBold" 
-                                       Foreground="White" Margin="0,8,0,8"/>
-                            
-                            <Button Content="✨ Remove Background" 
-                                    Command="{Binding RemoveBackgroundCommand}"
-                                    Style="{StaticResource AccentButtonStyle}"
-                                    Margin="0,0,0,8"/>
-                            
-                            <TextBlock Text="Removes background using AI (processed on export)" 
-                                       Foreground="#9CA3AF" FontSize="10" TextWrapping="Wrap"/>
-
-                            <Separator Background="#6B7280" Margin="0,8"/>
+                            <Expander IsExpanded="False" Foreground="White" Margin="0,0,0,4">
+                                <Expander.Header>
+                                    <TextBlock Text="🎭 Background" FontWeight="SemiBold" Foreground="White" FontSize="11"/>
+                                </Expander.Header>
+                                <StackPanel Margin="0,6,0,0">
+                                    <Button Content="✨ Remove Background" 
+                                            Command="{Binding RemoveBackgroundCommand}"
+                                            Style="{StaticResource AccentButtonStyle}" FontSize="11"/>
+                                    <TextBlock Text="AI-powered (on export)" 
+                                               Foreground="#9CA3AF" FontSize="9" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Expander>
 
                             <!-- Shotcut-Style Filters Panel -->
                             <Expander IsExpanded="True" Foreground="White">
@@ -836,9 +804,10 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Timeline header with options -->
+                <!-- Timeline header with options (Shotcut-style) -->
                 <Border Grid.Row="0" Background="#4B5058" Padding="8,4">
                     <DockPanel>
+                        <!-- Left: Toggle options -->
                         <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
                             <CheckBox Content="Show Beats" IsChecked="{Binding ShowBeatMarkers}"
                                       Foreground="White" Margin="0,0,12,0"/>
@@ -847,12 +816,50 @@
                             <CheckBox Content="Snap to Beats" IsChecked="{Binding SnapToBeats}"
                                       Foreground="White" Margin="0,0,12,0"/>
                             <CheckBox Content="Snap to Clips" IsChecked="{Binding SnapToClips}"
-                                      Foreground="White"/>
+                                      Foreground="White" Margin="0,0,12,0"/>
+                            
+                            <Separator Style="{StaticResource VerticalSeparatorStyle}"/>
+                            
+                            <!-- Loop and Ripple toggles (Shotcut-style) -->
+                            <ToggleButton IsChecked="{Binding LoopPlayback}" 
+                                          Style="{StaticResource ToggleTransportButtonStyle}"
+                                          ToolTip="Loop Playback" Width="32" Height="24" Margin="8,0,4,0">
+                                <TextBlock Text="🔁" FontSize="11"/>
+                            </ToggleButton>
+                            <ToggleButton IsChecked="{Binding RippleEnabled}" 
+                                          Style="{StaticResource ToggleTransportButtonStyle}"
+                                          ToolTip="Ripple Edits - adjusts subsequent clips" Width="46" Height="24">
+                                <TextBlock Text="± Ripple" FontSize="9"/>
+                            </ToggleButton>
                         </StackPanel>
                         
-                        <TextBlock DockPanel.Dock="Right" 
-                                   Text="{Binding Project.Bpm, StringFormat='BPM: {0:F1}'}"
-                                   Foreground="#D1D5DB" VerticalAlignment="Center"/>
+                        <!-- Right: Zoom controls and BPM -->
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <TextBlock Text="🔍" Foreground="#9CA3AF" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                            <Slider Minimum="0.1" Maximum="5" Value="{Binding TimelineZoom, Mode=TwoWay}" 
+                                    Width="100" VerticalAlignment="Center"
+                                    ToolTip="Timeline Zoom"/>
+                            <TextBlock Text="{Binding TimelineZoom, StringFormat='{}{0:F1}x'}" 
+                                       Foreground="#9CA3AF" VerticalAlignment="Center" 
+                                       Width="30" Margin="4,0,12,0"/>
+                            
+                            <Separator Style="{StaticResource VerticalSeparatorStyle}"/>
+                            
+                            <TextBlock Text="{Binding Project.Bpm, StringFormat='BPM: {0:F1}'}"
+                                       Foreground="#D1D5DB" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        </StackPanel>
+                        
+                        <!-- Center: Add track buttons -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button Content="+ Video Track" 
+                                    Command="{Binding AddTrackCommand}" CommandParameter="Video"
+                                    Style="{StaticResource SmallButtonStyle}" 
+                                    Padding="8,2" Margin="0,0,4,0"/>
+                            <Button Content="+ Audio Track" 
+                                    Command="{Binding AddTrackCommand}" CommandParameter="Audio"
+                                    Style="{StaticResource SmallButtonStyle}" 
+                                    Padding="8,2"/>
+                        </StackPanel>
                     </DockPanel>
                 </Border>
 

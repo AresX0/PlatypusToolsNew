@@ -37,6 +37,7 @@ namespace PlatypusTools.UI.ViewModels
         private readonly TimelineOperationsService _timelineOps;
         private readonly ProxyService _proxyService;
         private readonly WaveformService _waveformService;
+        private readonly RealtimePreviewService _realtimePreview;
         
         private CancellationTokenSource? _operationCts;
         private bool _disposed;
@@ -159,6 +160,34 @@ namespace PlatypusTools.UI.ViewModels
         {
             get => _loopPlayback;
             set => SetProperty(ref _loopPlayback, value);
+        }
+
+        private bool _rippleEnabled = true;
+        /// <summary>
+        /// Whether ripple edits are enabled (adjusts subsequent clips when editing).
+        /// </summary>
+        public bool RippleEnabled
+        {
+            get => _rippleEnabled;
+            set => SetProperty(ref _rippleEnabled, value);
+        }
+
+        private double _timelineZoom = 1.0;
+        /// <summary>
+        /// Timeline zoom level (affects how clips are displayed).
+        /// </summary>
+        public double TimelineZoom
+        {
+            get => _timelineZoom;
+            set
+            {
+                if (SetProperty(ref _timelineZoom, value))
+                {
+                    // Update the static zoom level for converters
+                    PlatypusTools.UI.Converters.TimeToPixelConverter.ZoomLevel = value;
+                    OnPropertyChanged(nameof(Tracks)); // Refresh timeline display
+                }
+            }
         }
 
         private bool _isBusy;
@@ -607,6 +636,10 @@ namespace PlatypusTools.UI.ViewModels
             _timelineOps = new TimelineOperationsService();
             _proxyService = new ProxyService(_ffmpeg, _ffprobe);
             _waveformService = new WaveformService(_ffmpeg);
+            _realtimePreview = new RealtimePreviewService(_ffmpeg, _ffprobe);
+            
+            // Connect real-time preview events
+            _realtimePreview.FrameReady += OnPreviewFrameReady;
 
             // Initialize commands
             NewProjectCommand = new RelayCommand(_ => ExecuteNewProject());
@@ -679,7 +712,7 @@ namespace PlatypusTools.UI.ViewModels
             MoveFilterDownCommand = new RelayCommand(param => ExecuteMoveFilterDown(param as Filter), _ => SelectedClip != null);
             GenerateProxyCommand = new RelayCommand(async _ => await ExecuteGenerateProxyAsync(), _ => SelectedAsset != null);
             AddTextClipCommand = new RelayCommand(_ => ExecuteAddTextClip());
-            ExportWithPresetCommand = new RelayCommand(async _ => await ExecuteExportWithPresetAsync(), _ => SelectedExportPreset != null && Project != null);
+            ExportWithPresetCommand = new RelayCommand(async _ => await ExecuteExportWithPresetAsync(), _ => Tracks.Any(t => t.Clips.Count > 0));
             RippleDeleteCommand = new RelayCommand(_ => ExecuteRippleDelete(), _ => SelectedClip != null);
             LiftCommand = new RelayCommand(_ => ExecuteLift(), _ => InPoint < OutPoint);
             InsertCommand = new RelayCommand(_ => ExecuteInsert(), _ => SelectedAsset != null);
@@ -2785,8 +2818,9 @@ After installation, restart PlatypusTools.
                 }
             }
             
-            // Select default preset (YouTube HD)
-            SelectedExportPreset = AvailableExportPresets.FirstOrDefault(p => p.Name == "YouTube HD");
+            // Select default preset (YouTube HD 1080p, or first available)
+            SelectedExportPreset = AvailableExportPresets.FirstOrDefault(p => p.Name == "YouTube HD 1080p") 
+                                  ?? AvailableExportPresets.FirstOrDefault();
         }
 
         private void FilterFilters()
@@ -2873,7 +2907,7 @@ After installation, restart PlatypusTools.
             StatusMessage = "Slide edited clip";
         }
 
-        private void ExecuteApplyShotcutFilter(Filter? filter)
+        private async void ExecuteApplyShotcutFilter(Filter? filter)
         {
             if (filter == null || SelectedClip == null) return;
             
@@ -2883,25 +2917,34 @@ After installation, restart PlatypusTools.
             
             StatusMessage = $"Applied filter: {filter.Name}";
             OnPropertyChanged(nameof(SelectedClip));
+            
+            // Generate real-time preview with the new filter applied
+            await UpdateEffectPreviewAsync();
         }
 
-        private void ExecuteRemoveShotcutFilter(Filter? filter)
+        private async void ExecuteRemoveShotcutFilter(Filter? filter)
         {
             if (filter == null || SelectedClip == null) return;
             SelectedClip.Filters.Remove(filter);
             StatusMessage = $"Removed filter: {filter.Name}";
             OnPropertyChanged(nameof(SelectedClip));
+            
+            // Update preview after filter removal
+            await UpdateEffectPreviewAsync();
         }
 
-        private void ExecuteToggleFilterEnabled(Filter? filter)
+        private async void ExecuteToggleFilterEnabled(Filter? filter)
         {
             if (filter == null) return;
             filter.IsEnabled = !filter.IsEnabled;
             StatusMessage = filter.IsEnabled ? $"Enabled filter: {filter.Name}" : $"Disabled filter: {filter.Name}";
             OnPropertyChanged(nameof(SelectedClip));
+            
+            // Update preview after toggle
+            await UpdateEffectPreviewAsync();
         }
 
-        private void ExecuteMoveFilterUp(Filter? filter)
+        private async void ExecuteMoveFilterUp(Filter? filter)
         {
             if (filter == null || SelectedClip == null) return;
             var index = SelectedClip.Filters.IndexOf(filter);
@@ -2910,10 +2953,13 @@ After installation, restart PlatypusTools.
                 SelectedClip.Filters.RemoveAt(index);
                 SelectedClip.Filters.Insert(index - 1, filter);
                 StatusMessage = $"Moved filter up: {filter.Name}";
+                
+                // Update preview with new filter order
+                await UpdateEffectPreviewAsync();
             }
         }
 
-        private void ExecuteMoveFilterDown(Filter? filter)
+        private async void ExecuteMoveFilterDown(Filter? filter)
         {
             if (filter == null || SelectedClip == null) return;
             var index = SelectedClip.Filters.IndexOf(filter);
@@ -2922,6 +2968,9 @@ After installation, restart PlatypusTools.
                 SelectedClip.Filters.RemoveAt(index);
                 SelectedClip.Filters.Insert(index + 1, filter);
                 StatusMessage = $"Moved filter down: {filter.Name}";
+                
+                // Update preview with new filter order
+                await UpdateEffectPreviewAsync();
             }
         }
 
@@ -3015,14 +3064,27 @@ After installation, restart PlatypusTools.
 
         private async Task ExecuteExportWithPresetAsync()
         {
-            if (SelectedExportPreset == null || Project == null) return;
+            // If no preset selected, use default or first available
+            var preset = SelectedExportPreset ?? AvailableExportPresets.FirstOrDefault();
+            
+            if (preset == null)
+            {
+                // Create a default preset if none available
+                preset = new ExportPreset
+                {
+                    Name = "Default",
+                    VideoCodec = "libx264",
+                    AudioCodec = "aac",
+                    Container = "mp4"
+                };
+            }
             
             var dialog = new Microsoft.Win32.SaveFileDialog
             {
                 Title = "Export Video",
-                Filter = $"{SelectedExportPreset.Format} Files|*.{SelectedExportPreset.Extension}|All Files|*.*",
-                FileName = $"{Project.Name}_{SelectedExportPreset.Name}",
-                DefaultExt = SelectedExportPreset.Extension
+                Filter = $"{preset.Format} Files|*.{preset.Extension}|All Files|*.*",
+                FileName = $"{Project?.Name ?? "Export"}_{preset.Name}",
+                DefaultExt = preset.Extension
             };
             
             if (dialog.ShowDialog() != true) return;
@@ -3032,11 +3094,11 @@ After installation, restart PlatypusTools.
                 IsBusy = true;
                 _operationCts = new CancellationTokenSource();
                 
-                StatusMessage = $"Exporting with {SelectedExportPreset.Name} preset...";
+                StatusMessage = $"Exporting with {preset.Name} preset...";
                 
                 // Use the existing VideoExporter through EditorService
                 await _editorService.ExportAsync(
-                    Project,
+                    Project ?? _editorService.CreateProject("Export"),
                     dialog.FileName,
                     null, // Use default profile
                     new Progress<double>(p => Progress = p),
@@ -3357,6 +3419,122 @@ After installation, restart PlatypusTools.
 
         #endregion
 
+        #region Real-time Preview
+        
+        private string? _realtimePreviewFrame;
+        /// <summary>
+        /// Path to the current real-time preview frame (for composited timeline preview with effects).
+        /// </summary>
+        public string? RealtimePreviewFrame
+        {
+            get => _realtimePreviewFrame;
+            set => SetProperty(ref _realtimePreviewFrame, value);
+        }
+        
+        private bool _useRealtimePreview;
+        /// <summary>
+        /// Whether to use real-time preview (composited with effects) instead of simple source preview.
+        /// </summary>
+        public bool UseRealtimePreview
+        {
+            get => _useRealtimePreview;
+            set => SetProperty(ref _useRealtimePreview, value);
+        }
+        
+        private void OnPreviewFrameReady(object? sender, PreviewFrameEventArgs e)
+        {
+            System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+            {
+                RealtimePreviewFrame = e.FramePath;
+                if (UseRealtimePreview)
+                {
+                    PreviewSource = e.FramePath;
+                }
+            });
+        }
+        
+        /// <summary>
+        /// Generates a real-time preview with all effects applied at the current position.
+        /// </summary>
+        public async Task GenerateRealtimePreviewAsync()
+        {
+            if (Tracks.Count == 0) return;
+            
+            try
+            {
+                var frame = await _realtimePreview.GeneratePreviewFrameAsync(
+                    Tracks, 
+                    CurrentTime, 
+                    _operationCts?.Token ?? CancellationToken.None);
+                    
+                if (!string.IsNullOrEmpty(frame))
+                {
+                    RealtimePreviewFrame = frame;
+                    StatusMessage = "Preview updated";
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"[PREVIEW] Error generating real-time preview: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Updates the preview when effects are changed on the selected clip.
+        /// Call this when effect parameters are modified for live preview.
+        /// </summary>
+        public async Task UpdateEffectPreviewAsync()
+        {
+            if (SelectedClip == null) return;
+            
+            try
+            {
+                var clipTime = CurrentTime - SelectedClip.StartPosition;
+                if (clipTime < TimeSpan.Zero || clipTime > SelectedClip.Duration)
+                    clipTime = TimeSpan.Zero;
+                    
+                var previewPath = await _realtimePreview.GenerateEffectPreviewAsync(
+                    SelectedClip,
+                    clipTime,
+                    SelectedClip.Effects,
+                    _operationCts?.Token ?? CancellationToken.None);
+                    
+                if (!string.IsNullOrEmpty(previewPath))
+                {
+                    // Show the effect preview
+                    RealtimePreviewFrame = previewPath;
+                    PreviewSource = previewPath;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"[PREVIEW] Error generating effect preview: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Precaches preview frames around the current position for smooth scrubbing.
+        /// </summary>
+        public async Task PrecachePreviewFramesAsync()
+        {
+            if (Tracks.Count == 0 || Duration == TimeSpan.Zero) return;
+            
+            var start = CurrentTime - TimeSpan.FromSeconds(5);
+            if (start < TimeSpan.Zero) start = TimeSpan.Zero;
+            
+            var end = CurrentTime + TimeSpan.FromSeconds(10);
+            if (end > Duration) end = Duration;
+            
+            await _realtimePreview.PrecacheFramesAsync(
+                Tracks,
+                start,
+                end,
+                30,
+                _operationCts?.Token ?? CancellationToken.None);
+        }
+        
+        #endregion
+
         #region IDisposable
 
         public void Dispose()
@@ -3369,6 +3547,8 @@ After installation, restart PlatypusTools.
             _operationCts?.Cancel();
             _operationCts?.Dispose();
             _editorService.Dispose();
+            _realtimePreview.FrameReady -= OnPreviewFrameReady;
+            _realtimePreview.Dispose();
         }
 
         #endregion
