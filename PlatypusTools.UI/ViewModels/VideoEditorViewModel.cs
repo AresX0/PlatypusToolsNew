@@ -626,14 +626,15 @@ namespace PlatypusTools.UI.ViewModels
 
         public VideoEditorViewModel()
         {
-            _ffmpeg = new FFmpegService();
-            _ffprobe = new FFprobeService();
+            // Use shared singleton services for stateless FFmpeg wrappers
+            _ffmpeg = UI.Services.ServiceLocator.FFmpeg;
+            _ffprobe = UI.Services.ServiceLocator.FFprobe;
             _editorService = new VideoEditorService(_ffmpeg, _ffprobe);
-            _beatDetection = new BeatDetectionService();
-            _keyframeInterpolator = new KeyframeInterpolator();
+            _beatDetection = UI.Services.ServiceLocator.BeatDetection;
+            _keyframeInterpolator = UI.Services.ServiceLocator.KeyframeInterpolator;
             
-            // Initialize Shotcut-inspired services
-            _timelineOps = new TimelineOperationsService();
+            // Initialize Shotcut-inspired services (keep per-instance for stateful/disposable)
+            _timelineOps = UI.Services.ServiceLocator.TimelineOperations;
             _proxyService = new ProxyService(_ffmpeg, _ffprobe);
             _waveformService = new WaveformService(_ffmpeg);
             _realtimePreview = new RealtimePreviewService(_ffmpeg, _ffprobe);

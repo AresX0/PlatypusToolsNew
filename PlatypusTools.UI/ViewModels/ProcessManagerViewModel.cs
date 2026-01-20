@@ -44,7 +44,7 @@ namespace PlatypusTools.UI.ViewModels
 
         public ProcessManagerViewModel()
         {
-            _processManagerService = new ProcessManagerService();
+            _processManagerService = Services.ServiceLocator.ProcessManager;
 
             RefreshCommand = new RelayCommand(async _ => await RefreshAsync(), _ => !IsRefreshing);
             KillProcessCommand = new RelayCommand(async _ => await KillProcessAsync(), _ => SelectedProcess != null);

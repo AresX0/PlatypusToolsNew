@@ -112,22 +112,21 @@ namespace PlatypusTools.UI.ViewModels
 
         private void AddFiles()
         {
-            var dlg = new Microsoft.Win32.OpenFileDialog { Multiselect = true, Filter = "Video Files|*.mp4;*.mkv;*.mov;*.ts;*.avi|All Files|*.*" };
-            if (dlg.ShowDialog() == true)
+            var files = Services.FileDialogService.OpenVideoFiles();
+            foreach (var f in files)
             {
-                foreach (var f in dlg.FileNames)
-                {
-                    Files.Add(f);
-                }
+                Files.Add(f);
             }
         }
 
         private void BrowseOutput()
         {
-            var dlg = new Microsoft.Win32.SaveFileDialog { Filter = "MP4 File|*.mp4|MKV File|*.mkv|All Files|*.*" };
-            if (dlg.ShowDialog() == true)
+            var path = Services.FileDialogService.SaveFile(
+                "MP4 File|*.mp4|MKV File|*.mkv|All Files|*.*",
+                "Save Combined Video");
+            if (path != null)
             {
-                OutputPath = dlg.FileName;
+                OutputPath = path;
                 RaisePropertyChanged(nameof(OutputPath));
             }
         }

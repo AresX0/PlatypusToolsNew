@@ -118,7 +118,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand ExportCsvCommand { get; }
         public ICommand ApplyPreviewCommand { get; }
 
-        public FileCleanerViewModel() : this(new FileRenamerService()) { }
+        public FileCleanerViewModel() : this(Services.ServiceLocator.FileRenamer) { }
 
         public FileCleanerViewModel(IFileRenamerService renamerService)
         {
@@ -138,18 +138,14 @@ namespace PlatypusTools.UI.ViewModels
 
         private void BrowseFolder()
         {
-            using var dialog = new System.Windows.Forms.FolderBrowserDialog
-            {
-                Description = "Select folder to scan for files",
-                ShowNewFolderButton = false
-            };
+            var folder = Services.FileDialogService.BrowseForFolder(
+                "Select folder to scan for files",
+                FolderPath,
+                showNewFolderButton: false);
 
-            if (!string.IsNullOrEmpty(FolderPath) && Directory.Exists(FolderPath))
-                dialog.SelectedPath = FolderPath;
-
-            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (folder != null)
             {
-                FolderPath = dialog.SelectedPath;
+                FolderPath = folder;
             }
         }
 

@@ -227,9 +227,8 @@ namespace PlatypusTools.UI.ViewModels
         {
             try
             {
-                var settings = SettingsManager.Load();
-                settings.CheckForUpdatesOnStartup = CheckOnStartup;
-                SettingsManager.Save(settings);
+                SettingsManager.Current.CheckForUpdatesOnStartup = CheckOnStartup;
+                SettingsManager.SaveCurrent();
             }
             catch
             {
@@ -241,8 +240,7 @@ namespace PlatypusTools.UI.ViewModels
         {
             try
             {
-                var settings = SettingsManager.Load();
-                _checkOnStartup = settings.CheckForUpdatesOnStartup;
+                _checkOnStartup = SettingsManager.Current.CheckForUpdatesOnStartup;
                 RaisePropertyChanged(nameof(CheckOnStartup));
             }
             catch

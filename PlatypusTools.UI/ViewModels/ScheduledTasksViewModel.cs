@@ -42,7 +42,7 @@ namespace PlatypusTools.UI.ViewModels
 
         public ScheduledTasksViewModel()
         {
-            _scheduledTasksService = new ScheduledTasksService();
+            _scheduledTasksService = Services.ServiceLocator.ScheduledTasks;
 
             RefreshCommand = new RelayCommand(async _ => await RefreshAsync(), _ => !IsRefreshing);
             EnableCommand = new RelayCommand(async _ => await EnableTaskAsync(), _ => SelectedTask != null && !SelectedTask.IsEnabled);

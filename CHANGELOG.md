@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.3.1 - 2026-01-19
+
+### Added
+- **Forensics Analyzer HTML Export** - Comprehensive HTML report with styled tables, summary cards, and all findings
+- **Command Pattern Standardization (OPT-006)** - Enhanced AsyncRelayCommand with execution guards and generic variants
+- **Settings Service Optimization (OPT-010)** - Centralized settings access using cached singleton pattern
+
+### Fixed
+- **Forensics Analyzer Export Buttons** - Fixed buttons staying disabled after analysis by using direct IsEnabled bindings
+
+---
+
 ## v3.2.3.0 - 2026-01-19
 
 ### Added

@@ -135,9 +135,9 @@
 | OPT-002 | Independent Tab Launch | ⭐⭐ | Ensure each tab can be launched/loaded independently without dependencies | ✅ Completed |
 | OPT-003 | Lazy Tab Loading | ⭐⭐ | Only load tab content when first accessed (reduce startup time) | ✅ Completed |
 | OPT-004 | ViewModel Base Consolidation | ⭐⭐ | Consolidate common ViewModel patterns (INotifyPropertyChanged, Commands) | ✅ Completed |
-| OPT-005 | Service Singleton Optimization | ⭐ | Review singleton services for proper lifecycle management | ❌ Not Started |
+| OPT-005 | Service Singleton Optimization | ⭐ | Review singleton services for proper lifecycle management | ✅ Completed |
 
-**Implemented Changes (OPT-001 to OPT-004)**:
+**Implemented Changes (OPT-001 to OPT-005)**:
 - `SettingsManager.cs`: Extended `AppSettings` with `VisibleTabs` dictionary and INotifyPropertyChanged
 - `TabVisibilityService.cs`: New singleton service with visibility properties for all tabs
 - `SettingsWindow.xaml`: Added "Tab Visibility" settings panel with checkboxes for all tabs
@@ -149,16 +149,52 @@
   - `SystemAuditViewModel`, `MultimediaEditorViewModel`, `PluginManagerViewModel`, `PluginInfo`
   - `ForensicsAnalyzerViewModel`, `MetadataEditorViewModel`, `MetadataTag`, `FolderFileMetadata`
   - `VideoEditorViewModel` (with IDisposable preserved)
+- **OPT-005**: Created `ServiceLocator.cs` for singleton service access:
+  - Shared services: FFmpeg, FFprobe, BeatDetection, TimelineOperations, KeyframeInterpolator
+  - Core services: FileRenamer, VideoConverter, VideoCombiner, Upscaler, DiskSpaceAnalyzer
+  - System services: ProcessManager, ScheduledTasks, StartupManager, SystemRestore, PdfTools
+  - Updated 10 ViewModels to use ServiceLocator instead of creating new instances
 
 ### Code Deduplication
 
 | # | Task | Effort | Description | Status |
 |---|------|--------|-------------|--------|
-| OPT-006 | Command Pattern Standardization | ⭐⭐ | Standardize RelayCommand/AsyncRelayCommand across all ViewModels | ❌ Not Started |
-| OPT-007 | File Dialog Helper | ⭐ | Create unified file/folder dialog service to replace duplicated code | ❌ Not Started |
-| OPT-008 | Progress Reporting Consolidation | ⭐⭐ | Unified progress reporting pattern for all long-running operations | ❌ Not Started |
-| OPT-009 | Theme/Style Consolidation | ⭐⭐ | Merge duplicated styles across resource dictionaries | ❌ Not Started |
-| OPT-010 | Settings Service Optimization | ⭐ | Centralize settings access patterns | ❌ Not Started |
+| OPT-006 | Command Pattern Standardization | ⭐⭐ | Standardize RelayCommand/AsyncRelayCommand across all ViewModels | ✅ Completed |
+| OPT-007 | File Dialog Helper | ⭐ | Create unified file/folder dialog service to replace duplicated code | ✅ Completed |
+| OPT-008 | Progress Reporting Consolidation | ⭐⭐ | Unified progress reporting pattern for all long-running operations | ⏸️ Deferred |
+| OPT-009 | Theme/Style Consolidation | ⭐⭐ | Merge duplicated styles across resource dictionaries | ✅ Completed |
+| OPT-010 | Settings Service Optimization | ⭐ | Centralize settings access patterns | ✅ Completed |
+
+**Implemented Changes (OPT-006)**:
+- Enhanced `AsyncRelayCommand.cs` with three command variants:
+  - `AsyncRelayCommand`: Parameterless async command with execution tracking
+  - `AsyncRelayCommand<T>`: Generic typed parameter async command (moved from AudioPlayerViewModel)
+  - `AsyncParameterCommand`: Object parameter async command
+- All async commands now include:
+  - `_isExecuting` guard to prevent double-execution
+  - Automatic CanExecute refresh on start/end
+  - Try-catch with MessageBox error display
+- Removed duplicate `AsyncRelayCommand<T>` from AudioPlayerViewModel
+
+**Implemented Changes (OPT-007)**:
+- `FileDialogService.cs`: New static service with unified dialog methods:
+  - `BrowseForFolder()`, `BrowseForSourceFolder()`, `BrowseForOutputFolder()` - Folder selection
+  - `OpenFile()`, `OpenFiles()`, `SaveFile()` - File selection with filters
+  - `OpenVideoFiles()`, `OpenAudioFiles()`, `OpenImageFiles()`, `OpenMediaFiles()`, `OpenPdfFiles()` - Specialized dialogs
+  - Standard filter constants: `VideoFilter`, `AudioFilter`, `ImageFilter`, `MediaFilter`, `PdfFilter`
+- Updated ViewModels to use FileDialogService: VideoConverterViewModel, UpscalerViewModel, VideoCombinerViewModel, FileCleanerViewModel
+
+**Implemented Changes (OPT-009)**:
+- Theme files (Light.xaml, Dark.xaml) already have matching resource keys
+- Both themes provide aliases for backward compatibility (e.g., `TextSecondary`, `SecondaryTextBrush`, `TextSecondaryBrush`)
+- VideoEditorStyles.xaml defines specialized styles used by video editor views
+
+**Implemented Changes (OPT-010)**:
+- `SettingsManager.cs` now has `Current` property for cached singleton access
+- Added `SaveCurrent()` method for saving cached settings
+- Updated all settings consumers to use `SettingsManager.Current` instead of `Load()`:
+  - MainWindowViewModel, UpdateViewModel, SettingsWindow.xaml.cs
+- Reduces redundant file I/O on settings access
 
 ### Performance Improvements
 

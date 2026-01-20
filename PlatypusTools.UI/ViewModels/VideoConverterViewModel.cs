@@ -116,7 +116,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand SelectNoneCommand { get; }
         public ICommand ClearCompletedCommand { get; }
 
-        public VideoConverterViewModel() : this(new VideoConverterService()) { }
+        public VideoConverterViewModel() : this(Services.ServiceLocator.VideoConverter) { }
 
         public VideoConverterViewModel(IVideoConverterService service)
         {
@@ -140,37 +140,29 @@ namespace PlatypusTools.UI.ViewModels
 
         private void BrowseSourceFolder()
         {
-            using var dialog = new System.Windows.Forms.FolderBrowserDialog
-            {
-                Description = "Select source folder with videos",
-                ShowNewFolderButton = false
-            };
+            var folder = Services.FileDialogService.BrowseForFolder(
+                "Select source folder with videos",
+                SourceFolderPath,
+                showNewFolderButton: false);
 
-            if (!string.IsNullOrEmpty(SourceFolderPath) && Directory.Exists(SourceFolderPath))
-                dialog.SelectedPath = SourceFolderPath;
-
-            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (folder != null)
             {
-                SourceFolderPath = dialog.SelectedPath;
+                SourceFolderPath = folder;
                 if (UseSourceFolder)
-                    OutputFolderPath = dialog.SelectedPath;
+                    OutputFolderPath = folder;
             }
         }
 
         private void BrowseOutputFolder()
         {
-            using var dialog = new System.Windows.Forms.FolderBrowserDialog
-            {
-                Description = "Select output folder for converted videos",
-                ShowNewFolderButton = true
-            };
+            var folder = Services.FileDialogService.BrowseForFolder(
+                "Select output folder for converted videos",
+                OutputFolderPath,
+                showNewFolderButton: true);
 
-            if (!string.IsNullOrEmpty(OutputFolderPath) && Directory.Exists(OutputFolderPath))
-                dialog.SelectedPath = OutputFolderPath;
-
-            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (folder != null)
             {
-                OutputFolderPath = dialog.SelectedPath;
+                OutputFolderPath = folder;
             }
         }
 

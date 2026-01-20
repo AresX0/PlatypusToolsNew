@@ -28,10 +28,11 @@ namespace PlatypusTools.UI.ViewModels
             RunLightweightAnalysisCommand = new RelayCommand(async _ => await RunAnalysisAsync(ForensicsMode.Lightweight), _ => !IsAnalyzing);
             RunDeepAnalysisCommand = new RelayCommand(async _ => await RunAnalysisAsync(ForensicsMode.Deep), _ => !IsAnalyzing);
             CancelAnalysisCommand = new RelayCommand(_ => CancelAnalysis(), _ => IsAnalyzing);
-            OpenReportFolderCommand = new RelayCommand(_ => OpenReportFolder(), _ => !string.IsNullOrEmpty(LastReportPath));
-            OpenReportCommand = new RelayCommand(_ => OpenReport(), _ => !string.IsNullOrEmpty(LastReportPath));
-            ClearResultsCommand = new RelayCommand(_ => ClearResults(), _ => Findings.Count > 0);
-            ExportFindingsCommand = new RelayCommand(_ => ExportFindings(), _ => Findings.Count > 0);
+            OpenReportFolderCommand = new RelayCommand(_ => OpenReportFolder());
+            OpenReportCommand = new RelayCommand(_ => OpenReport());
+            ClearResultsCommand = new RelayCommand(_ => ClearResults());
+            ExportFindingsCommand = new RelayCommand(_ => ExportFindings());
+            ExportHtmlReportCommand = new RelayCommand(_ => ExportHtmlReport());
         }
 
         #region Properties
@@ -140,6 +141,20 @@ namespace PlatypusTools.UI.ViewModels
             set => SetProperty(ref _lowFindings, value);
         }
 
+        private bool _hasFindings;
+        public bool HasFindings
+        {
+            get => _hasFindings;
+            set => SetProperty(ref _hasFindings, value);
+        }
+
+        private bool _hasReport;
+        public bool HasReport
+        {
+            get => _hasReport;
+            set => SetProperty(ref _hasReport, value);
+        }
+
         // Memory stats
         private string _memoryUsage = "N/A";
         public string MemoryUsage
@@ -226,6 +241,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand OpenReportCommand { get; }
         public ICommand ClearResultsCommand { get; }
         public ICommand ExportFindingsCommand { get; }
+        public ICommand ExportHtmlReportCommand { get; }
 
         #endregion
 
@@ -279,6 +295,12 @@ namespace PlatypusTools.UI.ViewModels
                 IsAnalyzing = false;
                 _cts?.Dispose();
                 _cts = null;
+
+                // Force refresh of command states on UI thread
+                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+                }), System.Windows.Threading.DispatcherPriority.Background);
             }
         }
 
@@ -295,6 +317,10 @@ namespace PlatypusTools.UI.ViewModels
                 AnalysisDuration = result.Duration;
                 LastReportPath = result.OutputPath;
                 LastReportSize = result.OutputSizeFormatted;
+
+                // Update button enable states
+                HasFindings = result.TotalFindings > 0;
+                HasReport = !string.IsNullOrEmpty(result.OutputPath);
 
                 // Findings
                 Findings.Clear();
@@ -354,6 +380,9 @@ namespace PlatypusTools.UI.ViewModels
                         SecurityEventsList.Add(evt);
                     }
                 }
+
+                // Refresh command states so buttons become enabled
+                System.Windows.Input.CommandManager.InvalidateRequerySuggested();
             });
         }
 
@@ -386,7 +415,9 @@ namespace PlatypusTools.UI.ViewModels
             EventsScanned = 0;
             SuspiciousEvents = 0;
 
-            CommandManager.InvalidateRequerySuggested();
+            // Reset button states
+            HasFindings = false;
+            HasReport = false;
         }
 
         private void OpenReportFolder()
@@ -450,6 +481,148 @@ namespace PlatypusTools.UI.ViewModels
         private static string EscapeCsv(string value)
         {
             return value.Replace("\"", "\"\"").Replace("\n", " ").Replace("\r", "");
+        }
+
+        private void ExportHtmlReport()
+        {
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "HTML Files (*.html)|*.html|All Files (*.*)|*.*",
+                DefaultExt = ".html",
+                FileName = $"forensics_report_{DateTime.Now:yyyyMMdd_HHmmss}.html"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    var html = GenerateHtmlReport();
+                    File.WriteAllText(dialog.FileName, html);
+                    Status = $"Exported HTML report to {dialog.FileName}";
+
+                    // Offer to open the report
+                    var result = MessageBox.Show("Report exported successfully. Would you like to open it?", 
+                        "Export Complete", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = dialog.FileName,
+                            UseShellExecute = true
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Export failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private string GenerateHtmlReport()
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("<!DOCTYPE html>");
+            sb.AppendLine("<html><head>");
+            sb.AppendLine("<meta charset='UTF-8'>");
+            sb.AppendLine("<title>PlatypusTools Forensics Report</title>");
+            sb.AppendLine("<style>");
+            sb.AppendLine("body { font-family: 'Segoe UI', Arial, sans-serif; margin: 20px; background: #f5f5f5; }");
+            sb.AppendLine(".container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }");
+            sb.AppendLine("h1 { color: #1976D2; border-bottom: 2px solid #1976D2; padding-bottom: 10px; }");
+            sb.AppendLine("h2 { color: #424242; margin-top: 30px; }");
+            sb.AppendLine(".summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }");
+            sb.AppendLine(".summary-card { background: #f8f9fa; padding: 15px; border-radius: 6px; border-left: 4px solid #1976D2; }");
+            sb.AppendLine(".summary-card.critical { border-left-color: #d32f2f; }");
+            sb.AppendLine(".summary-card.high { border-left-color: #f57c00; }");
+            sb.AppendLine(".summary-card.medium { border-left-color: #fbc02d; }");
+            sb.AppendLine(".summary-card.low { border-left-color: #388e3c; }");
+            sb.AppendLine(".summary-card h3 { margin: 0 0 5px 0; font-size: 14px; color: #666; }");
+            sb.AppendLine(".summary-card .value { font-size: 24px; font-weight: bold; color: #333; }");
+            sb.AppendLine("table { width: 100%; border-collapse: collapse; margin: 15px 0; }");
+            sb.AppendLine("th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }");
+            sb.AppendLine("th { background: #1976D2; color: white; }");
+            sb.AppendLine("tr:hover { background: #f5f5f5; }");
+            sb.AppendLine(".severity-critical { color: #d32f2f; font-weight: bold; }");
+            sb.AppendLine(".severity-high { color: #f57c00; font-weight: bold; }");
+            sb.AppendLine(".severity-medium { color: #fbc02d; font-weight: bold; }");
+            sb.AppendLine(".severity-low { color: #388e3c; }");
+            sb.AppendLine(".severity-info { color: #1976D2; }");
+            sb.AppendLine(".footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }");
+            sb.AppendLine("</style></head><body>");
+            sb.AppendLine("<div class='container'>");
+
+            // Header
+            sb.AppendLine("<h1>🔍 PlatypusTools Forensics Report</h1>");
+            sb.AppendLine($"<p><strong>Analysis Type:</strong> {SelectedMode} | <strong>Generated:</strong> {DateTime.Now:yyyy-MM-dd HH:mm:ss} | <strong>Duration:</strong> {AnalysisDuration.TotalMinutes:F1} minutes</p>");
+
+            // Summary Cards
+            sb.AppendLine("<div class='summary'>");
+            sb.AppendLine($"<div class='summary-card critical'><h3>Critical</h3><div class='value'>{CriticalFindings}</div></div>");
+            sb.AppendLine($"<div class='summary-card high'><h3>High</h3><div class='value'>{HighFindings}</div></div>");
+            sb.AppendLine($"<div class='summary-card medium'><h3>Medium</h3><div class='value'>{MediumFindings}</div></div>");
+            sb.AppendLine($"<div class='summary-card low'><h3>Low/Info</h3><div class='value'>{LowFindings}</div></div>");
+            sb.AppendLine("</div>");
+
+            // System Summary
+            sb.AppendLine("<div class='summary'>");
+            sb.AppendLine($"<div class='summary-card'><h3>Memory Usage</h3><div class='value'>{MemoryUsage}</div><small>Suspicious: {SuspiciousProcesses}</small></div>");
+            sb.AppendLine($"<div class='summary-card'><h3>Files Scanned</h3><div class='value'>{FilesScanned:N0}</div><small>Suspicious: {SuspiciousFiles}</small></div>");
+            sb.AppendLine($"<div class='summary-card'><h3>Registry Entries</h3><div class='value'>{StartupEntries}</div><small>Suspicious: {SuspiciousRegistry}</small></div>");
+            sb.AppendLine($"<div class='summary-card'><h3>Events Scanned</h3><div class='value'>{EventsScanned:N0}</div><small>Suspicious: {SuspiciousEvents}</small></div>");
+            sb.AppendLine("</div>");
+
+            // Findings Table
+            sb.AppendLine("<h2>📋 All Findings</h2>");
+            sb.AppendLine("<table>");
+            sb.AppendLine("<tr><th>Type</th><th>Severity</th><th>Title</th><th>Description</th><th>Source</th></tr>");
+            foreach (var finding in Findings)
+            {
+                var severityClass = finding.Severity.ToString().ToLower();
+                sb.AppendLine($"<tr>");
+                sb.AppendLine($"<td>{System.Net.WebUtility.HtmlEncode(finding.TypeIcon)}</td>");
+                sb.AppendLine($"<td class='severity-{severityClass}'>{finding.Severity}</td>");
+                sb.AppendLine($"<td>{System.Net.WebUtility.HtmlEncode(finding.Title)}</td>");
+                sb.AppendLine($"<td>{System.Net.WebUtility.HtmlEncode(finding.Description)}</td>");
+                sb.AppendLine($"<td>{System.Net.WebUtility.HtmlEncode(finding.Source)}</td>");
+                sb.AppendLine("</tr>");
+            }
+            sb.AppendLine("</table>");
+
+            // Suspicious Files Section
+            if (SuspiciousFilesList.Count > 0)
+            {
+                sb.AppendLine("<h2>📁 Suspicious Files</h2>");
+                sb.AppendLine("<table>");
+                sb.AppendLine("<tr><th>File Path</th><th>Reason</th></tr>");
+                foreach (var file in SuspiciousFilesList.Take(100))
+                {
+                    sb.AppendLine($"<tr><td>{System.Net.WebUtility.HtmlEncode(file.FilePath)}</td><td>{System.Net.WebUtility.HtmlEncode(file.Reason)}</td></tr>");
+                }
+                sb.AppendLine("</table>");
+            }
+
+            // Registry Entries Section
+            if (RegistryEntries.Count > 0)
+            {
+                sb.AppendLine("<h2>🔧 Registry Startup Entries</h2>");
+                sb.AppendLine("<table>");
+                sb.AppendLine("<tr><th>Value Name</th><th>Value Data</th><th>Key Path</th></tr>");
+                foreach (var entry in RegistryEntries.Take(100))
+                {
+                    sb.AppendLine($"<tr><td>{System.Net.WebUtility.HtmlEncode(entry.ValueName)}</td><td>{System.Net.WebUtility.HtmlEncode(entry.ValueData)}</td><td>{System.Net.WebUtility.HtmlEncode(entry.KeyPath)}</td></tr>");
+                }
+                sb.AppendLine("</table>");
+            }
+
+            // Footer
+            sb.AppendLine("<div class='footer'>");
+            sb.AppendLine($"<p>Report generated by PlatypusTools Forensics Analyzer v3.2.3.1</p>");
+            sb.AppendLine($"<p>Computer: {Environment.MachineName} | User: {Environment.UserName}</p>");
+            sb.AppendLine("</div>");
+
+            sb.AppendLine("</div></body></html>");
+            return sb.ToString();
         }
 
         #endregion

@@ -168,11 +168,13 @@
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding LastReportSize}" FontWeight="Bold" Margin="0,0,10,0"/>
                         <Button Content="📂 Open Folder" Command="{Binding OpenReportFolderCommand}" 
-                                Padding="5,2" FontSize="11" Margin="0,0,5,0"/>
+                                IsEnabled="{Binding HasReport}" Padding="5,2" FontSize="11" Margin="0,0,5,0"/>
                         <Button Content="📄 Open Report" Command="{Binding OpenReportCommand}" 
-                                Padding="5,2" FontSize="11" Margin="0,0,5,0"/>
+                                IsEnabled="{Binding HasReport}" Padding="5,2" FontSize="11" Margin="0,0,5,0"/>
                         <Button Content="📋 Export CSV" Command="{Binding ExportFindingsCommand}" 
-                                Padding="5,2" FontSize="11"/>
+                                IsEnabled="{Binding HasFindings}" Padding="5,2" FontSize="11" Margin="0,0,5,0"/>
+                        <Button Content="🌐 Export HTML" Command="{Binding ExportHtmlReportCommand}" 
+                                IsEnabled="{Binding HasFindings}" Padding="5,2" FontSize="11" ToolTip="Export comprehensive HTML report"/>
                     </StackPanel>
                 </StackPanel>
             </Grid>

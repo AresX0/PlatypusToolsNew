@@ -1460,31 +1460,6 @@ public class AudioPlayerViewModel : BindableBase
 }
 
 /// <summary>
-/// Generic async relay command with parameter support.
-/// </summary>
-public class AsyncRelayCommand<T> : ICommand
-{
-    private readonly Func<T?, Task> _execute;
-    private readonly Func<T?, bool>? _canExecute;
-    
-    public AsyncRelayCommand(Func<T?, Task> execute, Func<T?, bool>? canExecute = null)
-    {
-        _execute = execute;
-        _canExecute = canExecute;
-    }
-    
-    public bool CanExecute(object? parameter) => _canExecute?.Invoke((T?)parameter) ?? true;
-    
-    public async void Execute(object? parameter)
-    {
-        await _execute((T?)parameter);
-    }
-    
-    public event EventHandler? CanExecuteChanged;
-    public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
-}
-
-/// <summary>
 /// Represents a group of audio tracks organized by a common property (Artist, Album, Genre, Folder).
 /// </summary>
 public class LibraryGroup

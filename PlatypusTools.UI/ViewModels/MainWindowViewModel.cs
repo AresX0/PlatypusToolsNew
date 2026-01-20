@@ -29,7 +29,7 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<FileCleanerViewModel> _fileCleaner = new(() => new FileCleanerViewModel());
         private readonly Lazy<HiderViewModel> _hider = new(() => new HiderViewModel());
         private readonly Lazy<DuplicatesViewModel> _duplicates = new(() => new DuplicatesViewModel());
-        private readonly Lazy<VideoCombinerViewModel> _videoCombiner = new(() => new VideoCombinerViewModel(new PlatypusTools.Core.Services.VideoCombinerService()));
+        private readonly Lazy<VideoCombinerViewModel> _videoCombiner = new(() => new VideoCombinerViewModel(Services.ServiceLocator.VideoCombiner));
         private readonly Lazy<ImageConverterViewModel> _imageConverter = new(() => new ImageConverterViewModel());
         private readonly Lazy<ImageResizerViewModel> _imageResizer = new(() => new ImageResizerViewModel());
         private readonly Lazy<IconConverterViewModel> _iconConverter = new(() => new IconConverterViewModel());
@@ -91,7 +91,7 @@ namespace PlatypusTools.UI.ViewModels
                 // Apply theme from settings
                 try
                 {
-                    var s = PlatypusTools.UI.Services.SettingsManager.Load();
+                    var s = PlatypusTools.UI.Services.SettingsManager.Current;
                     IsDarkTheme = string.Equals(s.Theme, PlatypusTools.UI.Services.ThemeManager.Dark, StringComparison.OrdinalIgnoreCase);
                     PlatypusTools.UI.Services.ThemeManager.ApplyTheme(s.Theme);
                 }
@@ -394,9 +394,8 @@ namespace PlatypusTools.UI.ViewModels
                 IsDarkTheme = !IsDarkTheme;
                 var theme = IsDarkTheme ? PlatypusTools.UI.Services.ThemeManager.Dark : PlatypusTools.UI.Services.ThemeManager.Light;
                 PlatypusTools.UI.Services.ThemeManager.ApplyTheme(theme);
-                var s = PlatypusTools.UI.Services.SettingsManager.Load();
-                s.Theme = theme;
-                PlatypusTools.UI.Services.SettingsManager.Save(s);
+                PlatypusTools.UI.Services.SettingsManager.Current.Theme = theme;
+                PlatypusTools.UI.Services.SettingsManager.SaveCurrent();
             }
             catch { }
         }

@@ -44,7 +44,7 @@ namespace PlatypusTools.UI.Views
         {
             try
             {
-                var settings = SettingsManager.Load();
+                var settings = SettingsManager.Current;
 
                 // Theme
                 if (settings?.Theme == ThemeManager.Dark)
@@ -295,7 +295,7 @@ namespace PlatypusTools.UI.Views
         
         private void SaveSettings()
         {
-            var settings = SettingsManager.Load();
+            var settings = SettingsManager.Current;
             
             // Theme
             if (DarkThemeRadio.IsChecked == true)
@@ -314,7 +314,7 @@ namespace PlatypusTools.UI.Views
             // Save tab visibility settings
             SaveTabVisibilitySettings(settings);
             
-            SettingsManager.Save(settings);
+            SettingsManager.SaveCurrent();
             
             // Refresh tab visibility in the main UI immediately
             TabVisibilityService.Instance.RefreshFromSettings();

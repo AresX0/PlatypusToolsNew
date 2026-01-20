@@ -30,7 +30,7 @@ namespace PlatypusTools.UI.ViewModels
 
         public UpscalerViewModel(UpscalerService? svc = null)
         {
-            _service = svc ?? new UpscalerService();
+            _service = svc ?? Services.ServiceLocator.Upscaler;
             AddFilesCommand = new RelayCommand(_ => AddFiles());
             BrowseOutputCommand = new RelayCommand(_ => BrowseOutput());
             UpscaleCommand = new AsyncRelayCommand(UpscaleAsync, () => !IsRunning);
@@ -39,15 +39,14 @@ namespace PlatypusTools.UI.ViewModels
 
         private void AddFiles()
         {
-            var dlg = new Microsoft.Win32.OpenFileDialog { Multiselect = true, Filter = "Video Files|*.mp4;*.mkv;*.mov;*.avi;*.ts|All Files|*.*" };
-            if (dlg.ShowDialog() == true) foreach (var f in dlg.FileNames) Files.Add(f);
+            var files = Services.FileDialogService.OpenVideoFiles();
+            foreach (var f in files) Files.Add(f);
         }
 
         private void BrowseOutput()
         {
-            using var dlg = new System.Windows.Forms.FolderBrowserDialog();
-            var res = dlg.ShowDialog();
-            if (res == System.Windows.Forms.DialogResult.OK) { OutputFolder = dlg.SelectedPath; RaisePropertyChanged(nameof(OutputFolder)); }
+            var folder = Services.FileDialogService.BrowseForOutputFolder(OutputFolder);
+            if (folder != null) { OutputFolder = folder; RaisePropertyChanged(nameof(OutputFolder)); }
         }
 
         private void Cancel()
