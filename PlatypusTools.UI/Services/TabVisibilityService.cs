@@ -84,6 +84,7 @@ namespace PlatypusTools.UI.Services
         public Visibility IconConverter => GetVisibility("Multimedia.Image.IconConverter");
         public Visibility BatchWatermark => GetVisibility("Multimedia.Image.BatchWatermark");
         public Visibility ImageScaler => GetVisibility("Multimedia.Image.ImageScaler");
+        public Visibility Model3DEditor => GetVisibility("Multimedia.Image.Model3DEditor");
         public Visibility VideoPlayer => GetVisibility("Multimedia.Video.VideoPlayer");
         public Visibility VideoEditor => GetVisibility("Multimedia.Video.VideoEditor");
         public Visibility Upscaler => GetVisibility("Multimedia.Video.Upscaler");

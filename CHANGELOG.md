@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.4.0 - 2026-01-19
+
+### Added
+- **3D Model Editor Tab** - New tab for creating and editing 3D models:
+  - Load SVG files and convert to 3D printable formats (STL, OBJ)
+  - Create basic 3D shapes (Cube, Cylinder, Sphere, Pyramid, Cone)
+  - Create 3D extruded text with customizable height and depth
+  - Interactive 3D viewport with mouse controls:
+    - Left-click drag to rotate model
+    - Right-click drag to pan camera
+    - Mouse wheel to zoom in/out
+  - Model Scale slider for resizing objects
+  - Position controls (Move X/Y/Z) for precise placement
+  - Export to STL (3D printing) or OBJ format
+
+- **SVG to Image Conversion** - Added SVG output format to Image Converter:
+  - Embed mode: Wraps raster images in SVG container
+  - Trace mode: Converts to vector paths (for simple images)
+
+- **Advanced SVG Parsing for 3D** - Enhanced SVG to 3D conversion:
+  - Full support for SVG paths, rectangles, circles, ellipses, polygons, lines
+  - Automatic image tracing for SVGs with embedded raster images
+  - Edge detection using Sobel operators
+  - Contour tracing and simplification
+  - Detailed diagnostic logging for troubleshooting
+
+### Fixed
+- **3D Model Editor Mouse Controls** - Added interactive viewport controls
+- **3D Text Creation** - Fixed Create Text button not working
+
+---
+
 ## v3.2.3.1 - 2026-01-19
 
 ### Added

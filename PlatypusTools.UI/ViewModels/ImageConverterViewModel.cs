@@ -10,14 +10,29 @@ namespace PlatypusTools.UI.ViewModels
 {
     public class ImageConverterViewModel : BindableBase
     {
-        private readonly Func<string, string, int?, int?, long, Task<bool>> _converter;
+        private readonly Func<string, string, int?, int?, long, SvgConversionMode, Task<bool>> _converter;
         private CancellationTokenSource? _cts;
 
         public ObservableCollection<string> Files { get; } = new ObservableCollection<string>();
-        public ObservableCollection<string> OutputFormats { get; } = new ObservableCollection<string> { "JPG", "PNG", "BMP", "GIF", "TIFF", "WebP" };
+        public ObservableCollection<string> OutputFormats { get; } = new ObservableCollection<string> { "JPG", "PNG", "BMP", "GIF", "TIFF", "WebP", "SVG" };
+        public ObservableCollection<string> SvgModes { get; } = new ObservableCollection<string> { "Embed Raster", "Trace (Vectorize)" };
         
         private string _selectedOutputFormat = "JPG";
-        public string SelectedOutputFormat { get => _selectedOutputFormat; set { _selectedOutputFormat = value; RaisePropertyChanged(); } }
+        public string SelectedOutputFormat 
+        { 
+            get => _selectedOutputFormat; 
+            set 
+            { 
+                _selectedOutputFormat = value; 
+                RaisePropertyChanged(); 
+                RaisePropertyChanged(nameof(IsSvgFormat));
+            } 
+        }
+
+        private string _selectedSvgMode = "Embed Raster";
+        public string SelectedSvgMode { get => _selectedSvgMode; set { _selectedSvgMode = value; RaisePropertyChanged(); } }
+
+        public bool IsSvgFormat => SelectedOutputFormat?.ToUpper() == "SVG";
         
         public string OutputFolder { get; set; } = string.Empty;
         public int? MaxWidth { get; set; }
@@ -40,7 +55,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand ClearFilesCommand { get; }
         public ICommand RemoveSelectedFileCommand { get; }
 
-        public ImageConverterViewModel(Func<string, string, int?, int?, long, Task<bool>>? converter = null)
+        public ImageConverterViewModel(Func<string, string, int?, int?, long, SvgConversionMode, Task<bool>>? converter = null)
         {
             try { SimpleLogger.Info("ImageConverterViewModel constructed"); } catch {}
             _converter = converter ?? DefaultConverterAsync;
@@ -86,7 +101,17 @@ namespace PlatypusTools.UI.ViewModels
                 "gif" => ".gif",
                 "tiff" => ".tiff",
                 "webp" => ".webp",
+                "svg" => ".svg",
                 _ => ".jpg"
+            };
+        }
+
+        private SvgConversionMode GetSvgMode()
+        {
+            return SelectedSvgMode switch
+            {
+                "Trace (Vectorize)" => SvgConversionMode.Trace,
+                _ => SvgConversionMode.EmbedRaster
             };
         }
 
@@ -103,6 +128,7 @@ namespace PlatypusTools.UI.ViewModels
                 int total = Files.Count;
                 int done = 0;
                 var extension = GetOutputExtension();
+                var svgMode = GetSvgMode();
 
                 foreach (var src in Files.ToList())
                 {
@@ -114,13 +140,28 @@ namespace PlatypusTools.UI.ViewModels
                     var destName = System.IO.Path.GetFileNameWithoutExtension(src) + extension;
                     var dest = string.IsNullOrWhiteSpace(OutputFolder) ? System.IO.Path.Combine(System.IO.Path.GetDirectoryName(src) ?? string.Empty, destName) : System.IO.Path.Combine(OutputFolder, destName);
                     bool ok = false;
+                    string? errorMsg = null;
                     try
                     {
-                        ok = await _converter(src, dest, MaxWidth, MaxHeight, JpegQuality);
+                        ok = await _converter(src, dest, MaxWidth, MaxHeight, JpegQuality, svgMode);
+                        if (!ok)
+                        {
+                            errorMsg = "Conversion returned false - check if source file exists and is valid";
+                        }
                     }
-                    catch (Exception ex) { Log += $"{src}: ERROR {ex.Message}\n"; }
-                    if (ok) Log += $"{src}: Converted -> {dest}\n";
-                    else Log += $"{src}: Failed\n";
+                    catch (Exception ex) 
+                    { 
+                        errorMsg = ex.Message;
+                    }
+                    
+                    if (ok) 
+                    {
+                        Log += $"✓ {System.IO.Path.GetFileName(src)} -> {System.IO.Path.GetFileName(dest)}\n";
+                    }
+                    else 
+                    {
+                        Log += $"✗ {System.IO.Path.GetFileName(src)}: Failed{(errorMsg != null ? $" - {errorMsg}" : "")}\n";
+                    }
                     done++;
                     Progress = (double)done / total * 100.0;
                 }
@@ -133,9 +174,9 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private static Task<bool> DefaultConverterAsync(string src, string dest, int? mw, int? mh, long q)
+        private static Task<bool> DefaultConverterAsync(string src, string dest, int? mw, int? mh, long q, SvgConversionMode svgMode)
         {
-            return Task.Run(() => PlatypusTools.Core.Services.ImageConversionService.ConvertImage(src, dest, mw, mh, q));
+            return Task.Run(() => PlatypusTools.Core.Services.ImageConversionService.ConvertImage(src, dest, mw, mh, q, svgMode));
         }
     }
 }

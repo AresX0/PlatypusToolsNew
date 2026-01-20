@@ -165,6 +165,10 @@
                                      Visibility="{Binding ImageScaler, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <controls:LazyTabContent ViewType="{x:Type views:BatchUpscaleView}" ViewDataContext="{Binding BatchUpscale}" />
                             </TabItem>
+                            <TabItem Header="3D Model Editor"
+                                     Visibility="{Binding Model3DEditor, Source={x:Static services:TabVisibilityService.Instance}}">
+                                <views:Model3DEditorView />
+                            </TabItem>
                         </TabControl>
                     </TabItem>
                     

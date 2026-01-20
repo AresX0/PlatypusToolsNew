@@ -1,8 +1,43 @@
 # 🦆 PlatypusTools
 
-A comprehensive Windows system utility combining file management, media conversion, system cleanup, security tools, and metadata editing into a single PowerShell WPF application.
+A comprehensive Windows system utility combining file management, media conversion, system cleanup, security tools, metadata editing, and 3D model creation into a single WPF application.
 
-## � Prerequisites
+## ✨ Features
+
+### 📁 File Management
+- Duplicate file scanner with hash comparison
+- Empty folder cleanup
+- File renaming with pattern matching
+- Folder hider (hide/unhide folders)
+
+### 🎬 Multimedia
+- **Image Converter** - Convert between formats including SVG output
+- **Image Resizer** - Batch resize images
+- **ICO Converter** - Create Windows icons
+- **Batch Watermark** - Add watermarks to images
+- **3D Model Editor** - Create and edit 3D models:
+  - Convert SVG files to 3D printable STL/OBJ formats
+  - Create basic shapes (Cube, Cylinder, Sphere, Pyramid, Cone)
+  - Create 3D extruded text
+  - Interactive viewport with mouse controls
+  - Automatic image tracing for embedded raster SVGs
+- **Video Converter** - Convert video formats with FFmpeg
+- **Audio Library** - Manage and tag audio files
+
+### 🔧 System Tools
+- Disk cleanup and space analyzer
+- Startup manager
+- Privacy cleaner
+- System audit
+
+### 🔒 Security
+- Forensics analyzer with HTML export
+- File shredder
+
+### 📋 Metadata
+- Read and edit file metadata with ExifTool
+
+## 📋 Prerequisites
 
 PlatypusTools requires the following external tools to be installed on your system:
 
