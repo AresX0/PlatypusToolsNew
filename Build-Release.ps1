@@ -256,10 +256,10 @@ if ($exeVersionClean -ne $Version) {
     Write-Success "EXE version: $exeVersionClean"
 }
 
-# Check MSI version from Product.wxs
+# Check MSI version from Product.wxs (look for Package Version specifically)
 $productWxsPath = Join-Path $ProjectRoot "PlatypusTools.Installer\Product.wxs"
 $productWxsContent = Get-Content $productWxsPath -Raw
-if ($productWxsContent -match 'Version="([^"]+)"') {
+if ($productWxsContent -match '<Package[^>]*Version="([^"]+)"') {
     $msiVersion = $Matches[1]
     if ($msiVersion -ne $Version) {
         Write-Warning "MSI version mismatch: Expected $Version, got $msiVersion"
