@@ -99,13 +99,21 @@
                     
                     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                                   Visibility="{Binding ScreenshotImage, Converter={StaticResource NullToVisibilityConverter}}">
-                        <Image Source="{Binding ScreenshotImage}" 
-                               Stretch="None"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                               x:Name="ScreenshotImage"
-                               MouseLeftButtonDown="ScreenshotImage_MouseLeftButtonDown"
-                               MouseMove="ScreenshotImage_MouseMove"
-                               MouseLeftButtonUp="ScreenshotImage_MouseLeftButtonUp"/>
+                        <Grid>
+                            <Image Source="{Binding ScreenshotImage}" 
+                                   Stretch="None"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   x:Name="ScreenshotImage"/>
+                            <!-- Real-time annotation overlay -->
+                            <Canvas x:Name="AnnotationOverlay" 
+                                    Background="Transparent"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Width="{Binding ScreenshotWidth}" 
+                                    Height="{Binding ScreenshotHeight}"
+                                    MouseLeftButtonDown="AnnotationOverlay_MouseLeftButtonDown"
+                                    MouseMove="AnnotationOverlay_MouseMove"
+                                    MouseLeftButtonUp="AnnotationOverlay_MouseLeftButtonUp"/>
+                        </Grid>
                     </ScrollViewer>
                 </Grid>
             </Border>

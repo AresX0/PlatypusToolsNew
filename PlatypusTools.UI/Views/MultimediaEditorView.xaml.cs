@@ -715,6 +715,22 @@ namespace PlatypusTools.UI.Views
             }
         }
 
+        private void FreecadHost_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (DataContext is MultimediaEditorViewModel viewModel && sender is System.Windows.Forms.Integration.WindowsFormsHost host)
+            {
+                // Get the Panel's handle for embedding, or fall back to host handle
+                if (host.Child is System.Windows.Forms.Panel panel)
+                {
+                    viewModel.FreecadHostHandle = panel.Handle;
+                }
+                else
+                {
+                    viewModel.FreecadHostHandle = host.Handle;
+                }
+            }
+        }
+
         #endregion
     }
 }

@@ -633,6 +633,115 @@
                 </Grid>
             </TabItem>
 
+            <!-- FreeCAD Tab -->
+            <TabItem Header="🔧 FreeCAD">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- FreeCAD Configuration -->
+                    <GroupBox Header="FreeCAD Configuration" Grid.Row="0" Margin="0,0,0,10">
+                        <StackPanel Margin="5">
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="40"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="FreeCAD Path:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox Grid.Column="1" Text="{Binding FreecadPath}" IsReadOnly="True" Margin="0,0,10,0"/>
+                                <Button Grid.Column="2" Content="Browse..." Command="{Binding BrowseFreecadCommand}" Padding="5" Margin="0,0,5,0"/>
+                                <TextBlock Grid.Column="3" Text="✔" Foreground="Green" FontSize="16" FontWeight="Bold" 
+                                           VerticalAlignment="Center" HorizontalAlignment="Center"
+                                           Visibility="{Binding IsFreecadAvailable, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                <TextBlock Grid.Column="3" Text="✖" Foreground="Red" FontSize="16" FontWeight="Bold" 
+                                           VerticalAlignment="Center" HorizontalAlignment="Center"
+                                           Visibility="{Binding IsFreecadAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                            </Grid>
+                            
+                            <Button Content="📥 Download FreeCAD" Command="{Binding DownloadFreecadCommand}" 
+                                    Width="200" HorizontalAlignment="Left" Padding="5"
+                                    Visibility="{Binding IsFreecadAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- FreeCAD Features -->
+                    <GroupBox Header="Features" Grid.Row="1" Margin="0,0,0,10">
+                        <WrapPanel Margin="5">
+                            <Button Content="Open in FreeCAD" Command="{Binding OpenInFreecadCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
+                                    ToolTip="Open selected 3D model file in FreeCAD"/>
+                            <Button Content="Launch FreeCAD" Command="{Binding OpenInFreecadCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="LightGreen"
+                                    ToolTip="Launch FreeCAD 3D modeler"/>
+                            <Button Content="Embed FreeCAD Here" Command="{Binding EmbedFreecadCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="LightBlue"
+                                    ToolTip="Embed FreeCAD directly in this tab (experimental)"/>
+                        </WrapPanel>
+                    </GroupBox>
+
+                    <!-- FreeCAD Workspace -->
+                    <GroupBox Header="FreeCAD Workspace" Grid.Row="2">
+                        <Grid>
+                            <!-- Embedded FreeCAD Host -->
+                            <wfi:WindowsFormsHost x:Name="FreecadHost" Loaded="FreecadHost_Loaded" 
+                                                 Visibility="{Binding EmbedFreecad, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <winforms:Panel x:Name="FreecadPanel" Dock="Fill"/>
+                            </wfi:WindowsFormsHost>
+                            
+                            <!-- Information Panel (when not embedded) -->
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                                          Visibility="{Binding EmbedFreecad, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                <StackPanel Margin="10">
+                                    <TextBlock Text="FreeCAD 3D Parametric Modeler" FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
+                                    <TextBlock Text="(Free, Open Source, Cross-Platform CAD)" FontStyle="Italic" Foreground="#666" Margin="0,0,0,15"/>
+                                
+                                    <TextBlock Text="📐 3D Modeling:" FontWeight="Bold" Margin="0,0,0,8"/>
+                                    <TextBlock Text="• Parametric 3D modeling with constraint-based sketcher" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Part design, assembly, and sheet metal tools" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Boolean operations (union, difference, intersection)" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Mesh editing and conversion" Margin="15,0,0,10"/>
+                                    
+                                    <TextBlock Text="📄 File Formats:" FontWeight="Bold" Margin="0,10,0,8"/>
+                                    <TextBlock Text="• Import/Export: STEP, IGES, STL, OBJ, DXF, SVG" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Native FreeCAD format (.FCStd)" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• 3D printing ready exports" Margin="15,0,0,10"/>
+                                    
+                                    <TextBlock Text="🔧 Engineering Features:" FontWeight="Bold" Margin="0,10,0,8"/>
+                                    <TextBlock Text="• Finite Element Analysis (FEA)" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Technical drawing and drafting" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Architectural design (BIM)" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Robot simulation" Margin="15,0,0,10"/>
+                                    
+                                    <TextBlock Text="🎨 Additional Features:" FontWeight="Bold" Margin="0,10,0,8"/>
+                                    <TextBlock Text="• Python scripting for automation" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Path workbench for CNC machining" Margin="15,0,0,5"/>
+                                    <TextBlock Text="• Raytracing and rendering" Margin="15,0,0,10"/>
+                                    
+                                    <Border Background="#E3F2FD" Padding="15" Margin="0,15,0,0" BorderBrush="#2196F3" BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock Text="💡 Quick Start:" FontWeight="Bold" Foreground="#1976D2" Margin="0,0,0,5"/>
+                                            <TextBlock Text="1. Select a 3D model file (STL, OBJ, STEP) using Browse" Foreground="#1976D2" Margin="0,0,0,3"/>
+                                            <TextBlock Text="2. Click 'Open in FreeCAD' to edit the model" Foreground="#1976D2" Margin="0,0,0,3"/>
+                                            <TextBlock Text="3. Use FreeCAD's powerful CAD tools for precise modeling" Foreground="#1976D2"/>
+                                        </StackPanel>
+                                    </Border>
+                                    
+                                    <Border Background="#E8F5E9" Padding="15" Margin="0,15,0,0" BorderBrush="#4CAF50" BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock Text="💡 Works with 3D Model Editor" FontWeight="Bold" Foreground="#2E7D32" Margin="0,0,0,5"/>
+                                            <TextBlock Text="Export STL/OBJ files from the 3D Model Editor tab and open them in FreeCAD for advanced editing!" Foreground="#2E7D32" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+
             <!-- Quick Actions Tab -->
             <TabItem Header="⚡ Settings &amp; Tools">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -670,6 +779,13 @@
                                                Visibility="{Binding IsShotcutAvailable, Converter={StaticResource BoolToVisibilityConverter}}"/>
                                     <TextBlock Text="✖ Not Found" Foreground="Red" FontWeight="Bold" FontSize="13"
                                                Visibility="{Binding IsShotcutAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Text="FreeCAD: " Width="150" FontSize="13"/>
+                                    <TextBlock Text="✔ Installed" Foreground="Green" FontWeight="Bold" FontSize="13"
+                                               Visibility="{Binding IsFreecadAvailable, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    <TextBlock Text="✖ Not Found" Foreground="Red" FontWeight="Bold" FontSize="13"
+                                               Visibility="{Binding IsFreecadAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
                                 </StackPanel>
                             </StackPanel>
                         </GroupBox>
@@ -711,6 +827,8 @@
                                 <Button Content="📥 Download GIMP (gimp.org)" Command="{Binding DownloadGimpCommand}" 
                                         HorizontalAlignment="Stretch" Padding="10,8" Margin="0,0,0,8" Height="40"/>
                                 <Button Content="📥 Download Shotcut (shotcut.org)" Command="{Binding DownloadShotcutCommand}" 
+                                        HorizontalAlignment="Stretch" Padding="10,8" Margin="0,0,0,8" Height="40"/>
+                                <Button Content="📥 Download FreeCAD (freecad.org)" Command="{Binding DownloadFreecadCommand}" 
                                         HorizontalAlignment="Stretch" Padding="10,8" Height="40"/>
                             </StackPanel>
                         </GroupBox>
@@ -718,13 +836,14 @@
                         <GroupBox Header="About Multimedia Editor">
                             <StackPanel Margin="10">
                                 <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
-                                    The Multimedia Editor integrates four professional open-source applications 
+                                    The Multimedia Editor integrates five professional open-source applications 
                                     for comprehensive media editing capabilities:
                                 </TextBlock>
                                 <TextBlock Text="• VLC Player - Video and audio playback, format conversion" Margin="0,0,0,5"/>
                                 <TextBlock Text="• Audacity - Professional audio editing and recording" Margin="0,0,0,5"/>
                                 <TextBlock Text="• GIMP - Advanced image editing and graphic design" Margin="0,0,0,5"/>
-                                <TextBlock Text="• Shotcut - Full-featured video editing with multi-track timeline" Margin="0,0,0,10"/>
+                                <TextBlock Text="• Shotcut - Full-featured video editing with multi-track timeline" Margin="0,0,0,5"/>
+                                <TextBlock Text="• FreeCAD - Parametric 3D CAD modeler for engineering and design" Margin="0,0,0,10"/>
                                 <TextBlock TextWrapping="Wrap" FontStyle="Italic" Foreground="#666">
                                     Each application opens in its own window with full functionality. 
                                     All applications are free and open-source.

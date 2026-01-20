@@ -148,7 +148,7 @@
 <header>
     <h1>🦆 PlatypusTools</h1>
     <p>Advanced File Management &amp; Media Tools Suite</p>
-    <div class="version">Version 3.2.3.1 | Built with .NET 10 / WPF</div>
+    <div class="version">Version 3.2.5.0 | Built with .NET 10 / WPF</div>
 </header>
 
 <div class="container">
@@ -195,7 +195,8 @@
         <li><strong>Hierarchical Multimedia Tab</strong> - Reorganized into Audio, Image, Video, Media Library, and External Tools sub-tabs</li>
         <li><strong>Native Video Player</strong> - Built-in video player with fullscreen support and popup controls</li>
         <li><strong>Native Audio Trimmer</strong> - Trim audio files with precise start/end time selection</li>
-        <li><strong>Native Image Editor</strong> - Rotate, flip, grayscale, invert, and save in multiple formats</li>
+        <li><strong>Native Image Editor</strong> - Full-featured editor with annotations, effects, color tools, and background removal</li>
+        <li><strong>FreeCAD Integration</strong> - 3D modeling external tool with auto-detection and download</li>
         <li><strong>Fullscreen Popup Controls</strong> - Hover at bottom of screen to show controls in fullscreen mode</li>
         <li><strong>Improved System Audit</strong> - Enhanced security scanning with auto-fix capabilities</li>
     </ul>
@@ -330,17 +331,72 @@
     
     <h3>🖼️ Image</h3>
     
-    <h4>Image Edit <span class="new-badge">New</span></h4>
-    <p>Native image editor for quick transformations.</p>
+    <h4>Image Edit <span class="new-badge">Enhanced v3.2.5</span></h4>
+    <p>Comprehensive native image editor with annotation tools and advanced features.</p>
+    
+    <h5>Image Source</h5>
+    <ul>
+        <li><strong>Open</strong> - Load existing images (JPG, PNG, GIF, BMP, TIFF, WebP)</li>
+        <li><strong>New</strong> - Create a blank canvas with custom dimensions and background color</li>
+        <li><strong>Paste</strong> - Paste image directly from clipboard</li>
+    </ul>
+    
+    <h5>Transform Tools</h5>
     <table>
         <tr><th>Operation</th><th>Description</th></tr>
         <tr><td>Rotate Left/Right</td><td>Rotate image 90° in either direction</td></tr>
         <tr><td>Flip Horizontal</td><td>Mirror image horizontally</td></tr>
         <tr><td>Flip Vertical</td><td>Mirror image vertically</td></tr>
+        <tr><td>Crop</td><td>Click and drag to select a region to crop</td></tr>
+        <tr><td>Resize</td><td>Resize image to custom dimensions</td></tr>
+    </table>
+    
+    <h5>Effects</h5>
+    <table>
+        <tr><th>Effect</th><th>Description</th></tr>
         <tr><td>Grayscale</td><td>Convert to black and white</td></tr>
         <tr><td>Invert Colors</td><td>Invert all colors (negative effect)</td></tr>
+        <tr><td>Brightness</td><td>Increase image brightness</td></tr>
+        <tr><td>Contrast</td><td>Increase image contrast</td></tr>
+        <tr><td>Blur</td><td>Apply Gaussian blur</td></tr>
+        <tr><td>Sharpen</td><td>Sharpen image details</td></tr>
     </table>
-    <p><strong>Save Formats:</strong> PNG, JPEG, BMP, GIF, WebP</p>
+    
+    <h5>Annotation Tools <span class="new-badge">New</span></h5>
+    <p>Draw directly on images with real-time preview:</p>
+    <table>
+        <tr><th>Tool</th><th>Description</th></tr>
+        <tr><td>Arrow</td><td>Draw arrows to point at elements</td></tr>
+        <tr><td>Rectangle</td><td>Draw rectangles (outline or filled)</td></tr>
+        <tr><td>Ellipse</td><td>Draw ellipses/circles (outline or filled)</td></tr>
+        <tr><td>Text</td><td>Add text annotations</td></tr>
+        <tr><td>Highlight</td><td>Highlight regions with semi-transparent yellow</td></tr>
+        <tr><td>Freehand</td><td>Draw freehand lines</td></tr>
+        <tr><td>Fill</td><td>Flood fill areas with selected color</td></tr>
+    </table>
+    <div class="tip">
+        <strong>Tip:</strong> Right-click on Rectangle or Ellipse buttons to toggle fill mode, or use the "Fill Shapes" checkbox.
+    </div>
+    
+    <h5>Advanced Tools <span class="new-badge">New</span></h5>
+    <table>
+        <tr><th>Tool</th><th>Description</th></tr>
+        <tr><td>Color Picker</td><td>Pick any color from the image</td></tr>
+        <tr><td>Replace Color</td><td>Replace picked color with selected color (uses tolerance)</td></tr>
+        <tr><td>Remove Background</td><td>Auto-detect and remove solid backgrounds</td></tr>
+        <tr><td>Magic Select</td><td>Highlight similar colors based on tolerance</td></tr>
+        <tr><td>Undo</td><td>Undo last operation (up to 20 levels)</td></tr>
+        <tr><td>Reset</td><td>Reset to original image</td></tr>
+    </table>
+    
+    <h5>Settings Panel</h5>
+    <ul>
+        <li><strong>Draw Color</strong> - Select from color swatches or use custom color picker</li>
+        <li><strong>Line Thickness</strong> - Adjust stroke width (1-20 pixels)</li>
+        <li><strong>Color Tolerance</strong> - Adjust tolerance for color replace, background removal, and magic select (0-100%)</li>
+    </ul>
+    
+    <p><strong>Save Formats:</strong> PNG, JPEG, BMP, GIF, WebP, TIFF, SVG</p>
     
     <h4>Image Converter</h4>
     <p>Convert images between different formats with quality options.</p>
@@ -420,7 +476,12 @@
         <li><strong>VLC Media Player</strong> - Advanced video playback</li>
         <li><strong>Audacity</strong> - Audio editing</li>
         <li><strong>GIMP</strong> - Image editing</li>
+        <li><strong>Shotcut</strong> - Video editing</li>
+        <li><strong>FreeCAD</strong> - 3D modeling and CAD design <span class="new-badge">New</span></li>
     </ul>
+    <div class="tip">
+        <strong>Tip:</strong> Each external tool can be auto-detected, manually configured, or downloaded directly from the Settings &amp; Tools tab.
+    </div>
 </section>
 
 <section id="system" class="section">

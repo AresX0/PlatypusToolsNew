@@ -75,12 +75,20 @@ namespace PlatypusTools.UI.ViewModels
             set { _shotcutPath = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsShotcutAvailable)); }
         }
 
+        private string _freecadPath = string.Empty;
+        public string FreecadPath
+        {
+            get => _freecadPath;
+            set { _freecadPath = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsFreecadAvailable)); }
+        }
+
         // Availability properties
         public bool IsVlcAvailable => !string.IsNullOrEmpty(VlcPath) && File.Exists(VlcPath);
         public bool IsAudacityAvailable => !string.IsNullOrEmpty(AudacityPath) && File.Exists(AudacityPath);
         public bool IsGimpAvailable => !string.IsNullOrEmpty(GimpPath) && File.Exists(GimpPath);
         public bool IsShotcutAvailable => !string.IsNullOrEmpty(ShotcutPath) && File.Exists(ShotcutPath);
-        public bool HasMissingApplications => !IsVlcAvailable || !IsAudacityAvailable || !IsGimpAvailable || !IsShotcutAvailable;
+        public bool IsFreecadAvailable => !string.IsNullOrEmpty(FreecadPath) && File.Exists(FreecadPath);
+        public bool HasMissingApplications => !IsVlcAvailable || !IsAudacityAvailable || !IsGimpAvailable || !IsShotcutAvailable || !IsFreecadAvailable;
 
         // Embedding properties
         private bool _embedVlc;
@@ -111,6 +119,13 @@ namespace PlatypusTools.UI.ViewModels
             set { _embedShotcut = value; OnPropertyChanged(); }
         }
 
+        private bool _embedFreecad;
+        public bool EmbedFreecad
+        {
+            get => _embedFreecad;
+            set { _embedFreecad = value; OnPropertyChanged(); }
+        }
+
         private IntPtr _vlcHostHandle;
         public IntPtr VlcHostHandle
         {
@@ -137,6 +152,13 @@ namespace PlatypusTools.UI.ViewModels
         {
             get => _shotcutHostHandle;
             set { _shotcutHostHandle = value; OnPropertyChanged(); }
+        }
+
+        private IntPtr _freecadHostHandle;
+        public IntPtr FreecadHostHandle
+        {
+            get => _freecadHostHandle;
+            set { _freecadHostHandle = value; OnPropertyChanged(); }
         }
 
         // File type detection
@@ -170,6 +192,10 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand EmbedShotcutCommand { get; }
         public ICommand OpenInShotcutCommand { get; }
         public ICommand BrowseShotcutCommand { get; }
+        public ICommand DownloadFreecadCommand { get; }
+        public ICommand EmbedFreecadCommand { get; }
+        public ICommand OpenInFreecadCommand { get; }
+        public ICommand BrowseFreecadCommand { get; }
 
         public MultimediaEditorViewModel()
         {
@@ -191,6 +217,10 @@ namespace PlatypusTools.UI.ViewModels
             OpenInShotcutCommand = new RelayCommand(_ => OpenInShotcut(), _ => IsShotcutAvailable);
             BrowseShotcutCommand = new RelayCommand(_ => BrowseApplication("Shotcut"));
             DownloadShotcutCommand = new RelayCommand(_ => DownloadShotcut());
+            DownloadFreecadCommand = new RelayCommand(_ => DownloadFreecad());
+            EmbedFreecadCommand = new RelayCommand(_ => EmbedFreecadApp(), _ => IsFreecadAvailable);
+            OpenInFreecadCommand = new RelayCommand(_ => OpenInFreecad(), _ => IsFreecadAvailable);
+            BrowseFreecadCommand = new RelayCommand(_ => BrowseApplication("FreeCAD"));
 
             AutoDetectApplications();
         }
@@ -339,6 +369,9 @@ namespace PlatypusTools.UI.ViewModels
                     case "Shotcut":
                         ShotcutPath = dialog.FileName;
                         break;
+                    case "FreeCAD":
+                        FreecadPath = dialog.FileName;
+                        break;
                 }
                 StatusMessage = $"{appName} path set: {dialog.FileName}";
             }
@@ -418,6 +451,28 @@ namespace PlatypusTools.UI.ViewModels
                 }
             }
 
+            // Try to find FreeCAD
+            var freecadPaths = new[]
+            {
+                @"C:\Program Files\FreeCAD 1.0\bin\FreeCAD.exe",
+                @"C:\Program Files\FreeCAD 0.21\bin\FreeCAD.exe",
+                @"C:\Program Files\FreeCAD 0.20\bin\FreeCAD.exe",
+                @"C:\Program Files (x86)\FreeCAD 1.0\bin\FreeCAD.exe",
+                @"C:\Program Files (x86)\FreeCAD 0.21\bin\FreeCAD.exe",
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "FreeCAD 1.0", "bin", "FreeCAD.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "FreeCAD 0.21", "bin", "FreeCAD.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "FreeCAD", "bin", "FreeCAD.exe")
+            };
+
+            foreach (var path in freecadPaths)
+            {
+                if (File.Exists(path))
+                {
+                    FreecadPath = path;
+                    break;
+                }
+            }
+
             UpdateApplicationAvailability();
             
             var foundApps = new List<string>();
@@ -425,8 +480,9 @@ namespace PlatypusTools.UI.ViewModels
             if (IsAudacityAvailable) foundApps.Add("Audacity");
             if (IsGimpAvailable) foundApps.Add("GIMP");
             if (IsShotcutAvailable) foundApps.Add("Shotcut");
+            if (IsFreecadAvailable) foundApps.Add("FreeCAD");
             
-            if (foundApps.Count == 4)
+            if (foundApps.Count == 5)
             {
                 StatusMessage = "✔ All applications detected successfully!";
             }
@@ -446,6 +502,7 @@ namespace PlatypusTools.UI.ViewModels
             OnPropertyChanged(nameof(IsAudacityAvailable));
             OnPropertyChanged(nameof(IsGimpAvailable));
             OnPropertyChanged(nameof(IsShotcutAvailable));
+            OnPropertyChanged(nameof(IsFreecadAvailable));
             OnPropertyChanged(nameof(HasMissingApplications));
         }
 
@@ -517,6 +574,23 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
+        private void DownloadFreecad()
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "https://www.freecad.org/downloads.php",
+                    UseShellExecute = true
+                });
+                StatusMessage = "Opening FreeCAD download page in your browser...";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error opening download page: {ex.Message}";
+            }
+        }
+
         private void OpenInShotcut()
         {
             if (!IsShotcutAvailable)
@@ -544,7 +618,36 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
+        private void OpenInFreecad()
+        {
+            if (!IsFreecadAvailable)
+            {
+                StatusMessage = "FreeCAD not available";
+                return;
+            }
+
+            try
+            {
+                // FreeCAD supports STL, OBJ, STEP, IGES, and many CAD formats
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = FreecadPath,
+                    Arguments = !string.IsNullOrEmpty(FilePath) && File.Exists(FilePath) ? $"\"{FilePath}\"" : "",
+                    UseShellExecute = true
+                };
+                Process.Start(startInfo);
+                StatusMessage = string.IsNullOrEmpty(FilePath) 
+                    ? "Opened FreeCAD" 
+                    : $"Opened in FreeCAD: {Path.GetFileName(FilePath)}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error opening FreeCAD: {ex.Message}";
+            }
+        }
+
         private Process? _embeddedShotcutProcess;
+        private Process? _embeddedFreecadProcess;
 
         private async void EmbedShotcutApp()
         {
@@ -591,6 +694,81 @@ namespace PlatypusTools.UI.ViewModels
             {
                 StatusMessage = $"Error embedding Shotcut: {ex.Message}";
                 EmbedShotcut = false;
+            }
+        }
+
+        private async void EmbedFreecadApp()
+        {
+            if (!IsFreecadAvailable)
+            {
+                StatusMessage = "FreeCAD not available";
+                return;
+            }
+
+            EmbedFreecad = true;
+            StatusMessage = "Launching FreeCAD for embedding...";
+
+            try
+            {
+                // Kill existing embedded process if any
+                if (_embeddedFreecadProcess != null)
+                {
+                    try
+                    {
+                        if (!_embeddedFreecadProcess.HasExited)
+                            _embeddedFreecadProcess.Kill();
+                        _embeddedFreecadProcess.Dispose();
+                    }
+                    catch { }
+                    _embeddedFreecadProcess = null;
+                }
+
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = FreecadPath,
+                    Arguments = !string.IsNullOrEmpty(FilePath) && File.Exists(FilePath) ? $"\"{FilePath}\"" : "",
+                    UseShellExecute = false
+                };
+
+                _embeddedFreecadProcess = Process.Start(startInfo);
+
+                if (_embeddedFreecadProcess != null)
+                {
+                    // Wait for FreeCAD to initialize - it can take a while
+                    await System.Threading.Tasks.Task.Delay(4000);
+
+                    IntPtr handle = IntPtr.Zero;
+                    // Try to get the handle multiple times
+                    for (int i = 0; i < 15 && handle == IntPtr.Zero; i++)
+                    {
+                        if (_embeddedFreecadProcess.HasExited) break;
+                        _embeddedFreecadProcess.Refresh();
+                        handle = _embeddedFreecadProcess.MainWindowHandle;
+                        if (handle == IntPtr.Zero)
+                            await System.Threading.Tasks.Task.Delay(500);
+                    }
+
+                    if (!_embeddedFreecadProcess.HasExited && FreecadHostHandle != IntPtr.Zero && handle != IntPtr.Zero)
+                    {
+                        SetParent(handle, FreecadHostHandle);
+                        int style = GetWindowLong(handle, GWL_STYLE);
+                        style &= ~WS_CAPTION;
+                        style &= ~WS_THICKFRAME;
+                        SetWindowLong(handle, GWL_STYLE, style);
+                        SetWindowPos(handle, IntPtr.Zero, 0, 0, 1000, 700, SWP_NOZORDER | SWP_NOACTIVATE);
+                        StatusMessage = "FreeCAD embedded successfully!";
+                    }
+                    else
+                    {
+                        StatusMessage = "Could not get FreeCAD window handle - try 'Open in FreeCAD' instead";
+                        EmbedFreecad = false;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error embedding FreeCAD: {ex.Message}";
+                EmbedFreecad = false;
             }
         }
 

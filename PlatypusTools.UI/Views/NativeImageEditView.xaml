@@ -4,8 +4,16 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
-             d:DesignHeight="700" d:DesignWidth="900">
+             d:DesignHeight="800" d:DesignWidth="1200">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+    
     <Grid Margin="5">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="220"/>
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -13,49 +21,156 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- File Selection -->
-        <GroupBox Header="Image File" Grid.Row="0" Margin="0,0,0,5">
+        <!-- File Selection / New Image -->
+        <GroupBox Header="Image Source" Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,5">
             <Grid Margin="5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="File:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                 <TextBox x:Name="ImageFilePathBox" Grid.Column="1" IsReadOnly="True" Margin="0,0,10,0"/>
-                <Button Grid.Column="2" Content="Browse..." Click="BrowseImage_Click" Width="80" Padding="5"/>
+                <Button Grid.Column="2" Content="📂 Open..." Click="BrowseImage_Click" Width="90" Padding="5" Margin="0,0,5,0"/>
+                <Button Grid.Column="3" Content="🆕 New..." Click="NewImage_Click" Width="90" Padding="5" ToolTip="Create a new blank canvas"/>
+                <Button Grid.Column="4" Content="📋 Paste" Click="PasteImage_Click" Width="80" Padding="5" Margin="5,0,0,0" ToolTip="Paste image from clipboard"/>
             </Grid>
         </GroupBox>
 
-        <!-- Quick Actions -->
-        <GroupBox Header="Quick Image Operations" Grid.Row="1" Margin="0,0,0,5">
-            <WrapPanel Margin="10">
-                <Button Content="↶ Rotate Left" Click="RotateLeft_Click" Width="120" Height="35" Margin="0,0,5,5"/>
-                <Button Content="↷ Rotate Right" Click="RotateRight_Click" Width="120" Height="35" Margin="0,0,5,5"/>
-                <Button Content="↔ Flip Horizontal" Click="FlipH_Click" Width="130" Height="35" Margin="0,0,5,5"/>
-                <Button Content="↕ Flip Vertical" Click="FlipV_Click" Width="120" Height="35" Margin="0,0,5,5"/>
-                <Button Content="🎨 Grayscale" Click="Grayscale_Click" Width="120" Height="35" Margin="0,0,5,5"/>
-                <Button Content="🔄 Invert Colors" Click="Invert_Click" Width="120" Height="35" Margin="0,0,5,5"/>
-            </WrapPanel>
+        <!-- Toolbar -->
+        <GroupBox Header="Tools" Grid.Row="1" Grid.ColumnSpan="2" Margin="0,0,0,5">
+            <StackPanel Margin="5">
+                <!-- Transform Operations -->
+                <WrapPanel Margin="0,0,0,5">
+                    <TextBlock Text="Transform:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0" Width="80"/>
+                    <Button Content="↶ Rotate Left" Click="RotateLeft_Click" Width="100" Height="32" Margin="0,0,3,0"/>
+                    <Button Content="↷ Rotate Right" Click="RotateRight_Click" Width="100" Height="32" Margin="0,0,3,0"/>
+                    <Button Content="↔ Flip H" Click="FlipH_Click" Width="75" Height="32" Margin="0,0,3,0"/>
+                    <Button Content="↕ Flip V" Click="FlipV_Click" Width="75" Height="32" Margin="0,0,3,0"/>
+                    <Button Content="✂ Crop" Click="StartCrop_Click" Width="70" Height="32" Margin="0,0,3,0" ToolTip="Click and drag to select crop region"/>
+                    <Button Content="📐 Resize" Click="Resize_Click" Width="80" Height="32"/>
+                </WrapPanel>
+
+                <!-- Effects -->
+                <WrapPanel Margin="0,0,0,5">
+                    <TextBlock Text="Effects:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0" Width="80"/>
+                    <Button Content="🎨 Grayscale" Click="Grayscale_Click" Width="100" Height="32" Margin="0,0,3,0"/>
+                    <Button Content="🔄 Invert" Click="Invert_Click" Width="85" Height="32" Margin="0,0,3,0"/>
+                    <Button Content="☀ Brightness" Click="Brightness_Click" Width="105" Height="32" Margin="0,0,3,0"/>
+                    <Button Content="🌓 Contrast" Click="Contrast_Click" Width="95" Height="32" Margin="0,0,3,0"/>
+                    <Button Content="🌊 Blur" Click="Blur_Click" Width="75" Height="32" Margin="0,0,3,0"/>
+                    <Button Content="🔪 Sharpen" Click="Sharpen_Click" Width="90" Height="32"/>
+                </WrapPanel>
+
+                <!-- Annotation Tools -->
+                <WrapPanel Margin="0,0,0,5">
+                    <TextBlock Text="Annotate:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0" Width="80"/>
+                    <Button x:Name="BtnArrow" Content="➜ Arrow" ToolTip="Arrow (Left-click: outline, Right-click: set fill mode)" Click="SetAnnotationMode_Click" MouseRightButtonDown="ShapeButton_RightClick" Tag="Arrow" Width="70" Height="32" Margin="0,0,3,0"/>
+                    <Button x:Name="BtnRect" Content="▢ Rect" ToolTip="Rectangle (Left-click: outline, Right-click: set fill mode)" Click="SetAnnotationMode_Click" MouseRightButtonDown="ShapeButton_RightClick" Tag="Rectangle" Width="70" Height="32" Margin="0,0,3,0"/>
+                    <Button x:Name="BtnEllipse" Content="○ Ellipse" ToolTip="Ellipse (Left-click: outline, Right-click: set fill mode)" Click="SetAnnotationMode_Click" MouseRightButtonDown="ShapeButton_RightClick" Tag="Ellipse" Width="80" Height="32" Margin="0,0,3,0"/>
+                    <Button x:Name="BtnText" Content="T Text" ToolTip="Text" Click="SetAnnotationMode_Click" Tag="Text" Width="65" Height="32" Margin="0,0,3,0"/>
+                    <Button x:Name="BtnHighlight" Content="▮ Highlight" ToolTip="Highlight" Click="SetAnnotationMode_Click" Tag="Highlight" Width="90" Height="32" Margin="0,0,3,0"/>
+                    <Button x:Name="BtnFreehand" Content="✎ Draw" ToolTip="Freehand Draw" Click="SetAnnotationMode_Click" Tag="Freehand" Width="70" Height="32" Margin="0,0,3,0"/>
+                    <Button x:Name="BtnFill" Content="🪣 Fill" ToolTip="Fill Color (Flood Fill)" Click="SetAnnotationMode_Click" Tag="Fill" Width="65" Height="32" Margin="0,0,3,0"/>
+                    <CheckBox x:Name="FillShapesCheckBox" Content="Fill Shapes" VerticalAlignment="Center" Margin="10,0,0,0" ToolTip="When checked, shapes will be filled solid"/>
+                    <TextBox x:Name="AnnotationTextBox" Width="120" Height="28" Margin="10,0,0,0" VerticalContentAlignment="Center" ToolTip="Text for text annotation"/>
+                </WrapPanel>
+
+                <!-- Advanced Tools -->
+                <WrapPanel>
+                    <TextBlock Text="Advanced:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0" Width="80"/>
+                    <Button Content="🎯 Color Picker" Click="ColorPicker_Click" Width="110" Height="32" Margin="0,0,3,0" ToolTip="Pick a color from the image"/>
+                    <Button Content="🔄 Replace Color" Click="ReplaceColor_Click" Width="120" Height="32" Margin="0,0,3,0" ToolTip="Replace one color with another"/>
+                    <Button Content="✂ Remove Background" Click="RemoveBackground_Click" Width="140" Height="32" Margin="0,0,3,0" ToolTip="Auto-remove background (works best with solid backgrounds)"/>
+                    <Button Content="🪄 Magic Select" Click="MagicSelect_Click" Width="110" Height="32" Margin="0,0,3,0" ToolTip="Select similar colors"/>
+                    <Button Content="↩ Undo" Click="Undo_Click" Width="75" Height="32" Margin="0,0,3,0"/>
+                    <Button Content="↩ Reset" Click="Reset_Click" Width="75" Height="32"/>
+                </WrapPanel>
+            </StackPanel>
         </GroupBox>
         
-        <!-- Image Preview -->
-        <GroupBox Header="Image Preview" Grid.Row="2">
+        <!-- Image Preview with Overlay Canvas -->
+        <GroupBox Header="Image Canvas" Grid.Row="2" Grid.Column="0" Margin="0,0,5,0">
             <Grid>
-                <Image x:Name="ImagePreview" Stretch="Uniform" Margin="5"/>
-                <TextBlock x:Name="PlaceholderText" Text="Select an image file to edit" 
+                <ScrollViewer x:Name="ImageScrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <Grid x:Name="CanvasContainer">
+                        <Image x:Name="ImagePreview" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Canvas x:Name="DrawingOverlay" 
+                                Background="Transparent"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                MouseLeftButtonDown="DrawingOverlay_MouseDown"
+                                MouseMove="DrawingOverlay_MouseMove"
+                                MouseLeftButtonUp="DrawingOverlay_MouseUp"/>
+                    </Grid>
+                </ScrollViewer>
+                <TextBlock x:Name="PlaceholderText" Text="Open an image or create a new canvas to begin" 
                            HorizontalAlignment="Center" VerticalAlignment="Center"
                            Foreground="#999" FontSize="14" FontStyle="Italic"/>
             </Grid>
         </GroupBox>
-        
+
+        <!-- Settings Panel -->
+        <GroupBox Header="Settings" Grid.Row="2" Grid.Column="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="10">
+                    <!-- Current Tool -->
+                    <TextBlock Text="Current Tool:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <TextBlock x:Name="CurrentToolText" Text="None" Foreground="Blue" Margin="0,0,0,15"/>
+                    
+                    <!-- Color Selection -->
+                    <TextBlock Text="Draw Color:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <WrapPanel Margin="0,0,0,10">
+                        <Border x:Name="ColorRed" Width="25" Height="25" Background="Red" Margin="2" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="3"/>
+                        <Border x:Name="ColorYellow" Width="25" Height="25" Background="Yellow" Margin="2" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="3"/>
+                        <Border x:Name="ColorGreen" Width="25" Height="25" Background="Green" Margin="2" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="3"/>
+                        <Border x:Name="ColorBlue" Width="25" Height="25" Background="Blue" Margin="2" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="3"/>
+                        <Border x:Name="ColorOrange" Width="25" Height="25" Background="Orange" Margin="2" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="3"/>
+                        <Border x:Name="ColorPurple" Width="25" Height="25" Background="Purple" Margin="2" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="3"/>
+                        <Border x:Name="ColorWhite" Width="25" Height="25" Background="White" Margin="2" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="3" BorderBrush="Gray" BorderThickness="1"/>
+                        <Border x:Name="ColorBlack" Width="25" Height="25" Background="Black" Margin="2" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="3"/>
+                    </WrapPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                        <TextBlock Text="Selected: " VerticalAlignment="Center"/>
+                        <Border x:Name="SelectedColorPreview" Width="40" Height="25" Background="Red" CornerRadius="3" BorderBrush="Gray" BorderThickness="1"/>
+                        <Button Content="Custom" Click="CustomColor_Click" Width="60" Height="25" Margin="10,0,0,0" FontSize="11"/>
+                    </StackPanel>
+                    
+                    <!-- Picked Color (from image) -->
+                    <TextBlock Text="Picked Color:" FontWeight="SemiBold" Margin="0,10,0,5"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Border x:Name="PickedColorPreview" Width="40" Height="25" Background="Transparent" CornerRadius="3" BorderBrush="Gray" BorderThickness="1"/>
+                        <TextBlock x:Name="PickedColorHex" Text="" VerticalAlignment="Center" Margin="10,0,0,0" FontFamily="Consolas"/>
+                    </StackPanel>
+                    
+                    <!-- Line Thickness -->
+                    <TextBlock Text="Line Thickness:" FontWeight="SemiBold" Margin="0,15,0,5"/>
+                    <Slider x:Name="ThicknessSlider" Minimum="1" Maximum="20" Value="3" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="ThicknessSlider_ValueChanged"/>
+                    <TextBlock x:Name="ThicknessText" Text="3 px" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                    
+                    <!-- Color Tolerance (for magic select/replace) -->
+                    <TextBlock Text="Color Tolerance:" FontWeight="SemiBold" Margin="0,15,0,5"/>
+                    <Slider x:Name="ToleranceSlider" Minimum="0" Maximum="100" Value="30" TickFrequency="5" IsSnapToTickEnabled="True" ValueChanged="ToleranceSlider_ValueChanged"/>
+                    <TextBlock x:Name="ToleranceText" Text="30%" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                    
+                    <Separator Margin="0,15"/>
+                    
+                    <!-- Image Info -->
+                    <TextBlock Text="Image Info:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <TextBlock x:Name="ImageInfoText" Text="No image loaded" TextWrapping="Wrap" Foreground="#666"/>
+                </StackPanel>
+            </ScrollViewer>
+        </GroupBox>
+
         <!-- Save Options -->
-        <GroupBox Header="Save Options" Grid.Row="3" Margin="0,5,0,0">
+        <GroupBox Header="Save Options" Grid.Row="3" Grid.ColumnSpan="2" Margin="0,5,0,0">
             <Grid Margin="10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
@@ -66,10 +181,13 @@
                     <ComboBoxItem Content="BMP"/>
                     <ComboBoxItem Content="GIF"/>
                     <ComboBoxItem Content="WEBP"/>
+                    <ComboBoxItem Content="TIFF"/>
+                    <ComboBoxItem Content="SVG"/>
                 </ComboBox>
                 <TextBlock x:Name="StatusText" Grid.Column="2" Text="" Foreground="Blue" VerticalAlignment="Center" Margin="20,0,0,0"/>
-                <Button Grid.Column="3" Content="💾 Save As..." Click="Save_Click" Width="120" Height="35" Margin="10,0,5,0" FontWeight="Bold" Background="LightGreen"/>
-                <Button Grid.Column="4" Content="↩ Reset" Click="Reset_Click" Width="80" Height="35"/>
+                <Button Grid.Column="3" Content="📋 Copy" Click="CopyToClipboard_Click" Width="80" Height="35" Margin="10,0,5,0" ToolTip="Copy image to clipboard"/>
+                <Button Grid.Column="4" Content="💾 Save As..." Click="Save_Click" Width="100" Height="35" Margin="0,0,5,0" FontWeight="Bold" Background="LightGreen"/>
+                <Button Grid.Column="5" Content="💾 Quick Save" Click="QuickSave_Click" Width="100" Height="35" ToolTip="Save with same name + _edited"/>
             </Grid>
         </GroupBox>
     </Grid>
