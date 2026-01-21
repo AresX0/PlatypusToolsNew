@@ -232,9 +232,10 @@ namespace PlatypusTools.UI
 
         private void ShowAbout(object sender, RoutedEventArgs e)
         {
+            var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             MessageBox.Show(
                 "PLATYPUSTOOLS - Advanced File Management Suite\n\n" +
-                "Version: 3.2.3.1\n" +
+                $"Version: {version}\n" +
                 "Built with: .NET 10 / WPF\n\n" +
                 "FEATURES:\n" +
                 "• File Cleaner & Batch Renamer\n" +
