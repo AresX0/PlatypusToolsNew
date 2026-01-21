@@ -89,9 +89,10 @@
         <!-- Main Content -->
         <Grid Grid.Row="1" Margin="5">
             <Grid.RowDefinitions>
-                <RowDefinition Height="250"/>
+                <RowDefinition Height="200" MinHeight="100"/>
+                <RowDefinition Height="5"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="*" MinHeight="150"/>
             </Grid.RowDefinitions>
             
             <!-- Top Panel: Visualizer + Controls (Separate Pane) -->
@@ -195,8 +196,12 @@
                 </Grid>
             </Border>
             
+            <!-- GridSplitter for resizing Visualizer pane -->
+            <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" 
+                          Background="#444444" Cursor="SizeNS" ResizeDirection="Rows"/>
+            
             <!-- Player Controls - Below Visualizer, Above Tabs -->
-            <Border Grid.Row="1" Background="{DynamicResource ControlBackgroundBrush}" Padding="10,5">
+            <Border Grid.Row="2" Background="{DynamicResource ControlBackgroundBrush}" Padding="10,5">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -323,7 +328,7 @@
             </Border>
             
             <!-- Bottom Panel: Queue or Library -->
-            <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="0">
+            <Border Grid.Row="3" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="0">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -445,11 +450,11 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*" MinHeight="100"/>
                             </Grid.RowDefinitions>
                             
-                            <!-- Library Folder Management Section -->
-                            <GroupBox Grid.Row="0" Header="📂 Library Folders" Margin="0,0,0,8">
+                            <!-- Library Folder Management Section - Collapsible -->
+                            <Expander Grid.Row="0" Header="📂 Library Folders" IsExpanded="True" Margin="0,0,0,8">
                                 <Grid Margin="8">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -465,7 +470,7 @@
                                     <ListBox Grid.Column="0" Grid.Row="0" x:Name="LibraryFoldersListBox"
                                              ItemsSource="{Binding LibraryFolders}" 
                                              SelectedItem="{Binding SelectedLibraryFolder}"
-                                             Height="80" Margin="0,0,8,0"
+                                             MaxHeight="100" Margin="0,0,8,0"
                                              HorizontalContentAlignment="Stretch">
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
@@ -508,17 +513,17 @@
                                                      IsIndeterminate="{Binding IsScanning}" Height="16"/>
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="15,0,0,0">
                                             <TextBlock Text="Tracks:" FontWeight="Bold" Margin="0,0,4,0"/>
-                                            <TextBlock Text="{Binding LibraryTrackCount, FallbackValue=0}" Margin="0,0,12,0"/>
+                                            <TextBlock x:Name="LibraryTracksCountText" Text="{Binding LibraryTrackCount, FallbackValue=0}" Margin="0,0,12,0"/>
                                             <TextBlock Text="Artists:" FontWeight="Bold" Margin="0,0,4,0"/>
-                                            <TextBlock Text="{Binding LibraryArtistCount, FallbackValue=0}" Margin="0,0,12,0"/>
+                                            <TextBlock x:Name="LibraryArtistsCountText" Text="{Binding LibraryArtistCount, FallbackValue=0}" Margin="0,0,12,0"/>
                                             <TextBlock Text="Albums:" FontWeight="Bold" Margin="0,0,4,0"/>
-                                            <TextBlock Text="{Binding LibraryAlbumCount, FallbackValue=0}" Margin="0,0,12,0"/>
+                                            <TextBlock x:Name="LibraryAlbumsCountText" Text="{Binding LibraryAlbumCount, FallbackValue=0}" Margin="0,0,12,0"/>
                                             <TextBlock Text="⭐ Favorites:" FontWeight="Bold" Margin="0,0,4,0" Foreground="Gold"/>
-                                            <TextBlock Text="{Binding FavoriteCount, FallbackValue=0}" Foreground="Gold"/>
+                                            <TextBlock x:Name="LibraryFavoritesCountText" Text="{Binding FavoriteCount, FallbackValue=0}" Foreground="Gold"/>
                                         </StackPanel>
                                     </Grid>
                                 </Grid>
-                            </GroupBox>
+                            </Expander>
                             
                             <!-- Library Toolbar -->
                             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
@@ -568,11 +573,11 @@
                                 <TextBlock Text="{Binding LibraryTrackCount, StringFormat={}{0} tracks}" VerticalAlignment="Center" Foreground="Gray"/>
                             </StackPanel>
                             
-                            <!-- Groups List (Artists/Albums/Genres) -->
-                            <ListBox Grid.Row="2" Height="80" ItemsSource="{Binding LibraryGroups}" 
+                            <!-- Groups List (Artists/Albums/Genres) - Only shows when organizing by group -->
+                            <ListBox Grid.Row="2" ItemsSource="{Binding LibraryGroups}" 
                                      SelectedItem="{Binding SelectedGroup}"
                                      Visibility="{Binding ShowGroups, Converter={StaticResource BoolToVisibilityConverter}}"
-                                     Margin="0,0,0,8">
+                                     MaxHeight="120" Margin="0,0,0,5">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" Margin="5,3">
@@ -625,7 +630,7 @@
                 </TabControl>
                 
                 <!-- Track Info Panel -->
-                <GroupBox Grid.Column="2" Header="Now Playing" Margin="5,0,0,0">
+                <GroupBox Grid.Column="2" Header="Now Playing" Margin="5,5,5,5">
                     <StackPanel Margin="8">
                         <!-- Album Art -->
                         <Border Width="100" Height="100" Background="#2d2d44" CornerRadius="8" Margin="0,0,0,12" HorizontalAlignment="Center">

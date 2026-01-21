@@ -9,7 +9,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="*" MinHeight="100" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -212,8 +213,12 @@
             </ScrollViewer>
         </GroupBox>
 
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
         <!-- Preview Grid -->
-        <GroupBox Header="Preview" Grid.Row="2" Margin="0,0,0,8">
+        <GroupBox Header="Preview" Grid.Row="3" Margin="0,0,0,8">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -284,7 +289,7 @@
         </GroupBox>
 
         <!-- Actions and Status -->
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />

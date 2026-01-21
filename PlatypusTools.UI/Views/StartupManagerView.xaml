@@ -8,8 +8,9 @@
     <Grid Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" MinHeight="40" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="*" MinHeight="100"/>
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -27,8 +28,12 @@
             <Button Content="Delete Selected" Command="{Binding DeleteSelectedCommand}" Width="120" Margin="8,0,0,0" 
                     Foreground="Red" FontWeight="Bold"/>
         </StackPanel>
+        
+        <!-- GridSplitter for resizing -->
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
 
-        <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="3" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
             <DataGrid ItemsSource="{Binding StartupItems}"
                       AutoGenerateColumns="False"
                       CanUserAddRows="False"
@@ -73,7 +78,7 @@
             </DataGrid>
         </ScrollViewer>
 
-        <StatusBar Grid.Row="3" Margin="0,8,0,0">
+        <StatusBar Grid.Row="4" Margin="0,8,0,0">
             <StatusBarItem>
                 <TextBlock Text="{Binding StatusMessage}" />
             </StatusBarItem>

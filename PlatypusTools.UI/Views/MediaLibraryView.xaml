@@ -7,8 +7,9 @@
     <Grid Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" MinHeight="50" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="*" MinHeight="100" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -25,6 +26,7 @@
 
         <!-- Filter and Actions -->
         <GroupBox Header="Filters &amp; Actions" Grid.Row="1" Margin="0,0,0,8">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Orientation="Horizontal" Margin="8">
                 <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">File Type:</TextBlock>
                 <ComboBox Width="120" SelectedItem="{Binding SelectedType}" Margin="0,0,16,0">
@@ -38,10 +40,15 @@
                     Total Files: <Run Text="{Binding TotalFiles, Mode=OneWay}" />
                 </TextBlock>
             </StackPanel>
+            </ScrollViewer>
         </GroupBox>
 
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
         <!-- Media Files DataGrid -->
-        <GroupBox Header="Media Files" Grid.Row="2" Margin="0,0,0,8">
+        <GroupBox Header="Media Files" Grid.Row="3" Margin="0,0,0,8">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <DataGrid ItemsSource="{Binding MediaItems}"
                           AutoGenerateColumns="False"
@@ -80,7 +87,7 @@
         </GroupBox>
 
         <!-- Status Bar -->
-        <StatusBar Grid.Row="3">
+        <StatusBar Grid.Row="4">
             <StatusBarItem>
                 <TextBlock Text="{Binding StatusMessage}" />
             </StatusBarItem>

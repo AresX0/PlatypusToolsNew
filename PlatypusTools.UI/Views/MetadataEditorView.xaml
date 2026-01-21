@@ -14,8 +14,9 @@
                 <Grid Margin="10">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto" MinHeight="80"/>
+                        <RowDefinition Height="5"/>
+                        <RowDefinition Height="*" MinHeight="100"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
@@ -142,8 +143,12 @@
                         </Grid>
                     </GroupBox>
 
+                    <!-- GridSplitter -->
+                    <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 
+                                  Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
                     <!-- All Tags -->
-                    <GroupBox Header="All Metadata Tags" Grid.Row="2" Margin="0,0,0,10">
+                    <GroupBox Header="All Metadata Tags" Grid.Row="3" Margin="0,0,0,10">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -171,7 +176,7 @@
                     </GroupBox>
 
                     <!-- Actions -->
-                    <Grid Grid.Row="3">
+                    <Grid Grid.Row="4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -195,8 +200,9 @@
                 <Grid Margin="10">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto" MinHeight="60"/>
+                        <RowDefinition Height="5"/>
+                        <RowDefinition Height="*" MinHeight="100"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
@@ -230,8 +236,12 @@
                         </StackPanel>
                     </GroupBox>
 
+                    <!-- GridSplitter -->
+                    <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 
+                                  Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
                     <!-- Files with Metadata -->
-                    <GroupBox Header="Files and Metadata" Grid.Row="2" Margin="0,0,0,10">
+                    <GroupBox Header="Files and Metadata" Grid.Row="3" Margin="0,0,0,10">
                         <DataGrid x:Name="FolderFilesGrid" ItemsSource="{Binding FolderFiles}" AutoGenerateColumns="False" 
                                   CanUserAddRows="False" SelectionMode="Single"
                                   CanUserResizeColumns="True" CanUserSortColumns="True"
@@ -253,7 +263,7 @@
                     </GroupBox>
 
                     <!-- Actions -->
-                    <Grid Grid.Row="3">
+                    <Grid Grid.Row="4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>

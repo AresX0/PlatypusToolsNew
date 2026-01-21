@@ -10,12 +10,14 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*" MinHeight="100"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Directory Input -->
         <GroupBox Header="Directory to Analyze" Grid.Row="0" Margin="0,0,0,10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Grid Margin="5">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -35,6 +37,7 @@
                 <CheckBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,5,0,0"
                           Content="Include subdirectories" IsChecked="{Binding IncludeSubdirectories}"/>
             </Grid>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- Action Buttons -->
@@ -74,8 +77,12 @@
             </Grid>
         </GroupBox>
 
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="3" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
         <!-- Tab Control for Different Views -->
-        <TabControl Grid.Row="3" SelectedValuePath="Header" SelectedValue="{Binding SelectedView}">
+        <TabControl Grid.Row="4" SelectedValuePath="Header" SelectedValue="{Binding SelectedView}">
             <!-- File Types Tab -->
             <TabItem Header="File Types">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
@@ -213,7 +220,7 @@
         </TabControl>
 
         <!-- Status Bar -->
-        <StatusBar Grid.Row="4" Height="30" Margin="0,10,0,0">
+        <StatusBar Grid.Row="5" Height="30" Margin="0,10,0,0">
             <StatusBarItem>
                 <TextBlock Text="{Binding StatusMessage}"/>
             </StatusBarItem>

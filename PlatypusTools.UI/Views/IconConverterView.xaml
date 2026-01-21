@@ -10,13 +10,15 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*" MinHeight="100"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Images Folder Selection -->
         <GroupBox Header="Source Images" Grid.Row="0" Margin="0,0,0,10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel>
                 <Grid Margin="5">
                     <Grid.ColumnDefinitions>
@@ -38,6 +40,7 @@
                     <Button Content="Clear List" Command="{Binding ClearListCommand}" Width="100" Padding="5"/>
                 </StackPanel>
             </StackPanel>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- File List with Selection -->
@@ -70,8 +73,13 @@
             </Grid>
         </GroupBox>
 
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
         <!-- ICO Conversion Options -->
-        <GroupBox Header="ICO Conversion" Grid.Row="2" Margin="0,0,0,10">
+        <GroupBox Header="ICO Conversion" Grid.Row="3" Margin="0,0,0,10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Margin="5">
                 <Grid Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
@@ -131,10 +139,11 @@
                             Width="120" Padding="5"/>
                 </StackPanel>
             </StackPanel>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- Status Bar -->
-        <Border Grid.Row="3" Background="#F0F0F0" BorderBrush="#CCCCCC" BorderThickness="1" Padding="10" Margin="0,0,0,10">
+        <Border Grid.Row="4" Background="#F0F0F0" BorderBrush="#CCCCCC" BorderThickness="1" Padding="10" Margin="0,0,0,10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

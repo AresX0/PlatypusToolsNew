@@ -11,8 +11,9 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" MinHeight="60"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*" MinHeight="100"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
@@ -25,6 +26,7 @@
         
         <!-- Tools Toolbar - Horizontal across top -->
         <Border Grid.Row="1" Background="{DynamicResource CardBackground}" CornerRadius="6" Padding="10" Margin="0,0,0,10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <WrapPanel Orientation="Horizontal">
                 <!-- Merge -->
                 <Button Content="🔗 Merge PDFs" Command="{Binding MergeCommand}"
@@ -89,6 +91,7 @@
                         Style="{DynamicResource SecondaryButton}" Margin="0,0,0,5" Padding="12,6"
                         ToolTip="Convert image files to PDF"/>
             </WrapPanel>
+            </ScrollViewer>
         </Border>
         
         <!-- File List Toolbar -->
@@ -110,9 +113,13 @@
                 <Run Text=" files"/>
             </TextBlock>
         </StackPanel>
+
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="3" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
         
         <!-- Main Content Area - File List and Preview -->
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="300" MinWidth="200"/>
                 <ColumnDefinition Width="5"/>
@@ -224,7 +231,7 @@
         </Grid>
         
         <!-- Status Bar with Progress -->
-        <Border Grid.Row="4" Background="{DynamicResource CardBackground}" CornerRadius="4" Padding="10" Margin="0,10,0,0">
+        <Border Grid.Row="5" Background="{DynamicResource CardBackground}" CornerRadius="4" Padding="10" Margin="0,10,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

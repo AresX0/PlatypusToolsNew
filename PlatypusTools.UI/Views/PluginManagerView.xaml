@@ -5,8 +5,9 @@
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" MinHeight="50"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*" MinHeight="100"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -20,6 +21,7 @@
 
         <!-- Toolbar -->
         <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" Padding="10" Margin="0,0,0,10" CornerRadius="5">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel Orientation="Horizontal">
                 <Button Content="🔄 Refresh" Command="{Binding RefreshPluginsCommand}" 
                         Padding="10,5" Margin="0,0,5,0" ToolTip="Scan for plugins"/>
@@ -42,10 +44,15 @@
                 <Button Content="🔃 Reload All" Command="{Binding ReloadPluginsCommand}" 
                         Padding="10,5" ToolTip="Reload all plugins"/>
             </StackPanel>
+            </ScrollViewer>
         </Border>
 
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
         <!-- Plugin List -->
-        <GroupBox Grid.Row="2" Header="Installed Plugins" Margin="0,0,0,10">
+        <GroupBox Grid.Row="3" Header="Installed Plugins" Margin="0,0,0,10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -147,7 +154,7 @@
         </GroupBox>
 
         <!-- Summary -->
-        <Border Grid.Row="3" Background="{DynamicResource CardBackgroundBrush}" Padding="10" CornerRadius="5" Margin="0,0,0,10">
+        <Border Grid.Row="4" Background="{DynamicResource CardBackgroundBrush}" Padding="10" CornerRadius="5" Margin="0,0,0,10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -171,7 +178,7 @@
         </Border>
 
         <!-- Status Bar -->
-        <Border Grid.Row="4" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="5">
+        <Border Grid.Row="5" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="5">
             <TextBlock Text="{Binding Status}" Foreground="Gray"/>
         </Border>
     </Grid>

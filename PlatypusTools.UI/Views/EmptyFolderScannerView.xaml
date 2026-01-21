@@ -6,7 +6,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="*" MinHeight="100"/>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -36,9 +37,13 @@
             <Button Content="Select All" Command="{Binding SelectAllCommand}" Padding="12,4" Margin="0,0,8,0" />
             <Button Content="Select None" Command="{Binding SelectNoneCommand}" Padding="12,4" />
         </StackPanel>
+        
+        <!-- GridSplitter for resizing -->
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
 
         <!-- Results List -->
-        <GroupBox Grid.Row="2" Header="Empty Folders Found" Padding="8">
+        <GroupBox Grid.Row="3" Header="Empty Folders Found" Padding="8">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <DataGrid ItemsSource="{Binding EmptyFolders}" AutoGenerateColumns="False"
                           CanUserAddRows="False" CanUserDeleteRows="False"
@@ -57,7 +62,7 @@
         </GroupBox>
 
         <!-- Action Buttons -->
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
             <Button Content="Delete Selected" Command="{Binding DeleteSelectedCommand}" 
                     Padding="16,8" Margin="0,0,8,0" Background="#F44336" Foreground="White" />
             <Button Content="Delete All" Command="{Binding DeleteAllCommand}" 
@@ -65,7 +70,7 @@
         </StackPanel>
 
         <!-- Status Bar -->
-        <Border Grid.Row="4" Background="#F5F5F5" Padding="8" Margin="0,8,0,0" CornerRadius="4">
+        <Border Grid.Row="5" Background="#F5F5F5" Padding="8" Margin="0,8,0,0" CornerRadius="4">
             <TextBlock Text="{Binding StatusMessage}" />
         </Border>
     </Grid>

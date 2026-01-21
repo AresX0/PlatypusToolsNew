@@ -200,6 +200,9 @@
       <Component Id="CMP_SixLabors_ImageSharp_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_SixLabors_ImageSharp_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\SixLabors.ImageSharp.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_SixLabors_ImageSharp_Drawing_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_SixLabors_ImageSharp_Drawing_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\SixLabors.ImageSharp.Drawing.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_System_AppContext_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_System_AppContext_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.AppContext.dll" KeyPath="yes" />
       </Component>
@@ -4340,6 +4343,7 @@
       <ComponentRef Id="CMP_SharpCompress_dll" />
       <ComponentRef Id="CMP_SixLabors_Fonts_dll" />
       <ComponentRef Id="CMP_SixLabors_ImageSharp_dll" />
+      <ComponentRef Id="CMP_SixLabors_ImageSharp_Drawing_dll" />
       <ComponentRef Id="CMP_System_AppContext_dll" />
       <ComponentRef Id="CMP_System_Buffers_dll" />
       <ComponentRef Id="CMP_System_CodeDom_dll" />

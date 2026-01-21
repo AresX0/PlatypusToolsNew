@@ -14,13 +14,15 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*" MinHeight="100"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
         <!-- Settings Panel -->
         <GroupBox Header="Upscale Settings" Grid.Row="0" Margin="0,0,0,8">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Grid Margin="5">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -61,6 +63,7 @@
                     <ComboBoxItem Content="4"/>
                 </ComboBox>
             </Grid>
+            </ScrollViewer>
         </GroupBox>
         
         <!-- Actions -->
@@ -77,9 +80,13 @@
             <Button Content="⏸ Pause" Command="{Binding PauseProcessingCommand}" Width="80" Margin="0,0,8,0"/>
             <Button Content="⏹ Cancel" Command="{Binding CancelProcessingCommand}" Width="80" Background="LightCoral"/>
         </StackPanel>
+
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
         
         <!-- Main Content - Split between Queue and Preview -->
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" MinWidth="400"/>
                 <ColumnDefinition Width="5"/>
@@ -180,7 +187,7 @@
         </Grid>
         
         <!-- Progress -->
-        <GroupBox Header="Progress" Grid.Row="3" Margin="0,8,0,0">
+        <GroupBox Header="Progress" Grid.Row="4" Margin="0,8,0,0">
             <Grid Margin="5">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -207,7 +214,7 @@
         </GroupBox>
         
         <!-- Status Bar -->
-        <StatusBar Grid.Row="4" Margin="0,8,0,0">
+        <StatusBar Grid.Row="5" Margin="0,8,0,0">
             <StatusBarItem>
                 <TextBlock>
                     <Run Text="Queue: "/><Run Text="{Binding TotalCount, Mode=OneWay}" FontWeight="Bold"/>

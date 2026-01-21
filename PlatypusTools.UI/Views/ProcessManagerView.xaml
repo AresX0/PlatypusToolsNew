@@ -6,13 +6,14 @@
              mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="1000">
     <Grid Margin="8">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" MinHeight="60" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="*" MinHeight="100"/>
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- Filter and Actions -->
-        <GroupBox Header="Process Manager" Grid.Row="0" Margin="0,0,0,8">
+        <GroupBox Header="Process Manager" Grid.Row="0" Margin="0,0,0,5">
             <Grid Margin="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -29,9 +30,13 @@
                 </TextBlock>
             </Grid>
         </GroupBox>
+        
+        <!-- GridSplitter for resizing -->
+        <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
 
         <!-- Process List -->
-        <GroupBox Header="Running Processes" Grid.Row="1" Margin="0,0,0,8">
+        <GroupBox Header="Running Processes" Grid.Row="2" Margin="0,5,0,8">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <DataGrid x:Name="ProcessesDataGrid" ItemsSource="{Binding Processes}"
                           SelectedItem="{Binding SelectedProcess}"
@@ -71,7 +76,7 @@
         </GroupBox>
 
         <!-- Status Bar -->
-        <StatusBar Grid.Row="2">
+        <StatusBar Grid.Row="3">
             <StatusBarItem>
                 <TextBlock Text="{Binding DataContext.StatusMessage, RelativeSource={RelativeSource AncestorType=UserControl}}" />
             </StatusBarItem>

@@ -471,12 +471,6 @@ public partial class AudioPlayerView : UserControl
             if (StatusText != null && _viewModel != null)
                 StatusText.Text = _viewModel.StatusMessage;
         }
-        else if (e.PropertyName == nameof(AudioPlayerViewModel.LibraryTracks) ||
-                 e.PropertyName == nameof(AudioPlayerViewModel.LibraryTrackCount))
-        {
-            // Library tracks changed - refresh the grid
-            Dispatcher.InvokeAsync(() => RefreshLibraryTrackGrid());
-        }
         else if (e.PropertyName == nameof(AudioPlayerViewModel.IsScanning))
         {
             // When scanning finishes, refresh the grid
@@ -984,9 +978,11 @@ public partial class AudioPlayerView : UserControl
         // Use the ViewModel's scan method which uses LibraryIndexService for persistence
         await vm.ScanAllLibraryFoldersAsync();
         
-        // Show completion message
+        // Show completion message and refresh UI
         await Dispatcher.InvokeAsync(() =>
         {
+            RefreshLibraryTrackGrid();
+            UpdateLibraryStats();
             StatusText.Text = $"Library scan complete: {vm.LibraryTrackCount} tracks from {folderList.Count} folders";
             MessageBox.Show($"Scan complete!\n\nFound {vm.LibraryTrackCount} tracks in {folderList.Count} folders.",
                 "Scan Complete", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -1567,21 +1563,46 @@ public partial class AudioPlayerView : UserControl
     {
         var logPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PlatypusTools", "debug_log.txt");
         var vm = GetViewModel();
-        System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] RefreshLibraryTrackGrid: vm={vm != null}, LibraryTrackGrid={LibraryTrackGrid != null}\n");
         if (vm == null || LibraryTrackGrid == null) return;
         
         // Force re-bind to LibraryTracks collection
         var tracks = vm.LibraryTracks.ToList();
-        System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] RefreshLibraryTrackGrid: LibraryTracks has {tracks.Count} items, LibraryTrackCount={vm.LibraryTrackCount}\n");
         LibraryTrackGrid.ItemsSource = null;
         LibraryTrackGrid.ItemsSource = tracks;
-        System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] RefreshLibraryTrackGrid: Set ItemsSource, Grid.Items.Count={LibraryTrackGrid.Items.Count}\n");
         
         // Update track count display
         if (FindName("LibraryTrackCountText") is TextBlock countText)
         {
             countText.Text = $"{tracks.Count} tracks";
         }
+        
+        // Also update library stats
+        UpdateLibraryStats();
+    }
+    
+    /// <summary>
+    /// Updates the library statistics display (Tracks, Artists, Albums, Favorites).
+    /// </summary>
+    private void UpdateLibraryStats()
+    {
+        var vm = GetViewModel();
+        if (vm == null) return;
+        
+        // Get counts from ViewModel
+        var trackCount = vm.LibraryTrackCount;
+        var artistCount = vm.LibraryArtistCount;
+        var albumCount = vm.LibraryAlbumCount;
+        var favoriteCount = vm.FavoriteCount;
+        
+        // Update TextBlocks directly (bypasses binding issues)
+        if (LibraryTracksCountText != null)
+            LibraryTracksCountText.Text = trackCount.ToString();
+        if (LibraryArtistsCountText != null)
+            LibraryArtistsCountText.Text = artistCount.ToString();
+        if (LibraryAlbumsCountText != null)
+            LibraryAlbumsCountText.Text = albumCount.ToString();
+        if (LibraryFavoritesCountText != null)
+            LibraryFavoritesCountText.Text = favoriteCount.ToString();
     }
     
     #region Drag and Drop Queue Reordering

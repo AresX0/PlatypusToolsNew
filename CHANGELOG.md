@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.5.0 - 2026-01-20
+
+### Added
+- **Resizable Panes** - All views now have resizable panes using GridSplitters:
+  - Drag the gray splitter bars to resize top and bottom panes
+  - All panes maintain minimum heights to prevent collapse
+  - Smaller default top panes for views with just buttons
+  - Larger proportional panes for views with more content
+
+- **Vertical Scrolling** - Added vertical scroll support to all view panes:
+  - DiskCleanupView, PrivacyCleanerView - Scrollable checkbox lists
+  - NativeImageEditView - Scrollable toolbar with Transform, Effects, Annotate, and Advanced tools
+  - All views with options panels now properly scroll when content overflows
+
+### Fixed
+- **Archive Manager Password Field** - Added horizontal scroll to Create Options to prevent password field cutoff
+- **View Layout Improvements** - Optimized row definitions for consistent GridSplitter behavior across all views
+
+---
+
 ## v3.2.4.0 - 2026-01-19
 
 ### Added

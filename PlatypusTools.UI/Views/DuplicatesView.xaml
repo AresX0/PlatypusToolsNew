@@ -14,12 +14,15 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="*" MinHeight="100" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
+        <ScrollViewer Grid.Row="0" Grid.RowSpan="3" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
+        <StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
             <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Folder:</TextBlock>
             <TextBox Width="250" Text="{Binding FolderPath, UpdateSourceTrigger=PropertyChanged}" />
             <Button Content="Browse..." Command="{Binding BrowseCommand}" Width="70" Margin="8,0,0,0" />
@@ -33,7 +36,7 @@
         </StackPanel>
         
         <!-- Similarity Threshold Slider for Images -->
-        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8" 
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8" 
                     Visibility="{Binding ShowSimilarImages, Converter={StaticResource BooleanToVisibilityConverter}}">
             <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Image Similarity Threshold:</TextBlock>
             <Slider Width="150" Minimum="50" Maximum="100" 
@@ -48,7 +51,7 @@
         </StackPanel>
         
         <!-- Similarity Threshold Slider for Videos -->
-        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8" 
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8" 
                     Visibility="{Binding ShowSimilarVideos, Converter={StaticResource BooleanToVisibilityConverter}}">
             <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Video Similarity Threshold:</TextBlock>
             <Slider Width="150" Minimum="50" Maximum="100" 
@@ -62,7 +65,7 @@
                          Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}" />
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,0,8">
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
             <CheckBox Content="Dry Run" IsChecked="{Binding DryRun}" />
             <CheckBox Content="Use Recycle Bin" IsChecked="{Binding UseRecycleBin}" Margin="8,0,0,0" />
             <Button Content="Select Newest" Command="{Binding SelectNewestCommand}" Width="120" Margin="8,0,0,0" />
@@ -72,9 +75,15 @@
             <Button Content="Keep One Per Group" Command="{Binding KeepOneCommand}" Width="140" Margin="8,0,0,0" />
             <Button Content="Delete Selected" Command="{Binding DeleteSelectedCommand}" Width="120" Margin="8,0,0,0" />
         </StackPanel>
+        </StackPanel>
+        </ScrollViewer>
+
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="3" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
 
         <!-- Exact Duplicates DataGrid -->
-        <ScrollViewer Grid.Row="3" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+        <ScrollViewer Grid.Row="4" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                       Visibility="{Binding ShowDuplicatesGrid, Converter={StaticResource BooleanToVisibilityConverter}}">
             <DataGrid ItemsSource="{Binding Groups}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
                       CanUserResizeColumns="True" CanUserSortColumns="True"
@@ -109,7 +118,7 @@
         </ScrollViewer>
         
         <!-- Similar Images Grid View -->
-        <ScrollViewer Grid.Row="3" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+        <ScrollViewer Grid.Row="4" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                       Visibility="{Binding ShowSimilarImages, Converter={StaticResource BooleanToVisibilityConverter}}">
             <ItemsControl ItemsSource="{Binding SimilarImageGroups}">
                 <ItemsControl.ItemTemplate>
@@ -159,7 +168,7 @@
         </ScrollViewer>
         
         <!-- Similar Videos Grid View -->
-        <ScrollViewer Grid.Row="3" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+        <ScrollViewer Grid.Row="4" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                       Visibility="{Binding ShowSimilarVideos, Converter={StaticResource BooleanToVisibilityConverter}}">
             <ItemsControl ItemsSource="{Binding SimilarVideoGroups}">
                 <ItemsControl.ItemTemplate>
@@ -213,7 +222,7 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <Border Grid.Row="4" Margin="0,8,0,0" Background="#F0F0F0" Padding="8,4">
+        <Border Grid.Row="5" Margin="0,8,0,0" Background="#F0F0F0" Padding="8,4">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" />
                 <TextBlock Text="⏳" VerticalAlignment="Center" Margin="8,0,0,0" 
@@ -221,7 +230,7 @@
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="5" Margin="0,8,0,0" Visibility="{Binding StagingVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <Border Grid.Row="6" Margin="0,8,0,0" Visibility="{Binding StagingVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
             <views:StagingPanel DataContext="{Binding Staging}" />
         </Border>
     </Grid>

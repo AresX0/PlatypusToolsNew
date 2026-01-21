@@ -10,13 +10,15 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" MinHeight="60"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*" MinHeight="100"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- URL Input -->
         <GroupBox Header="Website URL" Grid.Row="0" Margin="0,0,0,8">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Grid Margin="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -26,10 +28,12 @@
                          VerticalContentAlignment="Center" Margin="0,0,8,0"/>
                 <Button Grid.Column="1" Content="Scan" Width="90" Click="OnScanClick" FontWeight="Bold"/>
             </Grid>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- Download Options -->
         <GroupBox Header="Download Options" Grid.Row="1" Margin="0,0,0,8">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Grid Margin="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -55,10 +59,12 @@
                     <TextBox Text="{Binding UrlPattern}" Width="150" VerticalContentAlignment="Center"/>
                 </StackPanel>
             </Grid>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- Output Directory -->
         <GroupBox Header="Output Directory" Grid.Row="2" Margin="0,0,0,8">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Grid Margin="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -68,6 +74,7 @@
                          VerticalContentAlignment="Center" Margin="0,0,8,0"/>
                 <Button Grid.Column="1" Content="Browse..." Width="90" Click="OnBrowseClick"/>
             </Grid>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- Action Buttons -->
@@ -80,8 +87,12 @@
             <TextBlock x:Name="ItemCountText" VerticalAlignment="Center" FontWeight="Bold" Text="{Binding DownloadItems.Count, FallbackValue=0}"/>
         </StackPanel>
 
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="4" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
         <!-- Download Items -->
-        <GroupBox Header="Download Queue" Grid.Row="4" Margin="0,0,0,8">
+        <GroupBox Header="Download Queue" Grid.Row="5" Margin="0,0,0,8">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <DataGrid x:Name="DownloadItemsDataGrid" ItemsSource="{Binding DownloadItems}"
                           AutoGenerateColumns="False" CanUserAddRows="False"
@@ -134,7 +145,7 @@
         </GroupBox>
 
         <!-- Status Bar -->
-        <Grid Grid.Row="5">
+        <Grid Grid.Row="6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>

@@ -7,12 +7,14 @@
     <Grid Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="*" MinHeight="100" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- Root Path Selection -->
         <GroupBox Header="Disk Space Analysis" Grid.Row="0" Margin="0,0,0,8">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Grid Margin="8">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -38,10 +40,15 @@
                               ToolTip="Show files and folders with System attribute"/>
                 </StackPanel>
             </Grid>
+            </ScrollViewer>
         </GroupBox>
 
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
         <!-- Directory Tree -->
-        <GroupBox Header="Directory Hierarchy" Grid.Row="1" Margin="0,0,0,8">
+        <GroupBox Header="Directory Hierarchy" Grid.Row="2" Margin="0,0,0,8">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <TreeView x:Name="DirectoryTreeView" ItemsSource="{Binding DirectoryTree}">
                     <TreeView.ItemContainerStyle>
@@ -72,7 +79,7 @@
         </GroupBox>
 
         <!-- Status Bar -->
-        <StatusBar Grid.Row="2">
+        <StatusBar Grid.Row="3">
             <StatusBarItem>
                 <TextBlock Text="{Binding StatusMessage}" />
             </StatusBarItem>

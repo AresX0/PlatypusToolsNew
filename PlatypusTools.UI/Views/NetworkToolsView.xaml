@@ -15,8 +15,9 @@
             <TabItem Header="Ping">
                 <Grid Margin="8">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" MinHeight="40" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="*" MinHeight="100" />
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
@@ -25,7 +26,10 @@
                         <Button Content="Ping" Click="OnPingClick" Width="90" FontWeight="Bold" />
                     </StackPanel>
 
-                    <GroupBox Header="Ping Results" Grid.Row="1">
+                    <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" 
+                                  Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
+                    <GroupBox Header="Ping Results" Grid.Row="2">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <ItemsControl x:Name="PingResultsControl" ItemsSource="{Binding PingResults}">
                                 <ItemsControl.ItemTemplate>
@@ -43,8 +47,9 @@
             <TabItem Header="Traceroute">
                 <Grid Margin="8">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" MinHeight="40" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="*" MinHeight="100" />
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
@@ -53,7 +58,10 @@
                         <Button Content="Trace Route" Click="OnTracerouteClick" Width="110" FontWeight="Bold" />
                     </StackPanel>
 
-                    <GroupBox Header="Traceroute Results" Grid.Row="1">
+                    <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" 
+                                  Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
+                    <GroupBox Header="Traceroute Results" Grid.Row="2">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <ItemsControl x:Name="TracerouteResultsControl" ItemsSource="{Binding PingResults}">
                                 <ItemsControl.ItemTemplate>
@@ -71,14 +79,18 @@
             <TabItem Header="Active Connections">
                 <Grid Margin="8">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" MinHeight="40" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="*" MinHeight="100" />
                     </Grid.RowDefinitions>
 
                     <Button Grid.Row="0" Content="Refresh Connections" Click="OnRefreshConnectionsClick" 
                             Width="150" HorizontalAlignment="Left" Margin="0,0,0,8" />
 
-                    <GroupBox Header="Network Connections" Grid.Row="1">
+                    <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" 
+                                  Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
+                    <GroupBox Header="Network Connections" Grid.Row="2">
                         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                             <DataGrid x:Name="ConnectionsDataGrid" ItemsSource="{Binding Connections}"
                                       AutoGenerateColumns="False"
@@ -107,14 +119,18 @@
             <TabItem Header="Network Adapters">
                 <Grid Margin="8">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" MinHeight="40" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="*" MinHeight="100" />
                     </Grid.RowDefinitions>
 
                     <Button Grid.Row="0" Content="Refresh Adapters" Click="OnRefreshAdaptersClick" 
                             Width="150" HorizontalAlignment="Left" Margin="0,0,0,8" />
 
-                    <GroupBox Header="Network Adapters" Grid.Row="1">
+                    <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" 
+                                  Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
+                    <GroupBox Header="Network Adapters" Grid.Row="2">
                         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                             <DataGrid x:Name="AdaptersDataGrid" ItemsSource="{Binding Adapters}"
                                       AutoGenerateColumns="False"

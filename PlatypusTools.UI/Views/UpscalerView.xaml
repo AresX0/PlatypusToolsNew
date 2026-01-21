@@ -9,9 +9,10 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="*" MinHeight="100" />
+            <RowDefinition Height="5" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="150" />
+            <RowDefinition Height="150" MinHeight="80" />
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
             <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Output folder:</TextBlock>
@@ -39,7 +40,12 @@
                 </DataGrid>
             </ScrollViewer>
         </GroupBox>
-        <ProgressBar Grid.Row="3" Height="16" IsIndeterminate="{Binding IsRunning}" Margin="0,8,0,0" />
-        <TextBox Grid.Row="4" Text="{Binding Log}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" Margin="0,8,0,0" IsReadOnly="True" />
+
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="3" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
+        <ProgressBar Grid.Row="4" Height="16" IsIndeterminate="{Binding IsRunning}" Margin="0,8,0,0" />
+        <TextBox Grid.Row="5" Text="{Binding Log}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" Margin="0,8,0,0" IsReadOnly="True" />
     </Grid>
 </UserControl>

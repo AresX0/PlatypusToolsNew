@@ -6,13 +6,15 @@
              mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="1000">
     <Grid Margin="8">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" MinHeight="60" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="*" MinHeight="100" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- Actions -->
         <GroupBox Header="Scheduled Tasks Manager" Grid.Row="0" Margin="0,0,0,8">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Grid Margin="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -35,10 +37,15 @@
                     </TextBlock>
                 </StackPanel>
             </Grid>
+            </ScrollViewer>
         </GroupBox>
 
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
         <!-- Tasks List -->
-        <GroupBox Header="Scheduled Tasks" Grid.Row="1" Margin="0,0,0,8">
+        <GroupBox Header="Scheduled Tasks" Grid.Row="2" Margin="0,0,0,8">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <DataGrid x:Name="TasksDataGrid" ItemsSource="{Binding Tasks}"
                           SelectedItem="{Binding SelectedTask}"
@@ -87,7 +94,7 @@
         </GroupBox>
 
         <!-- Status Bar -->
-        <StatusBar Grid.Row="2">
+        <StatusBar Grid.Row="3">
             <StatusBarItem>
                 <TextBlock Text="{Binding DataContext.StatusMessage, RelativeSource={RelativeSource AncestorType=UserControl}}" />
             </StatusBarItem>

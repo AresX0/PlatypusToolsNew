@@ -364,15 +364,39 @@ public class AudioPlayerViewModel : BindableBase
         set => SetProperty(ref _scanProgress, value);
     }
     
-    public int LibraryTrackCount => _allLibraryTracks.Count;
+    public int LibraryTrackCount => _allLibraryTracks.Count > 0 ? _allLibraryTracks.Count : LibraryTracks.Count;
     
     public int LibraryArtistCount 
-        => _allLibraryTracks.Select(t => t.DisplayArtist).Distinct().Count();
+    {
+        get
+        {
+            var source = _allLibraryTracks.Count > 0 ? _allLibraryTracks : LibraryTracks.ToList();
+            return source.Select(t => t.DisplayArtist).Distinct().Count();
+        }
+    }
     
     public int LibraryAlbumCount 
-        => _allLibraryTracks.Select(t => t.DisplayAlbum).Distinct().Count();
+    {
+        get
+        {
+            var source = _allLibraryTracks.Count > 0 ? _allLibraryTracks : LibraryTracks.ToList();
+            return source.Select(t => t.DisplayAlbum).Distinct().Count();
+        }
+    }
     
-    public int FavoriteCount => _userLibraryService?.FavoriteCount ?? 0;
+    public int FavoriteCount 
+    {
+        get
+        {
+            var favCount = _userLibraryService?.FavoriteCount ?? 0;
+            if (favCount == 0)
+            {
+                // Fall back to counting favorites in LibraryTracks
+                favCount = LibraryTracks.Count(t => t.IsFavorite);
+            }
+            return favCount;
+        }
+    }
     
     public AudioTrack? SelectedLibraryTrack
     {
@@ -919,6 +943,20 @@ public class AudioPlayerViewModel : BindableBase
         
         foreach (var track in source.OrderBy(t => t.DisplayArtist).ThenBy(t => t.DisplayAlbum).ThenBy(t => t.TrackNumber))
             LibraryTracks.Add(track);
+        
+        // Raise property changed for counts in case they depend on LibraryTracks
+        RefreshLibraryCounts();
+    }
+    
+    /// <summary>
+    /// Raises property changed for all library count properties to update UI bindings.
+    /// </summary>
+    public void RefreshLibraryCounts()
+    {
+        RaisePropertyChanged(nameof(LibraryTrackCount));
+        RaisePropertyChanged(nameof(LibraryArtistCount));
+        RaisePropertyChanged(nameof(LibraryAlbumCount));
+        RaisePropertyChanged(nameof(FavoriteCount));
     }
     
     private void UpdateQueue()

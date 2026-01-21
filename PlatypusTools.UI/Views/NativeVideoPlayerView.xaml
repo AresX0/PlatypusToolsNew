@@ -9,7 +9,8 @@
     <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="*" MinHeight="100"/>
+            <RowDefinition Height="5"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -31,9 +32,13 @@
         <Border Grid.Row="1" Background="Black" CornerRadius="4">
             <vlc:VideoView x:Name="VlcVideoView" Background="Black"/>
         </Border>
+
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
         
         <!-- Video Controls -->
-        <GroupBox Grid.Row="2" Header="Playback Controls" Margin="0,5,0,0">
+        <GroupBox Grid.Row="3" Header="Playback Controls" Margin="0,5,0,0">
             <StackPanel Margin="5">
                 <Grid Margin="0,5">
                     <Grid.ColumnDefinitions>

@@ -9,7 +9,8 @@
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="*" MinHeight="100"/>
+            <RowDefinition Height="5"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -28,7 +29,7 @@
         </GroupBox>
 
         <!-- File List -->
-        <GroupBox Header="Images to Resize" Grid.Row="1" Margin="0,0,0,10">
+        <GroupBox Header="Images to Resize" Grid.Row="1" Margin="0,0,0,5">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <DataGrid ItemsSource="{Binding FileList}" AutoGenerateColumns="False" 
                           CanUserAddRows="False" CanUserDeleteRows="False" Margin="5"
@@ -46,9 +47,13 @@
                 </DataGrid>
             </ScrollViewer>
         </GroupBox>
+        
+        <!-- GridSplitter for resizing -->
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
 
         <!-- Resize Options -->
-        <GroupBox Header="Resize Options" Grid.Row="2" Margin="0,0,0,10">
+        <GroupBox Header="Resize Options" Grid.Row="3" Margin="0,5,0,10">
             <StackPanel Margin="5">
                 <!-- Output Folder -->
                 <Grid Margin="0,0,0,10">
@@ -117,7 +122,7 @@
         </GroupBox>
 
         <!-- Status Bar -->
-        <Border Grid.Row="3" Background="#F0F0F0" BorderBrush="#CCCCCC" BorderThickness="1" Padding="10">
+        <Border Grid.Row="4" Background="#F0F0F0" BorderBrush="#CCCCCC" BorderThickness="1" Padding="10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

@@ -8,8 +8,9 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="*" MinHeight="60"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="2*" MinHeight="100"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -23,6 +24,7 @@
 
         <!-- Quick Actions -->
         <GroupBox Header="Audit Actions" Grid.Row="1" Margin="0,0,0,10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
                     <Button Content="Full System Audit" Command="{Binding RunFullAuditCommand}" Width="140" Height="35" 
@@ -44,10 +46,12 @@
                     <Button Content="Startup Items" Command="{Binding RunStartupAuditCommand}" Width="120" Height="35" Margin="0,0,5,0"/>
                 </StackPanel>
             </StackPanel>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- User Management -->
         <GroupBox Header="User Management (Requires Admin)" Grid.Row="2" Margin="0,0,0,10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
                     <TextBlock Text="Selected User:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="Bold" Width="100"/>
@@ -69,6 +73,7 @@
                             Background="LightBlue"/>
                 </StackPanel>
             </StackPanel>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- Statistics -->
@@ -85,8 +90,12 @@
             </StackPanel>
         </GroupBox>
 
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="4" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
         <!-- Results Grid -->
-        <GroupBox Header="Audit Results" Grid.Row="4" Margin="0,0,0,10">
+        <GroupBox Header="Audit Results" Grid.Row="5" Margin="0,0,0,10">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <DataGrid ItemsSource="{Binding AuditItems}" AutoGenerateColumns="False" CanUserAddRows="False"
                           SelectionMode="Single"
@@ -152,7 +161,7 @@
         </GroupBox>
 
         <!-- Status Bar -->
-        <Grid Grid.Row="5">
+        <Grid Grid.Row="6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>

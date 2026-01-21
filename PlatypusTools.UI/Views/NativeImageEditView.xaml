@@ -16,8 +16,9 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" MinHeight="60"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*" MinHeight="100"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -41,6 +42,7 @@
 
         <!-- Toolbar -->
         <GroupBox Header="Tools" Grid.Row="1" Grid.ColumnSpan="2" Margin="0,0,0,5">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Margin="5">
                 <!-- Transform Operations -->
                 <WrapPanel Margin="0,0,0,5">
@@ -89,10 +91,15 @@
                     <Button Content="↩ Reset" Click="Reset_Click" Width="75" Height="32"/>
                 </WrapPanel>
             </StackPanel>
+            </ScrollViewer>
         </GroupBox>
+
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="2" Grid.ColumnSpan="2" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
         
         <!-- Image Preview with Overlay Canvas -->
-        <GroupBox Header="Image Canvas" Grid.Row="2" Grid.Column="0" Margin="0,0,5,0">
+        <GroupBox Header="Image Canvas" Grid.Row="3" Grid.Column="0" Margin="0,0,5,0">
             <Grid>
                 <ScrollViewer x:Name="ImageScrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <Grid x:Name="CanvasContainer">
@@ -112,7 +119,7 @@
         </GroupBox>
 
         <!-- Settings Panel -->
-        <GroupBox Header="Settings" Grid.Row="2" Grid.Column="1">
+        <GroupBox Header="Settings" Grid.Row="3" Grid.Column="1">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="10">
                     <!-- Current Tool -->
@@ -164,7 +171,7 @@
         </GroupBox>
 
         <!-- Save Options -->
-        <GroupBox Header="Save Options" Grid.Row="3" Grid.ColumnSpan="2" Margin="0,5,0,0">
+        <GroupBox Header="Save Options" Grid.Row="4" Grid.ColumnSpan="2" Margin="0,5,0,0">
             <Grid Margin="10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>

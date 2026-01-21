@@ -14,8 +14,9 @@
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" MinHeight="80"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*" MinHeight="100"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -44,6 +45,7 @@
             
             <!-- Current Archive Info -->
             <GroupBox Header="Archive Info" Grid.Column="0" Margin="0,0,8,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                 <Grid Margin="5">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -63,10 +65,12 @@
                     <TextBlock Grid.Column="4" Text="Entries:" VerticalAlignment="Center" Margin="16,0,8,0" Foreground="Gray"/>
                     <TextBlock Grid.Column="5" Text="{Binding ArchiveInfo.EntryCount}" VerticalAlignment="Center" FontWeight="Bold"/>
                 </Grid>
+                </ScrollViewer>
             </GroupBox>
             
             <!-- Create Options -->
             <GroupBox Header="Create Options" Grid.Column="1" Width="450">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                 <Grid Margin="5">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -103,11 +107,16 @@
                     <TextBlock Grid.Row="1" Grid.Column="4" Text="MB per part" VerticalAlignment="Center" Margin="0,8,0,0"
                                Foreground="{Binding EnableSplitArchive, Converter={StaticResource BoolToForegroundConverter}}"/>
                 </Grid>
+                </ScrollViewer>
             </GroupBox>
         </Grid>
+
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
         
         <!-- Archive Contents -->
-        <GroupBox Header="Archive Contents" Grid.Row="2">
+        <GroupBox Header="Archive Contents" Grid.Row="3">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -174,7 +183,7 @@
         </GroupBox>
         
         <!-- Progress -->
-        <Grid Grid.Row="3" Margin="0,8,0,0" Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}">
+        <Grid Grid.Row="4" Margin="0,8,0,0" Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -186,7 +195,7 @@
         </Grid>
         
         <!-- Status Bar -->
-        <StatusBar Grid.Row="4" Margin="0,8,0,0">
+        <StatusBar Grid.Row="5" Margin="0,8,0,0">
             <StatusBarItem>
                 <TextBlock Text="{Binding DataContext.StatusMessage, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
             </StatusBarItem>

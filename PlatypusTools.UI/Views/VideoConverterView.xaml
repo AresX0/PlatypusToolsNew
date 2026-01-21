@@ -7,13 +7,15 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" MinHeight="50"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*" MinHeight="100"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Source Folder -->
         <GroupBox Header="Source" Grid.Row="0" Margin="0,0,0,10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -31,10 +33,12 @@
                 
                 <CheckBox Grid.Row="1" Grid.Column="0" Content="Include Subfolders" IsChecked="{Binding IncludeSubfolders}" Margin="0,5,0,0"/>
             </Grid>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- Output Settings -->
         <GroupBox Header="Output Settings" Grid.Row="1" Margin="0,0,0,10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -83,6 +87,7 @@
                 <Button Grid.Row="2" Grid.Column="2" Content="Browse..." Command="{Binding BrowseOutputFolderCommand}" Width="80" 
                         Visibility="{Binding UseSourceFolder, Converter={StaticResource InverseBoolToVisibilityConverter}}" Margin="5,10,0,0"/>
             </Grid>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- Action Bar -->
@@ -93,8 +98,12 @@
             <TextBlock Text="{Binding TotalCount, StringFormat='Total: {0}'}" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold"/>
         </StackPanel>
 
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="3" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
         <!-- Preview Grid -->
-        <GroupBox Header="Conversion Queue" Grid.Row="3" Margin="0,0,0,10">
+        <GroupBox Header="Conversion Queue" Grid.Row="4" Margin="0,0,0,10">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <DataGrid ItemsSource="{Binding ConversionTasks}"
                           AutoGenerateColumns="False"
@@ -142,7 +151,7 @@
         </GroupBox>
 
         <!-- Status Bar -->
-        <Grid Grid.Row="4">
+        <Grid Grid.Row="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>

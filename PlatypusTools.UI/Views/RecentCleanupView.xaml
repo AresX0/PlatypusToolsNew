@@ -9,13 +9,15 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" MinHeight="50" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="*" MinHeight="100" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         
         <!-- Target Directories -->
         <GroupBox Header="Target Directories to Match Against" Grid.Row="0" Margin="0,0,0,8">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Grid Margin="5">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -35,10 +37,12 @@
                 <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Text="Enter directories whose shortcuts should be found and removed from Recent, Favorites, and Start Menu" 
                            Foreground="Gray" FontStyle="Italic" Margin="0,5,0,0"/>
             </Grid>
+            </ScrollViewer>
         </GroupBox>
         
         <!-- Exclusion Directories -->
         <GroupBox Header="Directories to Exclude" Grid.Row="1" Margin="0,0,0,8">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Grid Margin="5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -54,6 +58,7 @@
                     <Button Content="Remove" Command="{Binding RemoveExclusionCommand}" Width="80"/>
                 </StackPanel>
             </Grid>
+            </ScrollViewer>
         </GroupBox>
         
         <!-- Options and Actions -->
@@ -68,9 +73,13 @@
                     Background="LightCoral" FontWeight="Bold"/>
             <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="16,0,0,0" FontWeight="SemiBold"/>
         </StackPanel>
+
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="3" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
         
         <!-- Results List -->
-        <GroupBox Header="Found Shortcuts (Select items to remove)" Grid.Row="3">
+        <GroupBox Header="Found Shortcuts (Select items to remove)" Grid.Row="4">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <DataGrid x:Name="ResultsGrid" ItemsSource="{Binding Results}" AutoGenerateColumns="False"
                           CanUserAddRows="False" CanUserDeleteRows="False"
@@ -92,7 +101,7 @@
         </GroupBox>
         
         <!-- Summary -->
-        <StatusBar Grid.Row="4" Margin="0,8,0,0">
+        <StatusBar Grid.Row="5" Margin="0,8,0,0">
             <StatusBarItem>
                 <TextBlock>
                     <Run Text="Found: "/><Run Text="{Binding Results.Count, Mode=OneWay}" FontWeight="Bold"/>
