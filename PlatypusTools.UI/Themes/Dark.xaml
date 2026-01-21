@@ -14,12 +14,19 @@
     <!-- Brushes -->
     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}" />
     <SolidColorBrush x:Key="WindowForegroundBrush" Color="{StaticResource WindowForegroundColor}" />
+    <SolidColorBrush x:Key="MenuForegroundBrush" Color="{StaticResource WindowForegroundColor}" />
     <SolidColorBrush x:Key="ControlBackgroundBrush" Color="{StaticResource ControlBackgroundColor}" />
     <SolidColorBrush x:Key="ControlBorderBrush" Color="{StaticResource ControlBorderColor}" />
     <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
     <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource AccentHoverColor}" />
     <SolidColorBrush x:Key="DisabledForegroundBrush" Color="{StaticResource DisabledForegroundColor}" />
     <SolidColorBrush x:Key="SelectionBackgroundBrush" Color="{StaticResource SelectionBackgroundColor}" />
+    
+    <!-- Title Bar brushes -->
+    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="#FF2D2D2D"/>
+    <SolidColorBrush x:Key="TitleBarForegroundBrush" Color="#FFF0F0F0"/>
+    <SolidColorBrush x:Key="TitleBarButtonHoverBrush" Color="#33FFFFFF"/>
+    <SolidColorBrush x:Key="TitleBarCloseHoverBrush" Color="#FFE81123"/>
     
     <!-- Additional resource keys used by views -->
     <SolidColorBrush x:Key="CardBackground" Color="#FF2D2D30" />
@@ -366,11 +373,32 @@
         <Setter Property="RowBackground" Value="{StaticResource ControlBackgroundBrush}" />
         <Setter Property="AlternatingRowBackground" Value="{StaticResource WindowBackgroundBrush}" />
         <Setter Property="GridLinesVisibility" Value="None" />
+        <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource ControlBorderBrush}" />
+        <Setter Property="VerticalGridLinesBrush" Value="{StaticResource ControlBorderBrush}" />
+    </Style>
+
+    <!-- DataGridRow - Critical for preventing white bands -->
+    <Style TargetType="DataGridRow">
+        <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{StaticResource SelectionBackgroundBrush}" />
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#3F3F46" />
+            </Trigger>
+            <Trigger Property="AlternationIndex" Value="1">
+                <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <!-- DataGridCell -->
     <Style TargetType="DataGridCell">
         <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}" />
+        <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
         <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">

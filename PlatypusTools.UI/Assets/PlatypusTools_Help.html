@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlatypusTools v3.2.6.1 - Help Documentation</title>
+    <title>PlatypusTools v3.2.7.1 - Help Documentation</title>
     <style>
         :root {
             --primary: #2d5aa8;
@@ -148,7 +148,7 @@
 <header>
     <h1>🦆 PlatypusTools</h1>
     <p>Advanced File Management &amp; Media Tools Suite</p>
-    <div class="version">Version 3.2.6.1 | Built with .NET 10 / WPF</div>
+    <div class="version">Version 3.2.7.1 | Built with .NET 10 / WPF</div>
 </header>
 
 <div class="container">
@@ -157,6 +157,7 @@
     <ul>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#file-management">File Management</a></li>
+        <li><a href="#robocopy">Robocopy</a></li>
         <li><a href="#multimedia">Multimedia</a></li>
         <li><a href="#system">System</a></li>
         <li><a href="#security">Security</a></li>
@@ -303,6 +304,49 @@
         <li>Option to delete or just list empty folders</li>
         <li>Exclude patterns for system folders</li>
     </ul>
+    
+    <h3 id="robocopy">Robocopy File Transfer</h3>
+    <p>A powerful graphical interface for Windows Robocopy, providing enterprise-grade file copying and synchronization capabilities.</p>
+    
+    <h4>Key Features</h4>
+    <ul>
+        <li><strong>Mirror Mode</strong> - Create an exact copy of source to destination, removing extra files</li>
+        <li><strong>Copy Mode</strong> - Copy files without affecting existing files at destination</li>
+        <li><strong>Move Mode</strong> - Move files (copy then delete source)</li>
+        <li><strong>Sync Mode</strong> - Synchronize directories bidirectionally</li>
+    </ul>
+    
+    <h4>How to Use</h4>
+    <ol>
+        <li><strong>Source Folder</strong> - Select the source directory to copy from</li>
+        <li><strong>Destination Folder</strong> - Select where files should be copied to</li>
+        <li><strong>Select Mode</strong> - Choose Mirror, Copy, Move, or Sync</li>
+        <li><strong>Configure Options</strong> - Set retry counts, threading, and exclusions</li>
+        <li><strong>Preview</strong> - Click Preview to see what would be changed</li>
+        <li><strong>Execute</strong> - Click Start to begin the operation</li>
+    </ol>
+    
+    <h4>Common Options</h4>
+    <table>
+        <tr><th>Option</th><th>Description</th></tr>
+        <tr><td>/MIR</td><td>Mirror mode - creates exact copy, deletes extras</td></tr>
+        <tr><td>/E</td><td>Copy subdirectories including empty ones</td></tr>
+        <tr><td>/Z</td><td>Restartable mode for large files over network</td></tr>
+        <tr><td>/MT:n</td><td>Multi-threaded copying with n threads (default 8)</td></tr>
+        <tr><td>/R:n</td><td>Number of retries on failed copies</td></tr>
+        <tr><td>/W:n</td><td>Wait time between retries in seconds</td></tr>
+        <tr><td>/XF</td><td>Exclude files matching pattern</td></tr>
+        <tr><td>/XD</td><td>Exclude directories matching pattern</td></tr>
+        <tr><td>/LOG</td><td>Output status to log file</td></tr>
+    </table>
+    
+    <div class="warning">
+        <strong>Warning:</strong> Mirror mode (/MIR) will DELETE files in the destination that don't exist in the source. Always use Preview first!
+    </div>
+    
+    <div class="tip">
+        <strong>Tip:</strong> For backup operations, use Copy mode with /E to preserve existing files at the destination.
+    </div>
 </section>
 
 <section id="multimedia" class="section">

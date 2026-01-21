@@ -1,0 +1,913 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 
+    LCARS (Library Computer Access/Retrieval System) Theme
+    Inspired by Star Trek: The Next Generation's futuristic interface design
+    
+    Color Palette:
+    - Gold/Tan: Primary interactive elements
+    - Peach/Coral: Secondary elements  
+    - Lavender/Purple: Tertiary elements
+    - Blue: Status/Info elements
+    - Black: Background
+    - White: Text on dark
+    -->
+
+    <!-- ======================== LCARS Color Palette ======================== -->
+    
+    <!-- Primary Colors (Gold/Tan family) -->
+    <Color x:Key="LcarsGold">#FFD39D4E</Color>
+    <Color x:Key="LcarsGoldLight">#FFECB84E</Color>
+    <Color x:Key="LcarsTan">#FFC4A661</Color>
+    <Color x:Key="LcarsTanLight">#FFDBC597</Color>
+    <Color x:Key="LcarsOrange">#FFCC6633</Color>
+    
+    <!-- Secondary Colors (Peach/Coral family) -->
+    <Color x:Key="LcarsPeach">#FFFF9966</Color>
+    <Color x:Key="LcarsCoral">#FFFF7744</Color>
+    <Color x:Key="LcarsSalmon">#FFFF9F80</Color>
+    
+    <!-- Tertiary Colors (Lavender/Purple family) -->
+    <Color x:Key="LcarsLavender">#FFCC99CC</Color>
+    <Color x:Key="LcarsPurple">#FF9977AA</Color>
+    <Color x:Key="LcarsViolet">#FF9999CC</Color>
+    
+    <!-- Blue family -->
+    <Color x:Key="LcarsBlue">#FF99CCFF</Color>
+    <Color x:Key="LcarsBlueDark">#FF6688CC</Color>
+    <Color x:Key="LcarsCyan">#FF99FFFF</Color>
+    
+    <!-- Red/Alert Colors -->
+    <Color x:Key="LcarsRed">#FFCC3333</Color>
+    <Color x:Key="LcarsRedAlert">#FFFF3333</Color>
+    
+    <!-- Green Colors -->
+    <Color x:Key="LcarsGreen">#FF66CC66</Color>
+    <Color x:Key="LcarsGreenLight">#FF99FF99</Color>
+    
+    <!-- Neutrals -->
+    <Color x:Key="LcarsBlack">#FF000000</Color>
+    <Color x:Key="LcarsBlackLight">#FF1A1A1A</Color>
+    <Color x:Key="LcarsGray">#FF333333</Color>
+    <Color x:Key="LcarsGrayLight">#FF666666</Color>
+    <Color x:Key="LcarsWhite">#FFFFFFFF</Color>
+    
+    <!-- ======================== LCARS Brushes ======================== -->
+    
+    <!-- Primary Brushes -->
+    <SolidColorBrush x:Key="LcarsGoldBrush" Color="{StaticResource LcarsGold}"/>
+    <SolidColorBrush x:Key="LcarsGoldLightBrush" Color="{StaticResource LcarsGoldLight}"/>
+    <SolidColorBrush x:Key="LcarsTanBrush" Color="{StaticResource LcarsTan}"/>
+    <SolidColorBrush x:Key="LcarsTanLightBrush" Color="{StaticResource LcarsTanLight}"/>
+    <SolidColorBrush x:Key="LcarsOrangeBrush" Color="{StaticResource LcarsOrange}"/>
+    
+    <!-- Secondary Brushes -->
+    <SolidColorBrush x:Key="LcarsPeachBrush" Color="{StaticResource LcarsPeach}"/>
+    <SolidColorBrush x:Key="LcarsCoralBrush" Color="{StaticResource LcarsCoral}"/>
+    <SolidColorBrush x:Key="LcarsSalmonBrush" Color="{StaticResource LcarsSalmon}"/>
+    
+    <!-- Tertiary Brushes -->
+    <SolidColorBrush x:Key="LcarsLavenderBrush" Color="{StaticResource LcarsLavender}"/>
+    <SolidColorBrush x:Key="LcarsPurpleBrush" Color="{StaticResource LcarsPurple}"/>
+    <SolidColorBrush x:Key="LcarsVioletBrush" Color="{StaticResource LcarsViolet}"/>
+    
+    <!-- Blue Brushes -->
+    <SolidColorBrush x:Key="LcarsBlueBrush" Color="{StaticResource LcarsBlue}"/>
+    <SolidColorBrush x:Key="LcarsBlueDarkBrush" Color="{StaticResource LcarsBlueDark}"/>
+    <SolidColorBrush x:Key="LcarsCyanBrush" Color="{StaticResource LcarsCyan}"/>
+    
+    <!-- Alert Brushes -->
+    <SolidColorBrush x:Key="LcarsRedBrush" Color="{StaticResource LcarsRed}"/>
+    <SolidColorBrush x:Key="LcarsRedAlertBrush" Color="{StaticResource LcarsRedAlert}"/>
+    <SolidColorBrush x:Key="LcarsGreenBrush" Color="{StaticResource LcarsGreen}"/>
+    <SolidColorBrush x:Key="LcarsGreenLightBrush" Color="{StaticResource LcarsGreenLight}"/>
+    
+    <!-- Neutral Brushes -->
+    <SolidColorBrush x:Key="LcarsBlackBrush" Color="{StaticResource LcarsBlack}"/>
+    <SolidColorBrush x:Key="LcarsBlackLightBrush" Color="{StaticResource LcarsBlackLight}"/>
+    <SolidColorBrush x:Key="LcarsGrayBrush" Color="{StaticResource LcarsGray}"/>
+    <SolidColorBrush x:Key="LcarsGrayLightBrush" Color="{StaticResource LcarsGrayLight}"/>
+    <SolidColorBrush x:Key="LcarsWhiteBrush" Color="{StaticResource LcarsWhite}"/>
+
+    <!-- ======================== Theme Resource Mappings ======================== -->
+    <!-- These map to standard theme resource keys used throughout the app -->
+    
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource LcarsBlack}"/>
+    <SolidColorBrush x:Key="WindowForegroundBrush" Color="{StaticResource LcarsWhite}"/>
+    <SolidColorBrush x:Key="ControlBackgroundBrush" Color="{StaticResource LcarsGray}"/>
+    <SolidColorBrush x:Key="ControlForegroundBrush" Color="{StaticResource LcarsWhite}"/>
+    <SolidColorBrush x:Key="ControlBorderBrush" Color="{StaticResource LcarsGold}"/>
+    <SolidColorBrush x:Key="MenuForegroundBrush" Color="{StaticResource LcarsBlack}"/>
+    
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource LcarsGold}"/>
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource LcarsPeach}"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource LcarsLavender}"/>
+    
+    <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="{StaticResource LcarsGold}"/>
+    <SolidColorBrush x:Key="ButtonForegroundBrush" Color="{StaticResource LcarsBlack}"/>
+    <SolidColorBrush x:Key="ButtonHoverBrush" Color="{StaticResource LcarsGoldLight}"/>
+    <SolidColorBrush x:Key="ButtonPressedBrush" Color="{StaticResource LcarsTan}"/>
+    <SolidColorBrush x:Key="ButtonDisabledBrush" Color="{StaticResource LcarsGrayLight}"/>
+    
+    <SolidColorBrush x:Key="TextBoxBackgroundBrush" Color="{StaticResource LcarsBlackLight}"/>
+    <SolidColorBrush x:Key="TextBoxForegroundBrush" Color="{StaticResource LcarsGold}"/>
+    <SolidColorBrush x:Key="TextBoxBorderBrush" Color="{StaticResource LcarsTan}"/>
+    
+    <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="{StaticResource LcarsGold}"/>
+    <SolidColorBrush x:Key="HeaderForegroundBrush" Color="{StaticResource LcarsBlack}"/>
+    
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{StaticResource LcarsGray}"/>
+    <SolidColorBrush x:Key="SidebarForegroundBrush" Color="{StaticResource LcarsWhite}"/>
+    
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource LcarsGreen}"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource LcarsOrange}"/>
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource LcarsRed}"/>
+    <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource LcarsBlue}"/>
+    
+    <!-- Title Bar Brushes -->
+    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="{StaticResource LcarsTan}"/>
+    <SolidColorBrush x:Key="TitleBarForegroundBrush" Color="{StaticResource LcarsBlack}"/>
+    <SolidColorBrush x:Key="TitleBarButtonHoverBrush" Color="{StaticResource LcarsGold}"/>
+    <SolidColorBrush x:Key="TitleBarCloseHoverBrush" Color="{StaticResource LcarsRed}"/>
+
+    <!-- ======================== LCARS Typography ======================== -->
+    <!-- LCARS uses distinctive condensed fonts. We use a condensed fallback. -->
+    
+    <FontFamily x:Key="LcarsFont">Arial Narrow, Trebuchet MS, Arial, Segoe UI</FontFamily>
+    <FontFamily x:Key="LcarsHeaderFont">Arial Narrow, Trebuchet MS, Arial, Segoe UI</FontFamily>
+    
+    <Style x:Key="LcarsTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+        <Setter Property="FontWeight" Value="Normal"/>
+    </Style>
+    
+    <Style x:Key="LcarsHeaderTextStyle" TargetType="TextBlock" BasedOn="{StaticResource LcarsTextStyle}">
+        <Setter Property="FontFamily" Value="{StaticResource LcarsHeaderFont}"/>
+        <Setter Property="FontSize" Value="24"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <!-- Note: WPF doesn't support TextTransform, use .ToUpper() in code if needed -->
+    </Style>
+    
+    <Style x:Key="LcarsLabelTextStyle" TargetType="TextBlock" BasedOn="{StaticResource LcarsTextStyle}">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsTanLightBrush}"/>
+    </Style>
+
+    <!-- ======================== LCARS Button Styles ======================== -->
+    
+    <!-- Pill Button (classic LCARS rounded-end button) -->
+    <Style x:Key="LcarsPillButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Padding" Value="20,8,20,8"/>
+        <Setter Property="MinWidth" Value="100"/>
+        <Setter Property="MinHeight" Value="36"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="18"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"
+                                          TextBlock.Foreground="{TemplateBinding Foreground}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGoldLightBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGrayLightBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource LcarsGrayBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- Left-rounded Pill Button (rounded on left, squared on right) -->
+    <Style x:Key="LcarsPillLeftButtonStyle" TargetType="Button" BasedOn="{StaticResource LcarsPillButtonStyle}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="18,0,0,18"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"
+                                          TextBlock.Foreground="{TemplateBinding Foreground}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGoldLightBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGrayLightBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- Right-rounded Pill Button -->
+    <Style x:Key="LcarsPillRightButtonStyle" TargetType="Button" BasedOn="{StaticResource LcarsPillButtonStyle}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="0,18,18,0"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"
+                                          TextBlock.Foreground="{TemplateBinding Foreground}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGoldLightBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGrayLightBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- Color Variants -->
+    <Style x:Key="LcarsPillPeachButtonStyle" TargetType="Button" BasedOn="{StaticResource LcarsPillButtonStyle}">
+        <Setter Property="Background" Value="{StaticResource LcarsPeachBrush}"/>
+    </Style>
+    
+    <Style x:Key="LcarsPillLavenderButtonStyle" TargetType="Button" BasedOn="{StaticResource LcarsPillButtonStyle}">
+        <Setter Property="Background" Value="{StaticResource LcarsLavenderBrush}"/>
+    </Style>
+    
+    <Style x:Key="LcarsPillBlueButtonStyle" TargetType="Button" BasedOn="{StaticResource LcarsPillButtonStyle}">
+        <Setter Property="Background" Value="{StaticResource LcarsBlueBrush}"/>
+    </Style>
+    
+    <Style x:Key="LcarsPillRedButtonStyle" TargetType="Button" BasedOn="{StaticResource LcarsPillButtonStyle}">
+        <Setter Property="Background" Value="{StaticResource LcarsRedBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+    </Style>
+
+    <!-- ======================== Default Control Overrides ======================== -->
+    
+    <!-- Standard Button Override -->
+    <Style TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="MinHeight" Value="32"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="16"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGoldLightBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGrayLightBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource LcarsGrayBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- TextBox -->
+    <Style TargetType="TextBox">
+        <Setter Property="Background" Value="{StaticResource LcarsBlackLightBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsGoldBrush}"/>
+        <Setter Property="CaretBrush" Value="{StaticResource LcarsGoldBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource LcarsTanBrush}"/>
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4">
+                        <ScrollViewer x:Name="PART_ContentHost" 
+                                      Focusable="False"
+                                      HorizontalScrollBarVisibility="Hidden"
+                                      VerticalScrollBarVisibility="Hidden"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource LcarsGoldBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource LcarsGoldLightBrush}"/>
+                            <Setter TargetName="border" Property="BorderThickness" Value="2"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGrayBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource LcarsGrayLightBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- CheckBox -->
+    <Style TargetType="CheckBox">
+        <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <StackPanel Orientation="Horizontal">
+                        <Border x:Name="checkBorder"
+                                Width="24" Height="24"
+                                Background="{StaticResource LcarsBlackLightBrush}"
+                                BorderBrush="{StaticResource LcarsTanBrush}"
+                                BorderThickness="2"
+                                CornerRadius="4"
+                                Margin="0,0,8,0">
+                            <Path x:Name="checkMark"
+                                  Data="M 3,8 L 8,13 L 17,3"
+                                  Stroke="{StaticResource LcarsGoldBrush}"
+                                  StrokeThickness="3"
+                                  Visibility="Collapsed"
+                                  VerticalAlignment="Center"
+                                  HorizontalAlignment="Center"/>
+                        </Border>
+                        <ContentPresenter VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="checkMark" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="checkBorder" Property="Background" Value="{StaticResource LcarsGrayBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="checkBorder" Property="BorderBrush" Value="{StaticResource LcarsGoldBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="checkBorder" Property="BorderBrush" Value="{StaticResource LcarsGrayBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource LcarsGrayLightBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- RadioButton -->
+    <Style TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <StackPanel Orientation="Horizontal">
+                        <Border x:Name="radioBorder"
+                                Width="24" Height="24"
+                                Background="{StaticResource LcarsBlackLightBrush}"
+                                BorderBrush="{StaticResource LcarsTanBrush}"
+                                BorderThickness="2"
+                                CornerRadius="12"
+                                Margin="0,0,8,0">
+                            <Ellipse x:Name="radioCheck"
+                                     Width="12" Height="12"
+                                     Fill="{StaticResource LcarsGoldBrush}"
+                                     Visibility="Collapsed"
+                                     VerticalAlignment="Center"
+                                     HorizontalAlignment="Center"/>
+                        </Border>
+                        <ContentPresenter VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="radioCheck" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="radioBorder" Property="Background" Value="{StaticResource LcarsGrayBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="radioBorder" Property="BorderBrush" Value="{StaticResource LcarsGoldBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="radioBorder" Property="BorderBrush" Value="{StaticResource LcarsGrayBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource LcarsGrayLightBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ComboBox -->
+    <Style TargetType="ComboBox">
+        <Setter Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="MinHeight" Value="36"/>
+    </Style>
+
+    <!-- ProgressBar -->
+    <Style TargetType="ProgressBar">
+        <Setter Property="Background" Value="{StaticResource LcarsGrayBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsGoldBrush}"/>
+        <Setter Property="Height" Value="20"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ProgressBar">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="10"
+                            Padding="2">
+                        <Grid>
+                            <Border x:Name="PART_Track"
+                                    Background="Transparent"
+                                    CornerRadius="8"/>
+                            <Border x:Name="PART_Indicator"
+                                    Background="{TemplateBinding Foreground}"
+                                    CornerRadius="8"
+                                    HorizontalAlignment="Left"/>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Slider -->
+    <Style TargetType="Slider">
+        <Setter Property="Background" Value="{StaticResource LcarsGrayBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsGoldBrush}"/>
+    </Style>
+
+    <!-- TabControl -->
+    <Style TargetType="TabControl">
+        <Setter Property="Background" Value="{StaticResource LcarsBlackBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+
+    <!-- TabItem -->
+    <Style TargetType="TabItem">
+        <Setter Property="Background" Value="{StaticResource LcarsGrayBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="4,4,0,0"
+                            Padding="{TemplateBinding Padding}"
+                            Margin="2,0,0,0">
+                        <ContentPresenter x:Name="contentPresenter"
+                                          ContentSource="Header"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- GroupBox -->
+    <Style TargetType="GroupBox">
+        <Setter Property="Background" Value="{StaticResource LcarsBlackLightBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource LcarsTanBrush}"/>
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+        <Setter Property="Padding" Value="8"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GroupBox">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <!-- LCARS-style header bar with rounded left end -->
+                        <Border Grid.Row="0"
+                                Background="{StaticResource LcarsGoldBrush}"
+                                CornerRadius="12,4,4,0"
+                                Padding="16,4,8,4">
+                            <ContentPresenter ContentSource="Header"
+                                              TextBlock.Foreground="{StaticResource LcarsBlackBrush}"
+                                              TextBlock.FontWeight="Bold"
+                                              TextBlock.FontSize="14"/>
+                        </Border>
+                        <Border Grid.Row="1"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="2,0,2,2"
+                                CornerRadius="0,0,4,4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ListBox -->
+    <Style TargetType="ListBox">
+        <Setter Property="Background" Value="{StaticResource LcarsBlackLightBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource LcarsTanBrush}"/>
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+    </Style>
+
+    <!-- ListBoxItem -->
+    <Style TargetType="ListBoxItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGrayBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ScrollBar -->
+    <Style TargetType="ScrollBar">
+        <Setter Property="Background" Value="{StaticResource LcarsGrayBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsGoldBrush}"/>
+        <Setter Property="Width" Value="14"/>
+    </Style>
+
+    <!-- Menu -->
+    <Style TargetType="Menu">
+        <Setter Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+    </Style>
+
+    <!-- MenuItem - Override popup background for dropdowns -->
+    <Style TargetType="MenuItem">
+        <Setter Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+        <Setter Property="Padding" Value="12,6"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Border x:Name="Border" 
+                            Background="{TemplateBinding Background}" 
+                            BorderBrush="{StaticResource LcarsGoldBrush}" 
+                            BorderThickness="0"
+                            Padding="{TemplateBinding Padding}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Icon"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Shortcut"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter x:Name="Icon" Grid.Column="0" Margin="0,0,6,0" 
+                                              VerticalAlignment="Center" ContentSource="Icon"/>
+                            <TextBlock x:Name="HeaderText" Grid.Column="1" 
+                                       Text="{TemplateBinding Header}"
+                                       VerticalAlignment="Center"
+                                       Foreground="{StaticResource LcarsBlackBrush}"/>
+                            <TextBlock x:Name="InputGestureText" Grid.Column="2" 
+                                       Text="{TemplateBinding InputGestureText}" 
+                                       Margin="24,0,0,0" VerticalAlignment="Center"
+                                       Foreground="{StaticResource LcarsBlackBrush}" Opacity="0.7"/>
+                            <Path x:Name="Arrow" Grid.Column="3" 
+                                  Data="M0,0 L4,4 L0,8 Z" 
+                                  Fill="{StaticResource LcarsBlackBrush}"
+                                  VerticalAlignment="Center" Margin="6,0,0,0"
+                                  Visibility="Collapsed"/>
+                            <Popup x:Name="PART_Popup" 
+                                   IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                   Placement="Bottom" 
+                                   AllowsTransparency="True" 
+                                   Focusable="False"
+                                   PopupAnimation="Fade">
+                                <Border Background="{StaticResource LcarsTanBrush}" 
+                                        BorderBrush="{StaticResource LcarsGoldBrush}" 
+                                        BorderThickness="1">
+                                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Role" Value="TopLevelHeader">
+                            <Setter TargetName="Arrow" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="PART_Popup" Property="Placement" Value="Bottom"/>
+                        </Trigger>
+                        <Trigger Property="Role" Value="TopLevelItem">
+                            <Setter TargetName="Arrow" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                        <Trigger Property="Role" Value="SubmenuHeader">
+                            <Setter TargetName="Arrow" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="PART_Popup" Property="Placement" Value="Right"/>
+                        </Trigger>
+                        <Trigger Property="Role" Value="SubmenuItem">
+                            <Setter TargetName="Arrow" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="HeaderText" Property="Foreground" Value="{StaticResource LcarsGrayBrush}"/>
+                        </Trigger>
+                        <Trigger Property="Icon" Value="{x:Null}">
+                            <Setter TargetName="Icon" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Separator style for LCARS menus -->
+    <Style TargetType="Separator">
+        <Setter Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
+        <Setter Property="Height" Value="2"/>
+        <Setter Property="Margin" Value="4,2"/>
+    </Style>
+
+    <!-- Label -->
+    <Style TargetType="Label">
+        <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+    </Style>
+
+    <!-- TextBlock -->
+    <Style TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+    </Style>
+
+    <!-- ToolTip -->
+    <Style TargetType="ToolTip">
+        <Setter Property="Background" Value="{StaticResource LcarsGrayBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsGoldBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource LcarsTanBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+        <Setter Property="Padding" Value="8,4"/>
+    </Style>
+
+    <!-- Window Background (for dialogs/sub-windows) -->
+    <Style TargetType="Window">
+        <Setter Property="Background" Value="{StaticResource LcarsBlackBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+    </Style>
+
+    <!-- Border default -->
+    <Style TargetType="Border">
+        <Setter Property="BorderBrush" Value="{StaticResource LcarsTanBrush}"/>
+    </Style>
+
+    <!-- Grid/Panel backgrounds -->
+    <Style TargetType="Grid">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style TargetType="StackPanel">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style TargetType="DockPanel">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <!-- Expander -->
+    <Style TargetType="Expander">
+        <Setter Property="Background" Value="{StaticResource LcarsBlackLightBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource LcarsTanBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+    </Style>
+
+    <!-- DataGrid -->
+    <Style TargetType="DataGrid">
+        <Setter Property="Background" Value="{StaticResource LcarsBlackBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource LcarsTanBrush}"/>
+        <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource LcarsGrayBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+        <Setter Property="RowBackground" Value="{StaticResource LcarsBlackLightBrush}"/>
+        <Setter Property="AlternatingRowBackground" Value="{StaticResource LcarsGrayBrush}"/>
+    </Style>
+
+    <!-- DataGridRow - Prevents white bands -->
+    <Style TargetType="DataGridRow">
+        <Setter Property="Background" Value="{StaticResource LcarsBlackLightBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource LcarsGrayBrush}"/>
+            </Trigger>
+            <Trigger Property="AlternationIndex" Value="1">
+                <Setter Property="Background" Value="{StaticResource LcarsGrayBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="DataGridColumnHeader">
+        <Setter Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Padding" Value="8,4"/>
+    </Style>
+
+    <Style TargetType="DataGridCell">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="4,2"/>
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- TreeView -->
+    <Style TargetType="TreeView">
+        <Setter Property="Background" Value="{StaticResource LcarsBlackLightBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource LcarsTanBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+    </Style>
+
+    <Style TargetType="TreeViewItem">
+        <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- StatusBar -->
+    <Style TargetType="StatusBar">
+        <Setter Property="Background" Value="{StaticResource LcarsGrayBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+    </Style>
+
+    <!-- ======================== LCARS Special Elements ======================== -->
+    
+    <!-- LCARS Header Bar Style -->
+    <Style x:Key="LcarsHeaderBarStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
+        <Setter Property="CornerRadius" Value="0,0,40,0"/>
+        <Setter Property="Height" Value="50"/>
+        <Setter Property="Padding" Value="20,0,60,0"/>
+    </Style>
+    
+    <!-- LCARS Sidebar Button Stack (left sidebar with rounded caps) -->
+    <Style x:Key="LcarsSidebarButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource LcarsPeachBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="Margin" Value="0,2"/>
+        <Setter Property="Padding" Value="10,0"/>
+        <Setter Property="HorizontalContentAlignment" Value="Right"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="20,0,0,20"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsSalmonBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsCoralBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- LCARS Elbow Corner Style (the iconic curved corner pieces) -->
+    <Style x:Key="LcarsElbowStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
+        <Setter Property="Width" Value="80"/>
+        <Setter Property="Height" Value="80"/>
+        <Setter Property="CornerRadius" Value="0,0,0,40"/>
+    </Style>
+    
+    <!-- LCARS Status Indicator -->
+    <Style x:Key="LcarsStatusIndicatorStyle" TargetType="Ellipse">
+        <Setter Property="Width" Value="16"/>
+        <Setter Property="Height" Value="16"/>
+        <Setter Property="Fill" Value="{StaticResource LcarsGreenBrush}"/>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsActive}" Value="False">
+                <Setter Property="Fill" Value="{StaticResource LcarsGrayBrush}"/>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+    
+    <!-- LCARS Divider -->
+    <Style x:Key="LcarsDividerStyle" TargetType="Rectangle">
+        <Setter Property="Fill" Value="{StaticResource LcarsTanBrush}"/>
+        <Setter Property="Height" Value="4"/>
+        <Setter Property="Margin" Value="0,8"/>
+        <Setter Property="RadiusX" Value="2"/>
+        <Setter Property="RadiusY" Value="2"/>
+    </Style>
+
+</ResourceDictionary>

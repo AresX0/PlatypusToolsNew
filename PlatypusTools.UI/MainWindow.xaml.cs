@@ -1,12 +1,16 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Interop;
 using PlatypusTools.UI.ViewModels;
 using PlatypusTools.UI.Services;
+using PlatypusTools.UI.Interop;
 
 namespace PlatypusTools.UI
 {
     public partial class MainWindow : Window
     {
+        private bool _glassInitialized = false;
+        
         public MainWindow()
         {
             InitializeComponent();
@@ -15,14 +19,75 @@ namespace PlatypusTools.UI
             this.Closing += MainWindow_Closing;
             this.Closed += MainWindow_Closed;
             
+            // SourceInitialized fires when window handle is ready - required for DWM effects
+            this.SourceInitialized += (s, e) =>
+            {
+                // Ensure window has a handle before applying glass
+                var hwnd = new WindowInteropHelper(this).Handle;
+                if (hwnd != System.IntPtr.Zero)
+                {
+                    InitializeGlassTheme();
+                }
+            };
+            
             this.Loaded += (s, e) =>
             {
                 StatusBarViewModel.Instance.Reset();
                 RefreshRecentWorkspacesMenu();
+                
+                // Retry glass initialization if not done yet
+                if (!_glassInitialized)
+                {
+                    InitializeGlassTheme();
+                }
             };
             
             // Subscribe to workspace changes
             RecentWorkspacesService.Instance.WorkspacesChanged += (s, e) => RefreshRecentWorkspacesMenu();
+        }
+        
+        /// <summary>
+        /// Initializes glass theme effects based on saved settings.
+        /// </summary>
+        private void InitializeGlassTheme()
+        {
+            if (_glassInitialized)
+                return;
+                
+            try
+            {
+                // Verify window has a handle
+                var hwnd = new WindowInteropHelper(this).Handle;
+                if (hwnd == System.IntPtr.Zero)
+                {
+                    PlatypusTools.Core.Services.SimpleLogger.Warn("Glass init: Window handle not ready");
+                    return;
+                }
+                
+                _glassInitialized = true;
+                
+                // Register this window with the theme manager
+                PlatypusTools.Core.Services.SimpleLogger.Debug("Glass init: Calling SetMainWindow");
+                ThemeManager.Instance.SetMainWindow(this);
+                
+                // Apply saved glass settings
+                var settings = SettingsManager.Current;
+                PlatypusTools.Core.Services.SimpleLogger.Debug($"Glass init: settings.GlassEnabled={settings?.GlassEnabled}, IsGlassSupported={ThemeManager.Instance.IsGlassSupported}");
+                if (settings != null && settings.GlassEnabled && ThemeManager.Instance.IsGlassSupported)
+                {
+                    PlatypusTools.Core.Services.SimpleLogger.Debug($"Glass init: Applying glass level {settings.GlassLevel}");
+                    ThemeManager.Instance.GlassLevel = settings.GlassLevel;
+                    ThemeManager.Instance.IsGlassEnabled = true;
+                }
+                else
+                {
+                    PlatypusTools.Core.Services.SimpleLogger.Debug($"Glass init: Not applying - Enabled={settings?.GlassEnabled}, Supported={ThemeManager.Instance.IsGlassSupported}");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                PlatypusTools.Core.Services.SimpleLogger.Error($"Error initializing glass theme: {ex.Message}");
+            }
         }
         
         private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -213,6 +278,11 @@ namespace PlatypusTools.UI
         private void ShowFolderHiderHelp(object sender, RoutedEventArgs e)
         {
             OpenHelpSection("#security");
+        }
+
+        private void ShowRobocopyHelp(object sender, RoutedEventArgs e)
+        {
+            OpenHelpSection("#robocopy");
         }
 
         private void OpenHelpSection(string section)

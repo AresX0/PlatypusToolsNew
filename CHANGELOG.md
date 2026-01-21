@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.7.0 - 2026-01-21
+
+### Added
+- **Robocopy Help Documentation** - Added comprehensive Robocopy documentation to Help menu
+- **Help Menu Enhancement** - Added "Robocopy - How to Use" menu item
+
+### Fixed
+- **Dark Theme XAML Error** - Fixed corrupted newline character in Dark.xaml that prevented dark mode from loading
+- **Window Styling** - Reverted to standard window chrome for stability (removed experimental custom title bar)
+
+### Changed
+- **Robocopy Location** - Moved Robocopy tab from Tools to File Management for better organization
+
+---
+
 ## v3.2.6.1 - 2026-01-21
 
 ### Added

@@ -47,10 +47,30 @@ namespace PlatypusTools.UI.Views
                 var settings = SettingsManager.Current;
 
                 // Theme
-                if (settings?.Theme == ThemeManager.Dark)
+                if (settings?.Theme == ThemeManager.LCARS)
+                    LCARSThemeRadio.IsChecked = true;
+                else if (settings?.Theme == ThemeManager.Dark)
                     DarkThemeRadio.IsChecked = true;
                 else if (LightThemeRadio != null)
                     LightThemeRadio.IsChecked = true;
+                
+                // Glass effect
+                if (GlassEffectCheck != null)
+                    GlassEffectCheck.IsChecked = ThemeManager.Instance.IsGlassEnabled;
+                
+                // Glass level
+                if (GlassLevelCombo != null)
+                {
+                    var level = ThemeManager.Instance.GlassLevel;
+                    foreach (System.Windows.Controls.ComboBoxItem item in GlassLevelCombo.Items)
+                    {
+                        if (item.Tag?.ToString() == level.ToString())
+                        {
+                            GlassLevelCombo.SelectedItem = item;
+                            break;
+                        }
+                    }
+                }
 
                 // Auto-update
                 if (AutoCheckUpdatesCheck != null)
@@ -148,6 +168,26 @@ namespace PlatypusTools.UI.Views
             var themeEditor = new ThemeEditorWindow();
             themeEditor.Owner = this;
             themeEditor.ShowDialog();
+        }
+        
+        private void GlassEffectCheck_Changed(object sender, RoutedEventArgs e)
+        {
+            PlatypusTools.Core.Services.SimpleLogger.Debug($"GlassEffectCheck_Changed: IsChecked={GlassEffectCheck.IsChecked}");
+            ThemeManager.Instance.IsGlassEnabled = GlassEffectCheck.IsChecked == true;
+        }
+        
+        private void GlassLevelCombo_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (GlassLevelCombo.SelectedItem is System.Windows.Controls.ComboBoxItem item && item.Tag != null)
+            {
+                var levelStr = item.Tag.ToString();
+                PlatypusTools.Core.Services.SimpleLogger.Debug($"GlassLevelCombo_SelectionChanged: levelStr={levelStr}");
+                if (Enum.TryParse<Interop.GlassLevel>(levelStr, out var level))
+                {
+                    PlatypusTools.Core.Services.SimpleLogger.Debug($"GlassLevelCombo_SelectionChanged: parsed level={level}");
+                    ThemeManager.Instance.GlassLevel = level;
+                }
+            }
         }
         
         private void ResetShortcuts_Click(object sender, RoutedEventArgs e)
@@ -298,7 +338,12 @@ namespace PlatypusTools.UI.Views
             var settings = SettingsManager.Current;
             
             // Theme
-            if (DarkThemeRadio.IsChecked == true)
+            if (LCARSThemeRadio.IsChecked == true)
+            {
+                settings.Theme = ThemeManager.LCARS;
+                ThemeManager.ApplyTheme(ThemeManager.LCARS);
+            }
+            else if (DarkThemeRadio.IsChecked == true)
             {
                 settings.Theme = ThemeManager.Dark;
                 ThemeManager.ApplyTheme(ThemeManager.Dark);
@@ -307,6 +352,21 @@ namespace PlatypusTools.UI.Views
             {
                 settings.Theme = ThemeManager.Light;
                 ThemeManager.ApplyTheme(ThemeManager.Light);
+            }
+            
+            // Glass effect - save to settings AND apply
+            var glassEnabled = GlassEffectCheck.IsChecked == true;
+            settings.GlassEnabled = glassEnabled;
+            ThemeManager.Instance.IsGlassEnabled = glassEnabled;
+            
+            // Glass level
+            if (GlassLevelCombo.SelectedItem is System.Windows.Controls.ComboBoxItem levelItem && levelItem.Tag != null)
+            {
+                if (Enum.TryParse<Interop.GlassLevel>(levelItem.Tag.ToString(), out var level))
+                {
+                    settings.GlassLevel = level;
+                    ThemeManager.Instance.GlassLevel = level;
+                }
             }
             
             settings.CheckForUpdatesOnStartup = AutoCheckUpdatesCheck.IsChecked == true;

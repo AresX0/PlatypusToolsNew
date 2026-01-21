@@ -14,12 +14,19 @@
     <!-- Brushes -->
     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}" />
     <SolidColorBrush x:Key="WindowForegroundBrush" Color="{StaticResource WindowForegroundColor}" />
+    <SolidColorBrush x:Key="MenuForegroundBrush" Color="{StaticResource WindowForegroundColor}" />
     <SolidColorBrush x:Key="ControlBackgroundBrush" Color="{StaticResource ControlBackgroundColor}" />
     <SolidColorBrush x:Key="ControlBorderBrush" Color="{StaticResource ControlBorderColor}" />
     <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
     <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource AccentHoverColor}" />
     <SolidColorBrush x:Key="DisabledForegroundBrush" Color="{StaticResource DisabledForegroundColor}" />
     <SolidColorBrush x:Key="SelectionBackgroundBrush" Color="{StaticResource SelectionBackgroundColor}" />
+    
+    <!-- Title Bar brushes -->
+    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="#FF0078D4"/>
+    <SolidColorBrush x:Key="TitleBarForegroundBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="TitleBarButtonHoverBrush" Color="#33FFFFFF"/>
+    <SolidColorBrush x:Key="TitleBarCloseHoverBrush" Color="#FFE81123"/>
     
     <!-- Additional resource keys used by views -->
     <SolidColorBrush x:Key="CardBackground" Color="#FFFAFAFA" />

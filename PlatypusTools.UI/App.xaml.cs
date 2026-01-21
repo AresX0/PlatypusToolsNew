@@ -38,6 +38,12 @@ namespace PlatypusTools.UI
                 args.SetObserved();
             };
             
+            // Add global Loaded handler to apply theme backgrounds to UserControl content
+            EventManager.RegisterClassHandler(
+                typeof(System.Windows.Controls.UserControl),
+                FrameworkElement.LoadedEvent,
+                new RoutedEventHandler(OnUserControlLoaded));
+            
             StartupProfiler.BeginPhase("Splash screen");
 
             // Show splash screen
@@ -76,6 +82,11 @@ namespace PlatypusTools.UI
                 _splashScreen.UpdateStatus("Configuring logging...");
                 ConfigureLogging();
 
+                // Load theme BEFORE creating main window to ensure resources are available
+                StartupProfiler.BeginPhase("Load theme");
+                _splashScreen.UpdateStatus("Loading theme...");
+                LoadInitialTheme();
+
                 // Reduced splash delay for faster startup (was 1500ms)
                 await Task.Delay(500);
 
@@ -99,6 +110,44 @@ namespace PlatypusTools.UI
                 MessageBox.Show($"Failed to start application: {ex.Message}", "Startup Error", 
                     MessageBoxButton.OK, MessageBoxImage.Error);
                 Shutdown();
+            }
+        }
+
+        /// <summary>
+        /// Loads the initial theme from settings before creating the main window.
+        /// This ensures all DynamicResource bindings resolve correctly.
+        /// </summary>
+        private void LoadInitialTheme()
+        {
+            try
+            {
+                var settings = Services.SettingsManager.Current;
+                var theme = settings?.Theme ?? Services.ThemeManager.Light;
+                SimpleLogger.Debug($"App: Loading initial theme '{theme}'");
+                Services.ThemeManager.ApplyTheme(theme);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error($"App: Failed to load initial theme: {ex.Message}");
+                // Apply default light theme as fallback
+                Services.ThemeManager.ApplyTheme(Services.ThemeManager.Light);
+            }
+        }
+
+        /// <summary>
+        /// Global handler that applies theme background to UserControl content panels.
+        /// This ensures theme backgrounds propagate into UserControls, which don't inherit
+        /// implicit styles from Application.Resources by default in WPF.
+        /// </summary>
+        private static void OnUserControlLoaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.UserControl uc && uc.Content is System.Windows.Controls.Panel panel)
+            {
+                // Only set if not already set (don't override intentional backgrounds)
+                if (panel.Background == null || panel.Background == System.Windows.Media.Brushes.Transparent)
+                {
+                    panel.SetResourceReference(System.Windows.Controls.Panel.BackgroundProperty, "WindowBackgroundBrush");
+                }
             }
         }
 

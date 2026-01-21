@@ -5,23 +5,91 @@
              xmlns:services="clr-namespace:PlatypusTools.UI.Services"
              >
     <Application.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
-        <converters:InverseBoolToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
-        <converters:FileSizeConverter x:Key="FileSizeConverter" />
-        <converters:BytesToMBConverter x:Key="BytesToMBConverter" />
-        <converters:InverseBooleanToBooleanConverter x:Key="InverseBooleanToBooleanConverter" />
-        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
-        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
-        <converters:InverseNullToVisibilityConverter x:Key="InverseNullToVisibilityConverter" />
-        <converters:BoolToThemeTextConverter x:Key="BoolToThemeTextConverter" />
-        <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
-        <converters:CountToVisibilityConverter x:Key="ZeroToVisibleConverter" />
-        <converters:EnumToBoolConverter x:Key="EnumToBoolConverter" />
-        <converters:FileFolderIconConverter x:Key="FileFolderIconConverter" />
-        <converters:FileFontWeightConverter x:Key="FileFontWeightConverter" />
-        <converters:FileCountVisibilityConverter x:Key="FileCountVisibilityConverter" />
-        <converters:TabVisibilityConverter x:Key="TabVisibilityConverter" />
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Default fallback brushes - will be replaced by theme dictionaries at runtime -->
+                <ResourceDictionary>
+                    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FFF5F5F5"/>
+                    <SolidColorBrush x:Key="WindowForegroundBrush" Color="#FF1E1E1E"/>
+                    <SolidColorBrush x:Key="MenuForegroundBrush" Color="#FF1E1E1E"/>
+                    <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#FFFFFFFF"/>
+                    <SolidColorBrush x:Key="ControlBorderBrush" Color="#FFCCCCCC"/>
+                    <SolidColorBrush x:Key="AccentBrush" Color="#FF0078D4"/>
+                    <SolidColorBrush x:Key="PrimaryBrush" Color="#FF0078D4"/>
+                    
+                    <!-- Title Bar brushes (for custom chrome) -->
+                    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="#FF0078D4"/>
+                    <SolidColorBrush x:Key="TitleBarForegroundBrush" Color="#FFFFFFFF"/>
+                    <SolidColorBrush x:Key="TitleBarButtonHoverBrush" Color="#33FFFFFF"/>
+                    <SolidColorBrush x:Key="TitleBarCloseHoverBrush" Color="#FFE81123"/>
+                    
+                    <!-- Title Bar Button Style -->
+                    <Style x:Key="TitleBarButtonStyle" TargetType="Button">
+                        <Setter Property="Width" Value="46"/>
+                        <Setter Property="Height" Value="32"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="border" Background="{TemplateBinding Background}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="border" Property="Background" Value="{DynamicResource TitleBarButtonHoverBrush}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                    
+                    <!-- Title Bar Close Button Style -->
+                    <Style x:Key="TitleBarCloseButtonStyle" TargetType="Button">
+                        <Setter Property="Width" Value="46"/>
+                        <Setter Property="Height" Value="32"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="border" Background="{TemplateBinding Background}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="border" Property="Background" Value="{DynamicResource TitleBarCloseHoverBrush}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+            
+            <!-- Converters -->
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+            <converters:InverseBoolToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
+            <converters:FileSizeConverter x:Key="FileSizeConverter" />
+            <converters:BytesToMBConverter x:Key="BytesToMBConverter" />
+            <converters:InverseBooleanToBooleanConverter x:Key="InverseBooleanToBooleanConverter" />
+            <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+            <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+            <converters:InverseNullToVisibilityConverter x:Key="InverseNullToVisibilityConverter" />
+            <converters:BoolToThemeTextConverter x:Key="BoolToThemeTextConverter" />
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+            <converters:CountToVisibilityConverter x:Key="ZeroToVisibleConverter" />
+            <converters:EnumToBoolConverter x:Key="EnumToBoolConverter" />
+            <converters:FileFolderIconConverter x:Key="FileFolderIconConverter" />
+            <converters:FileFontWeightConverter x:Key="FileFontWeightConverter" />
+            <converters:FileCountVisibilityConverter x:Key="FileCountVisibilityConverter" />
+            <converters:TabVisibilityConverter x:Key="TabVisibilityConverter" />
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

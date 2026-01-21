@@ -102,6 +102,12 @@ namespace PlatypusTools.UI.Controls
                                 fe.DataContext = ViewDataContext;
                             }
                             
+                            // Apply theme background to the view's root content if it's a UserControl
+                            if (fe is UserControl uc && uc.Content is Panel panel)
+                            {
+                                panel.SetResourceReference(Panel.BackgroundProperty, "WindowBackgroundBrush");
+                            }
+                            
                             // Don't wrap in ScrollViewer - let views manage their own scrolling
                             // Views like VideoEditorView have complex layouts with internal scrolling
                             Content = fe;

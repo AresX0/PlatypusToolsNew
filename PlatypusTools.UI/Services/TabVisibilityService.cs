@@ -123,8 +123,10 @@ namespace PlatypusTools.UI.Services
         public Visibility PdfTools => GetVisibility("Tools.PdfTools");
         public Visibility Screenshot => GetVisibility("Tools.Screenshot");
         public Visibility BootableUSB => GetVisibility("Tools.BootableUSB");
-        public Visibility Robocopy => GetVisibility("Tools.Robocopy");
         public Visibility PluginManager => GetVisibility("Tools.PluginManager");
+
+        // FileManagement - Robocopy
+        public Visibility Robocopy => GetVisibility("FileManagement.Robocopy");
 
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {

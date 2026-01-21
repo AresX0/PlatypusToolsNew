@@ -2,9 +2,11 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Settings" Height="600" Width="800"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        Foreground="{DynamicResource WindowForegroundBrush}">
     
-    <Grid>
+    <Grid Background="{DynamicResource WindowBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -144,8 +146,28 @@
                             <StackPanel Margin="8">
                                 <RadioButton x:Name="LightThemeRadio" Content="Light" GroupName="Theme" IsChecked="True" Margin="0,4"/>
                                 <RadioButton x:Name="DarkThemeRadio" Content="Dark" GroupName="Theme" Margin="0,4"/>
+                                <RadioButton x:Name="LCARSThemeRadio" Content="LCARS (Star Trek)" GroupName="Theme" Margin="0,4"/>
                                 <RadioButton x:Name="SystemThemeRadio" Content="Use system setting" GroupName="Theme" Margin="0,4"/>
                                 <Button Content="Customize Theme..." Width="150" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CustomizeTheme_Click"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox Header="Aero Glass Effect (Windows 10/11)" Margin="0,0,0,16">
+                            <StackPanel Margin="8">
+                                <CheckBox x:Name="GlassEffectCheck" Content="Enable Aero Glass transparency" Margin="0,4" 
+                                          Checked="GlassEffectCheck_Changed" Unchecked="GlassEffectCheck_Changed"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,4">
+                                    <TextBlock Text="Glass Intensity:" VerticalAlignment="Center" Width="100"/>
+                                    <ComboBox x:Name="GlassLevelCombo" Width="150" SelectionChanged="GlassLevelCombo_SelectionChanged">
+                                        <ComboBoxItem Content="Off" Tag="Off"/>
+                                        <ComboBoxItem Content="Subtle" Tag="Low"/>
+                                        <ComboBoxItem Content="Medium" Tag="Medium" IsSelected="True"/>
+                                        <ComboBoxItem Content="Strong" Tag="High"/>
+                                        <ComboBoxItem Content="Auto (System)" Tag="Auto"/>
+                                    </ComboBox>
+                                </StackPanel>
+                                <TextBlock Text="Note: Glass effects require Windows 10 version 1803 or later" 
+                                           FontSize="11" Foreground="{DynamicResource ForegroundDimBrush}" Margin="0,4,0,0"/>
                             </StackPanel>
                         </GroupBox>
                         
@@ -248,7 +270,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.2.6.1"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.2.7.1"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="Gray" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" Width="160" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>

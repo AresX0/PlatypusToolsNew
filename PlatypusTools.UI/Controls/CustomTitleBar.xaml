@@ -1,0 +1,56 @@
+<UserControl x:Class="PlatypusTools.UI.Controls.CustomTitleBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Height="32">
+    <Grid Background="{DynamicResource TitleBarBackgroundBrush}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        
+        <!-- App Icon and Title -->
+        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0">
+            <Image x:Name="AppIcon" Width="16" Height="16" Margin="0,0,8,0"
+                   Source="/Assets/platypus.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+            <TextBlock x:Name="TitleText" Text="PlatypusTools" 
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource TitleBarForegroundBrush}"
+                       FontWeight="SemiBold"/>
+        </StackPanel>
+        
+        <!-- Draggable Area - WindowChrome handles drag via CaptionHeight -->
+        <Border Grid.Column="1" Background="Transparent"/>
+        
+        <!-- Window Control Buttons -->
+        <StackPanel Grid.Column="2" Orientation="Horizontal">
+            <!-- Minimize Button -->
+            <Button x:Name="MinimizeButton" Click="MinimizeButton_Click"
+                    Style="{DynamicResource TitleBarButtonStyle}"
+                    WindowChrome.IsHitTestVisibleInChrome="True"
+                    ToolTip="Minimize">
+                <Path Data="M0,5 L10,5" Stroke="{DynamicResource TitleBarForegroundBrush}" 
+                      StrokeThickness="1" Width="10" Height="10"/>
+            </Button>
+            
+            <!-- Maximize/Restore Button -->
+            <Button x:Name="MaximizeButton" Click="MaximizeButton_Click"
+                    Style="{DynamicResource TitleBarButtonStyle}"
+                    WindowChrome.IsHitTestVisibleInChrome="True"
+                    ToolTip="Maximize">
+                <Path x:Name="MaximizeIcon" Data="M0,0 L10,0 L10,10 L0,10 Z" 
+                      Stroke="{DynamicResource TitleBarForegroundBrush}" 
+                      StrokeThickness="1" Fill="Transparent" Width="10" Height="10"/>
+            </Button>
+            
+            <!-- Close Button -->
+            <Button x:Name="CloseButton" Click="CloseButton_Click"
+                    Style="{DynamicResource TitleBarCloseButtonStyle}"
+                    WindowChrome.IsHitTestVisibleInChrome="True"
+                    ToolTip="Close">
+                <Path Data="M0,0 L10,10 M10,0 L0,10" Stroke="{DynamicResource TitleBarForegroundBrush}" 
+                      StrokeThickness="1" Width="10" Height="10"/>
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

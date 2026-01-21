@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using PlatypusTools.UI.Interop;
 
 namespace PlatypusTools.UI.Services
 {
@@ -16,6 +17,8 @@ namespace PlatypusTools.UI.Services
         private string _theme = ThemeManager.Light;
         private bool _checkForUpdatesOnStartup = true;
         private Dictionary<string, bool> _visibleTabs = new();
+        private bool _glassEnabled = false;
+        private GlassLevel _glassLevel = GlassLevel.Auto;
 
         public string Theme
         {
@@ -27,6 +30,24 @@ namespace PlatypusTools.UI.Services
         {
             get => _checkForUpdatesOnStartup;
             set { _checkForUpdatesOnStartup = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets whether glass effects are enabled.
+        /// </summary>
+        public bool GlassEnabled
+        {
+            get => _glassEnabled;
+            set { _glassEnabled = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets the glass effect level.
+        /// </summary>
+        public GlassLevel GlassLevel
+        {
+            get => _glassLevel;
+            set { _glassLevel = value; OnPropertyChanged(); }
         }
 
         /// <summary>

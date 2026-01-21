@@ -89,12 +89,12 @@ namespace PlatypusTools.UI.ViewModels
 
                 SimpleLogger.Debug("Commands created successfully");
                 
-                // Apply theme from settings
+                // Sync IsDarkTheme property with current theme (theme is loaded by App.xaml.cs before window creation)
                 try
                 {
-                    var s = PlatypusTools.UI.Services.SettingsManager.Current;
-                    IsDarkTheme = string.Equals(s.Theme, PlatypusTools.UI.Services.ThemeManager.Dark, StringComparison.OrdinalIgnoreCase);
-                    PlatypusTools.UI.Services.ThemeManager.ApplyTheme(s.Theme);
+                    var theme = PlatypusTools.UI.Services.ThemeManager.Instance.CurrentTheme;
+                    IsDarkTheme = string.Equals(theme, PlatypusTools.UI.Services.ThemeManager.Dark, StringComparison.OrdinalIgnoreCase) ||
+                                  string.Equals(theme, PlatypusTools.UI.Services.ThemeManager.LCARS, StringComparison.OrdinalIgnoreCase);
                 }
                 catch { }
             

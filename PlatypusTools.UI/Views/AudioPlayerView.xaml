@@ -596,7 +596,7 @@
                                       AutoGenerateColumns="False" IsReadOnly="True"
                                       CanUserResizeColumns="True" CanUserSortColumns="True"
                                       ColumnHeaderHeight="32"
-                                      GridLinesVisibility="Horizontal" AlternatingRowBackground="#f8f8f8"
+                                      GridLinesVisibility="Horizontal"
                                       HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                                 <DataGrid.Columns>
                                     <DataGridTemplateColumn Header="⭐" Width="32" MinWidth="32" CanUserResize="False">
