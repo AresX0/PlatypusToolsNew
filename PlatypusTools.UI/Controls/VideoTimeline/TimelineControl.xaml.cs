@@ -52,8 +52,14 @@ namespace PlatypusTools.UI.Controls.VideoTimeline
             DragOver += TimelineControl_DragOver;
         }
         
-        private void TimelineControl_Loaded(object sender, RoutedEventArgs e)
+        private async void TimelineControl_Loaded(object sender, RoutedEventArgs e)
         {
+            // Trigger async initialization if the ViewModel implements IAsyncInitializable
+            if (DataContext is IAsyncInitializable asyncInit && !asyncInit.IsInitialized)
+            {
+                await asyncInit.InitializeAsync();
+            }
+            
             DrawTimeRuler();
             SyncScrollViewers();
             

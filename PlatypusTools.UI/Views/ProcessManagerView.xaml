@@ -37,7 +37,6 @@
 
         <!-- Process List -->
         <GroupBox Header="Running Processes" Grid.Row="2" Margin="0,5,0,8">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <DataGrid x:Name="ProcessesDataGrid" ItemsSource="{Binding Processes}"
                           SelectedItem="{Binding SelectedProcess}"
                           AutoGenerateColumns="False"
@@ -50,8 +49,12 @@
                           ColumnHeaderHeight="32"
                           MinHeight="250"
                           ColumnWidth="*"
-                          HorizontalScrollBarVisibility="Disabled" 
-                          VerticalScrollBarVisibility="Disabled"
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto" 
+                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                          ScrollViewer.CanContentScroll="True"
+                          VirtualizingStackPanel.IsVirtualizing="True"
+                          VirtualizingStackPanel.VirtualizationMode="Recycling"
+                          EnableRowVirtualization="True"
                           SelectionChanged="ProcessesDataGrid_SelectionChanged">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="PID" Binding="{Binding ProcessId}" Width="80" MinWidth="60" IsReadOnly="True" CanUserResize="True"/>
@@ -72,7 +75,6 @@
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                 </DataGrid>
-            </ScrollViewer>
         </GroupBox>
 
         <!-- Status Bar -->

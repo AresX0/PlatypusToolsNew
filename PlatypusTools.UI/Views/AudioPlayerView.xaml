@@ -370,6 +370,8 @@
                                      SelectionMode="Extended"
                                      Background="Transparent" BorderThickness="0"
                                      AllowDrop="True"
+                                     VirtualizingStackPanel.IsVirtualizing="True"
+                                     VirtualizingStackPanel.VirtualizationMode="Recycling"
                                      PreviewMouseLeftButtonDown="QueueListBox_PreviewMouseLeftButtonDown"
                                      PreviewMouseMove="QueueListBox_PreviewMouseMove"
                                      Drop="QueueListBox_Drop"

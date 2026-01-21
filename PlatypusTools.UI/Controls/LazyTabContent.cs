@@ -2,12 +2,14 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using PlatypusTools.UI.ViewModels;
 
 namespace PlatypusTools.UI.Controls
 {
     /// <summary>
     /// Lazy-loads a view when the tab becomes visible for the first time.
     /// Provides error isolation so one failing view doesn't crash the entire app.
+    /// Also triggers async initialization for ViewModels that implement IAsyncInitializable.
     /// 
     /// Usage in XAML:
     /// <TabItem Header="My Tab">
@@ -19,6 +21,7 @@ namespace PlatypusTools.UI.Controls
     /// - Views are only created when first viewed (faster startup)
     /// - Errors in one tab don't prevent other tabs from loading
     /// - Error messages are shown inline instead of crashing the app
+    /// - ViewModels with async initialization are initialized when tab is first shown
     /// </summary>
     public class LazyTabContent : ContentControl
     {
@@ -76,6 +79,12 @@ namespace PlatypusTools.UI.Controls
 
             try
             {
+                // Trigger async initialization for ViewModel if it implements IAsyncInitializable
+                if (ViewDataContext is IAsyncInitializable asyncInit && !asyncInit.IsInitialized)
+                {
+                    await asyncInit.InitializeAsync();
+                }
+
                 // Small delay to allow UI to render loading state
                 await System.Threading.Tasks.Task.Delay(10);
 

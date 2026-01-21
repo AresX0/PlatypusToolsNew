@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace PlatypusTools.UI.ViewModels
@@ -13,7 +14,10 @@ namespace PlatypusTools.UI.ViewModels
         public bool IsSelected { get => _isSelected; set { _isSelected = value; RaisePropertyChanged(); } }
     }
 
-    public class StagingViewModel : BindableBase
+    /// <summary>
+    /// ViewModel for staged files. Uses async initialization to defer file scanning.
+    /// </summary>
+    public class StagingViewModel : AsyncBindableBase
     {
         public StagingViewModel()
         {
@@ -22,7 +26,16 @@ namespace PlatypusTools.UI.ViewModels
             RestoreSelectedCommand = new RelayCommand(_ => RestoreSelected(), _ => StagedFiles.Any(sf => sf.IsSelected));
             RemoveSelectedCommand = new RelayCommand(_ => RemoveSelected(), _ => StagedFiles.Any(sf => sf.IsSelected));
             CommitSelectedCommand = new RelayCommand(_ => CommitSelected(), _ => StagedFiles.Any(sf => sf.IsSelected));
+            // Deferred - will load when view is shown
+        }
+
+        /// <summary>
+        /// Async initialization - loads staged files when view is loaded.
+        /// </summary>
+        protected override Task OnInitializeAsync()
+        {
             LoadStagedFiles();
+            return Task.CompletedTask;
         }
 
         public ObservableCollection<StagedFileViewModel> StagedFiles { get; }

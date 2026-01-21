@@ -33,8 +33,9 @@ namespace PlatypusTools.UI.ViewModels
 
     /// <summary>
     /// ViewModel for the Plugin Manager view.
+    /// Uses async initialization to defer plugin discovery until view is shown.
     /// </summary>
-    public class PluginManagerViewModel : BindableBase
+    public class PluginManagerViewModel : AsyncBindableBase
     {
         private readonly PluginService _pluginService;
 
@@ -51,8 +52,17 @@ namespace PlatypusTools.UI.ViewModels
             DisablePluginCommand = new RelayCommand(_ => DisablePlugin(), _ => SelectedPlugin != null && SelectedPlugin.IsEnabled);
             ReloadPluginsCommand = new RelayCommand(_ => ReloadPlugins());
 
-            // Load plugins
+            // Deferred initialization - plugins will be loaded when view is shown
+            Status = "Ready - plugins will load when view is opened";
+        }
+
+        /// <summary>
+        /// Async initialization - called when the view is loaded.
+        /// </summary>
+        protected override System.Threading.Tasks.Task OnInitializeAsync()
+        {
             RefreshPlugins();
+            return System.Threading.Tasks.Task.CompletedTask;
         }
 
         #region Properties

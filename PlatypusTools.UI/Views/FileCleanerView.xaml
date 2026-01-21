@@ -235,11 +235,15 @@
                     <TextBlock VerticalAlignment="Center" FontWeight="Bold" Text="{Binding SelectedCount}" />
                 </StackPanel>
 
-                <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                    <DataGrid x:Name="PreviewDataGrid" ItemsSource="{Binding PreviewItems}" AutoGenerateColumns="False" 
+                <DataGrid Grid.Row="1" x:Name="PreviewDataGrid" ItemsSource="{Binding PreviewItems}" AutoGenerateColumns="False" 
                               CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeColumns="True" 
                               SelectionMode="Extended" ColumnHeaderHeight="32" 
-                              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                              ScrollViewer.CanContentScroll="True"
+                              VirtualizingStackPanel.IsVirtualizing="True"
+                              VirtualizingStackPanel.VirtualizationMode="Recycling"
+                              EnableRowVirtualization="True">
                         <DataGrid.Columns>
                             <DataGridCheckBoxColumn Header="Apply" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="60" CanUserResize="True" MinWidth="50" />
                             <DataGridTextColumn Header="Original Name" Binding="{Binding OriginalFileName}" Width="300" MinWidth="100" IsReadOnly="True" CanUserResize="True" />
@@ -284,7 +288,6 @@
                         </DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
-                </ScrollViewer>
             </Grid>
         </GroupBox>
 

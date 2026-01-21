@@ -200,11 +200,42 @@
 
 | # | Task | Effort | Description | Status |
 |---|------|--------|-------------|--------|
-| OPT-011 | Async Initialization | ⭐⭐ | Move heavy initialization to async methods | ❌ Not Started |
+| OPT-011 | Async Initialization | ⭐⭐ | Move heavy initialization to async methods | ✅ Completed |
 | OPT-012 | Memory Usage Optimization | ⭐⭐⭐ | Review image/video handling for memory leaks | ❌ Not Started |
-| OPT-013 | UI Virtualization | ⭐⭐ | Ensure all large lists use virtualization | ❌ Not Started |
+| OPT-013 | UI Virtualization | ⭐⭐ | Ensure all large lists use virtualization | ✅ Completed |
 | OPT-014 | Startup Time Optimization | ⭐⭐ | Profile and reduce app startup time | ❌ Not Started |
 | OPT-015 | Dispose Pattern Review | ⭐⭐ | Ensure proper IDisposable implementation | ❌ Not Started |
+
+**Implemented Changes (OPT-011)**:
+- Created `IAsyncInitializable.cs` interface for ViewModels requiring async initialization
+- Created `AsyncBindableBase.cs` base class with thread-safe async initialization support:
+  - `IsInitialized` / `IsInitializing` properties for UI binding
+  - `InitializeAsync()` method that runs only once (safe to call multiple times)
+  - `OnInitializeAsync()` abstract method for derived classes to override
+  - `OnInitializationError()` virtual method for error handling
+  - `ResetInitialization()` for refresh scenarios
+- Updated ViewModels to use `AsyncBindableBase`:
+  - `PluginManagerViewModel` - Defers plugin discovery until tab is shown
+  - `StagingViewModel` - Defers staged file loading until window is shown
+  - `TimelineViewModel` - Defers transition loading and track creation
+- Updated `LazyTabContent` control to trigger async initialization when tab becomes visible
+- Updated views to trigger async initialization on Loaded event:
+  - `PluginManagerView`, `StagingWindow`, `TimelineControl`
+- Benefits: Faster startup, reduced blocking I/O during construction, tab-by-tab initialization
+
+**Implemented Changes (OPT-013)**:
+- Added `VirtualizingStackPanel.IsVirtualizing="True"` and `VirtualizingStackPanel.VirtualizationMode="Recycling"` to all high-impact list controls
+- Added `EnableRowVirtualization="True"` to DataGrids for efficient row recycling
+- Updated views with virtualization:
+  - **AudioPlayerView.xaml** - QueueListBox (music queue can have many tracks)
+  - **DuplicatesView.xaml** - DataGrid (can display thousands of duplicate files)
+  - **ProcessManagerView.xaml** - DataGrid (hundreds of running processes)
+  - **MediaLibraryView.xaml** - DataGrid (large media libraries)
+  - **FileCleanerView.xaml** - PreviewDataGrid (batch rename operations)
+  - **ScheduledTasksView.xaml** - TasksDataGrid (many scheduled tasks)
+  - **StartupManagerView.xaml** - DataGrid (startup items)
+  - **NetworkToolsView.xaml** - ConnectionsDataGrid and AdaptersDataGrid
+- Benefits: Reduced memory usage, smoother scrolling, faster rendering for large datasets
 
 ### Requirements
 
@@ -215,4 +246,4 @@
 
 ---
 
-*Last updated: January 19, 2026*
+*Last updated: January 20, 2026*

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using PlatypusTools.Core.Models.Video;
 
@@ -9,8 +10,9 @@ namespace PlatypusTools.UI.ViewModels
     /// <summary>
     /// ViewModel for the video editor timeline.
     /// Manages tracks, clips, playhead position, and timeline operations.
+    /// Uses async initialization to defer transition loading.
     /// </summary>
-    public class TimelineViewModel : BindableBase
+    public class TimelineViewModel : AsyncBindableBase
     {
         private int _nextTrackNumber = 1;
 
@@ -39,12 +41,18 @@ namespace PlatypusTools.UI.ViewModels
             UndoCommand = new RelayCommand(_ => Undo(), _ => _undoStack.Count > 0);
             RedoCommand = new RelayCommand(_ => Redo(), _ => _redoStack.Count > 0);
             
-            // Load transitions
+            // Deferred initialization - transitions and tracks loaded when view is shown
+        }
+
+        /// <summary>
+        /// Async initialization - loads transitions and default tracks.
+        /// </summary>
+        protected override Task OnInitializeAsync()
+        {
             LoadTransitions();
-            
-            // Add default tracks
             AddTrack(TrackType.Video);
             AddTrack(TrackType.Audio);
+            return Task.CompletedTask;
         }
 
         #region Properties

@@ -44,7 +44,6 @@
 
         <!-- Issues List -->
         <GroupBox Header="Registry Issues" Grid.Row="2" Margin="0,5,0,8">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <DataGrid x:Name="IssuesDataGrid" ItemsSource="{Binding Issues}"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
@@ -55,8 +54,9 @@
                           ColumnHeaderHeight="32"
                           MinHeight="200"
                           ColumnWidth="*"
-                          HorizontalScrollBarVisibility="Disabled" 
-                          VerticalScrollBarVisibility="Disabled">
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto" 
+                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                          ScrollViewer.CanContentScroll="True">
                     <DataGrid.Columns>
 
                         <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="60" MinWidth="50" CanUserResize="True"/>
@@ -84,7 +84,6 @@
                         <DataGridCheckBoxColumn Header="Fixed" Binding="{Binding IsFixed, Mode=OneWay}" Width="60" MinWidth="50" IsReadOnly="True" CanUserResize="True"/>
                     </DataGrid.Columns>
                 </DataGrid>
-            </ScrollViewer>
         </GroupBox>
 
         <!-- Status Bar -->

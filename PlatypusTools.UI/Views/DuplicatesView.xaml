@@ -83,12 +83,16 @@
                       Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
 
         <!-- Exact Duplicates DataGrid -->
-        <ScrollViewer Grid.Row="4" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                      Visibility="{Binding ShowDuplicatesGrid, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <DataGrid ItemsSource="{Binding Groups}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
+            <DataGrid Grid.Row="4" ItemsSource="{Binding Groups}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
                       CanUserResizeColumns="True" CanUserSortColumns="True"
                       ColumnHeaderHeight="32"
-                      HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                      Visibility="{Binding ShowDuplicatesGrid, Converter={StaticResource BooleanToVisibilityConverter}}"
+                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                      ScrollViewer.CanContentScroll="True"
+                      VirtualizingStackPanel.IsVirtualizing="True"
+                      VirtualizingStackPanel.VirtualizationMode="Recycling"
+                      EnableRowVirtualization="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Hash" Binding="{Binding Hash}" Width="250" CanUserResize="True" MinWidth="150" />
                     <DataGridTextColumn Header="# Files" Binding="{Binding Files.Count}" Width="80" CanUserResize="True" MinWidth="60" />
@@ -115,7 +119,6 @@
                 </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
-        </ScrollViewer>
         
         <!-- Similar Images Grid View -->
         <ScrollViewer Grid.Row="4" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"

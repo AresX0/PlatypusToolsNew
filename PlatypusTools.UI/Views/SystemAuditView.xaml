@@ -96,14 +96,18 @@
 
         <!-- Results Grid -->
         <GroupBox Header="Audit Results" Grid.Row="5" Margin="0,0,0,10">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <DataGrid ItemsSource="{Binding AuditItems}" AutoGenerateColumns="False" CanUserAddRows="False"
                           SelectionMode="Single"
                           CanUserResizeColumns="True" CanUserSortColumns="True"
                           ColumnHeaderHeight="32"
                           MinHeight="200"
                           ColumnWidth="*"
-                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                          ScrollViewer.CanContentScroll="True"
+                          VirtualizingStackPanel.IsVirtualizing="True"
+                          VirtualizingStackPanel.VirtualizationMode="Recycling"
+                          EnableRowVirtualization="True">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="150" CanUserResize="True" MinWidth="100" IsReadOnly="True"/>
                         <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200" CanUserResize="True" MinWidth="100" IsReadOnly="True"/>
@@ -157,7 +161,6 @@
                     </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
-            </ScrollViewer>
         </GroupBox>
 
         <!-- Status Bar -->
