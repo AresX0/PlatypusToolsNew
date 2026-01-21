@@ -39,6 +39,35 @@ namespace PlatypusTools.Core.Services
             "NVIDIA"
         };
 
+        /// <summary>
+        /// Files that are typically auto-generated and can be ignored when determining if a folder is "empty".
+        /// </summary>
+        private static readonly HashSet<string> JunkFiles = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Thumbs.db",
+            "desktop.ini",
+            ".DS_Store",
+            ".localized",
+            "Icon\r",
+            ".directory",
+            ".Spotlight-V100",
+            ".fseventsd",
+            ".Trashes",
+            ".TemporaryItems",
+            "ehthumbs.db",
+            "ehthumbs_vista.db",
+            "folder.jpg",
+            "folder.gif",
+            "AlbumArtSmall.jpg",
+            "AlbumArt_{*}.jpg"
+        };
+
+        /// <summary>
+        /// Gets or sets whether to treat folders containing only junk files (Thumbs.db, desktop.ini, etc.) as empty.
+        /// Default is true.
+        /// </summary>
+        public bool IgnoreJunkFiles { get; set; } = true;
+
         public event Action<string>? ProgressChanged;
         public event Action<int>? FolderScanned;
 
@@ -163,8 +192,22 @@ namespace PlatypusTools.Core.Services
             {
                 // Check for any files (including hidden and temp files)
                 var files = Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly);
+                
                 if (files.Length > 0)
-                    return false;
+                {
+                    // If we're ignoring junk files, check if ALL files are junk
+                    if (IgnoreJunkFiles)
+                    {
+                        bool allFilesAreJunk = files.All(f => IsJunkFile(Path.GetFileName(f)));
+                        if (!allFilesAreJunk)
+                            return false;
+                        // All files are junk, continue to check subdirectories
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
 
                 // Check for any subdirectories (including hidden)
                 var subDirs = Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly);
@@ -177,6 +220,23 @@ namespace PlatypusTools.Core.Services
             {
                 return false;
             }
+        }
+
+        private bool IsJunkFile(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+                return false;
+
+            // Direct match
+            if (JunkFiles.Contains(fileName))
+                return true;
+
+            // Check for pattern matches (e.g., AlbumArt_{*}.jpg)
+            if (fileName.StartsWith("AlbumArt_", StringComparison.OrdinalIgnoreCase) &&
+                fileName.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            return false;
         }
 
         public async Task<int> DeleteFoldersAsync(

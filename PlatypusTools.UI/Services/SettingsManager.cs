@@ -189,6 +189,7 @@ namespace PlatypusTools.UI.Services
                 new("Tools.PdfTools", "PDF Tools", "Tools"),
                 new("Tools.Screenshot", "Screenshot", "Tools"),
                 new("Tools.BootableUSB", "Bootable USB Creator", "Tools"),
+                new("Tools.Robocopy", "Robocopy", "Tools"),
                 new("Tools.PluginManager", "Plugin Manager", "Tools"),
             };
         }

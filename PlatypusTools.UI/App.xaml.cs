@@ -1,6 +1,7 @@
 using PlatypusTools.Core.Services;
 using PlatypusTools.UI.Views;
 using PlatypusTools.UI.ViewModels;
+using PlatypusTools.UI.Utilities;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -15,6 +16,10 @@ namespace PlatypusTools.UI
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+            
+            // Start startup profiling
+            StartupProfiler.Start();
+            StartupProfiler.BeginPhase("Exception handlers");
 
             // Register global unhandled exception handlers
             AppDomain.CurrentDomain.UnhandledException += (s, args) =>
@@ -32,6 +37,8 @@ namespace PlatypusTools.UI
                 SimpleLogger.Error($"Unobserved Task exception: {args.Exception}");
                 args.SetObserved();
             };
+            
+            StartupProfiler.BeginPhase("Splash screen");
 
             // Show splash screen
             _splashScreen = new SplashScreenWindow();
@@ -41,10 +48,12 @@ namespace PlatypusTools.UI
             try
             {
                 // Check dependencies
+                StartupProfiler.BeginPhase("Dependency check");
                 _splashScreen.UpdateStatus("Checking dependencies...");
                 await CheckDependenciesAsync();
 
                 // If the first argument is a directory, expose it for viewmodels to pick up
+                StartupProfiler.BeginPhase("Process arguments");
                 if (e.Args != null && e.Args.Length > 0)
                 {
                     var arg0 = e.Args[0];
@@ -63,13 +72,15 @@ namespace PlatypusTools.UI
                 }
 
                 // Configure logging
+                StartupProfiler.BeginPhase("Configure logging");
                 _splashScreen.UpdateStatus("Configuring logging...");
                 ConfigureLogging();
 
-                // Small delay to show splash screen
-                await Task.Delay(1500);
+                // Reduced splash delay for faster startup (was 1500ms)
+                await Task.Delay(500);
 
                 // Create and show main window
+                StartupProfiler.BeginPhase("Create main window");
                 _splashScreen.UpdateStatus("Loading main window...");
                 var mainWindow = new MainWindow();
                 
@@ -77,7 +88,9 @@ namespace PlatypusTools.UI
                 _splashScreen.Close();
                 _splashScreen = null;
                 
+                StartupProfiler.BeginPhase("Show main window");
                 mainWindow.Show();
+                StartupProfiler.Finish();
             }
             catch (Exception ex)
             {

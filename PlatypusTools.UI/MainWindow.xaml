@@ -312,6 +312,10 @@
                              Visibility="{Binding BootableUSB, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:BootableUSBView}" ViewDataContext="{Binding BootableUSB}" />
                     </TabItem>
+                    <TabItem Header="Robocopy"
+                             Visibility="{Binding Robocopy, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:RobocopyView}" ViewDataContext="{Binding Robocopy}" />
+                    </TabItem>
                     <TabItem Header="Plugin Manager"
                              Visibility="{Binding PluginManager, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:PluginManagerView}" ViewDataContext="{Binding PluginManager}" />

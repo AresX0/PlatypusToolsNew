@@ -32,10 +32,14 @@
             </Grid>
         </GroupBox>
 
-        <!-- Selection Buttons -->
+        <!-- Selection Buttons and Options -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
             <Button Content="Select All" Command="{Binding SelectAllCommand}" Padding="12,4" Margin="0,0,8,0" />
-            <Button Content="Select None" Command="{Binding SelectNoneCommand}" Padding="12,4" />
+            <Button Content="Select None" Command="{Binding SelectNoneCommand}" Padding="12,4" Margin="0,0,16,0" />
+            <CheckBox Content="Ignore junk files (Thumbs.db, desktop.ini, etc.)" 
+                      IsChecked="{Binding IgnoreJunkFiles}" 
+                      VerticalAlignment="Center"
+                      ToolTip="When checked, folders containing only system junk files will be treated as empty" />
         </StackPanel>
         
         <!-- GridSplitter for resizing -->
@@ -44,21 +48,23 @@
 
         <!-- Results List -->
         <GroupBox Grid.Row="3" Header="Empty Folders Found" Padding="8">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <DataGrid ItemsSource="{Binding EmptyFolders}" AutoGenerateColumns="False"
-                          CanUserAddRows="False" CanUserDeleteRows="False"
-                          CanUserResizeColumns="True" CanUserSortColumns="True"
-                          SelectionMode="Extended"
-                          ColumnHeaderHeight="32"
-                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
-                    <DataGrid.Columns>
-                        <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="60" CanUserResize="True" MinWidth="50" />
-                        <DataGridTextColumn Header="Folder Name" Binding="{Binding Name}" Width="200" IsReadOnly="True" CanUserResize="True" MinWidth="100" />
-                        <DataGridTextColumn Header="Full Path" Binding="{Binding Path}" Width="450" IsReadOnly="True" CanUserResize="True" MinWidth="200" />
-                        <DataGridTextColumn Header="Created" Binding="{Binding CreatedDate, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="140" IsReadOnly="True" CanUserResize="True" MinWidth="100" />
-                    </DataGrid.Columns>
-                </DataGrid>
-            </ScrollViewer>
+            <DataGrid ItemsSource="{Binding EmptyFolders}" AutoGenerateColumns="False"
+                      CanUserAddRows="False" CanUserDeleteRows="False"
+                      CanUserResizeColumns="True" CanUserSortColumns="True"
+                      SelectionMode="Extended"
+                      ColumnHeaderHeight="32"
+                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                      EnableRowVirtualization="True"
+                      VirtualizingStackPanel.IsVirtualizing="True"
+                      VirtualizingStackPanel.VirtualizationMode="Recycling">
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="60" CanUserResize="True" MinWidth="50" />
+                    <DataGridTextColumn Header="Folder Name" Binding="{Binding Name}" Width="200" IsReadOnly="True" CanUserResize="True" MinWidth="100" />
+                    <DataGridTextColumn Header="Full Path" Binding="{Binding Path}" Width="450" IsReadOnly="True" CanUserResize="True" MinWidth="200" />
+                    <DataGridTextColumn Header="Created" Binding="{Binding CreatedDate, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="140" IsReadOnly="True" CanUserResize="True" MinWidth="100" />
+                </DataGrid.Columns>
+            </DataGrid>
         </GroupBox>
 
         <!-- Action Buttons -->

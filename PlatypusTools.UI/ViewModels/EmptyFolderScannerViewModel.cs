@@ -85,6 +85,16 @@ namespace PlatypusTools.UI.ViewModels
             set { _progress = value; RaisePropertyChanged(); }
         }
 
+        private bool _ignoreJunkFiles = true;
+        /// <summary>
+        /// When true, folders containing only junk files (Thumbs.db, desktop.ini, etc.) are treated as empty.
+        /// </summary>
+        public bool IgnoreJunkFiles
+        {
+            get => _ignoreJunkFiles;
+            set { _ignoreJunkFiles = value; RaisePropertyChanged(); }
+        }
+
         public ObservableCollection<EmptyFolderItemViewModel> EmptyFolders { get; }
 
         public ICommand BrowseCommand { get; }
@@ -122,6 +132,9 @@ namespace PlatypusTools.UI.ViewModels
                 StatusMessage = "Scanning for empty folders...";
                 StatusBarViewModel.Instance.StartOperation("Scanning for empty folders...", isCancellable: true);
                 _cts = new CancellationTokenSource();
+
+                // Apply settings to scanner
+                _scanner.IgnoreJunkFiles = IgnoreJunkFiles;
 
                 _scanner.ProgressChanged += msg => Application.Current?.Dispatcher.Invoke(() => StatusMessage = msg);
                 _scanner.FolderScanned += count => Application.Current?.Dispatcher.Invoke(() => Progress = count);

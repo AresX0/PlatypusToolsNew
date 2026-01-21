@@ -1,0 +1,265 @@
+<UserControl x:Class="PlatypusTools.UI.Views.RobocopyView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="200" MinHeight="100" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0" Text="Robocopy - Robust File Copy" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,8" />
+
+        <!-- Directories Section -->
+        <GroupBox Grid.Row="1" Header="Directories" Padding="8" Margin="0,0,0,8">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="120" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Source Directory -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Source:" VerticalAlignment="Center" FontWeight="SemiBold" />
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SourceDirectory, UpdateSourceTrigger=PropertyChanged}" 
+                         VerticalContentAlignment="Center" Margin="0,0,8,8" />
+                <Button Grid.Row="0" Grid.Column="2" Content="Browse..." Command="{Binding BrowseSourceCommand}" 
+                        Padding="16,6" Margin="0,0,0,8" />
+
+                <!-- Destination Directory -->
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Destination:" VerticalAlignment="Center" FontWeight="SemiBold" />
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DestinationDirectory, UpdateSourceTrigger=PropertyChanged}" 
+                         VerticalContentAlignment="Center" Margin="0,0,8,8" />
+                <Button Grid.Row="1" Grid.Column="2" Content="Browse..." Command="{Binding BrowseDestinationCommand}" 
+                        Padding="16,6" Margin="0,0,0,8" />
+
+                <!-- File Pattern and Options -->
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="File Pattern:" VerticalAlignment="Center" />
+                <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal">
+                    <TextBox Text="{Binding FilePattern, UpdateSourceTrigger=PropertyChanged}" Width="150" 
+                             VerticalContentAlignment="Center" Margin="0,0,16,0" 
+                             ToolTip="File pattern to copy (e.g., *.txt, *.docx). Use *.* for all files." />
+                    <CheckBox Content="Create destination if it doesn't exist" IsChecked="{Binding CreateDestination}" 
+                              VerticalAlignment="Center" />
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <!-- Main Content - Switches and Preview -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="300" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="*" MinWidth="300" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Switches Panel -->
+            <GroupBox Grid.Column="0" Header="Robocopy Options" Padding="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Presets -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                        <TextBlock Text="Presets:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold" />
+                        <Button Content="Mirror" Command="{Binding ApplyPresetCommand}" CommandParameter="Mirror" 
+                                Padding="8,4" Margin="0,0,4,0" ToolTip="Full mirror backup (/MIR)" />
+                        <Button Content="Copy" Command="{Binding ApplyPresetCommand}" CommandParameter="Copy" 
+                                Padding="8,4" Margin="0,0,4,0" ToolTip="Simple copy with subdirs (/E)" />
+                        <Button Content="Move" Command="{Binding ApplyPresetCommand}" CommandParameter="Move" 
+                                Padding="8,4" Margin="0,0,4,0" ToolTip="Move files (delete source after copy)" />
+                        <Button Content="Sync" Command="{Binding ApplyPresetCommand}" CommandParameter="Sync" 
+                                Padding="8,4" Margin="0,0,4,0" ToolTip="Sync newer files only" />
+                        <Button Content="Backup" Command="{Binding ApplyPresetCommand}" CommandParameter="Backup" 
+                                Padding="8,4" Margin="0,0,4,0" ToolTip="Full backup with all attributes" />
+                    </StackPanel>
+
+                    <!-- Filter and Select/Clear -->
+                    <Grid Grid.Row="1" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <ComboBox Grid.Column="0" ItemsSource="{Binding Categories}" SelectedItem="{Binding CategoryFilter}" 
+                                  Width="140" Margin="0,0,8,0" VerticalContentAlignment="Center" />
+                        <TextBox Grid.Column="1" Text="{Binding SearchFilter, UpdateSourceTrigger=PropertyChanged}" 
+                                 VerticalContentAlignment="Center" Margin="0,0,8,0"
+                                 ToolTip="Search switches..." />
+                        <Button Grid.Column="2" Content="Select All" Command="{Binding SelectAllInCategoryCommand}" 
+                                Padding="8,4" Margin="0,0,4,0" />
+                        <Button Grid.Column="3" Content="Clear All" Command="{Binding ClearAllInCategoryCommand}" 
+                                Padding="8,4" />
+                    </Grid>
+
+                    <!-- Switches List -->
+                    <DataGrid Grid.Row="2" ItemsSource="{Binding SwitchesView}" AutoGenerateColumns="False"
+                              CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeColumns="True"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                              EnableRowVirtualization="True"
+                              VirtualizingStackPanel.IsVirtualizing="True"
+                              VirtualizingStackPanel.VirtualizationMode="Recycling"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal">
+                        <DataGrid.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.HeaderTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{DynamicResource ControlBackgroundBrush}" Padding="4,2">
+                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" />
+                                        </Border>
+                                    </DataTemplate>
+                                </GroupStyle.HeaderTemplate>
+                            </GroupStyle>
+                        </DataGrid.GroupStyle>
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header="✓" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" 
+                                                    Width="35" CanUserResize="False" />
+                            <DataGridTextColumn Header="Switch" Binding="{Binding Switch}" Width="120" IsReadOnly="True">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontFamily" Value="Consolas" />
+                                        <Setter Property="VerticalAlignment" Value="Center" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" IsReadOnly="True">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextWrapping" Value="Wrap" />
+                                        <Setter Property="VerticalAlignment" Value="Center" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTemplateColumn Header="Value" Width="100">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" 
+                                                 IsEnabled="{Binding RequiresValue}"
+                                                 ToolTip="{Binding ValueHint}"
+                                                 BorderThickness="0" Background="Transparent"
+                                                 VerticalContentAlignment="Center" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </GroupBox>
+
+            <!-- Splitter -->
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" 
+                          Background="{DynamicResource BorderBrush}" Cursor="SizeWE" />
+
+            <!-- Command Preview and Actions -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Command Preview -->
+                <GroupBox Grid.Row="0" Header="Command Preview" Padding="8" Margin="0,0,0,8">
+                    <TextBox Text="{Binding CommandPreview, Mode=OneWay}" IsReadOnly="True" 
+                             FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"
+                             MaxHeight="80" VerticalScrollBarVisibility="Auto"
+                             Background="{DynamicResource ControlBackgroundBrush}" Padding="4" />
+                </GroupBox>
+
+                <!-- Failed Files -->
+                <GroupBox Grid.Row="1" Header="Failed Files / Errors" Padding="8">
+                    <DataGrid ItemsSource="{Binding FailedFiles}" AutoGenerateColumns="False"
+                              CanUserAddRows="False" CanUserDeleteRows="False"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                              EnableRowVirtualization="True"
+                              VirtualizingStackPanel.IsVirtualizing="True"
+                              VirtualizingStackPanel.VirtualizationMode="Recycling"
+                              HeadersVisibility="Column">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="*" IsReadOnly="True" />
+                            <DataGridTextColumn Header="Error" Binding="{Binding Error}" Width="200" IsReadOnly="True">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="Red" />
+                                        <Setter Property="TextWrapping" Value="Wrap" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </GroupBox>
+
+                <!-- Action Buttons -->
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                    <Button Content="📋 Preview (List Only)" Command="{Binding PreviewCommand}" 
+                            Padding="16,8" Margin="0,0,8,0" 
+                            ToolTip="Run in list-only mode to see what would be copied without actually copying" />
+                    <Button Content="▶ Execute" Command="{Binding ExecuteCommand}" 
+                            Padding="24,8" Margin="0,0,8,0" Background="#1E88E5" Foreground="White"
+                            ToolTip="Execute Robocopy with selected options" />
+                    <Button Content="⬛ Cancel" Command="{Binding CancelCommand}" 
+                            Padding="16,8" Margin="0,0,8,0" 
+                            ToolTip="Cancel the running operation" />
+                    <Button Content="📄 Export JSON" Command="{Binding ExportResultCommand}" 
+                            Padding="16,8" 
+                            ToolTip="Export the last result to a JSON file" />
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <!-- Vertical Splitter -->
+        <GridSplitter Grid.Row="3" Height="5" HorizontalAlignment="Stretch" 
+                      Background="{DynamicResource BorderBrush}" Cursor="SizeNS" ResizeDirection="Rows" />
+
+        <!-- Output Section -->
+        <GroupBox Grid.Row="4" Header="Output" Padding="8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Column="0" Text="{Binding Output, Mode=OneWay}" IsReadOnly="True"
+                         FontFamily="Consolas" FontSize="11" 
+                         VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                         TextWrapping="NoWrap" Background="#1E1E1E" Foreground="#DCDCDC"
+                         Padding="8" />
+
+                <Button Grid.Column="1" Content="Clear" Command="{Binding ClearOutputCommand}" 
+                        Padding="8,4" Margin="8,0,0,0" VerticalAlignment="Top" />
+            </Grid>
+        </GroupBox>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="5" Background="{DynamicResource ControlBackgroundBrush}" Padding="8" Margin="0,8,0,0" CornerRadius="4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="200" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" />
+                <ProgressBar Grid.Column="1" Value="{Binding Progress}" Minimum="0" Maximum="100" 
+                             Height="16" Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}}" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

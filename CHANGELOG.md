@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.6.1 - 2026-01-21
+
+### Added
+- **Robocopy GUI** - Full GUI implementation for Robocopy under Tools tab:
+  - All 70+ Robocopy switches organized by category
+  - Presets for common operations (Mirror, Copy, Move, Sync, Backup)
+  - Real-time command preview
+  - Live output with progress parsing
+  - Export results to JSON
+  - Failed files tracking with error details
+
+- **Empty Folder Scanner Enhancement** - Added "Ignore Junk Files" option to detect folders containing only system files (Thumbs.db, desktop.ini, .DS_Store)
+
+- **Development Guidelines** - Added comprehensive DOCS/DEVELOPMENT_GUIDELINES.md for maintaining optimization patterns
+
+- **Auto-Versioning** - Added pre-commit hook for automatic version increment (.0.0.1 per commit)
+
+### Fixed
+- **Dark Mode TabControl** - Fixed light background appearing in nested TabControl areas
+- **DockPanel Dark Mode** - Added DockPanel styling for proper dark mode backgrounds
+- **Theme Consistency** - All hardcoded colors in views replaced with DynamicResource references
+
+---
+
 ## v3.2.5.0 - 2026-01-20
 
 ### Added

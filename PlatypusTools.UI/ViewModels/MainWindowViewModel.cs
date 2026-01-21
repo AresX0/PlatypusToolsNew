@@ -60,6 +60,7 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<BootableUSBViewModel> _bootableUSB = new(() => new BootableUSBViewModel());
         private readonly Lazy<EmptyFolderScannerViewModel> _emptyFolderScanner = new(() => new EmptyFolderScannerViewModel());
         private readonly Lazy<PluginManagerViewModel> _pluginManager = new(() => new PluginManagerViewModel());
+        private readonly Lazy<RobocopyViewModel> _robocopy = new(() => new RobocopyViewModel());
         
         #endregion
 
@@ -143,6 +144,7 @@ namespace PlatypusTools.UI.ViewModels
         public BootableUSBViewModel BootableUSB => _bootableUSB.Value;
         public EmptyFolderScannerViewModel EmptyFolderScanner => _emptyFolderScanner.Value;
         public PluginManagerViewModel PluginManager => _pluginManager.Value;
+        public RobocopyViewModel Robocopy => _robocopy.Value;
         
         #endregion
 

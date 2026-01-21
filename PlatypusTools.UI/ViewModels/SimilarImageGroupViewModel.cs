@@ -1,9 +1,9 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Media.Imaging;
 using PlatypusTools.Core.Services;
+using PlatypusTools.UI.Utilities;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -73,32 +73,14 @@ namespace PlatypusTools.UI.ViewModels
         {
             try
             {
+                // Use ImageHelper for memory-efficient thumbnail loading
                 if (_info.Thumbnail != null)
                 {
-                    // Convert System.Drawing.Bitmap to BitmapImage
-                    using var ms = new MemoryStream();
-                    _info.Thumbnail.Save(ms, ImageFormat.Png);
-                    ms.Position = 0;
-                    
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.StreamSource = ms;
-                    bitmap.EndInit();
-                    bitmap.Freeze();
-                    Thumbnail = bitmap;
+                    Thumbnail = ImageHelper.FromDrawingBitmap(_info.Thumbnail, 100);
                 }
                 else if (File.Exists(FilePath))
                 {
-                    // Load from file directly
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.UriSource = new Uri(FilePath, UriKind.Absolute);
-                    bitmap.DecodePixelWidth = 100;
-                    bitmap.EndInit();
-                    bitmap.Freeze();
-                    Thumbnail = bitmap;
+                    Thumbnail = ImageHelper.LoadThumbnail(FilePath, 100);
                 }
             }
             catch

@@ -39,9 +39,13 @@
         <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}" />
     </Style>
 
-    <!-- Grid, StackPanel, etc. inherit from parent -->
+    <!-- Grid, StackPanel, DockPanel inherit from parent -->
     <Style TargetType="Grid">
         <Setter Property="Background" Value="Transparent" />
+    </Style>
+    
+    <Style TargetType="DockPanel">
+        <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
     </Style>
 
     <!-- TextBlock -->
@@ -453,6 +457,37 @@
     <Style TargetType="TabControl">
         <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid KeyboardNavigation.TabNavigation="Local">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TabPanel x:Name="HeaderPanel"
+                                  Grid.Row="0"
+                                  Panel.ZIndex="1"
+                                  Margin="0,0,4,-1"
+                                  IsItemsHost="True"
+                                  KeyboardNavigation.TabIndex="1"
+                                  Background="Transparent"/>
+                        <Border x:Name="Border"
+                                Grid.Row="1"
+                                Background="{StaticResource WindowBackgroundBrush}"
+                                BorderBrush="{StaticResource ControlBorderBrush}"
+                                BorderThickness="1"
+                                KeyboardNavigation.TabNavigation="Local"
+                                KeyboardNavigation.DirectionalNavigation="Contained"
+                                KeyboardNavigation.TabIndex="2">
+                            <ContentPresenter x:Name="PART_SelectedContentHost"
+                                              Margin="4"
+                                              ContentSource="SelectedContent"/>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- TabItem with Template for dark mode -->
