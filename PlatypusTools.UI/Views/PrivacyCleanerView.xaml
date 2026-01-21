@@ -167,7 +167,7 @@
         </Grid>
 
         <!-- Status Bar -->
-        <Border Grid.Row="3" Background="#FFF4E5" BorderBrush="#FF8C00" BorderThickness="2" Padding="10">
+        <Border Grid.Row="3" Background="{DynamicResource WarningBackgroundBrush}" BorderBrush="{DynamicResource WarningBorderBrush}" BorderThickness="2" Padding="10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -175,7 +175,7 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" 
-                           FontWeight="SemiBold" TextWrapping="Wrap"/>
+                           FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{DynamicResource WarningForegroundBrush}"/>
                 <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelCommand}" 
                         Width="80" Padding="5" Margin="10,0,0,0"
                         Visibility="{Binding IsAnalyzing, Converter={StaticResource BooleanToVisibilityConverter}}"/>

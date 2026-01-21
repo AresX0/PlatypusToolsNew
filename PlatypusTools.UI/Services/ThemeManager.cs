@@ -200,11 +200,10 @@ namespace PlatypusTools.UI.Services
 
                 if (!System.IO.File.Exists(themePath))
                 {
-                    // try assembly path
-                    var asm = System.Reflection.Assembly.GetEntryAssembly()?.Location;
-                    var asmDir = asm != null ? System.IO.Path.GetDirectoryName(asm) ?? string.Empty : string.Empty;
-                    themePath = System.IO.Path.Combine(asmDir, "Themes", name + ".xaml");
-                    SimpleLogger.Debug($"ThemeManager: Fallback path: {themePath}");
+                    // try AppContext.BaseDirectory for single-file apps
+                    var appContextDir = AppContext.BaseDirectory;
+                    themePath = System.IO.Path.Combine(appContextDir, "Themes", name + ".xaml");
+                    SimpleLogger.Debug($"ThemeManager: Fallback path (AppContext): {themePath}");
                 }
 
                 if (System.IO.File.Exists(themePath))

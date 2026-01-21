@@ -38,9 +38,9 @@
                             <DataTemplate>
                                 <Border 
                                     Padding="15" 
-                                    BorderBrush="#E8E8E8" 
+                                    BorderBrush="{DynamicResource ControlBorderBrush}" 
                                     BorderThickness="0,0,0,1"
-                                    Background="White">
+                                    Background="{DynamicResource ControlBackgroundBrush}">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -121,8 +121,8 @@
 
             <!-- Info Section -->
             <Border 
-                Background="#FFF3BF" 
-                BorderBrush="#FDD835" 
+                Background="{DynamicResource WarningBackgroundBrush}" 
+                BorderBrush="{DynamicResource WarningBorderBrush}" 
                 BorderThickness="1"
                 CornerRadius="4"
                 Padding="12"
@@ -131,7 +131,7 @@
                     <TextBlock 
                         Text="ℹ️ Information" 
                         FontWeight="Bold"
-                        Foreground="#F57F17"
+                        Foreground="{DynamicResource WarningForegroundBrush}"
                         Margin="0,0,0,5"/>
                     <TextBlock 
                         Text="For more information about these tools and PlatypusTools, visit:" 

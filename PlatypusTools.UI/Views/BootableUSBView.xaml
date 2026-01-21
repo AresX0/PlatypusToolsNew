@@ -21,14 +21,14 @@
         </Grid.RowDefinitions>
 
         <!-- Elevation Warning -->
-        <Border Grid.Row="0" Background="#FFF4E5" BorderBrush="#FF9800" BorderThickness="1" 
+        <Border Grid.Row="0" Background="{DynamicResource WarningBackgroundBrush}" BorderBrush="{DynamicResource WarningBorderBrush}" BorderThickness="1" 
                 CornerRadius="5" Padding="15" Margin="0,0,0,20"
                 Visibility="{Binding IsElevated, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
             <StackPanel>
-                <TextBlock FontWeight="Bold" FontSize="14" Foreground="#E65100" Margin="0,0,0,5">
+                <TextBlock FontWeight="Bold" FontSize="14" Foreground="{DynamicResource WarningForegroundBrush}" Margin="0,0,0,5">
                     ⚠️ Administrator Privileges Required
                 </TextBlock>
-                <TextBlock TextWrapping="Wrap" Foreground="#E65100">
+                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource WarningForegroundBrush}">
                     Creating bootable USB drives requires administrator privileges to format drives and install bootloaders.
                 </TextBlock>
                 <Button Command="{Binding RequestElevationCommand}" 

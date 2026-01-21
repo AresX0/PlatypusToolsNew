@@ -399,12 +399,12 @@
                                 <TextBlock Text="• Save in various formats: MP3, WAV, FLAC, OGG, etc." Margin="15,0,0,5"/>
                                 <TextBlock Text="• Batch processing for multiple files" Margin="15,0,0,10"/>
                                 
-                                <Border Background="#FFF3E0" Padding="15" Margin="0,15,0,0" BorderBrush="#FF9800" BorderThickness="1">
+                                <Border Background="{DynamicResource WarningBackgroundBrush}" Padding="15" Margin="0,15,0,0" BorderBrush="{DynamicResource WarningBorderBrush}" BorderThickness="1">
                                     <StackPanel>
-                                        <TextBlock Text="💡 Quick Start:" FontWeight="Bold" Foreground="#E65100" Margin="0,0,0,5"/>
-                                        <TextBlock Text="1. Select an audio file using the Browse button above" Foreground="#E65100" Margin="0,0,0,3"/>
-                                        <TextBlock Text="2. Click 'Open in Audacity' to load the file for editing" Foreground="#E65100" Margin="0,0,0,3"/>
-                                        <TextBlock Text="3. Use Audacity's tools for professional audio editing and enhancement" Foreground="#E65100"/>
+                                        <TextBlock Text="💡 Quick Start:" FontWeight="Bold" Foreground="{DynamicResource WarningForegroundBrush}" Margin="0,0,0,5"/>
+                                        <TextBlock Text="1. Select an audio file using the Browse button above" Foreground="{DynamicResource WarningForegroundBrush}" Margin="0,0,0,3"/>
+                                        <TextBlock Text="2. Click 'Open in Audacity' to load the file for editing" Foreground="{DynamicResource WarningForegroundBrush}" Margin="0,0,0,3"/>
+                                        <TextBlock Text="3. Use Audacity's tools for professional audio editing and enhancement" Foreground="{DynamicResource WarningForegroundBrush}"/>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -619,11 +619,11 @@
                                         </StackPanel>
                                     </Border>
                                     
-                                    <Border Background="#FFF3E0" Padding="15" Margin="0,15,0,0" BorderBrush="#FF9800" BorderThickness="1">
+                                    <Border Background="{DynamicResource WarningBackgroundBrush}" Padding="15" Margin="0,15,0,0" BorderBrush="{DynamicResource WarningBorderBrush}" BorderThickness="1">
                                         <StackPanel>
-                                            <TextBlock Text="💡 Alternative: Native Editor" FontWeight="Bold" Foreground="#E65100" Margin="0,0,0,5"/>
-                                            <TextBlock Text="PlatypusTools also includes a built-in video editor in the Video tab → Video Editor." Foreground="#E65100" TextWrapping="Wrap" Margin="0,0,0,3"/>
-                                            <TextBlock Text="It's modeled after Shotcut's interface and works without external software!" Foreground="#E65100" TextWrapping="Wrap"/>
+                                            <TextBlock Text="💡 Alternative: Native Editor" FontWeight="Bold" Foreground="{DynamicResource WarningForegroundBrush}" Margin="0,0,0,5"/>
+                                            <TextBlock Text="PlatypusTools also includes a built-in video editor in the Video tab → Video Editor." Foreground="{DynamicResource WarningForegroundBrush}" TextWrapping="Wrap" Margin="0,0,0,3"/>
+                                            <TextBlock Text="It's modeled after Shotcut's interface and works without external software!" Foreground="{DynamicResource WarningForegroundBrush}" TextWrapping="Wrap"/>
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>

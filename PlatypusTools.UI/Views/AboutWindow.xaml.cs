@@ -31,8 +31,18 @@ namespace PlatypusTools.UI.Views
         {
             try
             {
+                // For single-file apps, Assembly.Location is empty - use AppContext.BaseDirectory
                 var location = assembly.Location;
-                if (!string.IsNullOrEmpty(location) && System.IO.File.Exists(location))
+                if (string.IsNullOrEmpty(location))
+                {
+                    // Try the EXE file in base directory
+                    var exePath = System.IO.Path.Combine(AppContext.BaseDirectory, "PlatypusTools.UI.exe");
+                    if (System.IO.File.Exists(exePath))
+                    {
+                        return System.IO.File.GetLastWriteTime(exePath);
+                    }
+                }
+                else if (System.IO.File.Exists(location))
                 {
                     return System.IO.File.GetLastWriteTime(location);
                 }

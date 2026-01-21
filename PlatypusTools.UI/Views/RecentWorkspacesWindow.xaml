@@ -20,10 +20,10 @@
         
         <!-- Header -->
         <TextBlock Grid.Row="0" Text="📂 Recent Workspaces &amp; Files" FontSize="20" FontWeight="SemiBold" 
-                   Foreground="#333" Margin="0,0,0,16"/>
+                   Foreground="{DynamicResource WindowForegroundBrush}" Margin="0,0,0,16"/>
         
         <!-- Tabs for Workspaces and Files -->
-        <TabControl Grid.Row="2" x:Name="MainTabs" Background="White">
+        <TabControl Grid.Row="2" x:Name="MainTabs" Background="{DynamicResource WindowBackgroundBrush}">
             <!-- Workspaces Tab -->
             <TabItem Header="📁 Workspaces" Padding="12,6">
                 <Grid>

@@ -159,12 +159,12 @@
                     </StackPanel>
                     
                     <!-- Selected Transition Info -->
-                    <Border Background="White" CornerRadius="4" Padding="8" Margin="0,8,0,0"
+                    <Border Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="4" Padding="8" Margin="0,8,0,0"
                             Visibility="{Binding HasSelection, Converter={StaticResource BoolToVis}}">
                         <StackPanel>
                             <TextBlock Text="{Binding SelectedTransition.Name}" FontWeight="Bold"/>
                             <TextBlock Text="{Binding SelectedTransition.CategoryName}" 
-                                       Foreground="Gray" FontSize="11"/>
+                                       Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>

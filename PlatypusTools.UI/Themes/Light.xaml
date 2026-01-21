@@ -40,6 +40,20 @@
     <SolidColorBrush x:Key="PrimaryBrush" Color="#FF0078D4" />
     <SolidColorBrush x:Key="BorderBrush" Color="#FFCCCCCC" />
     <SolidColorBrush x:Key="ForegroundDimBrush" Color="#FF808080" />
+    
+    <!-- Warning/Info box brushes - light variants -->
+    <SolidColorBrush x:Key="WarningBackgroundBrush" Color="#FFFFF4E5" />
+    <SolidColorBrush x:Key="WarningBorderBrush" Color="#FFFF9800" />
+    <SolidColorBrush x:Key="WarningForegroundBrush" Color="#FF663C00" />
+    <SolidColorBrush x:Key="InfoBackgroundBrush" Color="#FFE3F2FD" />
+    <SolidColorBrush x:Key="InfoBorderBrush" Color="#FF2196F3" />
+    <SolidColorBrush x:Key="InfoForegroundBrush" Color="#FF0D47A1" />
+    <SolidColorBrush x:Key="SuccessBackgroundBrush" Color="#FFE8F5E9" />
+    <SolidColorBrush x:Key="SuccessBorderBrush" Color="#FF4CAF50" />
+    <SolidColorBrush x:Key="SuccessForegroundBrush" Color="#FF1B5E20" />
+    <SolidColorBrush x:Key="ErrorBackgroundBrush" Color="#FFFFEBEE" />
+    <SolidColorBrush x:Key="ErrorBorderBrush" Color="#FFF44336" />
+    <SolidColorBrush x:Key="ErrorForegroundBrush" Color="#FFB71C1C" />
 
     <!-- Window Style -->
     <Style TargetType="Window">
