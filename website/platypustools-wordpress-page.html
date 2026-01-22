@@ -1,0 +1,504 @@
+<!-- PlatypusTools WordPress Page Content -->
+<!-- Copy this into WordPress using the HTML/Code editor or Gutenberg blocks -->
+
+<style>
+.pt-hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #fff;
+    padding: 60px 20px;
+    text-align: center;
+    border-radius: 12px;
+    margin-bottom: 40px;
+}
+.pt-hero h1 {
+    font-size: 3em;
+    margin-bottom: 20px;
+    color: #e9a820;
+}
+.pt-hero .tagline {
+    font-size: 1.4em;
+    opacity: 0.9;
+    margin-bottom: 30px;
+}
+.pt-download-btn {
+    display: inline-block;
+    background: #e9a820;
+    color: #1a1a2e !important;
+    padding: 15px 40px;
+    font-size: 1.2em;
+    font-weight: bold;
+    border-radius: 8px;
+    text-decoration: none;
+    margin: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.pt-download-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(233, 168, 32, 0.3);
+}
+.pt-download-btn.secondary {
+    background: transparent;
+    border: 2px solid #e9a820;
+    color: #e9a820 !important;
+}
+.pt-features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+    margin: 40px 0;
+}
+.pt-feature-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+}
+.pt-feature-card:hover {
+    transform: translateY(-5px);
+}
+.pt-feature-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-bottom: 3px solid #e9a820;
+}
+.pt-feature-card .content {
+    padding: 25px;
+}
+.pt-feature-card h3 {
+    color: #1a1a2e;
+    margin-bottom: 10px;
+    font-size: 1.4em;
+}
+.pt-feature-card p {
+    color: #555;
+    line-height: 1.6;
+}
+.pt-category {
+    margin: 60px 0 30px;
+    padding-bottom: 15px;
+    border-bottom: 3px solid #e9a820;
+}
+.pt-category h2 {
+    color: #1a1a2e;
+    font-size: 2em;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.pt-category-icon {
+    background: #e9a820;
+    color: #1a1a2e;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5em;
+}
+.pt-requirements {
+    background: #f8f9fa;
+    padding: 30px;
+    border-radius: 12px;
+    margin: 40px 0;
+}
+.pt-requirements h3 {
+    color: #1a1a2e;
+    margin-bottom: 20px;
+}
+.pt-requirements ul {
+    list-style: none;
+    padding: 0;
+}
+.pt-requirements li {
+    padding: 8px 0;
+    padding-left: 30px;
+    position: relative;
+}
+.pt-requirements li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #e9a820;
+    font-weight: bold;
+}
+.pt-theme-showcase {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 30px 0;
+}
+.pt-theme-showcase img {
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    max-width: 400px;
+}
+.pt-footer-cta {
+    background: #1a1a2e;
+    color: #fff;
+    padding: 50px 20px;
+    text-align: center;
+    border-radius: 12px;
+    margin-top: 60px;
+}
+.pt-footer-cta h2 {
+    color: #e9a820;
+    margin-bottom: 20px;
+}
+.pt-version-badge {
+    display: inline-block;
+    background: rgba(233, 168, 32, 0.2);
+    color: #e9a820;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    margin-bottom: 20px;
+}
+</style>
+
+<!-- HERO SECTION -->
+<div class="pt-hero">
+    <img src="[UPLOAD: platypus-logo.png - Your PlatypusTools logo]" alt="PlatypusTools" style="max-width: 150px; margin-bottom: 20px;">
+    <span class="pt-version-badge">Version 3.2.7.4</span>
+    <h1>🦆 PlatypusTools</h1>
+    <p class="tagline">Advanced File Management & Media Tools for Windows</p>
+    <p style="max-width: 700px; margin: 0 auto 30px; opacity: 0.8;">
+        A comprehensive suite of 50+ tools for file management, multimedia editing, system utilities, 
+        security features, and network tools — all in one beautiful, customizable application.
+    </p>
+    <a href="https://github.com/AresX0/PlatypusToolsNew/releases/download/v3.2.7.4/PlatypusToolsSetup.msi" class="pt-download-btn">
+        ⬇️ Download Installer (152 MB)
+    </a>
+    <a href="https://github.com/AresX0/PlatypusToolsNew/releases/download/v3.2.7.4/PlatypusTools-3.2.7.4-Standalone.zip" class="pt-download-btn secondary">
+        📦 Portable Version (181 MB)
+    </a>
+</div>
+
+<!-- THEMES SHOWCASE -->
+<div style="text-align: center; margin: 50px 0;">
+    <h2 style="color: #1a1a2e; margin-bottom: 10px;">🎨 Multiple Themes Available</h2>
+    <p style="color: #666; margin-bottom: 30px;">Choose from Dark Mode, Light Mode, or the iconic LCARS Star Trek theme</p>
+    <div class="pt-theme-showcase">
+        <div>
+            <img src="[UPLOAD: screenshot-dark-theme.png]" alt="Dark Theme">
+            <p><strong>Dark Mode</strong></p>
+        </div>
+        <div>
+            <img src="[UPLOAD: screenshot-light-theme.png]" alt="Light Theme">
+            <p><strong>Light Mode</strong></p>
+        </div>
+        <div>
+            <img src="[UPLOAD: screenshot-lcars-theme.png]" alt="LCARS Theme">
+            <p><strong>LCARS Theme</strong></p>
+        </div>
+    </div>
+</div>
+
+<!-- FILE MANAGEMENT CATEGORY -->
+<div class="pt-category">
+    <h2><span class="pt-category-icon">📁</span> File Management</h2>
+</div>
+<div class="pt-features-grid">
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-file-renamer.png]" alt="File Renamer">
+        <div class="content">
+            <h3>🏷️ File Renamer</h3>
+            <p>Batch rename files with powerful pattern matching, regex support, numbering sequences, and case conversion. Preview changes before applying.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-duplicate-finder.png]" alt="Duplicate Finder">
+        <div class="content">
+            <h3>🔍 Duplicate Finder</h3>
+            <p>Find and remove duplicate files using content-based hashing. Save disk space by identifying identical files across your drives.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-disk-analyzer.png]" alt="Disk Space Analyzer">
+        <div class="content">
+            <h3>📊 Disk Space Analyzer</h3>
+            <p>Visual treemap and sunburst charts showing disk usage. Quickly identify large files and folders consuming your storage.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-empty-folders.png]" alt="Empty Folder Cleaner">
+        <div class="content">
+            <h3>🗑️ Empty Folder Cleaner</h3>
+            <p>Scan and remove empty directories cluttering your file system. Safe deletion with confirmation and undo support.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-file-analyzer.png]" alt="File Analyzer">
+        <div class="content">
+            <h3>🔎 File Analyzer</h3>
+            <p>Deep inspection of any file - view hex data, file headers, metadata, and identify true file types regardless of extension.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-archive-manager.png]" alt="Archive Manager">
+        <div class="content">
+            <h3>📦 Archive Manager</h3>
+            <p>Create and extract ZIP, 7Z, RAR, TAR, and GZ archives. Batch compression with multiple format options.</p>
+        </div>
+    </div>
+</div>
+
+<!-- MULTIMEDIA CATEGORY -->
+<div class="pt-category">
+    <h2><span class="pt-category-icon">🎬</span> Multimedia</h2>
+</div>
+<div class="pt-features-grid">
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-video-converter.png]" alt="Video Converter">
+        <div class="content">
+            <h3>🎥 Video Converter</h3>
+            <p>Convert videos between formats using FFmpeg. Support for MP4, MKV, AVI, WebM, and more with quality presets.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-audio-editor.png]" alt="Audio Tools">
+        <div class="content">
+            <h3>🎵 Audio Tools</h3>
+            <p>Extract audio from video, convert audio formats, edit ID3 tags, and manage your music library metadata.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-image-resizer.png]" alt="Image Resizer">
+        <div class="content">
+            <h3>🖼️ Image Resizer</h3>
+            <p>Batch resize images with preset dimensions or custom sizes. Maintain aspect ratio and convert between formats.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-image-editor.png]" alt="Image Editor">
+        <div class="content">
+            <h3>✏️ Image Editor</h3>
+            <p>Native image editing with crop, rotate, filters, adjustments, and drawing tools. Non-destructive editing with layers.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-batch-watermark.png]" alt="Batch Watermark">
+        <div class="content">
+            <h3>💧 Batch Watermark</h3>
+            <p>Add text or image watermarks to multiple images at once. Customizable position, opacity, and sizing.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-ai-upscaler.png]" alt="AI Image Upscaler">
+        <div class="content">
+            <h3>🔬 AI Image Upscaler</h3>
+            <p>Upscale images using Real-ESRGAN AI models. 2x-4x upscaling with multiple model options for different content types.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-icon-converter.png]" alt="Icon Converter">
+        <div class="content">
+            <h3>🎯 Icon Converter</h3>
+            <p>Convert images to Windows ICO format with multiple sizes. Perfect for creating application icons.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-screenshot-tool.png]" alt="Screenshot Tool">
+        <div class="content">
+            <h3>📸 Screenshot Tool</h3>
+            <p>Capture screen regions, windows, or full screen. Annotate and save to multiple formats with hotkey support.</p>
+        </div>
+    </div>
+</div>
+
+<!-- SYSTEM TOOLS CATEGORY -->
+<div class="pt-category">
+    <h2><span class="pt-category-icon">⚙️</span> System Tools</h2>
+</div>
+<div class="pt-features-grid">
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-disk-cleanup.png]" alt="Disk Cleanup">
+        <div class="content">
+            <h3>🧹 Disk Cleanup</h3>
+            <p>Clean temporary files, browser caches, system logs, and other junk files. Reclaim gigabytes of wasted space.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-startup-manager.png]" alt="Startup Manager">
+        <div class="content">
+            <h3>🚀 Startup Manager</h3>
+            <p>Control which applications run at Windows startup. Improve boot times by disabling unnecessary programs.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-bootable-usb.png]" alt="Bootable USB Creator">
+        <div class="content">
+            <h3>💾 Bootable USB Creator</h3>
+            <p>Create bootable USB drives from ISO files. Support for Windows, Linux, and other operating systems.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-recent-cleaner.png]" alt="Recent Items Cleaner">
+        <div class="content">
+            <h3>🕐 Recent Items Cleaner</h3>
+            <p>Clear recent documents, jump lists, and file access history for privacy. Selective cleaning by application.</p>
+        </div>
+    </div>
+</div>
+
+<!-- SECURITY CATEGORY -->
+<div class="pt-category">
+    <h2><span class="pt-category-icon">🔒</span> Security & Privacy</h2>
+</div>
+<div class="pt-features-grid">
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-folder-hider.png]" alt="Folder Hider">
+        <div class="content">
+            <h3>🙈 Folder Hider</h3>
+            <p>Hide and password-protect sensitive folders. Your private files remain invisible until you unlock them.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-file-shredder.png]" alt="Secure File Shredder">
+        <div class="content">
+            <h3>🔥 Secure File Shredder</h3>
+            <p>Permanently delete files beyond recovery. Military-grade overwriting algorithms ensure complete destruction.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-privacy-cleaner.png]" alt="Privacy Cleaner">
+        <div class="content">
+            <h3>🛡️ Privacy Cleaner</h3>
+            <p>Remove traces of your activity from browsers, applications, and Windows. Protect your privacy automatically.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-forensics.png]" alt="Forensics Analyzer">
+        <div class="content">
+            <h3>🔬 Forensics Analyzer</h3>
+            <p>Analyze image metadata, EXIF data, GPS locations, and hidden information in files. Professional-grade tools.</p>
+        </div>
+    </div>
+</div>
+
+<!-- METADATA CATEGORY -->
+<div class="pt-category">
+    <h2><span class="pt-category-icon">📋</span> Metadata Tools</h2>
+</div>
+<div class="pt-features-grid">
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-metadata-editor.png]" alt="Metadata Editor">
+        <div class="content">
+            <h3>📝 Metadata Editor</h3>
+            <p>View and edit EXIF, IPTC, and XMP metadata in images. Batch edit metadata across multiple files with templates.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-metadata-stripper.png]" alt="Metadata Stripper">
+        <div class="content">
+            <h3>🧽 Metadata Stripper</h3>
+            <p>Remove all metadata from images before sharing. Protect your privacy by eliminating GPS, camera, and personal info.</p>
+        </div>
+    </div>
+</div>
+
+<!-- NETWORK TOOLS CATEGORY (NEW!) -->
+<div class="pt-category">
+    <h2><span class="pt-category-icon">🌐</span> Network Tools <span style="background: #e9a820; color: #1a1a2e; padding: 3px 10px; border-radius: 12px; font-size: 0.5em; margin-left: 15px;">NEW!</span></h2>
+</div>
+<div class="pt-features-grid">
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-ftp-client.png]" alt="FTP/SFTP Client">
+        <div class="content">
+            <h3>📂 FTP/SFTP Client</h3>
+            <p>Full-featured FTP and SFTP file transfer. Save favorite connections, use public key authentication, and transfer files securely.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-ssh-terminal.png]" alt="SSH/Telnet Terminal">
+        <div class="content">
+            <h3>💻 SSH/Telnet Terminal</h3>
+            <p>Built-in terminal client for SSH and Telnet connections. Save sessions, manage connection favorites, and work remotely.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-web-browser.png]" alt="Web Browser">
+        <div class="content">
+            <h3>🌍 Web Browser</h3>
+            <p>Integrated web browser with favorites, downloads, and session persistence. Browse the web without leaving PlatypusTools.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-website-downloader.png]" alt="Website Downloader">
+        <div class="content">
+            <h3>⬇️ Website Downloader</h3>
+            <p>Download images, videos, and documents from websites. Recursive crawling with customizable depth and file type filters.</p>
+        </div>
+    </div>
+</div>
+
+<!-- OTHER TOOLS CATEGORY -->
+<div class="pt-category">
+    <h2><span class="pt-category-icon">🛠️</span> Additional Tools</h2>
+</div>
+<div class="pt-features-grid">
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-pdf-tools.png]" alt="PDF Tools">
+        <div class="content">
+            <h3>📄 PDF Tools</h3>
+            <p>Merge, split, compress, and convert PDF files. Extract pages, add watermarks, and convert to/from images.</p>
+        </div>
+    </div>
+    <div class="pt-feature-card">
+        <img src="[UPLOAD: screenshot-plugin-manager.png]" alt="Plugin Manager">
+        <div class="content">
+            <h3>🔌 Plugin System</h3>
+            <p>Extend PlatypusTools with custom plugins. Create your own tools using the simple plugin API.</p>
+        </div>
+    </div>
+</div>
+
+<!-- SYSTEM REQUIREMENTS -->
+<div class="pt-requirements">
+    <h3>📋 System Requirements</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+        <div>
+            <h4>Minimum</h4>
+            <ul>
+                <li>Windows 10 (version 1903+)</li>
+                <li>4 GB RAM</li>
+                <li>500 MB disk space</li>
+                <li>DirectX 11 compatible GPU</li>
+            </ul>
+        </div>
+        <div>
+            <h4>Recommended</h4>
+            <ul>
+                <li>Windows 11</li>
+                <li>8 GB RAM</li>
+                <li>1 GB disk space</li>
+                <li>SSD for optimal performance</li>
+            </ul>
+        </div>
+        <div>
+            <h4>Optional Dependencies</h4>
+            <ul>
+                <li>FFmpeg (for video conversion)</li>
+                <li>Real-ESRGAN (for AI upscaling)</li>
+                <li>Tesseract (for OCR features)</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER CTA -->
+<div class="pt-footer-cta">
+    <h2>Ready to supercharge your workflow?</h2>
+    <p style="margin-bottom: 30px; opacity: 0.8;">Download PlatypusTools today and experience the ultimate Windows toolkit.</p>
+    <a href="https://github.com/AresX0/PlatypusToolsNew/releases/download/v3.2.7.4/PlatypusToolsSetup.msi" class="pt-download-btn">
+        ⬇️ Download Now — It's Free!
+    </a>
+    <p style="margin-top: 30px; font-size: 0.9em; opacity: 0.6;">
+        Open source on <a href="https://github.com/AresX0/PlatypusToolsNew" style="color: #e9a820;">GitHub</a> • 
+        Version 3.2.7.4 • 
+        Made with ❤️ by Joseph The Platypus
+    </p>
+</div>

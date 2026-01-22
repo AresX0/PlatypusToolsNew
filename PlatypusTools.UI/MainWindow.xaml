@@ -39,6 +39,8 @@
                 <MenuItem Header="Exit" Command="{Binding ExitCommand}" InputGestureText="Alt+F4" />
             </MenuItem>
             <MenuItem Header="View">
+                <MenuItem Header="Fullscreen Mode" Click="ToggleFullScreen_Click" InputGestureText="F11" />
+                <Separator />
                 <MenuItem Header="Toggle Staging Panel" Command="{Binding ToggleStagingInDuplicatesCommand}" IsCheckable="True" IsChecked="{Binding Duplicates.StagingVisible, Mode=TwoWay}" />
                 <MenuItem Header="Show Preview Panel" IsCheckable="True" IsChecked="{Binding Duplicates.PreviewVisible, Mode=TwoWay}" Command="{Binding TogglePreviewPanelCommand}" />
                 <Separator />

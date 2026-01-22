@@ -11,9 +11,19 @@ namespace PlatypusTools.UI
     {
         private bool _glassInitialized = false;
         
+        // Fullscreen mode state
+        private bool _isFullScreen = false;
+        private WindowState _previousWindowState;
+        private WindowStyle _previousWindowStyle;
+        private ResizeMode _previousResizeMode;
+        private Rect _previousBounds;
+        
         public MainWindow()
         {
             InitializeComponent();
+            
+            // Set up keyboard shortcuts for fullscreen
+            this.PreviewKeyDown += MainWindow_PreviewKeyDown;
             
             // Hook up closing for cleanup and exit prompt
             this.Closing += MainWindow_Closing;
@@ -168,6 +178,108 @@ namespace PlatypusTools.UI
             {
                 // Ignore errors during shutdown
             }
+        }
+        
+        /// <summary>
+        /// Handles keyboard shortcuts for fullscreen mode.
+        /// F11 - Toggle fullscreen
+        /// ESC - Exit fullscreen
+        /// </summary>
+        private void MainWindow_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.F11)
+            {
+                ToggleFullScreen();
+                e.Handled = true;
+            }
+            else if (e.Key == System.Windows.Input.Key.Escape && _isFullScreen)
+            {
+                ExitFullScreen();
+                e.Handled = true;
+            }
+        }
+        
+        /// <summary>
+        /// Toggles between fullscreen and windowed mode.
+        /// </summary>
+        public void ToggleFullScreen()
+        {
+            if (_isFullScreen)
+            {
+                ExitFullScreen();
+            }
+            else
+            {
+                EnterFullScreen();
+            }
+        }
+        
+        /// <summary>
+        /// Enters fullscreen mode, hiding title bar and taskbar.
+        /// </summary>
+        public void EnterFullScreen()
+        {
+            if (_isFullScreen) return;
+            
+            // Save current state
+            _previousWindowState = this.WindowState;
+            _previousWindowStyle = this.WindowStyle;
+            _previousResizeMode = this.ResizeMode;
+            _previousBounds = new Rect(this.Left, this.Top, this.Width, this.Height);
+            
+            // Enter fullscreen
+            this.WindowState = WindowState.Normal; // Must be normal first to change WindowStyle
+            this.WindowStyle = WindowStyle.None;
+            this.ResizeMode = ResizeMode.NoResize;
+            this.WindowState = WindowState.Maximized;
+            
+            // Ensure window covers taskbar
+            this.Topmost = true;
+            this.Topmost = false; // Reset topmost but keep fullscreen
+            
+            _isFullScreen = true;
+            
+            // Show brief notification
+            StatusBarViewModel.Instance.StatusMessage = "Fullscreen mode - Press ESC or F11 to exit";
+        }
+        
+        /// <summary>
+        /// Exits fullscreen mode and restores previous window state.
+        /// </summary>
+        public void ExitFullScreen()
+        {
+            if (!_isFullScreen) return;
+            
+            // Restore previous state
+            this.WindowState = WindowState.Normal;
+            this.WindowStyle = _previousWindowStyle;
+            this.ResizeMode = _previousResizeMode;
+            
+            // Restore bounds
+            this.Left = _previousBounds.Left;
+            this.Top = _previousBounds.Top;
+            this.Width = _previousBounds.Width;
+            this.Height = _previousBounds.Height;
+            
+            // Restore window state
+            this.WindowState = _previousWindowState;
+            
+            _isFullScreen = false;
+            
+            StatusBarViewModel.Instance.StatusMessage = "Ready";
+        }
+        
+        /// <summary>
+        /// Gets whether the window is currently in fullscreen mode.
+        /// </summary>
+        public bool IsFullScreen => _isFullScreen;
+        
+        /// <summary>
+        /// Menu click handler for fullscreen toggle.
+        /// </summary>
+        private void ToggleFullScreen_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleFullScreen();
         }
 
         private void RefreshRecentWorkspacesMenu()

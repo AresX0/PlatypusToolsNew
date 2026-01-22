@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Fragment>
     <DirectoryRef Id="INSTALLFOLDER">
@@ -98,11 +98,11 @@
       <Component Id="CMP_Microsoft_Windows_SDK_NET_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Microsoft_Windows_SDK_NET_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Windows.SDK.NET.dll" KeyPath="yes" />
       </Component>
-      <Component Id="CMP_mscordaccore_amd64_amd64_10_0_125_57005_dll" Guid="*" Directory="INSTALLFOLDER">
-        <File Id="FIL_mscordaccore_amd64_amd64_10_0_125_57005_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\mscordaccore_amd64_amd64_10.0.125.57005.dll" KeyPath="yes" />
-      </Component>
       <Component Id="CMP_mscordaccore_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_mscordaccore_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\mscordaccore.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_mscordaccore_amd64_amd64_10_0_125_57005_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_mscordaccore_amd64_amd64_10_0_125_57005_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\mscordaccore_amd64_amd64_10.0.125.57005.dll" KeyPath="yes" />
       </Component>
       <Component Id="CMP_mscordbi_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_mscordbi_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\mscordbi.dll" KeyPath="yes" />
@@ -828,14 +828,14 @@
         <File Id="FIL_ZstdSharp_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ZstdSharp.dll" KeyPath="yes" />
       </Component>
       <Directory Id="DIR_Assets" Name="Assets">
-        <Component Id="CMP_Assets_platypus_swimming_mp4" Guid="*" Directory="DIR_Assets">
-          <File Id="FIL_Assets_platypus_swimming_mp4" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\platypus_swimming.mp4" KeyPath="yes" />
+        <Component Id="CMP_Assets_PlatypusToolsIntro_mp4" Guid="*" Directory="DIR_Assets">
+          <File Id="FIL_Assets_PlatypusToolsIntro_mp4" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\PlatypusToolsIntro.mp4" KeyPath="yes" />
         </Component>
         <Component Id="CMP_Assets_PlatypusTools_Help_html" Guid="*" Directory="DIR_Assets">
           <File Id="FIL_Assets_PlatypusTools_Help_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\PlatypusTools_Help.html" KeyPath="yes" />
         </Component>
-        <Component Id="CMP_Assets_PlatypusToolsIntro_mp4" Guid="*" Directory="DIR_Assets">
-          <File Id="FIL_Assets_PlatypusToolsIntro_mp4" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\PlatypusToolsIntro.mp4" KeyPath="yes" />
+        <Component Id="CMP_Assets_platypus_swimming_mp4" Guid="*" Directory="DIR_Assets">
+          <File Id="FIL_Assets_platypus_swimming_mp4" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\platypus_swimming.mp4" KeyPath="yes" />
         </Component>
       </Directory>
       <Directory Id="DIR_cs" Name="cs">
@@ -1247,6 +1247,9 @@
               <Component Id="CMP_libvlc_win_x64_lua_http_index_html" Guid="*" Directory="DIR_libvlc_win_x64_lua_http">
                 <File Id="FIL_libvlc_win_x64_lua_http_index_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\index.html" KeyPath="yes" />
               </Component>
+              <Component Id="CMP_libvlc_win_x64_lua_http_mobile_html" Guid="*" Directory="DIR_libvlc_win_x64_lua_http">
+                <File Id="FIL_libvlc_win_x64_lua_http_mobile_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\mobile.html" KeyPath="yes" />
+              </Component>
               <Component Id="CMP_libvlc_win_x64_lua_http_mobile_browse_html" Guid="*" Directory="DIR_libvlc_win_x64_lua_http">
                 <File Id="FIL_libvlc_win_x64_lua_http_mobile_browse_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\mobile_browse.html" KeyPath="yes" />
               </Component>
@@ -1256,17 +1259,14 @@
               <Component Id="CMP_libvlc_win_x64_lua_http_mobile_view_html" Guid="*" Directory="DIR_libvlc_win_x64_lua_http">
                 <File Id="FIL_libvlc_win_x64_lua_http_mobile_view_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\mobile_view.html" KeyPath="yes" />
               </Component>
-              <Component Id="CMP_libvlc_win_x64_lua_http_mobile_html" Guid="*" Directory="DIR_libvlc_win_x64_lua_http">
-                <File Id="FIL_libvlc_win_x64_lua_http_mobile_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\mobile.html" KeyPath="yes" />
-              </Component>
               <Component Id="CMP_libvlc_win_x64_lua_http_view_html" Guid="*" Directory="DIR_libvlc_win_x64_lua_http">
                 <File Id="FIL_libvlc_win_x64_lua_http_view_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\view.html" KeyPath="yes" />
               </Component>
-              <Component Id="CMP_libvlc_win_x64_lua_http_vlm_export_html" Guid="*" Directory="DIR_libvlc_win_x64_lua_http">
-                <File Id="FIL_libvlc_win_x64_lua_http_vlm_export_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\vlm_export.html" KeyPath="yes" />
-              </Component>
               <Component Id="CMP_libvlc_win_x64_lua_http_vlm_html" Guid="*" Directory="DIR_libvlc_win_x64_lua_http">
                 <File Id="FIL_libvlc_win_x64_lua_http_vlm_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\vlm.html" KeyPath="yes" />
+              </Component>
+              <Component Id="CMP_libvlc_win_x64_lua_http_vlm_export_html" Guid="*" Directory="DIR_libvlc_win_x64_lua_http">
+                <File Id="FIL_libvlc_win_x64_lua_http_vlm_export_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\vlm_export.html" KeyPath="yes" />
               </Component>
               <Directory Id="DIR_libvlc_win_x64_lua_http_css" Name="css">
                 <Component Id="CMP_libvlc_win_x64_lua_http_css_main_css" Guid="*" Directory="DIR_libvlc_win_x64_lua_http_css">
@@ -1404,14 +1404,14 @@
                 <Component Id="CMP_libvlc_win_x64_lua_http_requests_browse_xml" Guid="*" Directory="DIR_libvlc_win_x64_lua_http_requests">
                   <File Id="FIL_libvlc_win_x64_lua_http_requests_browse_xml" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\requests\browse.xml" KeyPath="yes" />
                 </Component>
-                <Component Id="CMP_libvlc_win_x64_lua_http_requests_3AEA9BF06929" Guid="*" Directory="DIR_libvlc_win_x64_lua_http_requests">
-                  <File Id="FIL_libvlc_win_x64_lua_http_requests_3AEA9BF06929" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\requests\playlist_jstree.xml" KeyPath="yes" />
-                </Component>
                 <Component Id="CMP_libvlc_win_x64_lua_http_requests_playlist_json" Guid="*" Directory="DIR_libvlc_win_x64_lua_http_requests">
                   <File Id="FIL_libvlc_win_x64_lua_http_requests_playlist_json" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\requests\playlist.json" KeyPath="yes" />
                 </Component>
                 <Component Id="CMP_libvlc_win_x64_lua_http_requests_playlist_xml" Guid="*" Directory="DIR_libvlc_win_x64_lua_http_requests">
                   <File Id="FIL_libvlc_win_x64_lua_http_requests_playlist_xml" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\requests\playlist.xml" KeyPath="yes" />
+                </Component>
+                <Component Id="CMP_libvlc_win_x64_lua_http_requests_3AEA9BF06929" Guid="*" Directory="DIR_libvlc_win_x64_lua_http_requests">
+                  <File Id="FIL_libvlc_win_x64_lua_http_requests_3AEA9BF06929" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\requests\playlist_jstree.xml" KeyPath="yes" />
                 </Component>
                 <Component Id="CMP_libvlc_win_x64_lua_http_requests_README_txt" Guid="*" Directory="DIR_libvlc_win_x64_lua_http_requests">
                   <File Id="FIL_libvlc_win_x64_lua_http_requests_README_txt" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\requests\README.txt" KeyPath="yes" />
@@ -1422,11 +1422,11 @@
                 <Component Id="CMP_libvlc_win_x64_lua_http_requests_status_xml" Guid="*" Directory="DIR_libvlc_win_x64_lua_http_requests">
                   <File Id="FIL_libvlc_win_x64_lua_http_requests_status_xml" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\requests\status.xml" KeyPath="yes" />
                 </Component>
-                <Component Id="CMP_libvlc_win_x64_lua_http_requests_vlm_cmd_xml" Guid="*" Directory="DIR_libvlc_win_x64_lua_http_requests">
-                  <File Id="FIL_libvlc_win_x64_lua_http_requests_vlm_cmd_xml" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\requests\vlm_cmd.xml" KeyPath="yes" />
-                </Component>
                 <Component Id="CMP_libvlc_win_x64_lua_http_requests_vlm_xml" Guid="*" Directory="DIR_libvlc_win_x64_lua_http_requests">
                   <File Id="FIL_libvlc_win_x64_lua_http_requests_vlm_xml" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\requests\vlm.xml" KeyPath="yes" />
+                </Component>
+                <Component Id="CMP_libvlc_win_x64_lua_http_requests_vlm_cmd_xml" Guid="*" Directory="DIR_libvlc_win_x64_lua_http_requests">
+                  <File Id="FIL_libvlc_win_x64_lua_http_requests_vlm_cmd_xml" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\lua\http\requests\vlm_cmd.xml" KeyPath="yes" />
                 </Component>
               </Directory>
             </Directory>
@@ -1593,11 +1593,11 @@
               <Component Id="CMP_libvlc_win_x64_plugins_access_libftp_plugin_dll" Guid="*" Directory="DIR_libvlc_win_x64_plugins_access">
                 <File Id="FIL_libvlc_win_x64_plugins_access_libftp_plugin_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\access\libftp_plugin.dll" KeyPath="yes" />
               </Component>
-              <Component Id="CMP_libvlc_win_x64_plugins_access_libhttp_plugin_dll" Guid="*" Directory="DIR_libvlc_win_x64_plugins_access">
-                <File Id="FIL_libvlc_win_x64_plugins_access_libhttp_plugin_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\access\libhttp_plugin.dll" KeyPath="yes" />
-              </Component>
               <Component Id="CMP_libvlc_win_x64_plugins_access_li_2E01068F65DC" Guid="*" Directory="DIR_libvlc_win_x64_plugins_access">
                 <File Id="FIL_libvlc_win_x64_plugins_access_li_2E01068F65DC" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\access\libhttps_plugin.dll" KeyPath="yes" />
+              </Component>
+              <Component Id="CMP_libvlc_win_x64_plugins_access_libhttp_plugin_dll" Guid="*" Directory="DIR_libvlc_win_x64_plugins_access">
+                <File Id="FIL_libvlc_win_x64_plugins_access_libhttp_plugin_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\access\libhttp_plugin.dll" KeyPath="yes" />
               </Component>
               <Component Id="CMP_libvlc_win_x64_plugins_access_li_50F7AED95585" Guid="*" Directory="DIR_libvlc_win_x64_plugins_access">
                 <File Id="FIL_libvlc_win_x64_plugins_access_li_50F7AED95585" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\access\libidummy_plugin.dll" KeyPath="yes" />
@@ -1681,11 +1681,11 @@
               </Component>
             </Directory>
             <Directory Id="DIR_libvlc_win_x64_plugins_audio_filter" Name="audio_filter">
-              <Component Id="CMP_libvlc_win_x64_plugins_audio_fil_65181FDE2691" Guid="*" Directory="DIR_libvlc_win_x64_plugins_audio_filter">
-                <File Id="FIL_libvlc_win_x64_plugins_audio_fil_65181FDE2691" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\audio_filter\libaudio_format_plugin.dll" KeyPath="yes" />
-              </Component>
               <Component Id="CMP_libvlc_win_x64_plugins_audio_fil_C59FA8A0B169" Guid="*" Directory="DIR_libvlc_win_x64_plugins_audio_filter">
                 <File Id="FIL_libvlc_win_x64_plugins_audio_fil_C59FA8A0B169" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\audio_filter\libaudiobargraph_a_plugin.dll" KeyPath="yes" />
+              </Component>
+              <Component Id="CMP_libvlc_win_x64_plugins_audio_fil_65181FDE2691" Guid="*" Directory="DIR_libvlc_win_x64_plugins_audio_filter">
+                <File Id="FIL_libvlc_win_x64_plugins_audio_fil_65181FDE2691" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\audio_filter\libaudio_format_plugin.dll" KeyPath="yes" />
               </Component>
               <Component Id="CMP_libvlc_win_x64_plugins_audio_fil_DAB81BFA2362" Guid="*" Directory="DIR_libvlc_win_x64_plugins_audio_filter">
                 <File Id="FIL_libvlc_win_x64_plugins_audio_fil_DAB81BFA2362" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\audio_filter\libchorus_flanger_plugin.dll" KeyPath="yes" />
@@ -1963,6 +1963,9 @@
               <Component Id="CMP_libvlc_win_x64_plugins_demux_libcaf_plugin_dll" Guid="*" Directory="DIR_libvlc_win_x64_plugins_demux">
                 <File Id="FIL_libvlc_win_x64_plugins_demux_libcaf_plugin_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\demux\libcaf_plugin.dll" KeyPath="yes" />
               </Component>
+              <Component Id="CMP_libvlc_win_x64_plugins_demux_lib_DF1EC0C32DAE" Guid="*" Directory="DIR_libvlc_win_x64_plugins_demux">
+                <File Id="FIL_libvlc_win_x64_plugins_demux_lib_DF1EC0C32DAE" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\demux\libdemuxdump_plugin.dll" KeyPath="yes" />
+              </Component>
               <Component Id="CMP_libvlc_win_x64_plugins_demux_lib_627B3CF7FCE6" Guid="*" Directory="DIR_libvlc_win_x64_plugins_demux">
                 <File Id="FIL_libvlc_win_x64_plugins_demux_lib_627B3CF7FCE6" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\demux\libdemux_cdg_plugin.dll" KeyPath="yes" />
               </Component>
@@ -1971,9 +1974,6 @@
               </Component>
               <Component Id="CMP_libvlc_win_x64_plugins_demux_lib_FF3968BF6C55" Guid="*" Directory="DIR_libvlc_win_x64_plugins_demux">
                 <File Id="FIL_libvlc_win_x64_plugins_demux_lib_FF3968BF6C55" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\demux\libdemux_stl_plugin.dll" KeyPath="yes" />
-              </Component>
-              <Component Id="CMP_libvlc_win_x64_plugins_demux_lib_DF1EC0C32DAE" Guid="*" Directory="DIR_libvlc_win_x64_plugins_demux">
-                <File Id="FIL_libvlc_win_x64_plugins_demux_lib_DF1EC0C32DAE" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\demux\libdemuxdump_plugin.dll" KeyPath="yes" />
               </Component>
               <Component Id="CMP_libvlc_win_x64_plugins_demux_lib_60BDAB6006FB" Guid="*" Directory="DIR_libvlc_win_x64_plugins_demux">
                 <File Id="FIL_libvlc_win_x64_plugins_demux_lib_60BDAB6006FB" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\demux\libdiracsys_plugin.dll" KeyPath="yes" />
@@ -2398,11 +2398,11 @@
               <Component Id="CMP_libvlc_win_x64_plugins_video_fil_3E4974063A2F" Guid="*" Directory="DIR_libvlc_win_x64_plugins_video_filter">
                 <File Id="FIL_libvlc_win_x64_plugins_video_fil_3E4974063A2F" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\video_filter\libball_plugin.dll" KeyPath="yes" />
               </Component>
-              <Component Id="CMP_libvlc_win_x64_plugins_video_fil_AB0207199E80" Guid="*" Directory="DIR_libvlc_win_x64_plugins_video_filter">
-                <File Id="FIL_libvlc_win_x64_plugins_video_fil_AB0207199E80" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\video_filter\libblend_plugin.dll" KeyPath="yes" />
-              </Component>
               <Component Id="CMP_libvlc_win_x64_plugins_video_fil_834CAF3CDF3E" Guid="*" Directory="DIR_libvlc_win_x64_plugins_video_filter">
                 <File Id="FIL_libvlc_win_x64_plugins_video_fil_834CAF3CDF3E" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\video_filter\libblendbench_plugin.dll" KeyPath="yes" />
+              </Component>
+              <Component Id="CMP_libvlc_win_x64_plugins_video_fil_AB0207199E80" Guid="*" Directory="DIR_libvlc_win_x64_plugins_video_filter">
+                <File Id="FIL_libvlc_win_x64_plugins_video_fil_AB0207199E80" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\video_filter\libblend_plugin.dll" KeyPath="yes" />
               </Component>
               <Component Id="CMP_libvlc_win_x64_plugins_video_fil_5860774A9256" Guid="*" Directory="DIR_libvlc_win_x64_plugins_video_filter">
                 <File Id="FIL_libvlc_win_x64_plugins_video_fil_5860774A9256" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\video_filter\libbluescreen_plugin.dll" KeyPath="yes" />
@@ -2520,14 +2520,14 @@
               <Component Id="CMP_libvlc_win_x64_plugins_video_out_153A72C647A0" Guid="*" Directory="DIR_libvlc_win_x64_plugins_video_output">
                 <File Id="FIL_libvlc_win_x64_plugins_video_out_153A72C647A0" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\video_output\libflaschen_plugin.dll" KeyPath="yes" />
               </Component>
-              <Component Id="CMP_libvlc_win_x64_plugins_video_out_B3EFAAC803D6" Guid="*" Directory="DIR_libvlc_win_x64_plugins_video_output">
-                <File Id="FIL_libvlc_win_x64_plugins_video_out_B3EFAAC803D6" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\video_output\libgl_plugin.dll" KeyPath="yes" />
-              </Component>
               <Component Id="CMP_libvlc_win_x64_plugins_video_out_0BD9441A3F93" Guid="*" Directory="DIR_libvlc_win_x64_plugins_video_output">
                 <File Id="FIL_libvlc_win_x64_plugins_video_out_0BD9441A3F93" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\video_output\libglinterop_dxva2_plugin.dll" KeyPath="yes" />
               </Component>
               <Component Id="CMP_libvlc_win_x64_plugins_video_out_35D0B132BB6F" Guid="*" Directory="DIR_libvlc_win_x64_plugins_video_output">
                 <File Id="FIL_libvlc_win_x64_plugins_video_out_35D0B132BB6F" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\video_output\libglwin32_plugin.dll" KeyPath="yes" />
+              </Component>
+              <Component Id="CMP_libvlc_win_x64_plugins_video_out_B3EFAAC803D6" Guid="*" Directory="DIR_libvlc_win_x64_plugins_video_output">
+                <File Id="FIL_libvlc_win_x64_plugins_video_out_B3EFAAC803D6" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\video_output\libgl_plugin.dll" KeyPath="yes" />
               </Component>
               <Component Id="CMP_libvlc_win_x64_plugins_video_out_E6145B97FDB4" Guid="*" Directory="DIR_libvlc_win_x64_plugins_video_output">
                 <File Id="FIL_libvlc_win_x64_plugins_video_out_E6145B97FDB4" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x64\plugins\video_output\libvdummy_plugin.dll" KeyPath="yes" />
@@ -2609,6 +2609,9 @@
               <Component Id="CMP_libvlc_win_x86_lua_http_index_html" Guid="*" Directory="DIR_libvlc_win_x86_lua_http">
                 <File Id="FIL_libvlc_win_x86_lua_http_index_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\index.html" KeyPath="yes" />
               </Component>
+              <Component Id="CMP_libvlc_win_x86_lua_http_mobile_html" Guid="*" Directory="DIR_libvlc_win_x86_lua_http">
+                <File Id="FIL_libvlc_win_x86_lua_http_mobile_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\mobile.html" KeyPath="yes" />
+              </Component>
               <Component Id="CMP_libvlc_win_x86_lua_http_mobile_browse_html" Guid="*" Directory="DIR_libvlc_win_x86_lua_http">
                 <File Id="FIL_libvlc_win_x86_lua_http_mobile_browse_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\mobile_browse.html" KeyPath="yes" />
               </Component>
@@ -2618,17 +2621,14 @@
               <Component Id="CMP_libvlc_win_x86_lua_http_mobile_view_html" Guid="*" Directory="DIR_libvlc_win_x86_lua_http">
                 <File Id="FIL_libvlc_win_x86_lua_http_mobile_view_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\mobile_view.html" KeyPath="yes" />
               </Component>
-              <Component Id="CMP_libvlc_win_x86_lua_http_mobile_html" Guid="*" Directory="DIR_libvlc_win_x86_lua_http">
-                <File Id="FIL_libvlc_win_x86_lua_http_mobile_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\mobile.html" KeyPath="yes" />
-              </Component>
               <Component Id="CMP_libvlc_win_x86_lua_http_view_html" Guid="*" Directory="DIR_libvlc_win_x86_lua_http">
                 <File Id="FIL_libvlc_win_x86_lua_http_view_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\view.html" KeyPath="yes" />
               </Component>
-              <Component Id="CMP_libvlc_win_x86_lua_http_vlm_export_html" Guid="*" Directory="DIR_libvlc_win_x86_lua_http">
-                <File Id="FIL_libvlc_win_x86_lua_http_vlm_export_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\vlm_export.html" KeyPath="yes" />
-              </Component>
               <Component Id="CMP_libvlc_win_x86_lua_http_vlm_html" Guid="*" Directory="DIR_libvlc_win_x86_lua_http">
                 <File Id="FIL_libvlc_win_x86_lua_http_vlm_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\vlm.html" KeyPath="yes" />
+              </Component>
+              <Component Id="CMP_libvlc_win_x86_lua_http_vlm_export_html" Guid="*" Directory="DIR_libvlc_win_x86_lua_http">
+                <File Id="FIL_libvlc_win_x86_lua_http_vlm_export_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\vlm_export.html" KeyPath="yes" />
               </Component>
               <Directory Id="DIR_libvlc_win_x86_lua_http_css" Name="css">
                 <Component Id="CMP_libvlc_win_x86_lua_http_css_main_css" Guid="*" Directory="DIR_libvlc_win_x86_lua_http_css">
@@ -2766,14 +2766,14 @@
                 <Component Id="CMP_libvlc_win_x86_lua_http_requests_browse_xml" Guid="*" Directory="DIR_libvlc_win_x86_lua_http_requests">
                   <File Id="FIL_libvlc_win_x86_lua_http_requests_browse_xml" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\requests\browse.xml" KeyPath="yes" />
                 </Component>
-                <Component Id="CMP_libvlc_win_x86_lua_http_requests_8D3666A8E860" Guid="*" Directory="DIR_libvlc_win_x86_lua_http_requests">
-                  <File Id="FIL_libvlc_win_x86_lua_http_requests_8D3666A8E860" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\requests\playlist_jstree.xml" KeyPath="yes" />
-                </Component>
                 <Component Id="CMP_libvlc_win_x86_lua_http_requests_playlist_json" Guid="*" Directory="DIR_libvlc_win_x86_lua_http_requests">
                   <File Id="FIL_libvlc_win_x86_lua_http_requests_playlist_json" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\requests\playlist.json" KeyPath="yes" />
                 </Component>
                 <Component Id="CMP_libvlc_win_x86_lua_http_requests_playlist_xml" Guid="*" Directory="DIR_libvlc_win_x86_lua_http_requests">
                   <File Id="FIL_libvlc_win_x86_lua_http_requests_playlist_xml" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\requests\playlist.xml" KeyPath="yes" />
+                </Component>
+                <Component Id="CMP_libvlc_win_x86_lua_http_requests_8D3666A8E860" Guid="*" Directory="DIR_libvlc_win_x86_lua_http_requests">
+                  <File Id="FIL_libvlc_win_x86_lua_http_requests_8D3666A8E860" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\requests\playlist_jstree.xml" KeyPath="yes" />
                 </Component>
                 <Component Id="CMP_libvlc_win_x86_lua_http_requests_README_txt" Guid="*" Directory="DIR_libvlc_win_x86_lua_http_requests">
                   <File Id="FIL_libvlc_win_x86_lua_http_requests_README_txt" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\requests\README.txt" KeyPath="yes" />
@@ -2784,11 +2784,11 @@
                 <Component Id="CMP_libvlc_win_x86_lua_http_requests_status_xml" Guid="*" Directory="DIR_libvlc_win_x86_lua_http_requests">
                   <File Id="FIL_libvlc_win_x86_lua_http_requests_status_xml" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\requests\status.xml" KeyPath="yes" />
                 </Component>
-                <Component Id="CMP_libvlc_win_x86_lua_http_requests_vlm_cmd_xml" Guid="*" Directory="DIR_libvlc_win_x86_lua_http_requests">
-                  <File Id="FIL_libvlc_win_x86_lua_http_requests_vlm_cmd_xml" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\requests\vlm_cmd.xml" KeyPath="yes" />
-                </Component>
                 <Component Id="CMP_libvlc_win_x86_lua_http_requests_vlm_xml" Guid="*" Directory="DIR_libvlc_win_x86_lua_http_requests">
                   <File Id="FIL_libvlc_win_x86_lua_http_requests_vlm_xml" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\requests\vlm.xml" KeyPath="yes" />
+                </Component>
+                <Component Id="CMP_libvlc_win_x86_lua_http_requests_vlm_cmd_xml" Guid="*" Directory="DIR_libvlc_win_x86_lua_http_requests">
+                  <File Id="FIL_libvlc_win_x86_lua_http_requests_vlm_cmd_xml" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\lua\http\requests\vlm_cmd.xml" KeyPath="yes" />
                 </Component>
               </Directory>
             </Directory>
@@ -2955,11 +2955,11 @@
               <Component Id="CMP_libvlc_win_x86_plugins_access_libftp_plugin_dll" Guid="*" Directory="DIR_libvlc_win_x86_plugins_access">
                 <File Id="FIL_libvlc_win_x86_plugins_access_libftp_plugin_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\access\libftp_plugin.dll" KeyPath="yes" />
               </Component>
-              <Component Id="CMP_libvlc_win_x86_plugins_access_libhttp_plugin_dll" Guid="*" Directory="DIR_libvlc_win_x86_plugins_access">
-                <File Id="FIL_libvlc_win_x86_plugins_access_libhttp_plugin_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\access\libhttp_plugin.dll" KeyPath="yes" />
-              </Component>
               <Component Id="CMP_libvlc_win_x86_plugins_access_li_DA105A8A505C" Guid="*" Directory="DIR_libvlc_win_x86_plugins_access">
                 <File Id="FIL_libvlc_win_x86_plugins_access_li_DA105A8A505C" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\access\libhttps_plugin.dll" KeyPath="yes" />
+              </Component>
+              <Component Id="CMP_libvlc_win_x86_plugins_access_libhttp_plugin_dll" Guid="*" Directory="DIR_libvlc_win_x86_plugins_access">
+                <File Id="FIL_libvlc_win_x86_plugins_access_libhttp_plugin_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\access\libhttp_plugin.dll" KeyPath="yes" />
               </Component>
               <Component Id="CMP_libvlc_win_x86_plugins_access_li_0B8D44B3D3FB" Guid="*" Directory="DIR_libvlc_win_x86_plugins_access">
                 <File Id="FIL_libvlc_win_x86_plugins_access_li_0B8D44B3D3FB" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\access\libidummy_plugin.dll" KeyPath="yes" />
@@ -3043,11 +3043,11 @@
               </Component>
             </Directory>
             <Directory Id="DIR_libvlc_win_x86_plugins_audio_filter" Name="audio_filter">
-              <Component Id="CMP_libvlc_win_x86_plugins_audio_fil_42D425AD9A8D" Guid="*" Directory="DIR_libvlc_win_x86_plugins_audio_filter">
-                <File Id="FIL_libvlc_win_x86_plugins_audio_fil_42D425AD9A8D" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\audio_filter\libaudio_format_plugin.dll" KeyPath="yes" />
-              </Component>
               <Component Id="CMP_libvlc_win_x86_plugins_audio_fil_6064C4D8729B" Guid="*" Directory="DIR_libvlc_win_x86_plugins_audio_filter">
                 <File Id="FIL_libvlc_win_x86_plugins_audio_fil_6064C4D8729B" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\audio_filter\libaudiobargraph_a_plugin.dll" KeyPath="yes" />
+              </Component>
+              <Component Id="CMP_libvlc_win_x86_plugins_audio_fil_42D425AD9A8D" Guid="*" Directory="DIR_libvlc_win_x86_plugins_audio_filter">
+                <File Id="FIL_libvlc_win_x86_plugins_audio_fil_42D425AD9A8D" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\audio_filter\libaudio_format_plugin.dll" KeyPath="yes" />
               </Component>
               <Component Id="CMP_libvlc_win_x86_plugins_audio_fil_E997DC7C870D" Guid="*" Directory="DIR_libvlc_win_x86_plugins_audio_filter">
                 <File Id="FIL_libvlc_win_x86_plugins_audio_fil_E997DC7C870D" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\audio_filter\libchorus_flanger_plugin.dll" KeyPath="yes" />
@@ -3325,6 +3325,9 @@
               <Component Id="CMP_libvlc_win_x86_plugins_demux_libcaf_plugin_dll" Guid="*" Directory="DIR_libvlc_win_x86_plugins_demux">
                 <File Id="FIL_libvlc_win_x86_plugins_demux_libcaf_plugin_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\demux\libcaf_plugin.dll" KeyPath="yes" />
               </Component>
+              <Component Id="CMP_libvlc_win_x86_plugins_demux_lib_AFC003BC3777" Guid="*" Directory="DIR_libvlc_win_x86_plugins_demux">
+                <File Id="FIL_libvlc_win_x86_plugins_demux_lib_AFC003BC3777" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\demux\libdemuxdump_plugin.dll" KeyPath="yes" />
+              </Component>
               <Component Id="CMP_libvlc_win_x86_plugins_demux_lib_D0C05D9436AA" Guid="*" Directory="DIR_libvlc_win_x86_plugins_demux">
                 <File Id="FIL_libvlc_win_x86_plugins_demux_lib_D0C05D9436AA" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\demux\libdemux_cdg_plugin.dll" KeyPath="yes" />
               </Component>
@@ -3333,9 +3336,6 @@
               </Component>
               <Component Id="CMP_libvlc_win_x86_plugins_demux_lib_BCC236C52292" Guid="*" Directory="DIR_libvlc_win_x86_plugins_demux">
                 <File Id="FIL_libvlc_win_x86_plugins_demux_lib_BCC236C52292" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\demux\libdemux_stl_plugin.dll" KeyPath="yes" />
-              </Component>
-              <Component Id="CMP_libvlc_win_x86_plugins_demux_lib_AFC003BC3777" Guid="*" Directory="DIR_libvlc_win_x86_plugins_demux">
-                <File Id="FIL_libvlc_win_x86_plugins_demux_lib_AFC003BC3777" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\demux\libdemuxdump_plugin.dll" KeyPath="yes" />
               </Component>
               <Component Id="CMP_libvlc_win_x86_plugins_demux_lib_1DE0AD8126B3" Guid="*" Directory="DIR_libvlc_win_x86_plugins_demux">
                 <File Id="FIL_libvlc_win_x86_plugins_demux_lib_1DE0AD8126B3" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\demux\libdiracsys_plugin.dll" KeyPath="yes" />
@@ -3760,11 +3760,11 @@
               <Component Id="CMP_libvlc_win_x86_plugins_video_fil_E0386BF18C57" Guid="*" Directory="DIR_libvlc_win_x86_plugins_video_filter">
                 <File Id="FIL_libvlc_win_x86_plugins_video_fil_E0386BF18C57" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\video_filter\libball_plugin.dll" KeyPath="yes" />
               </Component>
-              <Component Id="CMP_libvlc_win_x86_plugins_video_fil_1B406D74AE21" Guid="*" Directory="DIR_libvlc_win_x86_plugins_video_filter">
-                <File Id="FIL_libvlc_win_x86_plugins_video_fil_1B406D74AE21" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\video_filter\libblend_plugin.dll" KeyPath="yes" />
-              </Component>
               <Component Id="CMP_libvlc_win_x86_plugins_video_fil_4BC407A96003" Guid="*" Directory="DIR_libvlc_win_x86_plugins_video_filter">
                 <File Id="FIL_libvlc_win_x86_plugins_video_fil_4BC407A96003" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\video_filter\libblendbench_plugin.dll" KeyPath="yes" />
+              </Component>
+              <Component Id="CMP_libvlc_win_x86_plugins_video_fil_1B406D74AE21" Guid="*" Directory="DIR_libvlc_win_x86_plugins_video_filter">
+                <File Id="FIL_libvlc_win_x86_plugins_video_fil_1B406D74AE21" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\video_filter\libblend_plugin.dll" KeyPath="yes" />
               </Component>
               <Component Id="CMP_libvlc_win_x86_plugins_video_fil_D9E476FED0F0" Guid="*" Directory="DIR_libvlc_win_x86_plugins_video_filter">
                 <File Id="FIL_libvlc_win_x86_plugins_video_fil_D9E476FED0F0" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\video_filter\libbluescreen_plugin.dll" KeyPath="yes" />
@@ -3882,14 +3882,14 @@
               <Component Id="CMP_libvlc_win_x86_plugins_video_out_A788A0E06F2C" Guid="*" Directory="DIR_libvlc_win_x86_plugins_video_output">
                 <File Id="FIL_libvlc_win_x86_plugins_video_out_A788A0E06F2C" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\video_output\libflaschen_plugin.dll" KeyPath="yes" />
               </Component>
-              <Component Id="CMP_libvlc_win_x86_plugins_video_out_5341A272B138" Guid="*" Directory="DIR_libvlc_win_x86_plugins_video_output">
-                <File Id="FIL_libvlc_win_x86_plugins_video_out_5341A272B138" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\video_output\libgl_plugin.dll" KeyPath="yes" />
-              </Component>
               <Component Id="CMP_libvlc_win_x86_plugins_video_out_9A3093690EAA" Guid="*" Directory="DIR_libvlc_win_x86_plugins_video_output">
                 <File Id="FIL_libvlc_win_x86_plugins_video_out_9A3093690EAA" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\video_output\libglinterop_dxva2_plugin.dll" KeyPath="yes" />
               </Component>
               <Component Id="CMP_libvlc_win_x86_plugins_video_out_8602DC62EDEC" Guid="*" Directory="DIR_libvlc_win_x86_plugins_video_output">
                 <File Id="FIL_libvlc_win_x86_plugins_video_out_8602DC62EDEC" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\video_output\libglwin32_plugin.dll" KeyPath="yes" />
+              </Component>
+              <Component Id="CMP_libvlc_win_x86_plugins_video_out_5341A272B138" Guid="*" Directory="DIR_libvlc_win_x86_plugins_video_output">
+                <File Id="FIL_libvlc_win_x86_plugins_video_out_5341A272B138" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\video_output\libgl_plugin.dll" KeyPath="yes" />
               </Component>
               <Component Id="CMP_libvlc_win_x86_plugins_video_out_E94EEE3263BF" Guid="*" Directory="DIR_libvlc_win_x86_plugins_video_output">
                 <File Id="FIL_libvlc_win_x86_plugins_video_out_E94EEE3263BF" Source="$(var.PlatypusTools.UI.TargetDir)publish\libvlc\win-x86\plugins\video_output\libvdummy_plugin.dll" KeyPath="yes" />
@@ -4315,8 +4315,8 @@
       <ComponentRef Id="CMP_Microsoft_Win32_Registry_dll" />
       <ComponentRef Id="CMP_Microsoft_Win32_SystemEvents_dll" />
       <ComponentRef Id="CMP_Microsoft_Windows_SDK_NET_dll" />
-      <ComponentRef Id="CMP_mscordaccore_amd64_amd64_10_0_125_57005_dll" />
       <ComponentRef Id="CMP_mscordaccore_dll" />
+      <ComponentRef Id="CMP_mscordaccore_amd64_amd64_10_0_125_57005_dll" />
       <ComponentRef Id="CMP_mscordbi_dll" />
       <ComponentRef Id="CMP_mscorlib_dll" />
       <ComponentRef Id="CMP_mscorrc_dll" />
@@ -4558,9 +4558,9 @@
       <ComponentRef Id="CMP_wpfgfx_cor3_dll" />
       <ComponentRef Id="CMP_XmpCore_dll" />
       <ComponentRef Id="CMP_ZstdSharp_dll" />
-      <ComponentRef Id="CMP_Assets_platypus_swimming_mp4" />
-      <ComponentRef Id="CMP_Assets_PlatypusTools_Help_html" />
       <ComponentRef Id="CMP_Assets_PlatypusToolsIntro_mp4" />
+      <ComponentRef Id="CMP_Assets_PlatypusTools_Help_html" />
+      <ComponentRef Id="CMP_Assets_platypus_swimming_mp4" />
       <ComponentRef Id="CMP_cs_Microsoft_VisualBasic_Forms_resources_dll" />
       <ComponentRef Id="CMP_cs_PresentationCore_resources_dll" />
       <ComponentRef Id="CMP_cs_PresentationFramework_resources_dll" />
@@ -4690,13 +4690,13 @@
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_custom_lua" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_favicon_ico" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_index_html" />
+      <ComponentRef Id="CMP_libvlc_win_x64_lua_http_mobile_html" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_mobile_browse_html" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_mobile_equalizer_html" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_mobile_view_html" />
-      <ComponentRef Id="CMP_libvlc_win_x64_lua_http_mobile_html" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_view_html" />
-      <ComponentRef Id="CMP_libvlc_win_x64_lua_http_vlm_export_html" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_vlm_html" />
+      <ComponentRef Id="CMP_libvlc_win_x64_lua_http_vlm_export_html" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_css_main_css" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_css_mobile_css" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_css_ui_l_45CAA3B6F569" />
@@ -4738,14 +4738,14 @@
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_js_ui_js" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_requests_browse_json" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_requests_browse_xml" />
-      <ComponentRef Id="CMP_libvlc_win_x64_lua_http_requests_3AEA9BF06929" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_requests_playlist_json" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_requests_playlist_xml" />
+      <ComponentRef Id="CMP_libvlc_win_x64_lua_http_requests_3AEA9BF06929" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_requests_README_txt" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_requests_status_json" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_requests_status_xml" />
-      <ComponentRef Id="CMP_libvlc_win_x64_lua_http_requests_vlm_cmd_xml" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_http_requests_vlm_xml" />
+      <ComponentRef Id="CMP_libvlc_win_x64_lua_http_requests_vlm_cmd_xml" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_intf_cli_luac" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_intf_dummy_luac" />
       <ComponentRef Id="CMP_libvlc_win_x64_lua_intf_dumpmeta_luac" />
@@ -4794,8 +4794,8 @@
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_access_libdtv_plugin_dll" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_access_li_6C0975E4DFFD" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_access_libftp_plugin_dll" />
-      <ComponentRef Id="CMP_libvlc_win_x64_plugins_access_libhttp_plugin_dll" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_access_li_2E01068F65DC" />
+      <ComponentRef Id="CMP_libvlc_win_x64_plugins_access_libhttp_plugin_dll" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_access_li_50F7AED95585" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_access_libimem_plugin_dll" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_access_li_39FFB8B07C7C" />
@@ -4822,8 +4822,8 @@
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_access_ou_3776C7951BD7" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_access_ou_2280E2EBBAB0" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_access_ou_C75C8ED4CA30" />
-      <ComponentRef Id="CMP_libvlc_win_x64_plugins_audio_fil_65181FDE2691" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_audio_fil_C59FA8A0B169" />
+      <ComponentRef Id="CMP_libvlc_win_x64_plugins_audio_fil_65181FDE2691" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_audio_fil_DAB81BFA2362" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_audio_fil_38D26DC4C906" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_audio_fil_189C2BF9B447" />
@@ -4912,10 +4912,10 @@
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_demux_libau_plugin_dll" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_demux_libavi_plugin_dll" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_demux_libcaf_plugin_dll" />
+      <ComponentRef Id="CMP_libvlc_win_x64_plugins_demux_lib_DF1EC0C32DAE" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_demux_lib_627B3CF7FCE6" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_demux_lib_8D0A38F89749" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_demux_lib_FF3968BF6C55" />
-      <ComponentRef Id="CMP_libvlc_win_x64_plugins_demux_lib_DF1EC0C32DAE" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_demux_lib_60BDAB6006FB" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_demux_lib_D0BB834C3978" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_demux_libes_plugin_dll" />
@@ -5047,8 +5047,8 @@
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_fil_9BC84BA12375" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_fil_1CC983CF6E6B" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_fil_3E4974063A2F" />
-      <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_fil_AB0207199E80" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_fil_834CAF3CDF3E" />
+      <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_fil_AB0207199E80" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_fil_5860774A9256" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_fil_30EAE38E4845" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_fil_B1D5C6F54A20" />
@@ -5087,9 +5087,9 @@
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_out_DCAE4C8A08E2" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_out_3EDA904EDF7A" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_out_153A72C647A0" />
-      <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_out_B3EFAAC803D6" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_out_0BD9441A3F93" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_out_35D0B132BB6F" />
+      <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_out_B3EFAAC803D6" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_out_E6145B97FDB4" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_out_9E21F1FF67DE" />
       <ComponentRef Id="CMP_libvlc_win_x64_plugins_video_out_A577900A15A0" />
@@ -5112,13 +5112,13 @@
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_custom_lua" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_favicon_ico" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_index_html" />
+      <ComponentRef Id="CMP_libvlc_win_x86_lua_http_mobile_html" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_mobile_browse_html" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_mobile_equalizer_html" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_mobile_view_html" />
-      <ComponentRef Id="CMP_libvlc_win_x86_lua_http_mobile_html" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_view_html" />
-      <ComponentRef Id="CMP_libvlc_win_x86_lua_http_vlm_export_html" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_vlm_html" />
+      <ComponentRef Id="CMP_libvlc_win_x86_lua_http_vlm_export_html" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_css_main_css" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_css_mobile_css" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_css_ui_l_0B9DDFBB7C54" />
@@ -5160,14 +5160,14 @@
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_js_ui_js" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_requests_browse_json" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_requests_browse_xml" />
-      <ComponentRef Id="CMP_libvlc_win_x86_lua_http_requests_8D3666A8E860" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_requests_playlist_json" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_requests_playlist_xml" />
+      <ComponentRef Id="CMP_libvlc_win_x86_lua_http_requests_8D3666A8E860" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_requests_README_txt" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_requests_status_json" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_requests_status_xml" />
-      <ComponentRef Id="CMP_libvlc_win_x86_lua_http_requests_vlm_cmd_xml" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_http_requests_vlm_xml" />
+      <ComponentRef Id="CMP_libvlc_win_x86_lua_http_requests_vlm_cmd_xml" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_intf_cli_luac" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_intf_dummy_luac" />
       <ComponentRef Id="CMP_libvlc_win_x86_lua_intf_dumpmeta_luac" />
@@ -5216,8 +5216,8 @@
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_access_libdtv_plugin_dll" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_access_li_04A7B4E3A3F0" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_access_libftp_plugin_dll" />
-      <ComponentRef Id="CMP_libvlc_win_x86_plugins_access_libhttp_plugin_dll" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_access_li_DA105A8A505C" />
+      <ComponentRef Id="CMP_libvlc_win_x86_plugins_access_libhttp_plugin_dll" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_access_li_0B8D44B3D3FB" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_access_libimem_plugin_dll" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_access_li_1B464A71B675" />
@@ -5244,8 +5244,8 @@
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_access_ou_6EFF96F6BF0F" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_access_ou_CD8AA0D66975" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_access_ou_C115E962D4D2" />
-      <ComponentRef Id="CMP_libvlc_win_x86_plugins_audio_fil_42D425AD9A8D" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_audio_fil_6064C4D8729B" />
+      <ComponentRef Id="CMP_libvlc_win_x86_plugins_audio_fil_42D425AD9A8D" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_audio_fil_E997DC7C870D" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_audio_fil_5AFBCED5D0E7" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_audio_fil_6FB7180C5881" />
@@ -5334,10 +5334,10 @@
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_demux_libau_plugin_dll" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_demux_libavi_plugin_dll" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_demux_libcaf_plugin_dll" />
+      <ComponentRef Id="CMP_libvlc_win_x86_plugins_demux_lib_AFC003BC3777" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_demux_lib_D0C05D9436AA" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_demux_lib_11FD3402C541" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_demux_lib_BCC236C52292" />
-      <ComponentRef Id="CMP_libvlc_win_x86_plugins_demux_lib_AFC003BC3777" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_demux_lib_1DE0AD8126B3" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_demux_lib_DE8910B7803F" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_demux_libes_plugin_dll" />
@@ -5469,8 +5469,8 @@
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_fil_C245C4F02DA5" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_fil_4B0156C1F7B1" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_fil_E0386BF18C57" />
-      <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_fil_1B406D74AE21" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_fil_4BC407A96003" />
+      <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_fil_1B406D74AE21" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_fil_D9E476FED0F0" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_fil_E9EFFE35EB5A" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_fil_AB3DD912BA0E" />
@@ -5509,9 +5509,9 @@
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_out_BCEE8681EE3C" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_out_09F5C2C5EAA2" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_out_A788A0E06F2C" />
-      <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_out_5341A272B138" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_out_9A3093690EAA" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_out_8602DC62EDEC" />
+      <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_out_5341A272B138" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_out_E94EEE3263BF" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_out_9F660D151FB2" />
       <ComponentRef Id="CMP_libvlc_win_x86_plugins_video_out_D0CDA57B6AF7" />
