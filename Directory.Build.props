@@ -4,6 +4,8 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
     <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
+    <!-- Ignore missing prune package data for .NET 10 -->
+    <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
     <!-- Optional: set analysis suppressions later or per-project -->
   </PropertyGroup>
   <ItemGroup>
