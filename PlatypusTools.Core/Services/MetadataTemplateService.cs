@@ -563,6 +563,63 @@ namespace PlatypusTools.Core.Services
             await File.WriteAllTextAsync(filePath, json);
         }
         
+        /// <summary>
+        /// Reads all metadata from a file using exiftool.
+        /// </summary>
+        public async Task<Dictionary<string, string>> ReadMetadataAsync(string filePath)
+        {
+            var metadata = new Dictionary<string, string>();
+            
+            var exiftool = _exiftoolPath ?? "exiftool";
+            var psi = new ProcessStartInfo
+            {
+                FileName = exiftool,
+                Arguments = $"-json \"{filePath}\"",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            
+            try
+            {
+                using var process = Process.Start(psi);
+                if (process != null)
+                {
+                    var output = await process.StandardOutput.ReadToEndAsync();
+                    await process.WaitForExitAsync();
+                    
+                    if (process.ExitCode == 0 && !string.IsNullOrEmpty(output))
+                    {
+                        // Parse JSON output - exiftool returns an array
+                        using var doc = JsonDocument.Parse(output);
+                        if (doc.RootElement.ValueKind == JsonValueKind.Array && doc.RootElement.GetArrayLength() > 0)
+                        {
+                            var obj = doc.RootElement[0];
+                            foreach (var prop in obj.EnumerateObject())
+                            {
+                                // Skip internal exiftool fields
+                                if (prop.Name.StartsWith("ExifTool") || prop.Name == "SourceFile")
+                                    continue;
+                                    
+                                var value = prop.Value.ValueKind == JsonValueKind.String 
+                                    ? prop.Value.GetString() 
+                                    : prop.Value.ToString();
+                                    
+                                metadata[prop.Name] = value ?? string.Empty;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to read metadata: {ex.Message}");
+            }
+            
+            return metadata;
+        }
+        
         private static string SanitizeFileName(string name)
         {
             var invalid = Path.GetInvalidFileNameChars();

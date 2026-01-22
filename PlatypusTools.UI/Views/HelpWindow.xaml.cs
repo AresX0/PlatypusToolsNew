@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Windows;
 using Microsoft.Web.WebView2.Core;
+using PlatypusTools.UI.Services;
 
 namespace PlatypusTools.UI.Views
 {
@@ -17,14 +18,8 @@ namespace PlatypusTools.UI.Views
         {
             try
             {
-                // Use a user-writable location for WebView2 data to avoid access denied errors
-                var userDataFolder = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "PlatypusTools", "WebView2Data");
-                
-                Directory.CreateDirectory(userDataFolder);
-                
-                var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
+                // Use shared WebView2 environment to prevent conflicts
+                var env = await WebView2EnvironmentService.GetSharedEnvironmentAsync();
                 await webView.EnsureCoreWebView2Async(env);
                 
                 // Try multiple possible locations for the help file

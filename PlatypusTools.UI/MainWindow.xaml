@@ -325,6 +325,18 @@
                              Visibility="{Binding PluginManager, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:PluginManagerView}" ViewDataContext="{Binding PluginManager}" />
                     </TabItem>
+                    <TabItem Header="FTP/SFTP Client"
+                             Visibility="{Binding FtpClient, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:FtpClientView}" ViewDataContext="{Binding FtpClient}" />
+                    </TabItem>
+                    <TabItem Header="Terminal (SSH/Telnet)"
+                             Visibility="{Binding TerminalClient, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:TerminalClientView}" ViewDataContext="{Binding TerminalClient}" />
+                    </TabItem>
+                    <TabItem Header="Web Browser"
+                             Visibility="{Binding SimpleBrowser, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:SimpleBrowserView}" ViewDataContext="{Binding SimpleBrowser}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
         </TabControl>

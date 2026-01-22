@@ -124,6 +124,9 @@ namespace PlatypusTools.UI.Services
         public Visibility Screenshot => GetVisibility("Tools.Screenshot");
         public Visibility BootableUSB => GetVisibility("Tools.BootableUSB");
         public Visibility PluginManager => GetVisibility("Tools.PluginManager");
+        public Visibility FtpClient => GetVisibility("Tools.FtpClient");
+        public Visibility TerminalClient => GetVisibility("Tools.TerminalClient");
+        public Visibility SimpleBrowser => GetVisibility("Tools.SimpleBrowser");
 
         // FileManagement - Robocopy
         public Visibility Robocopy => GetVisibility("FileManagement.Robocopy");

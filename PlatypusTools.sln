@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatypusTools.Core.Tests", 
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "PlatypusTools.Installer", "PlatypusTools.Installer\PlatypusTools.Installer.wixproj", "{5E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{7E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SamplePlugin", "samples\SamplePlugin\SamplePlugin.csproj", "{8E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,9 +53,20 @@ Global
 		{5E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}.Release|Any CPU.ActiveCfg = Release|x64
 		{5E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}.Release|x64.ActiveCfg = Release|x64
 		{5E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}.Release|x64.Build.0 = Release|x64
+		{8E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}.Debug|x64.Build.0 = Debug|Any CPU
+		{8E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}.Release|x64.ActiveCfg = Release|Any CPU
+		{8E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E} = {7E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A1B2C3D4-E5F6-7A8B-9C0D-E1F2A3B4C5D6}

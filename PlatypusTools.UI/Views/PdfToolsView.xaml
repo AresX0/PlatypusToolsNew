@@ -24,10 +24,10 @@
                        Foreground="{DynamicResource TextSecondary}" FontSize="12"/>
         </StackPanel>
         
-        <!-- Tools Toolbar - Horizontal across top -->
+        <!-- Tools Toolbar - Horizontal across top with scrolling -->
         <Border Grid.Row="1" Background="{DynamicResource CardBackground}" CornerRadius="6" Padding="10" Margin="0,0,0,10">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-            <WrapPanel Orientation="Horizontal">
+            <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Horizontal">
                 <!-- Merge -->
                 <Button Content="🔗 Merge PDFs" Command="{Binding MergeCommand}"
                         Style="{DynamicResource PrimaryButton}" Margin="0,0,8,5" Padding="12,6"
@@ -90,7 +90,7 @@
                 <Button Content="🖼️ Images to PDF" Command="{Binding ImagesToPdfCommand}"
                         Style="{DynamicResource SecondaryButton}" Margin="0,0,0,5" Padding="12,6"
                         ToolTip="Convert image files to PDF"/>
-            </WrapPanel>
+            </StackPanel>
             </ScrollViewer>
         </Border>
         

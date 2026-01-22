@@ -114,8 +114,8 @@
                                   VerticalScrollBarVisibility="Disabled"
                                   ColumnWidth="*">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="200" MinWidth="150" CanUserResize="True"/>
-                                <DataGridTextColumn Header="Status" Binding="{Binding StatusText}" Width="120" MinWidth="80" CanUserResize="True">
+                                <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="180" MinWidth="120" CanUserResize="True"/>
+                                <DataGridTextColumn Header="Status" Binding="{Binding StatusText}" Width="100" MinWidth="80" CanUserResize="True">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Style.Triggers>
@@ -134,12 +134,30 @@
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn Header="Original Size" Binding="{Binding OriginalSizeDisplay}" Width="100" MinWidth="80" CanUserResize="True"/>
-                                <DataGridTextColumn Header="Output Size" Binding="{Binding OutputSizeDisplay}" Width="100" MinWidth="80" CanUserResize="True"/>
-                                <DataGridTextColumn Header="Source Path" Binding="{Binding SourcePath}" Width="*" MinWidth="200" CanUserResize="True"/>
+                                <DataGridTextColumn Header="Settings" Binding="{Binding EffectiveSettingsDisplay}" Width="110" MinWidth="80" CanUserResize="True">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontStyle" Value="Italic"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding UseOverrides}" Value="True">
+                                                    <Setter Property="Foreground" Value="DarkOrange"/>
+                                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    <Setter Property="FontStyle" Value="Normal"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Original Size" Binding="{Binding OriginalSizeDisplay}" Width="90" MinWidth="70" CanUserResize="True"/>
+                                <DataGridTextColumn Header="Output Size" Binding="{Binding OutputSizeDisplay}" Width="90" MinWidth="70" CanUserResize="True"/>
+                                <DataGridTextColumn Header="Source Path" Binding="{Binding SourcePath}" Width="*" MinWidth="150" CanUserResize="True"/>
                             </DataGrid.Columns>
                             <DataGrid.ContextMenu>
                                 <ContextMenu>
+                                    <MenuItem Header="Edit Item Settings..." Command="{Binding EditItemSettingsCommand}"/>
+                                    <MenuItem Header="Use Default Settings" Command="{Binding ResetItemSettingsCommand}"
+                                              IsEnabled="{Binding SelectedItem.UseOverrides}"/>
+                                    <Separator/>
                                     <MenuItem Header="Compare Before/After" Command="{Binding CompareCommand}"/>
                                     <MenuItem Header="Open Output Folder" Command="{Binding OpenOutputFolderCommand}"/>
                                     <Separator/>

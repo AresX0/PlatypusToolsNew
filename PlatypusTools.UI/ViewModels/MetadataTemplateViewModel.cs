@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -44,6 +45,7 @@ namespace PlatypusTools.UI.ViewModels
             ApplyTemplateCommand = new RelayCommand(async _ => await ApplyTemplateAsync(), _ => SelectedTemplate != null && SelectedFiles.Any());
             CopyMetadataCommand = new RelayCommand(async _ => await CopyMetadataAsync(), _ => SourceFile != null && SelectedFiles.Any());
             CancelOperationCommand = new RelayCommand(_ => CancelOperation(), _ => IsProcessing);
+            PreviewChangesCommand = new RelayCommand(async _ => await PreviewChangesAsync(), _ => (SelectedTemplate != null || SourceFile != null) && SelectedFiles.Any());
             
             AddFilesCommand = new RelayCommand(_ => AddFiles());
             AddFolderCommand = new RelayCommand(_ => AddFolder());
@@ -51,6 +53,9 @@ namespace PlatypusTools.UI.ViewModels
             SelectSourceFileCommand = new RelayCommand(_ => SelectSourceFile());
             
             ToggleFavoriteCommand = new RelayCommand(_ => ToggleFavorite(), _ => SelectedTemplate != null);
+            SelectAllTagsCommand = new RelayCommand(_ => SelectAllTags());
+            DeselectAllTagsCommand = new RelayCommand(_ => DeselectAllTags());
+            LoadSourceTagsCommand = new RelayCommand(async _ => await LoadSourceTagsAsync(), _ => SourceFile != null);
         }
         
         /// <summary>
@@ -68,6 +73,8 @@ namespace PlatypusTools.UI.ViewModels
         public ObservableCollection<string> Categories { get; }
         public ObservableCollection<MetadataApplyResult> ApplyResults { get; }
         public ObservableCollection<string> SelectedFiles { get; } = new();
+        public ObservableCollection<SelectableMetadataTag> SourceTags { get; } = new();
+        public ObservableCollection<MetadataPreviewItem> PreviewItems { get; } = new();
         
         private MetadataTemplate? _selectedTemplate;
         public MetadataTemplate? SelectedTemplate
@@ -162,6 +169,13 @@ namespace PlatypusTools.UI.ViewModels
         public bool CanDeleteTemplate => SelectedTemplate != null && !SelectedTemplate.IsBuiltIn;
         public bool ShowFavoritesOnly { get; set; }
         
+        private bool _showPreview;
+        public bool ShowPreview
+        {
+            get => _showPreview;
+            set => SetProperty(ref _showPreview, value);
+        }
+        
         private string _newTemplateName = string.Empty;
         public string NewTemplateName
         {
@@ -183,6 +197,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand ApplyTemplateCommand { get; }
         public ICommand CopyMetadataCommand { get; }
         public ICommand CancelOperationCommand { get; }
+        public ICommand PreviewChangesCommand { get; }
         
         public ICommand AddFilesCommand { get; }
         public ICommand AddFolderCommand { get; }
@@ -190,6 +205,9 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand SelectSourceFileCommand { get; }
         
         public ICommand ToggleFavoriteCommand { get; }
+        public ICommand SelectAllTagsCommand { get; }
+        public ICommand DeselectAllTagsCommand { get; }
+        public ICommand LoadSourceTagsCommand { get; }
         
         #endregion
         
@@ -397,6 +415,64 @@ namespace PlatypusTools.UI.ViewModels
             if (dialog.ShowDialog() == true)
             {
                 SourceFile = dialog.FileName;
+                // Automatically load tags from the source file
+                _ = LoadSourceTagsAsync();
+            }
+        }
+        
+        private async Task LoadSourceTagsAsync()
+        {
+            if (string.IsNullOrEmpty(SourceFile)) return;
+            
+            SourceTags.Clear();
+            StatusMessage = "Loading metadata from source file...";
+            
+            try
+            {
+                var metadata = await _service.ReadMetadataAsync(SourceFile);
+                
+                // Group common tags
+                var commonTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "Title", "Artist", "Copyright", "Comment", "Keywords", "Subject",
+                    "Author", "Creator", "Description", "Rating", "DateTimeOriginal",
+                    "CreateDate", "ModifyDate", "Album", "Genre", "Track", "Year"
+                };
+                
+                foreach (var tag in metadata.OrderBy(t => !commonTags.Contains(t.Key)).ThenBy(t => t.Key))
+                {
+                    var selectableTag = new SelectableMetadataTag
+                    {
+                        TagName = tag.Key,
+                        DisplayName = tag.Key,
+                        Value = tag.Value?.ToString(),
+                        Category = commonTags.Contains(tag.Key) ? "Common" : "Other",
+                        IsSelected = commonTags.Contains(tag.Key)
+                    };
+                    SourceTags.Add(selectableTag);
+                }
+                
+                StatusMessage = $"Loaded {SourceTags.Count} tags from source file";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Failed to load tags: {ex.Message}";
+            }
+        }
+        
+        private void SelectAllTags()
+        {
+            foreach (var tag in SourceTags)
+            {
+                tag.IsSelected = true;
+            }
+        }
+        
+        private void DeselectAllTags()
+        {
+            foreach (var tag in SourceTags)
+            {
+                tag.IsSelected = false;
             }
         }
         
@@ -463,10 +539,19 @@ namespace PlatypusTools.UI.ViewModels
             
             try
             {
+                // Get selected tags to copy
+                var selectedTags = SourceTags
+                    .Where(t => t.IsSelected)
+                    .Select(t => t.TagName)
+                    .ToList();
+                
+                // If no tags selected, copy all
+                var tagsToInclude = selectedTags.Any() ? selectedTags : null;
+                
                 var results = await _service.CopyMetadataAsync(
                     SourceFile,
                     targetFiles,
-                    null, // Copy all tags
+                    tagsToInclude,
                     null, // No exclusions
                     _cts.Token,
                     new Progress<double>(p => Progress = p));
@@ -508,6 +593,101 @@ namespace PlatypusTools.UI.ViewModels
             });
         }
         
+        private async Task PreviewChangesAsync()
+        {
+            PreviewItems.Clear();
+            ShowPreview = false;
+            
+            // Preview for template apply
+            if (SelectedTemplate != null && SelectedFiles.Any())
+            {
+                StatusMessage = "Generating preview...";
+                
+                foreach (var file in SelectedFiles.Take(5)) // Preview first 5 files
+                {
+                    try
+                    {
+                        var currentMetadata = await _service.ReadMetadataAsync(file);
+                        
+                        foreach (var field in SelectedTemplate.Fields.Where(f => !string.IsNullOrEmpty(f.Value)))
+                        {
+                            var tagName = field.Name;
+                            var currentValue = currentMetadata.GetValueOrDefault(tagName, "(not set)");
+                            var newValue = field.Value;
+                            
+                            if (currentValue != newValue)
+                            {
+                                PreviewItems.Add(new MetadataPreviewItem
+                                {
+                                    FileName = Path.GetFileName(file),
+                                    TagName = tagName,
+                                    CurrentValue = currentValue,
+                                    NewValue = newValue,
+                                    ChangeType = string.IsNullOrEmpty(currentValue) || currentValue == "(not set)" ? "Add" : "Modify"
+                                });
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Skip files that can't be read
+                    }
+                }
+                
+                ShowPreview = true;
+                StatusMessage = $"Preview: {PreviewItems.Count} changes across {SelectedFiles.Count} files";
+            }
+            // Preview for batch copy
+            else if (SourceFile != null && SelectedFiles.Any())
+            {
+                StatusMessage = "Generating preview...";
+                
+                var selectedTags = SourceTags
+                    .Where(t => t.IsSelected)
+                    .Select(t => t.TagName)
+                    .ToList();
+                    
+                if (!selectedTags.Any())
+                {
+                    StatusMessage = "No tags selected for copy";
+                    return;
+                }
+                
+                foreach (var file in SelectedFiles.Where(f => f != SourceFile).Take(5))
+                {
+                    try
+                    {
+                        var currentMetadata = await _service.ReadMetadataAsync(file);
+                        
+                        foreach (var sourceTag in SourceTags.Where(t => t.IsSelected))
+                        {
+                            var currentValue = currentMetadata.GetValueOrDefault(sourceTag.TagName, "(not set)");
+                            var newValue = sourceTag.Value ?? "";
+                            
+                            if (currentValue != newValue)
+                            {
+                                PreviewItems.Add(new MetadataPreviewItem
+                                {
+                                    FileName = Path.GetFileName(file),
+                                    TagName = sourceTag.TagName,
+                                    CurrentValue = currentValue,
+                                    NewValue = newValue,
+                                    ChangeType = string.IsNullOrEmpty(currentValue) || currentValue == "(not set)" ? "Add" : "Modify"
+                                });
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Skip files that can't be read
+                    }
+                }
+                
+                ShowPreview = true;
+                StatusMessage = $"Preview: {PreviewItems.Count} changes across {SelectedFiles.Count} files";
+            }
+        }
+        
         #endregion
         
         private void RaiseCommandsCanExecuteChanged()
@@ -521,6 +701,19 @@ namespace PlatypusTools.UI.ViewModels
             ((RelayCommand)CancelOperationCommand).RaiseCanExecuteChanged();
             ((RelayCommand)ClearFilesCommand).RaiseCanExecuteChanged();
             ((RelayCommand)ToggleFavoriteCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)PreviewChangesCommand).RaiseCanExecuteChanged();
         }
+    }
+    
+    /// <summary>
+    /// Represents a single metadata change for preview.
+    /// </summary>
+    public class MetadataPreviewItem
+    {
+        public string FileName { get; set; } = string.Empty;
+        public string TagName { get; set; } = string.Empty;
+        public string CurrentValue { get; set; } = string.Empty;
+        public string NewValue { get; set; } = string.Empty;
+        public string ChangeType { get; set; } = string.Empty;
     }
 }

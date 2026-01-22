@@ -236,4 +236,69 @@ namespace PlatypusTools.UI.Converters
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
             => throw new NotImplementedException();
     }
+    
+    /// <summary>
+    /// Shows element only when output format is JPEG/JPG.
+    /// </summary>
+    public class JpegVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var format = value as string;
+            if (string.IsNullOrEmpty(format)) return Visibility.Collapsed;
+            
+            return format.Equals("jpg", StringComparison.OrdinalIgnoreCase) || 
+                   format.Equals("jpeg", StringComparison.OrdinalIgnoreCase)
+                ? Visibility.Visible 
+                : Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Converts boolean connection state to background brush (green = connected, red = disconnected)
+    /// </summary>
+    public class BoolToConnectionBrushConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var isConnected = value is bool b && b;
+            return new SolidColorBrush(isConnected ? Color.FromRgb(76, 175, 80) : Color.FromRgb(158, 158, 158));
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Converts boolean connection state to status text
+    /// </summary>
+    public class BoolToConnectionTextConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var isConnected = value is bool b && b;
+            return isConnected ? "Connected" : "Disconnected";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Converts boolean IsFavorite to filled/empty star icon
+    /// </summary>
+    public class BoolToFavoriteIconConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var isFavorite = value is bool b && b;
+            return isFavorite ? "★" : "☆";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
 }

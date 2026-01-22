@@ -90,6 +90,9 @@
             <converters:FileFontWeightConverter x:Key="FileFontWeightConverter" />
             <converters:FileCountVisibilityConverter x:Key="FileCountVisibilityConverter" />
             <converters:TabVisibilityConverter x:Key="TabVisibilityConverter" />
+            <converters:BoolToConnectionBrushConverter x:Key="BoolToConnectionBrushConverter" />
+            <converters:BoolToConnectionTextConverter x:Key="BoolToConnectionTextConverter" />
+            <converters:BoolToFavoriteIconConverter x:Key="BoolToFavoriteIconConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -46,6 +46,8 @@ namespace PlatypusTools.UI.ViewModels
             BrowseOutputCommand = new RelayCommand(_ => BrowseOutput());
             CompareCommand = new RelayCommand(_ => LoadPreview(), _ => SelectedItem != null);
             OpenOutputFolderCommand = new RelayCommand(_ => OpenOutputFolder(), _ => SelectedItem?.Status == BatchJobStatus.Completed);
+            EditItemSettingsCommand = new RelayCommand(_ => EditItemSettings(), _ => SelectedItem != null && SelectedItem.Status == BatchJobStatus.Queued);
+            ResetItemSettingsCommand = new RelayCommand(_ => ResetItemSettings(), _ => SelectedItem?.UseOverrides == true);
         }
         
         #region Properties
@@ -178,6 +180,8 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand BrowseOutputCommand { get; }
         public ICommand CompareCommand { get; }
         public ICommand OpenOutputFolderCommand { get; }
+        public ICommand EditItemSettingsCommand { get; }
+        public ICommand ResetItemSettingsCommand { get; }
         
         #endregion
         
@@ -445,6 +449,82 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
         
+        private void EditItemSettings()
+        {
+            if (SelectedItem == null || SelectedItem.Status != BatchJobStatus.Queued) return;
+            
+            // Create a dialog to edit item settings
+            var dialog = new Views.ItemSettingsWindow
+            {
+                Owner = System.Windows.Application.Current.MainWindow
+            };
+            
+            // Initialize overrides from current settings if not already set
+            if (!SelectedItem.UseOverrides)
+            {
+                SelectedItem.Overrides.CopyFromSettings(Settings);
+            }
+            
+            dialog.DataContext = new ItemSettingsDialogViewModel(SelectedItem, UpscaleModes, ScaleFactors, OutputFormats);
+            
+            if (dialog.ShowDialog() == true)
+            {
+                SelectedItem.UseOverrides = true;
+                // Force refresh of the display
+                RaisePropertyChanged(nameof(SelectedItem));
+            }
+        }
+        
+        private void ResetItemSettings()
+        {
+            if (SelectedItem == null) return;
+            SelectedItem.UseOverrides = false;
+            RaisePropertyChanged(nameof(SelectedItem));
+        }
+        
         #endregion
+    }
+    
+    /// <summary>
+    /// ViewModel for the item settings dialog.
+    /// </summary>
+    public class ItemSettingsDialogViewModel : BindableBase
+    {
+        public ItemSettingsDialogViewModel(BatchUpscaleItem item, UpscaleMode[] modes, double[] scales, string[] formats)
+        {
+            Item = item;
+            UpscaleModes = modes;
+            ScaleFactors = scales;
+            OutputFormats = formats;
+        }
+        
+        public BatchUpscaleItem Item { get; }
+        public UpscaleMode[] UpscaleModes { get; }
+        public double[] ScaleFactors { get; }
+        public string[] OutputFormats { get; }
+        
+        public UpscaleMode SelectedMode
+        {
+            get => Item.Overrides.Mode;
+            set { Item.Overrides.Mode = value; RaisePropertyChanged(); }
+        }
+        
+        public double SelectedScale
+        {
+            get => Item.Overrides.ScaleFactor;
+            set { Item.Overrides.ScaleFactor = value; RaisePropertyChanged(); }
+        }
+        
+        public string SelectedFormat
+        {
+            get => Item.Overrides.OutputFormat;
+            set { Item.Overrides.OutputFormat = value; RaisePropertyChanged(); }
+        }
+        
+        public int JpegQuality
+        {
+            get => Item.Overrides.JpegQuality;
+            set { Item.Overrides.JpegQuality = value; RaisePropertyChanged(); }
+        }
     }
 }

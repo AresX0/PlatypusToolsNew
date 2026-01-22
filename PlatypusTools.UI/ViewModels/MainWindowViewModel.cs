@@ -61,6 +61,9 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<EmptyFolderScannerViewModel> _emptyFolderScanner = new(() => new EmptyFolderScannerViewModel());
         private readonly Lazy<PluginManagerViewModel> _pluginManager = new(() => new PluginManagerViewModel());
         private readonly Lazy<RobocopyViewModel> _robocopy = new(() => new RobocopyViewModel());
+        private readonly Lazy<FtpClientViewModel> _ftpClient = new(() => new FtpClientViewModel());
+        private readonly Lazy<TerminalClientViewModel> _terminalClient = new(() => new TerminalClientViewModel());
+        private readonly Lazy<SimpleBrowserViewModel> _simpleBrowser = new(() => new SimpleBrowserViewModel());
         
         #endregion
 
@@ -145,6 +148,9 @@ namespace PlatypusTools.UI.ViewModels
         public EmptyFolderScannerViewModel EmptyFolderScanner => _emptyFolderScanner.Value;
         public PluginManagerViewModel PluginManager => _pluginManager.Value;
         public RobocopyViewModel Robocopy => _robocopy.Value;
+        public FtpClientViewModel FtpClient => _ftpClient.Value;
+        public TerminalClientViewModel TerminalClient => _terminalClient.Value;
+        public SimpleBrowserViewModel SimpleBrowser => _simpleBrowser.Value;
         
         #endregion
 

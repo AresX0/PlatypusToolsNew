@@ -55,6 +55,8 @@ namespace PlatypusTools.Core.Models.ImageScaler
         private int _originalHeight;
         private int _outputWidth;
         private int _outputHeight;
+        private BatchUpscaleItemOverrides? _overrides;
+        private bool _useOverrides;
         
         public string Id { get; set; } = Guid.NewGuid().ToString();
         
@@ -77,6 +79,31 @@ namespace PlatypusTools.Core.Models.ImageScaler
             get => _status;
             set { _status = value; OnPropertyChanged(); OnPropertyChanged(nameof(StatusText)); }
         }
+        
+        /// <summary>
+        /// Whether to use per-item override settings instead of job defaults.
+        /// </summary>
+        public bool UseOverrides
+        {
+            get => _useOverrides;
+            set { _useOverrides = value; OnPropertyChanged(); OnPropertyChanged(nameof(EffectiveSettingsDisplay)); }
+        }
+        
+        /// <summary>
+        /// Per-item settings overrides. Only used when UseOverrides is true.
+        /// </summary>
+        public BatchUpscaleItemOverrides Overrides
+        {
+            get => _overrides ??= new BatchUpscaleItemOverrides();
+            set { _overrides = value; OnPropertyChanged(); OnPropertyChanged(nameof(EffectiveSettingsDisplay)); }
+        }
+        
+        /// <summary>
+        /// Display text showing effective settings for this item.
+        /// </summary>
+        public string EffectiveSettingsDisplay => UseOverrides 
+            ? $"{Overrides.Mode}, {Overrides.ScaleFactor}x" 
+            : "(Default)";
         
         public string StatusText => Status switch
         {
@@ -308,6 +335,76 @@ namespace PlatypusTools.Core.Models.ImageScaler
                 .Replace("{height}", TargetHeight?.ToString() ?? "")
                 .Replace("{scale}", ScaleFactor.ToString("F1"))
                 .Replace("{mode}", Mode.ToString());
+        }
+    }
+    
+    /// <summary>
+    /// Per-item settings overrides for batch upscaling.
+    /// Allows individual items to use different settings than the job defaults.
+    /// </summary>
+    public class BatchUpscaleItemOverrides : INotifyPropertyChanged
+    {
+        private UpscaleMode _mode = UpscaleMode.RealESRGAN;
+        private double _scaleFactor = 2.0;
+        private int? _targetWidth;
+        private int? _targetHeight;
+        private string _outputFormat = "png";
+        private int _jpegQuality = 95;
+        
+        public UpscaleMode Mode
+        {
+            get => _mode;
+            set { _mode = value; OnPropertyChanged(); }
+        }
+        
+        public double ScaleFactor
+        {
+            get => _scaleFactor;
+            set { _scaleFactor = value; OnPropertyChanged(); }
+        }
+        
+        public int? TargetWidth
+        {
+            get => _targetWidth;
+            set { _targetWidth = value; OnPropertyChanged(); }
+        }
+        
+        public int? TargetHeight
+        {
+            get => _targetHeight;
+            set { _targetHeight = value; OnPropertyChanged(); }
+        }
+        
+        public string OutputFormat
+        {
+            get => _outputFormat;
+            set { _outputFormat = value; OnPropertyChanged(); }
+        }
+        
+        public int JpegQuality
+        {
+            get => _jpegQuality;
+            set { _jpegQuality = value; OnPropertyChanged(); }
+        }
+        
+        /// <summary>
+        /// Copies settings from job-level settings.
+        /// </summary>
+        public void CopyFromSettings(BatchUpscaleSettings settings)
+        {
+            Mode = settings.Mode;
+            ScaleFactor = settings.ScaleFactor;
+            TargetWidth = settings.TargetWidth;
+            TargetHeight = settings.TargetHeight;
+            OutputFormat = settings.OutputFormat;
+            JpegQuality = settings.JpegQuality;
+        }
+        
+        public event PropertyChangedEventHandler? PropertyChanged;
+        
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

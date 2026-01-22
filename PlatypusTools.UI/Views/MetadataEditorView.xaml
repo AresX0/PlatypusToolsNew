@@ -361,6 +361,7 @@
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         
                         <!-- Template Details -->
@@ -440,12 +441,179 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             
                             <ProgressBar Grid.Column="0" Value="{Binding Progress}" Maximum="100" Height="20" Margin="0,0,10,0"
                                          Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                            <Button Grid.Column="1" Content="🚀 Apply Template" Command="{Binding ApplyTemplateCommand}" 
+                            <Button Grid.Column="1" Content="👁️ Preview" Command="{Binding PreviewChangesCommand}" 
+                                    Width="90" Height="32" Margin="0,0,5,0"/>
+                            <Button Grid.Column="2" Content="🚀 Apply Template" Command="{Binding ApplyTemplateCommand}" 
                                     Width="130" Height="32" Background="LightGreen" FontWeight="Bold" Margin="0,0,5,0"/>
+                            <Button Grid.Column="3" Content="❌ Cancel" Command="{Binding CancelOperationCommand}" 
+                                    Width="80" Height="32" Background="LightCoral"
+                                    Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        </Grid>
+                        
+                        <!-- Preview Panel -->
+                        <GroupBox Grid.Row="5" Header="Preview Changes" Margin="0,10,0,0" MaxHeight="200"
+                                  Visibility="{Binding ShowPreview, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <DataGrid ItemsSource="{Binding PreviewItems}" AutoGenerateColumns="False" 
+                                      CanUserAddRows="False" IsReadOnly="True"
+                                      CanUserResizeColumns="True" CanUserSortColumns="True"
+                                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="File" Binding="{Binding FileName}" Width="150"/>
+                                    <DataGridTextColumn Header="Tag" Binding="{Binding TagName}" Width="120"/>
+                                    <DataGridTextColumn Header="Current" Binding="{Binding CurrentValue}" Width="*">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="Gray"/>
+                                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+                                    <DataGridTextColumn Header="New" Binding="{Binding NewValue}" Width="*">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="Green"/>
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+                                    <DataGridTextColumn Header="Type" Binding="{Binding ChangeType}" Width="60"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </GroupBox>
+                    </Grid>
+                </Grid>
+            </TabItem>
+            
+            <!-- Batch Copy Tab -->
+            <TabItem Header="📝 Batch Copy" DataContext="{Binding TemplateViewModel}">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="350"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- Left Panel: Source File and Tags -->
+                    <Grid Grid.Column="0" Margin="0,0,10,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Source File Selection -->
+                        <GroupBox Grid.Row="0" Header="Source File" Margin="0,0,0,10">
+                            <Grid Margin="5">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding SourceFile}" IsReadOnly="True"
+                                         ToolTip="{Binding SourceFile}"/>
+                                <Button Grid.Row="0" Grid.Column="1" Content="Browse..." 
+                                        Command="{Binding SelectSourceFileCommand}" Width="80" Margin="5,0,0,0"/>
+                                
+                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Margin="0,5,0,0" Foreground="Gray" FontSize="11"
+                                           Text="Select a file to copy metadata from. Tags will be loaded automatically."/>
+                            </Grid>
+                        </GroupBox>
+                        
+                        <!-- Tag Selection Actions -->
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,5">
+                            <Button Content="✓ Select All" Command="{Binding SelectAllTagsCommand}" Width="90" Margin="0,0,5,0"/>
+                            <Button Content="✗ Deselect All" Command="{Binding DeselectAllTagsCommand}" Width="100" Margin="0,0,5,0"/>
+                            <Button Content="↻ Reload" Command="{Binding LoadSourceTagsCommand}" Width="70"/>
+                        </StackPanel>
+                        
+                        <!-- Tags List with Checkboxes -->
+                        <GroupBox Grid.Row="2" Header="Tags to Copy">
+                            <DataGrid ItemsSource="{Binding SourceTags}" AutoGenerateColumns="False" 
+                                      CanUserAddRows="False" CanUserDeleteRows="False"
+                                      CanUserResizeColumns="True" CanUserSortColumns="True"
+                                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                                <DataGrid.Columns>
+                                    <DataGridCheckBoxColumn Header="✓" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" 
+                                                            Width="40" CanUserResize="False"/>
+                                    <DataGridTextColumn Header="Tag Name" Binding="{Binding TagName}" Width="120" IsReadOnly="True"/>
+                                    <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="*" IsReadOnly="True">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                                <Setter Property="ToolTip" Value="{Binding Value}"/>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </GroupBox>
+                    </Grid>
+                    
+                    <!-- Right Panel: Target Files and Actions -->
+                    <Grid Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Target Files -->
+                        <GroupBox Grid.Row="0" Header="Target Files">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+                                    <Button Content="➕ Add Files" Command="{Binding AddFilesCommand}" Width="90" Margin="0,0,5,0"/>
+                                    <Button Content="📁 Add Folder" Command="{Binding AddFolderCommand}" Width="100" Margin="0,0,5,0"/>
+                                    <Button Content="❌ Clear" Command="{Binding ClearFilesCommand}" Width="70"/>
+                                </StackPanel>
+                                
+                                <ListBox Grid.Row="1" ItemsSource="{Binding SelectedFiles}" BorderThickness="1" BorderBrush="#CCC">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" ToolTip="{Binding}"/>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Grid>
+                        </GroupBox>
+                        
+                        <!-- Copy Options -->
+                        <GroupBox Grid.Row="1" Header="Options" Margin="0,10,0,10">
+                            <StackPanel Margin="5">
+                                <CheckBox Content="Create backup before modifying" IsChecked="{Binding ApplyOptions.CreateBackup}" Margin="0,0,0,5"/>
+                                <CheckBox Content="Skip files on error (continue with others)" IsChecked="{Binding ApplyOptions.SkipOnError}"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <!-- Copy Actions -->
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding StatusMessage}" Margin="0,0,10,0"/>
+                                <ProgressBar Value="{Binding Progress}" Maximum="100" Width="150" Height="20"
+                                             Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            </StackPanel>
+                            
+                            <Button Grid.Column="1" Content="📋 Copy Selected Tags" Command="{Binding CopyMetadataCommand}" 
+                                    Width="150" Height="32" Background="LightGreen" FontWeight="Bold" Margin="0,0,5,0"/>
                             <Button Grid.Column="2" Content="❌ Cancel" Command="{Binding CancelOperationCommand}" 
                                     Width="80" Height="32" Background="LightCoral"
                                     Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>

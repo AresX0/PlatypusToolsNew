@@ -277,4 +277,53 @@ namespace PlatypusTools.Core.Models.Metadata
         /// </summary>
         public List<string> FileTypes { get; set; } = new() { ".jpg", ".jpeg", ".png", ".tiff", ".raw", ".cr2", ".nef" };
     }
+    
+    /// <summary>
+    /// Represents a metadata tag that can be selected for batch copy operations.
+    /// </summary>
+    public class SelectableMetadataTag : INotifyPropertyChanged
+    {
+        private bool _isSelected = true;
+        private string _tagName = string.Empty;
+        private string _displayName = string.Empty;
+        private string? _value;
+        private string _category = string.Empty;
+        
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set { _isSelected = value; OnPropertyChanged(); }
+        }
+        
+        public string TagName
+        {
+            get => _tagName;
+            set { _tagName = value; OnPropertyChanged(); }
+        }
+        
+        public string DisplayName
+        {
+            get => _displayName;
+            set { _displayName = value; OnPropertyChanged(); }
+        }
+        
+        public string? Value
+        {
+            get => _value;
+            set { _value = value; OnPropertyChanged(); }
+        }
+        
+        public string Category
+        {
+            get => _category;
+            set { _category = value; OnPropertyChanged(); }
+        }
+        
+        public event PropertyChangedEventHandler? PropertyChanged;
+        
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
 }

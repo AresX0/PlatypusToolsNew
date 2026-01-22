@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Text.Json;
 
 namespace PlatypusTools.UI.Services
@@ -40,9 +41,77 @@ namespace PlatypusTools.UI.Services
         bool CanProcess(string filePath);
         void Process(string filePath, IDictionary<string, object>? options = null);
     }
+    
+    /// <summary>
+    /// Sandboxed AssemblyLoadContext for plugin isolation.
+    /// Each plugin gets its own context to prevent interference.
+    /// </summary>
+    public class PluginLoadContext : AssemblyLoadContext
+    {
+        private readonly AssemblyDependencyResolver _resolver;
+        private readonly HashSet<string> _sharedAssemblies;
+        
+        public string PluginPath { get; }
+        
+        public PluginLoadContext(string pluginPath) : base(isCollectible: true)
+        {
+            PluginPath = pluginPath;
+            _resolver = new AssemblyDependencyResolver(pluginPath);
+            
+            // Assemblies that should be shared between host and plugins
+            _sharedAssemblies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "PlatypusTools.UI",
+                "PlatypusTools.Core",
+                "System.Runtime",
+                "System.Private.CoreLib",
+                "netstandard"
+            };
+        }
+        
+        protected override Assembly? Load(AssemblyName assemblyName)
+        {
+            // Check if this is a shared assembly
+            if (_sharedAssemblies.Contains(assemblyName.Name ?? ""))
+            {
+                return null; // Let the default context handle it
+            }
+            
+            // Try to resolve from plugin's dependencies
+            var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
+            if (assemblyPath != null)
+            {
+                return LoadFromAssemblyPath(assemblyPath);
+            }
+            
+            return null;
+        }
+        
+        protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
+        {
+            var libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
+            if (libraryPath != null)
+            {
+                return LoadUnmanagedDllFromPath(libraryPath);
+            }
+            
+            return IntPtr.Zero;
+        }
+    }
+    
+    /// <summary>
+    /// Represents a loaded plugin with its isolation context.
+    /// </summary>
+    public class LoadedPlugin
+    {
+        public IPlugin Plugin { get; set; } = null!;
+        public PluginLoadContext? Context { get; set; }
+        public string AssemblyPath { get; set; } = "";
+        public bool IsSandboxed => Context != null;
+    }
 
     /// <summary>
-    /// Service for managing plugins
+    /// Service for managing plugins with sandboxing support
     /// </summary>
     public sealed class PluginService
     {
@@ -51,10 +120,11 @@ namespace PlatypusTools.UI.Services
 
         private readonly string _pluginsFolder;
         private readonly string _configFile;
-        private readonly Dictionary<string, IPlugin> _loadedPlugins = new();
+        private readonly Dictionary<string, LoadedPlugin> _loadedPlugins = new();
         private readonly Dictionary<string, bool> _enabledPlugins = new();
 
-        public IReadOnlyDictionary<string, IPlugin> Plugins => _loadedPlugins;
+        public IReadOnlyDictionary<string, IPlugin> Plugins => 
+            _loadedPlugins.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Plugin);
         public event EventHandler<IPlugin>? PluginLoaded;
         public event EventHandler<IPlugin>? PluginUnloaded;
 
@@ -115,75 +185,134 @@ namespace PlatypusTools.UI.Services
             }
         }
 
+        /// <summary>
+        /// Loads a plugin with sandboxing isolation.
+        /// </summary>
         public void LoadPlugin(string assemblyPath)
         {
-            var assembly = Assembly.LoadFrom(assemblyPath);
-            var pluginTypes = assembly.GetTypes()
-                .Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
-
-            foreach (var type in pluginTypes)
+            // Create isolated context for this plugin
+            var loadContext = new PluginLoadContext(assemblyPath);
+            
+            try
             {
-                try
+                var assembly = loadContext.LoadFromAssemblyPath(assemblyPath);
+                var pluginTypes = assembly.GetTypes()
+                    .Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+
+                foreach (var type in pluginTypes)
                 {
-                    if (Activator.CreateInstance(type) is IPlugin plugin)
+                    try
                     {
-                        if (_loadedPlugins.ContainsKey(plugin.Id))
+                        if (Activator.CreateInstance(type) is IPlugin plugin)
                         {
-                            LoggingService.Instance.Warning($"Plugin {plugin.Id} already loaded, skipping duplicate");
-                            continue;
+                            if (_loadedPlugins.ContainsKey(plugin.Id))
+                            {
+                                LoggingService.Instance.Warning($"Plugin {plugin.Id} already loaded, skipping duplicate");
+                                continue;
+                            }
+
+                            // Check if plugin should be enabled
+                            if (_enabledPlugins.TryGetValue(plugin.Id, out var enabled))
+                                plugin.IsEnabled = enabled;
+                            else
+                                plugin.IsEnabled = true; // Enable by default
+
+                            if (plugin.IsEnabled)
+                            {
+                                // Initialize in try-catch to prevent plugin crashes from affecting host
+                                try
+                                {
+                                    plugin.Initialize();
+                                }
+                                catch (Exception initEx)
+                                {
+                                    LoggingService.Instance.Error($"Plugin {plugin.Name} initialization failed: {initEx.Message}");
+                                    plugin.IsEnabled = false;
+                                }
+                            }
+
+                            _loadedPlugins[plugin.Id] = new LoadedPlugin
+                            {
+                                Plugin = plugin,
+                                Context = loadContext,
+                                AssemblyPath = assemblyPath
+                            };
+                            
+                            PluginLoaded?.Invoke(this, plugin);
+
+                            LoggingService.Instance.Info($"Loaded plugin: {plugin.Name} v{plugin.Version} (sandboxed)");
                         }
-
-                        // Check if plugin should be enabled
-                        if (_enabledPlugins.TryGetValue(plugin.Id, out var enabled))
-                            plugin.IsEnabled = enabled;
-                        else
-                            plugin.IsEnabled = true; // Enable by default
-
-                        if (plugin.IsEnabled)
-                        {
-                            plugin.Initialize();
-                        }
-
-                        _loadedPlugins[plugin.Id] = plugin;
-                        PluginLoaded?.Invoke(this, plugin);
-
-                        LoggingService.Instance.Info($"Loaded plugin: {plugin.Name} v{plugin.Version}");
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggingService.Instance.Error($"Failed to initialize plugin type {type.Name}: {ex.Message}");
                     }
                 }
-                catch (Exception ex)
-                {
-                    LoggingService.Instance.Error($"Failed to initialize plugin type {type.Name}: {ex.Message}");
-                }
+            }
+            catch (Exception ex)
+            {
+                // If loading fails, unload the context to free resources
+                loadContext.Unload();
+                throw new InvalidOperationException($"Failed to load plugin assembly: {ex.Message}", ex);
             }
         }
 
+        /// <summary>
+        /// Unloads a plugin and its isolated context.
+        /// </summary>
         public void UnloadPlugin(string pluginId)
         {
-            if (_loadedPlugins.TryGetValue(pluginId, out var plugin))
+            if (_loadedPlugins.TryGetValue(pluginId, out var loadedPlugin))
             {
                 try
                 {
-                    plugin.Shutdown();
+                    loadedPlugin.Plugin.Shutdown();
                 }
-                catch { /* Ignore shutdown errors */ }
+                catch (Exception ex) 
+                { 
+                    LoggingService.Instance.Warning($"Plugin {pluginId} shutdown error: {ex.Message}");
+                }
+
+                // Unload the isolated context if present
+                if (loadedPlugin.Context != null)
+                {
+                    loadedPlugin.Context.Unload();
+                }
 
                 _loadedPlugins.Remove(pluginId);
-                PluginUnloaded?.Invoke(this, plugin);
-                LoggingService.Instance.Info($"Unloaded plugin: {plugin.Name}");
+                PluginUnloaded?.Invoke(this, loadedPlugin.Plugin);
+                LoggingService.Instance.Info($"Unloaded plugin: {loadedPlugin.Plugin.Name}");
             }
         }
 
         public void EnablePlugin(string pluginId, bool enabled)
         {
-            if (_loadedPlugins.TryGetValue(pluginId, out var plugin))
+            if (_loadedPlugins.TryGetValue(pluginId, out var loadedPlugin))
             {
+                var plugin = loadedPlugin.Plugin;
+                
                 if (enabled && !plugin.IsEnabled)
                 {
-                    plugin.Initialize();
+                    try
+                    {
+                        plugin.Initialize();
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggingService.Instance.Error($"Plugin {plugin.Name} initialization failed: {ex.Message}");
+                        return; // Don't enable if init fails
+                    }
                 }
                 else if (!enabled && plugin.IsEnabled)
                 {
-                    plugin.Shutdown();
+                    try
+                    {
+                        plugin.Shutdown();
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggingService.Instance.Warning($"Plugin {plugin.Name} shutdown error: {ex.Message}");
+                    }
                 }
 
                 plugin.IsEnabled = enabled;
@@ -195,6 +324,7 @@ namespace PlatypusTools.UI.Services
         public IEnumerable<T> GetPlugins<T>() where T : IPlugin
         {
             return _loadedPlugins.Values
+                .Select(lp => lp.Plugin)
                 .OfType<T>()
                 .Where(p => p.IsEnabled);
         }
@@ -202,18 +332,41 @@ namespace PlatypusTools.UI.Services
         public IEnumerable<PluginMenuItem> GetAllMenuItems()
         {
             return GetPlugins<IMenuPlugin>()
-                .SelectMany(p => p.GetMenuItems());
+                .SelectMany(p => 
+                {
+                    try
+                    {
+                        return p.GetMenuItems();
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggingService.Instance.Warning($"Plugin {p.Name} menu error: {ex.Message}");
+                        return Enumerable.Empty<PluginMenuItem>();
+                    }
+                });
+        }
+
+        /// <summary>
+        /// Gets information about all loaded plugins including sandbox status.
+        /// </summary>
+        public IEnumerable<(IPlugin Plugin, bool IsSandboxed)> GetPluginInfo()
+        {
+            return _loadedPlugins.Values
+                .Select(lp => (lp.Plugin, lp.IsSandboxed));
         }
 
         public void ShutdownAll()
         {
-            foreach (var plugin in _loadedPlugins.Values.ToList())
+            foreach (var loadedPlugin in _loadedPlugins.Values.ToList())
             {
                 try
                 {
-                    plugin.Shutdown();
+                    loadedPlugin.Plugin.Shutdown();
                 }
                 catch { /* Ignore shutdown errors */ }
+                
+                // Unload contexts
+                loadedPlugin.Context?.Unload();
             }
             _loadedPlugins.Clear();
         }
@@ -224,6 +377,11 @@ namespace PlatypusTools.UI.Services
         public void ReloadAllPlugins()
         {
             ShutdownAll();
+            
+            // Force garbage collection to release any remaining references
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            
             LoadPluginConfig();
             DiscoverAndLoadPlugins();
         }
