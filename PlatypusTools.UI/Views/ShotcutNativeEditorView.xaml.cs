@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -243,9 +244,164 @@ namespace PlatypusTools.UI.Views
 
             if (dialog.ShowDialog() == true)
             {
-                // TODO: Implement project save
-                MessageBox.Show($"Project saved to:\n{dialog.FileName}", "Saved",
+                try
+                {
+                    SaveProject(dialog.FileName);
+                    MessageBox.Show($"Project saved to:\n{dialog.FileName}", "Saved",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to save project:\n{ex.Message}", "Error",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Save project to a file
+        /// </summary>
+        private void SaveProject(string filePath)
+        {
+            var project = new ProjectData
+            {
+                Version = "1.0",
+                SavedAt = DateTime.Now,
+                Duration = TimelineModel.Duration,
+                FrameRate = TimelineModel.FrameRate
+            };
+
+            // Save playlist items
+            foreach (var item in PlaylistItems)
+            {
+                project.PlaylistItems.Add(new ProjectPlaylistItem
+                {
+                    FilePath = item.FilePath,
+                    Name = item.Name,
+                    Duration = item.Duration,
+                    IsVideo = item.Type == MediaType.Video || item.Type == MediaType.Image
+                });
+            }
+
+            // Save timeline tracks and clips
+            foreach (var track in TimelineModel.Tracks)
+            {
+                var projectTrack = new ProjectTrack
+                {
+                    Name = track.Name,
+                    Type = track.Type.ToString(),
+                    IsHidden = track.IsHidden,
+                    IsMuted = track.IsMuted,
+                    IsLocked = track.IsLocked,
+                    Volume = 1.0 // Default - track-level volume not supported yet
+                };
+
+                foreach (var clip in track.Clips)
+                {
+                    projectTrack.Clips.Add(new ProjectClip
+                    {
+                        Name = clip.Name,
+                        SourcePath = clip.SourcePath,
+                        StartPosition = clip.StartTime, // Use StartTime property
+                        Duration = clip.Duration,
+                        InPoint = clip.InPoint,
+                        OutPoint = clip.OutPoint,
+                        Speed = 1.0, // Default - speed not supported yet
+                        Volume = clip.Gain, // Map Gain to Volume
+                        Opacity = 1.0 // Default - opacity not supported yet
+                    });
+                }
+
+                project.Tracks.Add(projectTrack);
+            }
+
+            // Serialize to JSON
+            var json = JsonSerializer.Serialize(project, new JsonSerializerOptions 
+            { 
+                WriteIndented = true 
+            });
+
+            File.WriteAllText(filePath, json);
+        }
+
+        /// <summary>
+        /// Load a project file
+        /// </summary>
+        public void LoadProject(string filePath)
+        {
+            try
+            {
+                var json = File.ReadAllText(filePath);
+                var project = JsonSerializer.Deserialize<ProjectData>(json);
+
+                if (project == null)
+                {
+                    MessageBox.Show("Invalid project file.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Clear current state
+                PlaylistItems.Clear();
+                TimelineModel.Tracks.Clear();
+
+                // Restore playlist
+                foreach (var item in project.PlaylistItems)
+                {
+                    if (File.Exists(item.FilePath))
+                    {
+                        PlaylistItems.Add(new PlaylistItem
+                        {
+                            FilePath = item.FilePath,
+                            Name = item.Name,
+                            Duration = item.Duration,
+                            Type = item.IsVideo ? MediaType.Video : MediaType.Audio
+                        });
+                    }
+                }
+
+                // Restore timeline tracks
+                foreach (var trackData in project.Tracks)
+                {
+                    var trackType = Enum.TryParse<TrackType>(trackData.Type, out var t) ? t : TrackType.Video;
+                    var track = new TimelineTrack
+                    {
+                        Name = trackData.Name,
+                        Type = trackType,
+                        IsHidden = trackData.IsHidden,
+                        IsMuted = trackData.IsMuted,
+                        IsLocked = trackData.IsLocked
+                        // Volume is stored but not used yet (no track-level volume)
+                    };
+
+                    foreach (var clipData in trackData.Clips)
+                    {
+                        track.Clips.Add(new TimelineClip
+                        {
+                            Name = clipData.Name,
+                            SourcePath = clipData.SourcePath,
+                            StartTime = clipData.StartPosition, // Map StartPosition to StartTime
+                            Duration = clipData.Duration,
+                            InPoint = clipData.InPoint,
+                            OutPoint = clipData.OutPoint,
+                            Gain = clipData.Volume // Map Volume to Gain
+                            // Speed and Opacity stored but not used yet
+                        });
+                    }
+
+                    TimelineModel.Tracks.Add(track);
+                }
+
+                TimelineModel.Duration = project.Duration;
+                Timeline.TimelineModel = TimelineModel;
+                Timeline.InvalidateVisual(); // Refresh the timeline display
+
+                MessageBox.Show($"Project loaded: {Path.GetFileName(filePath)}", "Loaded",
                     MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load project:\n{ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -921,4 +1077,53 @@ namespace PlatypusTools.UI.Views
 
         #endregion
     }
+
+    #region Project Serialization Models
+
+    /// <summary>
+    /// Project data for saving/loading
+    /// </summary>
+    public class ProjectData
+    {
+        public string Version { get; set; } = "1.0";
+        public DateTime SavedAt { get; set; }
+        public TimeSpan Duration { get; set; }
+        public double FrameRate { get; set; } = 30;
+        public List<ProjectPlaylistItem> PlaylistItems { get; set; } = new();
+        public List<ProjectTrack> Tracks { get; set; } = new();
+    }
+
+    public class ProjectPlaylistItem
+    {
+        public string FilePath { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public TimeSpan Duration { get; set; }
+        public bool IsVideo { get; set; }
+    }
+
+    public class ProjectTrack
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Type { get; set; } = "Video";
+        public bool IsHidden { get; set; }
+        public bool IsMuted { get; set; }
+        public bool IsLocked { get; set; }
+        public double Volume { get; set; } = 1.0;
+        public List<ProjectClip> Clips { get; set; } = new();
+    }
+
+    public class ProjectClip
+    {
+        public string Name { get; set; } = string.Empty;
+        public string SourcePath { get; set; } = string.Empty;
+        public TimeSpan StartPosition { get; set; }
+        public TimeSpan Duration { get; set; }
+        public TimeSpan InPoint { get; set; }
+        public TimeSpan OutPoint { get; set; }
+        public double Speed { get; set; } = 1.0;
+        public double Volume { get; set; } = 1.0;
+        public double Opacity { get; set; } = 1.0;
+    }
+
+    #endregion
 }

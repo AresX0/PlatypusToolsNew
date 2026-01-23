@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.9.0 - 2026-01-23
+
+### Added
+- **EFS Encryption Support** - Folder Hider now supports Windows EFS encryption:
+  - Encrypt/decrypt folders using Windows Encrypting File System
+  - Check encryption status of files and folders
+  - Automatic detection of NTFS filesystem requirement
+  - Proper error handling for unsupported filesystems
+
+- **Run Scheduled Tasks** - Scheduled Tasks module now allows running tasks immediately:
+  - Execute any scheduled task on-demand via schtasks /Run
+  - Success/failure feedback with error messages
+
+- **Video Editor Undo/Redo Stack** - Full undo/redo support in Video Editor:
+  - 50-action undo stack
+  - UndoableAction pattern for extensible undo operations
+  - CanUndo/CanRedo properties for UI feedback
+
+- **Video Editor Trim In/Out** - Interactive clip trimming in Video Editor:
+  - Drag left edge to trim in-point
+  - Drag right edge to trim out-point
+  - Real-time duration feedback during trim
+  - Source duration limits enforced
+
+- **Video Project Save/Load** - Shotcut Native Editor project persistence:
+  - Save timeline, tracks, and clips to JSON project file
+  - Load projects with full state restoration
+  - Playlist items preservation
+  - Track settings (mute, hide, lock) saved
+
+### Fixed
+- **Build Errors** - Fixed property name mismatches between UI and Core models
+- **Trim Implementation** - Corrected TrimIn property usage for Core TimelineClip model
+
+---
+
 ## v3.2.8.0 - 2026-01-23
 
 ### Added

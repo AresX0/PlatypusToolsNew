@@ -17,6 +17,7 @@ namespace PlatypusTools.Core.Services
         Task<bool> DisableTask(string taskName);
         Task<bool> DeleteTask(string taskName);
         Task<bool> CreateTask(string taskName, string command, string schedule);
+        Task<bool> RunTask(string taskName);
     }
 
     /// <summary>
@@ -385,6 +386,43 @@ namespace PlatypusTools.Core.Services
 
             fields.Add(currentField.ToString());
             return fields;
+        }
+
+        /// <summary>
+        /// Runs a scheduled task immediately
+        /// </summary>
+        /// <param name="taskName">Task name or path</param>
+        /// <returns>True if the task was started successfully</returns>
+        public async Task<bool> RunTask(string taskName)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = "schtasks",
+                        Arguments = $"/Run /TN \"{taskName}\"",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+
+                    using var process = Process.Start(startInfo);
+                    if (process == null)
+                    {
+                        return false;
+                    }
+
+                    process.WaitForExit();
+                    return process.ExitCode == 0;
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"Failed to run task '{taskName}': {ex.Message}", ex);
+                }
+            });
         }
     }
 }

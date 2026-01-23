@@ -1305,6 +1305,14 @@ namespace PlatypusTools.UI.Views
         private TimeSpan _clipOriginalStartPosition;
         private bool _isDraggingClip;
 
+        // Trim state
+        private bool _isTrimmingIn;
+        private bool _isTrimmingOut;
+        private TimelineClip? _trimmingClip;
+        private TimeSpan _trimOriginalStart;
+        private TimeSpan _trimOriginalDuration;
+        private TimeSpan _trimOriginalInPoint;
+
         /// <summary>
         /// Handle clip mouse down - select clip and prepare for drag
         /// </summary>
@@ -1407,7 +1415,24 @@ namespace PlatypusTools.UI.Views
         /// </summary>
         private void TrimIn_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // TODO: Implement trim in functionality
+            if (sender is FrameworkElement element && element.DataContext is TimelineClip clip)
+            {
+                _trimmingClip = clip;
+                _isTrimmingIn = true;
+                _isTrimmingOut = false;
+                _clipDragStartPoint = e.GetPosition(this);
+                _trimOriginalStart = clip.StartPosition;
+                _trimOriginalDuration = clip.Duration;
+                _trimOriginalInPoint = clip.TrimIn;
+
+                element.CaptureMouse();
+                
+                if (DataContext is VideoEditorViewModel vm)
+                {
+                    vm.SelectedClip = clip;
+                    vm.StatusMessage = "Trimming in point...";
+                }
+            }
             e.Handled = true; // Prevent clip drag
         }
 
@@ -1416,8 +1441,95 @@ namespace PlatypusTools.UI.Views
         /// </summary>
         private void TrimOut_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // TODO: Implement trim out functionality
+            if (sender is FrameworkElement element && element.DataContext is TimelineClip clip)
+            {
+                _trimmingClip = clip;
+                _isTrimmingIn = false;
+                _isTrimmingOut = true;
+                _clipDragStartPoint = e.GetPosition(this);
+                _trimOriginalStart = clip.StartPosition;
+                _trimOriginalDuration = clip.Duration;
+
+                element.CaptureMouse();
+                
+                if (DataContext is VideoEditorViewModel vm)
+                {
+                    vm.SelectedClip = clip;
+                    vm.StatusMessage = "Trimming out point...";
+                }
+            }
             e.Handled = true; // Prevent clip drag
+        }
+
+        /// <summary>
+        /// Handle trim drag movement
+        /// </summary>
+        private void Trim_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (_trimmingClip == null || (!_isTrimmingIn && !_isTrimmingOut)) return;
+            if (e.LeftButton != MouseButtonState.Pressed) return;
+            if (DataContext is not VideoEditorViewModel vm) return;
+
+            var currentPos = e.GetPosition(this);
+            var deltaX = currentPos.X - _clipDragStartPoint.X;
+            var deltaTime = TimeSpan.FromSeconds(deltaX / vm.PixelsPerSecond);
+
+            if (_isTrimmingIn)
+            {
+                // Trim in: move start position forward, reduce duration, increase in-point
+                var newStart = _trimOriginalStart + deltaTime;
+                var newDuration = _trimOriginalDuration - deltaTime;
+                var newInPoint = _trimOriginalInPoint + deltaTime;
+
+                // Clamp values
+                if (newStart < TimeSpan.Zero) newStart = TimeSpan.Zero;
+                if (newDuration < TimeSpan.FromSeconds(0.1)) newDuration = TimeSpan.FromSeconds(0.1);
+                if (newInPoint < TimeSpan.Zero) newInPoint = TimeSpan.Zero;
+
+                _trimmingClip.StartPosition = newStart;
+                _trimmingClip.Duration = newDuration;
+                _trimmingClip.TrimIn = newInPoint;
+            }
+            else if (_isTrimmingOut)
+            {
+                // Trim out: keep start position, adjust duration
+                var newDuration = _trimOriginalDuration + deltaTime;
+
+                // Clamp duration
+                if (newDuration < TimeSpan.FromSeconds(0.1)) newDuration = TimeSpan.FromSeconds(0.1);
+
+                // Don't let clip extend past source duration (if known)
+                if (_trimmingClip.SourceDuration > TimeSpan.Zero)
+                {
+                    var maxDuration = _trimmingClip.SourceDuration - _trimmingClip.TrimIn;
+                    if (newDuration > maxDuration) newDuration = maxDuration;
+                }
+
+                _trimmingClip.Duration = newDuration;
+            }
+
+            vm.StatusMessage = $"Trim: {FormatTimeSpan(_trimmingClip.StartPosition)} - {FormatTimeSpan(_trimmingClip.StartPosition + _trimmingClip.Duration)}";
+        }
+
+        /// <summary>
+        /// Handle trim drag end
+        /// </summary>
+        private void Trim_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (_trimmingClip != null && (sender is FrameworkElement element))
+            {
+                element.ReleaseMouseCapture();
+
+                if (DataContext is VideoEditorViewModel vm)
+                {
+                    vm.StatusMessage = $"Trimmed {_trimmingClip.Name}";
+                }
+            }
+
+            _trimmingClip = null;
+            _isTrimmingIn = false;
+            _isTrimmingOut = false;
+            e.Handled = true;
         }
 
         /// <summary>

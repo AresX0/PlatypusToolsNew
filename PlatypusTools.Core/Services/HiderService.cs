@@ -435,6 +435,216 @@ namespace PlatypusTools.Core.Services
             return ProtectObject(rec);
         }
 
+        #region EFS Encryption
+
+        // P/Invoke for EFS functions
+        [System.Runtime.InteropServices.DllImport("advapi32.dll", SetLastError = true, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        private static extern uint EncryptFile(string lpFileName);
+
+        [System.Runtime.InteropServices.DllImport("advapi32.dll", SetLastError = true, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        private static extern uint DecryptFile(string lpFileName, uint dwReserved);
+
+        [System.Runtime.InteropServices.DllImport("advapi32.dll", SetLastError = true, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        private static extern bool FileEncryptionStatus(string lpFileName, out uint lpStatus);
+
+        // EFS status constants
+        private const uint FILE_ENCRYPTABLE = 0;
+        private const uint FILE_IS_ENCRYPTED = 1;
+        private const uint FILE_SYSTEM_ATTR = 2;
+        private const uint FILE_ROOT_DIR = 3;
+        private const uint FILE_SYSTEM_DIR = 4;
+        private const uint FILE_UNKNOWN = 5;
+        private const uint FILE_SYSTEM_NOT_SUPPORT = 6;
+        private const uint FILE_USER_DISALLOWED = 7;
+        private const uint FILE_READ_ONLY = 8;
+
+        /// <summary>
+        /// Encrypts a folder and all its contents using Windows EFS.
+        /// </summary>
+        /// <param name="folderPath">Path to the folder to encrypt</param>
+        /// <returns>True if encryption was successful</returns>
+        public static bool EncryptFolder(string folderPath)
+        {
+            if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
+            {
+                SimpleLogger.Error($"EncryptFolder: Invalid path: {folderPath}");
+                return false;
+            }
+
+            try
+            {
+                SimpleLogger.Debug($"Encrypting folder: {folderPath}");
+
+                // Check if folder can be encrypted
+                if (!FileEncryptionStatus(folderPath, out uint status))
+                {
+                    SimpleLogger.Error($"EncryptFolder: Cannot get encryption status for {folderPath}");
+                    return false;
+                }
+
+                if (status == FILE_IS_ENCRYPTED)
+                {
+                    SimpleLogger.Debug($"Folder already encrypted: {folderPath}");
+                    return true;
+                }
+
+                if (status != FILE_ENCRYPTABLE)
+                {
+                    SimpleLogger.Error($"EncryptFolder: Folder cannot be encrypted (status={status}): {folderPath}");
+                    return false;
+                }
+
+                // Encrypt the folder
+                uint result = EncryptFile(folderPath);
+                if (result != 0)
+                {
+                    SimpleLogger.Error($"EncryptFolder failed with error code: {result}");
+                    return false;
+                }
+
+                // Encrypt all files in the folder recursively
+                foreach (var file in Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories))
+                {
+                    try
+                    {
+                        if (FileEncryptionStatus(file, out uint fileStatus) && fileStatus == FILE_ENCRYPTABLE)
+                        {
+                            EncryptFile(file);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        SimpleLogger.Error($"EncryptFolder: Error encrypting file {file}: {ex.Message}");
+                    }
+                }
+
+                SimpleLogger.Debug($"Folder encrypted successfully: {folderPath}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error($"EncryptFolder error: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Decrypts a folder and all its contents.
+        /// </summary>
+        /// <param name="folderPath">Path to the folder to decrypt</param>
+        /// <returns>True if decryption was successful</returns>
+        public static bool DecryptFolder(string folderPath)
+        {
+            if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
+            {
+                SimpleLogger.Error($"DecryptFolder: Invalid path: {folderPath}");
+                return false;
+            }
+
+            try
+            {
+                SimpleLogger.Debug($"Decrypting folder: {folderPath}");
+
+                // Decrypt all files first
+                foreach (var file in Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories))
+                {
+                    try
+                    {
+                        if (FileEncryptionStatus(file, out uint fileStatus) && fileStatus == FILE_IS_ENCRYPTED)
+                        {
+                            DecryptFile(file, 0);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        SimpleLogger.Error($"DecryptFolder: Error decrypting file {file}: {ex.Message}");
+                    }
+                }
+
+                // Decrypt the folder
+                uint result = DecryptFile(folderPath, 0);
+                if (result != 0)
+                {
+                    SimpleLogger.Error($"DecryptFolder failed with error code: {result}");
+                    return false;
+                }
+
+                SimpleLogger.Debug($"Folder decrypted successfully: {folderPath}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error($"DecryptFolder error: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Check if a folder or file is encrypted with EFS.
+        /// </summary>
+        public static bool IsEncrypted(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return false;
+
+            try
+            {
+                if (FileEncryptionStatus(path, out uint status))
+                {
+                    return status == FILE_IS_ENCRYPTED;
+                }
+            }
+            catch { }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Check if a folder or file can be encrypted with EFS.
+        /// </summary>
+        public static bool CanEncrypt(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return false;
+
+            try
+            {
+                if (FileEncryptionStatus(path, out uint status))
+                {
+                    return status == FILE_ENCRYPTABLE || status == FILE_IS_ENCRYPTED;
+                }
+            }
+            catch { }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Get a user-friendly string describing the EFS status.
+        /// </summary>
+        public static string GetEncryptionStatusText(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return "Invalid path";
+
+            if (!FileEncryptionStatus(path, out uint status))
+            {
+                return "Unknown (cannot query status)";
+            }
+
+            return status switch
+            {
+                FILE_ENCRYPTABLE => "Not encrypted (can be encrypted)",
+                FILE_IS_ENCRYPTED => "Encrypted",
+                FILE_SYSTEM_ATTR => "System file (cannot encrypt)",
+                FILE_ROOT_DIR => "Root directory (cannot encrypt)",
+                FILE_SYSTEM_DIR => "System directory (cannot encrypt)",
+                FILE_SYSTEM_NOT_SUPPORT => "File system does not support encryption (use NTFS)",
+                FILE_USER_DISALLOWED => "User not allowed to encrypt",
+                FILE_READ_ONLY => "Read-only (cannot encrypt)",
+                _ => $"Unknown status ({status})"
+            };
+        }
+
+        #endregion
+
 
     }
 }

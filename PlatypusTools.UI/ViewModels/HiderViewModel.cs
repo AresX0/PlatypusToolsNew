@@ -249,16 +249,75 @@ namespace PlatypusTools.UI.ViewModels
             {
                 if (vm.EfsEnabled)
                 {
-                    // TODO: Implement EFS encryption
-                    // SecurityService.EncryptFolder(vm.FolderPath);
-                    System.Windows.MessageBox.Show($"EFS encryption is enabled in configuration for:\n{vm.FolderPath}\n\nNote: EFS encryption must be manually applied through Windows File Properties (Advanced → Encrypt contents).", 
-                        "EFS Configuration", 
-                        System.Windows.MessageBoxButton.OK, 
-                        System.Windows.MessageBoxImage.Information);
+                    // Check if folder can be encrypted
+                    if (!HiderService.CanEncrypt(vm.FolderPath))
+                    {
+                        var status = HiderService.GetEncryptionStatusText(vm.FolderPath);
+                        System.Windows.MessageBox.Show($"Cannot encrypt folder:\n{vm.FolderPath}\n\nStatus: {status}\n\nNote: EFS requires an NTFS file system.", 
+                            "EFS Encryption", 
+                            System.Windows.MessageBoxButton.OK, 
+                            System.Windows.MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    // Check if already encrypted
+                    if (HiderService.IsEncrypted(vm.FolderPath))
+                    {
+                        System.Windows.MessageBox.Show($"Folder is already encrypted:\n{vm.FolderPath}", 
+                            "EFS Encryption", 
+                            System.Windows.MessageBoxButton.OK, 
+                            System.Windows.MessageBoxImage.Information);
+                        return;
+                    }
+
+                    // Encrypt the folder
+                    if (HiderService.EncryptFolder(vm.FolderPath))
+                    {
+                        System.Windows.MessageBox.Show($"✅ Folder encrypted successfully:\n{vm.FolderPath}\n\nAll files in this folder are now protected with Windows EFS.", 
+                            "EFS Encryption", 
+                            System.Windows.MessageBoxButton.OK, 
+                            System.Windows.MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        System.Windows.MessageBox.Show($"❌ Failed to encrypt folder:\n{vm.FolderPath}\n\nCheck that you have permission and the drive uses NTFS.", 
+                            "EFS Encryption", 
+                            System.Windows.MessageBoxButton.OK, 
+                            System.Windows.MessageBoxImage.Error);
+                    }
                 }
                 else
                 {
-                    System.Windows.MessageBox.Show("Enable 'Use EFS' checkbox first, then click EFS button.", "Info", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                    // Decrypt if checkbox is unchecked
+                    if (HiderService.IsEncrypted(vm.FolderPath))
+                    {
+                        var result = System.Windows.MessageBox.Show($"Remove EFS encryption from:\n{vm.FolderPath}?\n\nThis will decrypt all files in the folder.", 
+                            "Remove EFS Encryption", 
+                            System.Windows.MessageBoxButton.YesNo, 
+                            System.Windows.MessageBoxImage.Question);
+                        
+                        if (result == System.Windows.MessageBoxResult.Yes)
+                        {
+                            if (HiderService.DecryptFolder(vm.FolderPath))
+                            {
+                                System.Windows.MessageBox.Show($"✅ Folder decrypted successfully:\n{vm.FolderPath}", 
+                                    "EFS Decryption", 
+                                    System.Windows.MessageBoxButton.OK, 
+                                    System.Windows.MessageBoxImage.Information);
+                            }
+                            else
+                            {
+                                System.Windows.MessageBox.Show($"❌ Failed to decrypt folder:\n{vm.FolderPath}", 
+                                    "EFS Decryption", 
+                                    System.Windows.MessageBoxButton.OK, 
+                                    System.Windows.MessageBoxImage.Error);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        System.Windows.MessageBox.Show("Enable 'Use EFS' checkbox first, then click EFS button to encrypt.", "Info", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                    }
                 }
                 SaveConfig();
             }

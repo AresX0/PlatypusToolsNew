@@ -41,6 +41,11 @@ namespace PlatypusTools.UI.ViewModels
         
         private CancellationTokenSource? _operationCts;
         private bool _disposed;
+
+        // Undo/Redo stacks
+        private readonly Stack<UndoableAction> _undoStack = new();
+        private readonly Stack<UndoableAction> _redoStack = new();
+        private const int MaxUndoStackSize = 50;
         
         /// <summary>
         /// Default duration for image overlays in seconds.
@@ -669,8 +674,8 @@ namespace PlatypusTools.UI.ViewModels
             StopCommand = new RelayCommand(_ => ExecuteStop());
             ZoomInCommand = new RelayCommand(_ => ZoomLevel *= 1.5);
             ZoomOutCommand = new RelayCommand(_ => ZoomLevel /= 1.5);
-            UndoCommand = new RelayCommand(_ => ExecuteUndo()); // TODO: Implement proper undo stack
-            RedoCommand = new RelayCommand(_ => ExecuteRedo()); // TODO: Implement proper redo stack
+            UndoCommand = new RelayCommand(_ => ExecuteUndo(), _ => CanUndoAction);
+            RedoCommand = new RelayCommand(_ => ExecuteRedo(), _ => CanRedoAction);
             CancelOperationCommand = new RelayCommand(_ => ExecuteCancelOperation(), _ => IsBusy);
             DropMediaOnTimelineCommand = new RelayCommand(param => ExecuteDropMediaOnTimeline(param));
             SeekToPositionCommand = new RelayCommand(param => ExecuteSeekToPosition(param));
@@ -2677,17 +2682,61 @@ After installation, restart PlatypusTools.
 
         private void ExecuteUndo()
         {
-            // TODO: Implement undo stack
+            if (_undoStack.Count == 0) return;
+
+            var action = _undoStack.Pop();
+            action.Undo();
+            _redoStack.Push(action);
+
+            OnPropertyChanged(nameof(CanUndoAction));
+            OnPropertyChanged(nameof(CanRedoAction));
+            LogDebug($"[UNDO] {action.Description}");
         }
 
-        private bool CanUndo() => false; // TODO
+        private bool CanUndo() => _undoStack.Count > 0;
+
+        public bool CanUndoAction => CanUndo();
 
         private void ExecuteRedo()
         {
-            // TODO: Implement redo stack
+            if (_redoStack.Count == 0) return;
+
+            var action = _redoStack.Pop();
+            action.Redo();
+            _undoStack.Push(action);
+
+            OnPropertyChanged(nameof(CanUndoAction));
+            OnPropertyChanged(nameof(CanRedoAction));
+            LogDebug($"[REDO] {action.Description}");
         }
 
-        private bool CanRedo() => false; // TODO
+        private bool CanRedo() => _redoStack.Count > 0;
+
+        public bool CanRedoAction => CanRedo();
+
+        /// <summary>
+        /// Push an undoable action onto the undo stack
+        /// </summary>
+        private void PushUndoAction(string description, Action undoAction, Action redoAction)
+        {
+            var action = new UndoableAction(description, undoAction, redoAction);
+            _undoStack.Push(action);
+            _redoStack.Clear(); // Clear redo stack when new action is performed
+
+            // Limit stack size
+            while (_undoStack.Count > MaxUndoStackSize)
+            {
+                var items = _undoStack.ToArray();
+                _undoStack.Clear();
+                for (int i = 0; i < items.Length - 1; i++)
+                {
+                    _undoStack.Push(items[i]);
+                }
+            }
+
+            OnPropertyChanged(nameof(CanUndoAction));
+            OnPropertyChanged(nameof(CanRedoAction));
+        }
 
         private void ExecuteCancelOperation()
         {
@@ -3697,5 +3746,25 @@ After installation, restart PlatypusTools.
             ExportCategory.ImageSequence => "🖼️",
             _ => "📁"
         };
+    }
+
+    /// <summary>
+    /// Represents an undoable/redoable action in the video editor.
+    /// </summary>
+    public class UndoableAction
+    {
+        public string Description { get; }
+        private readonly Action _undoAction;
+        private readonly Action _redoAction;
+
+        public UndoableAction(string description, Action undoAction, Action redoAction)
+        {
+            Description = description;
+            _undoAction = undoAction;
+            _redoAction = redoAction;
+        }
+
+        public void Undo() => _undoAction();
+        public void Redo() => _redoAction();
     }
 }

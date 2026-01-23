@@ -220,10 +220,20 @@ namespace PlatypusTools.UI.ViewModels
 
             try
             {
-                // TODO: Implement RunTask method in ScheduledTasksService
-                // await Task.Run(() => _scheduledTasksService.RunTask(SelectedTask.Path));
-                await Task.CompletedTask;
-                StatusMessage = $"Run task not yet implemented";
+                StatusMessage = $"Running task: {SelectedTask.Name}...";
+                var success = await _scheduledTasksService.RunTask(SelectedTask.Path);
+                
+                if (success)
+                {
+                    StatusMessage = $"✅ Started task: {SelectedTask.Name}";
+                    // Refresh after a short delay to show updated status
+                    await Task.Delay(1000);
+                    await RefreshAsync();
+                }
+                else
+                {
+                    StatusMessage = $"❌ Failed to start task: {SelectedTask.Name}";
+                }
             }
             catch (Exception ex)
             {
