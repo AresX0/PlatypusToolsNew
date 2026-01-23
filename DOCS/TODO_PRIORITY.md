@@ -12,31 +12,31 @@
 
 | # | Task | Effort | Description | Status |
 |---|------|--------|-------------|--------|
-| AP-001 | Track Rating UI | ⭐ | Add clickable star rating widget to Now Playing panel (model already exists) | ❌ Not Started |
-| AP-002 | Play Speed Control | ⭐ | Add 0.5x / 0.75x / 1x / 1.25x / 1.5x / 2x playback speed buttons | ❌ Not Started |
-| AP-003 | Media Key Support | ⭐ | Respond to Play/Pause/Next/Prev hardware keyboard keys | ❌ Not Started |
-| AP-004 | Now Playing Queue Reorder | ⭐ | Drag-and-drop reordering in the queue list | ❌ Not Started |
-| AP-005 | Track Info Tooltip | ⭐ | Hover tooltip showing full metadata (bitrate, codec, file size) | ❌ Not Started |
+| AP-001 | Track Rating UI | ⭐ | Add clickable star rating widget to Now Playing panel (model already exists) | ✅ Complete |
+| AP-002 | Play Speed Control | ⭐ | Add 0.5x / 0.75x / 1x / 1.25x / 1.5x / 2x playback speed buttons | ✅ Complete |
+| AP-003 | Media Key Support | ⭐ | Respond to Play/Pause/Next/Prev hardware keyboard keys | ✅ Complete |
+| AP-004 | Now Playing Queue Reorder | ⭐ | Drag-and-drop reordering in the queue list | ✅ Complete |
+| AP-005 | Track Info Tooltip | ⭐ | Hover tooltip showing full metadata (bitrate, codec, file size) | ✅ Complete |
 
 ### Quick Wins (⭐⭐ = 3-4 hours each)
 
 | # | Task | Effort | Description | Status |
 |---|------|--------|-------------|--------|
-| AP-006 | 10-Band EQ UI | ⭐⭐ | Upgrade from 3-band to 10-band equalizer (32Hz, 64Hz, 125Hz, 250Hz, 500Hz, 1kHz, 2kHz, 4kHz, 8kHz, 16kHz) | ❌ Not Started |
-| AP-007 | LRC Lyrics Parsing | ⭐⭐ | Parse .lrc files and display synced lyrics with current line highlighting | ❌ Not Started |
-| AP-008 | Smart Playlists | ⭐⭐ | Auto-playlists based on rules (Most Played, Recently Added, Top Rated, Genre-based) | ❌ Not Started |
-| AP-009 | Mini Player Mode | ⭐⭐ | Compact floating window with basic controls and album art | ❌ Not Started |
-| AP-010 | Audio File Info Panel | ⭐⭐ | Detailed file info panel (codec, bitrate, sample rate, channels, ReplayGain) | ❌ Not Started |
+| AP-006 | 10-Band EQ UI | ⭐⭐ | Upgrade from 3-band to 10-band equalizer (32Hz, 64Hz, 125Hz, 250Hz, 500Hz, 1kHz, 2kHz, 4kHz, 8kHz, 16kHz) | ✅ Complete |
+| AP-007 | LRC Lyrics Parsing | ⭐⭐ | Parse .lrc files and display synced lyrics with current line highlighting | ✅ Complete |
+| AP-008 | Smart Playlists | ⭐⭐ | Auto-playlists based on rules (Most Played, Recently Added, Top Rated, Genre-based) | ✅ Complete |
+| AP-009 | Mini Player Mode | ⭐⭐ | Compact floating window with basic controls and album art | ✅ Complete |
+| AP-010 | Audio File Info Panel | ⭐⭐ | Detailed file info panel (codec, bitrate, sample rate, channels, ReplayGain) | ✅ Complete |
 
 ### Medium Effort (⭐⭐⭐ = 5-8 hours each)
 
 | # | Task | Effort | Description | Status |
 |---|------|--------|-------------|--------|
-| AP-011 | Gapless Playback | ⭐⭐⭐ | Seamless album playback without gaps between tracks | ❌ Not Started |
-| AP-012 | Auto DJ / Radio Mode | ⭐⭐⭐ | Auto-queue similar tracks based on genre/artist | ❌ Not Started |
-| AP-013 | Scrobbling / Last.fm | ⭐⭐⭐ | Track listening history and submit to Last.fm (requires API) | ❌ Not Started |
-| AP-014 | ReplayGain Support | ⭐⭐⭐ | Apply ReplayGain normalization during playback | ❌ Not Started |
-| AP-015 | Audio Converter Integration | ⭐⭐⭐ | Convert tracks to MP3/FLAC/AAC from library context menu | ❌ Not Started |
+| AP-011 | Gapless Playback | ⭐⭐⭐ | Seamless album playback without gaps between tracks | ✅ Complete |
+| AP-012 | Auto DJ / Radio Mode | ⭐⭐⭐ | Auto-queue similar tracks based on genre/artist | ✅ Complete |
+| AP-013 | Scrobbling / Last.fm | ⭐⭐⭐ | Track listening history and submit to Last.fm (requires API) | ✅ Complete |
+| AP-014 | ReplayGain Support | ⭐⭐⭐ | Apply ReplayGain normalization during playback | ✅ Complete |
+| AP-015 | Audio Converter Integration | ⭐⭐⭐ | Convert tracks to MP3/FLAC/AAC from library context menu | ✅ Complete |
 
 ---
 

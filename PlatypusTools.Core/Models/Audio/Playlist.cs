@@ -26,6 +26,7 @@ public enum PlaylistType
 {
     User,
     Smart,
+    Custom,
     NowPlaying,
     RecentlyPlayed,
     MostPlayed,

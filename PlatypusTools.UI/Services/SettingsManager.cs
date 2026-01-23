@@ -167,6 +167,7 @@ namespace PlatypusTools.UI.Services
                 new("Multimedia", "🎬 Multimedia", null),
                 new("Multimedia.Audio", "🎵 Audio", "Multimedia"),
                 new("Multimedia.Audio.AudioPlayer", "Audio Player", "Multimedia.Audio"),
+                new("Multimedia.Audio.EnhancedAudioPlayer", "Enhanced Player", "Multimedia.Audio"),
                 new("Multimedia.Audio.AudioTrim", "Audio Trim", "Multimedia.Audio"),
                 new("Multimedia.Image", "🖼️ Image", "Multimedia"),
                 new("Multimedia.Image.ImageEdit", "Image Edit", "Multimedia.Image"),

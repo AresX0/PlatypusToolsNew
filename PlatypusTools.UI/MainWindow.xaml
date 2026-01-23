@@ -139,8 +139,8 @@
                     <TabItem Header="🎵 Audio">
                         <TabControl>
                             <TabItem Header="Audio Player"
-                                     Visibility="{Binding AudioPlayer, Source={x:Static services:TabVisibilityService.Instance}}">
-                                <controls:LazyTabContent ViewType="{x:Type views:AudioPlayerView}" ViewDataContext="{Binding AudioPlayer}" />
+                                     Visibility="{Binding EnhancedAudioPlayer, Source={x:Static services:TabVisibilityService.Instance}}">
+                                <controls:LazyTabContent ViewType="{x:Type views:EnhancedAudioPlayerView}" ViewDataContext="{Binding EnhancedAudioPlayer}" />
                             </TabItem>
                             <TabItem Header="Audio Trim"
                                      Visibility="{Binding AudioTrim, Source={x:Static services:TabVisibilityService.Instance}}">

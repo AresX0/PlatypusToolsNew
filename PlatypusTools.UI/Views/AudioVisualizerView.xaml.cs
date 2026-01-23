@@ -89,7 +89,7 @@ namespace PlatypusTools.UI.Views
         }
         
         /// <summary>
-        /// Subscribes to the audio service for spectrum data.
+        /// Subscribes to both audio services for spectrum data.
         /// </summary>
         private void SubscribeToService()
         {
@@ -97,9 +97,14 @@ namespace PlatypusTools.UI.Views
             {
                 try
                 {
+                    // Subscribe to regular AudioPlayerService
                     PlatypusTools.UI.Services.AudioPlayerService.Instance.SpectrumDataUpdated += OnSpectrumDataFromService;
+                    
+                    // Also subscribe to EnhancedAudioPlayerService
+                    PlatypusTools.UI.Services.EnhancedAudioPlayerService.Instance.SpectrumDataUpdated += OnSpectrumDataFromEnhancedService;
+                    
                     _subscribedToService = true;
-                    System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Subscribed to SpectrumDataUpdated (from constructor/init)");
+                    System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Subscribed to both audio services");
                 }
                 catch (Exception ex)
                 {
@@ -109,28 +114,122 @@ namespace PlatypusTools.UI.Views
         }
         
         /// <summary>
+        /// Handler for EnhancedAudioPlayerService spectrum data (float[]).
+        /// </summary>
+        private void OnSpectrumDataFromEnhancedService(object? sender, float[] data)
+        {
+            Dispatcher.BeginInvoke(() =>
+            {
+                if (data != null && data.Length > 0)
+                {
+                    // Convert float[] to double[]
+                    var doubleData = new double[data.Length];
+                    for (int i = 0; i < data.Length; i++)
+                        doubleData[i] = data[i];
+                    
+                    _spectrumData = ResampleSpectrum(doubleData, _barCount);
+                    _hasExternalData = true;
+                    _lastExternalUpdate = DateTime.Now;
+                }
+            });
+        }
+        
+        /// <summary>
         /// Starts the render timer if not already started.
         /// </summary>
         private void StartRenderTimer()
         {
-            if (!_timerStarted)
+            // Check if timer exists and is running
+            if (_renderTimer != null && _renderTimer.IsEnabled)
             {
-                _renderTimer = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(16) };
-                _renderTimer.Tick += OnRenderTick;
-                _renderTimer.Start();
-                _timerStarted = true;
-                System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Render timer started (from constructor/init)");
+                return; // Timer is already running
+            }
+            
+            // Stop and clean up existing timer if any
+            if (_renderTimer != null)
+            {
+                _renderTimer.Stop();
+                _renderTimer.Tick -= OnRenderTick;
+            }
+            
+            // Create and start new timer
+            _renderTimer = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(16) };
+            _renderTimer.Tick += OnRenderTick;
+            _renderTimer.Start();
+            _timerStarted = true;
+            System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Render timer started");
+        }
+        
+        /// <summary>
+        /// Resets the visualizer for a new track. Call this when track changes.
+        /// </summary>
+        public void Reset()
+        {
+            Dispatcher.BeginInvoke(() =>
+            {
+                // Clear spectrum data
+                for (int i = 0; i < _spectrumData.Length; i++)
+                {
+                    _spectrumData[i] = 0.1;
+                    _smoothedData[i] = 0.1;
+                    _previousSmoothed[i] = 0.1;
+                }
+                
+                // Reset animation phase
+                _animationPhase = 0;
+                _auroraPhase = 0;
+                _hasExternalData = false;
+                _lastExternalUpdate = DateTime.MinValue;
+                
+                // Ensure timer is running
+                StartRenderTimer();
+                
+                // Force immediate redraw
+                InvalidateVisual();
+                RenderVisualization();
+                
+                System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Reset for new track");
+            });
+        }
+        
+        /// <summary>
+        /// Stops the render timer.
+        /// </summary>
+        private void StopRenderTimer()
+        {
+            if (_renderTimer != null)
+            {
+                _renderTimer.Stop();
+                _renderTimer.Tick -= OnRenderTick;
+                _renderTimer = null;
+                _timerStarted = false;
+                System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Render timer stopped");
             }
         }
         
         private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if ((bool)e.NewValue)
+            try
             {
-                // When becoming visible, ensure we're subscribed and running
-                SubscribeToService();
-                StartRenderTimer();
-                System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Became visible, ensuring subscription");
+                if ((bool)e.NewValue)
+                {
+                    // When becoming visible, ensure we're subscribed and running
+                    SubscribeToService();
+                    
+                    // Use Dispatcher to ensure timer starts on UI thread after layout is complete
+                    Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () =>
+                    {
+                        StartRenderTimer();
+                    });
+                    
+                    System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Became visible, ensuring subscription and timer");
+                }
+                // Don't stop the timer when invisible - let it keep running
+                // This prevents the visualizer from freezing when tabs are switched
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"AudioVisualizerView.OnIsVisibleChanged error: {ex.Message}");
             }
         }
         
@@ -183,14 +282,18 @@ namespace PlatypusTools.UI.Views
         
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
-            // Unsubscribe from service when unloaded
+            // Stop the render timer
+            StopRenderTimer();
+            
+            // Unsubscribe from both services when unloaded
             if (_subscribedToService)
             {
                 try
                 {
                     PlatypusTools.UI.Services.AudioPlayerService.Instance.SpectrumDataUpdated -= OnSpectrumDataFromService;
+                    PlatypusTools.UI.Services.EnhancedAudioPlayerService.Instance.SpectrumDataUpdated -= OnSpectrumDataFromEnhancedService;
                     _subscribedToService = false;
-                    System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Unsubscribed from SpectrumDataUpdated");
+                    System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Unsubscribed from both audio services");
                 }
                 catch { }
             }
@@ -199,7 +302,14 @@ namespace PlatypusTools.UI.Views
         
         private void OnRenderTick(object? sender, EventArgs e)
         {
-            RenderVisualization();
+            try
+            {
+                RenderVisualization();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"AudioVisualizerView.OnRenderTick error: {ex.Message}");
+            }
         }
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)

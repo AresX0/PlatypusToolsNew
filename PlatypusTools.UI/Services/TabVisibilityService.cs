@@ -77,6 +77,7 @@ namespace PlatypusTools.UI.Services
         // Multimedia
         public Visibility Multimedia => GetVisibility("Multimedia");
         public Visibility AudioPlayer => GetVisibility("Multimedia.Audio.AudioPlayer");
+        public Visibility EnhancedAudioPlayer => GetVisibility("Multimedia.Audio.EnhancedAudioPlayer");
         public Visibility AudioTrim => GetVisibility("Multimedia.Audio.AudioTrim");
         public Visibility ImageEdit => GetVisibility("Multimedia.Image.ImageEdit");
         public Visibility ImageConverter => GetVisibility("Multimedia.Image.ImageConverter");

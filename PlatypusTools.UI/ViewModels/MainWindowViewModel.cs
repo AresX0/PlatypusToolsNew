@@ -39,6 +39,7 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<PrivacyCleanerViewModel> _privacyCleaner = new(() => new PrivacyCleanerViewModel());
         private readonly Lazy<VideoConverterViewModel> _videoConverter = new(() => new VideoConverterViewModel());
         private readonly Lazy<AudioPlayerViewModel> _audioPlayer = new(() => new AudioPlayerViewModel());
+        private readonly Lazy<EnhancedAudioPlayerViewModel> _enhancedAudioPlayer = new(() => new EnhancedAudioPlayerViewModel());
         private readonly Lazy<MetadataEditorViewModel> _metadataEditor = new(() => new MetadataEditorViewModel());
         private readonly Lazy<MultimediaEditorViewModel> _multimediaEditor = new(() => new MultimediaEditorViewModel());
         private readonly Lazy<SystemAuditViewModel> _systemAudit = new(() => new SystemAuditViewModel());
@@ -126,6 +127,7 @@ namespace PlatypusTools.UI.ViewModels
         public PrivacyCleanerViewModel PrivacyCleaner => _privacyCleaner.Value;
         public VideoConverterViewModel VideoConverter => _videoConverter.Value;
         public AudioPlayerViewModel AudioPlayer => _audioPlayer.Value;
+        public EnhancedAudioPlayerViewModel EnhancedAudioPlayer => _enhancedAudioPlayer.Value;
         public MetadataEditorViewModel MetadataEditor => _metadataEditor.Value;
         public MultimediaEditorViewModel MultimediaEditor => _multimediaEditor.Value;
         public SystemAuditViewModel SystemAudit => _systemAudit.Value;

@@ -353,4 +353,35 @@ namespace PlatypusTools.UI.Converters
             throw new NotImplementedException();
         }
     }
+
+    /// <summary>
+    /// Converts an integer to a boolean for RadioButton binding.
+    /// ConverterParameter specifies which integer value should return true.
+    /// </summary>
+    public class IntToBoolConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is int intValue && parameter != null)
+            {
+                if (int.TryParse(parameter.ToString(), out int targetValue))
+                {
+                    return intValue == targetValue;
+                }
+            }
+            return false;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is bool boolValue && boolValue && parameter != null)
+            {
+                if (int.TryParse(parameter.ToString(), out int targetValue))
+                {
+                    return targetValue;
+                }
+            }
+            return Binding.DoNothing;
+        }
+    }
 }
