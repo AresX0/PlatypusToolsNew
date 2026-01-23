@@ -39,6 +39,12 @@ namespace PlatypusTools.UI.ViewModels
         private readonly WaveformService _waveformService;
         private readonly RealtimePreviewService _realtimePreview;
         
+        // Auto-save support
+        private readonly DispatcherTimer _autoSaveTimer;
+        private DateTime _lastAutoSave = DateTime.MinValue;
+        private bool _hasUnsavedChanges;
+        private const int AutoSaveIntervalMinutes = 5;
+        
         private CancellationTokenSource? _operationCts;
         private bool _disposed;
 
@@ -735,6 +741,14 @@ namespace PlatypusTools.UI.ViewModels
             };
             _playbackTimer.Tick += PlaybackTimer_Tick;
 
+            // Initialize auto-save timer
+            _autoSaveTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMinutes(AutoSaveIntervalMinutes)
+            };
+            _autoSaveTimer.Tick += AutoSaveTimer_Tick;
+            _autoSaveTimer.Start();
+
             // Initialize export profiles
             InitializeExportProfiles();
             InitializeTransitions();
@@ -1007,6 +1021,12 @@ namespace PlatypusTools.UI.ViewModels
             var startTime = track.Clips.Count > 0
                 ? track.Clips.Max(c => c.EndPosition)
                 : TimeSpan.Zero;
+
+            // Apply snapping if enabled
+            if (SnappingEnabled)
+            {
+                startTime = GetSnappedPosition(startTime, track);
+            }
 
             var duration = asset.Type == MediaType.Image 
                 ? TimeSpan.FromSeconds(DefaultImageOverlayDuration)
@@ -1976,6 +1996,122 @@ namespace PlatypusTools.UI.ViewModels
             UpdatePreviewSource();
         }
         
+        private async void AutoSaveTimer_Tick(object? sender, EventArgs e)
+        {
+            await ExecuteAutoSaveAsync();
+        }
+        
+        /// <summary>
+        /// Performs auto-save to a recovery file.
+        /// </summary>
+        private async Task ExecuteAutoSaveAsync()
+        {
+            if (Project == null || IsBusy) return;
+            
+            try
+            {
+                // Create auto-save directory
+                var autoSavePath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "PlatypusTools", "AutoSave");
+                Directory.CreateDirectory(autoSavePath);
+                
+                // Generate auto-save filename with timestamp
+                var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                var projectName = string.IsNullOrEmpty(Project.Name) ? "Untitled" : Project.Name;
+                var safeProjectName = string.Join("_", projectName.Split(Path.GetInvalidFileNameChars()));
+                var autoSaveFile = Path.Combine(autoSavePath, $"{safeProjectName}_autosave_{timestamp}.ptp");
+                
+                // Sync UI state to project
+                SyncUIToProject();
+                
+                // Save to auto-save file
+                await _editorService.SaveProjectAsync(Project, autoSaveFile);
+                
+                _lastAutoSave = DateTime.Now;
+                _hasUnsavedChanges = false;
+                LogDebug($"[AUTOSAVE] Saved to: {autoSaveFile}");
+                
+                // Cleanup old auto-saves (keep last 5)
+                CleanupOldAutoSaves(autoSavePath, safeProjectName);
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"[AUTOSAVE] Failed: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Removes old auto-save files, keeping only the most recent ones.
+        /// </summary>
+        private void CleanupOldAutoSaves(string autoSavePath, string projectName)
+        {
+            try
+            {
+                var autoSaveFiles = Directory.GetFiles(autoSavePath, $"{projectName}_autosave_*.ptp")
+                    .OrderByDescending(f => f)
+                    .Skip(5) // Keep the 5 most recent
+                    .ToList();
+                
+                foreach (var file in autoSaveFiles)
+                {
+                    try { File.Delete(file); }
+                    catch { /* Ignore cleanup errors */ }
+                }
+            }
+            catch { /* Ignore cleanup errors */ }
+        }
+        
+        /// <summary>
+        /// Gets available auto-save recovery files.
+        /// </summary>
+        public List<string> GetAutoSaveRecoveryFiles()
+        {
+            var autoSavePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "PlatypusTools", "AutoSave");
+            
+            if (!Directory.Exists(autoSavePath))
+                return new List<string>();
+            
+            return Directory.GetFiles(autoSavePath, "*_autosave_*.ptp")
+                .OrderByDescending(f => f)
+                .ToList();
+        }
+        
+        /// <summary>
+        /// Recovers a project from an auto-save file.
+        /// </summary>
+        public async Task<bool> RecoverFromAutoSaveAsync(string autoSaveFile)
+        {
+            if (!File.Exists(autoSaveFile)) return false;
+            
+            try
+            {
+                IsBusy = true;
+                StatusMessage = "Recovering from auto-save...";
+                
+                var recoveredProject = await _editorService.LoadProjectAsync(autoSaveFile);
+                if (recoveredProject == null) return false;
+                
+                Project = recoveredProject;
+                Project.FilePath = string.Empty; // Clear path so user must "Save As"
+                
+                SyncProjectToUI();
+                StatusMessage = $"Recovered project from auto-save";
+                return true;
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Recovery failed: {ex.Message}";
+                return false;
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+        
         private void UpdatePreviewSource()
         {
             System.Diagnostics.Debug.WriteLine($"[Preview] UpdatePreviewSource called. CurrentTime={CurrentTime}, Tracks={Tracks.Count}");
@@ -2743,6 +2879,100 @@ After installation, restart PlatypusTools.
             _operationCts?.Cancel();
         }
 
+        #endregion
+
+        #region Snapping
+
+        /// <summary>
+        /// Snap threshold in pixels (converted to time based on zoom).
+        /// </summary>
+        private const double SnapThresholdPixels = 10.0;
+        
+        /// <summary>
+        /// Gets the snap threshold as a TimeSpan based on current zoom level.
+        /// </summary>
+        private TimeSpan SnapThreshold => TimeSpan.FromMilliseconds(SnapThresholdPixels * 10 / ZoomLevel);
+        
+        /// <summary>
+        /// Gets a snapped position for a clip, considering playhead, other clips, and markers.
+        /// </summary>
+        public TimeSpan GetSnappedPosition(TimeSpan desiredPosition, TimelineTrack? excludeTrack = null, TimelineClip? excludeClip = null)
+        {
+            if (!SnappingEnabled)
+                return desiredPosition;
+            
+            // Collect all snap points
+            var snapPoints = new List<TimeSpan>();
+            
+            // Always snap to zero
+            snapPoints.Add(TimeSpan.Zero);
+            
+            // Snap to playhead
+            snapPoints.Add(CurrentTime);
+            
+            // Snap to in/out points if set
+            if (InPoint > TimeSpan.Zero)
+                snapPoints.Add(InPoint);
+            if (OutPoint > TimeSpan.Zero)
+                snapPoints.Add(OutPoint);
+            
+            // Snap to marker positions
+            foreach (var marker in Markers)
+            {
+                snapPoints.Add(marker.Position);
+            }
+            
+            // Snap to beat markers
+            foreach (var beat in BeatMarkers)
+            {
+                snapPoints.Add(beat.Time);
+            }
+            
+            // Snap to clip edges on all tracks
+            foreach (var track in Tracks)
+            {
+                foreach (var clip in track.Clips)
+                {
+                    if (excludeClip != null && clip.StringId == excludeClip.StringId)
+                        continue;
+                    
+                    snapPoints.Add(clip.StartPosition);
+                    snapPoints.Add(clip.EndPosition);
+                }
+            }
+            
+            // Find nearest snap point within threshold
+            TimeSpan? nearestSnap = null;
+            var nearestDistance = SnapThreshold;
+            
+            foreach (var point in snapPoints)
+            {
+                var distance = TimeSpan.FromTicks(Math.Abs((desiredPosition - point).Ticks));
+                if (distance < nearestDistance)
+                {
+                    nearestDistance = distance;
+                    nearestSnap = point;
+                }
+            }
+            
+            return nearestSnap ?? desiredPosition;
+        }
+        
+        /// <summary>
+        /// Gets snap indicator position for UI feedback (returns null if not snapping).
+        /// </summary>
+        public TimeSpan? GetSnapIndicator(TimeSpan position)
+        {
+            if (!SnappingEnabled)
+                return null;
+            
+            var snapped = GetSnappedPosition(position);
+            if (snapped != position)
+                return snapped;
+            
+            return null;
+        }
+        
         #endregion
 
         #region Helpers
@@ -3644,6 +3874,8 @@ After installation, restart PlatypusTools.
 
             _playbackTimer.Stop();
             _playbackTimer.Tick -= PlaybackTimer_Tick;
+            _autoSaveTimer.Stop();
+            _autoSaveTimer.Tick -= AutoSaveTimer_Tick;
             _operationCts?.Cancel();
             _operationCts?.Dispose();
             _editorService.Dispose();

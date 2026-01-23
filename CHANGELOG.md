@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.11.0 - 2026-01-24
+
+### Added
+- **Filter Favorites (VE-002)** - Mark frequently used filters with star icon for quick access
+- **Filter Presets Save/Load (VE-006)** - Save and load filter parameter configurations
+  - FilterPresetService for persistent preset storage
+  - Apply presets to any compatible filter
+  - Import/export preset configurations
+- **Timeline Snapping (VE-007)** - Clips snap to playhead, markers, and other clip edges
+  - Configurable snap threshold
+  - Snap indicators during drag operations
+- **Clip Markers (VE-008)** - Add markers within clips for sync points and notes
+  - ClipMarker class with position, name, notes, color, type
+  - Support for Generic, SyncPoint, Beat, CuePoint, Chapter, Note, Todo markers
+- **Project Auto-Save (VE-010)** - Automatic 5-minute saves with crash recovery
+  - Timer-based auto-save to AppData
+  - Recovery file detection on startup
+  - Automatic cleanup of old auto-saves
+- **Duplicate Detection (ML-006)** - Find duplicate media files by MD5 hash
+  - Size-based pre-filtering for performance
+  - MediaDuplicateGroup class for duplicate management
+- **DFIR Tools Integration (SEC-006-010)** - Comprehensive digital forensics support
+  - WinPmem memory acquisition (SEC-006)
+  - Volatility 3 analysis with 15+ plugins (SEC-007)
+  - KAPE collection with targets/modules (SEC-008)
+  - OpenSearch/Elasticsearch export (SEC-009)
+  - Plaso super-timeline creation (SEC-010)
+
+---
+
 ## v3.2.10.0 - 2026-01-23
 
 ### Fixed

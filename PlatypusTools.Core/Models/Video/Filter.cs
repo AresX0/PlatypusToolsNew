@@ -63,6 +63,11 @@ namespace PlatypusTools.Core.Models.Video
         public string Icon { get; set; } = "🎨";
         
         /// <summary>
+        /// Whether this filter is marked as a favorite.
+        /// </summary>
+        public bool IsFavorite { get; set; } = false;
+        
+        /// <summary>
         /// Creates a deep copy of the filter.
         /// </summary>
         public Filter Clone()
@@ -79,6 +84,7 @@ namespace PlatypusTools.Core.Models.Video
                 FFmpegFilterName = FFmpegFilterName,
                 Description = Description,
                 Icon = Icon,
+                IsFavorite = IsFavorite,
                 Parameters = Parameters.ConvertAll(p => p.Clone())
             };
         }
@@ -306,6 +312,78 @@ namespace PlatypusTools.Core.Models.Video
         Video,
         Audio,
         Both
+    }
+
+    /// <summary>
+    /// A saved filter preset with named parameter values.
+    /// </summary>
+    public class FilterPreset
+    {
+        /// <summary>
+        /// Unique identifier for the preset.
+        /// </summary>
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        
+        /// <summary>
+        /// User-defined name for the preset.
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// The filter name this preset applies to.
+        /// </summary>
+        public string FilterName { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Description of the preset.
+        /// </summary>
+        public string Description { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// When the preset was created.
+        /// </summary>
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        
+        /// <summary>
+        /// Saved parameter values as name-value pairs.
+        /// </summary>
+        public Dictionary<string, object?> ParameterValues { get; set; } = new();
+        
+        /// <summary>
+        /// Applies this preset to a filter by setting its parameter values.
+        /// </summary>
+        public void ApplyTo(Filter filter)
+        {
+            if (filter.Name != FilterName) return;
+            
+            foreach (var param in filter.Parameters)
+            {
+                if (ParameterValues.TryGetValue(param.Name, out var value))
+                {
+                    param.Value = value;
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Creates a preset from a filter's current settings.
+        /// </summary>
+        public static FilterPreset FromFilter(Filter filter, string presetName)
+        {
+            var preset = new FilterPreset
+            {
+                Name = presetName,
+                FilterName = filter.Name,
+                Description = $"Preset for {filter.DisplayName}"
+            };
+            
+            foreach (var param in filter.Parameters)
+            {
+                preset.ParameterValues[param.Name] = param.Value;
+            }
+            
+            return preset;
+        }
     }
 
     /// <summary>

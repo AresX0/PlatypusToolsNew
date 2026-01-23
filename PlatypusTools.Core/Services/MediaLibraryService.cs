@@ -636,6 +636,129 @@ namespace PlatypusTools.Core.Services
         {
             return descending ? items.OrderByDescending(i => i.DateModified).ToList() : items.OrderBy(i => i.DateModified).ToList();
         }
+        
+        #region Duplicate Detection
+        
+        /// <summary>
+        /// Find duplicate files by hash comparison.
+        /// </summary>
+        public async Task<List<MediaDuplicateGroup>> FindDuplicatesAsync(
+            IEnumerable<MediaItem> items,
+            IProgress<MediaScanProgress>? progress = null,
+            CancellationToken ct = default)
+        {
+            var itemList = items.ToList();
+            var duplicates = new List<MediaDuplicateGroup>();
+            var hashGroups = new Dictionary<string, List<MediaItem>>();
+            
+            int processed = 0;
+            int total = itemList.Count;
+            
+            foreach (var item in itemList)
+            {
+                ct.ThrowIfCancellationRequested();
+                
+                try
+                {
+                    var hash = await ComputeFileHashAsync(item.FilePath, ct);
+                    if (!hashGroups.TryGetValue(hash, out var group))
+                    {
+                        group = new List<MediaItem>();
+                        hashGroups[hash] = group;
+                    }
+                    group.Add(item);
+                }
+                catch
+                {
+                    // Skip files that can't be hashed
+                }
+                
+                processed++;
+                progress?.Report(new MediaScanProgress
+                {
+                    TotalFiles = total,
+                    FilesScanned = processed,
+                    StatusMessage = $"Computing hash: {item.FileName}"
+                });
+            }
+            
+            // Find groups with more than one file (duplicates)
+            foreach (var kvp in hashGroups)
+            {
+                if (kvp.Value.Count > 1)
+                {
+                    duplicates.Add(new MediaDuplicateGroup
+                    {
+                        Hash = kvp.Key,
+                        Items = kvp.Value
+                    });
+                }
+            }
+            
+            return duplicates;
+        }
+        
+        /// <summary>
+        /// Find potential duplicates by file size (faster, less accurate).
+        /// </summary>
+        public List<MediaDuplicateGroup> FindDuplicatesBySize(IEnumerable<MediaItem> items)
+        {
+            return items
+                .GroupBy(i => i.Size)
+                .Where(g => g.Count() > 1)
+                .Select(g => new MediaDuplicateGroup
+                {
+                    Items = g.ToList(),
+                    Hash = g.Key.ToString() // Use size as pseudo-hash
+                })
+                .ToList();
+        }
+        
+        /// <summary>
+        /// Check if a file is a duplicate of any in the library.
+        /// </summary>
+        public async Task<bool> IsDuplicateAsync(string filePath, CancellationToken ct = default)
+        {
+            if (_config == null || !_config.Entries.Any())
+                return false;
+            
+            var newFileInfo = new FileInfo(filePath);
+            if (!newFileInfo.Exists)
+                return false;
+            
+            // Quick check by size first
+            var sameSizeFiles = _config.Entries
+                .Where(e => new FileInfo(e.FilePath).Length == newFileInfo.Length)
+                .ToList();
+            
+            if (!sameSizeFiles.Any())
+                return false;
+            
+            // If same size files exist, compare hashes
+            var newHash = await ComputeFileHashAsync(filePath, ct);
+            
+            foreach (var existing in sameSizeFiles)
+            {
+                var existingHash = await ComputeFileHashAsync(existing.FilePath, ct);
+                if (existingHash == newHash)
+                    return true;
+            }
+            
+            return false;
+        }
+        
+        /// <summary>
+        /// Compute MD5 hash of a file.
+        /// </summary>
+        private async Task<string> ComputeFileHashAsync(string filePath, CancellationToken ct = default)
+        {
+            using var md5 = System.Security.Cryptography.MD5.Create();
+            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
+            var hashBytes = await md5.ComputeHashAsync(stream, ct);
+            return Convert.ToHexString(hashBytes);
+        }
+        
+        #endregion
     }
 
     public class MediaItem
@@ -669,5 +792,32 @@ namespace PlatypusTools.Core.Services
         Video,
         Audio,
         Image
+    }
+    
+    /// <summary>
+    /// Represents a group of duplicate media files.
+    /// Distinct from DuplicateGroup in DuplicatesScanner which uses file paths.
+    /// </summary>
+    public class MediaDuplicateGroup
+    {
+        /// <summary>
+        /// Hash value shared by all duplicates.
+        /// </summary>
+        public string Hash { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// List of duplicate media items.
+        /// </summary>
+        public List<MediaItem> Items { get; set; } = new();
+        
+        /// <summary>
+        /// Total wasted space (all duplicates except one).
+        /// </summary>
+        public long WastedSpace => Items.Skip(1).Sum(i => i.Size);
+        
+        /// <summary>
+        /// Number of duplicate files.
+        /// </summary>
+        public int Count => Items.Count;
     }
 }

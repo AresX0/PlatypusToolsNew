@@ -279,6 +279,11 @@ namespace PlatypusTools.Core.Models.Video
         public ColorGradingSettings? ColorGrading { get; set; }
 
         /// <summary>
+        /// Markers within this clip for sync points and notes.
+        /// </summary>
+        public List<ClipMarker> Markers { get; set; } = new();
+
+        /// <summary>
         /// Chroma key (green screen) settings.
         /// </summary>
         public ChromaKeySettings? ChromaKey { get; set; }
@@ -448,5 +453,62 @@ namespace PlatypusTools.Core.Models.Video
         EaseOut,
         EaseInOut,
         Bezier
+    }
+
+    /// <summary>
+    /// Represents a marker within a clip for sync points and notes.
+    /// </summary>
+    public class ClipMarker
+    {
+        /// <summary>
+        /// Unique identifier for the marker.
+        /// </summary>
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        
+        /// <summary>
+        /// Position within the clip (relative to clip start).
+        /// </summary>
+        public TimeSpan Position { get; set; }
+        
+        /// <summary>
+        /// User-defined name/label for the marker.
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Optional notes or description.
+        /// </summary>
+        public string Notes { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Color for the marker in the timeline.
+        /// </summary>
+        public string Color { get; set; } = "#FF6B00";
+        
+        /// <summary>
+        /// Type of marker.
+        /// </summary>
+        public ClipMarkerType Type { get; set; } = ClipMarkerType.Generic;
+    }
+    
+    /// <summary>
+    /// Types of clip markers (distinct from timeline MarkerType).
+    /// </summary>
+    public enum ClipMarkerType
+    {
+        /// <summary>Generic marker.</summary>
+        Generic,
+        /// <summary>Sync point for audio/video alignment.</summary>
+        SyncPoint,
+        /// <summary>Beat marker for music sync.</summary>
+        Beat,
+        /// <summary>Cue point for important moments.</summary>
+        CuePoint,
+        /// <summary>Chapter marker for navigation.</summary>
+        Chapter,
+        /// <summary>Note/comment marker.</summary>
+        Note,
+        /// <summary>Todo/action item marker.</summary>
+        Todo
     }
 }
