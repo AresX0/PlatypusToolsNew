@@ -80,6 +80,7 @@
             <converters:BytesToMBConverter x:Key="BytesToMBConverter" />
             <converters:InverseBooleanToBooleanConverter x:Key="InverseBooleanToBooleanConverter" />
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+            <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
             <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
             <converters:InverseNullToVisibilityConverter x:Key="InverseNullToVisibilityConverter" />
             <converters:BoolToThemeTextConverter x:Key="BoolToThemeTextConverter" />

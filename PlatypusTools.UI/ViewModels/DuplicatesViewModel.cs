@@ -177,6 +177,7 @@ namespace PlatypusTools.UI.ViewModels
             ShowSimilarImages = false;
             ShowSimilarVideos = false;
             StatusMessage = "Scanning for duplicates...";
+            ScanProgress = 0;
             
             // Update global status bar
             StatusBarViewModel.Instance.StartOperation("Scanning for duplicates...", isCancellable: true);
@@ -188,10 +189,36 @@ namespace PlatypusTools.UI.ViewModels
 
             try
             {
-                var groups = await Task.Run(() => DuplicatesScanner.FindDuplicates(new[] { FolderPath }, recurse: true).ToList(), cancellationToken);
+                // Use async version with progress reporting and batch updates
+                var groups = await DuplicatesScanner.FindDuplicatesAsync(
+                    new[] { FolderPath },
+                    recurse: true,
+                    onProgress: (current, total, message) =>
+                    {
+                        App.Current?.Dispatcher?.Invoke(() =>
+                        {
+                            StatusMessage = message;
+                            if (total > 0)
+                                ScanProgress = (current * 100) / total;
+                        });
+                    },
+                    cancellationToken: cancellationToken,
+                    onBatchProcessed: (batchGroups) =>
+                    {
+                        // Update UI with intermediate results
+                        App.Current?.Dispatcher?.Invoke(() =>
+                        {
+                            Groups.Clear();
+                            foreach (var g in batchGroups)
+                            {
+                                Groups.Add(new DuplicateGroupViewModel(g));
+                            }
+                        });
+                    });
                 
                 if (!cancellationToken.IsCancellationRequested)
                 {
+                    Groups.Clear();
                     foreach (var g in groups)
                     {
                         Groups.Add(new DuplicateGroupViewModel(g));
@@ -215,6 +242,7 @@ namespace PlatypusTools.UI.ViewModels
             finally
             {
                 IsScanning = false;
+                ScanProgress = 0;
                 StatusBarViewModel.Instance.CompleteOperation(StatusMessage);
                 ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
                 ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();

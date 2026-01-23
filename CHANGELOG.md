@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.8.0 - 2026-01-23
+
+### Added
+- **Local KQL Database** - New "Local KQL" tab in Advanced Forensics with SQLite-backed KQL query engine:
+  - 13 forensic data tables: Processes, NetworkConnections, SecurityEvents, FileEvents, RegistryEvents, PrefetchEvents, AmcacheEvents, SrumEvents, TimelineEvents, MalwareEvents, ExtractedFeatures, DocumentMetadata, ForensicArtifacts
+  - KQL to SQL translation engine supporting: where, project, extend, summarize, sort, top, take, distinct
+  - KQL functions: ago(), now(), contains, startswith, in, has_any, isnotnull, bin(), countif, dcount, make_set
+  - 40+ pre-built KQL query templates from KQL Cheat Sheet (kustonaut.github.io)
+  - Category-filtered template browser (Basic Syntax, Aggregations, Security, Threat Hunting, Malware Analysis, etc.)
+  - Table browser with column schema display
+  - Real-time translated SQL preview
+  - Export results to CSV or JSON
+  - Auto-storage of Volatility analysis results and artifact collection to local database
+
+### Dependencies
+- Added System.Data.SQLite.Core v1.0.119 for local forensics database
+
+---
+
 ## v3.2.7.0 - 2026-01-21
 
 ### Added

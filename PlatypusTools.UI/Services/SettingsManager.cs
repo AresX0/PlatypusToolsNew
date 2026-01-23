@@ -199,6 +199,7 @@ namespace PlatypusTools.UI.Services
                 new("Security.FolderHider", "Folder Hider", "Security"),
                 new("Security.SystemAudit", "System Audit", "Security"),
                 new("Security.ForensicsAnalyzer", "Forensics Analyzer", "Security"),
+                new("Security.SecureWipe", "Secure Wipe", "Security"),
 
                 new("Metadata", "📋 Metadata", null),
 

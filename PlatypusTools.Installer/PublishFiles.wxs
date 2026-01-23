@@ -116,6 +116,27 @@
       <Component Id="CMP_msquic_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_msquic_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\msquic.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_NAudio_Asio_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_NAudio_Asio_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\NAudio.Asio.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_NAudio_Core_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_NAudio_Core_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\NAudio.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_NAudio_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_NAudio_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\NAudio.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_NAudio_Midi_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_NAudio_Midi_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\NAudio.Midi.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_NAudio_Wasapi_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_NAudio_Wasapi_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\NAudio.Wasapi.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_NAudio_WinForms_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_NAudio_WinForms_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\NAudio.WinForms.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_NAudio_WinMM_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_NAudio_WinMM_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\NAudio.WinMM.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_netstandard_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_netstandard_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\netstandard.dll" KeyPath="yes" />
       </Component>
@@ -4321,6 +4342,13 @@
       <ComponentRef Id="CMP_mscorlib_dll" />
       <ComponentRef Id="CMP_mscorrc_dll" />
       <ComponentRef Id="CMP_msquic_dll" />
+      <ComponentRef Id="CMP_NAudio_Asio_dll" />
+      <ComponentRef Id="CMP_NAudio_Core_dll" />
+      <ComponentRef Id="CMP_NAudio_dll" />
+      <ComponentRef Id="CMP_NAudio_Midi_dll" />
+      <ComponentRef Id="CMP_NAudio_Wasapi_dll" />
+      <ComponentRef Id="CMP_NAudio_WinForms_dll" />
+      <ComponentRef Id="CMP_NAudio_WinMM_dll" />
       <ComponentRef Id="CMP_netstandard_dll" />
       <ComponentRef Id="CMP_PdfSharpCore_dll" />
       <ComponentRef Id="CMP_PenImc_cor3_dll" />

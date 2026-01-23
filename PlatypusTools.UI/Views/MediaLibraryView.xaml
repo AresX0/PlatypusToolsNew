@@ -3,52 +3,69 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="1000">
+             mc:Ignorable="d" d:DesignHeight="700" d:DesignWidth="1200">
     <Grid Margin="8">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" MinHeight="50" />
-            <RowDefinition Height="5" />
-            <RowDefinition Height="*" MinHeight="100" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="400"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="350" MinWidth="300"/>
+        </Grid.ColumnDefinitions>
 
-        <!-- Directory Selection -->
-        <GroupBox Header="Media Library Directory" Grid.Row="0" Margin="0,0,0,8">
-            <StackPanel Orientation="Horizontal" Margin="8">
-                <TextBlock VerticalAlignment="Center" Width="100">Directory Path:</TextBlock>
-                <TextBox Width="500" Text="{Binding DirectoryPath, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
-                <Button Content="Browse..." Command="{Binding BrowseDirectoryCommand}" Width="90" Margin="0,0,8,0" />
-                <Button Content="Scan" Command="{Binding ScanCommand}" Width="90" FontWeight="Bold" />
-                <Button Content="Cancel" Command="{Binding CancelScanCommand}" Width="70" Margin="4,0,0,0" />
-            </StackPanel>
-        </GroupBox>
+        <!-- Left Panel: Library View -->
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <!-- Filter and Actions -->
-        <GroupBox Header="Filters &amp; Actions" Grid.Row="1" Margin="0,0,0,8">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel Orientation="Horizontal" Margin="8">
-                <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">File Type:</TextBlock>
-                <ComboBox Width="120" SelectedItem="{Binding SelectedType}" Margin="0,0,16,0">
-                    <ComboBoxItem Content="All" IsSelected="True" />
-                    <ComboBoxItem Content="Video" />
-                    <ComboBoxItem Content="Audio" />
-                    <ComboBoxItem Content="Image" />
-                </ComboBox>
-                <Button Content="Refresh" Command="{Binding RefreshCommand}" Width="90" Margin="0,0,8,0" />
-                <TextBlock VerticalAlignment="Center" Margin="16,0,0,0" FontWeight="Bold">
-                    Total Files: <Run Text="{Binding TotalFiles, Mode=OneWay}" />
-                </TextBlock>
-            </StackPanel>
-            </ScrollViewer>
-        </GroupBox>
+            <!-- Library Path Configuration -->
+            <GroupBox Header="📁 Primary Library Location" Grid.Row="0" Margin="0,0,0,8">
+                <Grid Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-        <!-- GridSplitter -->
-        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 
-                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0">Library Path:</TextBlock>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding PrimaryLibraryPath, UpdateSourceTrigger=PropertyChanged}" 
+                             VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <Button Grid.Row="0" Grid.Column="2" Content="Browse..." Command="{Binding BrowseLibraryPathCommand}" 
+                            Width="80" Margin="0,0,4,0"/>
+                    <Button Grid.Row="0" Grid.Column="3" Content="Set" Command="{Binding SetLibraryPathCommand}" 
+                            Width="60" FontWeight="Bold"/>
 
-        <!-- Media Files DataGrid -->
-        <GroupBox Header="Media Files" Grid.Row="3" Margin="0,0,0,8">
+                    <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding LibraryInfo}" 
+                               Margin="0,4,0,0" FontStyle="Italic" Foreground="Gray"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- Filter and Actions -->
+            <GroupBox Header="🔍 Library Filters" Grid.Row="1" Margin="0,0,0,8">
+                <StackPanel Orientation="Horizontal" Margin="8">
+                    <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Type:</TextBlock>
+                    <ComboBox Width="100" SelectedItem="{Binding SelectedType}" Margin="0,0,16,0">
+                        <ComboBoxItem Content="All" IsSelected="True"/>
+                        <ComboBoxItem Content="Video"/>
+                        <ComboBoxItem Content="Audio"/>
+                        <ComboBoxItem Content="Image"/>
+                    </ComboBox>
+                    <Button Content="🔄 Refresh" Command="{Binding RefreshLibraryCommand}" Width="90" Margin="0,0,8,0"/>
+                    <TextBlock VerticalAlignment="Center" Margin="16,0,0,0" FontWeight="Bold">
+                        Total: <Run Text="{Binding TotalFiles, Mode=OneWay}"/> files
+                    </TextBlock>
+                </StackPanel>
+            </GroupBox>
+
+            <!-- Library Contents DataGrid -->
+            <GroupBox Header="📚 Library Contents" Grid.Row="2" Margin="0,0,0,8">
                 <DataGrid ItemsSource="{Binding MediaItems}"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
@@ -59,46 +76,166 @@
                           IsReadOnly="True"
                           SelectionMode="Single"
                           ColumnHeaderHeight="32"
-                          MinHeight="250"
-                          ColumnWidth="*"
+                          MinHeight="200"
                           GridLinesVisibility="Horizontal"
                           HeadersVisibility="Column"
-                          ScrollViewer.HorizontalScrollBarVisibility="Auto" 
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
                           ScrollViewer.VerticalScrollBarVisibility="Auto"
-                          ScrollViewer.CanContentScroll="True"
                           VirtualizingStackPanel.IsVirtualizing="True"
                           VirtualizingStackPanel.VirtualizationMode="Recycling"
                           EnableRowVirtualization="True">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="250" MinWidth="150" CanUserResize="True"/>
-                            <DataGridTextColumn Header="Type" Binding="{Binding FileType}" Width="60" MinWidth="50" CanUserResize="True"/>
-                            <DataGridTextColumn Header="Size (MB)" Binding="{Binding FileSize, Converter={StaticResource BytesToMBConverter}}" Width="90" MinWidth="80" CanUserResize="True"/>
-                            <DataGridTextColumn Header="Resolution" Binding="{Binding Resolution}" Width="100" MinWidth="80" CanUserResize="True"/>
-                            <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="100" MinWidth="80" CanUserResize="True"/>
-                            <DataGridTextColumn Header="Date Modified" Binding="{Binding DateModified, StringFormat='yyyy-MM-dd HH:mm'}" Width="140" MinWidth="120" CanUserResize="True"/>
-                            <DataGridTextColumn Header="Full Path" Binding="{Binding FilePath}" Width="*" MinWidth="200" CanUserResize="True"/>
-                        </DataGrid.Columns>
-                        <DataGrid.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Load Metadata" Command="{Binding LoadMetadataCommand}" CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                                <MenuItem Header="Open File Location" />
-                                <MenuItem Header="Play" />
-                            </ContextMenu>
-                        </DataGrid.ContextMenu>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="200" MinWidth="150"/>
+                        <DataGridTextColumn Header="Type" Binding="{Binding FileType}" Width="60"/>
+                        <DataGridTextColumn Header="Size" Binding="{Binding FileSize, Converter={StaticResource BytesToMBConverter}}" Width="80"/>
+                        <DataGridTextColumn Header="Resolution" Binding="{Binding Resolution}" Width="90"/>
+                        <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="80"/>
+                        <DataGridTextColumn Header="Modified" Binding="{Binding DateModified, StringFormat='yyyy-MM-dd'}" Width="90"/>
+                        <DataGridTextColumn Header="Path" Binding="{Binding FilePath}" Width="*"/>
+                    </DataGrid.Columns>
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Load Metadata" Command="{Binding LoadMetadataCommand}" 
+                                      CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                            <MenuItem Header="Open File Location"/>
+                            <MenuItem Header="Play"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
                 </DataGrid>
-        </GroupBox>
+            </GroupBox>
 
-        <!-- Status Bar -->
-        <StatusBar Grid.Row="4">
-            <StatusBarItem>
-                <TextBlock Text="{Binding StatusMessage}" />
-            </StatusBarItem>
-            <StatusBarItem HorizontalAlignment="Right">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Scanning..." Margin="0,0,8,0" Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <ProgressBar Width="100" Height="16" IsIndeterminate="True" Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <!-- Status Bar -->
+            <StatusBar Grid.Row="3">
+                <StatusBarItem>
+                    <TextBlock Text="{Binding StatusMessage}"/>
+                </StatusBarItem>
+                <StatusBarItem HorizontalAlignment="Right">
+                    <StackPanel Orientation="Horizontal">
+                        <ProgressBar Width="150" Height="16" Value="{Binding Progress}" Maximum="100"
+                                     Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        <Button Content="Cancel" Command="{Binding CancelScanCommand}" Width="60" Margin="8,0,0,0"
+                                Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    </StackPanel>
+                </StatusBarItem>
+            </StatusBar>
+        </Grid>
+
+        <!-- Splitter -->
+        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="#CCCCCC" Cursor="SizeWE"/>
+
+        <!-- Right Panel: Media Import -->
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Scan for Media -->
+            <GroupBox Header="🔎 Scan for Media" Grid.Row="0" Margin="0,0,0,8">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding ScanPath, UpdateSourceTrigger=PropertyChanged}" 
+                             VerticalAlignment="Center" Margin="0,0,8,0" 
+                             ToolTip="Enter a folder path or drive letter to scan for media files"/>
+                    <Button Grid.Row="0" Grid.Column="1" Content="📁" Command="{Binding BrowseScanPathCommand}" 
+                            Width="32" ToolTip="Browse for folder"/>
+
+                    <Button Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Content="🔍 Scan for Media Files" 
+                            Command="{Binding ScanForMediaCommand}" Margin="0,8,0,0" FontWeight="Bold"/>
+                </Grid>
+            </GroupBox>
+
+            <!-- Import Options -->
+            <GroupBox Header="⚙️ Import Options" Grid.Row="1" Margin="0,0,0,8">
+                <StackPanel Margin="8">
+                    <CheckBox Content="Organize by media type (Videos/Audio/Images folders)" 
+                              IsChecked="{Binding OrganizeByType}" Margin="0,0,0,4"/>
+                    <TextBlock FontSize="11" Foreground="Gray" TextWrapping="Wrap">
+                        Files will be copied to your primary library location and added to the library index (JSON).
+                    </TextBlock>
                 </StackPanel>
-            </StatusBarItem>
-        </StatusBar>
+            </GroupBox>
+
+            <!-- Scanned Files -->
+            <GroupBox Grid.Row="2" Margin="0,0,0,8">
+                <GroupBox.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📋 Found Media Files"/>
+                        <TextBlock Text=" (" Foreground="Gray"/>
+                        <TextBlock Text="{Binding ScannedFilesCount}" FontWeight="Bold"/>
+                        <TextBlock Text=")" Foreground="Gray"/>
+                    </StackPanel>
+                </GroupBox.Header>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="4">
+                        <Button Content="Select All" Command="{Binding SelectAllCommand}" Width="70" Margin="0,0,4,0"/>
+                        <Button Content="Deselect" Command="{Binding DeselectAllCommand}" Width="60"/>
+                        <TextBlock VerticalAlignment="Center" Margin="12,0,0,0">
+                            <Run Text="{Binding SelectedItemsCount, Mode=OneWay}"/> selected
+                        </TextBlock>
+                    </StackPanel>
+
+                    <ListBox Grid.Row="1" ItemsSource="{Binding ScannedItems}"
+                             VirtualizingStackPanel.IsVirtualizing="True"
+                             VirtualizingStackPanel.VirtualizationMode="Recycling"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <CheckBox Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" 
+                                              IsChecked="{Binding IsSelected}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding FileName}" 
+                                               FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+                                        <TextBlock Text="{Binding FileType}" FontSize="11" Foreground="Gray" Margin="0,0,8,0"/>
+                                        <TextBlock Text="{Binding FileSize, Converter={StaticResource BytesToMBConverter}}" 
+                                                   FontSize="11" Foreground="Gray"/>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </GroupBox>
+
+            <!-- Copy to Library Button -->
+            <Button Grid.Row="3" Content="📥 Copy Selected to Library" Command="{Binding CopyToLibraryCommand}" 
+                    FontWeight="Bold" Height="36" FontSize="14">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                        <Setter Property="Background" Value="#DDFFDD"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SelectedItemsCount}" Value="0">
+                                <Setter Property="IsEnabled" Value="False"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </Grid>
     </Grid>
 </UserControl>

@@ -1656,6 +1656,8 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     
     private async Task ScanLibraryAsync()
     {
+        const int BatchSize = 300;
+        
         using var dialog = new System.Windows.Forms.FolderBrowserDialog
         {
             Description = "Select music library folder"
@@ -1666,15 +1668,16 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         StatusMessage = "Scanning library...";
         _scanCts = new CancellationTokenSource();
         
-        var extensions = new[] { ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma" };
-        var files = Directory.GetFiles(dialog.SelectedPath, "*.*", SearchOption.AllDirectories)
-            .Where(f => extensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
-            .ToList();
+        var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma"
+        };
         
         _allLibraryTracks.Clear();
         int count = 0;
         
-        foreach (var file in files)
+        // Use robust enumeration for deep directories
+        foreach (var file in EnumerateAudioFilesRobust(dialog.SelectedPath, true, extensions))
         {
             if (_scanCts.Token.IsCancellationRequested) break;
             
@@ -1684,13 +1687,21 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 _allLibraryTracks.Add(track);
                 count++;
                 
-                if (count % 50 == 0)
-                    StatusMessage = $"Scanned {count} / {files.Count} files...";
+                // Update UI in batches
+                if (count % BatchSize == 0)
+                {
+                    StatusMessage = $"Scanned {count} files ({_allLibraryTracks.Count} tracks)...";
+                    FilterLibraryTracks();
+                    await Task.Delay(1); // Yield to UI
+                }
             }
         }
         
         FilterLibraryTracks();
         StatusMessage = $"Library: {_allLibraryTracks.Count} tracks";
+        
+        // Save cache
+        await SaveLibraryCacheAsync();
     }
     
     private async Task LoadLibraryAsync()
@@ -1749,6 +1760,9 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     
     private async Task ScanAllLibraryFoldersAsync()
     {
+        const int BatchSize = 300;
+        const int SaveInterval = 600; // Save cache every 600 files
+        
         if (LibraryFolders.Count == 0)
         {
             StatusMessage = "No library folders. Add a folder first.";
@@ -1759,26 +1773,18 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         _scanCts = new CancellationTokenSource();
         _allLibraryTracks.Clear();
         
-        var extensions = new[] { ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma" };
-        int totalFiles = 0;
-        int scannedFiles = 0;
-        
-        // First pass: count files
-        foreach (var folder in LibraryFolders.ToList())
+        var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            if (!Directory.Exists(folder)) continue;
-            try
-            {
-                var searchOption = IncludeSubfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-                totalFiles += Directory.GetFiles(folder, "*.*", searchOption)
-                    .Count(f => extensions.Contains(Path.GetExtension(f).ToLowerInvariant()));
-            }
-            catch { }
-        }
+            ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma"
+        };
         
-        ScanStatus = $"Scanning 0/{totalFiles} files...";
+        int scannedFiles = 0;
+        int batchCount = 0;
+        var batchTracks = new List<AudioTrack>();
         
-        // Second pass: scan files
+        ScanStatus = "Discovering files...";
+        
+        // Process folders using robust enumeration
         foreach (var folder in LibraryFolders.ToList())
         {
             if (_scanCts.Token.IsCancellationRequested) break;
@@ -1786,12 +1792,8 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             
             try
             {
-                var searchOption = IncludeSubfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-                var files = Directory.GetFiles(folder, "*.*", searchOption)
-                    .Where(f => extensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
-                    .ToList();
-                
-                foreach (var file in files)
+                // Use robust enumeration for deep directories
+                foreach (var file in EnumerateAudioFilesRobust(folder, IncludeSubfolders, extensions))
                 {
                     if (_scanCts.Token.IsCancellationRequested) break;
                     
@@ -1799,13 +1801,34 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                     if (track != null)
                     {
                         _allLibraryTracks.Add(track);
+                        batchTracks.Add(track);
                     }
                     
                     scannedFiles++;
-                    ScanProgress = totalFiles > 0 ? (scannedFiles * 100) / totalFiles : 0;
                     
-                    if (scannedFiles % 25 == 0)
-                        ScanStatus = $"Scanning {scannedFiles}/{totalFiles} files...";
+                    // Update UI in batches of 300
+                    if (scannedFiles % BatchSize == 0)
+                    {
+                        batchCount++;
+                        ScanStatus = $"Scanned {scannedFiles} files ({_allLibraryTracks.Count} tracks)...";
+                        ScanProgress = Math.Min(99, batchCount * 5); // Progress indicator
+                        
+                        // Update filtered view and counts in real-time
+                        FilterLibraryTracks();
+                        RaisePropertyChanged(nameof(LibraryTrackCount));
+                        RaisePropertyChanged(nameof(LibraryArtistCount));
+                        RaisePropertyChanged(nameof(LibraryAlbumCount));
+                        
+                        // Clear batch and yield to UI
+                        batchTracks.Clear();
+                        await Task.Delay(1);
+                    }
+                    
+                    // Save cache periodically
+                    if (scannedFiles % SaveInterval == 0)
+                    {
+                        await SaveLibraryCacheAsync();
+                    }
                 }
             }
             catch (Exception ex)
@@ -1816,14 +1839,72 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         
         IsScanning = false;
         ScanStatus = "";
+        ScanProgress = 100;
         FilterLibraryTracks();
         RaisePropertyChanged(nameof(LibraryTrackCount));
         RaisePropertyChanged(nameof(LibraryArtistCount));
         RaisePropertyChanged(nameof(LibraryAlbumCount));
         StatusMessage = $"Library updated: {_allLibraryTracks.Count} tracks from {LibraryFolders.Count} folders";
         
-        // Save library cache
+        // Final save
         await SaveLibraryCacheAsync();
+    }
+    
+    /// <summary>
+    /// Enumerate audio files robustly, handling access denied and deep directories.
+    /// </summary>
+    private IEnumerable<string> EnumerateAudioFilesRobust(string directory, bool recursive, HashSet<string> extensions)
+    {
+        var dirsToProcess = new Queue<string>();
+        dirsToProcess.Enqueue(directory);
+        
+        while (dirsToProcess.Count > 0)
+        {
+            var currentDir = dirsToProcess.Dequeue();
+            
+            IEnumerable<string> files;
+            try
+            {
+                files = Directory.EnumerateFiles(currentDir);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                continue;
+            }
+            catch (PathTooLongException)
+            {
+                continue;
+            }
+            catch
+            {
+                continue;
+            }
+            
+            foreach (var file in files)
+            {
+                var ext = Path.GetExtension(file).ToLowerInvariant();
+                if (extensions.Contains(ext))
+                    yield return file;
+            }
+            
+            if (recursive)
+            {
+                IEnumerable<string> subdirs;
+                try
+                {
+                    subdirs = Directory.EnumerateDirectories(currentDir);
+                }
+                catch
+                {
+                    continue;
+                }
+                
+                foreach (var subdir in subdirs)
+                {
+                    dirsToProcess.Enqueue(subdir);
+                }
+            }
+        }
     }
     
     private async Task SaveLibraryCacheAsync()

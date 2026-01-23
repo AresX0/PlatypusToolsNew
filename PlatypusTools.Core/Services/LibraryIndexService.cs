@@ -84,15 +84,24 @@ namespace PlatypusTools.Core.Services
         }
 
         /// <summary>
+        /// Batch size for processing files - update UI and save after this many files.
+        /// </summary>
+        private const int BatchSize = 300;
+
+        /// <summary>
         /// Scan a directory for audio files and update index.
+        /// Optimized for large directories (50000+ files) with deep subdirectories.
+        /// Processes files in batches and saves periodically to prevent timeout.
         /// </summary>
         /// <param name="directory">Directory to scan.</param>
         /// <param name="recursive">Whether to scan subdirectories.</param>
         /// <param name="onProgressChanged">Callback for progress updates.</param>
+        /// <param name="onBatchProcessed">Callback when a batch of tracks is processed (for UI updates).</param>
         public async Task<LibraryIndex> ScanAndIndexDirectoryAsync(
             string directory,
             bool recursive = true,
-            Action<int, int, string>? onProgressChanged = null)
+            Action<int, int, string>? onProgressChanged = null,
+            Action<List<Track>>? onBatchProcessed = null)
         {
             if (!Directory.Exists(directory))
                 throw new DirectoryNotFoundException($"Directory not found: {directory}");
@@ -101,33 +110,25 @@ namespace PlatypusTools.Core.Services
             if (_currentIndex == null)
                 await LoadOrCreateIndexAsync();
 
-            var audioFiles = new List<string>();
             var scannedCount = 0;
+            var totalFiles = 0;
+            var batchCount = 0;
 
-            // Collect all audio files
-            try
-            {
-                var searchOption = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-                var extensions = new[] { "*.mp3", "*.flac", "*.ogg", "*.m4a", "*.aac", "*.wma", "*.wav", "*.opus", "*.ape" };
+            // Build existing paths set once
+            var existingPaths = new HashSet<string>(
+                _currentIndex?.Tracks?.Select(t => t.FilePath) ?? Enumerable.Empty<string>(),
+                StringComparer.OrdinalIgnoreCase);
 
-                foreach (var ext in extensions)
-                {
-                    var files = Directory.EnumerateFiles(directory, ext, searchOption);
-                    audioFiles.AddRange(files);
-                }
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Access denied scanning {directory}: {ex.Message}");
-            }
+            // Use a robust directory enumerator that handles deep structures
+            var audioFiles = EnumerateAudioFilesRobust(directory, recursive);
+            var batchTracks = new List<Track>();
 
-            var totalFiles = audioFiles.Count;
-            var newTracks = new List<Track>();
-            var existingPaths = new HashSet<string>(_currentIndex?.Tracks?.Select(t => t.FilePath) ?? Enumerable.Empty<string>(), StringComparer.OrdinalIgnoreCase);
-
-            // Process files incrementally
+            // Process files using streaming enumeration (memory efficient for large dirs)
             foreach (var filePath in audioFiles)
             {
+                totalFiles++;
+                scannedCount++;
+
                 try
                 {
                     var canonicalPath = PathCanonicalizer.Canonicalize(filePath);
@@ -135,8 +136,8 @@ namespace PlatypusTools.Core.Services
                     // Skip if already in index
                     if (existingPaths.Contains(canonicalPath))
                     {
-                        scannedCount++;
-                        onProgressChanged?.Invoke(scannedCount, totalFiles, $"Scanning {Path.GetFileName(filePath)}...");
+                        if (scannedCount % 100 == 0)
+                            onProgressChanged?.Invoke(scannedCount, totalFiles, $"Skipped (cached): {Path.GetFileName(filePath)}");
                         continue;
                     }
 
@@ -144,45 +145,132 @@ namespace PlatypusTools.Core.Services
                     var track = await MetadataExtractorService.ExtractMetadataAsync(canonicalPath);
                     if (track != null)
                     {
-                        newTracks.Add(track);
+                        batchTracks.Add(track);
                         existingPaths.Add(canonicalPath);
                     }
+
+                    if (scannedCount % 25 == 0)
+                        onProgressChanged?.Invoke(scannedCount, totalFiles, $"Scanned {scannedCount}: {Path.GetFileName(filePath)}");
                 }
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"Error processing {filePath}: {ex.Message}");
                 }
 
-                scannedCount++;
-                onProgressChanged?.Invoke(scannedCount, totalFiles, $"Scanned {scannedCount}/{totalFiles}");
+                // Process in batches to avoid memory buildup
+                if (batchTracks.Count >= BatchSize)
+                {
+                    batchCount++;
+                    
+                    // Add to index
+                    _currentIndex?.Tracks?.AddRange(batchTracks);
+                    onBatchProcessed?.Invoke(new List<Track>(batchTracks));
 
-                // Yield to UI thread periodically
+                    // Save periodically (every batch)
+                    await SaveIndexAsync();
+                    batchTracks.Clear();
+
+                    // Yield to UI thread
+                    await Task.Delay(1);
+                }
+
+                // Yield periodically within batch
                 if (scannedCount % 10 == 0)
                     await Task.Delay(1);
             }
 
-            // Add new tracks to index
-            if (_currentIndex?.Tracks != null)
-                _currentIndex.Tracks.AddRange(newTracks);
+            // Process remaining files
+            if (batchTracks.Count > 0)
+            {
+                _currentIndex?.Tracks?.AddRange(batchTracks);
+                onBatchProcessed?.Invoke(new List<Track>(batchTracks));
+            }
 
             // Update metadata
-                var canonDir = PathCanonicalizer.Canonicalize(directory);
-                if (_currentIndex?.SourceMetadata != null && !_currentIndex.SourceMetadata.SourceDirs.Contains(canonDir, StringComparer.OrdinalIgnoreCase))
-                    _currentIndex.SourceMetadata.SourceDirs.Add(canonDir);
-                if (_currentIndex?.SourceMetadata != null)
-                {
-                    _currentIndex.SourceMetadata.LastIncrementalScanAt = DateTime.UtcNow;
-                    if (_currentIndex.Tracks.Count > 100)
-                        _currentIndex.SourceMetadata.LastFullRescanAt = DateTime.UtcNow;
-                }
+            var canonDir = PathCanonicalizer.Canonicalize(directory);
+            if (_currentIndex?.SourceMetadata != null && !_currentIndex.SourceMetadata.SourceDirs.Contains(canonDir, StringComparer.OrdinalIgnoreCase))
+                _currentIndex.SourceMetadata.SourceDirs.Add(canonDir);
+            if (_currentIndex?.SourceMetadata != null)
+            {
+                _currentIndex.SourceMetadata.LastIncrementalScanAt = DateTime.UtcNow;
+                if (_currentIndex.Tracks.Count > 100)
+                    _currentIndex.SourceMetadata.LastFullRescanAt = DateTime.UtcNow;
+            }
 
             // Recalculate statistics
             RecalculateStatistics();
 
-            // Save to disk
+            // Final save to disk
             await SaveIndexAsync();
 
             return _currentIndex!;
+        }
+
+        /// <summary>
+        /// Enumerate audio files robustly, handling access denied and deep directories.
+        /// </summary>
+        private IEnumerable<string> EnumerateAudioFilesRobust(string directory, bool recursive)
+        {
+            var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".mp3", ".flac", ".ogg", ".m4a", ".aac", ".wma", ".wav", ".opus", ".ape"
+            };
+
+            var dirsToProcess = new Queue<string>();
+            dirsToProcess.Enqueue(directory);
+
+            while (dirsToProcess.Count > 0)
+            {
+                var currentDir = dirsToProcess.Dequeue();
+
+                // Enumerate files in current directory
+                IEnumerable<string> files;
+                try
+                {
+                    files = Directory.EnumerateFiles(currentDir);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Access denied: {currentDir}");
+                    continue;
+                }
+                catch (PathTooLongException)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Path too long: {currentDir}");
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error enumerating {currentDir}: {ex.Message}");
+                    continue;
+                }
+
+                foreach (var file in files)
+                {
+                    var ext = Path.GetExtension(file);
+                    if (extensions.Contains(ext))
+                        yield return file;
+                }
+
+                // Queue subdirectories if recursive
+                if (recursive)
+                {
+                    IEnumerable<string> subdirs;
+                    try
+                    {
+                        subdirs = Directory.EnumerateDirectories(currentDir);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
+                    foreach (var subdir in subdirs)
+                    {
+                        dirsToProcess.Enqueue(subdir);
+                    }
+                }
+            }
         }
 
         /// <summary>

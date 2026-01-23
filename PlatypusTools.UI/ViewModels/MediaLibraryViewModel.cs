@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace PlatypusTools.UI.ViewModels
@@ -31,6 +32,12 @@ namespace PlatypusTools.UI.ViewModels
 
         private DateTime _dateModified;
         public DateTime DateModified { get => _dateModified; set => SetProperty(ref _dateModified, value); }
+
+        private bool _isSelected;
+        public bool IsSelected { get => _isSelected; set => SetProperty(ref _isSelected, value); }
+
+        private string _sourcePath = string.Empty;
+        public string SourcePath { get => _sourcePath; set => SetProperty(ref _sourcePath, value); }
     }
 
     public class MediaLibraryViewModel : BindableBase
@@ -42,6 +49,7 @@ namespace PlatypusTools.UI.ViewModels
         {
             _mediaLibraryService = new MediaLibraryService();
 
+            // Original commands
             ScanCommand = new RelayCommand(async _ => await ScanAsync(), _ => !IsScanning && !string.IsNullOrWhiteSpace(DirectoryPath));
             CancelScanCommand = new RelayCommand(_ => CancelScan(), _ => IsScanning);
             RefreshCommand = new RelayCommand(async _ => await RefreshAsync(), _ => !IsScanning);
@@ -49,9 +57,25 @@ namespace PlatypusTools.UI.ViewModels
             FilterByTypeCommand = new RelayCommand(type => FilterByType(type?.ToString()));
             SortCommand = new RelayCommand(column => Sort(column?.ToString()));
             LoadMetadataCommand = new RelayCommand(async item => await LoadMetadataAsync(item as MediaItemViewModel));
+
+            // New library management commands
+            BrowseLibraryPathCommand = new RelayCommand(_ => BrowseLibraryPath());
+            SetLibraryPathCommand = new RelayCommand(async _ => await SetLibraryPathAsync(), _ => !string.IsNullOrWhiteSpace(PrimaryLibraryPath));
+            ScanForMediaCommand = new RelayCommand(async _ => await ScanForMediaAsync(), _ => !IsScanning && !string.IsNullOrWhiteSpace(ScanPath));
+            BrowseScanPathCommand = new RelayCommand(_ => BrowseScanPath());
+            CopyToLibraryCommand = new RelayCommand(async _ => await CopySelectedToLibraryAsync(), _ => !IsScanning && SelectedItemsCount > 0);
+            SelectAllCommand = new RelayCommand(_ => SelectAll(true));
+            DeselectAllCommand = new RelayCommand(_ => SelectAll(false));
+            RefreshLibraryCommand = new RelayCommand(async _ => await RefreshLibraryAsync(), _ => !IsScanning && !string.IsNullOrWhiteSpace(PrimaryLibraryPath));
+
+            // Load saved library path
+            LoadSavedSettings();
         }
 
         public ObservableCollection<MediaItemViewModel> MediaItems { get; } = new();
+        public ObservableCollection<MediaItemViewModel> ScannedItems { get; } = new();
+
+        #region Original Properties
 
         private string _directoryPath = string.Empty;
         public string DirectoryPath { get => _directoryPath; set { SetProperty(ref _directoryPath, value); ((RelayCommand)ScanCommand).RaiseCanExecuteChanged(); } }
@@ -68,6 +92,7 @@ namespace PlatypusTools.UI.ViewModels
                 SetProperty(ref _isScanning, value); 
                 ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
                 ((RelayCommand)RefreshCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)CopyToLibraryCommand).RaiseCanExecuteChanged();
             } 
         }
 
@@ -77,6 +102,66 @@ namespace PlatypusTools.UI.ViewModels
         private int _totalFiles;
         public int TotalFiles { get => _totalFiles; set => SetProperty(ref _totalFiles, value); }
 
+        #endregion
+
+        #region New Library Properties
+
+        private string _primaryLibraryPath = string.Empty;
+        public string PrimaryLibraryPath
+        {
+            get => _primaryLibraryPath;
+            set
+            {
+                if (SetProperty(ref _primaryLibraryPath, value))
+                {
+                    ((RelayCommand)SetLibraryPathCommand).RaiseCanExecuteChanged();
+                    ((RelayCommand)RefreshLibraryCommand).RaiseCanExecuteChanged();
+                }
+            }
+        }
+
+        private string _scanPath = string.Empty;
+        public string ScanPath
+        {
+            get => _scanPath;
+            set
+            {
+                if (SetProperty(ref _scanPath, value))
+                {
+                    ((RelayCommand)ScanForMediaCommand).RaiseCanExecuteChanged();
+                }
+            }
+        }
+
+        private int _scannedFilesCount;
+        public int ScannedFilesCount { get => _scannedFilesCount; set => SetProperty(ref _scannedFilesCount, value); }
+
+        private int _selectedItemsCount;
+        public int SelectedItemsCount
+        {
+            get => _selectedItemsCount;
+            set
+            {
+                if (SetProperty(ref _selectedItemsCount, value))
+                {
+                    ((RelayCommand)CopyToLibraryCommand).RaiseCanExecuteChanged();
+                }
+            }
+        }
+
+        private double _progress;
+        public double Progress { get => _progress; set => SetProperty(ref _progress, value); }
+
+        private bool _organizeByType = true;
+        public bool OrganizeByType { get => _organizeByType; set => SetProperty(ref _organizeByType, value); }
+
+        private string _libraryInfo = string.Empty;
+        public string LibraryInfo { get => _libraryInfo; set => SetProperty(ref _libraryInfo, value); }
+
+        #endregion
+
+        #region Commands
+
         public ICommand ScanCommand { get; }
         public ICommand CancelScanCommand { get; }
         public ICommand RefreshCommand { get; }
@@ -84,6 +169,20 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand FilterByTypeCommand { get; }
         public ICommand SortCommand { get; }
         public ICommand LoadMetadataCommand { get; }
+
+        // New commands
+        public ICommand BrowseLibraryPathCommand { get; }
+        public ICommand SetLibraryPathCommand { get; }
+        public ICommand ScanForMediaCommand { get; }
+        public ICommand BrowseScanPathCommand { get; }
+        public ICommand CopyToLibraryCommand { get; }
+        public ICommand SelectAllCommand { get; }
+        public ICommand DeselectAllCommand { get; }
+        public ICommand RefreshLibraryCommand { get; }
+
+        #endregion
+
+        #region Original Methods
 
         private async Task ScanAsync()
         {
@@ -104,38 +203,44 @@ namespace PlatypusTools.UI.ViewModels
 
             try
             {
-                var files = await _mediaLibraryService.ScanDirectoryAsync(DirectoryPath);
+                // Use new batch-processing scan with progress reporting
+                var files = await _mediaLibraryService.ScanDirectoryAsync(
+                    DirectoryPath,
+                    includeSubdirectories: true,
+                    onProgress: (current, total, message) =>
+                    {
+                        Application.Current?.Dispatcher?.Invoke(() =>
+                        {
+                            StatusMessage = message;
+                            TotalFiles = current;
+                        });
+                    },
+                    onBatchProcessed: (batchItems) =>
+                    {
+                        // Add items to UI in real-time batches
+                        Application.Current?.Dispatcher?.Invoke(() =>
+                        {
+                            foreach (var file in batchItems)
+                            {
+                                MediaItems.Add(new MediaItemViewModel
+                                {
+                                    FilePath = file.FilePath,
+                                    FileName = Path.GetFileName(file.FilePath),
+                                    FileType = Path.GetExtension(file.FilePath).TrimStart('.').ToUpper(),
+                                    FileSize = file.Size,
+                                    DateModified = file.DateModified
+                                });
+                            }
+                            TotalFiles = MediaItems.Count;
+                        });
+                    },
+                    cancellationToken: cancellationToken);
                 
                 if (cancellationToken.IsCancellationRequested)
                 {
                     StatusMessage = "Scan canceled";
                     return;
                 }
-
-                // Collect all items first (on background thread)
-                var items = files.Select(file => new MediaItemViewModel
-                {
-                    FilePath = file.FilePath,
-                    FileName = Path.GetFileName(file.FilePath),
-                    FileType = Path.GetExtension(file.FilePath).TrimStart('.').ToUpper(),
-                    FileSize = new FileInfo(file.FilePath).Length,
-                    DateModified = File.GetLastWriteTime(file.FilePath)
-                }).ToList();
-
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    StatusMessage = "Scan canceled";
-                    return;
-                }
-
-                // Update UI in single batch on UI thread
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                {
-                    foreach (var item in items)
-                    {
-                        MediaItems.Add(item);
-                    }
-                });
 
                 TotalFiles = MediaItems.Count;
                 StatusMessage = $"Found {TotalFiles} media files";
@@ -185,12 +290,10 @@ namespace PlatypusTools.UI.ViewModels
         private void FilterByType(string? type)
         {
             SelectedType = type ?? "All";
-            // Filtering logic can be implemented with CollectionView
         }
 
         private void Sort(string? column)
         {
-            // Sorting logic can be implemented with CollectionView
         }
 
         private async Task LoadMetadataAsync(MediaItemViewModel? item)
@@ -202,7 +305,7 @@ namespace PlatypusTools.UI.ViewModels
                 var metadata = await _mediaLibraryService.GetMetadataAsync(item.FilePath);
                 if (metadata != null)
                 {
-                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
                         item.Resolution = $"{metadata.Width}x{metadata.Height}";
                         item.Duration = metadata.Duration.ToString(@"hh\:mm\:ss");
@@ -214,5 +317,344 @@ namespace PlatypusTools.UI.ViewModels
                 StatusMessage = $"Error loading metadata: {ex.Message}";
             }
         }
+
+        #endregion
+
+        #region New Library Methods
+
+        private void LoadSavedSettings()
+        {
+            try
+            {
+                var settingsPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "PlatypusTools",
+                    "media_library_settings.json");
+
+                if (File.Exists(settingsPath))
+                {
+                    var json = File.ReadAllText(settingsPath);
+                    var settings = System.Text.Json.JsonSerializer.Deserialize<MediaLibrarySettings>(json);
+                    if (settings != null)
+                    {
+                        PrimaryLibraryPath = settings.PrimaryLibraryPath ?? string.Empty;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private void SaveSettings()
+        {
+            try
+            {
+                var settingsDir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "PlatypusTools");
+
+                if (!Directory.Exists(settingsDir))
+                {
+                    Directory.CreateDirectory(settingsDir);
+                }
+
+                var settingsPath = Path.Combine(settingsDir, "media_library_settings.json");
+                var settings = new MediaLibrarySettings { PrimaryLibraryPath = PrimaryLibraryPath };
+                var json = System.Text.Json.JsonSerializer.Serialize(settings);
+                File.WriteAllText(settingsPath, json);
+            }
+            catch { }
+        }
+
+        private void BrowseLibraryPath()
+        {
+            using var dialog = new System.Windows.Forms.FolderBrowserDialog();
+            dialog.Description = "Select Primary Media Library Location";
+            dialog.UseDescriptionForTitle = true;
+
+            if (!string.IsNullOrWhiteSpace(PrimaryLibraryPath) && Directory.Exists(PrimaryLibraryPath))
+            {
+                dialog.SelectedPath = PrimaryLibraryPath;
+            }
+
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                PrimaryLibraryPath = dialog.SelectedPath;
+            }
+        }
+
+        private async Task SetLibraryPathAsync()
+        {
+            if (string.IsNullOrWhiteSpace(PrimaryLibraryPath))
+                return;
+
+            try
+            {
+                await _mediaLibraryService.SetPrimaryLibraryPathAsync(PrimaryLibraryPath);
+                SaveSettings();
+                StatusMessage = $"Library path set to: {PrimaryLibraryPath}";
+                await RefreshLibraryAsync();
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error setting library path: {ex.Message}";
+            }
+        }
+
+        private void BrowseScanPath()
+        {
+            using var dialog = new System.Windows.Forms.FolderBrowserDialog();
+            dialog.Description = "Select Folder to Scan for Media";
+            dialog.UseDescriptionForTitle = true;
+
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                ScanPath = dialog.SelectedPath;
+            }
+        }
+
+        private async Task ScanForMediaAsync()
+        {
+            if (string.IsNullOrWhiteSpace(ScanPath) || !Directory.Exists(ScanPath))
+            {
+                StatusMessage = "Invalid scan path";
+                return;
+            }
+
+            _scanCancellationTokenSource?.Cancel();
+            _scanCancellationTokenSource = new CancellationTokenSource();
+            var ct = _scanCancellationTokenSource.Token;
+
+            IsScanning = true;
+            StatusMessage = "Scanning for media files...";
+            ScannedItems.Clear();
+            Progress = 0;
+
+            var progress = new Progress<MediaScanProgress>(p =>
+            {
+                Progress = p.PercentComplete;
+                StatusMessage = p.StatusMessage;
+            });
+
+            try
+            {
+                var items = await _mediaLibraryService.ScanFolderForMediaAsync(ScanPath, progress, ct);
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    foreach (var item in items)
+                    {
+                        ScannedItems.Add(new MediaItemViewModel
+                        {
+                            FilePath = item.FilePath,
+                            FileName = item.FileName,
+                            FileType = Path.GetExtension(item.FilePath).TrimStart('.').ToUpper(),
+                            FileSize = item.Size,
+                            DateModified = item.DateModified,
+                            SourcePath = item.FilePath,
+                            IsSelected = true
+                        });
+                    }
+                });
+
+                ScannedFilesCount = ScannedItems.Count;
+                SelectedItemsCount = ScannedItems.Count(i => i.IsSelected);
+                StatusMessage = $"Found {ScannedFilesCount} media files ready for import";
+            }
+            catch (OperationCanceledException)
+            {
+                StatusMessage = "Scan canceled";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsScanning = false;
+                Progress = 0;
+            }
+        }
+
+        private void SelectAll(bool select)
+        {
+            foreach (var item in ScannedItems)
+            {
+                item.IsSelected = select;
+            }
+            SelectedItemsCount = ScannedItems.Count(i => i.IsSelected);
+        }
+
+        private async Task CopySelectedToLibraryAsync()
+        {
+            if (string.IsNullOrWhiteSpace(PrimaryLibraryPath))
+            {
+                MessageBox.Show("Please set a primary library path first.", "Library Path Required",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var selectedItems = ScannedItems.Where(i => i.IsSelected).ToList();
+            if (!selectedItems.Any())
+            {
+                StatusMessage = "No items selected";
+                return;
+            }
+
+            var result = MessageBox.Show(
+                $"Copy {selectedItems.Count} files to library?\n\n" +
+                $"Destination: {PrimaryLibraryPath}\n" +
+                $"Organize by type: {(OrganizeByType ? "Yes" : "No")}",
+                "Confirm Copy",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            _scanCancellationTokenSource?.Cancel();
+            _scanCancellationTokenSource = new CancellationTokenSource();
+            var ct = _scanCancellationTokenSource.Token;
+
+            IsScanning = true;
+            Progress = 0;
+
+            var progress = new Progress<MediaScanProgress>(p =>
+            {
+                Progress = p.PercentComplete;
+                StatusMessage = p.StatusMessage;
+            });
+
+            try
+            {
+                var mediaItems = selectedItems.Select(i => new MediaItem
+                {
+                    FilePath = i.FilePath,
+                    FileName = i.FileName,
+                    Size = i.FileSize,
+                    DateModified = i.DateModified,
+                    Type = MediaLibraryService.GetMediaType(Path.GetExtension(i.FilePath))
+                });
+
+                var copied = await _mediaLibraryService.CopyToLibraryAsync(
+                    mediaItems,
+                    PrimaryLibraryPath,
+                    OrganizeByType,
+                    progress,
+                    ct);
+
+                StatusMessage = $"Successfully copied {copied} files to library";
+                
+                // Clear copied items from scanned list
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    foreach (var item in selectedItems)
+                    {
+                        ScannedItems.Remove(item);
+                    }
+                });
+
+                ScannedFilesCount = ScannedItems.Count;
+                SelectedItemsCount = ScannedItems.Count(i => i.IsSelected);
+
+                // Refresh library view
+                await RefreshLibraryAsync();
+            }
+            catch (OperationCanceledException)
+            {
+                StatusMessage = "Copy canceled";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsScanning = false;
+                Progress = 0;
+            }
+        }
+
+        private async Task RefreshLibraryAsync()
+        {
+            if (string.IsNullOrWhiteSpace(PrimaryLibraryPath))
+                return;
+
+            _scanCancellationTokenSource?.Cancel();
+            _scanCancellationTokenSource = new CancellationTokenSource();
+            var ct = _scanCancellationTokenSource.Token;
+
+            IsScanning = true;
+            StatusMessage = "Refreshing library...";
+            Progress = 0;
+
+            var progress = new Progress<MediaScanProgress>(p =>
+            {
+                Progress = p.PercentComplete;
+                StatusMessage = p.StatusMessage;
+            });
+
+            try
+            {
+                await _mediaLibraryService.LoadConfigAsync(PrimaryLibraryPath);
+                await _mediaLibraryService.RefreshLibraryAsync(progress, ct);
+
+                var entries = _mediaLibraryService.GetLibraryEntries();
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    MediaItems.Clear();
+                    foreach (var entry in entries)
+                    {
+                        MediaItems.Add(new MediaItemViewModel
+                        {
+                            FilePath = entry.FilePath,
+                            FileName = entry.FileName,
+                            FileType = Path.GetExtension(entry.FilePath).TrimStart('.').ToUpper(),
+                            FileSize = entry.Size,
+                            DateModified = entry.DateModified
+                        });
+                    }
+                });
+
+                TotalFiles = MediaItems.Count;
+                
+                long totalSize = entries.Sum(e => e.Size);
+                LibraryInfo = $"{TotalFiles} files • {FormatBytes(totalSize)}";
+                StatusMessage = $"Library contains {TotalFiles} media files";
+            }
+            catch (OperationCanceledException)
+            {
+                StatusMessage = "Refresh canceled";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsScanning = false;
+                Progress = 0;
+            }
+        }
+
+        private static string FormatBytes(long bytes)
+        {
+            string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+            int order = 0;
+            double size = bytes;
+            while (size >= 1024 && order < sizes.Length - 1)
+            {
+                order++;
+                size /= 1024;
+            }
+            return $"{size:0.##} {sizes[order]}";
+        }
+
+        #endregion
+    }
+
+    internal class MediaLibrarySettings
+    {
+        public string? PrimaryLibraryPath { get; set; }
     }
 }

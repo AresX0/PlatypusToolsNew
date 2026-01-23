@@ -44,6 +44,8 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<MultimediaEditorViewModel> _multimediaEditor = new(() => new MultimediaEditorViewModel());
         private readonly Lazy<SystemAuditViewModel> _systemAudit = new(() => new SystemAuditViewModel());
         private readonly Lazy<ForensicsAnalyzerViewModel> _forensicsAnalyzer = new(() => new ForensicsAnalyzerViewModel());
+        private readonly Lazy<SecureWipeViewModel> _secureWipe = new(() => new SecureWipeViewModel());
+        private readonly Lazy<AdvancedForensicsViewModel> _advancedForensics = new(() => new AdvancedForensicsViewModel());
         private readonly Lazy<StartupManagerViewModel> _startupManager = new(() => new StartupManagerViewModel());
         private readonly Lazy<WebsiteDownloaderViewModel> _websiteDownloader = new(() => new WebsiteDownloaderViewModel());
         private readonly Lazy<FileAnalyzerViewModel> _fileAnalyzer = new(() => new FileAnalyzerViewModel());
@@ -132,6 +134,8 @@ namespace PlatypusTools.UI.ViewModels
         public MultimediaEditorViewModel MultimediaEditor => _multimediaEditor.Value;
         public SystemAuditViewModel SystemAudit => _systemAudit.Value;
         public ForensicsAnalyzerViewModel ForensicsAnalyzer => _forensicsAnalyzer.Value;
+        public SecureWipeViewModel SecureWipe => _secureWipe.Value;
+        public AdvancedForensicsViewModel AdvancedForensics => _advancedForensics.Value;
         public StartupManagerViewModel StartupManager => _startupManager.Value;
         public WebsiteDownloaderViewModel WebsiteDownloader => _websiteDownloader.Value;
         public FileAnalyzerViewModel FileAnalyzer => _fileAnalyzer.Value;

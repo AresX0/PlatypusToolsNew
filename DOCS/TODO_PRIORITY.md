@@ -1,8 +1,57 @@
 # PlatypusTools - Priority Feature List
 
 **Created**: January 19, 2026  
+**Updated**: January 22, 2026  
 **Purpose**: Quick wins and high-impact features for Audio Player (MusicBee-inspired) and Video Editor (Shotcut-inspired)  
 **Legend**: ⭐ = 1-2 hours | ⭐⭐ = 3-4 hours | ⭐⭐⭐ = 5-8 hours
+
+---
+
+## 🔒 Security Features (NEW)
+
+### Secure Data Wipe (DoD/NIST Standards)
+
+| # | Task | Effort | Description | Status |
+|---|------|--------|-------------|--------|
+| SEC-001 | SecureWipeService | ⭐⭐⭐ | Core service with multiple wipe standards (DoD 5220.22-M, NIST 800-88, Gutmann) | ✅ Complete |
+| SEC-002 | SecureWipeViewModel | ⭐⭐ | ViewModel with progress tracking, wipe level selection, confirmation dialogs | ✅ Complete |
+| SEC-003 | SecureWipeView | ⭐⭐ | UI for file/folder selection, wipe level dropdown, progress display, logs | ✅ Complete |
+| SEC-004 | Free Space Wipe | ⭐⭐ | Wipe free space on selected drive to prevent data recovery | ✅ Complete |
+| SEC-005 | Verification Pass | ⭐ | Verify data was overwritten correctly after wipe | ✅ Complete |
+
+### DFIR Playbook Integration (Future)
+
+| # | Task | Effort | Description | Status |
+|---|------|--------|-------------|--------|
+| SEC-006 | Memory Acquisition UI | ⭐⭐⭐ | Integration with WinPmem/DumpIt for memory dumps | ❌ Not Started |
+| SEC-007 | Volatility 3 Integration | ⭐⭐⭐ | Run Volatility 3 analysis on memory dumps | ❌ Not Started |
+| SEC-008 | KAPE Integration | ⭐⭐⭐ | Run KAPE targets/modules for artifact collection | ❌ Not Started |
+| SEC-009 | OpenSearch Export | ⭐⭐ | Export forensic data to OpenSearch for querying | ❌ Not Started |
+| SEC-010 | Artifact Timeline | ⭐⭐⭐ | Plaso/log2timeline integration for super-timelines | ❌ Not Started |
+
+---
+
+## 📚 Media Library Features (NEW)
+
+### Library Management
+
+| # | Task | Effort | Description | Status |
+|---|------|--------|-------------|--------|
+| ML-001 | Primary Library Path | ⭐ | Define and persist preferred library location | ✅ Complete |
+| ML-002 | Library Config JSON | ⭐⭐ | Auto-updated JSON file tracking all library entries | ✅ Complete |
+| ML-003 | Drive/Folder Scanner | ⭐⭐ | Scan drives or folders for media files | ✅ Complete |
+| ML-004 | Copy to Library | ⭐⭐ | Copy selected scanned files to primary library | ✅ Complete |
+| ML-005 | Organize by Type | ⭐ | Organize imported files into Videos/Audio/Images folders | ✅ Complete |
+
+### Future Enhancements
+
+| # | Task | Effort | Description | Status |
+|---|------|--------|-------------|--------|
+| ML-006 | Duplicate Detection | ⭐⭐ | Detect duplicates before copying (hash comparison) | ❌ Not Started |
+| ML-007 | Metadata Enrichment | ⭐⭐ | Auto-fetch metadata from online sources | ❌ Not Started |
+| ML-008 | Watch Folders | ⭐⭐ | Monitor folders for new media and auto-import | ❌ Not Started |
+| ML-009 | Library Sync | ⭐⭐⭐ | Sync library between multiple locations | ❌ Not Started |
+| ML-010 | Smart Collections | ⭐⭐ | Auto-collections based on rules (date, type, size) | ❌ Not Started |
 
 ---
 

@@ -1071,6 +1071,7 @@ public class AudioPlayerViewModel : BindableBase
     
     /// <summary>
     /// Scan a directory and add tracks to library index.
+    /// Optimized for large directories (50000+ files) with batch processing.
     /// </summary>
     public async Task ScanLibraryDirectoryAsync(string directory)
     {
@@ -1082,16 +1083,40 @@ public class AudioPlayerViewModel : BindableBase
             IsScanning = true;
             ScanStatus = "Scanning...";
             
-            // Scan and index
+            // Scan and index with batch callbacks for real-time UI updates
             await _libraryIndexService.ScanAndIndexDirectoryAsync(
                 directory,
                 recursive: _includeSubfolders,
                 onProgressChanged: (current, total, status) =>
                 {
                     ScanStatus = $"{status} ({current}/{total})";
+                },
+                onBatchProcessed: (batchTracks) =>
+                {
+                    // Add batch to UI in real-time
+                    App.Current?.Dispatcher?.Invoke(() =>
+                    {
+                        foreach (var indexTrack in batchTracks)
+                        {
+                            var audioTrack = new AudioTrack
+                            {
+                                Title = indexTrack.DisplayTitle,
+                                Artist = indexTrack.DisplayArtist,
+                                Album = indexTrack.DisplayAlbum,
+                                FilePath = indexTrack.FilePath,
+                                Duration = TimeSpan.FromMilliseconds(indexTrack.DurationMs),
+                                Genre = indexTrack.Genre ?? string.Empty,
+                            };
+                            _allLibraryTracks.Add(audioTrack);
+                        }
+                        
+                        // Update filtered view periodically
+                        FilterLibraryTracks();
+                        RaisePropertyChanged(nameof(LibraryTrackCount));
+                    });
                 });
             
-            // Reload library
+            // Reload full library from index (ensures consistency)
             var index = _libraryIndexService.GetCurrentIndex();
             if (index?.Tracks != null)
             {

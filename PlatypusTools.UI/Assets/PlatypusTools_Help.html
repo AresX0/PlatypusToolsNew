@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlatypusTools v3.2.7.2 - Help Documentation</title>
+    <title>PlatypusTools v3.2.8 - Help Documentation</title>
     <style>
         :root {
             --primary: #2d5aa8;
@@ -161,6 +161,7 @@
         <li><a href="#multimedia">Multimedia</a></li>
         <li><a href="#system">System</a></li>
         <li><a href="#security">Security</a></li>
+        <li><a href="#forensics">Advanced Forensics</a></li>
         <li><a href="#metadata">Metadata</a></li>
         <li><a href="#tools">Tools</a></li>
         <li><a href="#keyboard">Keyboard Shortcuts</a></li>
@@ -170,12 +171,27 @@
 
 <section id="overview" class="section">
     <h2>Overview</h2>
-    <p>PlatypusTools is a powerful, all-in-one Windows system utility that combines file management, multimedia editing, system cleanup, security tools, and metadata editing into a single, modern WPF application.</p>
+    <p>PlatypusTools is a powerful, all-in-one Windows system utility that combines file management, multimedia editing, system cleanup, security tools, digital forensics, and metadata editing into a single, modern WPF application.</p>
     
-    <h3>What's New in v3.2.6.1</h3>
+    <h3>What's New in v3.2.8</h3>
     <ul>
-        <li><strong>Resizable Panes</strong> <span class="new-badge">New</span> - All views now have resizable panes with GridSplitters for customizable layouts</li>
-        <li><strong>Vertical Scrolling</strong> <span class="new-badge">New</span> - Top and bottom panes in all views now support vertical scrolling</li>
+        <li><strong>Advanced Forensics Tab</strong> <span class="new-badge">New</span> - Complete DFIR toolkit with memory acquisition &amp; analysis, artifact collection, timeline creation, malware analysis, and OpenSearch integration</li>
+        <li><strong>Memory Acquisition</strong> <span class="new-badge">New</span> - Live memory dump using WinPmem with raw/aff4/crashdump formats</li>
+        <li><strong>Volatility 3 Integration</strong> <span class="new-badge">New</span> - 8 plugins for comprehensive memory analysis (pslist, netscan, malfind, dlllist, handles, cmdline, filescan, reghive)</li>
+        <li><strong>KAPE/EZ Tools Integration</strong> <span class="new-badge">New</span> - 12 artifact types including Prefetch, Amcache, Event Logs, $MFT, Registry, SRUM, ShellBags, Jump Lists, LNK Files, Shimcache, Recycle Bin, $UsnJrnl</li>
+        <li><strong>Plaso Timeline</strong> <span class="new-badge">New</span> - Super-timeline creation with log2timeline and OpenSearch export</li>
+        <li><strong>Velociraptor Integration</strong> <span class="new-badge">New</span> - Fleet-wide artifact collection with 8 pre-configured artifacts</li>
+        <li><strong>Kusto Query Builder</strong> <span class="new-badge">New</span> - 7 pre-built forensic query templates for Azure Data Explorer</li>
+        <li><strong>Malware Analysis</strong> <span class="new-badge">New</span> - oletools (olevba, mraptor) and pdf-parser integration for document analysis</li>
+        <li><strong>bulk_extractor</strong> <span class="new-badge">New</span> - Feature extraction for emails, URLs, IPs, credit cards</li>
+        <li><strong>OpenSearch Data Lake</strong> <span class="new-badge">New</span> - Ingest pipelines and index templates for forensic data</li>
+        <li><strong>OSINT Metadata Extraction</strong> <span class="new-badge">New</span> - FOCA-style document metadata for intelligence gathering</li>
+    </ul>
+
+    <h3>Previous Updates (v3.2.6.1)</h3>
+    <ul>
+        <li><strong>Resizable Panes</strong> - All views now have resizable panes with GridSplitters for customizable layouts</li>
+        <li><strong>Vertical Scrolling</strong> - Top and bottom panes in all views now support vertical scrolling</li>
         <li><strong>3D Model Editor Tab</strong> - Create and edit 3D models, convert SVG to STL/OBJ</li>
         <li><strong>SVG to Image Conversion</strong> - Added SVG output format to Image Converter</li>
         <li><strong>Forensics Analyzer HTML Export</strong> - Comprehensive styled HTML report with all findings</li>
@@ -226,7 +242,11 @@
             <p>Folder Hider, System Audit with vulnerability scanning</p>
         </div>
         <div class="feature-card">
-            <h4>📋 Metadata</h4>
+            <h4>� Advanced Forensics <span class="new-badge">New</span></h4>
+            <p>DFIR tools: Memory analysis, artifact collection, timeline, malware scanning</p>
+        </div>
+        <div class="feature-card">
+            <h4>�📋 Metadata</h4>
             <p>View and edit file metadata with ExifTool integration</p>
         </div>
         <div class="feature-card">
@@ -651,8 +671,294 @@
     </ul>
 </section>
 
+<section id="forensics" class="section">
+    <h2>🔬 Advanced Forensics (DFIR) <span class="new-badge">New</span></h2>
+    <p>Comprehensive Digital Forensics &amp; Incident Response toolkit. This tab provides professional-grade forensic capabilities for memory analysis, artifact collection, timeline creation, malware analysis, and data lake integration.</p>
+    
+    <div class="warning">
+        <strong>Administrator Required:</strong> Most forensic operations require Administrator privileges. Run PlatypusTools as Administrator for full functionality.
+    </div>
+
+    <h3>🧠 Memory Tab</h3>
+    <p>Acquire and analyze system memory for forensic investigation.</p>
+    
+    <h4>Memory Acquisition (WinPmem/DumpIt)</h4>
+    <p>Capture live system memory for offline analysis. Creates a forensic memory image that can be analyzed with Volatility.</p>
+    <table>
+        <tr><th>Field</th><th>Description</th></tr>
+        <tr><td>WinPmem Path</td><td>Path to winpmem.exe memory acquisition tool</td></tr>
+        <tr><td>Output Folder</td><td>Directory where memory dump will be saved</td></tr>
+        <tr><td>Format</td><td>Output format: <code>raw</code> (default), <code>aff4</code>, or <code>crashdump</code></td></tr>
+    </table>
+    <ol>
+        <li>Browse and set the path to <code>winpmem.exe</code></li>
+        <li>Select an output folder for the memory dump</li>
+        <li>Choose the dump format (raw is most compatible)</li>
+        <li>Click <strong>Acquire Live Memory Dump</strong></li>
+        <li>Wait for the acquisition to complete (may take several minutes for large RAM)</li>
+    </ol>
+    <div class="tip">
+        <strong>Download WinPmem:</strong> <a href="https://github.com/Velocidex/WinPmem/releases">github.com/Velocidex/WinPmem/releases</a>
+    </div>
+    
+    <h4>Memory Analysis (Volatility 3)</h4>
+    <p>Analyze memory dumps using Volatility 3 plugins.</p>
+    <table>
+        <tr><th>Plugin</th><th>Description</th></tr>
+        <tr><td>windows.pslist</td><td>List running processes</td></tr>
+        <tr><td>windows.netscan</td><td>Scan for network connections</td></tr>
+        <tr><td>windows.malfind</td><td>Find hidden/injected code (malware detection)</td></tr>
+        <tr><td>windows.dlllist</td><td>List loaded DLLs per process</td></tr>
+        <tr><td>windows.handles</td><td>List open handles</td></tr>
+        <tr><td>windows.cmdline</td><td>Extract command line arguments</td></tr>
+        <tr><td>windows.filescan</td><td>Scan for file objects in memory</td></tr>
+        <tr><td>windows.registry.hivelist</td><td>List registry hives in memory</td></tr>
+    </table>
+    <ol>
+        <li>Browse to select your memory dump file (.raw, .mem, .dmp)</li>
+        <li>Set the path to <code>vol.py</code> (Volatility 3)</li>
+        <li>Select which plugins to run</li>
+        <li>Click <strong>Run Volatility Analysis</strong></li>
+    </ol>
+    <div class="tip">
+        <strong>Install Volatility 3:</strong> <code>pip install volatility3</code> or download from <a href="https://github.com/volatilityfoundation/volatility3">github.com/volatilityfoundation/volatility3</a>
+    </div>
+
+    <h3>📦 Artifacts Tab</h3>
+    <p>Collect forensic artifacts using KAPE (Kroll Artifact Parser and Extractor) or Eric Zimmerman's tools.</p>
+    
+    <h4>Core Artifacts</h4>
+    <table>
+        <tr><th>Artifact</th><th>Description</th><th>Forensic Value</th></tr>
+        <tr><td>Prefetch</td><td>Application execution history</td><td>Execution evidence, timing, frequency</td></tr>
+        <tr><td>Amcache</td><td>Application compatibility cache</td><td>Program presence, installation date</td></tr>
+        <tr><td>Event Logs</td><td>Security, Sysmon, PowerShell logs</td><td>User activity, security events, commands</td></tr>
+        <tr><td>$MFT</td><td>Master File Table</td><td>File existence, timestamps, deleted files</td></tr>
+        <tr><td>Registry</td><td>SAM, SYSTEM, SOFTWARE hives</td><td>User accounts, system config, installed software</td></tr>
+        <tr><td>SRUM</td><td>System Resource Usage Monitor</td><td>App usage, network activity, battery</td></tr>
+    </table>
+    
+    <h4>Additional Artifacts</h4>
+    <table>
+        <tr><th>Artifact</th><th>Description</th><th>Forensic Value</th></tr>
+        <tr><td>ShellBags</td><td>Folder access history</td><td>Evidence of folder browsing, even deleted folders</td></tr>
+        <tr><td>Jump Lists</td><td>Recent files per application</td><td>User activity, file access patterns</td></tr>
+        <tr><td>LNK Files</td><td>Windows shortcuts</td><td>File paths, MAC times, volume info</td></tr>
+        <tr><td>Shimcache</td><td>Application compatibility database</td><td>Execution evidence (may predate actual run)</td></tr>
+        <tr><td>Recycle Bin</td><td>Deleted files metadata</td><td>What was deleted, original path, delete time</td></tr>
+        <tr><td>$UsnJrnl</td><td>NTFS change journal</td><td>File system changes, creation/deletion/rename</td></tr>
+    </table>
+    
+    <ol>
+        <li>Set the path to <code>kape.exe</code> or EZ Tools</li>
+        <li>Select the target path (source drive or evidence)</li>
+        <li>Check the artifacts you want to collect</li>
+        <li>Click <strong>Collect Artifacts</strong></li>
+    </ol>
+    <div class="tip">
+        <strong>Download KAPE:</strong> <a href="https://www.kroll.com/kape">kroll.com/kape</a><br>
+        <strong>EZ Tools:</strong> <a href="https://ericzimmerman.github.io/">ericzimmerman.github.io</a>
+    </div>
+
+    <h3>📅 Timeline Tab</h3>
+    <p>Create super-timelines using Plaso and collect fleet-wide artifacts with Velociraptor.</p>
+    
+    <h4>Plaso (log2timeline) - Super-Timeline</h4>
+    <p>Creates comprehensive timelines from multiple artifact sources.</p>
+    <table>
+        <tr><th>Field</th><th>Description</th></tr>
+        <tr><td>Plaso Path</td><td>Path to <code>log2timeline.py</code> or <code>psteal.py</code></td></tr>
+        <tr><td>Evidence Path</td><td>Folder or disk image containing evidence</td></tr>
+        <tr><td>Storage File</td><td>Output .plaso file for timeline data</td></tr>
+    </table>
+    <ol>
+        <li>Configure Plaso path and evidence folder</li>
+        <li>Click <strong>Create Timeline</strong> to generate the .plaso database</li>
+        <li>Click <strong>Export to OpenSearch</strong> to ingest timeline into OpenSearch</li>
+    </ol>
+    <div class="tip">
+        <strong>Install Plaso:</strong> <code>pip install plaso</code> or use Docker image from <a href="https://github.com/log2timeline/plaso">github.com/log2timeline/plaso</a>
+    </div>
+    
+    <h4>Velociraptor - Fleet Triage</h4>
+    <p>Collect artifacts from remote endpoints at scale.</p>
+    <table>
+        <tr><th>Artifact</th><th>Description</th></tr>
+        <tr><td>Windows.KapeFiles.Targets</td><td>Full KAPE target collection</td></tr>
+        <tr><td>Windows.System.Pslist</td><td>Running processes</td></tr>
+        <tr><td>Windows.Network.Netstat</td><td>Network connections</td></tr>
+        <tr><td>Windows.EventLogs.Evtx</td><td>Event log collection</td></tr>
+        <tr><td>Windows.Forensics.SRUM</td><td>Resource usage data</td></tr>
+        <tr><td>Windows.Forensics.Timeline</td><td>Filesystem timeline</td></tr>
+        <tr><td>Windows.Registry.AutoRuns</td><td>Persistence mechanisms</td></tr>
+        <tr><td>Generic.Collectors.File</td><td>Specific file collection</td></tr>
+    </table>
+    <div class="tip">
+        <strong>Download Velociraptor:</strong> <a href="https://github.com/Velocidex/velociraptor/releases">github.com/Velocidex/velociraptor/releases</a>
+    </div>
+
+    <h3>📊 Kusto Tab</h3>
+    <p>Build and execute Kusto queries against Azure Data Explorer or Log Analytics.</p>
+    
+    <h4>Connection Settings</h4>
+    <table>
+        <tr><th>Field</th><th>Description</th></tr>
+        <tr><td>Endpoint</td><td>Azure Data Explorer cluster URL (e.g., https://yourcluster.kusto.windows.net)</td></tr>
+        <tr><td>Database</td><td>Target database name</td></tr>
+    </table>
+    
+    <h4>Query Templates</h4>
+    <p>Pre-built forensic queries for common investigations:</p>
+    <table>
+        <tr><th>Template</th><th>Purpose</th></tr>
+        <tr><td>Suspicious PowerShell</td><td>Find encoded/download commands</td></tr>
+        <tr><td>Failed Logons</td><td>Detect brute force attempts (EventID 4625)</td></tr>
+        <tr><td>New Processes</td><td>Process creation events (EventID 4688)</td></tr>
+        <tr><td>Lateral Movement</td><td>Type 3/10 logons from remote IPs</td></tr>
+        <tr><td>Service Installation</td><td>New services (potential persistence)</td></tr>
+        <tr><td>Scheduled Tasks</td><td>Task creation events (persistence)</td></tr>
+        <tr><td>Registry Persistence</td><td>Run key modifications</td></tr>
+    </table>
+    <ol>
+        <li>Configure your Azure Data Explorer endpoint and database</li>
+        <li>Select a query template from the dropdown</li>
+        <li>Modify the query as needed</li>
+        <li>Click <strong>Execute Query</strong> or copy to Azure Data Explorer</li>
+    </ol>
+
+    <h3>🦠 Malware Tab</h3>
+    <p>Analyze suspicious documents for macros, embedded objects, and malicious content.</p>
+    
+    <h4>oletools (Office Macro Analysis)</h4>
+    <table>
+        <tr><th>Tool</th><th>Description</th></tr>
+        <tr><td>olevba</td><td>Extract VBA macros and analyze for suspicious patterns</td></tr>
+        <tr><td>mraptor (Macro Raptor)</td><td>Detect auto-execute macros that may be malicious</td></tr>
+    </table>
+    
+    <h4>PDF Analysis</h4>
+    <table>
+        <tr><th>Tool</th><th>Description</th></tr>
+        <tr><td>pdf-parser.py</td><td>Parse PDFs for JavaScript, embedded files, launch actions</td></tr>
+    </table>
+    
+    <ol>
+        <li>Set the path to oletools (olevba.exe, mraptor.exe)</li>
+        <li>Browse to select documents folder</li>
+        <li>Check which analyzers to run</li>
+        <li>Click <strong>Analyze Documents for Malware</strong></li>
+        <li>Review results in the grid - suspicious files are flagged</li>
+    </ol>
+    <div class="tip">
+        <strong>Install oletools:</strong> <code>pip install oletools</code><br>
+        <strong>pdf-parser:</strong> <a href="https://github.com/DidierStevens/DidierStevensSuite">github.com/DidierStevens/DidierStevensSuite</a>
+    </div>
+
+    <h3>🔎 Extract Tab</h3>
+    <p>Extract features from disk images and directories using bulk_extractor.</p>
+    
+    <h4>Extractable Features</h4>
+    <table>
+        <tr><th>Feature</th><th>Description</th></tr>
+        <tr><td>Email Addresses</td><td>All email addresses found in data</td></tr>
+        <tr><td>URLs</td><td>Web addresses and links</td></tr>
+        <tr><td>IP Addresses</td><td>IPv4 and IPv6 addresses</td></tr>
+        <tr><td>Credit Card Numbers</td><td>Credit card patterns (for fraud investigation)</td></tr>
+    </table>
+    <ol>
+        <li>Set path to <code>bulk_extractor.exe</code></li>
+        <li>Select input folder or disk image</li>
+        <li>Check features to extract</li>
+        <li>Click <strong>Run bulk_extractor</strong></li>
+        <li>Review extracted features in the results grid</li>
+    </ol>
+    <div class="tip">
+        <strong>Download bulk_extractor:</strong> <a href="https://github.com/simsong/bulk_extractor/releases">github.com/simsong/bulk_extractor/releases</a>
+    </div>
+
+    <h3>🔎 OpenSearch Tab</h3>
+    <p>Ingest forensic artifacts into OpenSearch for analysis and visualization.</p>
+    
+    <h4>Connection Settings</h4>
+    <table>
+        <tr><th>Field</th><th>Description</th></tr>
+        <tr><td>Server URL</td><td>OpenSearch server (e.g., http://localhost:9200)</td></tr>
+        <tr><td>Index Name</td><td>Target index for artifacts (e.g., dfir-artifacts)</td></tr>
+        <tr><td>Pipeline</td><td>Ingest pipeline for normalization</td></tr>
+    </table>
+    
+    <h4>Available Pipelines</h4>
+    <ul>
+        <li><code>dfir-volatility</code> - Memory analysis results normalization</li>
+        <li><code>dfir-evtx</code> - Windows Event Log normalization</li>
+        <li><code>dfir-amcache</code> - Amcache parser output</li>
+        <li><code>dfir-mftecmd</code> - MFT parser output</li>
+        <li><code>osint-docmeta</code> - Document metadata (FOCA-style)</li>
+    </ul>
+    
+    <h4>Index Templates</h4>
+    <p>Create optimized index mappings for forensic data types:</p>
+    <ul>
+        <li><code>dfir-volatility-*</code> - Memory analysis with process, network fields</li>
+        <li><code>dfir-evtx-*</code> - Event logs with EventID, channel fields</li>
+        <li><code>dfir-plaso-*</code> - Timeline events with source/type fields</li>
+    </ul>
+    <ol>
+        <li>Configure OpenSearch connection</li>
+        <li>Click <strong>Test</strong> to verify connectivity</li>
+        <li>Click <strong>Create Pipelines</strong> to set up normalization</li>
+        <li>Click <strong>Create Index Templates</strong> for optimized mappings</li>
+        <li>Click <strong>Ingest Artifacts</strong> to send collected data</li>
+    </ol>
+
+    <h3>📄 OSINT Tab</h3>
+    <p>Extract metadata from documents for OSINT (Open Source Intelligence) gathering, similar to FOCA.</p>
+    
+    <h4>Extractable Metadata</h4>
+    <table>
+        <tr><th>Field</th><th>Description</th><th>Intelligence Value</th></tr>
+        <tr><td>Author</td><td>Document author name</td><td>Username enumeration</td></tr>
+        <tr><td>Company</td><td>Organization name</td><td>Target validation</td></tr>
+        <tr><td>Creator</td><td>Application that created file</td><td>Software footprinting</td></tr>
+        <tr><td>Software</td><td>Software version</td><td>Vulnerability assessment</td></tr>
+        <tr><td>Modified Date</td><td>Last modification time</td><td>Activity timeline</td></tr>
+    </table>
+    <ol>
+        <li>Set path to ExifTool</li>
+        <li>Browse to document folder (PDF, DOCX, XLSX, etc.)</li>
+        <li>Click <strong>Extract Metadata</strong></li>
+        <li>Review extracted metadata in the grid</li>
+        <li>Export findings for reporting</li>
+    </ol>
+
+    <h3>📊 Results Tab</h3>
+    <p>View collected artifacts and activity log.</p>
+    <ul>
+        <li><strong>Collected Artifacts</strong> - Grid showing all artifacts with type, source, record count</li>
+        <li><strong>Activity Log</strong> - Console output from all forensic operations</li>
+        <li><strong>Export</strong> - Save results to CSV or JSON</li>
+        <li><strong>Clear</strong> - Reset the log</li>
+    </ul>
+
+    <h3>Required External Tools</h3>
+    <p>For full functionality, install the following tools:</p>
+    <table>
+        <tr><th>Tool</th><th>Purpose</th><th>Download</th></tr>
+        <tr><td>WinPmem</td><td>Memory acquisition</td><td><a href="https://github.com/Velocidex/WinPmem/releases">GitHub</a></td></tr>
+        <tr><td>Volatility 3</td><td>Memory analysis</td><td><a href="https://github.com/volatilityfoundation/volatility3">GitHub</a></td></tr>
+        <tr><td>KAPE</td><td>Artifact collection</td><td><a href="https://www.kroll.com/kape">Kroll</a></td></tr>
+        <tr><td>Plaso</td><td>Timeline creation</td><td><a href="https://github.com/log2timeline/plaso">GitHub</a></td></tr>
+        <tr><td>Velociraptor</td><td>Fleet triage</td><td><a href="https://github.com/Velocidex/velociraptor">GitHub</a></td></tr>
+        <tr><td>oletools</td><td>Office analysis</td><td><code>pip install oletools</code></td></tr>
+        <tr><td>pdf-parser</td><td>PDF analysis</td><td><a href="https://github.com/DidierStevens/DidierStevensSuite">GitHub</a></td></tr>
+        <tr><td>bulk_extractor</td><td>Feature extraction</td><td><a href="https://github.com/simsong/bulk_extractor">GitHub</a></td></tr>
+        <tr><td>ExifTool</td><td>Metadata extraction</td><td><a href="https://exiftool.org">ExifTool.org</a></td></tr>
+        <tr><td>OpenSearch</td><td>Data lake</td><td><a href="https://opensearch.org">OpenSearch.org</a></td></tr>
+    </table>
+</section>
+
 <section id="metadata" class="section">
-    <h2>� Metadata</h2>
+    <h2>📋 Metadata</h2>
     <p>View and edit file metadata using ExifTool integration.</p>
     
     <h3>Supported Metadata Types</h3>
@@ -849,7 +1155,7 @@
 </div>
 
 <footer>
-    <p>PlatypusTools v3.2.6.1 | © 2026 PlatypusTools Project | Built with .NET 10 / WPF</p>
+    <p>PlatypusTools v3.2.8 | © 2026 PlatypusTools Project | Built with .NET 10 / WPF</p>
 </footer>
 
 </body>

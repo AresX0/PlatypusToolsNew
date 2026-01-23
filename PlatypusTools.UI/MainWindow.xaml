@@ -278,6 +278,14 @@
                              Visibility="{Binding ForensicsAnalyzer, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:ForensicsAnalyzerView}" ViewDataContext="{Binding ForensicsAnalyzer}" />
                     </TabItem>
+                    <TabItem Header="🔥 Secure Wipe"
+                             Visibility="{Binding SecureWipe, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:SecureWipeView}" ViewDataContext="{Binding SecureWipe}" />
+                    </TabItem>
+                    <TabItem Header="🔬 Advanced Forensics"
+                             Visibility="{Binding AdvancedForensics, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:AdvancedForensicsView}" ViewDataContext="{Binding AdvancedForensics}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
 
