@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.10.0 - 2026-01-23
+
+### Fixed
+- **Robocopy Scroll** - Added scrolling to top pane of Robocopy tab for better usability on smaller screens
+
+---
+
 ## v3.2.9.0 - 2026-01-23
 
 ### Added

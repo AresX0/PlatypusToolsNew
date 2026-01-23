@@ -4,64 +4,65 @@
              xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels">
     <Grid Margin="16">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="*" MinHeight="200" />
             <RowDefinition Height="5" />
             <RowDefinition Height="200" MinHeight="100" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <TextBlock Grid.Row="0" Text="Robocopy - Robust File Copy" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,8" />
+        <!-- Top Scrollable Section -->
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+                <!-- Header -->
+                <TextBlock Text="Robocopy - Robust File Copy" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,8" />
 
-        <!-- Directories Section -->
-        <GroupBox Grid.Row="1" Header="Directories" Padding="8" Margin="0,0,0,8">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="120" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+                <!-- Directories Section -->
+                <GroupBox Header="Directories" Padding="8" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
 
-                <!-- Source Directory -->
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Source:" VerticalAlignment="Center" FontWeight="SemiBold" />
-                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SourceDirectory, UpdateSourceTrigger=PropertyChanged}" 
-                         VerticalContentAlignment="Center" Margin="0,0,8,8" />
-                <Button Grid.Row="0" Grid.Column="2" Content="Browse..." Command="{Binding BrowseSourceCommand}" 
-                        Padding="16,6" Margin="0,0,0,8" />
+                        <!-- Source Directory -->
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Source:" VerticalAlignment="Center" FontWeight="SemiBold" />
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SourceDirectory, UpdateSourceTrigger=PropertyChanged}" 
+                                 VerticalContentAlignment="Center" Margin="0,0,8,8" />
+                        <Button Grid.Row="0" Grid.Column="2" Content="Browse..." Command="{Binding BrowseSourceCommand}" 
+                                Padding="16,6" Margin="0,0,0,8" />
 
-                <!-- Destination Directory -->
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Destination:" VerticalAlignment="Center" FontWeight="SemiBold" />
-                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DestinationDirectory, UpdateSourceTrigger=PropertyChanged}" 
-                         VerticalContentAlignment="Center" Margin="0,0,8,8" />
-                <Button Grid.Row="1" Grid.Column="2" Content="Browse..." Command="{Binding BrowseDestinationCommand}" 
-                        Padding="16,6" Margin="0,0,0,8" />
+                        <!-- Destination Directory -->
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Destination:" VerticalAlignment="Center" FontWeight="SemiBold" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DestinationDirectory, UpdateSourceTrigger=PropertyChanged}" 
+                                 VerticalContentAlignment="Center" Margin="0,0,8,8" />
+                        <Button Grid.Row="1" Grid.Column="2" Content="Browse..." Command="{Binding BrowseDestinationCommand}" 
+                                Padding="16,6" Margin="0,0,0,8" />
 
-                <!-- File Pattern and Options -->
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="File Pattern:" VerticalAlignment="Center" />
-                <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal">
-                    <TextBox Text="{Binding FilePattern, UpdateSourceTrigger=PropertyChanged}" Width="150" 
-                             VerticalContentAlignment="Center" Margin="0,0,16,0" 
-                             ToolTip="File pattern to copy (e.g., *.txt, *.docx). Use *.* for all files." />
-                    <CheckBox Content="Create destination if it doesn't exist" IsChecked="{Binding CreateDestination}" 
-                              VerticalAlignment="Center" />
-                </StackPanel>
-            </Grid>
-        </GroupBox>
+                        <!-- File Pattern and Options -->
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="File Pattern:" VerticalAlignment="Center" />
+                        <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal">
+                            <TextBox Text="{Binding FilePattern, UpdateSourceTrigger=PropertyChanged}" Width="150" 
+                                     VerticalContentAlignment="Center" Margin="0,0,16,0" 
+                                     ToolTip="File pattern to copy (e.g., *.txt, *.docx). Use *.* for all files." />
+                            <CheckBox Content="Create destination if it doesn't exist" IsChecked="{Binding CreateDestination}" 
+                                      VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
 
-        <!-- Main Content - Switches and Preview -->
-        <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" MinWidth="300" />
-                <ColumnDefinition Width="5" />
-                <ColumnDefinition Width="*" MinWidth="300" />
-            </Grid.ColumnDefinitions>
+                <!-- Main Content - Switches and Preview -->
+                <Grid MinHeight="250">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" MinWidth="300" />
+                        <ColumnDefinition Width="5" />
+                        <ColumnDefinition Width="*" MinWidth="300" />
+                    </Grid.ColumnDefinitions>
 
             <!-- Switches Panel -->
             <GroupBox Grid.Column="0" Header="Robocopy Options" Padding="8">
@@ -224,13 +225,15 @@
                 </StackPanel>
             </Grid>
         </Grid>
+            </StackPanel>
+        </ScrollViewer>
 
         <!-- Vertical Splitter -->
-        <GridSplitter Grid.Row="3" Height="5" HorizontalAlignment="Stretch" 
+        <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" 
                       Background="{DynamicResource BorderBrush}" Cursor="SizeNS" ResizeDirection="Rows" />
 
         <!-- Output Section -->
-        <GroupBox Grid.Row="4" Header="Output" Padding="8">
+        <GroupBox Grid.Row="2" Header="Output" Padding="8">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -249,7 +252,7 @@
         </GroupBox>
 
         <!-- Status Bar -->
-        <Border Grid.Row="5" Background="{DynamicResource ControlBackgroundBrush}" Padding="8" Margin="0,8,0,0" CornerRadius="4">
+        <Border Grid.Row="3" Background="{DynamicResource ControlBackgroundBrush}" Padding="8" Margin="0,8,0,0" CornerRadius="4">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
