@@ -12,12 +12,6 @@
     <Window.DataContext>
         <vm:MainWindowViewModel />
     </Window.DataContext>
-    <Window.Resources>
-        <LinearGradientBrush x:Key="HeaderBrush" StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#FF1E88E5" Offset="0"/>
-            <GradientStop Color="#FF1565C0" Offset="1"/>
-        </LinearGradientBrush>
-    </Window.Resources>
     <DockPanel Background="{DynamicResource WindowBackgroundBrush}">
         <Menu DockPanel.Dock="Top" Background="{DynamicResource ControlBackgroundBrush}">
             <MenuItem Header="File">
@@ -75,28 +69,26 @@
             </MenuItem>
         </Menu>
 
-        <Border DockPanel.Dock="Top" Background="{StaticResource HeaderBrush}" Padding="12,8">
+        <Border DockPanel.Dock="Top" Background="{DynamicResource HeaderBrush}" Padding="12,8">
             <Grid>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                    <Image Source="Assets/platypus.png" Width="48" Height="48" Margin="0,0,12,0" />
+                    <Image Source="{Binding HeaderImage}" Width="48" Height="48" Margin="0,0,12,0" />
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock FontSize="24" FontWeight="Bold" Foreground="White">PlatypusTools</TextBlock>
-                        <TextBlock FontSize="12" Foreground="#FFBBDEFB">Advanced File Management &amp; Media Tools</TextBlock>
+                        <TextBlock FontSize="24" FontWeight="Bold" Foreground="{DynamicResource HeaderForegroundBrush}">PlatypusTools</TextBlock>
+                        <TextBlock FontSize="12" Foreground="{DynamicResource HeaderForegroundBrush}" Opacity="0.8">Advanced File Management &amp; Media Tools</TextBlock>
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <Button Command="{Binding ToggleThemeCommand}" 
                             Width="100" Height="32" Margin="0,0,8,0"
-                            Background="#80FFFFFF" Foreground="#FF1E1E1E" 
                             BorderThickness="0" FontWeight="SemiBold">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🌓" FontSize="14" Margin="0,0,6,0"/>
-                            <TextBlock Text="{Binding IsDarkTheme, Converter={StaticResource BoolToThemeTextConverter}, FallbackValue='Theme'}"/>
+                            <TextBlock Text="{Binding CurrentThemeName, FallbackValue='Theme'}"/>
                         </StackPanel>
                     </Button>
                     <Button Content="⚙ Settings" Click="OpenSettings" 
                             Width="90" Height="32"
-                            Background="#80FFFFFF" Foreground="#FF1E1E1E" 
                             BorderThickness="0" FontWeight="SemiBold"/>
                 </StackPanel>
             </Grid>

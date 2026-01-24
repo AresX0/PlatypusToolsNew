@@ -1,8 +1,13 @@
 <Window x:Class="PlatypusTools.UI.Views.ThemeEditorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Theme Editor" Height="600" Width="700"
+        xmlns:local="clr-namespace:PlatypusTools.UI.Views"
+        Title="Theme Creator" Height="750" Width="900"
         WindowStartupLocation="CenterOwner">
+    
+    <Window.Resources>
+        <local:BoolToBuiltInConverter x:Key="BoolToBuiltInConverter"/>
+    </Window.Resources>
     
     <Grid>
         <Grid.RowDefinitions>
@@ -14,15 +19,15 @@
         <!-- Header -->
         <Border Grid.Row="0" Background="{DynamicResource PrimaryBrush}" Padding="20">
             <StackPanel>
-                <TextBlock Text="Theme Editor" FontSize="24" FontWeight="Bold" Foreground="White"/>
-                <TextBlock Text="Customize the look and feel of PlatypusTools" Foreground="#CCFFFFFF" Margin="0,4,0,0"/>
+                <TextBlock Text="🎨 Theme Creator" FontSize="24" FontWeight="Bold" Foreground="White"/>
+                <TextBlock Text="Create and customize your own themes for PlatypusTools" Foreground="#CCFFFFFF" Margin="0,4,0,0"/>
             </StackPanel>
         </Border>
         
         <!-- Content -->
         <Grid Grid.Row="1" Margin="20">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="220"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             
@@ -33,9 +38,10 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     
-                    <TextBlock Grid.Row="0" Text="Themes" FontWeight="SemiBold" Padding="12" 
+                    <TextBlock Grid.Row="0" Text="Available Themes" FontWeight="SemiBold" Padding="12" 
                                Background="{DynamicResource SurfaceBrush}"/>
                     
                     <ListBox x:Name="ThemeList" Grid.Row="1" SelectionChanged="ThemeList_SelectionChanged">
@@ -44,16 +50,25 @@
                                 <StackPanel Orientation="Horizontal" Margin="4">
                                     <Border Width="24" Height="24" CornerRadius="4" 
                                             Background="{Binding PrimaryColor}" Margin="0,0,8,0"/>
-                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding IsBuiltIn, Converter={StaticResource BoolToBuiltInConverter}}" 
+                                                   FontSize="10" Opacity="0.6"/>
+                                    </StackPanel>
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
                     
                     <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="8">
-                        <Button Content="New" Width="50" Margin="0,0,4,0" Click="NewTheme_Click"/>
-                        <Button Content="Duplicate" Width="70" Margin="0,0,4,0" Click="DuplicateTheme_Click"/>
-                        <Button x:Name="DeleteButton" Content="Delete" Width="50" Click="DeleteTheme_Click"/>
+                        <Button Content="➕ New" Width="60" Margin="0,0,4,0" Click="NewTheme_Click" ToolTip="Create a new theme"/>
+                        <Button Content="📋 Copy" Width="60" Margin="0,0,4,0" Click="DuplicateTheme_Click" ToolTip="Duplicate selected theme"/>
+                        <Button x:Name="DeleteButton" Content="🗑️" Width="40" Click="DeleteTheme_Click" ToolTip="Delete selected theme"/>
+                    </StackPanel>
+                    
+                    <StackPanel Grid.Row="3" Margin="8,0,8,8">
+                        <TextBox x:Name="ThemeNameBox" Text="Custom Theme" Margin="0,0,0,4" 
+                                 TextChanged="ThemeName_Changed" ToolTip="Theme name"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -61,18 +76,21 @@
             <!-- Color Editor -->
             <ScrollViewer Grid.Column="1" Margin="20,0,0,0" VerticalScrollBarVisibility="Auto">
                 <StackPanel x:Name="ColorEditor">
-                    <TextBlock Text="Theme Colors" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,16"/>
+                    <TextBlock Text="Theme Colors" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
+                    <TextBlock Text="Click any color swatch to open a color picker, or enter hex values directly." 
+                               Opacity="0.7" Margin="0,0,0,16"/>
                     
-                    <GroupBox Header="Primary Colors" Margin="0,0,0,16">
+                    <!-- Primary Colors -->
+                    <GroupBox Header="Primary &amp; Accent Colors" Margin="0,0,0,12">
                         <StackPanel>
                             <Grid Margin="0,8">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="140"/>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="90"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="Primary" VerticalAlignment="Center"/>
-                                <Border x:Name="PrimaryColorPreview" Grid.Column="1" Height="30" CornerRadius="4" 
+                                <Border x:Name="PrimaryColorPreview" Grid.Column="1" Height="28" CornerRadius="4" 
                                         Background="#007ACC" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="Primary"/>
                                 <TextBox x:Name="PrimaryColorText" Grid.Column="2" Margin="8,0,0,0" Text="#007ACC" 
                                          VerticalAlignment="Center" TextChanged="ColorText_Changed" Tag="Primary"/>
@@ -80,29 +98,43 @@
                             
                             <Grid Margin="0,8">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="140"/>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="90"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="Accent" VerticalAlignment="Center"/>
-                                <Border x:Name="AccentColorPreview" Grid.Column="1" Height="30" CornerRadius="4" 
+                                <Border x:Name="AccentColorPreview" Grid.Column="1" Height="28" CornerRadius="4" 
                                         Background="#0E639C" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="Accent"/>
                                 <TextBox x:Name="AccentColorText" Grid.Column="2" Margin="8,0,0,0" Text="#0E639C"
                                          VerticalAlignment="Center" TextChanged="ColorText_Changed" Tag="Accent"/>
                             </Grid>
+                            
+                            <Grid Margin="0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="90"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Accent Hover" VerticalAlignment="Center"/>
+                                <Border x:Name="AccentHoverColorPreview" Grid.Column="1" Height="28" CornerRadius="4" 
+                                        Background="#1177BB" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="AccentHover"/>
+                                <TextBox x:Name="AccentHoverColorText" Grid.Column="2" Margin="8,0,0,0" Text="#1177BB"
+                                         VerticalAlignment="Center" TextChanged="ColorText_Changed" Tag="AccentHover"/>
+                            </Grid>
                         </StackPanel>
                     </GroupBox>
                     
-                    <GroupBox Header="Background Colors" Margin="0,0,0,16">
+                    <!-- Background Colors -->
+                    <GroupBox Header="Background Colors" Margin="0,0,0,12">
                         <StackPanel>
                             <Grid Margin="0,8">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="140"/>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="90"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Background" VerticalAlignment="Center"/>
-                                <Border x:Name="BackgroundColorPreview" Grid.Column="1" Height="30" CornerRadius="4" 
+                                <TextBlock Text="Window Background" VerticalAlignment="Center"/>
+                                <Border x:Name="BackgroundColorPreview" Grid.Column="1" Height="28" CornerRadius="4" 
                                         Background="#FFFFFF" BorderBrush="Gray" BorderThickness="1" 
                                         Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="Background"/>
                                 <TextBox x:Name="BackgroundColorText" Grid.Column="2" Margin="8,0,0,0" Text="#FFFFFF"
@@ -111,30 +143,58 @@
                             
                             <Grid Margin="0,8">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="140"/>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="90"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="Surface" VerticalAlignment="Center"/>
-                                <Border x:Name="SurfaceColorPreview" Grid.Column="1" Height="30" CornerRadius="4" 
+                                <Border x:Name="SurfaceColorPreview" Grid.Column="1" Height="28" CornerRadius="4" 
                                         Background="#F5F5F5" BorderBrush="Gray" BorderThickness="1"
                                         Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="Surface"/>
                                 <TextBox x:Name="SurfaceColorText" Grid.Column="2" Margin="8,0,0,0" Text="#F5F5F5"
                                          VerticalAlignment="Center" TextChanged="ColorText_Changed" Tag="Surface"/>
                             </Grid>
+                            
+                            <Grid Margin="0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="90"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Card Background" VerticalAlignment="Center"/>
+                                <Border x:Name="CardBackgroundColorPreview" Grid.Column="1" Height="28" CornerRadius="4" 
+                                        Background="#FAFAFA" BorderBrush="Gray" BorderThickness="1"
+                                        Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="CardBackground"/>
+                                <TextBox x:Name="CardBackgroundColorText" Grid.Column="2" Margin="8,0,0,0" Text="#FAFAFA"
+                                         VerticalAlignment="Center" TextChanged="ColorText_Changed" Tag="CardBackground"/>
+                            </Grid>
+                            
+                            <Grid Margin="0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="90"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Control Border" VerticalAlignment="Center"/>
+                                <Border x:Name="ControlBorderColorPreview" Grid.Column="1" Height="28" CornerRadius="4" 
+                                        Background="#D0D0D0" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="ControlBorder"/>
+                                <TextBox x:Name="ControlBorderColorText" Grid.Column="2" Margin="8,0,0,0" Text="#D0D0D0"
+                                         VerticalAlignment="Center" TextChanged="ColorText_Changed" Tag="ControlBorder"/>
+                            </Grid>
                         </StackPanel>
                     </GroupBox>
                     
-                    <GroupBox Header="Text Colors" Margin="0,0,0,16">
+                    <!-- Text Colors -->
+                    <GroupBox Header="Text Colors" Margin="0,0,0,12">
                         <StackPanel>
                             <Grid Margin="0,8">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="140"/>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="90"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="Primary Text" VerticalAlignment="Center"/>
-                                <Border x:Name="TextColorPreview" Grid.Column="1" Height="30" CornerRadius="4" 
+                                <Border x:Name="TextColorPreview" Grid.Column="1" Height="28" CornerRadius="4" 
                                         Background="#1E1E1E" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="Text"/>
                                 <TextBox x:Name="TextColorText" Grid.Column="2" Margin="8,0,0,0" Text="#1E1E1E"
                                          VerticalAlignment="Center" TextChanged="ColorText_Changed" Tag="Text"/>
@@ -142,12 +202,12 @@
                             
                             <Grid Margin="0,8">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="140"/>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="90"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="Secondary Text" VerticalAlignment="Center"/>
-                                <Border x:Name="SecondaryTextColorPreview" Grid.Column="1" Height="30" CornerRadius="4" 
+                                <Border x:Name="SecondaryTextColorPreview" Grid.Column="1" Height="28" CornerRadius="4" 
                                         Background="#6E6E6E" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="SecondaryText"/>
                                 <TextBox x:Name="SecondaryTextColorText" Grid.Column="2" Margin="8,0,0,0" Text="#6E6E6E"
                                          VerticalAlignment="Center" TextChanged="ColorText_Changed" Tag="SecondaryText"/>
@@ -155,15 +215,56 @@
                         </StackPanel>
                     </GroupBox>
                     
+                    <!-- Header Colors -->
+                    <GroupBox Header="Header &amp; Title Bar" Margin="0,0,0,12">
+                        <StackPanel>
+                            <Grid Margin="0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="90"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Header Background" VerticalAlignment="Center"/>
+                                <Border x:Name="HeaderColorPreview" Grid.Column="1" Height="28" CornerRadius="4" 
+                                        Background="#007ACC" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="Header"/>
+                                <TextBox x:Name="HeaderColorText" Grid.Column="2" Margin="8,0,0,0" Text="#007ACC"
+                                         VerticalAlignment="Center" TextChanged="ColorText_Changed" Tag="Header"/>
+                            </Grid>
+                            
+                            <Grid Margin="0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="90"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Header Text" VerticalAlignment="Center"/>
+                                <Border x:Name="HeaderForegroundColorPreview" Grid.Column="1" Height="28" CornerRadius="4" 
+                                        Background="#FFFFFF" BorderBrush="Gray" BorderThickness="1"
+                                        Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="HeaderForeground"/>
+                                <TextBox x:Name="HeaderForegroundColorText" Grid.Column="2" Margin="8,0,0,0" Text="#FFFFFF"
+                                         VerticalAlignment="Center" TextChanged="ColorText_Changed" Tag="HeaderForeground"/>
+                            </Grid>
+                        </StackPanel>
+                    </GroupBox>
+                    
                     <!-- Preview Panel -->
-                    <GroupBox Header="Preview">
-                        <Border x:Name="PreviewPanel" Padding="16" CornerRadius="4">
+                    <GroupBox Header="Live Preview" Margin="0,0,0,12">
+                        <Border x:Name="PreviewPanel" Padding="16" CornerRadius="4" Background="#FFFFFF">
                             <StackPanel>
-                                <TextBlock Text="Sample Heading" FontSize="18" FontWeight="Bold"/>
-                                <TextBlock Text="This is sample body text to preview theme colors." Margin="0,8,0,16"/>
+                                <Border x:Name="PreviewHeader" Background="#007ACC" CornerRadius="4,4,0,0" Padding="12,8" Margin="0,0,0,12">
+                                    <TextBlock x:Name="PreviewHeaderText" Text="PlatypusTools" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                                </Border>
+                                <TextBlock x:Name="PreviewPrimaryText" Text="Sample Heading" FontSize="16" FontWeight="Bold" Foreground="#1E1E1E"/>
+                                <TextBlock x:Name="PreviewSecondaryText" Text="This is secondary text to preview your theme colors." 
+                                           Foreground="#6E6E6E" Margin="0,4,0,12"/>
                                 <StackPanel Orientation="Horizontal">
-                                    <Button Content="Primary Button" Margin="0,0,8,0"/>
-                                    <Button Content="Secondary" Background="Transparent" Margin="0,0,8,0"/>
+                                    <Border x:Name="PreviewButton" Background="#007ACC" CornerRadius="4" Padding="12,6" Margin="0,0,8,0">
+                                        <TextBlock Text="Primary Button" Foreground="White"/>
+                                    </Border>
+                                    <Border x:Name="PreviewSecondaryButton" Background="Transparent" BorderBrush="#007ACC" 
+                                            BorderThickness="1" CornerRadius="4" Padding="12,6">
+                                        <TextBlock x:Name="PreviewSecondaryButtonText" Text="Secondary" Foreground="#007ACC"/>
+                                    </Border>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -176,12 +277,14 @@
         <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" Padding="20,12">
             <Grid>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                    <Button Content="Import..." Margin="0,0,8,0" Click="Import_Click"/>
-                    <Button Content="Export..." Click="Export_Click"/>
+                    <Button Content="📥 Import..." Margin="0,0,8,0" Click="Import_Click" ToolTip="Import a theme file"/>
+                    <Button Content="📤 Export..." Click="Export_Click" ToolTip="Export selected theme"/>
+                    <Button Content="📄 Export XAML..." Margin="8,0,0,0" Click="ExportXaml_Click" ToolTip="Export theme as XAML file"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="Reset to Default" Margin="0,0,8,0" Click="ResetDefault_Click"/>
-                    <Button Content="Apply" Width="80" Margin="0,0,8,0" Click="Apply_Click"/>
+                    <Button Content="Reset" Margin="0,0,8,0" Click="ResetDefault_Click" ToolTip="Reset to built-in themes"/>
+                    <Button Content="✓ Apply Theme" Width="120" Margin="0,0,8,0" Click="Apply_Click" 
+                            Background="{DynamicResource PrimaryBrush}" Foreground="White"/>
                     <Button Content="Close" Width="80" Click="Close_Click"/>
                 </StackPanel>
             </Grid>

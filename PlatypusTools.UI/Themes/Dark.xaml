@@ -28,6 +28,10 @@
     <SolidColorBrush x:Key="TitleBarButtonHoverBrush" Color="#33FFFFFF"/>
     <SolidColorBrush x:Key="TitleBarCloseHoverBrush" Color="#FFE81123"/>
     
+    <!-- Header brush for MainWindow -->
+    <SolidColorBrush x:Key="HeaderBrush" Color="#FF2D2D2D"/>
+    <SolidColorBrush x:Key="HeaderForegroundBrush" Color="#FFFFFFFF"/>
+    
     <!-- Additional resource keys used by views -->
     <SolidColorBrush x:Key="CardBackground" Color="#FF2D2D30" />
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FF2D2D30" />

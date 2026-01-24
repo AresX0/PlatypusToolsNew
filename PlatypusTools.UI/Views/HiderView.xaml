@@ -15,16 +15,16 @@
         <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
             <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Folder:</TextBlock>
             <TextBox Width="300" Text="{Binding NewFolderPath, UpdateSourceTrigger=PropertyChanged}" />
-            <Button Content="Browse..." Command="{Binding BrowseFolderCommand}" Width="80" Margin="8,0,0,0" />
-            <Button Content="Add to Hider List" Command="{Binding AddFolderCommand}" Width="120" Margin="8,0,0,0" />
+            <Button Content="Browse..." Command="{Binding BrowseFolderCommand}" MinWidth="90" Margin="8,0,0,0" />
+            <Button Content="Add to Hider List" Command="{Binding AddFolderCommand}" MinWidth="140" Margin="8,0,0,0" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8">
-            <Button Content="Hide Folder" Command="{Binding SetHiddenCommand}" Width="100" />
-            <Button Content="Unhide Folder" Command="{Binding ClearHiddenCommand}" Width="110" Margin="8,0,0,0" />
-            <Button Content="Restrict to Administrators" Command="{Binding ApplyAclCommand}" Width="170" Margin="8,0,0,0" />
-            <Button Content="Load Configuration" Command="{Binding LoadConfigCommand}" Width="130" Margin="8,0,0,0" />
-            <Button Content="Save Configuration" Command="{Binding SaveConfigCommand}" Width="130" Margin="8,0,0,0" />
+            <Button Content="Hide Folder" Command="{Binding SetHiddenCommand}" MinWidth="105" />
+            <Button Content="Unhide Folder" Command="{Binding ClearHiddenCommand}" MinWidth="120" Margin="8,0,0,0" />
+            <Button Content="Restrict to Administrators" Command="{Binding ApplyAclCommand}" MinWidth="195" Margin="8,0,0,0" />
+            <Button Content="Load Configuration" Command="{Binding LoadConfigCommand}" MinWidth="150" Margin="8,0,0,0" />
+            <Button Content="Save Configuration" Command="{Binding SaveConfigCommand}" MinWidth="150" Margin="8,0,0,0" />
         </StackPanel>
 
         <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
@@ -42,11 +42,11 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Button Content="Hide" Command="{Binding DataContext.SetHiddenCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="50" Margin="0,0,2,0" Padding="4,2" ToolTip="Hide this folder" />
-                                <Button Content="Unhide" Command="{Binding DataContext.ClearHiddenCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="60" Margin="0,0,2,0" Padding="4,2" ToolTip="Unhide this folder" />
-                                <Button Content="ACL" Command="{Binding DataContext.ApplyAclCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="45" Margin="0,0,2,0" Padding="4,2" ToolTip="Restrict to Administrators" />
-                                <Button Content="EFS" Command="{Binding DataContext.ApplyEfsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="45" Margin="0,0,2,0" Padding="4,2" ToolTip="Apply EFS encryption" />
-                                <Button Content="Remove" Command="{Binding DataContext.RemoveRecordCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="70" Padding="4,2" Foreground="Red" ToolTip="Remove from list" />
+                                <Button Content="Hide" Command="{Binding DataContext.SetHiddenCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" MinWidth="55" Margin="0,0,2,0" Padding="4,2" ToolTip="Hide this folder" />
+                                <Button Content="Unhide" Command="{Binding DataContext.ClearHiddenCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" MinWidth="70" Margin="0,0,2,0" Padding="4,2" ToolTip="Unhide this folder" />
+                                <Button Content="ACL" Command="{Binding DataContext.ApplyAclCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" MinWidth="50" Margin="0,0,2,0" Padding="4,2" ToolTip="Restrict to Administrators" />
+                                <Button Content="EFS" Command="{Binding DataContext.ApplyEfsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" MinWidth="50" Margin="0,0,2,0" Padding="4,2" ToolTip="Apply EFS encryption" />
+                                <Button Content="Remove" Command="{Binding DataContext.RemoveRecordCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" MinWidth="80" Padding="4,2" Foreground="Red" ToolTip="Remove from list" />
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

@@ -33,10 +33,11 @@
     <Color x:Key="LcarsPurple">#FF9977AA</Color>
     <Color x:Key="LcarsViolet">#FF9999CC</Color>
     
-    <!-- Blue family -->
-    <Color x:Key="LcarsBlue">#FF99CCFF</Color>
-    <Color x:Key="LcarsBlueDark">#FF6688CC</Color>
-    <Color x:Key="LcarsCyan">#FF99FFFF</Color>
+    <!-- Blue family (matching Light theme header blue) -->
+    <Color x:Key="LcarsBlue">#FF0078D4</Color>
+    <Color x:Key="LcarsBlueDark">#FF005A9E</Color>
+    <Color x:Key="LcarsBlueLight">#FF1E90FF</Color>
+    <Color x:Key="LcarsCyan">#FF00B4D8</Color>
     
     <!-- Red/Alert Colors -->
     <Color x:Key="LcarsRed">#FFCC3333</Color>
@@ -75,6 +76,7 @@
     <!-- Blue Brushes -->
     <SolidColorBrush x:Key="LcarsBlueBrush" Color="{StaticResource LcarsBlue}"/>
     <SolidColorBrush x:Key="LcarsBlueDarkBrush" Color="{StaticResource LcarsBlueDark}"/>
+    <SolidColorBrush x:Key="LcarsBlueLightBrush" Color="{StaticResource LcarsBlueLight}"/>
     <SolidColorBrush x:Key="LcarsCyanBrush" Color="{StaticResource LcarsCyan}"/>
     
     <!-- Alert Brushes -->
@@ -114,8 +116,10 @@
     <SolidColorBrush x:Key="TextBoxForegroundBrush" Color="{StaticResource LcarsGold}"/>
     <SolidColorBrush x:Key="TextBoxBorderBrush" Color="{StaticResource LcarsTan}"/>
     
-    <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="{StaticResource LcarsGold}"/>
+    <!-- Header - LCARS uses blue for header bars -->
+    <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="{StaticResource LcarsBlue}"/>
     <SolidColorBrush x:Key="HeaderForegroundBrush" Color="{StaticResource LcarsBlack}"/>
+    <SolidColorBrush x:Key="HeaderBrush" Color="{StaticResource LcarsBlue}"/>
     
     <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{StaticResource LcarsGray}"/>
     <SolidColorBrush x:Key="SidebarForegroundBrush" Color="{StaticResource LcarsWhite}"/>
@@ -157,7 +161,7 @@
 
     <!-- ======================== LCARS Button Styles ======================== -->
     
-    <!-- Pill Button (classic LCARS rounded-end button) -->
+    <!-- Pill Button (classic LCARS rounded-end button) - gold → blue on hover -->
     <Style x:Key="LcarsPillButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
@@ -182,10 +186,10 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGoldLightBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsBlueBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsBlueDarkBrush}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGrayLightBrush}"/>
@@ -212,10 +216,10 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGoldLightBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsBlueBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsBlueDarkBrush}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGrayLightBrush}"/>
@@ -241,10 +245,10 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGoldLightBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsBlueBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsBlueDarkBrush}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGrayLightBrush}"/>
@@ -273,7 +277,7 @@
         <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
     </Style>
 
-    <!-- PrimaryButton - Gold/Orange LCARS style for main actions -->
+    <!-- PrimaryButton - Gold LCARS style, turns blue on hover -->
     <Style x:Key="PrimaryButton" TargetType="Button">
         <Setter Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
@@ -297,10 +301,10 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGoldLightBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsBlueBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsBlueDarkBrush}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGrayLightBrush}"/>
@@ -312,9 +316,9 @@
         </Setter>
     </Style>
 
-    <!-- SecondaryButton - Tan/Lavender LCARS style for secondary actions -->
+    <!-- SecondaryButton - Blue LCARS style, turns gold on hover -->
     <Style x:Key="SecondaryButton" TargetType="Button">
-        <Setter Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+        <Setter Property="Background" Value="{StaticResource LcarsBlueBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
         <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
         <Setter Property="FontSize" Value="13"/>
@@ -336,10 +340,10 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsTanLightBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsTanBrush}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGrayLightBrush}"/>
@@ -353,7 +357,7 @@
 
     <!-- ======================== Default Control Overrides ======================== -->
     
-    <!-- Standard Button Override -->
+    <!-- Standard Button Override - Gold buttons turn blue on hover -->
     <Style TargetType="Button">
         <Setter Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
@@ -377,10 +381,10 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGoldLightBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsBlueBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsBlueDarkBrush}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGrayLightBrush}"/>
@@ -723,7 +727,7 @@
         <Setter Property="Padding" Value="0"/>
     </Style>
 
-    <!-- TabItem -->
+    <!-- TabItem - Pill button style with color shift hover -->
     <Style TargetType="TabItem">
         <Setter Property="Background" Value="{StaticResource LcarsGrayBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
@@ -753,15 +757,18 @@
                             <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
                             <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
                         </Trigger>
+                        <!-- Unselected tabs: gray → tan on hover -->
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGoldLightBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
                         </Trigger>
+                        <!-- Selected tabs: gold → blue on hover -->
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
                                 <Condition Property="IsSelected" Value="True"/>
                                 <Condition Property="IsMouseOver" Value="True"/>
                             </MultiTrigger.Conditions>
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsBlueBrush}"/>
                         </MultiTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -925,7 +932,7 @@
                             <Setter TargetName="Arrow" Property="Visibility" Value="Collapsed"/>
                         </Trigger>
                         <Trigger Property="IsHighlighted" Value="True">
-                            <Setter TargetName="Border" Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
+                            <Setter TargetName="Border" Property="Background" Value="{StaticResource LcarsBlueBrush}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="HeaderText" Property="Foreground" Value="{StaticResource LcarsGrayBrush}"/>

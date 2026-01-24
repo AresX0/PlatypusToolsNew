@@ -22,7 +22,8 @@ namespace PlatypusTools.UI.Views
         Neon,           // Bright neon colors
         Ocean,          // Deep blues and teals
         Sunset,         // Orange, pink, purple
-        Monochrome      // White/gray
+        Monochrome,     // White/gray
+        PipBoy          // Fallout Pip-Boy green phosphor
     }
     
     /// <summary>
@@ -397,6 +398,12 @@ namespace PlatypusTools.UI.Views
                     new GradientStop(Color.FromRgb(200, 200, 200), 0.5),
                     new GradientStop(Colors.White, 1)
                 },
+                VisualizerColorScheme.PipBoy => new GradientStopCollection
+                {
+                    new GradientStop(Color.FromRgb(10, 85, 48), 0),      // Dark green
+                    new GradientStop(Color.FromRgb(27, 255, 128), 0.5),  // Pip-Boy green
+                    new GradientStop(Color.FromRgb(77, 255, 163), 1)     // Light green
+                },
                 _ => new GradientStopCollection // BlueGreen (default)
                 {
                     new GradientStop(Color.FromRgb(30, 144, 255), 0),
@@ -451,12 +458,14 @@ namespace PlatypusTools.UI.Views
 
             canvas.Children.Clear();
 
-            // Draw background
+            // Draw background using theme color
+            var bgBrush = TryFindResource("WindowBackgroundBrush") as SolidColorBrush 
+                ?? new SolidColorBrush(Color.FromRgb(10, 14, 39));
             var bg = new Rectangle
             {
                 Width = canvas.ActualWidth,
                 Height = canvas.ActualHeight,
-                Fill = new SolidColorBrush(Color.FromRgb(10, 14, 39))
+                Fill = bgBrush
             };
             canvas.Children.Add(bg);
 

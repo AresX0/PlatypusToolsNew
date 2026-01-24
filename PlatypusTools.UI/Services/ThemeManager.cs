@@ -13,6 +13,7 @@ namespace PlatypusTools.UI.Services
         private static ThemeManager? _instance;
         private bool _isDarkTheme;
         private bool _isLcarsTheme;
+        private bool _isPipBoyTheme;
         private bool _isGlassEnabled;
         private GlassLevel _glassLevel = GlassLevel.Off;
         private Window? _mainWindow;
@@ -22,6 +23,7 @@ namespace PlatypusTools.UI.Services
         public const string Dark = "Dark";
         public const string LCARS = "LCARS";
         public const string Glass = "Glass";
+        public const string PipBoy = "PipBoy";
 
         /// <summary>Gets the singleton instance.</summary>
         public static ThemeManager Instance => _instance ??= new ThemeManager();
@@ -56,9 +58,33 @@ namespace PlatypusTools.UI.Services
                 if (_isLcarsTheme != value)
                 {
                     _isLcarsTheme = value;
+                    _isPipBoyTheme = false;
                     if (value)
                     {
                         ApplyTheme(LCARS);
+                    }
+                    else
+                    {
+                        ApplyTheme(_isDarkTheme ? Dark : Light);
+                    }
+                    ThemeChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        /// <summary>Gets or sets whether Pip-Boy theme is active.</summary>
+        public bool IsPipBoyTheme
+        {
+            get => _isPipBoyTheme;
+            set
+            {
+                if (_isPipBoyTheme != value)
+                {
+                    _isPipBoyTheme = value;
+                    _isLcarsTheme = false;
+                    if (value)
+                    {
+                        ApplyTheme(PipBoy);
                     }
                     else
                     {
@@ -142,7 +168,8 @@ namespace PlatypusTools.UI.Services
             return path.Contains("themes\\light.xaml") || 
                    path.Contains("themes\\dark.xaml") ||
                    path.Contains("themes\\lcars.xaml") ||
-                   path.Contains("themes\\glass.xaml");
+                   path.Contains("themes\\glass.xaml") ||
+                   path.Contains("themes\\pipboy.xaml");
         }
 
         /// <summary>
@@ -163,8 +190,9 @@ namespace PlatypusTools.UI.Services
 
                 // Update singleton state
                 Instance._currentTheme = name;
-                Instance._isDarkTheme = name == Dark || name == LCARS; // LCARS is dark-based
+                Instance._isDarkTheme = name == Dark || name == LCARS || name == PipBoy; // LCARS and PipBoy are dark-based
                 Instance._isLcarsTheme = name == LCARS;
+                Instance._isPipBoyTheme = name == PipBoy;
 
                 // Remove existing theme dictionaries
                 int removedCount = 0;
@@ -187,6 +215,9 @@ namespace PlatypusTools.UI.Services
                 {
                     case LCARS:
                         themePath = System.IO.Path.Combine(baseDir, "Themes", "LCARS.xaml");
+                        break;
+                    case PipBoy:
+                        themePath = System.IO.Path.Combine(baseDir, "Themes", "PipBoy.xaml");
                         break;
                     case Dark:
                         themePath = System.IO.Path.Combine(baseDir, "Themes", "Dark.xaml");
@@ -235,6 +266,136 @@ namespace PlatypusTools.UI.Services
             {
                 SimpleLogger.Error($"ThemeManager: Exception applying theme: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Applies a custom theme from a XAML file.
+        /// </summary>
+        /// <param name="name">The name of the custom theme.</param>
+        /// <param name="xamlPath">The absolute path to the XAML theme file.</param>
+        public static void ApplyCustomTheme(string name, string xamlPath)
+        {
+            try
+            {
+                var app = Application.Current;
+                if (app == null) 
+                {
+                    SimpleLogger.Warn("ThemeManager: Application.Current is null");
+                    return;
+                }
+
+                SimpleLogger.Debug($"ThemeManager: Applying custom theme '{name}' from {xamlPath}");
+
+                // Update singleton state
+                Instance._currentTheme = name;
+                Instance._isDarkTheme = IsCustomThemeDark(xamlPath);
+                Instance._isLcarsTheme = false;
+                Instance._isPipBoyTheme = false;
+
+                // Remove existing theme dictionaries
+                for (int i = app.Resources.MergedDictionaries.Count - 1; i >= 0; i--)
+                {
+                    var md = app.Resources.MergedDictionaries[i];
+                    if (IsThemeDictionary(md) || IsCustomThemeDictionary(md))
+                    {
+                        app.Resources.MergedDictionaries.RemoveAt(i);
+                    }
+                }
+
+                if (System.IO.File.Exists(xamlPath))
+                {
+                    var dict = new ResourceDictionary();
+                    dict.Source = new Uri(xamlPath, UriKind.Absolute);
+                    app.Resources.MergedDictionaries.Add(dict);
+                    SimpleLogger.Info($"ThemeManager: Custom theme '{name}' loaded successfully");
+                }
+                else
+                {
+                    SimpleLogger.Error($"ThemeManager: Custom theme file not found: {xamlPath}");
+                }
+
+                // Update title bar dark mode
+                if (Instance._mainWindow != null)
+                {
+                    DwmGlassHelper.SetDarkMode(Instance._mainWindow, Instance._isDarkTheme);
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error($"ThemeManager: Exception applying custom theme: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Checks if a custom theme is dark based on its background color.
+        /// </summary>
+        private static bool IsCustomThemeDark(string xamlPath)
+        {
+            try
+            {
+                var content = System.IO.File.ReadAllText(xamlPath);
+                // Look for WindowBackgroundBrush color
+                var match = System.Text.RegularExpressions.Regex.Match(content, 
+                    @"WindowBackgroundBrush[^>]*Color=""([^""]+)""");
+                if (match.Success)
+                {
+                    var colorStr = match.Groups[1].Value;
+                    var color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(colorStr);
+                    double luminance = (0.299 * color.R + 0.587 * color.G + 0.114 * color.B) / 255;
+                    return luminance < 0.5;
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if a resource dictionary is a custom theme file.
+        /// </summary>
+        private static bool IsCustomThemeDictionary(ResourceDictionary md)
+        {
+            if (md.Source == null) return false;
+            var path = md.Source.OriginalString.ToLowerInvariant();
+            return path.Contains("customthemes");
+        }
+
+        /// <summary>
+        /// Gets the list of available custom themes.
+        /// </summary>
+        public static string[] GetCustomThemeNames()
+        {
+            try
+            {
+                var themesDir = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "PlatypusTools", "CustomThemes");
+                    
+                if (System.IO.Directory.Exists(themesDir))
+                {
+                    var files = System.IO.Directory.GetFiles(themesDir, "*.xaml");
+                    var names = new string[files.Length];
+                    for (int i = 0; i < files.Length; i++)
+                    {
+                        names[i] = System.IO.Path.GetFileNameWithoutExtension(files[i]);
+                    }
+                    return names;
+                }
+            }
+            catch { }
+            return Array.Empty<string>();
+        }
+
+        /// <summary>
+        /// Gets the path to a custom theme file.
+        /// </summary>
+        public static string? GetCustomThemePath(string name)
+        {
+            var themesDir = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "PlatypusTools", "CustomThemes");
+            var safeName = string.Join("_", name.Split(System.IO.Path.GetInvalidFileNameChars()));
+            var path = System.IO.Path.Combine(themesDir, $"{safeName}.xaml");
+            return System.IO.File.Exists(path) ? path : null;
         }
 
         /// <summary>

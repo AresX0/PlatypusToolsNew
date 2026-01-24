@@ -49,6 +49,8 @@ namespace PlatypusTools.UI.Views
                 // Theme
                 if (settings?.Theme == ThemeManager.LCARS)
                     LCARSThemeRadio.IsChecked = true;
+                else if (settings?.Theme == ThemeManager.PipBoy)
+                    PipBoyThemeRadio.IsChecked = true;
                 else if (settings?.Theme == ThemeManager.Dark)
                     DarkThemeRadio.IsChecked = true;
                 else if (LightThemeRadio != null)
@@ -263,9 +265,16 @@ namespace PlatypusTools.UI.Views
         
         private void CustomizeTheme_Click(object sender, RoutedEventArgs e)
         {
-            var themeEditor = new ThemeEditorWindow();
-            themeEditor.Owner = this;
-            themeEditor.ShowDialog();
+            try
+            {
+                var themeEditor = new ThemeEditorWindow();
+                themeEditor.Owner = this;
+                themeEditor.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Failed to open Theme Editor:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
         
         private void GlassEffectCheck_Changed(object sender, RoutedEventArgs e)
@@ -440,6 +449,11 @@ namespace PlatypusTools.UI.Views
             {
                 settings.Theme = ThemeManager.LCARS;
                 ThemeManager.ApplyTheme(ThemeManager.LCARS);
+            }
+            else if (PipBoyThemeRadio.IsChecked == true)
+            {
+                settings.Theme = ThemeManager.PipBoy;
+                ThemeManager.ApplyTheme(ThemeManager.PipBoy);
             }
             else if (DarkThemeRadio.IsChecked == true)
             {

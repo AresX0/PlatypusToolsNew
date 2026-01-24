@@ -94,12 +94,14 @@ namespace PlatypusTools.UI.ViewModels
 
                 SimpleLogger.Debug("Commands created successfully");
                 
-                // Sync IsDarkTheme property with current theme (theme is loaded by App.xaml.cs before window creation)
+                // Sync IsDarkTheme and CurrentThemeName properties with current theme (theme is loaded by App.xaml.cs before window creation)
                 try
                 {
                     var theme = PlatypusTools.UI.Services.ThemeManager.Instance.CurrentTheme;
+                    CurrentThemeName = theme;
                     IsDarkTheme = string.Equals(theme, PlatypusTools.UI.Services.ThemeManager.Dark, StringComparison.OrdinalIgnoreCase) ||
-                                  string.Equals(theme, PlatypusTools.UI.Services.ThemeManager.LCARS, StringComparison.OrdinalIgnoreCase);
+                                  string.Equals(theme, PlatypusTools.UI.Services.ThemeManager.LCARS, StringComparison.OrdinalIgnoreCase) ||
+                                  string.Equals(theme, PlatypusTools.UI.Services.ThemeManager.PipBoy, StringComparison.OrdinalIgnoreCase);
                 }
                 catch { }
             
@@ -178,6 +180,28 @@ namespace PlatypusTools.UI.ViewModels
 
         private bool _isDarkTheme;
         public bool IsDarkTheme { get => _isDarkTheme; set { _isDarkTheme = value; RaisePropertyChanged(); } }
+
+        private string _currentThemeName = "Dark";
+        public string CurrentThemeName { get => _currentThemeName; set { _currentThemeName = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(HeaderImage)); } }
+
+        public string HeaderImage 
+        {
+            get
+            {
+                // Get the base directory for single-file publish compatibility
+                var baseDir = AppContext.BaseDirectory;
+                if (CurrentThemeName == PlatypusTools.UI.Services.ThemeManager.PipBoy)
+                {
+                    var pipBoyPath = System.IO.Path.Combine(baseDir, "Themes", "PipBoy.png");
+                    if (System.IO.File.Exists(pipBoyPath))
+                        return pipBoyPath;
+                }
+                var platypusPath = System.IO.Path.Combine(baseDir, "Assets", "platypus.png");
+                if (System.IO.File.Exists(platypusPath))
+                    return platypusPath;
+                return "Assets/platypus.png"; // Fallback
+            }
+        }
 
         private void Browse()
         {
@@ -273,10 +297,37 @@ namespace PlatypusTools.UI.ViewModels
         {
             try
             {
+                // Check if we're in a development environment with the test project
+                var baseDir = AppContext.BaseDirectory;
+                var testProjectPath = System.IO.Path.Combine(baseDir, "..", "..", "..", "..", "PlatypusTools.Core.Tests");
+                var solutionPath = System.IO.Path.Combine(baseDir, "..", "..", "..", "..", "PlatypusTools.sln");
+                
+                if (!System.IO.Directory.Exists(testProjectPath) && !System.IO.File.Exists(solutionPath))
+                {
+                    System.Windows.MessageBox.Show(
+                        "Parity Tests require the PlatypusTools source code and .NET SDK to be installed.\n\n" +
+                        "This feature is intended for developers to verify that all services work correctly.\n\n" +
+                        "To run tests:\n" +
+                        "1. Clone the repository from GitHub\n" +
+                        "2. Open a terminal in the solution folder\n" +
+                        "3. Run: dotnet test",
+                        "Parity Tests - Development Feature", 
+                        System.Windows.MessageBoxButton.OK, 
+                        System.Windows.MessageBoxImage.Information);
+                    return;
+                }
+                
                 System.Windows.MessageBox.Show("Running parity tests... This may take a moment.", "Parity Tests", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
                 
                 // Run dotnet test for the core test project and show output in a simple window
-                var psi = new ProcessStartInfo("dotnet", "test --filter Category!=Integration") { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true };
+                var psi = new ProcessStartInfo("dotnet", "test --filter Category!=Integration") 
+                { 
+                    RedirectStandardOutput = true, 
+                    RedirectStandardError = true, 
+                    UseShellExecute = false, 
+                    CreateNoWindow = true,
+                    WorkingDirectory = System.IO.Path.GetDirectoryName(solutionPath) ?? baseDir
+                };
                 using var p = Process.Start(psi);
                 if (p == null)
                 {
@@ -403,10 +454,38 @@ namespace PlatypusTools.UI.ViewModels
         {
             try
             {
-                IsDarkTheme = !IsDarkTheme;
-                var theme = IsDarkTheme ? PlatypusTools.UI.Services.ThemeManager.Dark : PlatypusTools.UI.Services.ThemeManager.Light;
-                PlatypusTools.UI.Services.ThemeManager.ApplyTheme(theme);
-                PlatypusTools.UI.Services.SettingsManager.Current.Theme = theme;
+                // Get all available themes: built-in + custom
+                var builtInThemes = new[] { 
+                    PlatypusTools.UI.Services.ThemeManager.Dark,
+                    PlatypusTools.UI.Services.ThemeManager.Light,
+                    PlatypusTools.UI.Services.ThemeManager.LCARS,
+                    PlatypusTools.UI.Services.ThemeManager.PipBoy
+                };
+                var customThemes = PlatypusTools.UI.Services.ThemeManager.GetCustomThemeNames();
+                var allThemes = new System.Collections.Generic.List<string>(builtInThemes);
+                allThemes.AddRange(customThemes);
+
+                // Find current theme index and get next
+                var currentIndex = allThemes.IndexOf(CurrentThemeName);
+                var nextIndex = (currentIndex + 1) % allThemes.Count;
+                var nextTheme = allThemes[nextIndex];
+
+                CurrentThemeName = nextTheme;
+                
+                // Check if it's a custom theme
+                var customPath = PlatypusTools.UI.Services.ThemeManager.GetCustomThemePath(nextTheme);
+                if (customPath != null)
+                {
+                    PlatypusTools.UI.Services.ThemeManager.ApplyCustomTheme(nextTheme, customPath);
+                    IsDarkTheme = PlatypusTools.UI.Services.ThemeManager.Instance.IsDarkTheme;
+                }
+                else
+                {
+                    PlatypusTools.UI.Services.ThemeManager.ApplyTheme(nextTheme);
+                    IsDarkTheme = nextTheme != PlatypusTools.UI.Services.ThemeManager.Light;
+                }
+                
+                PlatypusTools.UI.Services.SettingsManager.Current.Theme = nextTheme;
                 PlatypusTools.UI.Services.SettingsManager.SaveCurrent();
             }
             catch { }

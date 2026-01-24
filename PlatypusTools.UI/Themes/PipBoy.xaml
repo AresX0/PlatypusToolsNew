@@ -1,0 +1,983 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 
+    Pip-Boy Theme
+    Inspired by Fallout's iconic wrist-mounted computer interface
+    
+    Color Palette:
+    - Phosphor Green: Primary text and UI elements (#1BFF80, #00FF41)
+    - Dark Green: Secondary elements (#0F8B4A)
+    - Black/Near-Black: Background (#0A0E0D, #0D1210)
+    - Amber: Warnings and highlights (#FFB000)
+    - Red: Alerts and danger (#FF3030)
+    
+    Design Elements:
+    - Monospace/terminal-style fonts
+    - CRT scanline aesthetic
+    - Rounded corners
+    - Glowing text effects
+    -->
+
+    <!-- ======================== Pip-Boy Color Palette ======================== -->
+    
+    <!-- Primary Colors (Phosphor Green family) -->
+    <Color x:Key="PipBoyGreen">#FF1BFF80</Color>
+    <Color x:Key="PipBoyGreenBright">#FF00FF41</Color>
+    <Color x:Key="PipBoyGreenLight">#FF4DFFA3</Color>
+    <Color x:Key="PipBoyGreenDark">#FF0F8B4A</Color>
+    <Color x:Key="PipBoyGreenDim">#FF0A5530</Color>
+    <Color x:Key="PipBoyGreenFaint">#FF063020</Color>
+    
+    <!-- Secondary Colors (Amber family for warnings) -->
+    <Color x:Key="PipBoyAmber">#FFFFB000</Color>
+    <Color x:Key="PipBoyAmberLight">#FFFFC940</Color>
+    <Color x:Key="PipBoyAmberDark">#FFB38000</Color>
+    
+    <!-- Alert Colors -->
+    <Color x:Key="PipBoyRed">#FFFF3030</Color>
+    <Color x:Key="PipBoyRedDark">#FFCC2020</Color>
+    
+    <!-- Background Colors -->
+    <Color x:Key="PipBoyBlack">#FF0A0E0D</Color>
+    <Color x:Key="PipBoyBlackLight">#FF0D1210</Color>
+    <Color x:Key="PipBoyGray">#FF1A2420</Color>
+    <Color x:Key="PipBoyGrayLight">#FF2A3830</Color>
+    <Color x:Key="PipBoyGrayDark">#FF101810</Color>
+    
+    <!-- Text Colors -->
+    <Color x:Key="PipBoyText">#FF1BFF80</Color>
+    <Color x:Key="PipBoyTextDim">#FF0F9955</Color>
+    <Color x:Key="PipBoyTextBright">#FFFFFFFF</Color>
+
+    <!-- ======================== Pip-Boy Brushes ======================== -->
+    
+    <!-- Primary Brushes -->
+    <SolidColorBrush x:Key="PipBoyGreenBrush" Color="{StaticResource PipBoyGreen}"/>
+    <SolidColorBrush x:Key="PipBoyGreenBrightBrush" Color="{StaticResource PipBoyGreenBright}"/>
+    <SolidColorBrush x:Key="PipBoyGreenLightBrush" Color="{StaticResource PipBoyGreenLight}"/>
+    <SolidColorBrush x:Key="PipBoyGreenDarkBrush" Color="{StaticResource PipBoyGreenDark}"/>
+    <SolidColorBrush x:Key="PipBoyGreenDimBrush" Color="{StaticResource PipBoyGreenDim}"/>
+    <SolidColorBrush x:Key="PipBoyGreenFaintBrush" Color="{StaticResource PipBoyGreenFaint}"/>
+    
+    <!-- Amber Brushes -->
+    <SolidColorBrush x:Key="PipBoyAmberBrush" Color="{StaticResource PipBoyAmber}"/>
+    <SolidColorBrush x:Key="PipBoyAmberLightBrush" Color="{StaticResource PipBoyAmberLight}"/>
+    <SolidColorBrush x:Key="PipBoyAmberDarkBrush" Color="{StaticResource PipBoyAmberDark}"/>
+    
+    <!-- Alert Brushes -->
+    <SolidColorBrush x:Key="PipBoyRedBrush" Color="{StaticResource PipBoyRed}"/>
+    <SolidColorBrush x:Key="PipBoyRedDarkBrush" Color="{StaticResource PipBoyRedDark}"/>
+    
+    <!-- Background Brushes -->
+    <SolidColorBrush x:Key="PipBoyBlackBrush" Color="{StaticResource PipBoyBlack}"/>
+    <SolidColorBrush x:Key="PipBoyBlackLightBrush" Color="{StaticResource PipBoyBlackLight}"/>
+    <SolidColorBrush x:Key="PipBoyGrayBrush" Color="{StaticResource PipBoyGray}"/>
+    <SolidColorBrush x:Key="PipBoyGrayLightBrush" Color="{StaticResource PipBoyGrayLight}"/>
+    <SolidColorBrush x:Key="PipBoyGrayDarkBrush" Color="{StaticResource PipBoyGrayDark}"/>
+    
+    <!-- Text Brushes -->
+    <SolidColorBrush x:Key="PipBoyTextBrush" Color="{StaticResource PipBoyText}"/>
+    <SolidColorBrush x:Key="PipBoyTextDimBrush" Color="{StaticResource PipBoyTextDim}"/>
+    <SolidColorBrush x:Key="PipBoyTextBrightBrush" Color="{StaticResource PipBoyTextBright}"/>
+
+    <!-- CRT Scanline Brush for overlays -->
+    <DrawingBrush x:Key="ScanlineBrush" TileMode="Tile" 
+                  Viewport="0,0,4,4" ViewportUnits="Absolute"
+                  Opacity="0.05">
+        <DrawingBrush.Drawing>
+            <GeometryDrawing>
+                <GeometryDrawing.Geometry>
+                    <RectangleGeometry Rect="0,0,4,2"/>
+                </GeometryDrawing.Geometry>
+                <GeometryDrawing.Brush>
+                    <SolidColorBrush Color="#000000"/>
+                </GeometryDrawing.Brush>
+            </GeometryDrawing>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+
+    <!-- Pip-Boy Mascot Image (Vault Boy style) for decorative use -->
+    <BitmapImage x:Key="PipBoyMascotImage" UriSource="PipBoy.png"/>
+    
+    <!-- ImageBrush for using the mascot as background decoration -->
+    <ImageBrush x:Key="PipBoyMascotBrush" ImageSource="{StaticResource PipBoyMascotImage}" 
+                Opacity="0.15" Stretch="Uniform" AlignmentX="Right" AlignmentY="Bottom"/>
+
+    <!-- ======================== Theme Resource Mappings ======================== -->
+    <!-- These map to standard theme resource keys used throughout the app -->
+    
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource PipBoyBlack}"/>
+    <SolidColorBrush x:Key="WindowForegroundBrush" Color="{StaticResource PipBoyGreen}"/>
+    <SolidColorBrush x:Key="ControlBackgroundBrush" Color="{StaticResource PipBoyGray}"/>
+    <SolidColorBrush x:Key="ControlForegroundBrush" Color="{StaticResource PipBoyGreen}"/>
+    <SolidColorBrush x:Key="ControlBorderBrush" Color="{StaticResource PipBoyGreenDark}"/>
+    <SolidColorBrush x:Key="MenuForegroundBrush" Color="{StaticResource PipBoyGreen}"/>
+    
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PipBoyGreen}"/>
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource PipBoyGreenDark}"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource PipBoyAmber}"/>
+    
+    <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="{StaticResource PipBoyGreenDark}"/>
+    <SolidColorBrush x:Key="ButtonForegroundBrush" Color="{StaticResource PipBoyGreenBright}"/>
+    <SolidColorBrush x:Key="ButtonHoverBrush" Color="{StaticResource PipBoyGreen}"/>
+    <SolidColorBrush x:Key="ButtonPressedBrush" Color="{StaticResource PipBoyGreenDim}"/>
+    <SolidColorBrush x:Key="ButtonDisabledBrush" Color="{StaticResource PipBoyGrayLight}"/>
+    
+    <SolidColorBrush x:Key="TextBoxBackgroundBrush" Color="{StaticResource PipBoyBlackLight}"/>
+    <SolidColorBrush x:Key="TextBoxForegroundBrush" Color="{StaticResource PipBoyGreen}"/>
+    <SolidColorBrush x:Key="TextBoxBorderBrush" Color="{StaticResource PipBoyGreenDark}"/>
+    
+    <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="{StaticResource PipBoyGreenDim}"/>
+    <SolidColorBrush x:Key="HeaderForegroundBrush" Color="{StaticResource PipBoyGreenBright}"/>
+    
+    <!-- HeaderBrush used by MainWindow and views -->
+    <SolidColorBrush x:Key="HeaderBrush" Color="{StaticResource PipBoyGreenDim}"/>
+    
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{StaticResource PipBoyGray}"/>
+    <SolidColorBrush x:Key="SidebarForegroundBrush" Color="{StaticResource PipBoyGreen}"/>
+    
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource PipBoyGreenBright}"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource PipBoyAmber}"/>
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource PipBoyRed}"/>
+    <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource PipBoyGreen}"/>
+    
+    <!-- Additional resource keys required by views (matching Dark.xaml keys) -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource PipBoyBlack}"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource PipBoyGreenDark}"/>
+    <SolidColorBrush x:Key="CardBackground" Color="{StaticResource PipBoyGray}"/>
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource PipBoyGray}"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource PipBoyBlackLight}"/>
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource PipBoyAmberLight}"/>
+    <SolidColorBrush x:Key="DisabledForegroundBrush" Color="{StaticResource PipBoyTextDim}"/>
+    <SolidColorBrush x:Key="SelectionBackgroundBrush" Color="{StaticResource PipBoyGreenDark}"/>
+    <SolidColorBrush x:Key="ForegroundDimBrush" Color="{StaticResource PipBoyTextDim}"/>
+    <SolidColorBrush x:Key="SecondaryTextBrush" Color="{StaticResource PipBoyTextDim}"/>
+    <SolidColorBrush x:Key="TextPrimary" Color="{StaticResource PipBoyGreen}"/>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource PipBoyGreen}"/>
+    <SolidColorBrush x:Key="TextSecondary" Color="{StaticResource PipBoyTextDim}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource PipBoyTextDim}"/>
+    
+    <!-- Warning/Info box brushes - Pip-Boy green variants -->
+    <SolidColorBrush x:Key="WarningBackgroundBrush" Color="#FF2A2510"/>
+    <SolidColorBrush x:Key="WarningBorderBrush" Color="{StaticResource PipBoyAmber}"/>
+    <SolidColorBrush x:Key="WarningForegroundBrush" Color="{StaticResource PipBoyAmberLight}"/>
+    <SolidColorBrush x:Key="InfoBackgroundBrush" Color="{StaticResource PipBoyGreenFaint}"/>
+    <SolidColorBrush x:Key="InfoBorderBrush" Color="{StaticResource PipBoyGreenDark}"/>
+    <SolidColorBrush x:Key="InfoForegroundBrush" Color="{StaticResource PipBoyGreenLight}"/>
+    <SolidColorBrush x:Key="SuccessBackgroundBrush" Color="{StaticResource PipBoyGreenFaint}"/>
+    <SolidColorBrush x:Key="SuccessBorderBrush" Color="{StaticResource PipBoyGreen}"/>
+    <SolidColorBrush x:Key="SuccessForegroundBrush" Color="{StaticResource PipBoyGreenBright}"/>
+    <SolidColorBrush x:Key="ErrorBackgroundBrush" Color="#FF2A1010"/>
+    <SolidColorBrush x:Key="ErrorBorderBrush" Color="{StaticResource PipBoyRed}"/>
+    <SolidColorBrush x:Key="ErrorForegroundBrush" Color="#FFFF6060"/>
+    
+    <!-- Title Bar Brushes -->
+    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="{StaticResource PipBoyGreenDim}"/>
+    <SolidColorBrush x:Key="TitleBarForegroundBrush" Color="{StaticResource PipBoyGreenBright}"/>
+    <SolidColorBrush x:Key="TitleBarButtonHoverBrush" Color="{StaticResource PipBoyGreen}"/>
+    <SolidColorBrush x:Key="TitleBarCloseHoverBrush" Color="{StaticResource PipBoyRed}"/>
+
+    <!-- ======================== Pip-Boy Typography ======================== -->
+    <!-- Terminal-style monospace fonts for authentic Pip-Boy look -->
+    
+    <FontFamily x:Key="PipBoyFont">Consolas, Lucida Console, Courier New, Courier</FontFamily>
+    <FontFamily x:Key="PipBoyHeaderFont">Consolas, Lucida Console, Courier New, Courier</FontFamily>
+    <FontFamily x:Key="PipBoyDisplayFont">Share Tech Mono, VT323, Consolas, Courier New</FontFamily>
+    
+    <Style x:Key="PipBoyTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="FontWeight" Value="Normal"/>
+    </Style>
+    
+    <Style x:Key="PipBoyHeaderTextStyle" TargetType="TextBlock" BasedOn="{StaticResource PipBoyTextStyle}">
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyHeaderFont}"/>
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+    </Style>
+    
+    <Style x:Key="PipBoyLabelTextStyle" TargetType="TextBlock" BasedOn="{StaticResource PipBoyTextStyle}">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenDarkBrush}"/>
+    </Style>
+
+    <!-- ======================== Pip-Boy Button Styles ======================== -->
+    
+    <!-- Standard Button - Terminal style with STRONG neon green glow -->
+    <!-- Note: FontSize 10.5 and tighter Padding to fit in same Width as default theme buttons -->
+    <Style TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource PipBoyGreenDimBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Setter Property="FontSize" Value="10.5"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Padding" Value="8,5"/>
+        <Setter Property="MinHeight" Value="26"/>
+        <Setter Property="MinWidth" Value="50"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="3"
+                            Padding="{TemplateBinding Padding}">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#00FF41" BlurRadius="12" ShadowDepth="0" Opacity="0.5"/>
+                        </Border.Effect>
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"
+                                          TextBlock.Foreground="{TemplateBinding Foreground}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource PipBoyGreenDarkBrush}"/>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+                            <Setter TargetName="border" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#00FF41" BlurRadius="20" ShadowDepth="0" Opacity="0.8"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource PipBoyGreenBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource PipBoyBlackBrush}"/>
+                            <Setter TargetName="border" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#00FF41" BlurRadius="25" ShadowDepth="0" Opacity="1.0"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource PipBoyGrayBrush}"/>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PipBoyGrayLightBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource PipBoyTextDimBrush}"/>
+                            <Setter TargetName="border" Property="Effect" Value="{x:Null}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Primary Button - Brighter green -->
+    <Style x:Key="PrimaryButton" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource PipBoyGreenDarkBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Setter Property="FontSize" Value="10.5"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Padding" Value="10,6"/>
+        <Setter Property="MinHeight" Value="30"/>
+        <Setter Property="MinWidth" Value="70"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4"
+                            Padding="{TemplateBinding Padding}">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#1BFF80" BlurRadius="12" ShadowDepth="0" Opacity="0.5"/>
+                        </Border.Effect>
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"
+                                          TextBlock.Foreground="{TemplateBinding Foreground}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource PipBoyGreenBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource PipBoyBlackBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource PipBoyBlackBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource PipBoyGrayBrush}"/>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PipBoyGrayLightBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource PipBoyTextDimBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Secondary Button - Outlined style -->
+    <Style x:Key="SecondaryButton" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Setter Property="FontSize" Value="10.5"/>
+        <Setter Property="FontWeight" Value="Normal"/>
+        <Setter Property="Padding" Value="8,5"/>
+        <Setter Property="MinHeight" Value="26"/>
+        <Setter Property="MinWidth" Value="50"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PipBoyGreenDarkBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="3"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"
+                                          TextBlock.Foreground="{TemplateBinding Foreground}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource PipBoyGreenDimBrush}"/>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PipBoyGreenBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource PipBoyGreenDarkBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PipBoyGrayLightBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource PipBoyTextDimBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ======================== TextBox with neon glow ======================== -->
+    <Style TargetType="TextBox">
+        <Setter Property="Background" Value="{StaticResource PipBoyBlackLightBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="CaretBrush" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PipBoyGreenDimBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="SelectionBrush" Value="{StaticResource PipBoyGreenDarkBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="2"
+                            Padding="{TemplateBinding Padding}">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#00FF41" BlurRadius="3" ShadowDepth="0" Opacity="0.2"/>
+                        </Border.Effect>
+                        <ScrollViewer x:Name="PART_ContentHost" Focusable="False"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PipBoyGreenBrush}"/>
+                            <Setter TargetName="border" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#00FF41" BlurRadius="10" ShadowDepth="0" Opacity="0.5"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+                            <Setter TargetName="border" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#00FF41" BlurRadius="15" ShadowDepth="0" Opacity="0.7"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource PipBoyGrayDarkBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource PipBoyTextDimBrush}"/>
+                            <Setter TargetName="border" Property="Effect" Value="{x:Null}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ======================== TabControl - Pip-Boy Navigation Style ======================== -->
+    <Style TargetType="TabControl">
+        <Setter Property="Background" Value="{StaticResource PipBoyBlackBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PipBoyGreenDimBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0" Background="{StaticResource PipBoyGrayDarkBrush}" 
+                                BorderBrush="{StaticResource PipBoyGreenDimBrush}" BorderThickness="0,0,0,1">
+                            <TabPanel IsItemsHost="True" Margin="4,4,4,0"/>
+                        </Border>
+                        <Border Grid.Row="1"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter ContentSource="SelectedContent"/>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- TabItem - Pip-Boy tab buttons (STAT, INV, DATA, MAP, RADIO style) with neon glow -->
+    <Style TargetType="TabItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Padding" Value="14,8"/>
+        <Setter Property="Margin" Value="2,0"/>
+        <Setter Property="MinHeight" Value="32"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{StaticResource PipBoyGreenDimBrush}"
+                            BorderThickness="1,1,1,0"
+                            CornerRadius="4,4,0,0"
+                            Padding="{TemplateBinding Padding}"
+                            Margin="{TemplateBinding Margin}">
+                        <Border.Effect>
+                            <DropShadowEffect x:Name="glowEffect" Color="#00FF41" BlurRadius="5" ShadowDepth="0" Opacity="0.2"/>
+                        </Border.Effect>
+                        <ContentPresenter x:Name="content"
+                                          ContentSource="Header"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          TextBlock.Foreground="{TemplateBinding Foreground}"
+                                          TextBlock.FontWeight="Bold"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource PipBoyGreenDimBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+                            <Setter TargetName="border" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#00FF41" BlurRadius="15" ShadowDepth="0" Opacity="0.6"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource PipBoyGreenDarkBrush}"/>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+                            <Setter TargetName="border" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#00FF41" BlurRadius="20" ShadowDepth="0" Opacity="0.8"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ======================== CheckBox ======================== -->
+    <Style TargetType="CheckBox">
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <StackPanel Orientation="Horizontal">
+                        <Border x:Name="checkBorder"
+                                Width="18" Height="18"
+                                Background="{StaticResource PipBoyBlackLightBrush}"
+                                BorderBrush="{StaticResource PipBoyGreenDimBrush}"
+                                BorderThickness="1"
+                                CornerRadius="2"
+                                Margin="0,0,8,0">
+                            <TextBlock x:Name="checkMark"
+                                       Text="✓"
+                                       FontSize="14"
+                                       FontWeight="Bold"
+                                       Foreground="{StaticResource PipBoyGreenBrightBrush}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Visibility="Collapsed"/>
+                        </Border>
+                        <ContentPresenter VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="checkMark" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="checkBorder" Property="Background" Value="{StaticResource PipBoyGreenDimBrush}"/>
+                            <Setter TargetName="checkBorder" Property="BorderBrush" Value="{StaticResource PipBoyGreenBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="checkBorder" Property="BorderBrush" Value="{StaticResource PipBoyGreenBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{StaticResource PipBoyTextDimBrush}"/>
+                            <Setter TargetName="checkBorder" Property="BorderBrush" Value="{StaticResource PipBoyGrayLightBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ======================== RadioButton ======================== -->
+    <Style TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <StackPanel Orientation="Horizontal">
+                        <Border x:Name="radioBorder"
+                                Width="18" Height="18"
+                                Background="{StaticResource PipBoyBlackLightBrush}"
+                                BorderBrush="{StaticResource PipBoyGreenDimBrush}"
+                                BorderThickness="1"
+                                CornerRadius="9"
+                                Margin="0,0,8,0">
+                            <Ellipse x:Name="radioMark"
+                                     Width="10" Height="10"
+                                     Fill="{StaticResource PipBoyGreenBrightBrush}"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center"
+                                     Visibility="Collapsed"/>
+                        </Border>
+                        <ContentPresenter VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="radioMark" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="radioBorder" Property="BorderBrush" Value="{StaticResource PipBoyGreenBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="radioBorder" Property="BorderBrush" Value="{StaticResource PipBoyGreenBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{StaticResource PipBoyTextDimBrush}"/>
+                            <Setter TargetName="radioBorder" Property="BorderBrush" Value="{StaticResource PipBoyGrayLightBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ======================== ComboBox ======================== -->
+    <ControlTemplate x:Key="PipBoyComboBoxToggleButton" TargetType="ToggleButton">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="24"/>
+            </Grid.ColumnDefinitions>
+            <Border x:Name="Border" 
+                    Grid.ColumnSpan="2"
+                    CornerRadius="3"
+                    Background="{StaticResource PipBoyGrayBrush}"
+                    BorderBrush="{StaticResource PipBoyGreenDimBrush}"
+                    BorderThickness="1" />
+            <Border Grid.Column="0"
+                    CornerRadius="3,0,0,3" 
+                    Margin="1" 
+                    Background="{StaticResource PipBoyBlackLightBrush}" />
+            <Path x:Name="Arrow"
+                  Grid.Column="1"     
+                  Fill="{StaticResource PipBoyGreenBrush}"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Data="M0,0 L4,4 L8,0 Z"/>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource PipBoyGreenBrush}" />
+            </Trigger>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Border" Property="Background" Value="{StaticResource PipBoyGreenDimBrush}" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style TargetType="ComboBox">
+        <Setter Property="Background" Value="{StaticResource PipBoyBlackLightBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="MinHeight" Value="28"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Grid>
+                        <ToggleButton x:Name="ToggleButton" 
+                                      Template="{StaticResource PipBoyComboBoxToggleButton}"
+                                      Focusable="False"
+                                      IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                      ClickMode="Press" />
+                        <ContentPresenter x:Name="ContentSite"
+                                          IsHitTestVisible="False" 
+                                          Content="{TemplateBinding SelectionBoxItem}"
+                                          ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                          Margin="10,4,30,4"
+                                          VerticalAlignment="Center"
+                                          HorizontalAlignment="Left"/>
+                        <Popup x:Name="Popup"
+                               Placement="Bottom"
+                               IsOpen="{TemplateBinding IsDropDownOpen}"
+                               AllowsTransparency="True" 
+                               Focusable="False"
+                               PopupAnimation="Slide">
+                            <Grid x:Name="DropDown"
+                                  SnapsToDevicePixels="True"                
+                                  MinWidth="{TemplateBinding ActualWidth}"
+                                  MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                <Border x:Name="DropDownBorder"
+                                        Background="{StaticResource PipBoyGrayBrush}"
+                                        BorderThickness="1"
+                                        BorderBrush="{StaticResource PipBoyGreenDarkBrush}"
+                                        CornerRadius="3"/>
+                                <ScrollViewer Margin="4" SnapsToDevicePixels="True">
+                                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                </ScrollViewer>
+                            </Grid>
+                        </Popup>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="ComboBoxItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBoxItem">
+                    <Border x:Name="Border"
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="2">
+                        <ContentPresenter/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{StaticResource PipBoyGreenDimBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{StaticResource PipBoyGreenDarkBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ======================== ProgressBar ======================== -->
+    <Style TargetType="ProgressBar">
+        <Setter Property="Background" Value="{StaticResource PipBoyGrayBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="Height" Value="16"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ProgressBar">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{StaticResource PipBoyGreenDimBrush}"
+                            BorderThickness="1"
+                            CornerRadius="2">
+                        <Grid>
+                            <Border x:Name="PART_Track" Background="Transparent"/>
+                            <Border x:Name="PART_Indicator"
+                                    HorizontalAlignment="Left"
+                                    Background="{TemplateBinding Foreground}"
+                                    CornerRadius="1"
+                                    Margin="1">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#1BFF80" BlurRadius="8" ShadowDepth="0" Opacity="0.5"/>
+                                </Border.Effect>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ======================== Slider ======================== -->
+    <Style TargetType="Slider">
+        <Setter Property="Background" Value="{StaticResource PipBoyGrayBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid>
+                        <Border x:Name="TrackBackground"
+                                Height="6"
+                                VerticalAlignment="Center"
+                                Background="{StaticResource PipBoyGrayBrush}"
+                                BorderBrush="{StaticResource PipBoyGreenDimBrush}"
+                                BorderThickness="1"
+                                CornerRadius="3"/>
+                        <Track x:Name="PART_Track">
+                            <Track.Thumb>
+                                <Thumb>
+                                    <Thumb.Style>
+                                        <Style TargetType="Thumb">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Thumb">
+                                                        <Ellipse Width="16" Height="16"
+                                                                 Fill="{StaticResource PipBoyGreenDarkBrush}"
+                                                                 Stroke="{StaticResource PipBoyGreenBrush}"
+                                                                 StrokeThickness="2">
+                                                            <Ellipse.Effect>
+                                                                <DropShadowEffect Color="#1BFF80" BlurRadius="6" ShadowDepth="0" Opacity="0.5"/>
+                                                            </Ellipse.Effect>
+                                                        </Ellipse>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </Thumb.Style>
+                                </Thumb>
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ======================== ListBox ======================== -->
+    <Style TargetType="ListBox">
+        <Setter Property="Background" Value="{StaticResource PipBoyBlackLightBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PipBoyGreenDimBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Setter Property="Padding" Value="2"/>
+    </Style>
+
+    <Style TargetType="ListBoxItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="Margin" Value="1"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Border x:Name="Border"
+                            Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}"
+                            CornerRadius="2">
+                        <ContentPresenter/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{StaticResource PipBoyGreenDimBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{StaticResource PipBoyGreenDarkBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ======================== DataGrid ======================== -->
+    <Style TargetType="DataGrid">
+        <Setter Property="Background" Value="{StaticResource PipBoyBlackLightBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PipBoyGreenDimBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Setter Property="RowBackground" Value="Transparent"/>
+        <Setter Property="AlternatingRowBackground" Value="{StaticResource PipBoyGrayDarkBrush}"/>
+        <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource PipBoyGreenDimBrush}"/>
+        <Setter Property="VerticalGridLinesBrush" Value="{StaticResource PipBoyGreenDimBrush}"/>
+    </Style>
+
+    <Style TargetType="DataGridColumnHeader">
+        <Setter Property="Background" Value="{StaticResource PipBoyGreenDimBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PipBoyGreenDarkBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,1,1"/>
+    </Style>
+
+    <Style TargetType="DataGridCell">
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="4"/>
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{StaticResource PipBoyGreenDarkBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="DataGridRow">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource PipBoyGreenDimBrush}"/>
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{StaticResource PipBoyGreenDarkBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ======================== GroupBox ======================== -->
+    <Style TargetType="GroupBox">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PipBoyGreenDimBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Setter Property="Padding" Value="8"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GroupBox">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0" Background="{StaticResource PipBoyGreenDimBrush}" 
+                                CornerRadius="3,3,0,0" Padding="10,6">
+                            <ContentPresenter ContentSource="Header" 
+                                              TextBlock.Foreground="{StaticResource PipBoyGreenBrightBrush}"
+                                              TextBlock.FontWeight="Bold"
+                                              TextBlock.FontSize="12"/>
+                        </Border>
+                        <Border Grid.Row="1" 
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1,0,1,1"
+                                CornerRadius="0,0,3,3"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ======================== Expander ======================== -->
+    <Style TargetType="Expander">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PipBoyGreenDimBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+    </Style>
+
+    <!-- ======================== ScrollBar ======================== -->
+    <Style TargetType="ScrollBar">
+        <Setter Property="Background" Value="{StaticResource PipBoyGrayDarkBrush}"/>
+        <Setter Property="Width" Value="12"/>
+    </Style>
+
+    <!-- ======================== Menu ======================== -->
+    <Style TargetType="Menu">
+        <Setter Property="Background" Value="{StaticResource PipBoyGrayBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+    </Style>
+
+    <Style TargetType="MenuItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Style.Triggers>
+            <Trigger Property="IsHighlighted" Value="True">
+                <Setter Property="Background" Value="{StaticResource PipBoyGreenDimBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ======================== StatusBar ======================== -->
+    <Style TargetType="StatusBar">
+        <Setter Property="Background" Value="{StaticResource PipBoyGrayDarkBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Setter Property="FontSize" Value="11"/>
+    </Style>
+
+    <!-- ======================== ToolBar ======================== -->
+    <Style TargetType="ToolBar">
+        <Setter Property="Background" Value="{StaticResource PipBoyGrayBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+    </Style>
+
+    <!-- ======================== ToolTip ======================== -->
+    <Style TargetType="ToolTip">
+        <Setter Property="Background" Value="{StaticResource PipBoyGrayBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PipBoyGreenDarkBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Setter Property="Padding" Value="8,4"/>
+    </Style>
+
+    <!-- ======================== Window/Page Background ======================== -->
+    <Style x:Key="PipBoyWindow" TargetType="Window">
+        <Setter Property="Background" Value="{StaticResource PipBoyBlackBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+    </Style>
+
+    <!-- Label style -->
+    <Style TargetType="Label">
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+    </Style>
+
+    <!-- TextBlock default -->
+    <Style TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+    </Style>
+
+</ResourceDictionary>

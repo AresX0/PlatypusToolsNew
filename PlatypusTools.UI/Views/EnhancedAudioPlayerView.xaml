@@ -848,13 +848,13 @@
                 </Grid.ColumnDefinitions>
                 
                 <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" 
-                           Foreground="#333333" VerticalAlignment="Center"/>
+                           Foreground="{DynamicResource HeaderForegroundBrush}" VerticalAlignment="Center"/>
                 
                 <TextBlock Grid.Column="1" Text="{Binding Queue.Count, StringFormat=Queue: {0} tracks}" 
-                           Foreground="#333333" VerticalAlignment="Center" Margin="20,0"/>
+                           Foreground="{DynamicResource HeaderForegroundBrush}" VerticalAlignment="Center" Margin="20,0"/>
                 
                 <TextBlock Grid.Column="2" Text="{Binding AutoDjStatusText}"
-                           Foreground="#0066CC" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                           Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
             </Grid>
         </Border>
     </Grid>

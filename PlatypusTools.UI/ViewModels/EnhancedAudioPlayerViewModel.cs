@@ -1084,7 +1084,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     
     public List<string> ColorSchemes { get; } = new()
     {
-        "Blue-Green", "Rainbow", "Fire", "Purple", "Neon", "Ocean", "Sunset", "Monochrome"
+        "Blue-Green", "Rainbow", "Fire", "Purple", "Neon", "Ocean", "Sunset", "Monochrome", "Pip-Boy"
     };
     
     public List<int> BarCountOptions { get; } = new() { 16, 24, 32, 48, 64, 72, 96, 128 };
@@ -1255,6 +1255,12 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         _playerService = EnhancedAudioPlayerService.Instance;
         _libraryIndexService = new LibraryIndexService();
         _userLibraryService = new UserLibraryService();
+        
+        // Auto-set Pip-Boy color scheme (index 8) when Pip-Boy theme is active
+        if (ThemeManager.Instance.IsPipBoyTheme)
+        {
+            _colorSchemeIndex = 8; // Pip-Boy green
+        }
         
         // Load saved library folders
         LoadLibraryFolders();

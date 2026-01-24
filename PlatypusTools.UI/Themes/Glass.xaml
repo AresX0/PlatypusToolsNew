@@ -71,7 +71,9 @@
     <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#70FFFFFF" />
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="#90FFFFFF" />
     <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="#50FFFFFF" />
-    
+    <SolidColorBrush x:Key="HeaderBrush" Color="#50FFFFFF" />
+    <SolidColorBrush x:Key="HeaderForegroundBrush" Color="#FF000000" />
+
     <!-- Menu colors for glass -->
     <SolidColorBrush x:Key="MenuForegroundBrush" Color="#FF000000" />
     <SolidColorBrush x:Key="MenuBackgroundBrush" Color="#70FFFFFF" />

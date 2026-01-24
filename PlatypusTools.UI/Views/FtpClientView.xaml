@@ -115,12 +115,12 @@
 
             <!-- Toolbar -->
             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
-                <Button Content="📁 Up" Command="{Binding NavigateUpCommand}" Width="65" Margin="0,0,4,0" Padding="6,2"/>
-                <Button Content="🔄 Refresh" Command="{Binding RefreshCommand}" Width="85" Margin="0,0,4,0" Padding="6,2"/>
-                <Button Content="📥 Download" Command="{Binding DownloadCommand}" Width="80" Margin="0,0,4,0"/>
-                <Button Content="📤 Upload" Command="{Binding UploadCommand}" Width="85" Margin="0,0,4,0" Padding="6,2"/>
-                <Button Content="📁 New Folder" Command="{Binding CreateFolderCommand}" Width="90" Margin="0,0,4,0"/>
-                <Button Content="🗑️ Delete" Command="{Binding DeleteCommand}" Width="80" Margin="0,0,4,0" Padding="6,2"
+                <Button Content="📁 Up" Command="{Binding NavigateUpCommand}" MinWidth="65" Margin="0,0,4,0" Padding="6,2"/>
+                <Button Content="🔄 Refresh" Command="{Binding RefreshCommand}" MinWidth="95" Margin="0,0,4,0" Padding="6,2"/>
+                <Button Content="📥 Download" Command="{Binding DownloadCommand}" MinWidth="105" Margin="0,0,4,0"/>
+                <Button Content="📤 Upload" Command="{Binding UploadCommand}" MinWidth="95" Margin="0,0,4,0" Padding="6,2"/>
+                <Button Content="📁 New Folder" Command="{Binding CreateFolderCommand}" MinWidth="115" Margin="0,0,4,0"/>
+                <Button Content="🗑️ Delete" Command="{Binding DeleteCommand}" MinWidth="90" Margin="0,0,4,0" Padding="6,2"
                         Background="#FFF44336" Foreground="White"/>
                 <TextBlock Text="Path:" VerticalAlignment="Center" Margin="16,0,8,0"/>
                 <TextBox Text="{Binding CurrentPath, Mode=OneWay}" Width="200" IsReadOnly="True" 

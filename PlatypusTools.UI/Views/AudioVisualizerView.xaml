@@ -6,8 +6,8 @@
              mc:Ignorable="d"
              d:DesignHeight="300" 
              d:DesignWidth="600"
-             Background="#0A0E27">
+             Background="{DynamicResource WindowBackgroundBrush}">
 
-    <Canvas x:Name="VisualizerCanvas" Background="#0A0E27"/>
+    <Canvas x:Name="VisualizerCanvas" Background="{DynamicResource WindowBackgroundBrush}"/>
 
 </UserControl>

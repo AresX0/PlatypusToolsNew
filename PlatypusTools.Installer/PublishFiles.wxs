@@ -4146,6 +4146,12 @@
         <Component Id="CMP_Themes_Light_xaml" Guid="*" Directory="DIR_Themes">
           <File Id="FIL_Themes_Light_xaml" Source="$(var.PlatypusTools.UI.TargetDir)publish\Themes\Light.xaml" KeyPath="yes" />
         </Component>
+        <Component Id="CMP_Themes_PipBoy_png" Guid="*" Directory="DIR_Themes">
+          <File Id="FIL_Themes_PipBoy_png" Source="$(var.PlatypusTools.UI.TargetDir)publish\Themes\PipBoy.png" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_Themes_PipBoy_xaml" Guid="*" Directory="DIR_Themes">
+          <File Id="FIL_Themes_PipBoy_xaml" Source="$(var.PlatypusTools.UI.TargetDir)publish\Themes\PipBoy.xaml" KeyPath="yes" />
+        </Component>
       </Directory>
       <Directory Id="DIR_tr" Name="tr">
         <Component Id="CMP_tr_Microsoft_VisualBasic_Forms_resources_dll" Guid="*" Directory="DIR_tr">
@@ -5617,6 +5623,8 @@
       <ComponentRef Id="CMP_Themes_Glass_xaml" />
       <ComponentRef Id="CMP_Themes_LCARS_xaml" />
       <ComponentRef Id="CMP_Themes_Light_xaml" />
+      <ComponentRef Id="CMP_Themes_PipBoy_png" />
+      <ComponentRef Id="CMP_Themes_PipBoy_xaml" />
       <ComponentRef Id="CMP_tr_Microsoft_VisualBasic_Forms_resources_dll" />
       <ComponentRef Id="CMP_tr_PresentationCore_resources_dll" />
       <ComponentRef Id="CMP_tr_PresentationFramework_resources_dll" />

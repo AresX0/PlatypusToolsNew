@@ -10,8 +10,8 @@
     </UserControl.DataContext>
 
     <Border BorderThickness="0,1,0,0"
-            BorderBrush="#CCCCCC"
-            Background="#F5F5F5">
+            BorderBrush="{DynamicResource ControlBorderBrush}"
+            Background="{DynamicResource ControlBackgroundBrush}">
         <Grid Margin="8,4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -26,14 +26,14 @@
                        Text="{Binding StatusMessage, FallbackValue='Ready'}"
                        VerticalAlignment="Center"
                        TextTrimming="CharacterEllipsis"
-                       Foreground="#333333"/>
+                       Foreground="{DynamicResource WindowForegroundBrush}"/>
 
             <!-- Items Count (X of Y) -->
             <TextBlock Grid.Column="1"
                        Text="{Binding ItemsDisplay}"
                        VerticalAlignment="Center"
                        Margin="16,0,0,0"
-                       Foreground="#666666"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
                        Visibility="{Binding IsOperationRunning, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
             <!-- Progress Bar -->
@@ -51,7 +51,7 @@
                        VerticalAlignment="Center"
                        Margin="8,0,0,0"
                        FontFamily="Consolas"
-                       Foreground="#666666"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
                        Visibility="{Binding IsOperationRunning, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
             <!-- Cancel Button -->
