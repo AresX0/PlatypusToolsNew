@@ -63,6 +63,7 @@ namespace PlatypusTools.UI.ViewModels
             DeleteSessionCommand = new RelayCommand(param => DeleteSession(param as SavedSessionViewModel));
             RefreshSessionsCommand = new RelayCommand(_ => LoadSavedSessions());
             BrowseKeyCommand = new RelayCommand(_ => BrowseForKey());
+            LoadCredentialCommand = new RelayCommand(_ => RequestLoadCredential());
 
             LoadSavedSessions();
         }
@@ -154,6 +155,46 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand DeleteSessionCommand { get; }
         public ICommand RefreshSessionsCommand { get; }
         public ICommand BrowseKeyCommand { get; }
+        public ICommand LoadCredentialCommand { get; }
+
+        /// <summary>
+        /// Event raised when the ViewModel needs to display the credential picker.
+        /// The view should handle this and call ApplyCredential when a selection is made.
+        /// </summary>
+        public event EventHandler? LoadCredentialRequested;
+
+        private void RequestLoadCredential()
+        {
+            LoadCredentialRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Applies credential data to the connection fields.
+        /// Called from view after user selects a credential.
+        /// </summary>
+        public void ApplyCredential(string username, string password, string? host = null)
+        {
+            Username = username;
+            Password = password;
+            if (!string.IsNullOrEmpty(host))
+            {
+                // Parse host:port if included in key
+                if (host.Contains(':'))
+                {
+                    var parts = host.Split(':');
+                    Host = parts[0];
+                    if (int.TryParse(parts[1], out var port))
+                    {
+                        Port = port;
+                    }
+                }
+                else
+                {
+                    Host = host;
+                }
+            }
+            StatusMessage = "Credentials loaded - ready to connect";
+        }
 
         private void OnDataReceived(object? sender, string data)
         {

@@ -1,8 +1,8 @@
 # PlatypusTools v3.4.0 - Detailed TODO List
 
 **Branch**: `main`  
-**Last Updated**: January 26, 2026  
-**Current Version**: v3.2.1 (released)  
+**Last Updated**: January 27, 2026  
+**Current Version**: v3.2.12.1 (released)  
 **Legend**: ✅ Complete | 🔄 In Progress | ❌ Not Started
 
 ---
@@ -606,13 +606,20 @@ Based on remaining work and user value, here are the **recommended next features
 **Already Implemented:**
 - ✅ **Playlist Management** - Create, edit, save playlists (`AudioLibraryViewModel.cs`, `Playlist` model)
 - ✅ **Crossfade Between Tracks** - Smooth transitions (`AudioPlayerService.cs`)
-- ✅ **EQ Controls** - Bass/Mid/Treble sliders in UI (`AudioPlayerView.xaml.cs`)
+- ✅ **EQ Controls** - 10-Band Equalizer (`EnhancedAudioPlayerService.cs`, `EqualizerSampleProvider`)
 - ✅ **Visualizer** - Spectrum analyzer (`AudioVisualizerViewModel.cs`, `AudioVisualizerService.cs`)
-
-**Still Needed:**
-11. **Gapless Playback** - Seamless album playback (not yet implemented)
-12. **Lyrics Display** - LRC file parsing and synchronized lyrics (models exist, no parser)
-13. **10-Band EQ** - Currently only 3-band in UI
+- ✅ **Gapless Playback** - Seamless album playback (`EnhancedAudioPlayerService.cs` - PreloadNextTrack)
+- ✅ **Lyrics Display** - LRC file parsing and synchronized lyrics (`LyricsService.cs`, `LyricsPanel`)
+- ✅ **Track Rating** - Star rating UI widget
+- ✅ **Play Speed Control** - 0.5x to 2x playback speed
+- ✅ **Media Key Support** - Play/Pause/Next/Prev hardware keys
+- ✅ **Queue Reorder** - Drag-and-drop queue management
+- ✅ **Smart Playlists** - Auto-playlists based on rules
+- ✅ **Mini Player Mode** - Compact floating window
+- ✅ **Auto DJ / Radio Mode** - Auto-queue similar tracks
+- ✅ **Scrobbling / Last.fm** - Track listening history
+- ✅ **ReplayGain Support** - Volume normalization
+- ✅ **Audio Converter Integration** - Convert tracks from library context menu
 
 ### System & Quality
 
@@ -654,41 +661,41 @@ Based on remaining work and user value, here are the **recommended next features
 ## Phase 10: Shotcut-Inspired Video Editor Enhancements
 
 ### 10.1 Multi-Track Timeline (Shotcut-Style)
-- [ ] **TASK-325**: Implement unlimited video/audio tracks (Shotcut supports unlimited)
-- [ ] **TASK-326**: Add track headers with lock/hide/mute controls
-- [ ] **TASK-327**: Implement track height resize (draggable dividers)
+- [x] **TASK-325**: Implement unlimited video/audio tracks (Shotcut supports unlimited) ✅
+- [x] **TASK-326**: Add track headers with lock/hide/mute controls ✅
+- [x] **TASK-327**: Implement track height resize (draggable dividers) ✅
 - [ ] **TASK-328**: Add track compositing modes (over, add, saturate, multiply, screen)
 - [ ] **TASK-329**: Implement keyframeable track blend/opacity
 - [ ] **TASK-330**: Add track output routing (for multi-output export)
 
 ### 10.2 Advanced Clip Operations
-- [ ] **TASK-331**: Implement ripple edit (shift all clips when inserting/deleting)
+- [x] **TASK-331**: Implement ripple edit (shift all clips when inserting/deleting) ✅
 - [ ] **TASK-332**: Implement rolling edit (trim adjacent clips together)
 - [ ] **TASK-333**: Implement slip edit (move clip content within boundaries)
 - [ ] **TASK-334**: Implement slide edit (move clip while adjusting neighbors)
-- [ ] **TASK-335**: Add clip markers (for audio sync points, cue marks)
+- [x] **TASK-335**: Add clip markers (for audio sync points, cue marks) ✅
 - [ ] **TASK-336**: Implement clip speed ramping (keyframeable speed)
 - [ ] **TASK-337**: Add reverse clip playback
 - [ ] **TASK-338**: Implement freeze frame insertion
 
 ### 10.3 Keyframe Animation System
-- [ ] **TASK-339**: Create keyframe editor panel (similar to Shotcut's keyframes dock)
-- [ ] **TASK-340**: Implement keyframe interpolation (linear, smooth, ease in/out)
-- [ ] **TASK-341**: Add bezier curve editor for keyframes
+- [x] **TASK-339**: Create keyframe editor panel (similar to Shotcut's keyframes dock) ✅
+- [x] **TASK-340**: Implement keyframe interpolation (linear, smooth, ease in/out) ✅
+- [x] **TASK-341**: Add bezier curve editor for keyframes ✅
 - [ ] **TASK-342**: Implement keyframe copy/paste across clips
 - [ ] **TASK-343**: Add keyframe snapping to playhead/markers
 
 ### 10.4 Filters & Effects (Shotcut Has 300+)
-- [ ] **TASK-344**: Create filter dock/panel for browsing filters
-- [ ] **TASK-345**: Implement filter search and categorization
-- [ ] **TASK-346**: Add filter presets with save/load
-- [ ] **TASK-347**: Implement chroma key (green screen) filter
-- [ ] **TASK-348**: Implement stabilization filter (vidstab)
-- [ ] **TASK-349**: Implement lens correction filter
+- [x] **TASK-344**: Create filter dock/panel for browsing filters ✅
+- [x] **TASK-345**: Implement filter search and categorization ✅
+- [x] **TASK-346**: Add filter presets with save/load ✅
+- [x] **TASK-347**: Implement chroma key (green screen) filter ✅
+- [x] **TASK-348**: Implement stabilization filter (vidstab) ✅
+- [x] **TASK-349**: Implement lens correction filter ✅
 - [ ] **TASK-350**: Implement noise reduction filter
 - [ ] **TASK-351**: Implement time remap filter (speed curves)
-- [ ] **TASK-352**: Implement 3-way color correction (shadows/mids/highlights)
-- [ ] **TASK-353**: Implement LUT support (.cube, .3dl files)
+- [x] **TASK-352**: Implement 3-way color correction (shadows/mids/highlights) ✅
+- [x] **TASK-353**: Implement LUT support (.cube, .3dl files) ✅
 - [ ] **TASK-354**: Implement audio filters (compressor, limiter, EQ)
 
 ### 10.5 Text & Titles (Shotcut Text Features)
@@ -700,10 +707,10 @@ Based on remaining work and user value, here are the **recommended next features
 - [ ] **TASK-360**: Implement text drop shadow and outline
 
 ### 10.6 Audio Features (Shotcut Audio)
-- [ ] **TASK-361**: Implement audio waveform display on timeline clips
+- [x] **TASK-361**: Implement audio waveform display on timeline clips ✅
 - [ ] **TASK-362**: Add audio peak meters panel
 - [ ] **TASK-363**: Implement audio ducking (auto-lower music under voice)
-- [ ] **TASK-364**: Add audio fade handles on clips
+- [x] **TASK-364**: Add audio fade handles on clips ✅
 - [ ] **TASK-365**: Implement audio normalize filter
 - [ ] **TASK-366**: Add voice-over recording directly to timeline
 
@@ -715,7 +722,7 @@ Based on remaining work and user value, here are the **recommended next features
 - [ ] **TASK-371**: Implement loop playback region (in/out points)
 
 ### 10.8 Export & Encoding (Shotcut Export Panel)
-- [ ] **TASK-372**: Create export panel with codec presets (YouTube, Vimeo, etc.)
+- [x] **TASK-372**: Create export panel with codec presets (YouTube, Vimeo, etc.) ✅
 - [ ] **TASK-373**: Implement hardware encoding support (NVENC, QSV, AMF)
 - [ ] **TASK-374**: Add multi-pass encoding for quality
 - [ ] **TASK-375**: Implement chapter markers for MP4/MKV
@@ -723,7 +730,7 @@ Based on remaining work and user value, here are the **recommended next features
 - [ ] **TASK-377**: Implement render preview (before full export)
 
 ### 10.9 Project & Workflow
-- [ ] **TASK-378**: Implement project auto-save and recovery
+- [x] **TASK-378**: Implement project auto-save and recovery ✅
 - [ ] **TASK-379**: Add project templates (common aspect ratios, frame rates)
 - [ ] **TASK-380**: Implement EDL/XML export for external editors
 - [ ] **TASK-381**: Add project notes/comments panel
@@ -733,9 +740,9 @@ Based on remaining work and user value, here are the **recommended next features
 - [ ] **TASK-383**: Create customizable workspace layouts
 - [ ] **TASK-384**: Implement dockable panels (like Shotcut's dock system)
 - [ ] **TASK-385**: Add thumbnail strip for timeline clips
-- [ ] **TASK-386**: Implement timeline snapping (to clips, markers, playhead)
-- [ ] **TASK-387**: Add magnetic timeline mode (auto-close gaps)
-- [ ] **TASK-388**: Implement timeline zoom gestures (pinch, scroll wheel)
+- [x] **TASK-386**: Implement timeline snapping (to clips, markers, playhead) ✅
+- [x] **TASK-387**: Add magnetic timeline mode (auto-close gaps) ✅
+- [x] **TASK-388**: Implement timeline zoom gestures (pinch, scroll wheel) ✅
 
 ### 🐛 Bug Fixes & Polish
 9. Fix any reported issues from v3.2.0
@@ -763,17 +770,18 @@ Based on remaining work and user value, here are the **recommended next features
 | Phase 7: .NET UI | 31 | 0 | 31 (Deferred) |
 | Phase 8: Testing & Docs | 19 | 4 | 15 |
 | Phase 9: Future | 15 | 0 | 15 |
-| Phase 10: Shotcut-Inspired | 64 | 0 | 64 |
-| **TOTAL** | **388** | **178** | **210** |
+| Phase 10: Shotcut-Inspired | 64 | 23 | 41 |
+| **TOTAL** | **388** | **201** | **187** |
 
 **Notes:**
-- Phases 5-7 (C++ Audio Core) are **DEFERRED** - the audio player uses managed .NET implementation with `MediaPlayer` and NAudio
-- Phase 2-4 remaining tasks are minor enhancements (per-item settings, tag checkboxes, preview, plugin sandboxing, sample plugin)
-- Phase 8-9 are quality/polish items that can be done incrementally
-- Phase 10 (Shotcut-Inspired) adds professional NLE features from the open-source Shotcut editor
+- Phases 5-7 (C++ Audio Core) are **DEFERRED** - the audio player uses managed .NET implementation with NAudio
+- All Audio Player priority features (AP-001 to AP-015) are **COMPLETE**
+- All Video Editor priority features (VE-001 to VE-015) are **COMPLETE** except VE-013 (Thumbnail Strip)
+- All DFIR Playbook features (SEC-006 to SEC-010) are **COMPLETE**
+- Phase 10 has significant progress with keyframes, filters, timeline features, and export presets
 
 ---
 
-*Last verified: January 26, 2026*
+*Last verified: January 27, 2026*
 
 

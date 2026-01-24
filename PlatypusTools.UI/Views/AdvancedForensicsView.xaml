@@ -24,13 +24,14 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         
-                        <!-- Memory Acquisition Section -->
-                        <GroupBox Header="💾 Memory Acquisition (WinPmem/DumpIt)" Margin="0,0,0,10">
+                        <!-- Memory Acquisition Section - WinPmem -->
+                        <GroupBox Header="💾 WinPmem - Full Memory Acquisition" Margin="0,0,0,10">
                             <StackPanel Margin="5">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="120"/>
                                         <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -42,6 +43,9 @@
                                     <TextBlock Text="WinPmem Path:" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Column="1" Text="{Binding WinPmemPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
                                     <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseWinPmemCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Column="3" Content="⬇️ Download" Command="{Binding DownloadWinPmemCommand}" 
+                                            Width="90" Margin="5" ToolTip="Download WinPmem from GitHub"
+                                            Background="#4CAF50" Foreground="White"/>
 
                                     <TextBlock Grid.Row="1" Text="Output Folder:" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DumpOutputPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
@@ -52,11 +56,96 @@
                                               SelectedItem="{Binding DumpFormat}" Margin="5" Width="150" HorizontalAlignment="Left"/>
                                 </Grid>
                                 
-                                <TextBlock Text="⚠️ Memory acquisition requires Administrator privileges" Foreground="Orange" Margin="5"/>
+                                <TextBlock Text="⚠️ WinPmem may be blocked by Driver Signature Enforcement (DSE) on modern Windows" 
+                                           Foreground="Orange" Margin="5" TextWrapping="Wrap"/>
                                 
-                                <Button Content="📥 Acquire Live Memory Dump" Command="{Binding AcquireMemoryDumpCommand}"
+                                <Button Content="📥 Acquire Live Memory Dump (WinPmem)" Command="{Binding AcquireMemoryDumpCommand}"
                                         Height="35" FontSize="12" FontWeight="Bold" 
                                         Background="#E91E63" Foreground="White" Margin="0,5,0,0"
+                                        IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <!-- Magnet RAM Capture Section -->
+                        <GroupBox Header="🧲 Magnet RAM Capture - Signed Driver (Recommended)" Margin="0,0,0,10">
+                            <StackPanel Margin="5">
+                                <TextBlock TextWrapping="Wrap" Margin="5,0,5,10" Foreground="#4CAF50">
+                                    ✓ Magnet RAM Capture has a WHQL-signed driver that works with Secure Boot and modern Windows security. 
+                                    It's FREE but requires registration.
+                                </TextBlock>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <TextBlock Text="MRC Path:" VerticalAlignment="Center" Margin="5"/>
+                                    <TextBox Grid.Column="1" Text="{Binding MagnetRamCapturePath, UpdateSourceTrigger=PropertyChanged}" Margin="5"
+                                             ToolTip="Path to MagnetRAMCapture.exe or MRC.exe"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseMagnetRamCaptureCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Column="3" Content="🔗 Get Free" Command="{Binding DownloadMagnetRamCaptureCommand}" 
+                                            Width="90" Margin="5" ToolTip="Opens Magnet Forensics website to download (free registration required)"
+                                            Background="#2196F3" Foreground="White"/>
+                                </Grid>
+                                
+                                <Button Content="🧲 Launch Magnet RAM Capture" Command="{Binding AcquireMagnetRamCaptureCommand}"
+                                        Height="35" FontSize="12" FontWeight="Bold" 
+                                        Background="#9C27B0" Foreground="White" Margin="0,5,0,0"
+                                        ToolTip="Launches Magnet RAM Capture GUI - complete acquisition in the app window"
+                                        IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <!-- ProcDump Section -->
+                        <GroupBox Header="📋 ProcDump - Process Memory Dump (Sysinternals)" Margin="0,0,0,10">
+                            <StackPanel Margin="5">
+                                <TextBlock TextWrapping="Wrap" Margin="5,0,5,10" Foreground="#FF9800">
+                                    ProcDump creates memory dumps of specific processes. Useful for analyzing suspicious processes, 
+                                    debugging, or capturing process state. Works with Secure Boot.
+                                </TextBlock>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <TextBlock Text="ProcDump Path:" VerticalAlignment="Center" Margin="5"/>
+                                    <TextBox Grid.Column="1" Text="{Binding ProcDumpPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseProcDumpCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Column="3" Content="⬇️ Download" Command="{Binding DownloadProcDumpCommand}" 
+                                            Width="90" Margin="5" ToolTip="Download ProcDump from Sysinternals"
+                                            Background="#4CAF50" Foreground="White"/>
+                                    
+                                    <TextBlock Grid.Row="1" Text="Target Process:" VerticalAlignment="Center" Margin="5"/>
+                                    <ComboBox Grid.Row="1" Grid.Column="1" 
+                                              ItemsSource="{Binding RunningProcesses}" 
+                                              Text="{Binding SelectedProcessForDump, UpdateSourceTrigger=PropertyChanged}"
+                                              IsEditable="True" Margin="5"
+                                              ToolTip="Select a process or type a process name/PID"/>
+                                    <Button Grid.Row="1" Grid.Column="2" Content="🔄 Refresh" Command="{Binding RefreshProcessListCommand}" 
+                                            Width="80" Margin="5" ToolTip="Refresh running process list"/>
+                                    
+                                    <TextBlock Grid.Row="2" Text="Dump Type:" VerticalAlignment="Center" Margin="5"/>
+                                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="5">
+                                        <RadioButton Content="Full Dump (-ma)" IsChecked="{Binding ProcDumpFullDump}" 
+                                                     ToolTip="Complete memory dump including all process memory. Larger but more complete." Margin="0,0,20,0"/>
+                                        <RadioButton Content="Mini Dump (-mm)" IsChecked="{Binding ProcDumpFullDump, Converter={StaticResource InverseBoolConverter}}"
+                                                     ToolTip="Smaller dump with essential information. Faster but less data."/>
+                                    </StackPanel>
+                                </Grid>
+                                
+                                <Button Content="📋 Create Process Dump (ProcDump)" Command="{Binding AcquireProcDumpCommand}"
+                                        Height="35" FontSize="12" FontWeight="Bold" 
+                                        Background="#FF5722" Foreground="White" Margin="0,5,0,0"
                                         IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                             </StackPanel>
                         </GroupBox>
@@ -67,6 +156,7 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="120"/>
                                     <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
@@ -82,6 +172,9 @@
                                 <TextBlock Grid.Row="1" Text="Volatility Path:" VerticalAlignment="Center" Margin="5"/>
                                 <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding VolatilityPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
                                 <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseVolatilityCommand}" Width="80" Margin="5"/>
+                                <Button Grid.Row="1" Grid.Column="3" Content="🔗 Get" Command="{Binding DownloadVolatilityCommand}" 
+                                        Width="60" Margin="5" ToolTip="Open Volatility 3 GitHub releases page"
+                                        Background="#2196F3" Foreground="White"/>
 
                                 <TextBlock Grid.Row="2" Text="Output Path:" VerticalAlignment="Center" Margin="5"/>
                                 <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding MemoryOutputPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
@@ -127,29 +220,37 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         <GroupBox Header="KAPE / EZ Tools Configuration" Margin="0,0,0,10">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="120"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
-                                <TextBlock Text="KAPE Path:" VerticalAlignment="Center" Margin="5"/>
-                                <TextBox Grid.Column="1" Text="{Binding KapePath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseKapeCommand}" Width="80" Margin="5"/>
+                                    <TextBlock Text="KAPE Path:" VerticalAlignment="Center" Margin="5"/>
+                                    <TextBox Grid.Column="1" Text="{Binding KapePath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseKapeCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Column="3" Content="🔗 Get KAPE" Command="{Binding GetKapeCommand}" 
+                                            Width="90" Margin="5" ToolTip="Register and download KAPE from Kroll (free for authorized use)"
+                                            Background="#FF9800" Foreground="White"/>
 
-                                <TextBlock Grid.Row="1" Text="Target Path:" VerticalAlignment="Center" Margin="5"/>
-                                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding KapeTargetPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseKapeTargetCommand}" Width="80" Margin="5"/>
+                                    <TextBlock Grid.Row="1" Text="Target Path:" VerticalAlignment="Center" Margin="5"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding KapeTargetPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                                    <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseKapeTargetCommand}" Width="80" Margin="5"/>
 
-                                <TextBlock Grid.Row="2" Text="Output Path:" VerticalAlignment="Center" Margin="5"/>
-                                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding KapeOutputPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                            </Grid>
+                                    <TextBlock Grid.Row="2" Text="Output Path:" VerticalAlignment="Center" Margin="5"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding KapeOutputPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                                </Grid>
+                                <TextBlock Text="💡 KAPE requires registration at kroll.com (free for authorized incident response)" 
+                                           Foreground="Gray" Margin="5,5,5,0" FontStyle="Italic"/>
+                            </StackPanel>
                         </GroupBox>
 
                         <GroupBox Header="Core Artifacts" Margin="0,0,0,10">
@@ -222,8 +323,12 @@
                                             Background="#673AB7" Foreground="White"
                                             IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                                     <Button Content="📤 Export to OpenSearch" Command="{Binding ExportPlasoToOpenSearchCommand}"
-                                            Height="35" Width="180"
+                                            Height="35" Width="180" Margin="0,0,10,0"
                                             IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                                    <Button Content="📥 Download Plaso" Command="{Binding DownloadPlasoCommand}"
+                                            Height="35" Width="150"
+                                            Background="#FF5722" Foreground="White"
+                                            ToolTip="Opens Plaso releases page on GitHub"/>
                                 </StackPanel>
                             </StackPanel>
                         </GroupBox>
@@ -251,10 +356,17 @@
                                               SelectedItem="{Binding VelociraptorArtifact}" Margin="5"/>
                                 </Grid>
 
-                                <Button Content="🦖 Collect Artifact" Command="{Binding RunVelociraptorCollectCommand}"
-                                        Height="35" Width="150" HorizontalAlignment="Left" Margin="0,10,0,0"
-                                        Background="#795548" Foreground="White"
-                                        IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <Button Content="🦖 Collect Artifact" Command="{Binding RunVelociraptorCollectCommand}"
+                                            Height="35" Width="150"
+                                            Background="#795548" Foreground="White"
+                                            IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                                    <Button Content="📥 Download Velociraptor" Command="{Binding DownloadVelociraptorCommand}"
+                                            Height="35" Width="170" Margin="10,0,0,0"
+                                            Background="#FF5722" Foreground="White"
+                                            ToolTip="Downloads Velociraptor from GitHub"
+                                            IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                                </StackPanel>
                             </StackPanel>
                         </GroupBox>
                     </StackPanel>
@@ -517,10 +629,22 @@
                             </StackPanel>
                         </GroupBox>
 
-                        <Button Content="🦠 Analyze Documents for Malware" Command="{Binding RunMalwareAnalysisCommand}"
-                                Height="40" FontSize="14" FontWeight="Bold" 
-                                Background="#F44336" Foreground="White"
-                                IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <Button Content="🦠 Analyze Documents for Malware" Command="{Binding RunMalwareAnalysisCommand}"
+                                    Height="40" FontSize="14" FontWeight="Bold" 
+                                    Background="#F44336" Foreground="White" Margin="0,0,10,0"
+                                    IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                            <Button Content="📥 Download oletools" Command="{Binding DownloadOletoolsCommand}"
+                                    Height="40" Width="150"
+                                    Background="#FF5722" Foreground="White"
+                                    ToolTip="Installs oletools via pip"
+                                    IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                            <Button Content="📥 Download PDF-parser" Command="{Binding DownloadPdfParserCommand}"
+                                    Height="40" Width="160" Margin="10,0,0,0"
+                                    Background="#FF9800" Foreground="White"
+                                    ToolTip="Downloads pdf-parser.py from Didier Stevens"
+                                    IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                        </StackPanel>
 
                         <GroupBox Header="Analysis Results" Margin="0,10,0,0">
                             <DataGrid ItemsSource="{Binding MalwareResults}" AutoGenerateColumns="False"
@@ -574,10 +698,17 @@
                             </WrapPanel>
                         </GroupBox>
 
-                        <Button Content="🔎 Run bulk_extractor" Command="{Binding RunBulkExtractorCommand}"
-                                Height="40" FontSize="14" FontWeight="Bold" 
-                                Background="#607D8B" Foreground="White"
-                                IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <Button Content="🔎 Run bulk_extractor" Command="{Binding RunBulkExtractorCommand}"
+                                    Height="40" FontSize="14" FontWeight="Bold" 
+                                    Background="#607D8B" Foreground="White" Margin="0,0,10,0"
+                                    IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                            <Button Content="📥 Download bulk_extractor" Command="{Binding DownloadBulkExtractorCommand}"
+                                    Height="40" Width="180"
+                                    Background="#FF5722" Foreground="White"
+                                    ToolTip="Downloads bulk_extractor from GitHub"
+                                    IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                        </StackPanel>
 
                         <GroupBox Header="Extracted Features" Margin="0,10,0,0">
                             <DataGrid ItemsSource="{Binding BulkExtractorResults}" AutoGenerateColumns="False"
@@ -677,6 +808,7 @@
                                     <ColumnDefinition Width="120"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -690,6 +822,9 @@
                                 <TextBlock Grid.Row="1" Text="ExifTool Path:" VerticalAlignment="Center" Margin="5"/>
                                 <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ExifToolPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
                                 <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseExifToolCommand}" Width="80" Margin="5"/>
+                                <Button Grid.Row="1" Grid.Column="3" Content="⬇️ Download" Command="{Binding DownloadExifToolCommand}" 
+                                        Width="90" Margin="5" ToolTip="Download ExifTool automatically"
+                                        Background="#4CAF50" Foreground="White"/>
                             </Grid>
                         </GroupBox>
 

@@ -1,0 +1,167 @@
+<UserControl x:Class="PlatypusTools.UI.Views.LocalTerminalView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="1000"
+             Loaded="UserControl_Loaded">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" Padding="8" Margin="0,0,0,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Shell Selection -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <TextBlock Text="Shell:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <ComboBox x:Name="ShellCombo" Width="150" SelectedIndex="0" 
+                              SelectionChanged="ShellCombo_SelectionChanged">
+                        <ComboBoxItem Content="PowerShell" Tag="powershell"/>
+                        <ComboBoxItem Content="Windows PowerShell" Tag="powershell_legacy"/>
+                        <ComboBoxItem Content="Command Prompt" Tag="cmd"/>
+                        <ComboBoxItem Content="Git Bash" Tag="bash"/>
+                        <ComboBoxItem Content="WSL (Ubuntu)" Tag="wsl"/>
+                    </ComboBox>
+                </StackPanel>
+                
+                <!-- Working Directory -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="16,0,0,0">
+                    <TextBlock Text="Directory:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBox x:Name="WorkingDirBox" Width="250" 
+                             Text="{Binding WorkingDirectory, UpdateSourceTrigger=PropertyChanged}"
+                             VerticalAlignment="Center"/>
+                    <Button Content="📁" Width="28" Margin="4,0,0,0" Click="BrowseDirectory_Click"
+                            ToolTip="Browse for directory"/>
+                </StackPanel>
+                
+                <!-- Actions -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal">
+                    <Button Content="🔄 New Session" Click="NewSession_Click" MinWidth="100" Margin="0,0,8,0"
+                            ToolTip="Start a new terminal session"/>
+                    <Button Content="🗑️ Clear" Click="Clear_Click" MinWidth="80" Margin="0,0,8,0"
+                            ToolTip="Clear terminal output"/>
+                    <Button Content="📋 Copy All" Click="CopyAll_Click" MinWidth="90"
+                            ToolTip="Copy all terminal output to clipboard"/>
+                </StackPanel>
+                
+                <!-- Quick Commands -->
+                <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="16,0,0,0">
+                    <ComboBox x:Name="QuickCommandsCombo" Width="180" IsEditable="False">
+                        <ComboBox.Items>
+                            <ComboBoxItem Content="Quick Commands..." IsEnabled="False"/>
+                            <ComboBoxItem Content="ipconfig" Tag="ipconfig"/>
+                            <ComboBoxItem Content="ipconfig /all" Tag="ipconfig /all"/>
+                            <ComboBoxItem Content="systeminfo" Tag="systeminfo"/>
+                            <ComboBoxItem Content="tasklist" Tag="tasklist"/>
+                            <ComboBoxItem Content="netstat -an" Tag="netstat -an"/>
+                            <ComboBoxItem Content="Get-Process" Tag="Get-Process"/>
+                            <ComboBoxItem Content="Get-Service" Tag="Get-Service"/>
+                            <ComboBoxItem Content="Get-EventLog -LogName System -Newest 20" Tag="Get-EventLog -LogName System -Newest 20"/>
+                            <ComboBoxItem Content="dir" Tag="dir"/>
+                            <ComboBoxItem Content="tree" Tag="tree"/>
+                        </ComboBox.Items>
+                    </ComboBox>
+                    <Button Content="▶" Width="28" Margin="4,0,0,0" Click="RunQuickCommand_Click"
+                            ToolTip="Run selected quick command"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Terminal Output Area -->
+        <Border Grid.Row="1" Background="#FF0C0C0C" BorderBrush="{DynamicResource BorderBrush}" 
+                BorderThickness="1" CornerRadius="4">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <!-- Terminal Display -->
+                <ScrollViewer x:Name="OutputScroller" VerticalScrollBarVisibility="Auto" 
+                              HorizontalScrollBarVisibility="Auto" Padding="8"
+                              PreviewMouseWheel="OutputScroller_PreviewMouseWheel">
+                    <RichTextBox x:Name="OutputTextBox" 
+                                 Background="Transparent" 
+                                 Foreground="#FF00FF00"
+                                 FontFamily="Consolas, Courier New, monospace"
+                                 FontSize="13"
+                                 IsReadOnly="True"
+                                 BorderThickness="0"
+                                 VerticalScrollBarVisibility="Disabled"
+                                 HorizontalScrollBarVisibility="Disabled">
+                        <RichTextBox.Resources>
+                            <Style TargetType="Paragraph">
+                                <Setter Property="Margin" Value="0"/>
+                            </Style>
+                        </RichTextBox.Resources>
+                    </RichTextBox>
+                </ScrollViewer>
+                
+                <!-- Loading Overlay -->
+                <Border x:Name="LoadingOverlay" Background="#80000000" Visibility="Collapsed">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
+                        <TextBlock Text="Executing command..." Foreground="White" 
+                                   HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Command Input Area -->
+        <Grid Grid.Row="2" Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Prompt -->
+            <Border Grid.Column="0" Background="#FF1A1A1A" CornerRadius="4,0,0,4" Padding="8,6">
+                <TextBlock x:Name="PromptText" Text="PS>" FontFamily="Consolas" FontSize="13"
+                           Foreground="#FF00FF00" VerticalAlignment="Center"/>
+            </Border>
+            
+            <!-- Command Input -->
+            <TextBox x:Name="CommandInput" Grid.Column="1" 
+                     FontFamily="Consolas, Courier New, monospace" FontSize="13"
+                     Background="#FF1A1A1A" Foreground="#FF00FF00" 
+                     CaretBrush="#FF00FF00"
+                     BorderThickness="0" Padding="8,6"
+                     VerticalContentAlignment="Center"
+                     KeyDown="CommandInput_KeyDown"
+                     PreviewKeyDown="CommandInput_PreviewKeyDown"/>
+            
+            <!-- Execute Button -->
+            <Button Grid.Column="2" Content="Execute" Width="90" Click="Execute_Click"
+                    Background="#FF0078D4" Foreground="White" FontWeight="SemiBold">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" 
+                                            CornerRadius="0,4,4,0" Padding="12,6">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </Grid>
+    </Grid>
+</UserControl>

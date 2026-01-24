@@ -42,6 +42,9 @@
                     <TextBlock Text="Password:" Margin="0,8,0,4"/>
                     <PasswordBox x:Name="PasswordBox" PasswordChanged="PasswordBox_PasswordChanged"/>
 
+                    <Button Content="🔑 Load from Credentials" Margin="0,8,0,0"
+                            Command="{Binding LoadCredentialCommand}" ToolTip="Load saved credentials"/>
+
                     <TextBlock Text="Private Key (optional):" Margin="0,8,0,4"/>
                     <Grid>
                         <Grid.ColumnDefinitions>

@@ -251,6 +251,9 @@
                              Visibility="{Binding SystemRestore, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:SystemRestoreView}" ViewDataContext="{Binding SystemRestore}" />
                     </TabItem>
+                    <TabItem Header="💻 Terminal">
+                        <views:LocalTerminalView/>
+                    </TabItem>
                 </TabControl>
             </TabItem>
 

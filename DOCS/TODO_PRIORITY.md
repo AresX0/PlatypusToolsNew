@@ -1,9 +1,9 @@
 # PlatypusTools - Priority Feature List
 
 **Created**: January 19, 2026  
-**Updated**: January 22, 2026  
+**Updated**: January 26, 2026  
 **Purpose**: Quick wins and high-impact features for Audio Player (MusicBee-inspired) and Video Editor (Shotcut-inspired)  
-**Legend**: ⭐ = 1-2 hours | ⭐⭐ = 3-4 hours | ⭐⭐⭐ = 5-8 hours
+**Legend**: ⭐ = 1-2 hours | ⭐⭐ = 3-4 hours | ⭐⭐⭐ = 5-8 hours | ✅ = Complete | 🔄 = Partial | ❌ = Not Started
 
 ---
 
@@ -19,15 +19,15 @@
 | SEC-004 | Free Space Wipe | ⭐⭐ | Wipe free space on selected drive to prevent data recovery | ✅ Complete |
 | SEC-005 | Verification Pass | ⭐ | Verify data was overwritten correctly after wipe | ✅ Complete |
 
-### DFIR Playbook Integration (Future)
+### DFIR Playbook Integration
 
 | # | Task | Effort | Description | Status |
 |---|------|--------|-------------|--------|
-| SEC-006 | Memory Acquisition UI | ⭐⭐⭐ | Integration with WinPmem/DumpIt for memory dumps | ❌ Not Started |
-| SEC-007 | Volatility 3 Integration | ⭐⭐⭐ | Run Volatility 3 analysis on memory dumps | ❌ Not Started |
-| SEC-008 | KAPE Integration | ⭐⭐⭐ | Run KAPE targets/modules for artifact collection | ❌ Not Started |
-| SEC-009 | OpenSearch Export | ⭐⭐ | Export forensic data to OpenSearch for querying | ❌ Not Started |
-| SEC-010 | Artifact Timeline | ⭐⭐⭐ | Plaso/log2timeline integration for super-timelines | ❌ Not Started |
+| SEC-006 | Memory Acquisition UI | ⭐⭐⭐ | Integration with WinPmem/DumpIt for memory dumps | ✅ Complete |
+| SEC-007 | Volatility 3 Integration | ⭐⭐⭐ | Run Volatility 3 analysis on memory dumps | ✅ Complete |
+| SEC-008 | KAPE Integration | ⭐⭐⭐ | Run KAPE targets/modules for artifact collection | ✅ Complete |
+| SEC-009 | OpenSearch Export | ⭐⭐ | Export forensic data to OpenSearch for querying | ✅ Complete |
+| SEC-010 | Artifact Timeline | ⭐⭐⭐ | Plaso/log2timeline integration for super-timelines | ✅ Complete |
 
 ---
 
@@ -47,11 +47,11 @@
 
 | # | Task | Effort | Description | Status |
 |---|------|--------|-------------|--------|
-| ML-006 | Duplicate Detection | ⭐⭐ | Detect duplicates before copying (hash comparison) | ❌ Not Started |
-| ML-007 | Metadata Enrichment | ⭐⭐ | Auto-fetch metadata from online sources | ❌ Not Started |
+| ML-006 | Duplicate Detection | ⭐⭐ | Detect duplicates before copying (hash comparison) | ✅ Complete |
+| ML-007 | Metadata Enrichment | ⭐⭐ | Auto-fetch metadata from online sources | 🔄 Partial |
 | ML-008 | Watch Folders | ⭐⭐ | Monitor folders for new media and auto-import | ❌ Not Started |
 | ML-009 | Library Sync | ⭐⭐⭐ | Sync library between multiple locations | ❌ Not Started |
-| ML-010 | Smart Collections | ⭐⭐ | Auto-collections based on rules (date, type, size) | ❌ Not Started |
+| ML-010 | Smart Collections | ⭐⭐ | Auto-collections based on rules (date, type, size) | ✅ Complete |
 
 ---
 
@@ -95,31 +95,31 @@
 
 | # | Task | Effort | Description | Status |
 |---|------|--------|-------------|--------|
-| VE-001 | Filter Search Box | ⭐ | Add search TextBox to filter the 80+ filters by name/description | ❌ Not Started |
-| VE-002 | Filter Favorites | ⭐ | Add star button to mark frequently-used filters | ❌ Not Started |
-| VE-003 | Track Lock UI | ⭐ | Add lock icon to track headers (model already exists) | ❌ Not Started |
-| VE-004 | Track Solo/Mute UI | ⭐ | Add solo/mute buttons to track headers | ❌ Not Started |
-| VE-005 | Timeline Ruler Click-to-Seek | ⭐ | Click on ruler to move playhead instantly | ❌ Not Started |
+| VE-001 | Filter Search Box | ⭐ | Add search TextBox to filter the 80+ filters by name/description | ✅ Complete |
+| VE-002 | Filter Favorites | ⭐ | Add star button to mark frequently-used filters | ✅ Complete |
+| VE-003 | Track Lock UI | ⭐ | Add lock icon to track headers (model already exists) | ✅ Complete |
+| VE-004 | Track Solo/Mute UI | ⭐ | Add solo/mute buttons to track headers | ✅ Complete |
+| VE-005 | Timeline Ruler Click-to-Seek | ⭐ | Click on ruler to move playhead instantly | ✅ Complete |
 
 ### Quick Wins (⭐⭐ = 3-4 hours each)
 
 | # | Task | Effort | Description | Status |
 |---|------|--------|-------------|--------|
-| VE-006 | Filter Presets (Save/Load) | ⭐⭐ | Save current filter settings as named presets, load later | ❌ Not Started |
-| VE-007 | Timeline Snapping | ⭐⭐ | Snap clips to playhead, other clip edges, markers | ❌ Not Started |
-| VE-008 | Clip Markers | ⭐⭐ | Add markers within clips for sync points and notes | ❌ Not Started |
-| VE-009 | Magnetic Timeline | ⭐⭐ | Auto-close gaps when deleting clips (ripple delete) | ❌ Not Started |
-| VE-010 | Project Auto-Save | ⭐⭐ | Auto-save project every N minutes with recovery | ❌ Not Started |
+| VE-006 | Filter Presets (Save/Load) | ⭐⭐ | Save current filter settings as named presets, load later | ✅ Complete |
+| VE-007 | Timeline Snapping | ⭐⭐ | Snap clips to playhead, other clip edges, markers | ✅ Complete |
+| VE-008 | Clip Markers | ⭐⭐ | Add markers within clips for sync points and notes | ✅ Complete |
+| VE-009 | Magnetic Timeline | ⭐⭐ | Auto-close gaps when deleting clips (ripple delete) | ✅ Complete |
+| VE-010 | Project Auto-Save | ⭐⭐ | Auto-save project every N minutes with recovery | ✅ Complete |
 
 ### Medium Effort (⭐⭐⭐ = 5-8 hours each)
 
 | # | Task | Effort | Description | Status |
 |---|------|--------|-------------|--------|
-| VE-011 | Audio Waveforms on Clips | ⭐⭐⭐ | Display audio waveform visualization on timeline clips | ❌ Not Started |
-| VE-012 | Keyframe Editor Panel | ⭐⭐⭐ | Visual keyframe editor for filter parameters with bezier curves | ❌ Not Started |
-| VE-013 | Thumbnail Strip for Clips | ⭐⭐⭐ | Show video frame thumbnails on timeline clips | ❌ Not Started |
-| VE-014 | Ripple/Rolling Edit Modes | ⭐⭐⭐ | Advanced edit modes that shift/adjust adjacent clips | ❌ Not Started |
-| VE-015 | Export Presets Panel | ⭐⭐⭐ | Export presets for YouTube, Vimeo, Instagram, TikTok, etc. | ❌ Not Started |
+| VE-011 | Audio Waveforms on Clips | ⭐⭐⭐ | Display audio waveform visualization on timeline clips | ✅ Complete |
+| VE-012 | Keyframe Editor Panel | ⭐⭐⭐ | Visual keyframe editor for filter parameters with bezier curves | ✅ Complete |
+| VE-013 | Thumbnail Strip for Clips | ⭐⭐⭐ | Show video frame thumbnails on timeline clips | 🔄 Partial |
+| VE-014 | Ripple/Rolling Edit Modes | ⭐⭐⭐ | Advanced edit modes that shift/adjust adjacent clips | ✅ Complete |
+| VE-015 | Export Presets Panel | ⭐⭐⭐ | Export presets for YouTube, Vimeo, Instagram, TikTok, etc. | ✅ Complete |
 
 ---
 
@@ -162,13 +162,16 @@
 
 ## Summary
 
-| Category | Immediate (⭐) | Quick Wins (⭐⭐) | Medium (⭐⭐⭐) | Total |
-|----------|----------------|------------------|----------------|-------|
-| Audio Player | 5 | 5 | 5 | **15** |
-| Video Editor | 5 | 5 | 5 | **15** |
-| **Total** | **10** | **10** | **10** | **30** |
+| Category | Immediate (⭐) | Quick Wins (⭐⭐) | Medium (⭐⭐⭐) | Completed |
+|----------|----------------|------------------|----------------|-----------|
+| Security | - | - | 5/5 | **100%** |
+| Media Library | - | 2/5 | - | **40%** |
+| Audio Player | 5/5 | 5/5 | 5/5 | **100%** |
+| Video Editor | 5/5 | 5/5 | 4/5 | **93%** |
+| Optimization | 5/5 | 5/5 | 5/5 | **100%** |
+| **Total** | **15/15** | **17/20** | **19/20** | **~95%** |
 
-**Estimated Total Time**: ~80-120 hours for all 30 features
+**Status**: Most priority features are complete. Remaining items are Watch Folders (ML-008), Library Sync (ML-009), and Thumbnail Strips (VE-013).
 
 ---
 

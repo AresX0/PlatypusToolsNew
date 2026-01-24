@@ -22,7 +22,7 @@
     <PackageReference Include="TagLibSharp" Version="1.4.5" />
   </ItemGroup>
   <PropertyGroup>
-    <Version>3.2.12.2</Version>
+    <Version>3.2.13.1</Version>
     <Authors>PlatypusUtils</Authors>
   </PropertyGroup>
 </Project>

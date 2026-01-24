@@ -912,24 +912,55 @@
     </ol>
 
     <h3>📄 OSINT Tab</h3>
-    <p>Extract metadata from documents for OSINT (Open Source Intelligence) gathering, similar to FOCA.</p>
+    <p>Extract comprehensive metadata from documents for OSINT (Open Source Intelligence) gathering, similar to FOCA. Uses ExifTool to extract ALL available metadata fields, including GPS coordinates, camera information, author details, and more.</p>
     
-    <h4>Extractable Metadata</h4>
+    <h4>Extractable Metadata Fields</h4>
     <table>
-        <tr><th>Field</th><th>Description</th><th>Intelligence Value</th></tr>
-        <tr><td>Author</td><td>Document author name</td><td>Username enumeration</td></tr>
-        <tr><td>Company</td><td>Organization name</td><td>Target validation</td></tr>
-        <tr><td>Creator</td><td>Application that created file</td><td>Software footprinting</td></tr>
-        <tr><td>Software</td><td>Software version</td><td>Vulnerability assessment</td></tr>
-        <tr><td>Modified Date</td><td>Last modification time</td><td>Activity timeline</td></tr>
+        <tr><th>Category</th><th>Fields</th><th>Intelligence Value</th></tr>
+        <tr><td>Author/Creator</td><td>Author, Creator, Producer, Company, LastModifiedBy</td><td>Username enumeration, org identification</td></tr>
+        <tr><td>Document Info</td><td>Title, Subject, Keywords, Description, Comment, Copyright</td><td>Content classification, ownership</td></tr>
+        <tr><td>Software</td><td>CreatorTool, Software, Application, XMPToolkit</td><td>Software footprinting, vulnerability assessment</td></tr>
+        <tr><td>Timestamps</td><td>CreateDate, ModifyDate, Created, Modified</td><td>Activity timeline, file history</td></tr>
+        <tr><td>GPS/Location</td><td>GPSLatitude, GPSLongitude, GPSPosition</td><td>Geotagging, physical location tracking</td></tr>
+        <tr><td>Camera/EXIF</td><td>CameraMake, CameraModel, ExposureTime, FNumber, ISO, FocalLength</td><td>Device identification</td></tr>
+        <tr><td>PDF-specific</td><td>PDFVersion, PageCount, Linearized, Encrypted</td><td>Document analysis</td></tr>
+        <tr><td>Image Info</td><td>ImageWidth, ImageHeight, ColorSpace, Resolution</td><td>Image profiling</td></tr>
+        <tr><td>Identifiers</td><td>DocumentID, InstanceID, MimeType, FileType</td><td>File tracking, format analysis</td></tr>
     </table>
+    
+    <h4>Supported File Types</h4>
+    <p>The OSINT tab supports extensive file formats for metadata extraction:</p>
+    <ul>
+        <li><strong>Documents:</strong> PDF, DOCX, DOC, XLSX, XLS, PPTX, PPT</li>
+        <li><strong>Images:</strong> JPG, JPEG, PNG, GIF, BMP, TIFF, TIF, WEBP, HEIC</li>
+        <li><strong>RAW Photos:</strong> CR2 (Canon), NEF (Nikon), ARW (Sony), and other camera RAW formats</li>
+    </ul>
+    
+    <h4>How to Use</h4>
     <ol>
-        <li>Set path to ExifTool</li>
-        <li>Browse to document folder (PDF, DOCX, XLSX, etc.)</li>
+        <li>Click "Download ExifTool" to install ExifTool (or set path manually)</li>
+        <li>Browse to document folder containing files to analyze</li>
         <li>Click <strong>Extract Metadata</strong></li>
-        <li>Review extracted metadata in the grid</li>
-        <li>Export findings for reporting</li>
+        <li>Review the extraction summary in the log - includes:
+            <ul>
+                <li>Total files processed and metadata fields extracted</li>
+                <li>Unique authors, creators, and companies found</li>
+                <li>GPS-tagged files with coordinates (⚠ privacy concern)</li>
+                <li>Camera models used</li>
+            </ul>
+        </li>
+        <li>Review detailed metadata in the grid</li>
+        <li>Export findings to JSON/CSV for reporting</li>
     </ol>
+    
+    <div class="warning">
+        <strong>⚠ GPS Data:</strong> The tool will flag files containing GPS coordinates. This is valuable for OSINT but may indicate privacy concerns if found in documents being shared externally.
+    </div>
+    
+    <div class="tip">
+        <strong>Download ExifTool:</strong> Use the built-in "Download ExifTool" button, or download from <a href="https://exiftool.org">ExifTool.org</a><br>
+        ExifTool will be installed to the application's Tools folder.
+    </div>
 
     <h3>📊 Results Tab</h3>
     <p>View collected artifacts and activity log.</p>
