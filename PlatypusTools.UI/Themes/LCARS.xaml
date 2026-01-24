@@ -730,19 +730,23 @@
         <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="FontWeight" Value="Bold"/>
-        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="Padding" Value="16,6"/>
+        <Setter Property="MinHeight" Value="32"/>
+        <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TabItem">
                     <Border x:Name="border"
                             Background="{TemplateBinding Background}"
-                            CornerRadius="4,4,0,0"
+                            CornerRadius="16"
                             Padding="{TemplateBinding Padding}"
-                            Margin="2,0,0,0">
+                            Margin="2,2,2,2"
+                            MinHeight="{TemplateBinding MinHeight}">
                         <ContentPresenter x:Name="contentPresenter"
                                           ContentSource="Header"
                                           HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"/>
+                                          VerticalAlignment="Center"
+                                          TextBlock.Foreground="{TemplateBinding Foreground}"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
@@ -750,8 +754,15 @@
                             <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGoldLightBrush}"/>
                         </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsSelected" Value="True"/>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+                        </MultiTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>

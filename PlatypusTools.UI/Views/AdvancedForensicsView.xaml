@@ -89,16 +89,29 @@
                         </GroupBox>
 
                         <GroupBox Header="Volatility 3 Plugins" Margin="0,0,0,10">
-                            <WrapPanel Margin="5">
-                                <CheckBox Content="windows.pslist (Processes)" IsChecked="{Binding RunPsList}" Margin="10,5"/>
-                                <CheckBox Content="windows.netscan (Network)" IsChecked="{Binding RunNetScan}" Margin="10,5"/>
-                                <CheckBox Content="windows.malfind (Malware)" IsChecked="{Binding RunMalfind}" Margin="10,5"/>
-                                <CheckBox Content="windows.dlllist (DLLs)" IsChecked="{Binding RunDllList}" Margin="10,5"/>
-                                <CheckBox Content="windows.handles" IsChecked="{Binding RunHandles}" Margin="10,5"/>
-                                <CheckBox Content="windows.cmdline" IsChecked="{Binding RunCmdline}" Margin="10,5"/>
-                                <CheckBox Content="windows.filescan" IsChecked="{Binding RunFileScan}" Margin="10,5"/>
-                                <CheckBox Content="windows.registry.hivelist" IsChecked="{Binding RunRegHive}" Margin="10,5"/>
-                            </WrapPanel>
+                            <StackPanel>
+                                <TextBlock Text="Core Analysis" FontWeight="SemiBold" Margin="5,5,5,2"/>
+                                <WrapPanel Margin="5,0,5,5">
+                                    <CheckBox Content="windows.pslist (Processes)" IsChecked="{Binding RunPsList}" Margin="10,5"/>
+                                    <CheckBox Content="windows.netscan (Network)" IsChecked="{Binding RunNetScan}" Margin="10,5"/>
+                                    <CheckBox Content="windows.malfind (Malware)" IsChecked="{Binding RunMalfind}" Margin="10,5"/>
+                                    <CheckBox Content="windows.dlllist (DLLs)" IsChecked="{Binding RunDllList}" Margin="10,5"/>
+                                    <CheckBox Content="windows.handles" IsChecked="{Binding RunHandles}" Margin="10,5"/>
+                                    <CheckBox Content="windows.cmdline" IsChecked="{Binding RunCmdline}" Margin="10,5"/>
+                                    <CheckBox Content="windows.filescan" IsChecked="{Binding RunFileScan}" Margin="10,5"/>
+                                    <CheckBox Content="windows.registry.hivelist" IsChecked="{Binding RunRegHive}" Margin="10,5"/>
+                                </WrapPanel>
+                                <TextBlock Text="Advanced Analysis" FontWeight="SemiBold" Margin="5,5,5,2"/>
+                                <WrapPanel Margin="5,0,5,5">
+                                    <CheckBox Content="windows.pstree (Process Tree)" IsChecked="{Binding RunPsTree}" Margin="10,5"/>
+                                    <CheckBox Content="windows.envars (Environment)" IsChecked="{Binding RunEnvars}" Margin="10,5"/>
+                                    <CheckBox Content="windows.svcscan (Services)" IsChecked="{Binding RunSvcScan}" Margin="10,5"/>
+                                    <CheckBox Content="windows.callbacks" IsChecked="{Binding RunCallbacks}" Margin="10,5"/>
+                                    <CheckBox Content="windows.driverscan" IsChecked="{Binding RunDriverScan}" Margin="10,5"/>
+                                    <CheckBox Content="windows.ssdt (SSDT Hooks)" IsChecked="{Binding RunSsdt}" Margin="10,5"/>
+                                    <CheckBox Content="windows.mutantscan (Mutexes)" IsChecked="{Binding RunMutantScan}" Margin="10,5"/>
+                                </WrapPanel>
+                            </StackPanel>
                         </GroupBox>
 
                         <Button Content="🔍 Run Volatility Analysis" Command="{Binding RunVolatilityAnalysisCommand}"
@@ -280,8 +293,16 @@
 
                     <GroupBox Grid.Row="1" Header="Query Templates" Margin="0,10,0,0">
                         <StackPanel Margin="5">
-                            <ComboBox ItemsSource="{Binding KustoTemplates}" SelectedItem="{Binding SelectedKustoTemplate}"
-                                      DisplayMemberPath="Name" Margin="0,0,0,5"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox ItemsSource="{Binding KustoTemplates}" SelectedItem="{Binding SelectedKustoTemplate}"
+                                          DisplayMemberPath="Name" Margin="0,0,5,5"/>
+                                <Button Grid.Column="1" Content="📥 Load" Command="{Binding LoadKustoTemplateCommand}"
+                                        Width="70" ToolTip="Load template to query box"/>
+                            </Grid>
                             <TextBlock Text="{Binding SelectedKustoTemplate.Description}" Foreground="Gray" 
                                        TextWrapping="Wrap" Margin="0,0,0,5"/>
                         </StackPanel>
@@ -746,9 +767,9 @@
                              Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             </StackPanel>
 
-            <Button Grid.Column="1" Content="📤 Export" Command="{Binding ExportResultsCommand}" Width="80" Margin="5"/>
-            <Button Grid.Column="2" Content="🗑️ Clear" Command="{Binding ClearLogCommand}" Width="80" Margin="5"/>
-            <Button Grid.Column="3" Content="❌ Cancel" Command="{Binding CancelCommand}" Width="80" Margin="5"
+            <Button Grid.Column="1" Content="📤 Export" Command="{Binding ExportResultsCommand}" Width="90" Margin="5" Padding="6,2"/>
+            <Button Grid.Column="2" Content="🗑️ Clear" Command="{Binding ClearLogCommand}" Width="90" Margin="5" Padding="6,2"/>
+            <Button Grid.Column="3" Content="❌ Cancel" Command="{Binding CancelCommand}" Width="90" Margin="5" Padding="6,2"
                     Background="#f44336" Foreground="White"
                     Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}"/>
         </Grid>

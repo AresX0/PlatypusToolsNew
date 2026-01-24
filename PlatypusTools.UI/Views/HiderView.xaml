@@ -38,15 +38,15 @@
                     <DataGridCheckBoxColumn Header="Hidden" Binding="{Binding IsHidden, Mode=OneWay}" Width="80" MinWidth="60" CanUserResize="True" IsReadOnly="True" />
                     <DataGridCheckBoxColumn Header="Restrict to Administrators" Binding="{Binding AclRestricted, UpdateSourceTrigger=PropertyChanged}" Width="160" MinWidth="140" CanUserResize="True" />
                     <DataGridCheckBoxColumn Header="Use EFS" Binding="{Binding EfsEnabled, UpdateSourceTrigger=PropertyChanged}" Width="100" MinWidth="80" CanUserResize="True" />
-                    <DataGridTemplateColumn Header="Actions" Width="280" MinWidth="280">
+                    <DataGridTemplateColumn Header="Actions" Width="300" MinWidth="300">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Button Content="Hide" Command="{Binding DataContext.SetHiddenCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="45" Margin="0,0,2,0" ToolTip="Hide this folder" />
-                                <Button Content="Unhide" Command="{Binding DataContext.ClearHiddenCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="50" Margin="0,0,2,0" ToolTip="Unhide this folder" />
-                                <Button Content="ACL" Command="{Binding DataContext.ApplyAclCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="40" Margin="0,0,2,0" ToolTip="Restrict to Administrators" />
-                                <Button Content="EFS" Command="{Binding DataContext.ApplyEfsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="40" Margin="0,0,2,0" ToolTip="Apply EFS encryption" />
-                                <Button Content="Remove" Command="{Binding DataContext.RemoveRecordCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="70" Foreground="Red" ToolTip="Remove from list" />
+                                <Button Content="Hide" Command="{Binding DataContext.SetHiddenCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="50" Margin="0,0,2,0" Padding="4,2" ToolTip="Hide this folder" />
+                                <Button Content="Unhide" Command="{Binding DataContext.ClearHiddenCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="60" Margin="0,0,2,0" Padding="4,2" ToolTip="Unhide this folder" />
+                                <Button Content="ACL" Command="{Binding DataContext.ApplyAclCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="45" Margin="0,0,2,0" Padding="4,2" ToolTip="Restrict to Administrators" />
+                                <Button Content="EFS" Command="{Binding DataContext.ApplyEfsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="45" Margin="0,0,2,0" Padding="4,2" ToolTip="Apply EFS encryption" />
+                                <Button Content="Remove" Command="{Binding DataContext.RemoveRecordCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Width="70" Padding="4,2" Foreground="Red" ToolTip="Remove from list" />
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

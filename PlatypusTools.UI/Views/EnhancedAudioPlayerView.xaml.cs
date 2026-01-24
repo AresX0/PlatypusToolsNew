@@ -342,9 +342,38 @@ public partial class EnhancedAudioPlayerView : UserControl
             
             _fullscreenOsd.Child = osdGrid;
             
+            // Create lyrics overlay for fullscreen
+            Border? lyricsOverlay = null;
+            TextBlock? lyricsText = null;
+            if (vm?.ShowLyricsOverlay == true)
+            {
+                lyricsOverlay = new Border
+                {
+                    Background = new SolidColorBrush(Color.FromArgb(128, 0, 0, 0)),
+                    CornerRadius = new CornerRadius(8),
+                    Padding = new Thickness(20, 10, 20, 10),
+                    VerticalAlignment = VerticalAlignment.Bottom,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Margin = new Thickness(20, 0, 20, 100) // Above the OSD
+                };
+                lyricsText = new TextBlock
+                {
+                    Text = vm?.CurrentLyricLineText ?? "",
+                    FontSize = 24,
+                    FontWeight = FontWeights.SemiBold,
+                    Foreground = Brushes.White,
+                    TextAlignment = TextAlignment.Center,
+                    TextWrapping = TextWrapping.Wrap,
+                    MaxWidth = 800
+                };
+                lyricsOverlay.Child = lyricsText;
+            }
+            
             // Container grid
             var container = new Grid();
             container.Children.Add(fullscreenVisualizer);
+            if (lyricsOverlay != null)
+                container.Children.Add(lyricsOverlay);
             container.Children.Add(_fullscreenOsd);
             
             _fullscreenWindow.Content = container;
@@ -366,6 +395,17 @@ public partial class EnhancedAudioPlayerView : UserControl
                 {
                     fullscreenVisualizer.SetColorScheme(colorIndex);
                     fullscreenVisualizer.UpdateSpectrumData(doubleData, mode, barCount);
+                    
+                    // Update lyrics if enabled
+                    if (lyricsText != null && vm?.ShowLyricsOverlay == true)
+                    {
+                        lyricsText.Text = vm?.CurrentLyricLineText ?? "";
+                    }
+                    if (lyricsOverlay != null)
+                    {
+                        lyricsOverlay.Visibility = vm?.ShowLyricsOverlay == true && !string.IsNullOrWhiteSpace(vm?.CurrentLyricLineText)
+                            ? Visibility.Visible : Visibility.Collapsed;
+                    }
                 });
             }
             

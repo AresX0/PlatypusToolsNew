@@ -31,7 +31,7 @@
             <Button Content="📤 Extract Selected" Click="OnExtractSelectedClick" Width="120" Margin="0,0,8,0"/>
             <Separator Margin="8,0"/>
             <Button Content="➕ Add Files" Click="OnAddFilesClick" Width="90" Margin="0,0,8,0"/>
-            <Button Content="🔍 Test" Click="OnTestClick" Width="70" Margin="0,0,8,0"/>
+            <Button Content="🔍 Test" Click="OnTestClick" Width="80" Margin="0,0,8,0" Padding="6,2"/>
             <Button Content="Cancel" Click="OnCancelClick" Width="80" Background="LightCoral"
                     Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>
         </StackPanel>

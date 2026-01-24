@@ -224,6 +224,9 @@
       <Component Id="CMP_SixLabors_ImageSharp_Drawing_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_SixLabors_ImageSharp_Drawing_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\SixLabors.ImageSharp.Drawing.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_SQLite_Interop_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_SQLite_Interop_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\SQLite.Interop.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_System_AppContext_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_System_AppContext_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.AppContext.dll" KeyPath="yes" />
       </Component>
@@ -286,6 +289,9 @@
       </Component>
       <Component Id="CMP_System_Data_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_System_Data_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Data.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Data_SQLite_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Data_SQLite_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Data.SQLite.dll" KeyPath="yes" />
       </Component>
       <Component Id="CMP_System_Design_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_System_Design_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Design.dll" KeyPath="yes" />
@@ -4378,6 +4384,7 @@
       <ComponentRef Id="CMP_SixLabors_Fonts_dll" />
       <ComponentRef Id="CMP_SixLabors_ImageSharp_dll" />
       <ComponentRef Id="CMP_SixLabors_ImageSharp_Drawing_dll" />
+      <ComponentRef Id="CMP_SQLite_Interop_dll" />
       <ComponentRef Id="CMP_System_AppContext_dll" />
       <ComponentRef Id="CMP_System_Buffers_dll" />
       <ComponentRef Id="CMP_System_CodeDom_dll" />
@@ -4399,6 +4406,7 @@
       <ComponentRef Id="CMP_System_Data_Common_dll" />
       <ComponentRef Id="CMP_System_Data_DataSetExtensions_dll" />
       <ComponentRef Id="CMP_System_Data_dll" />
+      <ComponentRef Id="CMP_System_Data_SQLite_dll" />
       <ComponentRef Id="CMP_System_Design_dll" />
       <ComponentRef Id="CMP_System_Diagnostics_Contracts_dll" />
       <ComponentRef Id="CMP_System_Diagnostics_Debug_dll" />

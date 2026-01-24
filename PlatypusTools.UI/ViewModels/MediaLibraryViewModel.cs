@@ -38,6 +38,31 @@ namespace PlatypusTools.UI.ViewModels
 
         private string _sourcePath = string.Empty;
         public string SourcePath { get => _sourcePath; set => SetProperty(ref _sourcePath, value); }
+
+        private string _hash = string.Empty;
+        public string Hash { get => _hash; set => SetProperty(ref _hash, value); }
+    }
+
+    public class MediaDuplicateGroupViewModel : BindableBase
+    {
+        public string Hash { get; set; } = string.Empty;
+        public long FileSize { get; set; }
+        public ObservableCollection<MediaItemViewModel> Files { get; } = new();
+        public int DuplicateCount => Files.Count;
+        public string FormattedSize => FormatBytes(FileSize);
+
+        private static string FormatBytes(long bytes)
+        {
+            string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+            int order = 0;
+            double size = bytes;
+            while (size >= 1024 && order < sizes.Length - 1)
+            {
+                order++;
+                size /= 1024;
+            }
+            return $"{size:0.##} {sizes[order]}";
+        }
     }
 
     public class MediaLibraryViewModel : BindableBase
@@ -67,6 +92,7 @@ namespace PlatypusTools.UI.ViewModels
             SelectAllCommand = new RelayCommand(_ => SelectAll(true));
             DeselectAllCommand = new RelayCommand(_ => SelectAll(false));
             RefreshLibraryCommand = new RelayCommand(async _ => await RefreshLibraryAsync(), _ => !IsScanning && !string.IsNullOrWhiteSpace(PrimaryLibraryPath));
+            FindDuplicatesCommand = new RelayCommand(async _ => await FindDuplicatesAsync(), _ => !IsScanning && MediaItems.Count > 0);
 
             // Load saved library path
             LoadSavedSettings();
@@ -74,6 +100,7 @@ namespace PlatypusTools.UI.ViewModels
 
         public ObservableCollection<MediaItemViewModel> MediaItems { get; } = new();
         public ObservableCollection<MediaItemViewModel> ScannedItems { get; } = new();
+        public ObservableCollection<MediaDuplicateGroupViewModel> DuplicateGroups { get; } = new();
 
         #region Original Properties
 
@@ -179,6 +206,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand SelectAllCommand { get; }
         public ICommand DeselectAllCommand { get; }
         public ICommand RefreshLibraryCommand { get; }
+        public ICommand FindDuplicatesCommand { get; }
 
         #endregion
 
@@ -648,6 +676,96 @@ namespace PlatypusTools.UI.ViewModels
                 size /= 1024;
             }
             return $"{size:0.##} {sizes[order]}";
+        }
+
+        private async Task FindDuplicatesAsync()
+        {
+            if (MediaItems.Count == 0)
+            {
+                StatusMessage = "No media files to scan for duplicates";
+                return;
+            }
+
+            IsScanning = true;
+            StatusMessage = "Scanning for duplicates by MD5 hash...";
+            DuplicateGroups.Clear();
+
+            try
+            {
+                // Convert ViewModels to MediaItem for the service
+                var mediaItems = MediaItems.Select(m => new MediaItem
+                {
+                    FilePath = m.FilePath,
+                    FileName = m.FileName,
+                    Size = m.FileSize,
+                    DateModified = m.DateModified
+                }).ToList();
+                
+                var duplicates = await _mediaLibraryService.FindDuplicatesAsync(
+                    mediaItems,
+                    new Progress<MediaScanProgress>(p =>
+                    {
+                        Application.Current?.Dispatcher?.Invoke(() =>
+                        {
+                            Progress = p.PercentComplete;
+                            StatusMessage = !string.IsNullOrEmpty(p.StatusMessage) 
+                                ? p.StatusMessage 
+                                : $"Hashing file {p.FilesScanned} of {p.TotalFiles}...";
+                        });
+                    }),
+                    _scanCancellationTokenSource?.Token ?? CancellationToken.None);
+
+                Application.Current?.Dispatcher?.Invoke(() =>
+                {
+                    DuplicateGroups.Clear();
+                    int totalDuplicates = 0;
+
+                    foreach (var group in duplicates)
+                    {
+                        var vmGroup = new MediaDuplicateGroupViewModel
+                        {
+                            Hash = group.Hash,
+                            FileSize = group.Items.FirstOrDefault()?.Size ?? 0
+                        };
+
+                        foreach (var file in group.Items)
+                        {
+                            vmGroup.Files.Add(new MediaItemViewModel
+                            {
+                                FilePath = file.FilePath,
+                                FileName = Path.GetFileName(file.FilePath),
+                                FileType = Path.GetExtension(file.FilePath).TrimStart('.').ToUpper(),
+                                FileSize = file.Size,
+                                DateModified = file.DateModified,
+                                Hash = group.Hash
+                            });
+                        }
+
+                        if (vmGroup.Files.Count > 1)
+                        {
+                            DuplicateGroups.Add(vmGroup);
+                            totalDuplicates += vmGroup.Files.Count - 1;
+                        }
+                    }
+
+                    StatusMessage = DuplicateGroups.Count > 0 
+                        ? $"Found {DuplicateGroups.Count} duplicate groups ({totalDuplicates} duplicate files)"
+                        : "No duplicates found";
+                });
+            }
+            catch (OperationCanceledException)
+            {
+                StatusMessage = "Duplicate scan canceled";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error scanning duplicates: {ex.Message}";
+            }
+            finally
+            {
+                IsScanning = false;
+                Progress = 0;
+            }
         }
 
         #endregion

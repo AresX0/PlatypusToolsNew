@@ -86,6 +86,8 @@
             <converters:BoolToThemeTextConverter x:Key="BoolToThemeTextConverter" />
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
             <converters:CountToVisibilityConverter x:Key="ZeroToVisibleConverter" />
+            <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
+            <converters:CountToVisibilityConverter x:Key="InverseCountToVisibilityConverter" Invert="True" />
             <converters:EnumToBoolConverter x:Key="EnumToBoolConverter" />
             <converters:FileFolderIconConverter x:Key="FileFolderIconConverter" />
             <converters:FileFontWeightConverter x:Key="FileFontWeightConverter" />

@@ -4,12 +4,17 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:controls="clr-namespace:PlatypusTools.UI.Controls.VideoEditor"
+             xmlns:converters="clr-namespace:PlatypusTools.UI.Converters"
              mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="1200"
              Background="#1E1E1E"
              Loaded="UserControl_Loaded">
     
     <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+        <converters:BoolToFavoriteIconConverter x:Key="BoolToFavoriteIconConverter"/>
+        
         <SolidColorBrush x:Key="PanelBg" Color="#252525"/>
         <SolidColorBrush x:Key="HeaderBg" Color="#2D2D2D"/>
         <SolidColorBrush x:Key="BorderColor" Color="#3D3D3D"/>
@@ -339,13 +344,100 @@
                         </StackPanel>
                     </Border>
                     
-                    <!-- Properties Panel -->
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <!-- Properties Panel (visible when Properties tab selected) -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                                  Visibility="{Binding IsChecked, ElementName=PropertiesTab, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel x:Name="PropertiesPanel" Margin="8">
                             <TextBlock Text="No clip selected" 
                                        Foreground="#999999"
                                        HorizontalAlignment="Center"
                                        Margin="0,20,0,0"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                    
+                    <!-- Filters Panel (visible when Filters tab selected) -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                                  Visibility="{Binding IsChecked, ElementName=FiltersTab, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel x:Name="FiltersPanel" Margin="8">
+                            <!-- Filter Search -->
+                            <Grid Margin="0,0,0,8">
+                                <TextBox x:Name="FilterSearchBox"
+                                         Text="{Binding FilterSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                         Background="#2B2F37" Foreground="White"
+                                         BorderBrush="#4B5058" Padding="24,6,6,6"/>
+                                <TextBlock Text="🔍" IsHitTestVisible="False" 
+                                           VerticalAlignment="Center" Margin="6,0,0,0"
+                                           Foreground="#6B7280"/>
+                            </Grid>
+                            
+                            <!-- Filter Categories -->
+                            <TextBlock Text="Categories" Foreground="#9CA3AF" FontSize="11" Margin="0,0,0,4"/>
+                            <WrapPanel Margin="0,0,0,8">
+                                <RadioButton Content="All" GroupName="FilterCat" IsChecked="True"
+                                             Foreground="White" Margin="0,0,8,4"/>
+                                <RadioButton Content="Color" GroupName="FilterCat"
+                                             Foreground="White" Margin="0,0,8,4"/>
+                                <RadioButton Content="Blur" GroupName="FilterCat"
+                                             Foreground="White" Margin="0,0,8,4"/>
+                                <RadioButton Content="Stylize" GroupName="FilterCat"
+                                             Foreground="White" Margin="0,0,8,4"/>
+                                <RadioButton Content="Transform" GroupName="FilterCat"
+                                             Foreground="White" Margin="0,0,8,4"/>
+                                <RadioButton Content="Audio" GroupName="FilterCat"
+                                             Foreground="White" Margin="0,0,8,4"/>
+                            </WrapPanel>
+                            
+                            <!-- Available Filters List -->
+                            <TextBlock Text="Available Filters" Foreground="#9CA3AF" FontSize="11" Margin="0,0,0,4"/>
+                            <ListBox x:Name="FiltersList" 
+                                     ItemsSource="{Binding FilteredShotcutFilters}"
+                                     Background="#2B2F37" BorderBrush="#4B5058"
+                                     MaxHeight="200" Margin="0,0,0,8">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Margin="4,2">
+                                            <Button Content="⭐" Background="Transparent" BorderThickness="0"
+                                                    Foreground="{Binding IsFavorite, Converter={StaticResource BoolToFavoriteIconConverter}}"
+                                                    Command="{Binding DataContext.ToggleFilterFavoriteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    FontSize="10" Padding="2" Cursor="Hand" ToolTip="Toggle Favorite"/>
+                                            <TextBlock Text="{Binding Icon}" FontSize="12" Margin="4,0,4,0"/>
+                                            <TextBlock Text="{Binding Name}" Foreground="White" FontSize="11"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            
+                            <!-- Applied Filters -->
+                            <TextBlock Text="Applied Filters" Foreground="#9CA3AF" FontSize="11" Margin="0,8,0,4"/>
+                            <ItemsControl ItemsSource="{Binding SelectedClip.Filters}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#3B3F47" CornerRadius="4" Margin="0,2" Padding="6">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Content="✕"
+                                                        Background="Transparent" Foreground="#EF4444"
+                                                        BorderThickness="0" Cursor="Hand" FontSize="10"
+                                                        Command="{Binding DataContext.RemoveShotcutFilterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"/>
+                                                <ToggleButton DockPanel.Dock="Right" IsChecked="{Binding IsEnabled}"
+                                                              Width="18" Height="18" Background="Transparent" BorderThickness="0">
+                                                    <TextBlock Text="👁" FontSize="10"/>
+                                                </ToggleButton>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Icon}" FontSize="10" Margin="0,0,4,0"/>
+                                                    <TextBlock Text="{Binding Name}" Foreground="White" FontSize="10"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            
+                            <TextBlock Text="Select a clip to add filters" 
+                                       Foreground="#666666" FontSize="10" FontStyle="Italic"
+                                       HorizontalAlignment="Center" Margin="0,16,0,0"
+                                       Visibility="{Binding HasSelectedClip, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Grid>

@@ -18,6 +18,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- Library Path Configuration -->
@@ -51,14 +52,16 @@
             <GroupBox Header="🔍 Library Filters" Grid.Row="1" Margin="0,0,0,8">
                 <StackPanel Orientation="Horizontal" Margin="8">
                     <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Type:</TextBlock>
-                    <ComboBox Width="100" SelectedItem="{Binding SelectedType}" Margin="0,0,16,0">
+                    <ComboBox Width="80" SelectedItem="{Binding SelectedType}" Margin="0,0,8,0">
                         <ComboBoxItem Content="All" IsSelected="True"/>
                         <ComboBoxItem Content="Video"/>
                         <ComboBoxItem Content="Audio"/>
                         <ComboBoxItem Content="Image"/>
                     </ComboBox>
-                    <Button Content="🔄 Refresh" Command="{Binding RefreshLibraryCommand}" Width="90" Margin="0,0,8,0"/>
-                    <TextBlock VerticalAlignment="Center" Margin="16,0,0,0" FontWeight="Bold">
+                    <Button Content="🔄 Refresh" Command="{Binding RefreshLibraryCommand}" Width="85" Margin="0,0,4,0" Padding="6,2"/>
+                    <Button Content="🔍 Find Duplicates" Command="{Binding FindDuplicatesCommand}" Width="125" Margin="0,0,8,0"
+                            Padding="6,2" ToolTip="Scan library for duplicate files by MD5 hash"/>
+                    <TextBlock VerticalAlignment="Center" Margin="8,0,0,0" FontWeight="Bold">
                         Total: <Run Text="{Binding TotalFiles, Mode=OneWay}"/> files
                     </TextBlock>
                 </StackPanel>
@@ -104,8 +107,45 @@
                 </DataGrid>
             </GroupBox>
 
+            <!-- Duplicate Groups (visible after scan) -->
+            <Expander Grid.Row="3" Header="🔍 Duplicate Groups" IsExpanded="False" Margin="0,0,0,8"
+                      Visibility="{Binding DuplicateGroups.Count, Converter={StaticResource CountToVisibilityConverter}}">
+                <Border BorderBrush="#DDDDDD" BorderThickness="1" MaxHeight="200">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding DuplicateGroups}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Expander Margin="4,2">
+                                        <Expander.Header>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="📁" Margin="0,0,5,0"/>
+                                                <TextBlock Text="{Binding DuplicateCount, StringFormat='{}{0} files'}" FontWeight="SemiBold"/>
+                                                <TextBlock Text=" • " Foreground="Gray"/>
+                                                <TextBlock Text="{Binding FormattedSize}" Foreground="Gray"/>
+                                            </StackPanel>
+                                        </Expander.Header>
+                                        <ItemsControl ItemsSource="{Binding Files}" Margin="20,0,0,0">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal" Margin="2">
+                                                        <TextBlock Text="📄" Margin="0,0,5,0"/>
+                                                        <TextBlock Text="{Binding FileName}" Width="200" TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="{Binding FileSize, Converter={StaticResource BytesToMBConverter}}" 
+                                                                   Foreground="Gray" Width="80"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Expander>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+            </Expander>
+
             <!-- Status Bar -->
-            <StatusBar Grid.Row="3">
+            <StatusBar Grid.Row="4">
                 <StatusBarItem>
                     <TextBlock Text="{Binding StatusMessage}"/>
                 </StatusBarItem>
@@ -184,7 +224,7 @@
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="4">
                         <Button Content="Select All" Command="{Binding SelectAllCommand}" Width="70" Margin="0,0,4,0"/>
-                        <Button Content="Deselect" Command="{Binding DeselectAllCommand}" Width="60"/>
+                        <Button Content="Deselect" Command="{Binding DeselectAllCommand}" Width="70" Padding="6,2"/>
                         <TextBlock VerticalAlignment="Center" Margin="12,0,0,0">
                             <Run Text="{Binding SelectedItemsCount, Mode=OneWay}"/> selected
                         </TextBlock>

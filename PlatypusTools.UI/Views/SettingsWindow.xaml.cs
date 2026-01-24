@@ -78,11 +78,109 @@ namespace PlatypusTools.UI.Views
 
                 // Load keyboard shortcuts
                 LoadKeyboardShortcuts();
+                
+                // Load Audio Visualizer settings
+                LoadVisualizerSettings(settings);
             }
             catch (System.Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error loading settings: {ex.Message}");
             }
+        }
+        
+        private void LoadVisualizerSettings(AppSettings? settings)
+        {
+            if (settings == null) return;
+            
+            try
+            {
+                // Enable checkboxes
+                if (EnableVisualizerCheck != null)
+                    EnableVisualizerCheck.IsChecked = settings.VisualizerEnabled;
+                if (ShowVisualizerDuringPlaybackCheck != null)
+                    ShowVisualizerDuringPlaybackCheck.IsChecked = settings.ShowVisualizerDuringPlayback;
+                
+                // Preset combo
+                if (VisualizerPresetCombo != null)
+                {
+                    foreach (System.Windows.Controls.ComboBoxItem item in VisualizerPresetCombo.Items)
+                    {
+                        if (item.Content?.ToString() == settings.VisualizerPreset)
+                        {
+                            VisualizerPresetCombo.SelectedItem = item;
+                            break;
+                        }
+                    }
+                }
+                
+                // Opacity slider
+                if (VisualizerOpacitySlider != null)
+                {
+                    VisualizerOpacitySlider.Value = settings.VisualizerOpacity;
+                    VisualizerOpacitySlider.ValueChanged += VisualizerOpacitySlider_ValueChanged;
+                    UpdateOpacityText(settings.VisualizerOpacity);
+                }
+                
+                // Bar count slider
+                if (VisualizerBarCountSlider != null)
+                {
+                    VisualizerBarCountSlider.Value = settings.VisualizerBarCount;
+                    VisualizerBarCountSlider.ValueChanged += VisualizerBarCountSlider_ValueChanged;
+                    UpdateBarCountText(settings.VisualizerBarCount);
+                }
+                
+                // Color buttons
+                if (PrimaryColorButton != null)
+                {
+                    try
+                    {
+                        PrimaryColorButton.Background = new System.Windows.Media.SolidColorBrush(
+                            (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(settings.VisualizerPrimaryColor));
+                    }
+                    catch { }
+                }
+                if (BackgroundColorButton != null)
+                {
+                    try
+                    {
+                        BackgroundColorButton.Background = new System.Windows.Media.SolidColorBrush(
+                            (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(settings.VisualizerBackgroundColor));
+                    }
+                    catch { }
+                }
+                
+                // Advanced checkboxes
+                if (EnableGPUAccelerationCheck != null)
+                    EnableGPUAccelerationCheck.IsChecked = settings.VisualizerGpuAcceleration;
+                if (EnableAudioNormalizationCheck != null)
+                    EnableAudioNormalizationCheck.IsChecked = settings.VisualizerNormalize;
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading visualizer settings: {ex.Message}");
+            }
+        }
+        
+        private void VisualizerOpacitySlider_ValueChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)
+        {
+            UpdateOpacityText(e.NewValue);
+        }
+        
+        private void VisualizerBarCountSlider_ValueChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)
+        {
+            UpdateBarCountText((int)e.NewValue);
+        }
+        
+        private void UpdateOpacityText(double value)
+        {
+            if (OpacityValueText != null)
+                OpacityValueText.Text = $"{value * 100:F0}%";
+        }
+        
+        private void UpdateBarCountText(int value)
+        {
+            if (BarCountValueText != null)
+                BarCountValueText.Text = value.ToString();
         }
 
         private void LoadKeyboardShortcuts()
@@ -374,10 +472,51 @@ namespace PlatypusTools.UI.Views
             // Save tab visibility settings
             SaveTabVisibilitySettings(settings);
             
+            // Save audio visualizer settings
+            SaveVisualizerSettings(settings);
+            
             SettingsManager.SaveCurrent();
             
             // Refresh tab visibility in the main UI immediately
             TabVisibilityService.Instance.RefreshFromSettings();
+        }
+        
+        private void SaveVisualizerSettings(AppSettings settings)
+        {
+            try
+            {
+                // Enable checkboxes
+                settings.VisualizerEnabled = EnableVisualizerCheck?.IsChecked == true;
+                settings.ShowVisualizerDuringPlayback = ShowVisualizerDuringPlaybackCheck?.IsChecked == true;
+                
+                // Preset combo
+                if (VisualizerPresetCombo?.SelectedItem is System.Windows.Controls.ComboBoxItem presetItem)
+                {
+                    settings.VisualizerPreset = presetItem.Content?.ToString() ?? "Default";
+                }
+                
+                // Sliders
+                settings.VisualizerOpacity = VisualizerOpacitySlider?.Value ?? 0.9;
+                settings.VisualizerBarCount = (int)(VisualizerBarCountSlider?.Value ?? 32);
+                
+                // Color buttons
+                if (PrimaryColorButton?.Background is System.Windows.Media.SolidColorBrush primaryBrush)
+                {
+                    settings.VisualizerPrimaryColor = primaryBrush.Color.ToString();
+                }
+                if (BackgroundColorButton?.Background is System.Windows.Media.SolidColorBrush bgBrush)
+                {
+                    settings.VisualizerBackgroundColor = bgBrush.Color.ToString();
+                }
+                
+                // Advanced checkboxes
+                settings.VisualizerGpuAcceleration = EnableGPUAccelerationCheck?.IsChecked == true;
+                settings.VisualizerNormalize = EnableAudioNormalizationCheck?.IsChecked == true;
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error saving visualizer settings: {ex.Message}");
+            }
         }
         
         #region Tab Visibility

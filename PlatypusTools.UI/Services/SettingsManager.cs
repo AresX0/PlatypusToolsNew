@@ -19,6 +19,17 @@ namespace PlatypusTools.UI.Services
         private Dictionary<string, bool> _visibleTabs = new();
         private bool _glassEnabled = false;
         private GlassLevel _glassLevel = GlassLevel.Auto;
+        
+        // Audio Visualizer Settings
+        private bool _visualizerEnabled = true;
+        private bool _showVisualizerDuringPlayback = true;
+        private string _visualizerPreset = "Default";
+        private double _visualizerOpacity = 0.9;
+        private int _visualizerBarCount = 32;
+        private string _visualizerPrimaryColor = "#1E90FF";
+        private string _visualizerBackgroundColor = "#0A0E27";
+        private bool _visualizerGpuAcceleration = true;
+        private bool _visualizerNormalize = true;
 
         public string Theme
         {
@@ -48,6 +59,61 @@ namespace PlatypusTools.UI.Services
         {
             get => _glassLevel;
             set { _glassLevel = value; OnPropertyChanged(); }
+        }
+
+        // Audio Visualizer Settings
+        public bool VisualizerEnabled
+        {
+            get => _visualizerEnabled;
+            set { _visualizerEnabled = value; OnPropertyChanged(); }
+        }
+
+        public bool ShowVisualizerDuringPlayback
+        {
+            get => _showVisualizerDuringPlayback;
+            set { _showVisualizerDuringPlayback = value; OnPropertyChanged(); }
+        }
+
+        public string VisualizerPreset
+        {
+            get => _visualizerPreset;
+            set { _visualizerPreset = value ?? "Default"; OnPropertyChanged(); }
+        }
+
+        public double VisualizerOpacity
+        {
+            get => _visualizerOpacity;
+            set { _visualizerOpacity = Math.Clamp(value, 0.1, 1.0); OnPropertyChanged(); }
+        }
+
+        public int VisualizerBarCount
+        {
+            get => _visualizerBarCount;
+            set { _visualizerBarCount = Math.Clamp(value, 8, 128); OnPropertyChanged(); }
+        }
+
+        public string VisualizerPrimaryColor
+        {
+            get => _visualizerPrimaryColor;
+            set { _visualizerPrimaryColor = value ?? "#1E90FF"; OnPropertyChanged(); }
+        }
+
+        public string VisualizerBackgroundColor
+        {
+            get => _visualizerBackgroundColor;
+            set { _visualizerBackgroundColor = value ?? "#0A0E27"; OnPropertyChanged(); }
+        }
+
+        public bool VisualizerGpuAcceleration
+        {
+            get => _visualizerGpuAcceleration;
+            set { _visualizerGpuAcceleration = value; OnPropertyChanged(); }
+        }
+
+        public bool VisualizerNormalize
+        {
+            get => _visualizerNormalize;
+            set { _visualizerNormalize = value; OnPropertyChanged(); }
         }
 
         /// <summary>

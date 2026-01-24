@@ -299,9 +299,9 @@
                         
                         <!-- Template Actions -->
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                            <Button Content="➕ New" Command="{Binding CreateTemplateCommand}" Width="60" Margin="0,0,5,0"/>
-                            <Button Content="📥 Import" Command="{Binding ImportTemplateCommand}" Width="70" Margin="0,0,5,0"/>
-                            <Button Content="📤 Export" Command="{Binding ExportTemplateCommand}" Width="70"/>
+                            <Button Content="➕ New" Command="{Binding CreateTemplateCommand}" Width="75" Margin="0,0,5,0" Padding="6,2"/>
+                            <Button Content="📥 Import" Command="{Binding ImportTemplateCommand}" Width="85" Margin="0,0,5,0" Padding="6,2"/>
+                            <Button Content="📤 Export" Command="{Binding ExportTemplateCommand}" Width="85" Padding="6,2"/>
                         </StackPanel>
                         
                         <!-- Templates List -->
@@ -347,9 +347,9 @@
                         
                         <!-- Selected Template Actions -->
                         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,0">
-                            <Button Content="✏️ Edit" Command="{Binding EditTemplateCommand}" Width="60" Margin="0,0,5,0"/>
-                            <Button Content="📋 Copy" Command="{Binding DuplicateTemplateCommand}" Width="60" Margin="0,0,5,0"/>
-                            <Button Content="🗑️ Delete" Command="{Binding DeleteTemplateCommand}" Width="70" Background="LightCoral"/>
+                            <Button Content="✏️ Edit" Command="{Binding EditTemplateCommand}" Width="75" Margin="0,0,5,0" Padding="6,2"/>
+                            <Button Content="📋 Copy" Command="{Binding DuplicateTemplateCommand}" Width="80" Margin="0,0,5,0" Padding="6,2"/>
+                            <Button Content="🗑️ Delete" Command="{Binding DeleteTemplateCommand}" Width="85" Padding="6,2" Background="LightCoral"/>
                         </StackPanel>
                     </Grid>
                     
@@ -417,9 +417,9 @@
                                 </Grid.RowDefinitions>
                                 
                                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
-                                    <Button Content="➕ Add Files" Command="{Binding AddFilesCommand}" Width="90" Margin="0,0,5,0"/>
-                                    <Button Content="📁 Add Folder" Command="{Binding AddFolderCommand}" Width="100" Margin="0,0,5,0"/>
-                                    <Button Content="❌ Clear" Command="{Binding ClearFilesCommand}" Width="70"/>
+                                    <Button Content="➕ Add Files" Command="{Binding AddFilesCommand}" Width="95" Margin="0,0,5,0" Padding="6,2"/>
+                                    <Button Content="📁 Add Folder" Command="{Binding AddFolderCommand}" Width="110" Margin="0,0,5,0" Padding="6,2"/>
+                                    <Button Content="❌ Clear" Command="{Binding ClearFilesCommand}" Width="80" Padding="6,2"/>
                                 </StackPanel>
                                 
                                 <ListBox Grid.Row="1" ItemsSource="{Binding SelectedFiles}" BorderThickness="1" BorderBrush="#CCC"/>
@@ -575,9 +575,9 @@
                                 </Grid.RowDefinitions>
                                 
                                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
-                                    <Button Content="➕ Add Files" Command="{Binding AddFilesCommand}" Width="90" Margin="0,0,5,0"/>
-                                    <Button Content="📁 Add Folder" Command="{Binding AddFolderCommand}" Width="100" Margin="0,0,5,0"/>
-                                    <Button Content="❌ Clear" Command="{Binding ClearFilesCommand}" Width="70"/>
+                                    <Button Content="➕ Add Files" Command="{Binding AddFilesCommand}" Width="95" Margin="0,0,5,0" Padding="6,2"/>
+                                    <Button Content="📁 Add Folder" Command="{Binding AddFolderCommand}" Width="110" Margin="0,0,5,0" Padding="6,2"/>
+                                    <Button Content="❌ Clear" Command="{Binding ClearFilesCommand}" Width="80" Padding="6,2"/>
                                 </StackPanel>
                                 
                                 <ListBox Grid.Row="1" ItemsSource="{Binding SelectedFiles}" BorderThickness="1" BorderBrush="#CCC">

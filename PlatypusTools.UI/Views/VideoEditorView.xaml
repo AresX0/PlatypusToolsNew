@@ -121,6 +121,19 @@
                             Width="28" Height="24" FontSize="14" Padding="0" Margin="6,0,2,0"/>
                     <Button Content="↪" Command="{Binding RedoCommand}" 
                             Style="{StaticResource ToolbarButtonStyle}" ToolTip="Redo (Ctrl+Y)"
+                            Width="28" Height="24" FontSize="14" Padding="0" Margin="0,0,2,0"/>
+                    
+                    <Rectangle Width="1" Fill="#666" Margin="4,2"/>
+                    
+                    <!-- Clipboard operations -->
+                    <Button Content="📄" Command="{Binding CopyClipCommand}" 
+                            Style="{StaticResource ToolbarButtonStyle}" ToolTip="Copy Clip (Ctrl+C)"
+                            Width="28" Height="24" FontSize="14" Padding="0" Margin="4,0,2,0"/>
+                    <Button Content="✂" Command="{Binding CutClipCommand}" 
+                            Style="{StaticResource ToolbarButtonStyle}" ToolTip="Cut Clip (Ctrl+X)"
+                            Width="28" Height="24" FontSize="14" Padding="0" Margin="0,0,2,0"/>
+                    <Button Content="📋" Command="{Binding PasteClipCommand}" 
+                            Style="{StaticResource ToolbarButtonStyle}" ToolTip="Paste Clip (Ctrl+V)"
                             Width="28" Height="24" FontSize="14" Padding="0" Margin="0,0,6,0"/>
                     
                     <Rectangle Width="1" Fill="#666" Margin="4,2"/>
@@ -159,7 +172,10 @@
                             ToolTip="Sync cuts to beats" Margin="2,0"/>
                     <Button Content="💬 Caption" Command="{Binding GenerateCaptionsCommand}" 
                             Style="{StaticResource AccentButtonStyle}" FontSize="11" Padding="6,3" Height="24"
-                            ToolTip="Auto-generate captions (AI)" Margin="0,0,8,0"/>
+                            ToolTip="Auto-generate captions (AI)" Margin="0,0,2,0"/>
+                    <Button Content="📤 SRT" Command="{Binding ExportCaptionsCommand}" 
+                            Style="{StaticResource AccentButtonStyle}" FontSize="11" Padding="6,3" Height="24"
+                            ToolTip="Export captions to SRT/VTT file" Margin="0,0,8,0"/>
                     
                     <Rectangle Width="1" Fill="#666" Margin="4,2"/>
                     
@@ -556,19 +572,27 @@
                                             <DataTemplate>
                                                 <Grid Margin="2,1">
                                                     <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="24"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="20"/>
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="{Binding Icon}" 
+                                                    <Button Grid.Column="0" 
+                                                            Content="{Binding IsFavorite, Converter={StaticResource FavoriteIconConverter}}"
+                                                            Command="{Binding DataContext.ToggleFilterFavoriteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Background="Transparent" BorderThickness="0" 
+                                                            Foreground="#FFD700" Padding="2,0" Cursor="Hand"
+                                                            FontSize="12" ToolTip="Toggle Favorite"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Icon}" 
                                                                FontSize="14" VerticalAlignment="Center"/>
-                                                    <StackPanel Grid.Column="1" Margin="4,0">
+                                                    <StackPanel Grid.Column="2" Margin="4,0">
                                                         <TextBlock Text="{Binding DisplayName}" 
                                                                    Foreground="White" FontSize="11"/>
                                                         <TextBlock Text="{Binding Category}" 
                                                                    Foreground="#6B7280" FontSize="9"/>
                                                     </StackPanel>
-                                                    <Button Grid.Column="2" Content="+" 
+                                                    <Button Grid.Column="3" Content="+" 
                                                             Command="{Binding DataContext.ApplyShotcutFilterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                             CommandParameter="{Binding}"
                                                             Style="{StaticResource SmallButtonStyle}"
@@ -626,6 +650,19 @@
                                                         <Expander.Header>
                                                             <DockPanel Width="180">
                                                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                                                    <!-- Move Up/Down buttons -->
+                                                                    <Button Content="▲" 
+                                                                            Command="{Binding DataContext.MoveFilterUpCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                            CommandParameter="{Binding}"
+                                                                            Background="Transparent" Foreground="#9CA3AF" 
+                                                                            BorderThickness="0" Padding="2,0" Cursor="Hand" FontSize="8"
+                                                                            ToolTip="Move Up"/>
+                                                                    <Button Content="▼" 
+                                                                            Command="{Binding DataContext.MoveFilterDownCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                            CommandParameter="{Binding}"
+                                                                            Background="Transparent" Foreground="#9CA3AF" 
+                                                                            BorderThickness="0" Padding="2,0" Cursor="Hand" FontSize="8"
+                                                                            ToolTip="Move Down" Margin="0,0,4,0"/>
                                                                     <ToggleButton IsChecked="{Binding IsEnabled, Mode=TwoWay}" 
                                                                                   Width="20" Height="18" Margin="2,0"
                                                                                   Background="Transparent" BorderThickness="0"
@@ -831,22 +868,48 @@
                                           ToolTip="Ripple Edits - adjusts subsequent clips" Width="46" Height="24">
                                 <TextBlock Text="± Ripple" FontSize="9"/>
                             </ToggleButton>
+                            
+                            <Separator Style="{StaticResource VerticalSeparatorStyle}" Margin="8,0"/>
+                            
+                            <!-- In/Out Point buttons -->
+                            <Button Content="[" Command="{Binding SetInPointCommand}"
+                                    Style="{StaticResource SmallButtonStyle}" 
+                                    ToolTip="Set In Point (I)" Width="24" Height="22" FontWeight="Bold"
+                                    Foreground="#38BDF8" FontSize="14" Padding="0"/>
+                            <Button Content="]" Command="{Binding SetOutPointCommand}"
+                                    Style="{StaticResource SmallButtonStyle}" 
+                                    ToolTip="Set Out Point (O)" Width="24" Height="22" FontWeight="Bold"
+                                    Foreground="#F472B6" FontSize="14" Padding="0" Margin="2,0,0,0"/>
+                            
+                            <Separator Style="{StaticResource VerticalSeparatorStyle}" Margin="8,0"/>
+                            
+                            <!-- Add Marker button -->
+                            <Button Content="🚩" Command="{Binding AddMarkerCommand}"
+                                    Style="{StaticResource SmallButtonStyle}" 
+                                    ToolTip="Add Marker (M)" Width="28" Height="22" FontSize="12" Padding="0"/>
                         </StackPanel>
                         
                         <!-- Right: Zoom controls and BPM -->
                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                            <TextBlock Text="🔍" Foreground="#9CA3AF" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                            <!-- Zoom In/Out buttons -->
+                            <Button Content="−" Command="{Binding ZoomOutCommand}"
+                                    Style="{StaticResource SmallButtonStyle}" 
+                                    ToolTip="Zoom Out (-)" Width="24" Height="22" FontWeight="Bold" FontSize="14" Padding="0"/>
+                            <TextBlock Text="🔍" Foreground="#9CA3AF" VerticalAlignment="Center" Margin="4,0,4,0"/>
                             <Slider Minimum="0.1" Maximum="5" Value="{Binding TimelineZoom, Mode=TwoWay}" 
                                     Width="100" VerticalAlignment="Center"
                                     ToolTip="Timeline Zoom"/>
                             <TextBlock Text="{Binding TimelineZoom, StringFormat='{}{0:F1}x'}" 
                                        Foreground="#9CA3AF" VerticalAlignment="Center" 
-                                       Width="30" Margin="4,0,12,0"/>
+                                       Width="30" Margin="4,0,4,0"/>
+                            <Button Content="+" Command="{Binding ZoomInCommand}"
+                                    Style="{StaticResource SmallButtonStyle}" 
+                                    ToolTip="Zoom In (+)" Width="24" Height="22" FontWeight="Bold" FontSize="14" Padding="0"/>
                             
-                            <Separator Style="{StaticResource VerticalSeparatorStyle}"/>
+                            <Separator Style="{StaticResource VerticalSeparatorStyle}" Margin="8,0"/>
                             
                             <TextBlock Text="{Binding Project.Bpm, StringFormat='BPM: {0:F1}'}"
-                                       Foreground="#D1D5DB" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                       Foreground="#D1D5DB" VerticalAlignment="Center" Margin="0,0,0,0"/>
                         </StackPanel>
                         
                         <!-- Center: Add track buttons -->
@@ -1027,6 +1090,22 @@
                                                                                   Command="{Binding DataContext.SplitClipCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
                                                                         <MenuItem Header="Duplicate"
                                                                                   Command="{Binding DataContext.DuplicateClipCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                                                        <Separator/>
+                                                                        <MenuItem Header="🚩 Markers">
+                                                                            <MenuItem Header="Add Marker Here"
+                                                                                      Command="{Binding DataContext.AddClipMarkerCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                                      CommandParameter="{Binding}"/>
+                                                                            <MenuItem Header="Add Sync Point"
+                                                                                      Command="{Binding DataContext.AddSyncPointMarkerCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                                      CommandParameter="{Binding}"/>
+                                                                            <MenuItem Header="Add Beat Marker"
+                                                                                      Command="{Binding DataContext.AddBeatMarkerCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                                      CommandParameter="{Binding}"/>
+                                                                            <Separator/>
+                                                                            <MenuItem Header="Clear All Markers"
+                                                                                      Command="{Binding DataContext.ClearClipMarkersCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                                      CommandParameter="{Binding}"/>
+                                                                        </MenuItem>
                                                                         <Separator/>
                                                                         <MenuItem Header="Set Preview to This Clip" Click="SetPreviewToClip_Click"/>
                                                                     </ContextMenu>

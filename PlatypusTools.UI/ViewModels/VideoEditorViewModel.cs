@@ -599,6 +599,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand ApplyShotcutFilterCommand { get; }
         public ICommand RemoveShotcutFilterCommand { get; }
         public ICommand ToggleFilterEnabledCommand { get; }
+        public ICommand ToggleFilterFavoriteCommand { get; }
         public ICommand MoveFilterUpCommand { get; }
         public ICommand MoveFilterDownCommand { get; }
         public ICommand GenerateProxyCommand { get; }
@@ -612,6 +613,12 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand RollEditCommand { get; }
         public ICommand UndoTimelineCommand { get; }
         public ICommand RedoTimelineCommand { get; }
+        
+        // Clip Marker Commands
+        public ICommand AddClipMarkerCommand { get; }
+        public ICommand AddSyncPointMarkerCommand { get; }
+        public ICommand AddBeatMarkerCommand { get; }
+        public ICommand ClearClipMarkersCommand { get; }
 
         #endregion
         
@@ -720,6 +727,7 @@ namespace PlatypusTools.UI.ViewModels
             ApplyShotcutFilterCommand = new RelayCommand(param => ExecuteApplyShotcutFilter(param as Filter), _ => SelectedClip != null);
             RemoveShotcutFilterCommand = new RelayCommand(param => ExecuteRemoveShotcutFilter(param as Filter), _ => SelectedClip != null);
             ToggleFilterEnabledCommand = new RelayCommand(param => ExecuteToggleFilterEnabled(param as Filter), _ => SelectedClip != null);
+            ToggleFilterFavoriteCommand = new RelayCommand(param => ExecuteToggleFilterFavorite(param as Filter));
             MoveFilterUpCommand = new RelayCommand(param => ExecuteMoveFilterUp(param as Filter), _ => SelectedClip != null);
             MoveFilterDownCommand = new RelayCommand(param => ExecuteMoveFilterDown(param as Filter), _ => SelectedClip != null);
             GenerateProxyCommand = new RelayCommand(async _ => await ExecuteGenerateProxyAsync(), _ => SelectedAsset != null);
@@ -733,6 +741,12 @@ namespace PlatypusTools.UI.ViewModels
             RollEditCommand = new RelayCommand(param => ExecuteRollEdit(param), _ => SelectedClip != null);
             UndoTimelineCommand = new RelayCommand(_ => ExecuteUndoTimeline(), _ => _timelineOps.CanUndo);
             RedoTimelineCommand = new RelayCommand(_ => ExecuteRedoTimeline(), _ => _timelineOps.CanRedo);
+            
+            // Clip Marker Commands
+            AddClipMarkerCommand = new RelayCommand(param => ExecuteAddClipMarker(param as TimelineClip, ClipMarkerType.Generic));
+            AddSyncPointMarkerCommand = new RelayCommand(param => ExecuteAddClipMarker(param as TimelineClip, ClipMarkerType.SyncPoint));
+            AddBeatMarkerCommand = new RelayCommand(param => ExecuteAddClipMarker(param as TimelineClip, ClipMarkerType.Beat));
+            ClearClipMarkersCommand = new RelayCommand(param => ExecuteClearClipMarkers(param as TimelineClip));
 
             // Initialize playback timer
             _playbackTimer = new DispatcherTimer
@@ -3222,6 +3236,72 @@ After installation, restart PlatypusTools.
             
             // Update preview after toggle
             await UpdateEffectPreviewAsync();
+        }
+
+        private void ExecuteToggleFilterFavorite(Filter? filter)
+        {
+            if (filter == null) return;
+            filter.IsFavorite = !filter.IsFavorite;
+            StatusMessage = filter.IsFavorite ? $"Added to favorites: {filter.Name}" : $"Removed from favorites: {filter.Name}";
+            OnPropertyChanged(nameof(FilteredShotcutFilters));
+        }
+
+        private void ExecuteAddClipMarker(TimelineClip? clip, ClipMarkerType markerType)
+        {
+            if (clip == null) 
+            {
+                clip = SelectedClip;
+                if (clip == null) return;
+            }
+
+            // Calculate relative position within clip based on playhead
+            var relativePosition = CurrentTime - clip.StartPosition;
+            if (relativePosition < TimeSpan.Zero) relativePosition = TimeSpan.Zero;
+            if (relativePosition > clip.Duration) relativePosition = clip.Duration;
+
+            var marker = new ClipMarker
+            {
+                Position = relativePosition,
+                Type = markerType,
+                Name = markerType switch
+                {
+                    ClipMarkerType.SyncPoint => "Sync Point",
+                    ClipMarkerType.Beat => "Beat",
+                    ClipMarkerType.CuePoint => "Cue",
+                    ClipMarkerType.Chapter => "Chapter",
+                    ClipMarkerType.Note => "Note",
+                    ClipMarkerType.Todo => "TODO",
+                    _ => $"Marker {clip.Markers.Count + 1}"
+                },
+                Color = markerType switch
+                {
+                    ClipMarkerType.SyncPoint => "#FF5722",
+                    ClipMarkerType.Beat => "#9C27B0",
+                    ClipMarkerType.CuePoint => "#2196F3",
+                    ClipMarkerType.Chapter => "#4CAF50",
+                    ClipMarkerType.Note => "#FFC107",
+                    ClipMarkerType.Todo => "#E91E63",
+                    _ => "#FFFFFF"
+                }
+            };
+
+            clip.Markers.Add(marker);
+            StatusMessage = $"Added {marker.Name} at {relativePosition:mm\\:ss\\.fff}";
+            OnPropertyChanged(nameof(SelectedClip));
+        }
+
+        private void ExecuteClearClipMarkers(TimelineClip? clip)
+        {
+            if (clip == null) 
+            {
+                clip = SelectedClip;
+                if (clip == null) return;
+            }
+
+            int count = clip.Markers.Count;
+            clip.Markers.Clear();
+            StatusMessage = $"Cleared {count} markers from {clip.Name}";
+            OnPropertyChanged(nameof(SelectedClip));
         }
 
         private async void ExecuteMoveFilterUp(Filter? filter)

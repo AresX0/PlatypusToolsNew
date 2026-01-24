@@ -905,7 +905,14 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     #region Queue & Library
     
     public ObservableCollection<AudioTrack> Queue { get; } = new();
-    public ObservableCollection<AudioTrack> LibraryTracks { get; } = new();
+    
+    private ObservableCollection<AudioTrack> _libraryTracks = new();
+    public ObservableCollection<AudioTrack> LibraryTracks
+    {
+        get => _libraryTracks;
+        private set => SetProperty(ref _libraryTracks, value);
+    }
+    
     public ObservableCollection<string> LibraryFolders { get; } = new();
     private List<AudioTrack> _allLibraryTracks = new();
     
@@ -982,8 +989,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     
     private void FilterLibraryTracks()
     {
-        LibraryTracks.Clear();
-        var query = SearchQuery.ToLowerInvariant();
+        var query = SearchQuery?.ToLowerInvariant() ?? "";
         var filtered = string.IsNullOrWhiteSpace(query)
             ? _allLibraryTracks
             : _allLibraryTracks.Where(t =>
@@ -991,8 +997,14 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 t.DisplayArtist.Contains(query, StringComparison.OrdinalIgnoreCase) ||
                 t.DisplayAlbum.Contains(query, StringComparison.OrdinalIgnoreCase));
         
-        foreach (var track in filtered.Take(500))
-            LibraryTracks.Add(track);
+        // Display up to 2000 tracks in UI for performance (still plenty for browsing)
+        // Create new collection in one shot to avoid UI freeze from individual add notifications
+        var tracksToShow = filtered.Take(2000).ToList();
+        LibraryTracks = new ObservableCollection<AudioTrack>(tracksToShow);
+        
+        // Update status if there are more tracks than displayed
+        if (_allLibraryTracks.Count > 2000 && tracksToShow.Count == 2000)
+            StatusMessage = $"Showing 2,000 of {_allLibraryTracks.Count:N0} tracks. Use search to narrow results.";
     }
     
     // AP-004: Queue Reorder
@@ -1348,18 +1360,28 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 SortQueue();
         });
         
-        // Add All to Queue command
+        // Add All to Queue command - adds all matching tracks (not limited by display)
         AddAllToQueueCommand = new RelayCommand(_ =>
         {
-            foreach (var track in LibraryTracks)
+            var query = SearchQuery?.ToLowerInvariant() ?? "";
+            var tracksToAdd = string.IsNullOrWhiteSpace(query)
+                ? _allLibraryTracks
+                : _allLibraryTracks.Where(t =>
+                    t.DisplayTitle.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    t.DisplayArtist.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    t.DisplayAlbum.Contains(query, StringComparison.OrdinalIgnoreCase));
+            
+            int addedCount = 0;
+            foreach (var track in tracksToAdd)
             {
                 if (!Queue.Any(t => t.Id == track.Id))
                 {
                     _playerService.AddToQueue(track);
                     Queue.Add(track);
+                    addedCount++;
                 }
             }
-            StatusMessage = $"Added {LibraryTracks.Count} tracks to queue";
+            StatusMessage = $"Added {addedCount:N0} tracks to queue";
         });
         
         // Manual Playlist commands
@@ -1526,9 +1548,13 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         Duration = duration;
     }
     
-    private void OnPlaybackError(object? sender, string error)
+    private async void OnPlaybackError(object? sender, string error)
     {
-        StatusMessage = $"Error: {error}";
+        StatusMessage = $"Skipping (error: {error})";
+        
+        // Auto-skip to next track on playback error
+        await Task.Delay(500); // Brief delay so user sees the message
+        await _playerService.NextAsync();
     }
     
     private async void OnTrackEnded(object? sender, EventArgs e)

@@ -36,7 +36,7 @@
                 <TextBox x:Name="ImageFilePathBox" Grid.Column="1" IsReadOnly="True" Margin="0,0,10,0"/>
                 <Button Grid.Column="2" Content="📂 Open..." Click="BrowseImage_Click" Width="90" Padding="5" Margin="0,0,5,0"/>
                 <Button Grid.Column="3" Content="🆕 New..." Click="NewImage_Click" Width="90" Padding="5" ToolTip="Create a new blank canvas"/>
-                <Button Grid.Column="4" Content="📋 Paste" Click="PasteImage_Click" Width="80" Padding="5" Margin="5,0,0,0" ToolTip="Paste image from clipboard"/>
+                <Button Grid.Column="4" Content="📋 Paste" Click="PasteImage_Click" Width="90" Padding="8,5" Margin="5,0,0,0" ToolTip="Paste image from clipboard"/>
             </Grid>
         </GroupBox>
 
@@ -51,7 +51,7 @@
                     <Button Content="↷ Rotate Right" Click="RotateRight_Click" Width="100" Height="32" Margin="0,0,3,0"/>
                     <Button Content="↔ Flip H" Click="FlipH_Click" Width="75" Height="32" Margin="0,0,3,0"/>
                     <Button Content="↕ Flip V" Click="FlipV_Click" Width="75" Height="32" Margin="0,0,3,0"/>
-                    <Button Content="✂ Crop" Click="StartCrop_Click" Width="70" Height="32" Margin="0,0,3,0" ToolTip="Click and drag to select crop region"/>
+                    <Button Content="✂ Crop" Click="StartCrop_Click" Width="80" Height="32" Margin="0,0,3,0" Padding="6,2" ToolTip="Click and drag to select crop region"/>
                     <Button Content="📐 Resize" Click="Resize_Click" Width="80" Height="32"/>
                 </WrapPanel>
 
@@ -62,20 +62,20 @@
                     <Button Content="🔄 Invert" Click="Invert_Click" Width="85" Height="32" Margin="0,0,3,0"/>
                     <Button Content="☀ Brightness" Click="Brightness_Click" Width="105" Height="32" Margin="0,0,3,0"/>
                     <Button Content="🌓 Contrast" Click="Contrast_Click" Width="95" Height="32" Margin="0,0,3,0"/>
-                    <Button Content="🌊 Blur" Click="Blur_Click" Width="75" Height="32" Margin="0,0,3,0"/>
+                    <Button Content="🌊 Blur" Click="Blur_Click" Width="85" Height="32" Margin="0,0,3,0" Padding="6,2"/>
                     <Button Content="🔪 Sharpen" Click="Sharpen_Click" Width="90" Height="32"/>
                 </WrapPanel>
 
                 <!-- Annotation Tools -->
                 <WrapPanel Margin="0,0,0,5">
                     <TextBlock Text="Annotate:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0" Width="80"/>
-                    <Button x:Name="BtnArrow" Content="➜ Arrow" ToolTip="Arrow (Left-click: outline, Right-click: set fill mode)" Click="SetAnnotationMode_Click" MouseRightButtonDown="ShapeButton_RightClick" Tag="Arrow" Width="70" Height="32" Margin="0,0,3,0"/>
-                    <Button x:Name="BtnRect" Content="▢ Rect" ToolTip="Rectangle (Left-click: outline, Right-click: set fill mode)" Click="SetAnnotationMode_Click" MouseRightButtonDown="ShapeButton_RightClick" Tag="Rectangle" Width="70" Height="32" Margin="0,0,3,0"/>
+                    <Button x:Name="BtnArrow" Content="➜ Arrow" ToolTip="Arrow (Left-click: outline, Right-click: set fill mode)" Click="SetAnnotationMode_Click" MouseRightButtonDown="ShapeButton_RightClick" Tag="Arrow" Width="80" Height="32" Margin="0,0,3,0" Padding="6,2"/>
+                    <Button x:Name="BtnRect" Content="▢ Rect" ToolTip="Rectangle (Left-click: outline, Right-click: set fill mode)" Click="SetAnnotationMode_Click" MouseRightButtonDown="ShapeButton_RightClick" Tag="Rectangle" Width="80" Height="32" Margin="0,0,3,0" Padding="6,2"/>
                     <Button x:Name="BtnEllipse" Content="○ Ellipse" ToolTip="Ellipse (Left-click: outline, Right-click: set fill mode)" Click="SetAnnotationMode_Click" MouseRightButtonDown="ShapeButton_RightClick" Tag="Ellipse" Width="80" Height="32" Margin="0,0,3,0"/>
-                    <Button x:Name="BtnText" Content="T Text" ToolTip="Text" Click="SetAnnotationMode_Click" Tag="Text" Width="65" Height="32" Margin="0,0,3,0"/>
+                    <Button x:Name="BtnText" Content="T Text" ToolTip="Text" Click="SetAnnotationMode_Click" Tag="Text" Width="75" Height="32" Margin="0,0,3,0" Padding="6,2"/>
                     <Button x:Name="BtnHighlight" Content="▮ Highlight" ToolTip="Highlight" Click="SetAnnotationMode_Click" Tag="Highlight" Width="90" Height="32" Margin="0,0,3,0"/>
-                    <Button x:Name="BtnFreehand" Content="✎ Draw" ToolTip="Freehand Draw" Click="SetAnnotationMode_Click" Tag="Freehand" Width="70" Height="32" Margin="0,0,3,0"/>
-                    <Button x:Name="BtnFill" Content="🪣 Fill" ToolTip="Fill Color (Flood Fill)" Click="SetAnnotationMode_Click" Tag="Fill" Width="65" Height="32" Margin="0,0,3,0"/>
+                    <Button x:Name="BtnFreehand" Content="✎ Draw" ToolTip="Freehand Draw" Click="SetAnnotationMode_Click" Tag="Freehand" Width="80" Height="32" Margin="0,0,3,0" Padding="6,2"/>
+                    <Button x:Name="BtnFill" Content="🪣 Fill" ToolTip="Fill Color (Flood Fill)" Click="SetAnnotationMode_Click" Tag="Fill" Width="75" Height="32" Margin="0,0,3,0" Padding="6,2"/>
                     <CheckBox x:Name="FillShapesCheckBox" Content="Fill Shapes" VerticalAlignment="Center" Margin="10,0,0,0" ToolTip="When checked, shapes will be filled solid"/>
                     <TextBox x:Name="AnnotationTextBox" Width="120" Height="28" Margin="10,0,0,0" VerticalContentAlignment="Center" ToolTip="Text for text annotation"/>
                 </WrapPanel>
@@ -87,8 +87,8 @@
                     <Button Content="🔄 Replace Color" Click="ReplaceColor_Click" Width="120" Height="32" Margin="0,0,3,0" ToolTip="Replace one color with another"/>
                     <Button Content="✂ Remove Background" Click="RemoveBackground_Click" Width="140" Height="32" Margin="0,0,3,0" ToolTip="Auto-remove background (works best with solid backgrounds)"/>
                     <Button Content="🪄 Magic Select" Click="MagicSelect_Click" Width="110" Height="32" Margin="0,0,3,0" ToolTip="Select similar colors"/>
-                    <Button Content="↩ Undo" Click="Undo_Click" Width="75" Height="32" Margin="0,0,3,0"/>
-                    <Button Content="↩ Reset" Click="Reset_Click" Width="75" Height="32"/>
+                    <Button Content="↩ Undo" Click="Undo_Click" Width="80" Height="32" Margin="0,0,3,0" Padding="6,2"/>
+                    <Button Content="↩ Reset" Click="Reset_Click" Width="80" Height="32" Padding="6,2"/>
                 </WrapPanel>
             </StackPanel>
             </ScrollViewer>

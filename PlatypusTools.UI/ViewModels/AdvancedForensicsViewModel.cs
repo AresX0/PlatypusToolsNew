@@ -134,6 +134,56 @@ namespace PlatypusTools.UI.ViewModels
             set => SetProperty(ref _runRegHive, value);
         }
 
+        // Advanced Volatility plugins
+        private bool _runPsTree = false;
+        public bool RunPsTree
+        {
+            get => _runPsTree;
+            set => SetProperty(ref _runPsTree, value);
+        }
+
+        private bool _runEnvars = false;
+        public bool RunEnvars
+        {
+            get => _runEnvars;
+            set => SetProperty(ref _runEnvars, value);
+        }
+
+        private bool _runSvcScan = false;
+        public bool RunSvcScan
+        {
+            get => _runSvcScan;
+            set => SetProperty(ref _runSvcScan, value);
+        }
+
+        private bool _runCallbacks = false;
+        public bool RunCallbacks
+        {
+            get => _runCallbacks;
+            set => SetProperty(ref _runCallbacks, value);
+        }
+
+        private bool _runDriverScan = false;
+        public bool RunDriverScan
+        {
+            get => _runDriverScan;
+            set => SetProperty(ref _runDriverScan, value);
+        }
+
+        private bool _runSsdt = false;
+        public bool RunSsdt
+        {
+            get => _runSsdt;
+            set => SetProperty(ref _runSsdt, value);
+        }
+
+        private bool _runMutantScan = false;
+        public bool RunMutantScan
+        {
+            get => _runMutantScan;
+            set => SetProperty(ref _runMutantScan, value);
+        }
+
         // ============ KAPE/EZ TOOLS ============
         private string _kapePath = string.Empty;
         public string KapePath
