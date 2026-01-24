@@ -74,6 +74,44 @@ namespace PlatypusTools.UI.Services
         }
 
         /// <summary>
+        /// Copies a single file/folder path as text to clipboard.
+        /// </summary>
+        public void CopyPath(string path)
+        {
+            if (!string.IsNullOrEmpty(path))
+            {
+                Clipboard.SetText(path);
+                AddToHistory(new ClipboardEntry
+                {
+                    Type = ClipboardEntryType.Text,
+                    Text = path,
+                    Timestamp = DateTime.Now,
+                    Description = "Path copied"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Copies multiple file/folder paths to clipboard (one per line).
+        /// </summary>
+        public void CopyPaths(IEnumerable<string> paths)
+        {
+            var pathList = paths.Where(p => !string.IsNullOrEmpty(p)).ToList();
+            if (pathList.Count > 0)
+            {
+                var text = string.Join(Environment.NewLine, pathList);
+                Clipboard.SetText(text);
+                AddToHistory(new ClipboardEntry
+                {
+                    Type = ClipboardEntryType.Text,
+                    Text = text,
+                    Timestamp = DateTime.Now,
+                    Description = $"{pathList.Count} paths copied"
+                });
+            }
+        }
+
+        /// <summary>
         /// Copies text to clipboard.
         /// </summary>
         public void CopyText(string text)
@@ -178,6 +216,7 @@ namespace PlatypusTools.UI.Services
         public string? Text { get; set; }
         public DateTime Timestamp { get; set; }
         public bool IsCut { get; set; }
+        public string? Description { get; set; }
     }
 
     public enum ClipboardEntryType { Files, Text, Image }
