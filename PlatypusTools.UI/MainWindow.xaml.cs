@@ -181,13 +181,21 @@ namespace PlatypusTools.UI
         }
         
         /// <summary>
-        /// Handles keyboard shortcuts for fullscreen mode.
+        /// Handles keyboard shortcuts for fullscreen mode and command palette.
+        /// Ctrl+Shift+P - Command Palette
         /// F11 - Toggle fullscreen
         /// ESC - Exit fullscreen
         /// </summary>
         private void MainWindow_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (e.Key == System.Windows.Input.Key.F11)
+            // Ctrl+Shift+P - Command Palette
+            if (e.Key == System.Windows.Input.Key.P && 
+                System.Windows.Input.Keyboard.Modifiers == (System.Windows.Input.ModifierKeys.Control | System.Windows.Input.ModifierKeys.Shift))
+            {
+                Services.CommandService.Instance.ShowCommandPalette(this);
+                e.Handled = true;
+            }
+            else if (e.Key == System.Windows.Input.Key.F11)
             {
                 ToggleFullScreen();
                 e.Handled = true;

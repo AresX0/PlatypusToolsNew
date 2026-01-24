@@ -449,9 +449,10 @@ namespace PlatypusTools.UI.Services.Forensics
 
         #region Cleanup
 
-        public void Dispose()
+        public new void Dispose()
         {
             _httpClient?.Dispose();
+            base.Dispose();
         }
 
         #endregion
