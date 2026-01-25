@@ -40,6 +40,9 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     private readonly UserLibraryService _userLibraryService;
     private CancellationTokenSource? _scanCts;
     
+    // Performance: Debounce timer for search filtering
+    private CancellationTokenSource? _searchDebounce;
+    
     // Lyrics cache: TrackId -> Lyrics (null means already tried, no lyrics found)
     private readonly Dictionary<string, Lyrics?> _lyricsCache = new();
     
@@ -1097,7 +1100,32 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         set
         {
             if (SetProperty(ref _searchQuery, value))
-                FilterLibraryTracks();
+                FilterLibraryTracksDebounced();
+        }
+    }
+    
+    /// <summary>
+    /// Debounced filter - waits 150ms after last keystroke before filtering.
+    /// Prevents UI freeze when typing quickly in large libraries.
+    /// </summary>
+    private async void FilterLibraryTracksDebounced()
+    {
+        // Cancel previous debounce
+        _searchDebounce?.Cancel();
+        _searchDebounce = new CancellationTokenSource();
+        var token = _searchDebounce.Token;
+        
+        try
+        {
+            // Wait 150ms for user to stop typing
+            await Task.Delay(150, token);
+            if (token.IsCancellationRequested) return;
+            
+            FilterLibraryTracks();
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when user types another character
         }
     }
     
@@ -1295,7 +1323,8 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             var remaining = _sleepTimerEndTime - DateTime.Now;
             if (remaining.TotalSeconds <= 0)
             {
-                Application.Current.Dispatcher.Invoke(() =>
+                // Use InvokeAsync instead of Invoke for better performance (non-blocking)
+                Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     _playerService.Stop();
                     CancelSleepTimer();
@@ -1304,7 +1333,8 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             }
             else
             {
-                Application.Current.Dispatcher.Invoke(() =>
+                // Use InvokeAsync for UI updates
+                Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     SleepTimerStatusText = $"{(int)remaining.TotalMinutes}:{remaining.Seconds:D2}";
                 });
@@ -1316,7 +1346,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     
     private void OnSleepTimerTrackEnded(object? sender, EventArgs e)
     {
-        Application.Current.Dispatcher.Invoke(() =>
+        Application.Current.Dispatcher.InvokeAsync(() =>
         {
             _playerService.Stop();
             CancelSleepTimer();
@@ -2196,6 +2226,13 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         
         IsScanning = true;
         _scanCts = new CancellationTokenSource();
+        
+        // PERFORMANCE: Build index of existing tracks for incremental scanning
+        // This allows skipping files already in the library (by path + file size)
+        var existingTracks = _allLibraryTracks.ToDictionary(
+            t => (t.FilePath.ToLowerInvariant(), t.FileSize),
+            t => t);
+        
         _allLibraryTracks.Clear();
         
         var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -2204,6 +2241,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         };
         
         int scannedFiles = 0;
+        int skippedFiles = 0;
         int batchCount = 0;
         var batchTracks = new List<AudioTrack>();
         
@@ -2222,11 +2260,39 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 {
                     if (_scanCts.Token.IsCancellationRequested) break;
                     
-                    var track = await LoadTrackAsync(file);
-                    if (track != null)
+                    // INCREMENTAL: Check if file already scanned (same path + size = unchanged)
+                    try
                     {
-                        _allLibraryTracks.Add(track);
-                        batchTracks.Add(track);
+                        var fileInfo = new FileInfo(file);
+                        var key = (file.ToLowerInvariant(), fileInfo.Length);
+                        
+                        if (existingTracks.TryGetValue(key, out var existingTrack))
+                        {
+                            // File unchanged, reuse existing track metadata
+                            _allLibraryTracks.Add(existingTrack);
+                            batchTracks.Add(existingTrack);
+                            skippedFiles++;
+                        }
+                        else
+                        {
+                            // New or modified file, scan metadata
+                            var track = await LoadTrackAsync(file);
+                            if (track != null)
+                            {
+                                _allLibraryTracks.Add(track);
+                                batchTracks.Add(track);
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // If FileInfo fails, fall back to full scan
+                        var track = await LoadTrackAsync(file);
+                        if (track != null)
+                        {
+                            _allLibraryTracks.Add(track);
+                            batchTracks.Add(track);
+                        }
                     }
                     
                     scannedFiles++;
@@ -2269,7 +2335,12 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         RaisePropertyChanged(nameof(LibraryTrackCount));
         RaisePropertyChanged(nameof(LibraryArtistCount));
         RaisePropertyChanged(nameof(LibraryAlbumCount));
-        StatusMessage = $"Library updated: {_allLibraryTracks.Count} tracks from {LibraryFolders.Count} folders";
+        
+        // Show incremental scan results if applicable
+        if (skippedFiles > 0)
+            StatusMessage = $"Library updated: {_allLibraryTracks.Count} tracks ({skippedFiles} cached, {scannedFiles - skippedFiles} new)";
+        else
+            StatusMessage = $"Library updated: {_allLibraryTracks.Count} tracks from {LibraryFolders.Count} folders";
         
         // Final save
         await SaveLibraryCacheAsync();

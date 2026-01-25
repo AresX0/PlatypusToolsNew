@@ -1,5 +1,5 @@
-$publishDir = "C:\Projects\Platypustools\PlatypusTools.Net\PlatypusTools.Net\PlatypusTools.UI\bin\Release\net10.0-windows\win-x64\publish"
-$outputFile = "C:\Projects\Platypustools\PlatypusTools.Net\PlatypusTools.Net\PlatypusTools.Installer\PublishFiles.wxs"
+$publishDir = "C:\Projects\PlatypusToolsNew\PlatypusTools.UI\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish"
+$outputFile = "C:\Projects\PlatypusToolsNew\PlatypusTools.Installer\PublishFiles.wxs"
 
 $header = @"
 <?xml version="1.0" encoding="UTF-8"?>

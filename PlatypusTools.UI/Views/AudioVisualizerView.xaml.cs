@@ -58,6 +58,14 @@ namespace PlatypusTools.UI.Views
         // Color scheme
         private VisualizerColorScheme _colorScheme = VisualizerColorScheme.BlueGreen;
         
+        // Performance: Cached UI elements to avoid recreating every frame
+        private Rectangle? _cachedBackground;
+        private readonly List<Rectangle> _cachedBars = new();
+        private readonly List<Rectangle> _cachedPeaks = new();
+        private string _lastMode = "";
+        private int _lastBarCount = 0;
+        private bool _needsFullRebuild = true;
+        
         // After Dark: Starfield
         private readonly List<Star> _stars = new();
         
@@ -355,6 +363,8 @@ namespace PlatypusTools.UI.Views
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
+            // Mark for full rebuild on size change
+            _needsFullRebuild = true;
             // Redraw when canvas resizes
             RenderVisualization();
         }
@@ -515,18 +525,41 @@ namespace PlatypusTools.UI.Views
             var canvas = VisualizerCanvas;
             if (canvas == null || canvas.ActualWidth < 1 || canvas.ActualHeight < 1) return;
 
-            canvas.Children.Clear();
+            // Check if we need full rebuild (mode changed, size changed, bar count changed)
+            bool modeChanged = _lastMode != _visualizationMode;
+            bool barCountChanged = _lastBarCount != _barCount;
+            
+            if (_needsFullRebuild || modeChanged || barCountChanged)
+            {
+                canvas.Children.Clear();
+                _cachedBars.Clear();
+                _cachedPeaks.Clear();
+                _cachedBackground = null;
+                _needsFullRebuild = false;
+                _lastMode = _visualizationMode;
+                _lastBarCount = _barCount;
+            }
 
-            // Draw background using theme color
+            // Draw/update background using theme color
             var bgBrush = TryFindResource("WindowBackgroundBrush") as SolidColorBrush 
                 ?? new SolidColorBrush(Color.FromRgb(10, 14, 39));
-            var bg = new Rectangle
+            
+            if (_cachedBackground == null)
             {
-                Width = canvas.ActualWidth,
-                Height = canvas.ActualHeight,
-                Fill = bgBrush
-            };
-            canvas.Children.Add(bg);
+                _cachedBackground = new Rectangle
+                {
+                    Width = canvas.ActualWidth,
+                    Height = canvas.ActualHeight,
+                    Fill = bgBrush
+                };
+                canvas.Children.Add(_cachedBackground);
+            }
+            else
+            {
+                _cachedBackground.Width = canvas.ActualWidth;
+                _cachedBackground.Height = canvas.ActualHeight;
+                _cachedBackground.Fill = bgBrush;
+            }
 
             // Advance animation phase
             _animationPhase += 0.05;
@@ -665,42 +698,62 @@ namespace PlatypusTools.UI.Views
             double maxHeight = canvas.ActualHeight;
 
             var brush = GetColorSchemeBrush(true);
+            var peakBrush = new SolidColorBrush(Colors.White);
+
+            // Ensure we have enough cached rectangles
+            while (_cachedBars.Count < numBars)
+            {
+                var bar = new Rectangle
+                {
+                    Opacity = 0.85,
+                    RadiusX = 2,
+                    RadiusY = 2
+                };
+                _cachedBars.Add(bar);
+                canvas.Children.Add(bar);
+            }
+            
+            while (_cachedPeaks.Count < numBars)
+            {
+                var peak = new Rectangle
+                {
+                    Height = 3,
+                    Fill = peakBrush,
+                    Opacity = 0.9,
+                    RadiusX = 1,
+                    RadiusY = 1,
+                    Visibility = Visibility.Collapsed
+                };
+                _cachedPeaks.Add(peak);
+                canvas.Children.Add(peak);
+            }
 
             for (int i = 0; i < numBars && i < _smoothedData.Length; i++)
             {
                 double value = Math.Min(1.0, _smoothedData[i] * 2); // Clamp and amplify
                 double barHeight = Math.Max(4, value * maxHeight); // Minimum height of 4px
 
-                var bar = new Rectangle
-                {
-                    Width = Math.Max(2, barWidth - 2),
-                    Height = barHeight,
-                    Fill = brush,
-                    Opacity = 0.85,
-                    RadiusX = 2,
-                    RadiusY = 2
-                };
-
+                // Update existing bar instead of creating new one
+                var bar = _cachedBars[i];
+                bar.Width = Math.Max(2, barWidth - 2);
+                bar.Height = barHeight;
+                bar.Fill = brush;
                 Canvas.SetLeft(bar, i * barWidth + 1);
                 Canvas.SetTop(bar, maxHeight - barHeight);
-                canvas.Children.Add(bar);
                 
-                // Draw peak indicator (white/bright line at peak height)
+                // Update peak indicator
+                var peakLine = _cachedPeaks[i];
                 if (i < _peakHeights.Length && _peakHeights[i] > 0.02)
                 {
                     double peakY = Math.Min(1.0, _peakHeights[i] * 2) * maxHeight;
-                    var peakLine = new Rectangle
-                    {
-                        Width = Math.Max(2, barWidth - 2),
-                        Height = 3,
-                        Fill = new SolidColorBrush(Colors.White),
-                        Opacity = 0.9,
-                        RadiusX = 1,
-                        RadiusY = 1
-                    };
+                    peakLine.Width = Math.Max(2, barWidth - 2);
+                    peakLine.Visibility = Visibility.Visible;
                     Canvas.SetLeft(peakLine, i * barWidth + 1);
                     Canvas.SetTop(peakLine, maxHeight - peakY - 2);
-                    canvas.Children.Add(peakLine);
+                }
+                else
+                {
+                    peakLine.Visibility = Visibility.Collapsed;
                 }
             }
         }
