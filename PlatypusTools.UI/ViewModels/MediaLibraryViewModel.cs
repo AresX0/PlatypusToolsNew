@@ -237,7 +237,7 @@ namespace PlatypusTools.UI.ViewModels
                     includeSubdirectories: true,
                     onProgress: (current, total, message) =>
                     {
-                        Application.Current?.Dispatcher?.Invoke(() =>
+                        _ = Application.Current?.Dispatcher?.InvokeAsync(() =>
                         {
                             StatusMessage = message;
                             TotalFiles = current;
@@ -246,7 +246,7 @@ namespace PlatypusTools.UI.ViewModels
                     onBatchProcessed: (batchItems) =>
                     {
                         // Add items to UI in real-time batches
-                        Application.Current?.Dispatcher?.Invoke(() =>
+                        _ = Application.Current?.Dispatcher?.InvokeAsync(() =>
                         {
                             foreach (var file in batchItems)
                             {

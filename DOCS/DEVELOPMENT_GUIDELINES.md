@@ -461,7 +461,7 @@ public bool IsMyNewTabVisible
 - Always use `async/await` for I/O operations
 - Support cancellation with `CancellationToken`
 - Show progress with `StatusBarViewModel.Instance.StartOperation()`
-- Update UI via `Application.Current.Dispatcher.Invoke()`
+- Update UI via non-blocking `Dispatcher.InvokeAsync()` (avoid blocking `Invoke()`)
 
 ```csharp
 public async Task ProcessAsync()
@@ -478,7 +478,8 @@ public async Task ProcessAsync()
                 cts.Token.ThrowIfCancellationRequested();
                 await ProcessItem(items[i]);
                 
-                Application.Current.Dispatcher.Invoke(() =>
+                // Use InvokeAsync to avoid blocking background thread
+                await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     Progress = (i + 1) * 100 / items.Count;
                     StatusMessage = $"Processing {i + 1} of {items.Count}...";
@@ -490,6 +491,12 @@ public async Task ProcessAsync()
     {
         StatusBarViewModel.Instance.EndOperation();
     }
+}
+
+// For event handlers (non-async), use fire-and-forget pattern:
+private void OnDataReceived(object? sender, string data)
+{
+    _ = Application.Current.Dispatcher.InvokeAsync(() => OutputText += data);
 }
 ```
 
