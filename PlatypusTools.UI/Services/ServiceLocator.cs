@@ -1,6 +1,7 @@
 using System;
 using PlatypusTools.Core.Services;
 using PlatypusTools.Core.Services.Video;
+using PlatypusTools.UI.Services.Forensics;
 using VideoFFmpegService = PlatypusTools.Core.Services.Video.FFmpegService;
 using VideoFFprobeService = PlatypusTools.Core.Services.Video.FFprobeService;
 
@@ -146,6 +147,58 @@ namespace PlatypusTools.UI.Services
         /// Gets the TabVisibilityService singleton instance.
         /// </summary>
         public static TabVisibilityService TabVisibility => TabVisibilityService.Instance;
+
+        #endregion
+
+        #region Forensic Services (Lazy Singletons)
+
+        private static readonly Lazy<TaskSchedulerService> _taskSchedulerService = 
+            new(() => ForensicsServiceFactory.CreateTaskSchedulerService());
+        
+        private static readonly Lazy<BrowserForensicsService> _browserForensicsService = 
+            new(() => ForensicsServiceFactory.CreateBrowserForensicsService());
+        
+        private static readonly Lazy<IOCScannerService> _iocScannerService = 
+            new(() => ForensicsServiceFactory.CreateIOCScannerService());
+        
+        private static readonly Lazy<RegistryDiffService> _registryDiffService = 
+            new(() => ForensicsServiceFactory.CreateRegistryDiffService());
+        
+        private static readonly Lazy<PcapParserService> _pcapParserService = 
+            new(() => ForensicsServiceFactory.CreatePcapParserService());
+        
+        private static readonly Lazy<YaraService> _yaraService = 
+            new(() => ForensicsServiceFactory.CreateYaraService());
+
+        /// <summary>
+        /// Gets the shared task scheduler service instance.
+        /// </summary>
+        public static TaskSchedulerService TaskScheduler => _taskSchedulerService.Value;
+
+        /// <summary>
+        /// Gets the shared browser forensics service instance.
+        /// </summary>
+        public static BrowserForensicsService BrowserForensics => _browserForensicsService.Value;
+
+        /// <summary>
+        /// Gets the shared IOC scanner service instance.
+        /// </summary>
+        public static IOCScannerService IOCScanner => _iocScannerService.Value;
+
+        /// <summary>
+        /// Gets the shared registry diff service instance.
+        /// </summary>
+        public static RegistryDiffService RegistryDiff => _registryDiffService.Value;
+
+        /// <summary>
+        /// Gets the shared PCAP parser service instance.
+        /// </summary>
+        public static PcapParserService PcapParser => _pcapParserService.Value;
+
+        /// <summary>
+        /// Gets the shared YARA service instance.
+        /// </summary>
+        public static YaraService Yara => _yaraService.Value;
 
         #endregion
     }

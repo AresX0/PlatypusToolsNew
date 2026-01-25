@@ -56,7 +56,7 @@ namespace PlatypusTools.UI.Tests
         public async Task ImageConverter_Cancel_StopsConverting()
         {
             // Arrange
-            async Task<bool> slowConverter(string src, string dst, int? mw, int? mh, long q)
+            async Task<bool> slowConverter(string src, string dst, int? mw, int? mh, long q, SvgConversionMode mode)
             {
                 await Task.Delay(200);
                 return true;

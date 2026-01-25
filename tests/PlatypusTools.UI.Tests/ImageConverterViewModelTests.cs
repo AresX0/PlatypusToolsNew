@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PlatypusTools.UI.ViewModels;
+using PlatypusTools.Core.Services;
 using System.Threading;
 using System;
 
@@ -12,7 +13,7 @@ namespace PlatypusTools.UI.Tests
         [TestMethod]
         public async Task ConvertAsync_ReportsProgressAndLog()
         {
-            Task<bool> FakeConverter(string src, string dest, int? mw, int? mh, long q)
+            Task<bool> FakeConverter(string src, string dest, int? mw, int? mh, long q, SvgConversionMode mode)
             {
                 return Task.FromResult(true);
             }

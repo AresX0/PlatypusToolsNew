@@ -146,6 +146,46 @@ namespace PlatypusTools.UI.Services.Forensics
         }
 
         /// <summary>
+        /// Creates a new TaskSchedulerService.
+        /// </summary>
+        public static TaskSchedulerService CreateTaskSchedulerService()
+        {
+            return new TaskSchedulerService();
+        }
+
+        /// <summary>
+        /// Creates a new BrowserForensicsService with default configuration.
+        /// </summary>
+        public static BrowserForensicsService CreateBrowserForensicsService()
+        {
+            return new BrowserForensicsService();
+        }
+
+        /// <summary>
+        /// Creates a new IOCScannerService with default configuration.
+        /// </summary>
+        public static IOCScannerService CreateIOCScannerService()
+        {
+            return new IOCScannerService();
+        }
+
+        /// <summary>
+        /// Creates a new RegistryDiffService with default configuration.
+        /// </summary>
+        public static RegistryDiffService CreateRegistryDiffService()
+        {
+            return new RegistryDiffService();
+        }
+
+        /// <summary>
+        /// Creates a new PcapParserService with default configuration.
+        /// </summary>
+        public static PcapParserService CreatePcapParserService()
+        {
+            return new PcapParserService();
+        }
+
+        /// <summary>
         /// Ensures all default directories exist.
         /// </summary>
         public static void EnsureDirectoriesExist()
