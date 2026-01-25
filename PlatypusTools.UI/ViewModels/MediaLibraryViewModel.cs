@@ -95,7 +95,7 @@ namespace PlatypusTools.UI.ViewModels
             FindDuplicatesCommand = new RelayCommand(async _ => await FindDuplicatesAsync(), _ => !IsScanning && MediaItems.Count > 0);
 
             // Load saved library path
-            LoadSavedSettings();
+            _ = LoadSavedSettingsAsync();
         }
 
         public ObservableCollection<MediaItemViewModel> MediaItems { get; } = new();
@@ -350,7 +350,7 @@ namespace PlatypusTools.UI.ViewModels
 
         #region New Library Methods
 
-        private void LoadSavedSettings()
+        private async Task LoadSavedSettingsAsync()
         {
             try
             {
@@ -361,7 +361,7 @@ namespace PlatypusTools.UI.ViewModels
 
                 if (File.Exists(settingsPath))
                 {
-                    var json = File.ReadAllText(settingsPath);
+                    var json = await File.ReadAllTextAsync(settingsPath);
                     var settings = System.Text.Json.JsonSerializer.Deserialize<MediaLibrarySettings>(json);
                     if (settings != null)
                     {
@@ -372,7 +372,7 @@ namespace PlatypusTools.UI.ViewModels
             catch { }
         }
 
-        private void SaveSettings()
+        private async Task SaveSettingsAsync()
         {
             try
             {
@@ -388,7 +388,7 @@ namespace PlatypusTools.UI.ViewModels
                 var settingsPath = Path.Combine(settingsDir, "media_library_settings.json");
                 var settings = new MediaLibrarySettings { PrimaryLibraryPath = PrimaryLibraryPath };
                 var json = System.Text.Json.JsonSerializer.Serialize(settings);
-                File.WriteAllText(settingsPath, json);
+                await File.WriteAllTextAsync(settingsPath, json);
             }
             catch { }
         }
@@ -418,7 +418,7 @@ namespace PlatypusTools.UI.ViewModels
             try
             {
                 await _mediaLibraryService.SetPrimaryLibraryPathAsync(PrimaryLibraryPath);
-                SaveSettings();
+                await SaveSettingsAsync();
                 StatusMessage = $"Library path set to: {PrimaryLibraryPath}";
                 await RefreshLibraryAsync();
             }

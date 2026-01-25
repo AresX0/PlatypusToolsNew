@@ -660,7 +660,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             };
             UserPlaylists.Add(playlist);
             SmartPlaylists.Add(playlist); // Also add to main list for display
-            SaveUserPlaylists();
+            _ = SaveUserPlaylistsAsync();
             StatusMessage = $"Created playlist: {name}";
         }
     }
@@ -671,7 +671,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         
         UserPlaylists.Remove(SelectedPlaylist);
         SmartPlaylists.Remove(SelectedPlaylist);
-        SaveUserPlaylists();
+        _ = SaveUserPlaylistsAsync();
         StatusMessage = "Playlist deleted";
     }
     
@@ -683,7 +683,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         if (!string.IsNullOrWhiteSpace(newName))
         {
             SelectedPlaylist.Name = newName;
-            SaveUserPlaylists();
+            _ = SaveUserPlaylistsAsync();
             StatusMessage = $"Renamed to: {newName}";
         }
     }
@@ -694,12 +694,12 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         if (!playlist.TrackIds.Contains(track.Id))
         {
             playlist.TrackIds.Add(track.Id);
-            SaveUserPlaylists();
+            _ = SaveUserPlaylistsAsync();
             StatusMessage = $"Added {track.DisplayTitle} to {playlist.Name}";
         }
     }
     
-    private void SaveUserPlaylists()
+    private async Task SaveUserPlaylistsAsync()
     {
         try
         {
@@ -707,12 +707,12 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             Directory.CreateDirectory(appDataPath);
             var playlistsPath = Path.Combine(appDataPath, "enhanced_user_playlists.json");
             var json = JsonSerializer.Serialize(UserPlaylists.ToList(), new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(playlistsPath, json);
+            await File.WriteAllTextAsync(playlistsPath, json);
         }
         catch { }
     }
     
-    private void LoadUserPlaylists()
+    private async Task LoadUserPlaylistsAsync()
     {
         try
         {
@@ -720,7 +720,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             var playlistsPath = Path.Combine(appDataPath, "enhanced_user_playlists.json");
             if (File.Exists(playlistsPath))
             {
-                var json = File.ReadAllText(playlistsPath);
+                var json = await File.ReadAllTextAsync(playlistsPath);
                 var playlists = JsonSerializer.Deserialize<List<Playlist>>(json);
                 if (playlists != null)
                 {
@@ -1422,7 +1422,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         ThemeManager.Instance.ThemeChanged += OnThemeChanged;
         
         // Load saved library folders
-        LoadLibraryFolders();
+        _ = LoadLibraryFoldersAsync();
         
         // Subscribe to service events
         _playerService.TrackChanged += OnTrackChanged;
@@ -1442,7 +1442,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         InitializeSmartPlaylists();
         
         // Load user playlists
-        LoadUserPlaylists();
+        _ = LoadUserPlaylistsAsync();
         
         // Initialize commands
         PlayPauseCommand = new RelayCommand(_ => PlayPauseOrFirstInQueue());
@@ -2455,7 +2455,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         }
     }
     
-    private void LoadLibraryFolders()
+    private async Task LoadLibraryFoldersAsync()
     {
         try
         {
@@ -2465,7 +2465,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             
             if (File.Exists(foldersPath))
             {
-                var json = File.ReadAllText(foldersPath);
+                var json = await File.ReadAllTextAsync(foldersPath);
                 var folders = JsonSerializer.Deserialize<List<string>>(json);
                 if (folders != null)
                 {

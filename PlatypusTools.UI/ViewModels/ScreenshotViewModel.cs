@@ -33,10 +33,10 @@ namespace PlatypusTools.UI.ViewModels
             SelectedColor = Colors.Red;
             
             // Commands
-            CaptureFullScreenCommand = new RelayCommand(_ => CaptureFullScreen());
-            CapturePrimaryScreenCommand = new RelayCommand(_ => CapturePrimaryScreen());
-            CaptureActiveWindowCommand = new RelayCommand(_ => CaptureActiveWindow());
-            CaptureRegionCommand = new RelayCommand(_ => CaptureRegion());
+            CaptureFullScreenCommand = new RelayCommand(async _ => await CaptureFullScreenAsync());
+            CapturePrimaryScreenCommand = new RelayCommand(async _ => await CapturePrimaryScreenAsync());
+            CaptureActiveWindowCommand = new RelayCommand(async _ => await CaptureActiveWindowAsync());
+            CaptureRegionCommand = new RelayCommand(async _ => await CaptureRegionAsync());
             CaptureScrollingCommand = new RelayCommand(_ => CaptureScrolling());
             
             SaveCommand = new RelayCommand(_ => Save(), _ => _currentScreenshot != null);
@@ -158,7 +158,7 @@ namespace PlatypusTools.UI.ViewModels
         
         #region Methods
         
-        private void CaptureFullScreen()
+        private async Task CaptureFullScreenAsync()
         {
             Window? mainWindow = null;
             try
@@ -170,7 +170,7 @@ namespace PlatypusTools.UI.ViewModels
                     mainWindow.WindowState = WindowState.Minimized;
                 }
                 
-                System.Threading.Thread.Sleep(300); // Wait for window to minimize
+                await Task.Delay(300); // Wait for window to minimize
                 
                 _currentScreenshot?.Dispose();
                 _currentScreenshot = _captureService.CaptureFullScreen();
@@ -190,7 +190,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
         
-        private void CapturePrimaryScreen()
+        private async Task CapturePrimaryScreenAsync()
         {
             Window? mainWindow = null;
             try
@@ -201,7 +201,7 @@ namespace PlatypusTools.UI.ViewModels
                     mainWindow.WindowState = WindowState.Minimized;
                 }
                 
-                System.Threading.Thread.Sleep(300);
+                await Task.Delay(300);
                 
                 _currentScreenshot?.Dispose();
                 _currentScreenshot = _captureService.CapturePrimaryScreen();
@@ -221,7 +221,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
         
-        private void CaptureActiveWindow()
+        private async Task CaptureActiveWindowAsync()
         {
             Window? mainWindow = null;
             try
@@ -232,7 +232,7 @@ namespace PlatypusTools.UI.ViewModels
                     mainWindow.WindowState = WindowState.Minimized;
                 }
                 
-                System.Threading.Thread.Sleep(500); // Wait longer to ensure another window is active
+                await Task.Delay(500); // Wait longer to ensure another window is active
                 
                 _currentScreenshot?.Dispose();
                 _currentScreenshot = _captureService.CaptureActiveWindow();
@@ -252,7 +252,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
         
-        private void CaptureRegion()
+        private async Task CaptureRegionAsync()
         {
             Window? mainWindow = null;
             try
@@ -263,7 +263,7 @@ namespace PlatypusTools.UI.ViewModels
                     mainWindow.WindowState = WindowState.Minimized;
                 }
                 
-                System.Threading.Thread.Sleep(300);
+                await Task.Delay(300);
                 
                 // Open region selection window
                 var regionWindow = new Views.RegionSelectWindow();

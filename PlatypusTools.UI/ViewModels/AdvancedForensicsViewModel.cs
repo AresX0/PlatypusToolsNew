@@ -2857,6 +2857,7 @@ Amcache_CL
 
                         if (result.Success)
                         {
+                            var recordCount = await CountJsonRecordsAsync(outputFile);
                             Artifacts.Add(new ForensicArtifact
                             {
                                 Type = "Volatility",
@@ -2864,7 +2865,7 @@ Amcache_CL
                                 Source = plugin,
                                 OutputPath = outputFile,
                                 Timestamp = DateTime.Now,
-                                RecordCount = CountJsonRecords(outputFile)
+                                RecordCount = recordCount
                             });
                             AppendLog($"✓ {name}: {Artifacts.Last().RecordCount} records");
                         }
@@ -3537,7 +3538,7 @@ Amcache_CL
 
                 if (result.Success)
                 {
-                    var recordCount = CountJsonRecords(outputFile);
+                    var recordCount = await CountJsonRecordsAsync(outputFile);
                     AppendLog($"");
                     AppendLog($"✓ Collection complete: {VelociraptorArtifact}");
                     AppendLog($"  Records collected: {recordCount}");
@@ -5700,12 +5701,12 @@ Amcache_CL
             return fields.ToArray();
         }
 
-        private int CountJsonRecords(string filePath)
+        private async Task<int> CountJsonRecordsAsync(string filePath)
         {
             try
             {
                 if (!File.Exists(filePath)) return 0;
-                var json = File.ReadAllText(filePath);
+                var json = await File.ReadAllTextAsync(filePath);
                 using var doc = JsonDocument.Parse(json);
                 if (doc.RootElement.ValueKind == JsonValueKind.Array)
                     return doc.RootElement.GetArrayLength();

@@ -61,11 +61,11 @@ namespace PlatypusTools.UI.ViewModels
             SaveSessionCommand = new RelayCommand(_ => SaveSession(), _ => !string.IsNullOrWhiteSpace(Host));
             LoadSessionCommand = new RelayCommand(param => LoadSession(param as SavedSessionViewModel));
             DeleteSessionCommand = new RelayCommand(param => DeleteSession(param as SavedSessionViewModel));
-            RefreshSessionsCommand = new RelayCommand(_ => LoadSavedSessions());
+            RefreshSessionsCommand = new RelayCommand(async _ => await LoadSavedSessionsAsync());
             BrowseKeyCommand = new RelayCommand(_ => BrowseForKey());
             LoadCredentialCommand = new RelayCommand(_ => RequestLoadCredential());
 
-            LoadSavedSessions();
+            _ = LoadSavedSessionsAsync();
         }
 
         public ObservableCollection<SavedSessionViewModel> SavedSessions { get; } = new();
@@ -328,7 +328,7 @@ namespace PlatypusTools.UI.ViewModels
             }
 
             SavedSessions.Insert(0, session);
-            SaveSessionsToFile();
+            _ = SaveSessionsToFileAsync();
             StatusMessage = $"Session '{name}' saved";
         }
 
@@ -349,11 +349,11 @@ namespace PlatypusTools.UI.ViewModels
             if (session == null) return;
 
             SavedSessions.Remove(session);
-            SaveSessionsToFile();
+            _ = SaveSessionsToFileAsync();
             StatusMessage = $"Session '{session.Name}' deleted";
         }
 
-        private void LoadSavedSessions()
+        private async Task LoadSavedSessionsAsync()
         {
             SavedSessions.Clear();
 
@@ -361,7 +361,7 @@ namespace PlatypusTools.UI.ViewModels
             {
                 if (File.Exists(_sessionsPath))
                 {
-                    var json = File.ReadAllText(_sessionsPath);
+                    var json = await File.ReadAllTextAsync(_sessionsPath);
                     var sessions = JsonSerializer.Deserialize<List<SavedSessionViewModel>>(json);
                     if (sessions != null)
                     {
@@ -375,7 +375,7 @@ namespace PlatypusTools.UI.ViewModels
             catch { }
         }
 
-        private void SaveSessionsToFile()
+        private async Task SaveSessionsToFileAsync()
         {
             try
             {
@@ -386,7 +386,7 @@ namespace PlatypusTools.UI.ViewModels
                 }
 
                 var json = JsonSerializer.Serialize(SavedSessions.ToList(), new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(_sessionsPath, json);
+                await File.WriteAllTextAsync(_sessionsPath, json);
             }
             catch { }
         }
