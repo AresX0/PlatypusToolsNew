@@ -425,7 +425,7 @@ public partial class AudioLibraryViewModel : BindableBase
     
     private void OnLibraryUpdated(object? sender, EventArgs e)
     {
-        System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+        System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
         {
             RefreshView();
             RaisePropertyChanged(nameof(TrackCount));

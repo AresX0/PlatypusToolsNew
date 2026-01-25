@@ -1792,7 +1792,18 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             if (CurrentTrack == null || Queue.Count <= 1) return;
             
             var currentIndex = Queue.IndexOf(CurrentTrack);
-            if (currentIndex < 0) currentIndex = Queue.ToList().FindIndex(t => t.Id == CurrentTrack.Id);
+            if (currentIndex < 0)
+            {
+                // Find by Id without creating a list copy
+                for (int i = 0; i < Queue.Count; i++)
+                {
+                    if (Queue[i].Id == CurrentTrack.Id)
+                    {
+                        currentIndex = i;
+                        break;
+                    }
+                }
+            }
             
             var nextIndex = currentIndex + 1;
             if (nextIndex < Queue.Count)

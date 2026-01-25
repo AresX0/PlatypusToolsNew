@@ -111,7 +111,7 @@ namespace PlatypusTools.UI.ViewModels
             try
             {
                 var processes = await Task.Run(() => _processManagerService.GetProcesses());
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     _allProcesses.Clear();
                     foreach (var proc in processes)
