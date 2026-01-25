@@ -37,7 +37,7 @@ namespace PlatypusTools.UI.ViewModels
             {
                 if (AutoRefresh)
                 {
-                    System.Windows.Application.Current?.Dispatcher.Invoke(Refresh);
+                    _ = System.Windows.Application.Current?.Dispatcher.InvokeAsync(Refresh);
                 }
             };
 

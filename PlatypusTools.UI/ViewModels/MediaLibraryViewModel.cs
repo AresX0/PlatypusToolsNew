@@ -333,7 +333,7 @@ namespace PlatypusTools.UI.ViewModels
                 var metadata = await _mediaLibraryService.GetMetadataAsync(item.FilePath);
                 if (metadata != null)
                 {
-                    Application.Current.Dispatcher.Invoke(() =>
+                    await Application.Current.Dispatcher.InvokeAsync(() =>
                     {
                         item.Resolution = $"{metadata.Width}x{metadata.Height}";
                         item.Duration = metadata.Duration.ToString(@"hh\:mm\:ss");
@@ -467,7 +467,7 @@ namespace PlatypusTools.UI.ViewModels
             {
                 var items = await _mediaLibraryService.ScanFolderForMediaAsync(ScanPath, progress, ct);
 
-                Application.Current.Dispatcher.Invoke(() =>
+                await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     foreach (var item in items)
                     {
@@ -573,7 +573,7 @@ namespace PlatypusTools.UI.ViewModels
                 StatusMessage = $"Successfully copied {copied} files to library";
                 
                 // Clear copied items from scanned list
-                Application.Current.Dispatcher.Invoke(() =>
+                await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     foreach (var item in selectedItems)
                     {
@@ -628,7 +628,7 @@ namespace PlatypusTools.UI.ViewModels
 
                 var entries = _mediaLibraryService.GetLibraryEntries();
 
-                Application.Current.Dispatcher.Invoke(() =>
+                await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     MediaItems.Clear();
                     foreach (var entry in entries)

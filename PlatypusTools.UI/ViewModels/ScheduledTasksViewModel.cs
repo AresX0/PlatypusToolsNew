@@ -108,7 +108,7 @@ namespace PlatypusTools.UI.ViewModels
             try
             {
                 var tasks = await Task.Run(() => _scheduledTasksService.GetScheduledTasks());
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     int enabledCount = 0;
                     foreach (var task in tasks)

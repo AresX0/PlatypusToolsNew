@@ -182,7 +182,7 @@ namespace PlatypusTools.UI.ViewModels
             {
                 var drives = await _service.GetUSBDrives();
                 
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     foreach (var drive in drives)
                     {

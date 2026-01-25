@@ -533,7 +533,7 @@ namespace PlatypusTools.UI.ViewModels
         private void Log(string message)
         {
             var timestamp = DateTime.Now.ToString("HH:mm:ss");
-            Application.Current.Dispatcher.Invoke(() =>
+            _ = Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 WipeLog.Add($"[{timestamp}] {message}");
             });

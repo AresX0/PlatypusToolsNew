@@ -26,7 +26,7 @@ namespace PlatypusTools.UI.ViewModels
             _similarityService = new ImageSimilarityService();
             _similarityService.ProgressChanged += (s, p) => 
             {
-                App.Current?.Dispatcher.Invoke(() =>
+                _ = App.Current?.Dispatcher.InvokeAsync(() =>
                 {
                     StatusMessage = $"Processing: {p.CurrentFile} ({p.ProcessedFiles}/{p.TotalFiles})";
                     ScanProgress = p.ProgressPercent;
@@ -37,7 +37,7 @@ namespace PlatypusTools.UI.ViewModels
             _videoSimilarityService = new VideoSimilarityService();
             _videoSimilarityService.ProgressChanged += (s, p) =>
             {
-                App.Current?.Dispatcher.Invoke(() =>
+                _ = App.Current?.Dispatcher.InvokeAsync(() =>
                 {
                     StatusMessage = $"{p.CurrentPhase} {p.CurrentFile} ({p.ProcessedFiles}/{p.TotalFiles})";
                     ScanProgress = p.ProgressPercent;

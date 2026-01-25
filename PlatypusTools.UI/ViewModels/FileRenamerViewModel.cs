@@ -125,7 +125,7 @@ namespace PlatypusTools.UI.ViewModels
             var ops = await Task.Run(() => _service.ScanFolder(FolderPath, IncludeSubfolders, FileTypeFilter));
             
             // Update UI in batch on UI thread
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 foreach (var op in ops)
                 {

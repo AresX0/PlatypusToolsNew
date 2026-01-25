@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.13.11 - 2026-01-25
+
+### Fixed
+- **UI Freezing** - Converted 35+ blocking `Dispatcher.Invoke()` calls to non-blocking `InvokeAsync()` pattern across ViewModels:
+  - RecentCleanupViewModel, MediaLibraryViewModel, RobocopyViewModel, NetworkToolsViewModel
+  - FileRenamerViewModel, LazyTabContent, SystemRestoreViewModel, TerminalClientViewModel
+  - ScheduledTasksViewModel, RegistryCleanerViewModel, BatchUpscaleViewModel, DiskSpaceAnalyzerViewModel
+  - BootableUSBViewModel, ProcessManagerViewModel, DuplicatesViewModel, FtpClientViewModel
+  - MetadataTemplateViewModel, SecureWipeViewModel, LogViewerViewModel, FileAnalyzerViewModel
+  - EmptyFolderScannerViewModel, ForensicsAnalyzerViewModel, AdvancedForensicsViewModel, VideoEditorViewModel
+  - PdfToolsViewModel
+- **UI Freezing (Views)** - Converted blocking Invoke in Views:
+  - EnhancedAudioPlayerView, SearchWindow, SplashScreenWindow, BatchOperationsWindow
+- This resolves app freezing/hanging when background operations update the UI
+
+---
+
 ## v3.2.11.0 - 2026-01-24
 
 ### Added

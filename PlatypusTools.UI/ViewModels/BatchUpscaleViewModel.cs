@@ -319,7 +319,7 @@ namespace PlatypusTools.UI.ViewModels
         
         private void OnJobStarted(BatchUpscaleJob job)
         {
-            System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+            _ = System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
             {
                 StatusMessage = $"Processing: {job.Name}";
             });
@@ -327,7 +327,7 @@ namespace PlatypusTools.UI.ViewModels
         
         private void OnJobCompleted(BatchUpscaleJob job)
         {
-            System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+            _ = System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
             {
                 StatusMessage = $"Completed: {job.Name} ({job.CompletedCount}/{job.Items.Count})";
                 
@@ -344,7 +344,7 @@ namespace PlatypusTools.UI.ViewModels
         
         private void UpdateProgress()
         {
-            System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+            _ = System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
             {
                 CompletedCount = Jobs.Sum(j => j.CompletedCount + j.FailedCount);
                 OverallProgress = TotalCount > 0 ? (double)CompletedCount / TotalCount * 100 : 0;

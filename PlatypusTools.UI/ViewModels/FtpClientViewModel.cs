@@ -57,9 +57,9 @@ namespace PlatypusTools.UI.ViewModels
         {
             _ftpService = new FtpClientService();
             _ftpService.StatusChanged += (s, status) => 
-                Application.Current?.Dispatcher.Invoke(() => StatusMessage = status);
+                _ = Application.Current?.Dispatcher.InvokeAsync(() => StatusMessage = status);
             _ftpService.ProgressChanged += (s, progress) => 
-                Application.Current?.Dispatcher.Invoke(() => TransferProgress = progress);
+                _ = Application.Current?.Dispatcher.InvokeAsync(() => TransferProgress = progress);
 
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             _sessionsPath = Path.Combine(appData, "PlatypusTools", "FtpSessions.json");

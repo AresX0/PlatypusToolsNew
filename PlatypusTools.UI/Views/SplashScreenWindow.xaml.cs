@@ -64,7 +64,7 @@ namespace PlatypusTools.UI.Views
         {
             if (LoadingText != null)
             {
-                Dispatcher.Invoke(() => LoadingText.Text = message);
+                _ = Dispatcher.InvokeAsync(() => LoadingText.Text = message);
             }
         }
     }

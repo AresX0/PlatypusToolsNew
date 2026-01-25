@@ -306,7 +306,7 @@ namespace PlatypusTools.UI.ViewModels
 
         private void UpdateResults(ForensicsAnalysisResult result)
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            _ = Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 // Summary
                 TotalFindings = result.TotalFindings;

@@ -83,7 +83,7 @@ namespace PlatypusTools.UI.ViewModels
             try
             {
                 var issues = await Task.Run(() => _registryCleanerService.ScanRegistry());
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     foreach (var issue in issues)
                     {

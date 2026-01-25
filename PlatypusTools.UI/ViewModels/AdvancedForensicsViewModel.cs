@@ -2634,7 +2634,7 @@ Amcache_CL
                     if (e.Data != null)
                     {
                         output.AppendLine(e.Data);
-                        System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+                        _ = System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
                         {
                             AppendLog($"[WinPmem] {e.Data}");
                         });
@@ -2646,7 +2646,7 @@ Amcache_CL
                     if (e.Data != null)
                     {
                         error.AppendLine(e.Data);
-                        System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+                        _ = System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
                         {
                             AppendLog($"[WinPmem ERR] {e.Data}");
                         });

@@ -217,7 +217,7 @@ namespace PlatypusTools.UI.ViewModels
                 var details = await _processManagerService.GetProcessDetails(process.ProcessId);
                 if (details != null)
                 {
-                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                     {
                         process.UserName = details.UserName;
                         process.FilePath = details.Path;

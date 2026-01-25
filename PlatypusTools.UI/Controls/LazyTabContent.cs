@@ -88,8 +88,8 @@ namespace PlatypusTools.UI.Controls
                 // Small delay to allow UI to render loading state
                 await System.Threading.Tasks.Task.Delay(10);
 
-                // Create view on UI thread
-                Application.Current.Dispatcher.Invoke(() =>
+                // Create view on UI thread - use InvokeAsync to avoid blocking
+                await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     try
                     {

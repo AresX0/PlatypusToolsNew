@@ -136,8 +136,8 @@ namespace PlatypusTools.UI.ViewModels
                 // Apply settings to scanner
                 _scanner.IgnoreJunkFiles = IgnoreJunkFiles;
 
-                _scanner.ProgressChanged += msg => Application.Current?.Dispatcher.Invoke(() => StatusMessage = msg);
-                _scanner.FolderScanned += count => Application.Current?.Dispatcher.Invoke(() => Progress = count);
+                _scanner.ProgressChanged += msg => _ = Application.Current?.Dispatcher.InvokeAsync(() => StatusMessage = msg);
+                _scanner.FolderScanned += count => _ = Application.Current?.Dispatcher.InvokeAsync(() => Progress = count);
 
                 var results = await _scanner.ScanForEmptyFoldersAsync(SelectedFolder, _cts.Token);
 

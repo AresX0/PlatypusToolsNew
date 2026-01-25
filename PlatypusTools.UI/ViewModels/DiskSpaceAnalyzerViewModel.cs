@@ -160,7 +160,7 @@ namespace PlatypusTools.UI.ViewModels
                 // Await the analyzer service directly. Use maxDepth=10 for comprehensive view
                 var analysis = await _analyzerService.GetDirectoryTree(RootPath, maxDepth: 10);
 
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     var rootNode = CreateNodeViewModel(analysis);
                     _unfilteredRootNode = rootNode; // Store unfiltered copy

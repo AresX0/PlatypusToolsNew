@@ -180,7 +180,7 @@ namespace PlatypusTools.UI.Views
                     
                     if (_results.Count % 100 == 0)
                     {
-                        Dispatcher.Invoke(() => ResultCount.Text = $"Found {_results.Count:N0} files...");
+                        _ = Dispatcher.InvokeAsync(() => ResultCount.Text = $"Found {_results.Count:N0} files...");
                     }
                 }
                 catch { /* Skip inaccessible files */ }

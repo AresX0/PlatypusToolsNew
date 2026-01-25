@@ -399,7 +399,7 @@ namespace PlatypusTools.UI.ViewModels
                 LastResult = result;
 
                 // Update failed files
-                Application.Current.Dispatcher.Invoke(() =>
+                await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     FailedFiles.Clear();
                     foreach (var f in result.FilesFailed)
@@ -427,7 +427,7 @@ namespace PlatypusTools.UI.ViewModels
             catch (Exception ex)
             {
                 StatusMessage = $"Error: {ex.Message}";
-                Application.Current.Dispatcher.Invoke(() =>
+                await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     ErrorLines.Add(ex.Message);
                 });
@@ -604,7 +604,7 @@ namespace PlatypusTools.UI.ViewModels
 
         private void OnOutputReceived(string line)
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 OutputLines.Add(line);
                 Output += line + Environment.NewLine;
@@ -613,7 +613,7 @@ namespace PlatypusTools.UI.ViewModels
 
         private void OnErrorReceived(string line)
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 ErrorLines.Add(line);
             });

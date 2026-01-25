@@ -150,7 +150,7 @@ namespace PlatypusTools.UI.ViewModels
                                 ((RelayCommand)RemoveSelectedCommand).RaiseCanExecuteChanged();
                             }
                         };
-                        Application.Current.Dispatcher.Invoke(() => Results.Add(selectable));
+                        await Application.Current.Dispatcher.InvokeAsync(() => Results.Add(selectable));
                     }
                 }
 
@@ -202,7 +202,7 @@ namespace PlatypusTools.UI.ViewModels
                                     ((RelayCommand)RemoveSelectedCommand).RaiseCanExecuteChanged();
                                 }
                             };
-                            Application.Current.Dispatcher.Invoke(() => Results.Add(selectable));
+                            _ = Application.Current.Dispatcher.InvokeAsync(() => Results.Add(selectable));
                         }
                     }
                 });
@@ -266,7 +266,7 @@ namespace PlatypusTools.UI.ViewModels
                 // Remove from list
                 foreach (var item in selectedItems)
                 {
-                    Application.Current.Dispatcher.Invoke(() => Results.Remove(item));
+                    await Application.Current.Dispatcher.InvokeAsync(() => Results.Remove(item));
                 }
 
                 StatusMessage = $"Removed {removed} shortcuts successfully";

@@ -198,7 +198,7 @@ namespace PlatypusTools.UI.Views
                 }
 
                 processed++;
-                Dispatcher.Invoke(() =>
+                _ = Dispatcher.InvokeAsync(() =>
                 {
                     ProgressBar.Value = processed;
                     ProgressText.Text = $"{processed} / {_files.Count}";

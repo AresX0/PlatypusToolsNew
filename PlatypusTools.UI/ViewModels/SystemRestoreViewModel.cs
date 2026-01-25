@@ -89,7 +89,7 @@ namespace PlatypusTools.UI.ViewModels
             try
             {
                 var points = await _systemRestoreService.GetRestorePoints();
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     foreach (var point in points)
                     {

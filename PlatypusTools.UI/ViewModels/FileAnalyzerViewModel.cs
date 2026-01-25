@@ -165,7 +165,7 @@ namespace PlatypusTools.UI.ViewModels
                 }
 
                 // Update UI on dispatcher thread
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     TotalFiles = result.TotalFiles;
                     TotalSize = result.TotalSize;

@@ -46,9 +46,9 @@ namespace PlatypusTools.UI.ViewModels
 
             _terminalService.DataReceived += OnDataReceived;
             _terminalService.StatusChanged += (s, status) =>
-                Application.Current?.Dispatcher.Invoke(() => StatusMessage = status);
+                _ = Application.Current?.Dispatcher.InvokeAsync(() => StatusMessage = status);
             _terminalService.Disconnected += (s, e) =>
-                Application.Current?.Dispatcher.Invoke(() => IsConnected = false);
+                _ = Application.Current?.Dispatcher.InvokeAsync(() => IsConnected = false);
 
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             _sessionsPath = Path.Combine(appData, "PlatypusTools", "TerminalSessions.json");
@@ -198,7 +198,7 @@ namespace PlatypusTools.UI.ViewModels
 
         private void OnDataReceived(object? sender, string data)
         {
-            Application.Current?.Dispatcher.Invoke(() =>
+            _ = Application.Current?.Dispatcher.InvokeAsync(() =>
             {
                 _outputBuffer.Append(data);
                 // Limit buffer size for memory efficiency

@@ -118,7 +118,7 @@ namespace PlatypusTools.UI.ViewModels
             try
             {
                 var result = await _networkToolsService.PingHost(TargetHost, 4);
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     if (result.Success)
                     {
@@ -157,7 +157,7 @@ namespace PlatypusTools.UI.ViewModels
             try
             {
                 var results = await _networkToolsService.TracerouteHost(TargetHost);
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     foreach (var result in results)
                     {
@@ -186,7 +186,7 @@ namespace PlatypusTools.UI.ViewModels
             try
             {
                 var connections = await _networkToolsService.GetActiveConnections();
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     foreach (var conn in connections)
                     {
@@ -222,7 +222,7 @@ namespace PlatypusTools.UI.ViewModels
             try
             {
                 var adapters = await _networkToolsService.GetNetworkAdapters();
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     foreach (var adapter in adapters)
                     {

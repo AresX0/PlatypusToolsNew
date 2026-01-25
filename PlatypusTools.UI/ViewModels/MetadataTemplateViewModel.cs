@@ -215,7 +215,7 @@ namespace PlatypusTools.UI.ViewModels
         
         private void RefreshTemplates()
         {
-            System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+            _ = System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
             {
                 Templates.Clear();
                 Categories.Clear();
@@ -580,7 +580,7 @@ namespace PlatypusTools.UI.ViewModels
         
         private void OnFileProcessed(MetadataApplyResult result)
         {
-            System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+            _ = System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
             {
                 ApplyResults.Add(result);
                 

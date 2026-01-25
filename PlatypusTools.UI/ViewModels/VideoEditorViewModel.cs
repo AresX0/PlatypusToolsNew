@@ -3853,7 +3853,7 @@ After installation, restart PlatypusTools.
         
         private void OnPreviewFrameReady(object? sender, PreviewFrameEventArgs e)
         {
-            System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+            _ = System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
             {
                 RealtimePreviewFrame = e.FramePath;
                 if (UseRealtimePreview)

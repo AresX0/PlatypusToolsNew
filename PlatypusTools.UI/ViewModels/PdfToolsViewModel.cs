@@ -228,7 +228,7 @@ namespace PlatypusTools.UI.ViewModels
                 StatusMessage = $"Loading {files.Count} file(s)...";
                 
                 // Process all files on background thread to avoid UI freezing
-                Task.Run(() =>
+                _ = Task.Run(async () =>
                 {
                     try
                     {
@@ -237,14 +237,14 @@ namespace PlatypusTools.UI.ViewModels
                             var extension = Path.GetExtension(file).ToLowerInvariant();
                             var fileName = Path.GetFileName(file);
                             
-                            dispatcher.Invoke(() => StatusMessage = $"Loading {fileName}...");
+                            await dispatcher.InvokeAsync(() => StatusMessage = $"Loading {fileName}...");
                             
                             if (extension == ".pdf")
                             {
                                 // For PDFs, just add with basic info - don't try to parse
                                 // PdfSharpCore can hang on some PDFs indefinitely
                                 var fileInfo = new FileInfo(file);
-                                dispatcher.Invoke(() =>
+                                await dispatcher.InvokeAsync(() =>
                                 {
                                     InputFiles.Add(new PdfFileItem
                                     {
@@ -262,7 +262,7 @@ namespace PlatypusTools.UI.ViewModels
                             {
                                 // Image file
                                 var fileInfo = new FileInfo(file);
-                                dispatcher.Invoke(() =>
+                                await dispatcher.InvokeAsync(() =>
                                 {
                                     InputFiles.Add(new PdfFileItem
                                     {
@@ -278,7 +278,7 @@ namespace PlatypusTools.UI.ViewModels
                             }
                         }
                         
-                        dispatcher.Invoke(() =>
+                        await dispatcher.InvokeAsync(() =>
                         {
                             IsProcessing = false;
                             StatusMessage = $"Loaded {files.Count} file(s)";
@@ -287,7 +287,7 @@ namespace PlatypusTools.UI.ViewModels
                     catch (Exception ex)
                     {
                         System.Diagnostics.Debug.WriteLine($"AddFiles Error: {ex}");
-                        dispatcher.Invoke(() =>
+                        await dispatcher.InvokeAsync(() =>
                         {
                             IsProcessing = false;
                             StatusMessage = $"Error: {ex.Message}";

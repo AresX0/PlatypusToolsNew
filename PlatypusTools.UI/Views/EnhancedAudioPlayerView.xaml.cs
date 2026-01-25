@@ -420,7 +420,7 @@ public partial class EnhancedAudioPlayerView : UserControl
                 int barCount = vm?.BarCount ?? 32;
                 int colorIndex = vm?.ColorSchemeIndex ?? 0;
                 
-                fullscreenVisualizer.Dispatcher.Invoke(() =>
+                fullscreenVisualizer.Dispatcher.InvokeAsync(() =>
                 {
                     fullscreenVisualizer.SetColorScheme(colorIndex);
                     fullscreenVisualizer.UpdateSpectrumData(doubleData, mode, barCount);
