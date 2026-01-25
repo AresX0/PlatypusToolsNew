@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PlatypusTools.UI.ViewModels;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace PlatypusTools.UI.Tests
 {
@@ -9,7 +10,7 @@ namespace PlatypusTools.UI.Tests
     public class DuplicatesE2ETests
     {
         [TestMethod]
-        public void Scan_SelectOldest_Stage_Commit_DeletesSelected()
+        public async Task Scan_SelectOldest_Stage_Commit_DeletesSelected()
         {
             var tmp = Path.Combine(Path.GetTempPath(), "pt_duplicates_e2e_test");
             if (Directory.Exists(tmp)) Directory.Delete(tmp, true);
@@ -27,7 +28,7 @@ namespace PlatypusTools.UI.Tests
 
             var vm = new DuplicatesViewModel();
             vm.FolderPath = tmp;
-            vm.ScanCommand.Execute(null);
+            await vm.ScanForDuplicatesAsync();
 
             Assert.IsTrue(vm.Groups.Count == 1);
             var group = vm.Groups.First();

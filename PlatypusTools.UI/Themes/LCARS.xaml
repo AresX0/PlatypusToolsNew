@@ -5,84 +5,167 @@
     LCARS (Library Computer Access/Retrieval System) Theme
     Inspired by Star Trek: The Next Generation's futuristic interface design
     
-    Color Palette:
-    - Gold/Tan: Primary interactive elements
-    - Peach/Coral: Secondary elements  
-    - Lavender/Purple: Tertiary elements
-    - Blue: Status/Info elements
-    - Black: Background
-    - White: Text on dark
+    Classic LCARS Color Palette from thelcars.com:
+    - African Violet #CC99FF - Tertiary elements
+    - Almond #FFAA00 - Buttons, interactive
+    - Blue #5588FF - Info, status
+    - Butterscotch #FF9966 - Warm accents
+    - Gold #FFCC00 - Primary interactive
+    - Golden Orange #FF9900 - Alerts
+    - Gray #666688 - Inactive
+    - Green #99CC33 - Success
+    - Ice #99CCFF - Cool accents
+    - Lilac #CC55FF - Special elements
+    - Magenta #CC5599 - Tertiary
+    - Mars #990011 - Critical alerts
+    - Orange #FF8800 - Secondary actions
+    - Peach #FF8855 - Warm highlights
+    - Red #CC4444 - Warnings
+    - Sky #AAAAFF - Backgrounds
+    - Sunflower #FFCC99 - Highlights
+    - Tomato #FF5555 - Alerts
+    - Violet Creme #DDBBFF - Soft accents
     -->
 
-    <!-- ======================== LCARS Color Palette ======================== -->
+    <!-- ======================== LCARS Classic Color Palette ======================== -->
     
-    <!-- Primary Colors (Gold/Tan family) -->
-    <Color x:Key="LcarsGold">#FFD39D4E</Color>
-    <Color x:Key="LcarsGoldLight">#FFECB84E</Color>
-    <Color x:Key="LcarsTan">#FFC4A661</Color>
-    <Color x:Key="LcarsTanLight">#FFDBC597</Color>
-    <Color x:Key="LcarsOrange">#FFCC6633</Color>
+    <!-- Primary Classic Colors -->
+    <Color x:Key="LcarsAfricanViolet">#FFCC99FF</Color>
+    <Color x:Key="LcarsAlmond">#FFFFAA00</Color>
+    <Color x:Key="LcarsClassicBlue">#FF5566FF</Color>
+    <Color x:Key="LcarsButterscotch">#FFFF9966</Color>
+    <Color x:Key="LcarsClassicGold">#FFFFCC00</Color>
+    <Color x:Key="LcarsGoldenOrange">#FFFF9900</Color>
+    <Color x:Key="LcarsClassicGray">#FF666688</Color>
+    <Color x:Key="LcarsClassicGreen">#FF99CC33</Color>
+    <Color x:Key="LcarsIce">#FF99CCFF</Color>
+    <Color x:Key="LcarsLilac">#FFCC55FF</Color>
+    <Color x:Key="LcarsMagenta">#FFCC5599</Color>
+    <Color x:Key="LcarsMars">#FF990011</Color>
+    <Color x:Key="LcarsClassicOrange">#FFCC5500</Color>
+    <Color x:Key="LcarsClassicPeach">#FFFF8855</Color>
+    <Color x:Key="LcarsClassicRed">#FFCC4444</Color>
+    <Color x:Key="LcarsSky">#FFAAAAFF</Color>
+    <Color x:Key="LcarsSunflower">#FFFFCC99</Color>
+    <Color x:Key="LcarsTomato">#FFFF5555</Color>
+    <Color x:Key="LcarsVioletCreme">#FFDDBBFF</Color>
     
-    <!-- Secondary Colors (Peach/Coral family) -->
-    <Color x:Key="LcarsPeach">#FFFF9966</Color>
-    <Color x:Key="LcarsCoral">#FFFF7744</Color>
-    <Color x:Key="LcarsSalmon">#FFFF9F80</Color>
+    <!-- Pane Header Colors (User requested) -->
+    <Color x:Key="LcarsPaneOrange">#FFCC5500</Color>
+    <Color x:Key="LcarsPaneBlue">#FF5566FF</Color>
+    <Color x:Key="LcarsPanePurple">#FF9966CC</Color>
+    <Color x:Key="LcarsPaneTeal">#FF339999</Color>
     
-    <!-- Tertiary Colors (Lavender/Purple family) -->
-    <Color x:Key="LcarsLavender">#FFCC99CC</Color>
-    <Color x:Key="LcarsPurple">#FF9977AA</Color>
-    <Color x:Key="LcarsViolet">#FF9999CC</Color>
+    <!-- Starfleet Core Colors -->
+    <Color x:Key="StarfleetBlue">#FF1B4F8F</Color>
+    <Color x:Key="CommandGold">#FFFFD700</Color>
+    <Color x:Key="ScienceTeal">#FF008080</Color>
+    <Color x:Key="OperationsYellow">#FFFFCC00</Color>
+    <Color x:Key="EngineeringRed">#FFFF0000</Color>
+    <Color x:Key="TacticalOrange">#FFFF6600</Color>
     
-    <!-- Blue family (matching Light theme header blue) -->
-    <Color x:Key="LcarsBlue">#FF0078D4</Color>
-    <Color x:Key="LcarsBlueDark">#FF005A9E</Color>
-    <Color x:Key="LcarsBlueLight">#FF1E90FF</Color>
-    <Color x:Key="LcarsCyan">#FF00B4D8</Color>
+    <!-- Legacy LCARS Colors (for compatibility) -->
+    <Color x:Key="LcarsGold">#FFFFD700</Color>
+    <Color x:Key="LcarsGoldLight">#FFFFDD44</Color>
+    <Color x:Key="LcarsTan">#FFFFCC00</Color>
+    <Color x:Key="LcarsTanLight">#FFFFDD66</Color>
+    <Color x:Key="LcarsOrange">#FFFF6600</Color>
+    
+    <!-- Secondary Colors -->
+    <Color x:Key="LcarsPeach">#FFFF8855</Color>
+    <Color x:Key="LcarsCoral">#FFFF6600</Color>
+    <Color x:Key="LcarsSalmon">#FFFF9966</Color>
+    
+    <!-- Tertiary Colors -->
+    <Color x:Key="LcarsLavender">#FFCC99FF</Color>
+    <Color x:Key="LcarsPurple">#FFCC55FF</Color>
+    <Color x:Key="LcarsViolet">#FF5588FF</Color>
+    
+    <!-- Blue family -->
+    <Color x:Key="LcarsBlue">#FF5588FF</Color>
+    <Color x:Key="LcarsBlueDark">#FF1B4F8F</Color>
+    <Color x:Key="LcarsBlueLight">#FF99CCFF</Color>
+    <Color x:Key="LcarsCyan">#FF008080</Color>
     
     <!-- Red/Alert Colors -->
-    <Color x:Key="LcarsRed">#FFCC3333</Color>
-    <Color x:Key="LcarsRedAlert">#FFFF3333</Color>
+    <Color x:Key="LcarsRed">#FFCC4444</Color>
+    <Color x:Key="LcarsRedAlert">#FFFF5555</Color>
     
     <!-- Green Colors -->
-    <Color x:Key="LcarsGreen">#FF66CC66</Color>
-    <Color x:Key="LcarsGreenLight">#FF99FF99</Color>
+    <Color x:Key="LcarsGreen">#FF99CC33</Color>
+    <Color x:Key="LcarsGreenLight">#FFBBDD66</Color>
     
     <!-- Neutrals -->
     <Color x:Key="LcarsBlack">#FF000000</Color>
     <Color x:Key="LcarsBlackLight">#FF1A1A1A</Color>
     <Color x:Key="LcarsGray">#FF333333</Color>
-    <Color x:Key="LcarsGrayLight">#FF666666</Color>
+    <Color x:Key="LcarsGrayLight">#FF666688</Color>
     <Color x:Key="LcarsWhite">#FFFFFFFF</Color>
     
     <!-- ======================== LCARS Brushes ======================== -->
     
+    <!-- Classic LCARS Color Brushes -->
+    <SolidColorBrush x:Key="LcarsAfricanVioletBrush" Color="{StaticResource LcarsAfricanViolet}"/>
+    <SolidColorBrush x:Key="LcarsAlmondBrush" Color="{StaticResource LcarsAlmond}"/>
+    <SolidColorBrush x:Key="LcarsClassicBlueBrush" Color="{StaticResource LcarsClassicBlue}"/>
+    <SolidColorBrush x:Key="LcarsButterscotchBrush" Color="{StaticResource LcarsButterscotch}"/>
+    <SolidColorBrush x:Key="LcarsClassicGoldBrush" Color="{StaticResource LcarsClassicGold}"/>
+    <SolidColorBrush x:Key="LcarsGoldenOrangeBrush" Color="{StaticResource LcarsGoldenOrange}"/>
+    <SolidColorBrush x:Key="LcarsClassicGrayBrush" Color="{StaticResource LcarsClassicGray}"/>
+    <SolidColorBrush x:Key="LcarsClassicGreenBrush" Color="{StaticResource LcarsClassicGreen}"/>
+    <SolidColorBrush x:Key="LcarsIceBrush" Color="{StaticResource LcarsIce}"/>
+    <SolidColorBrush x:Key="LcarsLilacBrush" Color="{StaticResource LcarsLilac}"/>
+    <SolidColorBrush x:Key="LcarsMagentaBrush" Color="{StaticResource LcarsMagenta}"/>
+    <SolidColorBrush x:Key="LcarsMarsBrush" Color="{StaticResource LcarsMars}"/>
+    <SolidColorBrush x:Key="LcarsClassicOrangeBrush" Color="{StaticResource LcarsClassicOrange}"/>
+    <SolidColorBrush x:Key="LcarsClassicPeachBrush" Color="{StaticResource LcarsClassicPeach}"/>
+    <SolidColorBrush x:Key="LcarsClassicRedBrush" Color="{StaticResource LcarsClassicRed}"/>
+    <SolidColorBrush x:Key="LcarsSkyBrush" Color="{StaticResource LcarsSky}"/>
+    <SolidColorBrush x:Key="LcarsSunflowerBrush" Color="{StaticResource LcarsSunflower}"/>
+    <SolidColorBrush x:Key="LcarsTomatoBrush" Color="{StaticResource LcarsTomato}"/>
+    <SolidColorBrush x:Key="LcarsVioletCremeBrush" Color="{StaticResource LcarsVioletCreme}"/>
+    
+    <!-- Starfleet Core Brushes -->
+    <SolidColorBrush x:Key="StarfleetBlueBrush" Color="{StaticResource StarfleetBlue}"/>
+    <SolidColorBrush x:Key="CommandGoldBrush" Color="{StaticResource CommandGold}"/>
+    <SolidColorBrush x:Key="ScienceTealBrush" Color="{StaticResource ScienceTeal}"/>
+    <SolidColorBrush x:Key="OperationsYellowBrush" Color="{StaticResource OperationsYellow}"/>
+    <SolidColorBrush x:Key="EngineeringRedBrush" Color="{StaticResource EngineeringRed}"/>
+    <SolidColorBrush x:Key="TacticalOrangeBrush" Color="{StaticResource TacticalOrange}"/>
+    
     <!-- Primary Brushes -->
-    <SolidColorBrush x:Key="LcarsGoldBrush" Color="{StaticResource LcarsGold}"/>
+    <SolidColorBrush x:Key="LcarsGoldBrush" Color="{StaticResource LcarsClassicGold}"/>
     <SolidColorBrush x:Key="LcarsGoldLightBrush" Color="{StaticResource LcarsGoldLight}"/>
-    <SolidColorBrush x:Key="LcarsTanBrush" Color="{StaticResource LcarsTan}"/>
-    <SolidColorBrush x:Key="LcarsTanLightBrush" Color="{StaticResource LcarsTanLight}"/>
-    <SolidColorBrush x:Key="LcarsOrangeBrush" Color="{StaticResource LcarsOrange}"/>
+    <SolidColorBrush x:Key="LcarsTanBrush" Color="{StaticResource LcarsAlmond}"/>
+    <SolidColorBrush x:Key="LcarsTanLightBrush" Color="{StaticResource LcarsSunflower}"/>
+    <SolidColorBrush x:Key="LcarsOrangeBrush" Color="{StaticResource LcarsClassicOrange}"/>
+    
+    <!-- Pane Header Brushes (for GroupBox variation) -->
+    <SolidColorBrush x:Key="LcarsPaneOrangeBrush" Color="{StaticResource LcarsPaneOrange}"/>
+    <SolidColorBrush x:Key="LcarsPaneBlueBrush" Color="{StaticResource LcarsPaneBlue}"/>
+    <SolidColorBrush x:Key="LcarsPanePurpleBrush" Color="{StaticResource LcarsPanePurple}"/>
+    <SolidColorBrush x:Key="LcarsPaneTealBrush" Color="{StaticResource LcarsPaneTeal}"/>
     
     <!-- Secondary Brushes -->
-    <SolidColorBrush x:Key="LcarsPeachBrush" Color="{StaticResource LcarsPeach}"/>
-    <SolidColorBrush x:Key="LcarsCoralBrush" Color="{StaticResource LcarsCoral}"/>
+    <SolidColorBrush x:Key="LcarsPeachBrush" Color="{StaticResource LcarsClassicPeach}"/>
+    <SolidColorBrush x:Key="LcarsCoralBrush" Color="{StaticResource LcarsButterscotch}"/>
     <SolidColorBrush x:Key="LcarsSalmonBrush" Color="{StaticResource LcarsSalmon}"/>
     
     <!-- Tertiary Brushes -->
-    <SolidColorBrush x:Key="LcarsLavenderBrush" Color="{StaticResource LcarsLavender}"/>
-    <SolidColorBrush x:Key="LcarsPurpleBrush" Color="{StaticResource LcarsPurple}"/>
-    <SolidColorBrush x:Key="LcarsVioletBrush" Color="{StaticResource LcarsViolet}"/>
+    <SolidColorBrush x:Key="LcarsLavenderBrush" Color="{StaticResource LcarsAfricanViolet}"/>
+    <SolidColorBrush x:Key="LcarsPurpleBrush" Color="{StaticResource LcarsLilac}"/>
+    <SolidColorBrush x:Key="LcarsVioletBrush" Color="{StaticResource LcarsVioletCreme}"/>
     
     <!-- Blue Brushes -->
-    <SolidColorBrush x:Key="LcarsBlueBrush" Color="{StaticResource LcarsBlue}"/>
-    <SolidColorBrush x:Key="LcarsBlueDarkBrush" Color="{StaticResource LcarsBlueDark}"/>
-    <SolidColorBrush x:Key="LcarsBlueLightBrush" Color="{StaticResource LcarsBlueLight}"/>
-    <SolidColorBrush x:Key="LcarsCyanBrush" Color="{StaticResource LcarsCyan}"/>
+    <SolidColorBrush x:Key="LcarsBlueBrush" Color="{StaticResource LcarsClassicBlue}"/>
+    <SolidColorBrush x:Key="LcarsBlueDarkBrush" Color="{StaticResource StarfleetBlue}"/>
+    <SolidColorBrush x:Key="LcarsBlueLightBrush" Color="{StaticResource LcarsIce}"/>
+    <SolidColorBrush x:Key="LcarsCyanBrush" Color="{StaticResource ScienceTeal}"/>
     
     <!-- Alert Brushes -->
-    <SolidColorBrush x:Key="LcarsRedBrush" Color="{StaticResource LcarsRed}"/>
-    <SolidColorBrush x:Key="LcarsRedAlertBrush" Color="{StaticResource LcarsRedAlert}"/>
-    <SolidColorBrush x:Key="LcarsGreenBrush" Color="{StaticResource LcarsGreen}"/>
+    <SolidColorBrush x:Key="LcarsRedBrush" Color="{StaticResource LcarsClassicRed}"/>
+    <SolidColorBrush x:Key="LcarsRedAlertBrush" Color="{StaticResource LcarsTomato}"/>
+    <SolidColorBrush x:Key="LcarsGreenBrush" Color="{StaticResource LcarsClassicGreen}"/>
     <SolidColorBrush x:Key="LcarsGreenLightBrush" Color="{StaticResource LcarsGreenLight}"/>
     
     <!-- Neutral Brushes -->
@@ -357,7 +440,7 @@
 
     <!-- ======================== Default Control Overrides ======================== -->
     
-    <!-- Standard Button Override - Gold buttons turn blue on hover -->
+    <!-- Standard Button Override - Varied colors based on LCARS palette -->
     <Style TargetType="Button">
         <Setter Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
@@ -381,19 +464,140 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsBlueBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsIceBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsBlueDarkBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsClassicBlueBrush}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGrayLightBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsClassicGrayBrush}"/>
                             <Setter Property="Foreground" Value="{StaticResource LcarsGrayBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <!-- Color variation based on button content keywords -->
+        <Style.Triggers>
+            <!-- Transform/Rotate buttons - Butterscotch -->
+            <Trigger Property="Content" Value="↻ Rotate Left">
+                <Setter Property="Background" Value="{StaticResource LcarsButterscotchBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="↺ Rotate Right">
+                <Setter Property="Background" Value="{StaticResource LcarsButterscotchBrush}"/>
+            </Trigger>
+            <!-- Flip buttons - Peach -->
+            <Trigger Property="Content" Value="↔ Flip H">
+                <Setter Property="Background" Value="{StaticResource LcarsClassicPeachBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="↕ Flip V">
+                <Setter Property="Background" Value="{StaticResource LcarsClassicPeachBrush}"/>
+            </Trigger>
+            <!-- Effects - Lilac/Purple -->
+            <Trigger Property="Content" Value="◐ Grayscale">
+                <Setter Property="Background" Value="{StaticResource LcarsLilacBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="◑ Invert">
+                <Setter Property="Background" Value="{StaticResource LcarsAfricanVioletBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="☀ Brightness">
+                <Setter Property="Background" Value="{StaticResource LcarsSunflowerBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="◐ Contrast">
+                <Setter Property="Background" Value="{StaticResource LcarsVioletCremeBrush}"/>
+            </Trigger>
+            <!-- Blur/Sharpen - Ice Blue -->
+            <Trigger Property="Content" Value="◌ Blur">
+                <Setter Property="Background" Value="{StaticResource LcarsIceBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="◉ Sharpen">
+                <Setter Property="Background" Value="{StaticResource LcarsSkyBrush}"/>
+            </Trigger>
+            <!-- Crop/Resize - Green -->
+            <Trigger Property="Content" Value="✂ Crop">
+                <Setter Property="Background" Value="{StaticResource LcarsClassicGreenBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="⤢ Resize">
+                <Setter Property="Background" Value="{StaticResource LcarsClassicGreenBrush}"/>
+            </Trigger>
+            <!-- Draw/Annotate - various colors -->
+            <Trigger Property="Content" Value="→ Arrow">
+                <Setter Property="Background" Value="{StaticResource LcarsMagentaBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="□ Rect">
+                <Setter Property="Background" Value="{StaticResource LcarsClassicOrangeBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="○ Ellipse">
+                <Setter Property="Background" Value="{StaticResource LcarsAlmondBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="T Text">
+                <Setter Property="Background" Value="{StaticResource LcarsClassicBlueBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="▧ Highlight">
+                <Setter Property="Background" Value="{StaticResource LcarsSunflowerBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="✎ Draw">
+                <Setter Property="Background" Value="{StaticResource LcarsLilacBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="▮ Fill">
+                <Setter Property="Background" Value="{StaticResource LcarsAfricanVioletBrush}"/>
+            </Trigger>
+            <!-- Advanced tools - varied -->
+            <Trigger Property="Content" Value="◉ Color Picker">
+                <Setter Property="Background" Value="{StaticResource LcarsClassicBlueBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="⬛ Replace Color">
+                <Setter Property="Background" Value="{StaticResource LcarsMagentaBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="✂ Remove Background">
+                <Setter Property="Background" Value="{StaticResource LcarsClassicGreenBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="✦ Magic Select">
+                <Setter Property="Background" Value="{StaticResource LcarsLilacBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="↩ Undo">
+                <Setter Property="Background" Value="{StaticResource LcarsIceBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="⟲ Reset">
+                <Setter Property="Background" Value="{StaticResource LcarsTomatoBrush}"/>
+            </Trigger>
+            <!-- Security/Hide actions - Tactical Orange/Red -->
+            <Trigger Property="Content" Value="Hide">
+                <Setter Property="Background" Value="{StaticResource LcarsClassicOrangeBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="Unhide">
+                <Setter Property="Background" Value="{StaticResource LcarsClassicGreenBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="ACL">
+                <Setter Property="Background" Value="{StaticResource LcarsClassicBlueBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="EFS">
+                <Setter Property="Background" Value="{StaticResource LcarsLilacBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="Remove">
+                <Setter Property="Background" Value="{StaticResource LcarsTomatoBrush}"/>
+            </Trigger>
+            <!-- Action buttons -->
+            <Trigger Property="Content" Value="Browse">
+                <Setter Property="Background" Value="{StaticResource LcarsButterscotchBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="Scan">
+                <Setter Property="Background" Value="{StaticResource LcarsClassicGreenBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="Cancel">
+                <Setter Property="Background" Value="{StaticResource LcarsTomatoBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="Select All">
+                <Setter Property="Background" Value="{StaticResource LcarsClassicBlueBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
+            </Trigger>
+            <Trigger Property="Content" Value="Select None">
+                <Setter Property="Background" Value="{StaticResource LcarsClassicGrayBrush}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <!-- TextBox -->
@@ -757,26 +961,59 @@
                             <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
                             <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
                         </Trigger>
-                        <!-- Unselected tabs: gray → tan on hover -->
+                        <!-- Unselected tabs: gray → varied color on hover -->
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsTanBrush}"/>
                             <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
                         </Trigger>
-                        <!-- Selected tabs: gold → blue on hover -->
+                        <!-- Selected tabs: gold → ice on hover -->
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
                                 <Condition Property="IsSelected" Value="True"/>
                                 <Condition Property="IsMouseOver" Value="True"/>
                             </MultiTrigger.Conditions>
-                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsBlueBrush}"/>
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource LcarsIceBrush}"/>
                         </MultiTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <!-- TabItem color variations based on header content -->
+        <Style.Triggers>
+            <!-- Main tabs - distinct colors when selected -->
+            <Trigger Property="Header" Value="📁 File Management">
+                <Setter Property="Tag" Value="{StaticResource LcarsButterscotchBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="🎬 Multimedia">
+                <Setter Property="Tag" Value="{StaticResource LcarsAlmondBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="💻 System">
+                <Setter Property="Tag" Value="{StaticResource LcarsClassicBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="🔒 Security">
+                <Setter Property="Tag" Value="{StaticResource LcarsClassicOrangeBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="📋 Metadata">
+                <Setter Property="Tag" Value="{StaticResource LcarsLilacBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="🔧 Tools">
+                <Setter Property="Tag" Value="{StaticResource LcarsClassicGreenBrush}"/>
+            </Trigger>
+            <!-- Sub-tabs in Multimedia -->
+            <Trigger Property="Header" Value="🎵 Audio">
+                <Setter Property="Tag" Value="{StaticResource LcarsMagentaBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="🖼️ Image">
+                <Setter Property="Tag" Value="{StaticResource LcarsAfricanVioletBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="🎬 Video">
+                <Setter Property="Tag" Value="{StaticResource LcarsClassicPeachBrush}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
-    <!-- GroupBox -->
+    <!-- GroupBox with varied header colors based on content -->
+    <!-- Default: Orange (#CC5500), Output/Results/Preview panes: Blue (#5566FF) -->
     <Style TargetType="GroupBox">
         <Setter Property="Background" Value="{StaticResource LcarsBlackLightBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource LcarsWhiteBrush}"/>
@@ -784,6 +1021,7 @@
         <Setter Property="BorderThickness" Value="2"/>
         <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
         <Setter Property="Padding" Value="8"/>
+        <Setter Property="Tag" Value="{StaticResource LcarsPaneOrangeBrush}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="GroupBox">
@@ -793,8 +1031,8 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
                         <!-- LCARS-style header bar with rounded left end -->
-                        <Border Grid.Row="0"
-                                Background="{StaticResource LcarsGoldBrush}"
+                        <Border x:Name="headerBorder" Grid.Row="0"
+                                Background="{TemplateBinding Tag}"
                                 CornerRadius="12,4,4,0"
                                 Padding="16,4,8,4">
                             <ContentPresenter ContentSource="Header"
@@ -814,6 +1052,394 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <!-- Color variation based on header content -->
+        <Style.Triggers>
+            <!-- Transform sections - Butterscotch -->
+            <Trigger Property="Header" Value="Transform">
+                <Setter Property="Tag" Value="{StaticResource LcarsButterscotchBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Transform:">
+                <Setter Property="Tag" Value="{StaticResource LcarsButterscotchBrush}"/>
+            </Trigger>
+            <!-- Tools sections - Lilac -->
+            <Trigger Property="Header" Value="Tools">
+                <Setter Property="Tag" Value="{StaticResource LcarsLilacBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Tools:">
+                <Setter Property="Tag" Value="{StaticResource LcarsLilacBrush}"/>
+            </Trigger>
+            <!-- Effects - African Violet -->
+            <Trigger Property="Header" Value="Effects">
+                <Setter Property="Tag" Value="{StaticResource LcarsAfricanVioletBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Effects:">
+                <Setter Property="Tag" Value="{StaticResource LcarsAfricanVioletBrush}"/>
+            </Trigger>
+            <!-- Annotate - Peach -->
+            <Trigger Property="Header" Value="Annotate">
+                <Setter Property="Tag" Value="{StaticResource LcarsClassicPeachBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Annotate:">
+                <Setter Property="Tag" Value="{StaticResource LcarsClassicPeachBrush}"/>
+            </Trigger>
+            <!-- Advanced - Blue -->
+            <Trigger Property="Header" Value="Advanced">
+                <Setter Property="Tag" Value="{StaticResource LcarsClassicBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Advanced:">
+                <Setter Property="Tag" Value="{StaticResource LcarsClassicBlueBrush}"/>
+            </Trigger>
+            <!-- Settings - Ice -->
+            <Trigger Property="Header" Value="Settings">
+                <Setter Property="Tag" Value="{StaticResource LcarsIceBrush}"/>
+            </Trigger>
+            <!-- Image Source/Canvas - Orange tones -->
+            <Trigger Property="Header" Value="Image Source">
+                <Setter Property="Tag" Value="{StaticResource LcarsClassicOrangeBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Image Canvas">
+                <Setter Property="Tag" Value="{StaticResource LcarsAlmondBrush}"/>
+            </Trigger>
+            <!-- Save/Output - Green -->
+            <Trigger Property="Header" Value="Save Options">
+                <Setter Property="Tag" Value="{StaticResource LcarsClassicGreenBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Output Directory">
+                <Setter Property="Tag" Value="{StaticResource LcarsClassicGreenBrush}"/>
+            </Trigger>
+            <!-- Download - Magenta -->
+            <Trigger Property="Header" Value="Download Options">
+                <Setter Property="Tag" Value="{StaticResource LcarsMagentaBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Download Queue">
+                <Setter Property="Tag" Value="{StaticResource LcarsLilacBrush}"/>
+            </Trigger>
+            <!-- URL/Website - Sunflower -->
+            <Trigger Property="Header" Value="Website URL">
+                <Setter Property="Tag" Value="{StaticResource LcarsSunflowerBrush}"/>
+            </Trigger>
+            
+            <!-- === BOTTOM SECTION PANES - Blue (#5566FF) === -->
+            <!-- Preview/Output sections (bottom of views) -->
+            <Trigger Property="Header" Value="Preview">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Files to be Cleaned">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Running Processes">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Registry Issues">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Scheduled Tasks">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Directory Hierarchy">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Summary">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="All Metadata Tags">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Files and Metadata">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Image Preview">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Analysis Results">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Extracted Features">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Extracted Artifacts">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="IOC Matches">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Registry Differences">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Network Connections">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Parsed Packets">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Collected Artifacts">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Discovered Tasks">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneBlueBrush}"/>
+            </Trigger>
+            
+            <!-- === TOP SECTION / INPUT PANES - Orange (#CC5500) (default) + Teal variations === -->
+            <!-- Folder/Selection sections (top of views) - use Teal for variety -->
+            <Trigger Property="Header" Value="Folder &amp; Scope">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneTealBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Folder Selection">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneTealBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Select Items to Clean">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneTealBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Disk Space Analysis">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneTealBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Directory to Analyze">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneTealBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Analysis Mode">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneTealBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Process Manager">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneTealBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Registry Cleaner">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneTealBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Scheduled Tasks Manager">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneTealBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="📁 Target Selection">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneTealBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="File">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneTealBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Folder">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneTealBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Media File">
+                <Setter Property="Tag" Value="{StaticResource LcarsPaneTealBrush}"/>
+            </Trigger>
+            
+            <!-- === MIDDLE SECTION / OPTIONS PANES - Purple (#9966CC) === -->
+            <Trigger Property="Header" Value="Batch Renaming Options (All operations applied in order)">
+                <Setter Property="Tag" Value="{StaticResource LcarsPanePurpleBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Options">
+                <Setter Property="Tag" Value="{StaticResource LcarsPanePurpleBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="⚙️ Options">
+                <Setter Property="Tag" Value="{StaticResource LcarsPanePurpleBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="🔒 Wipe Level">
+                <Setter Property="Tag" Value="{StaticResource LcarsPanePurpleBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="📋 Wipe Log">
+                <Setter Property="Tag" Value="{StaticResource LcarsPanePurpleBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Trim Settings">
+                <Setter Property="Tag" Value="{StaticResource LcarsPanePurpleBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Actions">
+                <Setter Property="Tag" Value="{StaticResource LcarsPanePurpleBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Audio Trim - Powered by FFmpeg">
+                <Setter Property="Tag" Value="{StaticResource LcarsPanePurpleBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Quick Image Operations">
+                <Setter Property="Tag" Value="{StaticResource LcarsPanePurpleBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Compare Snapshots">
+                <Setter Property="Tag" Value="{StaticResource LcarsPanePurpleBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Features">
+                <Setter Property="Tag" Value="{StaticResource LcarsPanePurpleBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Features to Extract">
+                <Setter Property="Tag" Value="{StaticResource LcarsPanePurpleBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Core Artifacts">
+                <Setter Property="Tag" Value="{StaticResource LcarsPanePurpleBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Additional Artifacts">
+                <Setter Property="Tag" Value="{StaticResource LcarsPanePurpleBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Ingest Pipelines">
+                <Setter Property="Tag" Value="{StaticResource LcarsPanePurpleBrush}"/>
+            </Trigger>
+            
+            <!-- === WORKSPACE/CONFIGURATION PANES - Classic Blue (Ice) === -->
+            <Trigger Property="Header" Value="VLC Configuration">
+                <Setter Property="Tag" Value="{StaticResource LcarsIceBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="VLC Workspace">
+                <Setter Property="Tag" Value="{StaticResource LcarsIceBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Audacity Configuration">
+                <Setter Property="Tag" Value="{StaticResource LcarsIceBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Audacity Workspace">
+                <Setter Property="Tag" Value="{StaticResource LcarsIceBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="GIMP Configuration">
+                <Setter Property="Tag" Value="{StaticResource LcarsIceBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="GIMP Workspace">
+                <Setter Property="Tag" Value="{StaticResource LcarsIceBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Shotcut Configuration">
+                <Setter Property="Tag" Value="{StaticResource LcarsIceBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Shotcut Workspace">
+                <Setter Property="Tag" Value="{StaticResource LcarsIceBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="FreeCAD Configuration">
+                <Setter Property="Tag" Value="{StaticResource LcarsIceBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="FreeCAD Workspace">
+                <Setter Property="Tag" Value="{StaticResource LcarsIceBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="API Configuration">
+                <Setter Property="Tag" Value="{StaticResource LcarsIceBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Azure Data Explorer / Log Analytics Connection">
+                <Setter Property="Tag" Value="{StaticResource LcarsIceBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="OpenSearch Connection">
+                <Setter Property="Tag" Value="{StaticResource LcarsIceBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="📊 Local Database">
+                <Setter Property="Tag" Value="{StaticResource LcarsIceBrush}"/>
+            </Trigger>
+            
+            <!-- === FORENSICS/SECURITY PANES - Mars (Deep Red) === -->
+            <Trigger Property="Header" Value="💾 WinPmem - Full Memory Acquisition">
+                <Setter Property="Tag" Value="{StaticResource LcarsMarsBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="🧲 Magnet RAM Capture - Signed Driver (Recommended)">
+                <Setter Property="Tag" Value="{StaticResource LcarsMarsBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="📋 ProcDump - Process Memory Dump (Sysinternals)">
+                <Setter Property="Tag" Value="{StaticResource LcarsMarsBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="🔍 Memory Analysis (Volatility 3)">
+                <Setter Property="Tag" Value="{StaticResource LcarsMarsBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Volatility 3 Plugins">
+                <Setter Property="Tag" Value="{StaticResource LcarsMarsBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="KAPE / EZ Tools Configuration">
+                <Setter Property="Tag" Value="{StaticResource LcarsMarsBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="🕐 Plaso (log2timeline) - Super-Timeline">
+                <Setter Property="Tag" Value="{StaticResource LcarsMarsBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="🦖 Velociraptor - Fleet Triage">
+                <Setter Property="Tag" Value="{StaticResource LcarsMarsBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="🔧 oletools (Office Macro Analysis)">
+                <Setter Property="Tag" Value="{StaticResource LcarsMarsBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="📄 PDF Analysis">
+                <Setter Property="Tag" Value="{StaticResource LcarsMarsBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="bulk_extractor - Feature Extraction">
+                <Setter Property="Tag" Value="{StaticResource LcarsMarsBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Document Metadata Extraction (FOCA-style)">
+                <Setter Property="Tag" Value="{StaticResource LcarsMarsBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="🗓️ Scheduled Tasks Scanner">
+                <Setter Property="Tag" Value="{StaticResource LcarsMarsBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="🌐 Browser Artifact Extraction">
+                <Setter Property="Tag" Value="{StaticResource LcarsMarsBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="🎯 Indicators of Compromise Scanner">
+                <Setter Property="Tag" Value="{StaticResource LcarsMarsBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="📊 Registry Snapshot &amp; Comparison">
+                <Setter Property="Tag" Value="{StaticResource LcarsMarsBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="📡 Network Packet Capture Parser">
+                <Setter Property="Tag" Value="{StaticResource LcarsMarsBrush}"/>
+            </Trigger>
+            
+            <!-- === SETTINGS PANES - Almond (warm) === -->
+            <Trigger Property="Header" Value="Startup">
+                <Setter Property="Tag" Value="{StaticResource LcarsAlmondBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="File Operations">
+                <Setter Property="Tag" Value="{StaticResource LcarsAlmondBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Logging">
+                <Setter Property="Tag" Value="{StaticResource LcarsAlmondBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Theme">
+                <Setter Property="Tag" Value="{StaticResource LcarsAfricanVioletBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Aero Glass Effect (Windows 10/11)">
+                <Setter Property="Tag" Value="{StaticResource LcarsAfricanVioletBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Display">
+                <Setter Property="Tag" Value="{StaticResource LcarsAfricanVioletBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Auto Updates">
+                <Setter Property="Tag" Value="{StaticResource LcarsButterscotchBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Current Version">
+                <Setter Property="Tag" Value="{StaticResource LcarsButterscotchBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Backup Settings">
+                <Setter Property="Tag" Value="{StaticResource LcarsButterscotchBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Auto Backup">
+                <Setter Property="Tag" Value="{StaticResource LcarsButterscotchBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Data">
+                <Setter Property="Tag" Value="{StaticResource LcarsButterscotchBrush}"/>
+            </Trigger>
+            
+            <!-- === VISUALIZER SETTINGS - Magenta === -->
+            <Trigger Property="Header" Value="Visualizer Enable">
+                <Setter Property="Tag" Value="{StaticResource LcarsMagentaBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Visualizer Appearance">
+                <Setter Property="Tag" Value="{StaticResource LcarsMagentaBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Visualizer Colors">
+                <Setter Property="Tag" Value="{StaticResource LcarsMagentaBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Performance">
+                <Setter Property="Tag" Value="{StaticResource LcarsMagentaBrush}"/>
+            </Trigger>
+            
+            <!-- === AUDIO PLAYER SETTINGS - Lilac === -->
+            <Trigger Property="Header" Value="🎧 Auto DJ Mode">
+                <Setter Property="Tag" Value="{StaticResource LcarsLilacBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="📊 Last.fm Scrobbling">
+                <Setter Property="Tag" Value="{StaticResource LcarsLilacBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="🔄 Gapless Playback">
+                <Setter Property="Tag" Value="{StaticResource LcarsLilacBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="⌨️ Media Keys">
+                <Setter Property="Tag" Value="{StaticResource LcarsLilacBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Auto-Detection">
+                <Setter Property="Tag" Value="{StaticResource LcarsLilacBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="File Information">
+                <Setter Property="Tag" Value="{StaticResource LcarsLilacBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="Download Applications">
+                <Setter Property="Tag" Value="{StaticResource LcarsLilacBrush}"/>
+            </Trigger>
+            <Trigger Property="Header" Value="About Multimedia Editor">
+                <Setter Property="Tag" Value="{StaticResource LcarsLilacBrush}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <!-- ListBox -->

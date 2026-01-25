@@ -1,3 +1,23 @@
+/*
+ * DEPRECATED: This service has been replaced by EnhancedAudioPlayerService.
+ * The enhanced service uses NAudio for advanced features like:
+ * - Real 10-band parametric EQ
+ * - Gapless playback
+ * - ReplayGain support
+ * - Playback speed control (0.25x-4x)
+ * - Media key support
+ * - LRC lyrics parsing
+ * - Last.fm scrobbling
+ * 
+ * This code is commented out for reference and can be removed once
+ * EnhancedAudioPlayerService is fully validated.
+ * 
+ * To re-enable: Uncomment all code below and update dependent files:
+ * - AudioLibraryViewModel.cs
+ * - AudioLibraryService.cs
+ * - AudioVisualizerView.xaml.cs
+ */
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,6 +30,7 @@ using PlatypusTools.Core.Models.Audio;
 
 namespace PlatypusTools.UI.Services;
 
+/*
 /// <summary>
 /// Audio player service using Windows Media Player for playback.
 /// Supports queue management, shuffle/repeat, and visualization data.
@@ -968,3 +989,4 @@ public class AudioPlayerService
         public long Duration { get; set; }
     }
 }
+*/

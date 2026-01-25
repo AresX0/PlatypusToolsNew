@@ -112,6 +112,23 @@ namespace PlatypusTools.UI.Services
         public Visibility ForensicsAnalyzer => GetVisibility("Security.ForensicsAnalyzer");
         public Visibility SecureWipe => GetVisibility("Security.SecureWipe");
         public Visibility AdvancedForensics => GetVisibility("Security.AdvancedForensics");
+        
+        // Advanced Forensics sub-tabs
+        public Visibility AdvancedForensicsMemory => GetVisibility("Security.AdvancedForensics.Memory");
+        public Visibility AdvancedForensicsArtifacts => GetVisibility("Security.AdvancedForensics.Artifacts");
+        public Visibility AdvancedForensicsTimeline => GetVisibility("Security.AdvancedForensics.Timeline");
+        public Visibility AdvancedForensicsKusto => GetVisibility("Security.AdvancedForensics.Kusto");
+        public Visibility AdvancedForensicsLocalKQL => GetVisibility("Security.AdvancedForensics.LocalKQL");
+        public Visibility AdvancedForensicsMalware => GetVisibility("Security.AdvancedForensics.Malware");
+        public Visibility AdvancedForensicsExtract => GetVisibility("Security.AdvancedForensics.Extract");
+        public Visibility AdvancedForensicsOpenSearch => GetVisibility("Security.AdvancedForensics.OpenSearch");
+        public Visibility AdvancedForensicsOSINT => GetVisibility("Security.AdvancedForensics.OSINT");
+        public Visibility AdvancedForensicsSchedule => GetVisibility("Security.AdvancedForensics.Schedule");
+        public Visibility AdvancedForensicsBrowser => GetVisibility("Security.AdvancedForensics.Browser");
+        public Visibility AdvancedForensicsIOC => GetVisibility("Security.AdvancedForensics.IOC");
+        public Visibility AdvancedForensicsRegistry => GetVisibility("Security.AdvancedForensics.Registry");
+        public Visibility AdvancedForensicsPCAP => GetVisibility("Security.AdvancedForensics.PCAP");
+        public Visibility AdvancedForensicsResults => GetVisibility("Security.AdvancedForensics.Results");
 
         // Metadata
         public Visibility Metadata => GetVisibility("Metadata");

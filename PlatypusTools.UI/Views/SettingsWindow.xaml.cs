@@ -545,9 +545,11 @@ namespace PlatypusTools.UI.Views
             { "TabFileCleaner", "FileManagement.FileCleaner" },
             { "TabDuplicates", "FileManagement.Duplicates" },
             { "TabEmptyFolderScanner", "FileManagement.EmptyFolderScanner" },
+            { "TabRobocopy", "FileManagement.Robocopy" },
             
             // Multimedia
             { "TabMultimedia", "Multimedia" },
+            { "TabEnhancedAudioPlayer", "Multimedia.Audio.EnhancedAudioPlayer" },
             { "TabAudioPlayer", "Multimedia.Audio.AudioPlayer" },
             { "TabAudioTrim", "Multimedia.Audio.AudioTrim" },
             { "TabImageEdit", "Multimedia.Image.ImageEdit" },
@@ -556,6 +558,7 @@ namespace PlatypusTools.UI.Views
             { "TabIconConverter", "Multimedia.Image.IconConverter" },
             { "TabBatchWatermark", "Multimedia.Image.BatchWatermark" },
             { "TabImageScaler", "Multimedia.Image.ImageScaler" },
+            { "TabModel3DEditor", "Multimedia.Image.Model3DEditor" },
             { "TabVideoPlayer", "Multimedia.Video.VideoPlayer" },
             { "TabVideoEditor", "Multimedia.Video.VideoEditor" },
             { "TabUpscaler", "Multimedia.Video.Upscaler" },
@@ -580,6 +583,23 @@ namespace PlatypusTools.UI.Views
             { "TabFolderHider", "Security.FolderHider" },
             { "TabSystemAudit", "Security.SystemAudit" },
             { "TabForensicsAnalyzer", "Security.ForensicsAnalyzer" },
+            { "TabSecureWipe", "Security.SecureWipe" },
+            { "TabAdvancedForensics", "Security.AdvancedForensics" },
+            { "TabAdvForensicsMemory", "Security.AdvancedForensics.Memory" },
+            { "TabAdvForensicsArtifacts", "Security.AdvancedForensics.Artifacts" },
+            { "TabAdvForensicsTimeline", "Security.AdvancedForensics.Timeline" },
+            { "TabAdvForensicsKusto", "Security.AdvancedForensics.Kusto" },
+            { "TabAdvForensicsLocalKQL", "Security.AdvancedForensics.LocalKQL" },
+            { "TabAdvForensicsMalware", "Security.AdvancedForensics.Malware" },
+            { "TabAdvForensicsExtract", "Security.AdvancedForensics.Extract" },
+            { "TabAdvForensicsOpenSearch", "Security.AdvancedForensics.OpenSearch" },
+            { "TabAdvForensicsOSINT", "Security.AdvancedForensics.OSINT" },
+            { "TabAdvForensicsSchedule", "Security.AdvancedForensics.Schedule" },
+            { "TabAdvForensicsBrowser", "Security.AdvancedForensics.Browser" },
+            { "TabAdvForensicsIOC", "Security.AdvancedForensics.IOC" },
+            { "TabAdvForensicsRegistry", "Security.AdvancedForensics.Registry" },
+            { "TabAdvForensicsPCAP", "Security.AdvancedForensics.PCAP" },
+            { "TabAdvForensicsResults", "Security.AdvancedForensics.Results" },
             
             // Metadata
             { "TabMetadata", "Metadata" },
@@ -595,6 +615,9 @@ namespace PlatypusTools.UI.Views
             { "TabScreenshot", "Tools.Screenshot" },
             { "TabBootableUSB", "Tools.BootableUSB" },
             { "TabPluginManager", "Tools.PluginManager" },
+            { "TabFtpClient", "Tools.FtpClient" },
+            { "TabTerminalClient", "Tools.TerminalClient" },
+            { "TabSimpleBrowser", "Tools.SimpleBrowser" },
         };
         
         private void LoadTabVisibilitySettings()

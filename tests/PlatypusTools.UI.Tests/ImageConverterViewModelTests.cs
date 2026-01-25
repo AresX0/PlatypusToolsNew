@@ -26,7 +26,8 @@ namespace PlatypusTools.UI.Tests
             await task;
             Assert.IsFalse(vm.IsRunning);
             Assert.AreEqual(100.0, vm.Progress);
-            StringAssert.Contains(vm.Log, "Converted");
+            // Log now uses checkmark format: "✓ filename -> destname"
+            StringAssert.Contains(vm.Log, "✓");
         }
     }
 }

@@ -40,6 +40,9 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     private readonly UserLibraryService _userLibraryService;
     private CancellationTokenSource? _scanCts;
     
+    // Lyrics cache: TrackId -> Lyrics (null means already tried, no lyrics found)
+    private readonly Dictionary<string, Lyrics?> _lyricsCache = new();
+    
     #region Playback State
     
     private AudioTrack? _currentTrack;
@@ -68,9 +71,32 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         set => SetProperty(ref _albumArtImage, value);
     }
     
+    // Common album art filenames to check
+    private static readonly string[] AlbumArtFilenames = 
+    {
+        "folder.jpg", "folder.png", "cover.jpg", "cover.png", 
+        "album.jpg", "album.png", "front.jpg", "front.png",
+        "albumart.jpg", "albumart.png", "artwork.jpg", "artwork.png"
+    };
+    
     private void LoadAlbumArt(AudioTrack? track)
     {
-        if (track?.AlbumArt != null && track.AlbumArt.Length > 0)
+        if (track == null)
+        {
+            AlbumArtImage = null;
+            return;
+        }
+        
+        // STEP 1: Check for local album art file (synchronous, instant)
+        var localArt = LoadLocalAlbumArtSync(track);
+        if (localArt != null)
+        {
+            AlbumArtImage = localArt;
+            return;
+        }
+        
+        // STEP 2: Check embedded art in track
+        if (track.AlbumArt != null && track.AlbumArt.Length > 0)
         {
             try
             {
@@ -89,11 +115,62 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             catch { }
         }
         
-        // No embedded art - try to download
+        // STEP 3: No local file or embedded art - download asynchronously (will save locally)
         AlbumArtImage = null;
-        if (track != null && !string.IsNullOrEmpty(track.Artist) && !string.IsNullOrEmpty(track.Album))
+        if (!string.IsNullOrEmpty(track.Artist) && !string.IsNullOrEmpty(track.Album))
         {
             _ = DownloadAlbumArtAsync(track);
+        }
+    }
+    
+    /// <summary>
+    /// Synchronously checks for local album art files in the track's folder.
+    /// </summary>
+    private BitmapImage? LoadLocalAlbumArtSync(AudioTrack track)
+    {
+        try
+        {
+            var directory = Path.GetDirectoryName(track.FilePath);
+            if (string.IsNullOrEmpty(directory)) return null;
+            
+            // Check for common album art filenames
+            foreach (var filename in AlbumArtFilenames)
+            {
+                var artPath = Path.Combine(directory, filename);
+                if (File.Exists(artPath))
+                {
+                    return LoadImageFromFile(artPath);
+                }
+            }
+            
+            // Also check for artist-album specific file
+            var specificName = $"{track.Artist} - {track.Album}".Replace(":", "").Replace("/", "").Replace("\\", "");
+            var specificPath = Path.Combine(directory, specificName + ".jpg");
+            if (File.Exists(specificPath))
+            {
+                return LoadImageFromFile(specificPath);
+            }
+        }
+        catch { }
+        
+        return null;
+    }
+    
+    private BitmapImage? LoadImageFromFile(string path)
+    {
+        try
+        {
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.UriSource = new Uri(path);
+            image.EndInit();
+            image.Freeze();
+            return image;
+        }
+        catch
+        {
+            return null;
         }
     }
     
@@ -102,6 +179,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         try
         {
             using var httpClient = new System.Net.Http.HttpClient();
+            httpClient.Timeout = TimeSpan.FromSeconds(5); // Short timeout to avoid UI delay
             httpClient.DefaultRequestHeaders.Add("User-Agent", "PlatypusTools/1.0");
             
             // Try MusicBrainz Cover Art Archive
@@ -124,8 +202,44 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 var imageBytes = await httpClient.GetByteArrayAsync(coverUrl);
                 if (imageBytes != null && imageBytes.Length > 0)
                 {
+                    // SAVE to local folder.jpg file for instant future loading
+                    try
+                    {
+                        var directory = Path.GetDirectoryName(track.FilePath);
+                        if (!string.IsNullOrEmpty(directory))
+                        {
+                            var savePath = Path.Combine(directory, "folder.jpg");
+                            if (!File.Exists(savePath))
+                            {
+                                await File.WriteAllBytesAsync(savePath, imageBytes);
+                                System.Diagnostics.Debug.WriteLine($"Saved album art: {savePath}");
+                            }
+                        }
+                    }
+                    catch { /* Ignore save errors */ }
+                    
                     // Save to track for future use
                     track.AlbumArt = imageBytes;
+                    
+                    // Apply album art to ALL tracks in the same album (by artist + album)
+                    var albumKey = $"{track.Artist?.ToLowerInvariant()}|{track.Album?.ToLowerInvariant()}";
+                    foreach (var albumTrack in _allLibraryTracks.Where(t => 
+                        $"{t.Artist?.ToLowerInvariant()}|{t.Album?.ToLowerInvariant()}" == albumKey))
+                    {
+                        if (albumTrack.AlbumArt == null)
+                        {
+                            albumTrack.AlbumArt = imageBytes;
+                        }
+                    }
+                    // Also apply to tracks in queue
+                    foreach (var queueTrack in Queue.Where(t => 
+                        $"{t.Artist?.ToLowerInvariant()}|{t.Album?.ToLowerInvariant()}" == albumKey))
+                    {
+                        if (queueTrack.AlbumArt == null)
+                        {
+                            queueTrack.AlbumArt = imageBytes;
+                        }
+                    }
                     
                     // Display it
                     await Application.Current.Dispatcher.InvokeAsync(() =>
@@ -1079,12 +1193,12 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     // Dropdown collections for visualizer controls
     public List<string> VisualizerModes { get; } = new()
     {
-        "Bars", "Mirror", "Waveform", "Circular", "Radial", "Particles", "Aurora", "Wave Grid"
+        "Bars", "Mirror", "Waveform", "Circular", "Radial", "Particles", "Aurora", "Wave Grid", "Starfield", "Toasters"
     };
     
     public List<string> ColorSchemes { get; } = new()
     {
-        "Blue-Green", "Rainbow", "Fire", "Purple", "Neon", "Ocean", "Sunset", "Monochrome", "Pip-Boy"
+        "Blue-Green", "Rainbow", "Fire", "Purple", "Neon", "Ocean", "Sunset", "Monochrome", "Pip-Boy", "LCARS"
     };
     
     public List<int> BarCountOptions { get; } = new() { 16, 24, 32, 48, 64, 72, 96, 128 };
@@ -1094,6 +1208,14 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     {
         get => _visualizerIntensity;
         set => SetProperty(ref _visualizerIntensity, value);
+    }
+    
+    // Sensitivity control (0.1 = very smooth/low sensitivity, 2.0 = very responsive/high sensitivity)
+    private double _visualizerSensitivity = 0.7;
+    public double VisualizerSensitivity
+    {
+        get => _visualizerSensitivity;
+        set => SetProperty(ref _visualizerSensitivity, Math.Clamp(value, 0.1, 2.0));
     }
     
     // Queue Sort properties
@@ -1248,6 +1370,13 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     public ICommand PlayPlaylistCommand { get; }
     public ICommand AddSelectedToPlaylistCommand { get; }
     
+    // Navigation commands
+    public ICommand ScrollToCurrentTrackCommand { get; }
+    public ICommand ShowLibraryFromPlaylistCommand { get; }
+    
+    // Event for UI to scroll queue
+    public event EventHandler? RequestScrollToCurrentTrack;
+    
     #endregion
     
     public EnhancedAudioPlayerViewModel()
@@ -1256,11 +1385,11 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         _libraryIndexService = new LibraryIndexService();
         _userLibraryService = new UserLibraryService();
         
-        // Auto-set Pip-Boy color scheme (index 8) when Pip-Boy theme is active
-        if (ThemeManager.Instance.IsPipBoyTheme)
-        {
-            _colorSchemeIndex = 8; // Pip-Boy green
-        }
+        // Set visualizer color scheme based on current theme
+        UpdateVisualizerColorSchemeForTheme();
+        
+        // Subscribe to theme changes to update visualizer colors
+        ThemeManager.Instance.ThemeChanged += OnThemeChanged;
         
         // Load saved library folders
         LoadLibraryFolders();
@@ -1441,6 +1570,28 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             }
         });
         
+        // Navigation commands
+        ScrollToCurrentTrackCommand = new RelayCommand(_ =>
+        {
+            if (CurrentTrack != null)
+            {
+                // Find the track in queue and select it
+                var queueTrack = Queue.FirstOrDefault(t => t.Id == CurrentTrack.Id);
+                if (queueTrack != null)
+                {
+                    SelectedQueueTrack = queueTrack;
+                    RequestScrollToCurrentTrack?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        });
+        
+        ShowLibraryFromPlaylistCommand = new RelayCommand(_ =>
+        {
+            // Deselect playlist to show all library tracks
+            SelectedPlaylist = null;
+            StatusMessage = "Showing all library tracks";
+        });
+        
         ResetEqCommand = new RelayCommand(_ =>
         {
             _playerService.ResetEq();
@@ -1493,10 +1644,32 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 Queue.Add(track);
             }
             
-            // Load lyrics
-            CurrentLyrics = await _playerService.LoadLyricsAsync(track);
-            RaisePropertyChanged(nameof(HasLyrics));
+            // STEP 1: Try SYNCHRONOUS local .lrc file load first (instant)
+            var localLyrics = _playerService.LoadLocalLyricsSync(track);
+            if (localLyrics != null)
+            {
+                CurrentLyrics = localLyrics;
+                _lyricsCache[track.Id] = localLyrics;
+                RaisePropertyChanged(nameof(HasLyrics));
+            }
+            // STEP 2: Check memory cache
+            else if (_lyricsCache.TryGetValue(track.Id, out var cachedLyrics))
+            {
+                CurrentLyrics = cachedLyrics;
+                RaisePropertyChanged(nameof(HasLyrics));
+            }
+            // STEP 3: No local file, no cache - try async download (will save .lrc for future)
+            else
+            {
+                CurrentLyrics = null;
+                RaisePropertyChanged(nameof(HasLyrics));
+                _ = LoadAndCacheLyricsAsync(track);
+            }
+            
             RaisePropertyChanged(nameof(FileInfoText));
+            
+            // Pre-fetch lyrics for next track in queue for instant display
+            _ = PrefetchNextTrackLyricsAsync();
             
             // Auto DJ: queue more tracks if running low
             if (AutoDjEnabled && Queue.Count <= 2)
@@ -1552,6 +1725,205 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     private void OnDurationChanged(object? sender, TimeSpan duration)
     {
         Duration = duration;
+    }
+    
+    /// <summary>
+    /// Loads lyrics for a track and stores in cache for instant retrieval.
+    /// </summary>
+    private async Task LoadAndCacheLyricsAsync(AudioTrack track)
+    {
+        try
+        {
+            var lyrics = await _playerService.LoadLyricsAsync(track);
+            
+            // Store in cache (even if null, to avoid re-fetching)
+            _lyricsCache[track.Id] = lyrics;
+            
+            // Update UI if this is still the current track
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                if (CurrentTrack?.Id == track.Id)
+                {
+                    CurrentLyrics = lyrics;
+                    RaisePropertyChanged(nameof(HasLyrics));
+                }
+            });
+        }
+        catch { /* Silently ignore lyrics loading errors */ }
+    }
+    
+    /// <summary>
+    /// Pre-fetches lyrics for the next track in queue to eliminate delay.
+    /// </summary>
+    private async Task PrefetchNextTrackLyricsAsync()
+    {
+        try
+        {
+            if (CurrentTrack == null || Queue.Count <= 1) return;
+            
+            var currentIndex = Queue.IndexOf(CurrentTrack);
+            if (currentIndex < 0) currentIndex = Queue.ToList().FindIndex(t => t.Id == CurrentTrack.Id);
+            
+            var nextIndex = currentIndex + 1;
+            if (nextIndex < Queue.Count)
+            {
+                var nextTrack = Queue[nextIndex];
+                
+                // Skip if already cached
+                if (_lyricsCache.ContainsKey(nextTrack.Id)) return;
+                
+                // Pre-fetch and cache lyrics
+                var lyrics = await _playerService.LoadLyricsAsync(nextTrack);
+                _lyricsCache[nextTrack.Id] = lyrics;
+            }
+        }
+        catch { /* Silently ignore prefetch errors */ }
+    }
+    
+    /// <summary>
+    /// Background task that scans the library and downloads missing lyrics.
+    /// Downloaded lyrics are saved as .lrc files for instant future loading.
+    /// Runs slowly to avoid impacting UI performance and rate limiting.
+    /// </summary>
+    private async Task BackgroundLyricsScanAsync()
+    {
+        try
+        {
+            // Wait before starting to let UI settle
+            await Task.Delay(5000);
+            
+            var tracksWithoutLrc = _allLibraryTracks
+                .Where(t => !string.IsNullOrEmpty(t.Artist) && !string.IsNullOrEmpty(t.Title))
+                .Where(t => 
+                {
+                    // Check if .lrc file already exists
+                    var dir = Path.GetDirectoryName(t.FilePath);
+                    var baseName = Path.GetFileNameWithoutExtension(t.FilePath);
+                    if (string.IsNullOrEmpty(dir)) return false;
+                    
+                    var lrcPath = Path.Combine(dir, baseName + ".lrc");
+                    return !File.Exists(lrcPath);
+                })
+                .Take(100) // Process 100 tracks per session
+                .ToList();
+            
+            if (tracksWithoutLrc.Count == 0) return;
+            
+            System.Diagnostics.Debug.WriteLine($"Background lyrics scan: {tracksWithoutLrc.Count} tracks to process");
+            
+            int downloaded = 0;
+            foreach (var track in tracksWithoutLrc)
+            {
+                try
+                {
+                    // LoadLyricsAsync will download and save to .lrc file
+                    var lyrics = await _playerService.LoadLyricsAsync(track);
+                    if (lyrics != null)
+                    {
+                        downloaded++;
+                        _lyricsCache[track.Id] = lyrics;
+                    }
+                    
+                    // Rate limit: wait 2 seconds between requests to be nice to the API
+                    await Task.Delay(2000);
+                }
+                catch { /* Ignore individual track errors */ }
+            }
+            
+            if (downloaded > 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"Background lyrics scan: Downloaded {downloaded} lyrics files");
+            }
+        }
+        catch { /* Ignore scan errors */ }
+    }
+    
+    /// <summary>
+    /// Background task that scans the library and downloads missing album art.
+    /// Downloaded art is saved as folder.jpg for instant future loading.
+    /// Runs slowly to avoid impacting UI performance and rate limiting.
+    /// </summary>
+    private async Task BackgroundAlbumArtScanAsync()
+    {
+        try
+        {
+            // Wait before starting (after lyrics scan has some time)
+            await Task.Delay(10000);
+            
+            // Group by album folder to avoid duplicate downloads
+            var foldersWithoutArt = _allLibraryTracks
+                .Where(t => !string.IsNullOrEmpty(t.Artist) && !string.IsNullOrEmpty(t.Album))
+                .Select(t => new { Track = t, Directory = Path.GetDirectoryName(t.FilePath) })
+                .Where(x => !string.IsNullOrEmpty(x.Directory))
+                .GroupBy(x => x.Directory)
+                .Where(g => !AlbumArtFilenames.Any(f => File.Exists(Path.Combine(g.Key!, f))))
+                .Select(g => g.First().Track)
+                .Take(50) // Process 50 albums per session
+                .ToList();
+            
+            if (foldersWithoutArt.Count == 0) return;
+            
+            System.Diagnostics.Debug.WriteLine($"Background album art scan: {foldersWithoutArt.Count} albums to process");
+            
+            int downloaded = 0;
+            foreach (var track in foldersWithoutArt)
+            {
+                try
+                {
+                    await DownloadAlbumArtAsync(track);
+                    
+                    // Check if we actually saved a file
+                    var dir = Path.GetDirectoryName(track.FilePath);
+                    if (!string.IsNullOrEmpty(dir) && File.Exists(Path.Combine(dir, "folder.jpg")))
+                    {
+                        downloaded++;
+                    }
+                    
+                    // Rate limit: wait 3 seconds between requests (MusicBrainz rate limit)
+                    await Task.Delay(3000);
+                }
+                catch { /* Ignore individual track errors */ }
+            }
+            
+            if (downloaded > 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"Background album art scan: Downloaded {downloaded} cover images");
+            }
+        }
+        catch { /* Ignore scan errors */ }
+    }
+    
+    private void OnThemeChanged(object? sender, EventArgs e)
+    {
+        // Update visualizer color scheme when theme changes
+        UpdateVisualizerColorSchemeForTheme();
+    }
+    
+    /// <summary>
+    /// Sets the default visualizer color scheme based on the current application theme.
+    /// PipBoy theme -> PipBoy colors (index 8)
+    /// LCARS theme -> LCARS colors (index 9)
+    /// Light/Dark themes -> Rainbow (index 1)
+    /// </summary>
+    private void UpdateVisualizerColorSchemeForTheme()
+    {
+        var theme = ThemeManager.Instance.CurrentTheme;
+        
+        int newColorScheme = theme switch
+        {
+            ThemeManager.PipBoy => 8,  // PipBoy green phosphor
+            ThemeManager.LCARS => 9,   // LCARS orange/tan/purple
+            ThemeManager.Light => 1,   // Rainbow for Light theme
+            ThemeManager.Dark => 1,    // Rainbow for Dark theme
+            _ => 1                     // Default to Rainbow
+        };
+        
+        // Only update if it's different to avoid unnecessary redraws
+        if (_colorSchemeIndex != newColorScheme)
+        {
+            ColorSchemeIndex = newColorScheme;
+            System.Diagnostics.Debug.WriteLine($"Visualizer color scheme updated to {newColorScheme} for theme {theme}");
+        }
     }
     
     private async void OnPlaybackError(object? sender, string error)
@@ -1747,12 +2119,33 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         {
             try
             {
-                var json = await File.ReadAllTextAsync(cacheFile);
-                _allLibraryTracks = JsonSerializer.Deserialize<List<AudioTrack>>(json) ?? new();
-                FilterLibraryTracks();
-                StatusMessage = $"Library: {_allLibraryTracks.Count} tracks";
+                StatusMessage = "Loading library cache...";
+                
+                // Use stream-based deserialization for better performance with large files
+                await using var fileStream = new FileStream(cacheFile, FileMode.Open, FileAccess.Read, FileShare.Read, 
+                    bufferSize: 65536, useAsync: true); // 64KB buffer for faster reads
+                
+                _allLibraryTracks = await JsonSerializer.DeserializeAsync<List<AudioTrack>>(fileStream) ?? new();
+                
+                // Update UI on main thread - batch operation for performance
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    FilterLibraryTracks();
+                    RaisePropertyChanged(nameof(LibraryTrackCount));
+                    RaisePropertyChanged(nameof(LibraryArtistCount));
+                    RaisePropertyChanged(nameof(LibraryAlbumCount));
+                    StatusMessage = $"Library: {_allLibraryTracks.Count:N0} tracks";
+                });
+                
+                // Start background scanning after library loads
+                _ = BackgroundLyricsScanAsync();
+                _ = BackgroundAlbumArtScanAsync();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading library cache: {ex.Message}");
+                StatusMessage = "Library cache load failed";
+            }
         }
     }
     
@@ -1951,8 +2344,10 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
             
-            var json = JsonSerializer.Serialize(_allLibraryTracks);
-            await File.WriteAllTextAsync(cacheFile, json);
+            // Use stream-based serialization for better performance with large libraries
+            await using var fileStream = new FileStream(cacheFile, FileMode.Create, FileAccess.Write, FileShare.None,
+                bufferSize: 65536, useAsync: true);
+            await JsonSerializer.SerializeAsync(fileStream, _allLibraryTracks);
         }
         catch { }
     }

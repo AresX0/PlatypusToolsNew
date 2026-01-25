@@ -134,7 +134,7 @@ public class AudioLibraryService
             return 0;
         }
         
-        var playerService = AudioPlayerService.Instance;
+        var playerService = EnhancedAudioPlayerService.Instance;
         var searchOption = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
         
         var files = Directory.EnumerateFiles(folderPath, "*.*", searchOption)

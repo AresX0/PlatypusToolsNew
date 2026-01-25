@@ -384,4 +384,31 @@ namespace PlatypusTools.UI.Converters
             return Binding.DoNothing;
         }
     }
+    
+    /// <summary>
+    /// Converts a rating value to a star color.
+    /// ConverterParameter specifies the star number (1-5).
+    /// Returns Gold if rating >= star number, Gray otherwise.
+    /// </summary>
+    public class RatingToStarColorConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is int rating && parameter != null)
+            {
+                if (int.TryParse(parameter.ToString(), out int starNumber))
+                {
+                    return rating >= starNumber 
+                        ? System.Windows.Media.Brushes.Gold 
+                        : System.Windows.Media.Brushes.Gray;
+                }
+            }
+            return System.Windows.Media.Brushes.Gray;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return Binding.DoNothing;
+        }
+    }
 }

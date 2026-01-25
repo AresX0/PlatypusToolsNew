@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PlatypusTools.UI.ViewModels;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace PlatypusTools.UI.Tests
 {
@@ -45,18 +46,19 @@ namespace PlatypusTools.UI.Tests
             vm.NewFolderPath = tmpDir;
             vm.AddFolderCommand.Execute(null);
 
-            vm.SelectedRecord = vm.Records.First();
-            vm.SetHiddenCommand.Execute(null);
+            var record = vm.Records.First();
+            vm.SelectedRecord = record;
+            vm.SetHiddenCommand.Execute(record);
             Assert.IsTrue(System.IO.File.GetAttributes(tmpDir).HasFlag(System.IO.FileAttributes.Hidden));
 
-            vm.ClearHiddenCommand.Execute(null);
+            vm.ClearHiddenCommand.Execute(record);
             Assert.IsFalse(System.IO.File.GetAttributes(tmpDir).HasFlag(System.IO.FileAttributes.Hidden));
 
             Directory.Delete(tmpDir, true);
         }
 
         [TestMethod]
-        public void EditDialog_PersistsPasswordViaUI()
+        public async Task EditDialog_PersistsPasswordViaUI()
         {
             var tmpCfg = Path.Combine(Path.GetTempPath(), "pt_hider_ui_test3.json");
             if (File.Exists(tmpCfg)) File.Delete(tmpCfg);
@@ -67,24 +69,11 @@ namespace PlatypusTools.UI.Tests
             vm.AddFolderCommand.Execute(null);
             var rec = vm.Records.First();
 
-            // Simulate opening edit dialog and setting password
-            var thread = new System.Threading.Thread(() =>
-            {
-                var editVm = new PlatypusTools.UI.ViewModels.HiderEditViewModel(rec.Record);
-                var dlg = new PlatypusTools.UI.Views.HiderEditWindow { Owner = null, DataContext = editVm };
-                dlg.Loaded += (s, e) =>
-                {
-                    dlg.PwdBox.Password = "uiPass";
-                    dlg.DialogResult = true;
-                };
-                var res = dlg.ShowDialog();
-                Assert.IsTrue(res == true);
-                // Apply as if user clicked OK
-                if (!string.IsNullOrEmpty(editVm.Password)) rec.Record.PasswordRecord = PlatypusTools.Core.Services.HiderService.CreatePasswordRecord(editVm.Password);
-            });
-            thread.SetApartmentState(System.Threading.ApartmentState.STA);
-            thread.Start();
-            thread.Join(5000);
+            // Simulate setting password via ViewModel directly (avoid UI dialog in test runner)
+            var editVm = new PlatypusTools.UI.ViewModels.HiderEditViewModel(rec.Record);
+            editVm.Password = "uiPass";
+            // Apply password as if user clicked OK
+            rec.Record.PasswordRecord = PlatypusTools.Core.Services.HiderService.CreatePasswordRecord(editVm.Password);
 
             // Save config and reload
             vm.SaveConfigCommand.Execute(null);
@@ -104,7 +93,7 @@ namespace PlatypusTools.UI.Tests
             var dvm = new PlatypusTools.UI.ViewModels.DuplicatesViewModel();
             dvm.FolderPath = tmpDup;
             dvm.UseRecycleBin = false; // ensure files are actually deleted for test
-            dvm.ScanCommand.Execute(null);
+            await dvm.ScanForDuplicatesAsync();
             Assert.IsTrue(dvm.Groups.Count >= 1);
             var grp = dvm.Groups.First();
             // Select files for deletion

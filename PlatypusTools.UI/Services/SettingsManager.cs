@@ -135,12 +135,22 @@ namespace PlatypusTools.UI.Services
         }
 
         /// <summary>
-        /// Gets whether a tab should be visible. Returns true by default if not configured.
+        /// Gets whether a tab should be visible. Returns true by default if not configured,
+        /// except for deprecated tabs which default to hidden.
         /// </summary>
         public bool IsTabVisible(string tabKey)
         {
             if (string.IsNullOrEmpty(tabKey)) return true;
-            return !VisibleTabs.TryGetValue(tabKey, out var visible) || visible;
+            
+            // Explicitly check if user has set visibility
+            if (VisibleTabs.TryGetValue(tabKey, out var visible))
+                return visible;
+            
+            // Deprecated tabs default to hidden
+            if (tabKey == "Multimedia.Audio.AudioPlayer")
+                return false;
+            
+            return true;
         }
 
         /// <summary>
@@ -229,6 +239,7 @@ namespace PlatypusTools.UI.Services
                 new("FileManagement.FileCleaner", "File Cleaner", "FileManagement"),
                 new("FileManagement.Duplicates", "Duplicates", "FileManagement"),
                 new("FileManagement.EmptyFolderScanner", "Empty Folder Scanner", "FileManagement"),
+                new("FileManagement.Robocopy", "Robocopy", "FileManagement"),
 
                 new("Multimedia", "🎬 Multimedia", null),
                 new("Multimedia.Audio", "🎵 Audio", "Multimedia"),
@@ -242,6 +253,7 @@ namespace PlatypusTools.UI.Services
                 new("Multimedia.Image.IconConverter", "ICO Converter", "Multimedia.Image"),
                 new("Multimedia.Image.BatchWatermark", "Batch Watermark", "Multimedia.Image"),
                 new("Multimedia.Image.ImageScaler", "Image Scaler", "Multimedia.Image"),
+                new("Multimedia.Image.Model3DEditor", "3D Model Editor", "Multimedia.Image"),
                 new("Multimedia.Video", "🎬 Video", "Multimedia"),
                 new("Multimedia.Video.VideoPlayer", "Video Player", "Multimedia.Video"),
                 new("Multimedia.Video.VideoEditor", "Video Editor", "Multimedia.Video"),
@@ -266,6 +278,22 @@ namespace PlatypusTools.UI.Services
                 new("Security.SystemAudit", "System Audit", "Security"),
                 new("Security.ForensicsAnalyzer", "Forensics Analyzer", "Security"),
                 new("Security.SecureWipe", "Secure Wipe", "Security"),
+                new("Security.AdvancedForensics", "🔬 Advanced Forensics", "Security"),
+                new("Security.AdvancedForensics.Memory", "Memory Analysis", "Security.AdvancedForensics"),
+                new("Security.AdvancedForensics.Artifacts", "Artifacts", "Security.AdvancedForensics"),
+                new("Security.AdvancedForensics.Timeline", "Timeline", "Security.AdvancedForensics"),
+                new("Security.AdvancedForensics.Kusto", "Kusto", "Security.AdvancedForensics"),
+                new("Security.AdvancedForensics.LocalKQL", "Local KQL", "Security.AdvancedForensics"),
+                new("Security.AdvancedForensics.Malware", "Malware Analysis", "Security.AdvancedForensics"),
+                new("Security.AdvancedForensics.Extract", "Extract", "Security.AdvancedForensics"),
+                new("Security.AdvancedForensics.OpenSearch", "OpenSearch", "Security.AdvancedForensics"),
+                new("Security.AdvancedForensics.OSINT", "OSINT", "Security.AdvancedForensics"),
+                new("Security.AdvancedForensics.Schedule", "Task Scheduler", "Security.AdvancedForensics"),
+                new("Security.AdvancedForensics.Browser", "Browser Forensics", "Security.AdvancedForensics"),
+                new("Security.AdvancedForensics.IOC", "IOC Scanner", "Security.AdvancedForensics"),
+                new("Security.AdvancedForensics.Registry", "Registry Diff", "Security.AdvancedForensics"),
+                new("Security.AdvancedForensics.PCAP", "PCAP Parser", "Security.AdvancedForensics"),
+                new("Security.AdvancedForensics.Results", "Results", "Security.AdvancedForensics"),
 
                 new("Metadata", "📋 Metadata", null),
 
@@ -280,6 +308,9 @@ namespace PlatypusTools.UI.Services
                 new("Tools.BootableUSB", "Bootable USB Creator", "Tools"),
                 new("Tools.Robocopy", "Robocopy", "Tools"),
                 new("Tools.PluginManager", "Plugin Manager", "Tools"),
+                new("Tools.FtpClient", "FTP Client", "Tools"),
+                new("Tools.TerminalClient", "Terminal Client", "Tools"),
+                new("Tools.SimpleBrowser", "Simple Browser", "Tools"),
             };
         }
     }

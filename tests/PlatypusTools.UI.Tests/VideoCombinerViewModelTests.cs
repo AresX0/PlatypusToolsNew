@@ -38,6 +38,9 @@ namespace PlatypusTools.UI.Tests
             Assert.IsTrue(vm.IsRunning);
 
             await task;
+            
+            // Allow Progress<T> callbacks to complete (they use SynchronizationContext.Post)
+            await Task.Delay(100);
 
             Assert.IsFalse(vm.IsRunning);
             StringAssert.Contains(vm.Log, "progress=test-start");

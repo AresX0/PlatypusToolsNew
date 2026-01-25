@@ -23,21 +23,26 @@ namespace PlatypusTools.UI.Views
         Ocean,          // Deep blues and teals
         Sunset,         // Orange, pink, purple
         Monochrome,     // White/gray
-        PipBoy          // Fallout Pip-Boy green phosphor
+        PipBoy,         // Fallout Pip-Boy green phosphor
+        LCARS           // Star Trek LCARS orange/tan/purple
     }
     
     /// <summary>
     /// Native audio visualizer with spectrum bars and waveform rendering.
     /// Supports multiple visualization modes: Bars, Mirror, Waveform, Circular.
     /// Also supports advanced modes: Radial Spectrum, Particle Field, Aurora, Wave Grid.
+    /// After Dark modes: Starfield, Flying Toasters.
+    /// Features HD quality: logarithmic frequency mapping, smooth rise/fall, peak hold.
     /// </summary>
     public partial class AudioVisualizerView : UserControl
     {
         private double[] _spectrumData = new double[128]; // Always have data
         private double[] _smoothedData = new double[128]; // Smoothed for display
+        private double[] _peakHeights = new double[128]; // Peak hold heights
+        private double[] _barHeights = new double[128]; // Current bar heights for smooth animation
         private DispatcherTimer? _renderTimer;
         private int _barCount = 72;
-        private string _visualizationMode = "Bars"; // Bars, Mirror, Waveform, Circular, Radial, Particles, Aurora, WaveGrid
+        private string _visualizationMode = "Bars"; // Bars, Mirror, Waveform, Circular, Radial, Particles, Aurora, WaveGrid, Starfield, Toasters
         private bool _hasExternalData = false;
         private DateTime _lastExternalUpdate = DateTime.MinValue;
         private static readonly Random _random = new Random();
@@ -45,8 +50,19 @@ namespace PlatypusTools.UI.Views
         private bool _timerStarted = false;
         private bool _subscribedToService = false;
         
+        // HD quality settings - tuned for smoothness
+        private const double PEAK_FALL_SPEED = 0.008; // How fast peaks fall (per frame) - slower for smoother
+        private double _sensitivity = 0.7; // User-adjustable sensitivity (0.1-2.0)
+        private const bool USE_LOGARITHMIC_FREQ = true; // Logarithmic frequency mapping
+        
         // Color scheme
         private VisualizerColorScheme _colorScheme = VisualizerColorScheme.BlueGreen;
+        
+        // After Dark: Starfield
+        private readonly List<Star> _stars = new();
+        
+        // After Dark: Flying Toasters
+        private readonly List<Toaster> _toasters = new();
         
         // For advanced visualizations
         private readonly List<Particle> _particles = new();
@@ -57,12 +73,14 @@ namespace PlatypusTools.UI.Views
         {
             InitializeComponent();
             
-            // Initialize with default data
+            // Initialize with default data including peak heights
             for (int i = 0; i < _spectrumData.Length; i++)
             {
                 _spectrumData[i] = 0.1;
                 _smoothedData[i] = 0.1;
                 _previousSmoothed[i] = 0.1;
+                _peakHeights[i] = 0;
+                _barHeights[i] = 0;
             }
             
             // Initialize particles for particle field mode
@@ -79,6 +97,31 @@ namespace PlatypusTools.UI.Views
                 });
             }
             
+            // Initialize stars for starfield mode (After Dark style)
+            for (int i = 0; i < 200; i++)
+            {
+                _stars.Add(new Star
+                {
+                    X = _random.NextDouble() - 0.5,
+                    Y = _random.NextDouble() - 0.5,
+                    Z = _random.NextDouble() * 4 + 0.1,
+                    Speed = 0.01 + _random.NextDouble() * 0.03
+                });
+            }
+            
+            // Initialize flying toasters (After Dark style)
+            for (int i = 0; i < 8; i++)
+            {
+                _toasters.Add(new Toaster
+                {
+                    X = _random.NextDouble(),
+                    Y = _random.NextDouble(),
+                    Speed = 0.002 + _random.NextDouble() * 0.003,
+                    WingPhase = _random.NextDouble() * Math.PI * 2,
+                    Size = 30 + _random.NextDouble() * 20
+                });
+            }
+            
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
             SizeChanged += OnSizeChanged;
@@ -90,7 +133,7 @@ namespace PlatypusTools.UI.Views
         }
         
         /// <summary>
-        /// Subscribes to both audio services for spectrum data.
+        /// Subscribes to EnhancedAudioPlayerService for spectrum data.
         /// </summary>
         private void SubscribeToService()
         {
@@ -98,14 +141,11 @@ namespace PlatypusTools.UI.Views
             {
                 try
                 {
-                    // Subscribe to regular AudioPlayerService
-                    PlatypusTools.UI.Services.AudioPlayerService.Instance.SpectrumDataUpdated += OnSpectrumDataFromService;
-                    
-                    // Also subscribe to EnhancedAudioPlayerService
+                    // Subscribe to EnhancedAudioPlayerService for spectrum data
                     PlatypusTools.UI.Services.EnhancedAudioPlayerService.Instance.SpectrumDataUpdated += OnSpectrumDataFromEnhancedService;
                     
                     _subscribedToService = true;
-                    System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Subscribed to both audio services");
+                    System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Subscribed to EnhancedAudioPlayerService");
                 }
                 catch (Exception ex)
                 {
@@ -267,34 +307,34 @@ namespace PlatypusTools.UI.Views
             StartRenderTimer();
         }
         
-        private void OnSpectrumDataFromService(object? sender, double[] data)
-        {
-            // Update spectrum data on UI thread
-            Dispatcher.BeginInvoke(() =>
-            {
-                if (data != null && data.Length > 0)
-                {
-                    _spectrumData = ResampleSpectrum(data, _barCount);
-                    _hasExternalData = true;
-                    _lastExternalUpdate = DateTime.Now;
-                }
-            });
-        }
+        // DEPRECATED: Old AudioPlayerService handler - kept for reference
+        // private void OnSpectrumDataFromService(object? sender, double[] data)
+        // {
+        //     // Update spectrum data on UI thread
+        //     Dispatcher.BeginInvoke(() =>
+        //     {
+        //         if (data != null && data.Length > 0)
+        //         {
+        //             _spectrumData = ResampleSpectrum(data, _barCount);
+        //             _hasExternalData = true;
+        //             _lastExternalUpdate = DateTime.Now;
+        //         }
+        //     });
+        // }
         
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             // Stop the render timer
             StopRenderTimer();
             
-            // Unsubscribe from both services when unloaded
+            // Unsubscribe from service when unloaded
             if (_subscribedToService)
             {
                 try
                 {
-                    PlatypusTools.UI.Services.AudioPlayerService.Instance.SpectrumDataUpdated -= OnSpectrumDataFromService;
                     PlatypusTools.UI.Services.EnhancedAudioPlayerService.Instance.SpectrumDataUpdated -= OnSpectrumDataFromEnhancedService;
                     _subscribedToService = false;
-                    System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Unsubscribed from both audio services");
+                    System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Unsubscribed from EnhancedAudioPlayerService");
                 }
                 catch { }
             }
@@ -319,6 +359,14 @@ namespace PlatypusTools.UI.Views
             RenderVisualization();
         }
 
+        /// <summary>
+        /// Sets the visualizer sensitivity (0.1 = very smooth, 2.0 = very responsive).
+        /// </summary>
+        public void SetSensitivity(double sensitivity)
+        {
+            _sensitivity = Math.Clamp(sensitivity, 0.1, 2.0);
+        }
+
         public void UpdateSpectrumData(double[] spectrumData, string mode = "Bars", int barCount = 72)
         {
             // Always update mode and bar count
@@ -332,16 +380,15 @@ namespace PlatypusTools.UI.Views
                 _hasExternalData = true;
                 _lastExternalUpdate = DateTime.Now;
             }
-            
-            System.Diagnostics.Debug.WriteLine($"UpdateSpectrumData: mode={mode}, barCount={barCount}, hasData={spectrumData?.Length ?? 0}");
         }
         
         /// <summary>
-        /// Updates spectrum data with color scheme.
+        /// Updates spectrum data with color scheme and sensitivity.
         /// </summary>
-        public void UpdateSpectrumData(double[] spectrumData, string mode, int barCount, int colorSchemeIndex)
+        public void UpdateSpectrumData(double[] spectrumData, string mode, int barCount, int colorSchemeIndex, double sensitivity = 0.7)
         {
             SetColorScheme(colorSchemeIndex);
+            SetSensitivity(sensitivity);
             UpdateSpectrumData(spectrumData, mode, barCount);
         }
         
@@ -404,6 +451,14 @@ namespace PlatypusTools.UI.Views
                     new GradientStop(Color.FromRgb(27, 255, 128), 0.5),  // Pip-Boy green
                     new GradientStop(Color.FromRgb(77, 255, 163), 1)     // Light green
                 },
+                VisualizerColorScheme.LCARS => new GradientStopCollection
+                {
+                    new GradientStop(Color.FromRgb(85, 136, 255), 0),     // Classic Blue #5588FF
+                    new GradientStop(Color.FromRgb(153, 204, 255), 0.25), // Ice #99CCFF
+                    new GradientStop(Color.FromRgb(255, 204, 0), 0.5),    // Gold #FFCC00
+                    new GradientStop(Color.FromRgb(255, 153, 102), 0.75), // Butterscotch #FF9966
+                    new GradientStop(Color.FromRgb(204, 153, 255), 1)     // African Violet #CC99FF
+                },
                 _ => new GradientStopCollection // BlueGreen (default)
                 {
                     new GradientStop(Color.FromRgb(30, 144, 255), 0),
@@ -435,6 +490,10 @@ namespace PlatypusTools.UI.Views
                 VisualizerColorScheme.Ocean => Color.FromRgb(0, (byte)(30 + value * 170), (byte)(60 + value * 140)),
                 VisualizerColorScheme.Sunset => Color.FromRgb(255, (byte)(100 - value * 50), (byte)(value * 150)),
                 VisualizerColorScheme.Monochrome => Color.FromRgb((byte)(100 + value * 155), (byte)(100 + value * 155), (byte)(100 + value * 155)),
+                VisualizerColorScheme.PipBoy => Color.FromRgb((byte)(10 + value * 67), (byte)(85 + value * 170), (byte)(48 + value * 115)),
+                VisualizerColorScheme.LCARS => value < 0.5 
+                    ? Color.FromRgb((byte)(85 + value * 170), (byte)(136 + value * 68), (byte)(255 - value * 255))  // Blue to Gold
+                    : Color.FromRgb((byte)(255 - value * 51), (byte)(204 - value * 51), (byte)(value * 255)), // Gold to Violet
                 _ => Color.FromRgb((byte)(30 + value * 0), (byte)(144 + value * 111), (byte)(255 - value * 128))
             };
         }
@@ -502,7 +561,14 @@ namespace PlatypusTools.UI.Views
                     RenderAurora(canvas);
                     break;
                 case "WaveGrid":
+                case "Wave Grid":
                     RenderWaveGrid(canvas);
+                    break;
+                case "Starfield":
+                    RenderStarfield(canvas);
+                    break;
+                case "Toasters":
+                    RenderFlyingToasters(canvas);
                     break;
                 default: // Bars
                     RenderBars(canvas);
@@ -512,24 +578,81 @@ namespace PlatypusTools.UI.Views
         
         private void ApplySmoothing()
         {
-            // Ensure smoothed array matches current bar count
+            // Ensure arrays match current bar count
             if (_smoothedData.Length != _barCount)
             {
                 _smoothedData = new double[_barCount];
+                _peakHeights = new double[_barCount];
+                _barHeights = new double[_barCount];
             }
             
-            // Expand or resample spectrum data if needed
-            if (_spectrumData.Length != _barCount)
+            // Apply logarithmic frequency mapping if enabled
+            if (USE_LOGARITHMIC_FREQ && _spectrumData.Length > 0)
+            {
+                var logMapped = new double[_barCount];
+                int spectrumLength = _spectrumData.Length;
+                
+                for (int i = 0; i < _barCount; i++)
+                {
+                    // Logarithmic frequency mapping: more resolution for bass frequencies
+                    double logIndex = Math.Pow((double)i / _barCount, 2) * (spectrumLength - 1);
+                    int srcIdx = Math.Min((int)logIndex, spectrumLength - 1);
+                    
+                    // Average nearby bins for smoother result
+                    double sum = 0;
+                    int count = 0;
+                    int range = Math.Max(1, spectrumLength / (_barCount * 2));
+                    for (int j = Math.Max(0, srcIdx - range); j <= Math.Min(spectrumLength - 1, srcIdx + range); j++)
+                    {
+                        sum += _spectrumData[j];
+                        count++;
+                    }
+                    logMapped[i] = count > 0 ? sum / count : _spectrumData[srcIdx];
+                }
+                _spectrumData = logMapped;
+            }
+            else if (_spectrumData.Length != _barCount)
             {
                 _spectrumData = ResampleSpectrum(_spectrumData, _barCount);
             }
             
-            // Smooth transitions (lerp toward target)
-            const double smoothFactor = 0.25;
+            // Sensitivity-based smoothing: lower sensitivity = smoother animation
+            // Rise speed: 0.1 (very smooth) to 0.5 (responsive)
+            // Fall speed: 0.02 (very smooth) to 0.12 (responsive)
+            double riseSpeed = 0.1 + (_sensitivity * 0.2);
+            double fallSpeed = 0.02 + (_sensitivity * 0.05);
+            
+            // HD quality: smooth rise/fall with peak hold
             for (int i = 0; i < _barCount; i++)
             {
-                double target = i < _spectrumData.Length ? _spectrumData[i] : 0.1;
-                _smoothedData[i] += (target - _smoothedData[i]) * smoothFactor;
+                double target = i < _spectrumData.Length ? _spectrumData[i] * _sensitivity : 0.05;
+                
+                // Apply attack/release envelope for smooth animation
+                if (target > _barHeights[i])
+                {
+                    // Smooth attack (lerp toward target)
+                    _barHeights[i] += (target - _barHeights[i]) * riseSpeed;
+                }
+                else
+                {
+                    // Smooth decay (lerp toward lower value)
+                    _barHeights[i] += (target - _barHeights[i]) * fallSpeed;
+                    if (_barHeights[i] < 0.001) _barHeights[i] = 0;
+                }
+                
+                // Peak hold: peaks rise instantly, fall slowly
+                if (_barHeights[i] > _peakHeights[i])
+                {
+                    _peakHeights[i] = _barHeights[i];
+                }
+                else
+                {
+                    _peakHeights[i] -= PEAK_FALL_SPEED;
+                    if (_peakHeights[i] < 0) _peakHeights[i] = 0;
+                }
+                
+                // Set smoothed data for rendering
+                _smoothedData[i] = _barHeights[i];
             }
         }
 
@@ -561,6 +684,24 @@ namespace PlatypusTools.UI.Views
                 Canvas.SetLeft(bar, i * barWidth + 1);
                 Canvas.SetTop(bar, maxHeight - barHeight);
                 canvas.Children.Add(bar);
+                
+                // Draw peak indicator (white/bright line at peak height)
+                if (i < _peakHeights.Length && _peakHeights[i] > 0.02)
+                {
+                    double peakY = Math.Min(1.0, _peakHeights[i] * 2) * maxHeight;
+                    var peakLine = new Rectangle
+                    {
+                        Width = Math.Max(2, barWidth - 2),
+                        Height = 3,
+                        Fill = new SolidColorBrush(Colors.White),
+                        Opacity = 0.9,
+                        RadiusX = 1,
+                        RadiusY = 1
+                    };
+                    Canvas.SetLeft(peakLine, i * barWidth + 1);
+                    Canvas.SetTop(peakLine, maxHeight - peakY - 2);
+                    canvas.Children.Add(peakLine);
+                }
             }
         }
 
@@ -608,6 +749,35 @@ namespace PlatypusTools.UI.Views
                 Canvas.SetLeft(barBottom, i * barWidth + 1);
                 Canvas.SetTop(barBottom, centerY);
                 canvas.Children.Add(barBottom);
+                
+                // Draw peak indicators for mirror mode
+                if (i < _peakHeights.Length && _peakHeights[i] > 0.02)
+                {
+                    double peakHeight = Math.Min(1.0, _peakHeights[i] * 2) * maxHeight;
+                    // Top peak
+                    var peakTop = new Rectangle
+                    {
+                        Width = Math.Max(2, barWidth - 2),
+                        Height = 2,
+                        Fill = new SolidColorBrush(Colors.White),
+                        Opacity = 0.9
+                    };
+                    Canvas.SetLeft(peakTop, i * barWidth + 1);
+                    Canvas.SetTop(peakTop, centerY - peakHeight - 1);
+                    canvas.Children.Add(peakTop);
+                    
+                    // Bottom peak
+                    var peakBottom = new Rectangle
+                    {
+                        Width = Math.Max(2, barWidth - 2),
+                        Height = 2,
+                        Fill = new SolidColorBrush(Colors.White),
+                        Opacity = 0.9
+                    };
+                    Canvas.SetLeft(peakBottom, i * barWidth + 1);
+                    Canvas.SetTop(peakBottom, centerY + peakHeight - 1);
+                    canvas.Children.Add(peakBottom);
+                }
             }
         }
 
@@ -988,6 +1158,265 @@ namespace PlatypusTools.UI.Views
                 (byte)((b + m) * 255)
             );
         }
+        
+        // ===== AFTER DARK STYLE VISUALIZATIONS =====
+        
+        /// <summary>
+        /// Renders a classic starfield flying through space (After Dark style).
+        /// Stars speed up and stretch based on audio intensity.
+        /// </summary>
+        private void RenderStarfield(Canvas canvas)
+        {
+            double width = canvas.ActualWidth;
+            double height = canvas.ActualHeight;
+            double centerX = width / 2;
+            double centerY = height / 2;
+            
+            // Calculate average intensity from bass frequencies
+            double avgIntensity = 0;
+            int bassCount = Math.Min(10, _smoothedData.Length);
+            for (int i = 0; i < bassCount; i++)
+                avgIntensity += _smoothedData[i];
+            avgIntensity = bassCount > 0 ? avgIntensity / bassCount : 0.3;
+            
+            // Speed multiplier based on music intensity
+            double speedMultiplier = 1.0 + avgIntensity * 4;
+            
+            foreach (var star in _stars)
+            {
+                // Move star toward viewer (decrease Z)
+                star.Z -= star.Speed * speedMultiplier;
+                
+                // Reset star if it passes the viewer
+                if (star.Z <= 0.01)
+                {
+                    star.X = _random.NextDouble() - 0.5;
+                    star.Y = _random.NextDouble() - 0.5;
+                    star.Z = 4.0;
+                }
+                
+                // Project 3D position to 2D screen
+                double screenX = centerX + (star.X / star.Z) * width;
+                double screenY = centerY + (star.Y / star.Z) * height;
+                
+                // Skip if off screen
+                if (screenX < 0 || screenX > width || screenY < 0 || screenY > height)
+                    continue;
+                
+                // Size based on distance (closer = larger)
+                double size = Math.Max(1, (1 / star.Z) * 4 * (1 + avgIntensity));
+                
+                // Calculate streak length for warp effect
+                double streakLength = Math.Min(50, star.Speed * speedMultiplier * 100 / star.Z);
+                
+                // Previous position for streak
+                double prevZ = star.Z + star.Speed * speedMultiplier;
+                double prevScreenX = centerX + (star.X / prevZ) * width;
+                double prevScreenY = centerY + (star.Y / prevZ) * height;
+                
+                // Brightness based on distance and intensity
+                byte brightness = (byte)Math.Clamp(255 * (1 / star.Z) * 0.5 * (1 + avgIntensity), 50, 255);
+                var starColor = GetColorFromScheme(1.0 / star.Z);
+                starColor = Color.FromArgb(brightness, starColor.R, starColor.G, starColor.B);
+                
+                // Draw streak line
+                if (streakLength > 2)
+                {
+                    var line = new Line
+                    {
+                        X1 = prevScreenX,
+                        Y1 = prevScreenY,
+                        X2 = screenX,
+                        Y2 = screenY,
+                        Stroke = new SolidColorBrush(starColor),
+                        StrokeThickness = size * 0.5,
+                        StrokeStartLineCap = PenLineCap.Round,
+                        StrokeEndLineCap = PenLineCap.Round
+                    };
+                    canvas.Children.Add(line);
+                }
+                
+                // Draw star point
+                var ellipse = new Ellipse
+                {
+                    Width = size,
+                    Height = size,
+                    Fill = new SolidColorBrush(starColor)
+                };
+                Canvas.SetLeft(ellipse, screenX - size / 2);
+                Canvas.SetTop(ellipse, screenY - size / 2);
+                canvas.Children.Add(ellipse);
+            }
+        }
+        
+        /// <summary>
+        /// Renders classic flying toasters (After Dark style).
+        /// Toasters fly diagonally with flapping wings, reacting to audio.
+        /// </summary>
+        private void RenderFlyingToasters(Canvas canvas)
+        {
+            double width = canvas.ActualWidth;
+            double height = canvas.ActualHeight;
+            
+            // Calculate average intensity
+            double avgIntensity = 0;
+            for (int i = 0; i < Math.Min(20, _smoothedData.Length); i++)
+                avgIntensity += _smoothedData[i];
+            avgIntensity /= Math.Min(20, _smoothedData.Length);
+            
+            // Wing flap speed based on audio
+            double wingSpeed = 0.3 + avgIntensity * 0.5;
+            
+            foreach (var toaster in _toasters)
+            {
+                // Move toaster diagonally (upper-right to lower-left)
+                toaster.X -= toaster.Speed * (1 + avgIntensity * 2);
+                toaster.Y += toaster.Speed * 0.6 * (1 + avgIntensity * 2);
+                
+                // Wrap around screen
+                if (toaster.X < -0.2)
+                {
+                    toaster.X = 1.2;
+                    toaster.Y = _random.NextDouble() * 0.5 - 0.2;
+                }
+                if (toaster.Y > 1.2)
+                {
+                    toaster.Y = -0.2;
+                    toaster.X = _random.NextDouble() * 0.5 + 0.5;
+                }
+                
+                // Update wing animation
+                toaster.WingPhase += wingSpeed;
+                double wingAngle = Math.Sin(toaster.WingPhase) * 0.5;
+                
+                double screenX = toaster.X * width;
+                double screenY = toaster.Y * height;
+                double size = toaster.Size * (1 + avgIntensity * 0.3);
+                
+                // Draw toaster body (rectangle with rounded corners)
+                var toasterColor = GetColorFromScheme(0.5);
+                var body = new Rectangle
+                {
+                    Width = size,
+                    Height = size * 0.7,
+                    Fill = new SolidColorBrush(Color.FromRgb(180, 180, 190)),
+                    Stroke = new SolidColorBrush(Color.FromRgb(100, 100, 110)),
+                    StrokeThickness = 2,
+                    RadiusX = 4,
+                    RadiusY = 4
+                };
+                Canvas.SetLeft(body, screenX);
+                Canvas.SetTop(body, screenY);
+                canvas.Children.Add(body);
+                
+                // Draw toaster slots
+                var slot1 = new Rectangle
+                {
+                    Width = size * 0.3,
+                    Height = size * 0.1,
+                    Fill = new SolidColorBrush(Color.FromRgb(50, 50, 50)),
+                    RadiusX = 2,
+                    RadiusY = 2
+                };
+                Canvas.SetLeft(slot1, screenX + size * 0.1);
+                Canvas.SetTop(slot1, screenY + size * 0.15);
+                canvas.Children.Add(slot1);
+                
+                var slot2 = new Rectangle
+                {
+                    Width = size * 0.3,
+                    Height = size * 0.1,
+                    Fill = new SolidColorBrush(Color.FromRgb(50, 50, 50)),
+                    RadiusX = 2,
+                    RadiusY = 2
+                };
+                Canvas.SetLeft(slot2, screenX + size * 0.55);
+                Canvas.SetTop(slot2, screenY + size * 0.15);
+                canvas.Children.Add(slot2);
+                
+                // Draw wings (triangular shapes that flap)
+                double wingY = screenY + size * 0.2 + wingAngle * size * 0.3;
+                
+                // Left wing
+                var leftWing = new Polygon
+                {
+                    Points = new PointCollection
+                    {
+                        new Point(screenX, screenY + size * 0.35),
+                        new Point(screenX - size * 0.4, wingY),
+                        new Point(screenX, wingY + size * 0.15)
+                    },
+                    Fill = new SolidColorBrush(Color.FromRgb(220, 220, 230)),
+                    Stroke = new SolidColorBrush(Color.FromRgb(150, 150, 160)),
+                    StrokeThickness = 1
+                };
+                canvas.Children.Add(leftWing);
+                
+                // Right wing
+                var rightWing = new Polygon
+                {
+                    Points = new PointCollection
+                    {
+                        new Point(screenX + size, screenY + size * 0.35),
+                        new Point(screenX + size + size * 0.4, wingY),
+                        new Point(screenX + size, wingY + size * 0.15)
+                    },
+                    Fill = new SolidColorBrush(Color.FromRgb(220, 220, 230)),
+                    Stroke = new SolidColorBrush(Color.FromRgb(150, 150, 160)),
+                    StrokeThickness = 1
+                };
+                canvas.Children.Add(rightWing);
+                
+                // Draw toast popping out (based on audio)
+                if (avgIntensity > 0.3)
+                {
+                    double toastPop = (avgIntensity - 0.3) * size * 0.5;
+                    var toast1 = new Rectangle
+                    {
+                        Width = size * 0.25,
+                        Height = size * 0.3 + toastPop,
+                        Fill = new LinearGradientBrush
+                        {
+                            StartPoint = new Point(0, 0),
+                            EndPoint = new Point(0, 1),
+                            GradientStops = new GradientStopCollection
+                            {
+                                new GradientStop(Color.FromRgb(139, 90, 43), 0),
+                                new GradientStop(Color.FromRgb(210, 180, 140), 0.5),
+                                new GradientStop(Color.FromRgb(139, 90, 43), 1)
+                            }
+                        },
+                        RadiusX = 3,
+                        RadiusY = 3
+                    };
+                    Canvas.SetLeft(toast1, screenX + size * 0.15);
+                    Canvas.SetTop(toast1, screenY - toastPop * 0.5);
+                    canvas.Children.Add(toast1);
+                    
+                    var toast2 = new Rectangle
+                    {
+                        Width = size * 0.25,
+                        Height = size * 0.3 + toastPop,
+                        Fill = new LinearGradientBrush
+                        {
+                            StartPoint = new Point(0, 0),
+                            EndPoint = new Point(0, 1),
+                            GradientStops = new GradientStopCollection
+                            {
+                                new GradientStop(Color.FromRgb(139, 90, 43), 0),
+                                new GradientStop(Color.FromRgb(210, 180, 140), 0.5),
+                                new GradientStop(Color.FromRgb(139, 90, 43), 1)
+                            }
+                        },
+                        RadiusX = 3,
+                        RadiusY = 3
+                    };
+                    Canvas.SetLeft(toast2, screenX + size * 0.58);
+                    Canvas.SetTop(toast2, screenY - toastPop * 0.5);
+                    canvas.Children.Add(toast2);
+                }
+            }
+        }
     }
     
     /// <summary>
@@ -1001,5 +1430,28 @@ namespace PlatypusTools.UI.Views
         public double VelocityY { get; set; }
         public double Size { get; set; }
         public double Hue { get; set; }
+    }
+    
+    /// <summary>
+    /// Represents a star for the starfield visualization (After Dark style).
+    /// </summary>
+    internal class Star
+    {
+        public double X { get; set; }  // -0.5 to 0.5 (centered)
+        public double Y { get; set; }  // -0.5 to 0.5 (centered)
+        public double Z { get; set; }  // Depth (0.1 to 4.0)
+        public double Speed { get; set; }
+    }
+    
+    /// <summary>
+    /// Represents a flying toaster (After Dark style).
+    /// </summary>
+    internal class Toaster
+    {
+        public double X { get; set; }  // 0 to 1 (screen position)
+        public double Y { get; set; }  // 0 to 1 (screen position)
+        public double Speed { get; set; }
+        public double WingPhase { get; set; }  // Wing flap animation phase
+        public double Size { get; set; }
     }
 }

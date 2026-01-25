@@ -219,10 +219,13 @@ public class EnhancedAudioPlayerService : IDisposable
         
         try
         {
-            Stop();
+            // Check if we have a preloaded track ready (gapless transition)
+            bool usingPreload = _preloadedReader != null && _preloadedFilePath == CurrentTrack.FilePath;
             
-            // Check if we have a preloaded track ready
-            if (_preloadedReader != null && _preloadedFilePath == CurrentTrack.FilePath)
+            // Stop current playback, but preserve preload if we're using it
+            Stop(preservePreload: usingPreload);
+            
+            if (usingPreload)
             {
                 _audioFileReader = _preloadedReader;
                 _preloadedReader = null;
@@ -303,15 +306,19 @@ public class EnhancedAudioPlayerService : IDisposable
         else if (CurrentTrack != null) _ = PlayCurrentAsync();
     }
     
-    public void Stop()
+    public void Stop(bool preservePreload = false)
     {
         _positionTimer.Stop();
         _isPlaying = false;
         _isPaused = false;
         
-        _wavePlayer?.Stop();
-        _wavePlayer?.Dispose();
-        _wavePlayer = null;
+        if (_wavePlayer != null)
+        {
+            _wavePlayer.PlaybackStopped -= OnPlaybackStopped;
+            _wavePlayer.Stop();
+            _wavePlayer.Dispose();
+            _wavePlayer = null;
+        }
         
         _audioFileReader?.Dispose();
         _audioFileReader = null;
@@ -319,6 +326,14 @@ public class EnhancedAudioPlayerService : IDisposable
         _equalizer = null;
         _speedController = null;
         _volumeController = null;
+        
+        // Clear preload unless we're doing gapless transition
+        if (!preservePreload)
+        {
+            _preloadedReader?.Dispose();
+            _preloadedReader = null;
+            _preloadedFilePath = null;
+        }
         
         PlaybackStateChanged?.Invoke(this, false);
     }
@@ -391,6 +406,82 @@ public class EnhancedAudioPlayerService : IDisposable
         {
             AddToQueue(track);
         }
+    }
+    
+    /// <summary>
+    /// Sets the queue to the specified tracks, replacing any existing queue.
+    /// </summary>
+    public void SetQueue(List<AudioTrack> tracks)
+    {
+        _queue.Clear();
+        _shuffledIndices.Clear();
+        _currentIndex = -1;
+        
+        if (tracks != null && tracks.Count > 0)
+        {
+            _queue.AddRange(tracks);
+            if (_isShuffled)
+            {
+                ShuffleQueue();
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Loads an audio track from a file path, reading metadata.
+    /// </summary>
+    public async Task<AudioTrack?> LoadTrackAsync(string filePath)
+    {
+        if (!File.Exists(filePath)) return null;
+        
+        var track = new AudioTrack
+        {
+            FilePath = filePath,
+            Title = Path.GetFileNameWithoutExtension(filePath)
+        };
+        
+        await Task.Run(() =>
+        {
+            try
+            {
+                var fileName = Path.GetFileNameWithoutExtension(track.FilePath);
+                
+                // Try to parse "Artist - Title" format
+                var separatorIndex = fileName.IndexOf(" - ");
+                if (separatorIndex > 0)
+                {
+                    track.Artist = fileName.Substring(0, separatorIndex).Trim();
+                    track.Title = fileName.Substring(separatorIndex + 3).Trim();
+                }
+                else
+                {
+                    track.Title = fileName;
+                }
+                
+                // Get folder as album name
+                var parentFolder = Path.GetDirectoryName(track.FilePath);
+                if (!string.IsNullOrEmpty(parentFolder))
+                {
+                    track.Album = Path.GetFileName(parentFolder);
+                }
+                
+                track.FileSize = new FileInfo(track.FilePath).Length;
+                
+                // Try to read duration using NAudio
+                try
+                {
+                    using var reader = new AudioFileReader(track.FilePath);
+                    track.Duration = reader.TotalTime;
+                }
+                catch { }
+            }
+            catch
+            {
+                track.Title = Path.GetFileNameWithoutExtension(track.FilePath);
+            }
+        });
+        
+        return track;
     }
     
     public void RemoveFromQueue(AudioTrack track)
@@ -697,6 +788,57 @@ public class EnhancedAudioPlayerService : IDisposable
     
     #region LRC Lyrics Parsing
     
+    /// <summary>
+    /// Synchronously checks for and loads a local .lrc file. Use this for instant lyrics display.
+    /// Returns null if no local .lrc file exists (does NOT download).
+    /// </summary>
+    public Lyrics? LoadLocalLyricsSync(AudioTrack track)
+    {
+        if (track == null) return null;
+        
+        try
+        {
+            var directory = Path.GetDirectoryName(track.FilePath);
+            var baseName = Path.GetFileNameWithoutExtension(track.FilePath);
+            
+            if (string.IsNullOrEmpty(directory)) return null;
+            
+            // Check primary location
+            var lrcPath = Path.Combine(directory, baseName + ".lrc");
+            if (!File.Exists(lrcPath))
+            {
+                // Try alternate naming
+                lrcPath = Path.Combine(directory, $"{track.Artist} - {track.Title}.lrc");
+            }
+            
+            if (File.Exists(lrcPath))
+            {
+                return ParseLrcFileSync(lrcPath, track.Id);
+            }
+        }
+        catch { }
+        
+        return null;
+    }
+    
+    /// <summary>
+    /// Synchronously parses an LRC file.
+    /// </summary>
+    private Lyrics? ParseLrcFileSync(string path, string trackId)
+    {
+        try
+        {
+            var content = File.ReadAllText(path);
+            var lyrics = ParseLrcContent(content, trackId);
+            lyrics.Source = Path.GetFileName(path);
+            return lyrics;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+    
     public async Task<Lyrics?> LoadLyricsAsync(AudioTrack track)
     {
         if (track == null) return null;
@@ -967,6 +1109,122 @@ public class EnhancedAudioPlayerService : IDisposable
         _trackStartTime = DateTime.Now;
         _scrobbled = false;
         System.Diagnostics.Debug.WriteLine($"Now Playing: {CurrentTrack.Artist} - {CurrentTrack.Title}");
+    }
+    
+    #endregion
+    
+    #region Queue Persistence
+    
+    private static readonly string QueueFilePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "PlatypusTools", "enhanced_audio_queue.json");
+    
+    /// <summary>
+    /// Saves the current queue to a JSON file for persistence across sessions.
+    /// </summary>
+    public async Task SaveQueueAsync()
+    {
+        try
+        {
+            var queueData = new
+            {
+                CurrentIndex = _currentIndex,
+                Volume = Volume,
+                IsMuted = IsMuted,
+                IsShuffle = _isShuffled,
+                RepeatMode = (int)Repeat,
+                PlaybackSpeed = PlaybackSpeed,
+                Tracks = _queue.Select(t => new
+                {
+                    FilePath = t.FilePath,
+                    Title = t.Title,
+                    Artist = t.Artist,
+                    Album = t.Album,
+                    Duration = t.Duration.Ticks,
+                    Rating = t.Rating
+                }).ToList()
+            };
+            
+            var directory = Path.GetDirectoryName(QueueFilePath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+            
+            var json = JsonSerializer.Serialize(queueData, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(QueueFilePath, json);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error saving queue: {ex.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// Loads the queue from the saved JSON file.
+    /// </summary>
+    public async Task<bool> LoadQueueAsync()
+    {
+        try
+        {
+            if (!File.Exists(QueueFilePath))
+                return false;
+            
+            var json = await File.ReadAllTextAsync(QueueFilePath);
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            
+            _queue.Clear();
+            _shuffledIndices.Clear();
+            
+            if (root.TryGetProperty("Volume", out var vol))
+                Volume = vol.GetDouble();
+            if (root.TryGetProperty("IsMuted", out var muted))
+                IsMuted = muted.GetBoolean();
+            if (root.TryGetProperty("IsShuffle", out var shuffle))
+                _isShuffled = shuffle.GetBoolean();
+            if (root.TryGetProperty("RepeatMode", out var repeat))
+                Repeat = (RepeatMode)repeat.GetInt32();
+            if (root.TryGetProperty("PlaybackSpeed", out var speed))
+                PlaybackSpeed = speed.GetDouble();
+            
+            if (root.TryGetProperty("Tracks", out var tracks))
+            {
+                foreach (var t in tracks.EnumerateArray())
+                {
+                    var track = new AudioTrack
+                    {
+                        FilePath = t.GetProperty("FilePath").GetString() ?? "",
+                        Title = t.TryGetProperty("Title", out var title) ? title.GetString() ?? "" : "",
+                        Artist = t.TryGetProperty("Artist", out var artist) ? artist.GetString() ?? "" : "",
+                        Album = t.TryGetProperty("Album", out var album) ? album.GetString() ?? "" : "",
+                        Duration = TimeSpan.FromTicks(t.TryGetProperty("Duration", out var dur) ? dur.GetInt64() : 0),
+                        Rating = t.TryGetProperty("Rating", out var rating) ? rating.GetInt32() : 0
+                    };
+                    
+                    if (File.Exists(track.FilePath))
+                    {
+                        _queue.Add(track);
+                    }
+                }
+            }
+            
+            if (root.TryGetProperty("CurrentIndex", out var idx))
+            {
+                _currentIndex = Math.Min(idx.GetInt32(), _queue.Count - 1);
+            }
+            
+            if (_isShuffled)
+            {
+                ShuffleQueue();
+            }
+            
+            TrackChanged?.Invoke(this, CurrentTrack);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading queue: {ex.Message}");
+            return false;
+        }
     }
     
     #endregion

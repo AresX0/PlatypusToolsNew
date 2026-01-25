@@ -160,6 +160,11 @@ namespace PlatypusTools.UI.ViewModels
             if (res == System.Windows.Forms.DialogResult.OK) FolderPath = dlg.SelectedPath;
         }
 
+        /// <summary>
+        /// Exposes ScanAsync for testability. Use ScanCommand for UI binding.
+        /// </summary>
+        public Task ScanForDuplicatesAsync() => ScanAsync();
+
         private async Task ScanAsync()
         {
             if (IsScanning) return;

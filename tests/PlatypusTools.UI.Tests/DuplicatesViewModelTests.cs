@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PlatypusTools.UI.ViewModels;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace PlatypusTools.UI.Tests
 {
@@ -9,7 +10,7 @@ namespace PlatypusTools.UI.Tests
     public class DuplicatesViewModelTests
     {
         [TestMethod]
-        public void SelectNewest_SelectsCorrectFile()
+        public async Task SelectNewest_SelectsCorrectFile()
         {
             var tmp = Path.Combine(Path.GetTempPath(), "pt_dup_select_test");
             if (Directory.Exists(tmp)) Directory.Delete(tmp, true);
@@ -23,7 +24,7 @@ namespace PlatypusTools.UI.Tests
 
             var vm = new DuplicatesViewModel();
             vm.FolderPath = tmp;
-            vm.ScanCommand.Execute(null);
+            await vm.ScanForDuplicatesAsync();
             Assert.IsTrue(vm.Groups.Count >= 1);
             var grp = vm.Groups.First(g => g.Files.Any(f => f.Path == f1) && g.Files.Any(f => f.Path == f2));
             Assert.AreEqual(2, grp.Files.Count, $"Group files: {string.Join(',', grp.Files.Select(f => Path.GetFileName(f.Path)))}");

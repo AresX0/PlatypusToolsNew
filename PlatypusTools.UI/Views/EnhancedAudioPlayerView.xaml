@@ -26,6 +26,7 @@
         <converters:IntToBoolConverter x:Key="IntToBoolConverter"/>
         <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
         <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis"/>
+        <converters:RatingToStarColorConverter x:Key="RatingToStarColorConverter"/>
         
         <!-- Star Rating Template -->
         <ControlTemplate x:Key="StarRatingTemplate" TargetType="ItemsControl">
@@ -193,7 +194,14 @@
                         <TextBlock Text="Bars:" FontSize="11" VerticalAlignment="Center" Margin="0,0,5,0"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
                         <ComboBox ItemsSource="{Binding BarCountOptions}" SelectedItem="{Binding BarCount}"
-                                  Width="55" FontSize="11" Margin="0,0,15,0" ToolTip="Bar Count"/>
+                                  Width="55" FontSize="11" Margin="0,0,10,0" ToolTip="Bar Count"/>
+                        
+                        <!-- Sensitivity Slider -->
+                        <TextBlock Text="Sens:" FontSize="11" VerticalAlignment="Center" Margin="0,0,3,0"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" ToolTip="Visualizer Sensitivity"/>
+                        <Slider Value="{Binding VisualizerSensitivity}" Minimum="0.1" Maximum="2.0" 
+                                Width="60" VerticalAlignment="Center" Margin="0,0,10,0"
+                                ToolTip="Sensitivity: Low = Smooth, High = Responsive"/>
                         
                         <!-- Lyrics Overlay Toggle -->
                         <ToggleButton Content="📝 Lyrics" IsChecked="{Binding ShowLyricsOverlay}" 
@@ -240,28 +248,44 @@
                                 </Grid>
                             </Border>
                             
-                            <!-- Track Info -->
-                            <StackPanel Margin="0,0,0,8" ToolTip="{Binding CurrentTrackTooltip}" HorizontalAlignment="Center">
-                                <TextBlock Text="{Binding CurrentTrackTitle}" FontSize="14" FontWeight="SemiBold"
-                                           TextTrimming="CharacterEllipsis" TextAlignment="Center" MaxWidth="250"
-                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="{Binding CurrentTrackArtist}" FontSize="12"
-                                           TextTrimming="CharacterEllipsis" TextAlignment="Center"
-                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <!-- Track Info (Clickable to scroll to queue) -->
+                            <StackPanel Margin="0,0,0,8" ToolTip="Click to scroll to track in queue" HorizontalAlignment="Center">
+                                <Button Command="{Binding ScrollToCurrentTrackCommand}" Cursor="Hand"
+                                        Background="Transparent" BorderThickness="0" HorizontalAlignment="Center">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding CurrentTrackTitle}" FontSize="14" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis" TextAlignment="Center" MaxWidth="250"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   TextDecorations="Underline"/>
+                                        <TextBlock Text="{Binding CurrentTrackArtist}" FontSize="12"
+                                                   TextTrimming="CharacterEllipsis" TextAlignment="Center"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
                             
-                            <!-- Star Rating -->
+                            <!-- Star Rating (Click to set) -->
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
                                 <Button Content="★" Command="{Binding SetRatingCommand}" CommandParameter="1"
-                                        FontSize="16" Background="Transparent" BorderThickness="0" Padding="1" Foreground="Gold"/>
+                                        FontSize="18" Background="Transparent" BorderThickness="0" Padding="2" Cursor="Hand"
+                                        Foreground="{Binding CurrentTrackRating, Converter={StaticResource RatingToStarColorConverter}, ConverterParameter=1}"
+                                        ToolTip="Rate 1 star"/>
                                 <Button Content="★" Command="{Binding SetRatingCommand}" CommandParameter="2"
-                                        FontSize="16" Background="Transparent" BorderThickness="0" Padding="1" Foreground="Gold"/>
+                                        FontSize="18" Background="Transparent" BorderThickness="0" Padding="2" Cursor="Hand"
+                                        Foreground="{Binding CurrentTrackRating, Converter={StaticResource RatingToStarColorConverter}, ConverterParameter=2}"
+                                        ToolTip="Rate 2 stars"/>
                                 <Button Content="★" Command="{Binding SetRatingCommand}" CommandParameter="3"
-                                        FontSize="16" Background="Transparent" BorderThickness="0" Padding="1" Foreground="Gold"/>
+                                        FontSize="18" Background="Transparent" BorderThickness="0" Padding="2" Cursor="Hand"
+                                        Foreground="{Binding CurrentTrackRating, Converter={StaticResource RatingToStarColorConverter}, ConverterParameter=3}"
+                                        ToolTip="Rate 3 stars"/>
                                 <Button Content="★" Command="{Binding SetRatingCommand}" CommandParameter="4"
-                                        FontSize="16" Background="Transparent" BorderThickness="0" Padding="1" Foreground="Gold"/>
+                                        FontSize="18" Background="Transparent" BorderThickness="0" Padding="2" Cursor="Hand"
+                                        Foreground="{Binding CurrentTrackRating, Converter={StaticResource RatingToStarColorConverter}, ConverterParameter=4}"
+                                        ToolTip="Rate 4 stars"/>
                                 <Button Content="★" Command="{Binding SetRatingCommand}" CommandParameter="5"
-                                        FontSize="16" Background="Transparent" BorderThickness="0" Padding="1" Foreground="Gold"/>
+                                        FontSize="18" Background="Transparent" BorderThickness="0" Padding="2" Cursor="Hand"
+                                        Foreground="{Binding CurrentTrackRating, Converter={StaticResource RatingToStarColorConverter}, ConverterParameter=5}"
+                                        ToolTip="Rate 5 stars"/>
                                 <TextBlock Text="{Binding CurrentTrackRating, StringFormat=({0}/5)}" 
                                            VerticalAlignment="Center" Margin="5,0,0,0" FontSize="11"
                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -505,6 +529,8 @@
                                 <Expander Grid.Row="1" Header="🎵 Playlists" IsExpanded="True" Margin="0,0,0,8">
                                     <StackPanel Margin="5">
                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                            <Button Content="📚 Show All" Command="{Binding ShowLibraryFromPlaylistCommand}" 
+                                                    Padding="6,4" Margin="0,0,5,0" FontSize="11" ToolTip="Return to full library view"/>
                                             <Button Content="➕ New Playlist" Command="{Binding CreatePlaylistCommand}" 
                                                     Padding="6,4" Margin="0,0,5,0" FontSize="11"/>
                                             <Button Content="✏️ Rename" Command="{Binding RenamePlaylistCommand}" 

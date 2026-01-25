@@ -29,6 +29,33 @@ public partial class EnhancedAudioPlayerView : UserControl
         InitializeComponent();
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
+        DataContextChanged += OnDataContextChanged;
+    }
+    
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        // Subscribe to ViewModel's scroll request event
+        if (e.OldValue is EnhancedAudioPlayerViewModel oldVm)
+        {
+            oldVm.RequestScrollToCurrentTrack -= OnRequestScrollToCurrentTrack;
+        }
+        if (e.NewValue is EnhancedAudioPlayerViewModel newVm)
+        {
+            newVm.RequestScrollToCurrentTrack += OnRequestScrollToCurrentTrack;
+        }
+    }
+    
+    private void OnRequestScrollToCurrentTrack(object? sender, EventArgs e)
+    {
+        // Scroll the queue listbox to the selected item
+        Dispatcher.BeginInvoke(() =>
+        {
+            if (QueueListBox != null && DataContext is EnhancedAudioPlayerViewModel vm && vm.SelectedQueueTrack != null)
+            {
+                QueueListBox.ScrollIntoView(vm.SelectedQueueTrack);
+                QueueListBox.Focus();
+            }
+        });
     }
     
     private void OnLoaded(object sender, RoutedEventArgs e)
@@ -74,9 +101,9 @@ public partial class EnhancedAudioPlayerView : UserControl
                 string mode = GetVisualizerModeName(vm?.VisualizerModeIndex ?? 0);
                 int barCount = vm?.BarCount ?? 32;
                 int colorIndex = vm?.ColorSchemeIndex ?? 0;
+                double sensitivity = vm?.VisualizerSensitivity ?? 0.7;
                 
-                VisualizerControl.SetColorScheme(colorIndex);
-                VisualizerControl.UpdateSpectrumData(doubleData, mode, barCount);
+                VisualizerControl.UpdateSpectrumData(doubleData, mode, barCount, colorIndex, sensitivity);
             }
         });
     }
@@ -90,7 +117,9 @@ public partial class EnhancedAudioPlayerView : UserControl
         4 => "Radial",
         5 => "Particles",
         6 => "Aurora",
-        7 => "WaveGrid",
+        7 => "Wave Grid",
+        8 => "Starfield",
+        9 => "Toasters",
         _ => "Bars"
     };
     

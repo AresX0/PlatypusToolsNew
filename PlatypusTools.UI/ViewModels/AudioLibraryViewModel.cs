@@ -31,7 +31,7 @@ public enum LibraryViewMode
 public partial class AudioLibraryViewModel : BindableBase
 {
     private readonly AudioLibraryService _libraryService;
-    private readonly AudioPlayerService _playerService;
+    private readonly EnhancedAudioPlayerService _playerService;
     private CancellationTokenSource? _scanCts;
     
     private LibraryViewMode _viewMode = LibraryViewMode.AllTracks;
@@ -47,7 +47,7 @@ public partial class AudioLibraryViewModel : BindableBase
     public AudioLibraryViewModel()
     {
         _libraryService = AudioLibraryService.Instance;
-        _playerService = AudioPlayerService.Instance;
+        _playerService = EnhancedAudioPlayerService.Instance;
         
         Tracks = new ObservableCollection<AudioTrack>();
         Artists = new ObservableCollection<Artist>();

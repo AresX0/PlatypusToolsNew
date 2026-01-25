@@ -1,7 +1,8 @@
 <UserControl x:Class="PlatypusTools.UI.Views.AdvancedForensicsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels">
+             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             xmlns:services="clr-namespace:PlatypusTools.UI.Services">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -20,7 +21,8 @@
         <TabControl Grid.Row="1">
             
             <!-- Memory Acquisition &amp; Analysis Tab -->
-            <TabItem Header="🧠 Memory">
+            <TabItem Header="🧠 Memory"
+                     Visibility="{Binding AdvancedForensicsMemory, Source={x:Static services:TabVisibilityService.Instance}}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         
@@ -216,7 +218,8 @@
             </TabItem>
 
             <!-- Artifact Collection Tab -->
-            <TabItem Header="📦 Artifacts">
+            <TabItem Header="📦 Artifacts"
+                     Visibility="{Binding AdvancedForensicsArtifacts, Source={x:Static services:TabVisibilityService.Instance}}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         <GroupBox Header="KAPE / EZ Tools Configuration" Margin="0,0,0,10">
@@ -286,7 +289,8 @@
             </TabItem>
 
             <!-- Timeline Tab (Plaso/Velociraptor) -->
-            <TabItem Header="📅 Timeline">
+            <TabItem Header="📅 Timeline"
+                     Visibility="{Binding AdvancedForensicsTimeline, Source={x:Static services:TabVisibilityService.Instance}}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         
@@ -374,7 +378,8 @@
             </TabItem>
 
             <!-- Kusto Queries Tab -->
-            <TabItem Header="📊 Kusto">
+            <TabItem Header="📊 Kusto"
+                     Visibility="{Binding AdvancedForensicsKusto, Source={x:Static services:TabVisibilityService.Instance}}">
                 <Grid Margin="10">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -437,7 +442,8 @@
             </TabItem>
 
             <!-- Local KQL Database Tab -->
-            <TabItem Header="🗄️ Local KQL">
+            <TabItem Header="🗄️ Local KQL"
+                     Visibility="{Binding AdvancedForensicsLocalKQL, Source={x:Static services:TabVisibilityService.Instance}}">
                 <Grid Margin="10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="250"/>
@@ -578,7 +584,8 @@
             </TabItem>
 
             <!-- Malware Analysis Tab -->
-            <TabItem Header="🦠 Malware">
+            <TabItem Header="🦠 Malware"
+                     Visibility="{Binding AdvancedForensicsMalware, Source={x:Static services:TabVisibilityService.Instance}}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         
@@ -662,7 +669,8 @@
             </TabItem>
 
             <!-- Bulk Extractor Tab -->
-            <TabItem Header="🔎 Extract">
+            <TabItem Header="🔎 Extract"
+                     Visibility="{Binding AdvancedForensicsExtract, Source={x:Static services:TabVisibilityService.Instance}}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         <GroupBox Header="bulk_extractor - Feature Extraction" Margin="0,0,0,10">
@@ -725,7 +733,8 @@
             </TabItem>
 
             <!-- OpenSearch Integration Tab -->
-            <TabItem Header="🔎 OpenSearch">
+            <TabItem Header="🔎 OpenSearch"
+                     Visibility="{Binding AdvancedForensicsOpenSearch, Source={x:Static services:TabVisibilityService.Instance}}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
                         <GroupBox Header="OpenSearch Connection" Margin="0,0,0,10">
@@ -793,7 +802,8 @@
             </TabItem>
 
             <!-- OSINT/Metadata Tab -->
-            <TabItem Header="📄 OSINT">
+            <TabItem Header="📄 OSINT"
+                     Visibility="{Binding AdvancedForensicsOSINT, Source={x:Static services:TabVisibilityService.Instance}}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <Grid Margin="10">
                         <Grid.RowDefinitions>
@@ -847,6 +857,305 @@
                             </DataGrid>
                         </GroupBox>
                     </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Task Scheduler Tab -->
+            <TabItem Header="📋 Schedule"
+                     Visibility="{Binding AdvancedForensicsSchedule, Source={x:Static services:TabVisibilityService.Instance}}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+                        <GroupBox Header="🗓️ Scheduled Tasks Scanner" Margin="0,0,0,10">
+                            <StackPanel Margin="5">
+                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+                                    Scan Windows Task Scheduler for suspicious scheduled tasks that may indicate persistence mechanisms or malware.
+                                </TextBlock>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Filter:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Text="{Binding SchedulerTaskFilter, UpdateSourceTrigger=PropertyChanged}" 
+                                             ToolTip="Optional: Filter tasks by name (leave empty for all)" Margin="5"/>
+                                </Grid>
+                                <Button Content="🔍 Scan Scheduled Tasks" Command="{Binding ScanScheduledTasksCommand}"
+                                        Height="35" FontSize="12" FontWeight="Bold" 
+                                        Background="#2196F3" Foreground="White" Margin="0,10,0,0"
+                                        IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="Discovered Tasks">
+                            <DataGrid ItemsSource="{Binding ScheduledTasks}" AutoGenerateColumns="False"
+                                      IsReadOnly="True" CanUserAddRows="False" MaxHeight="400">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Task Name" Binding="{Binding TaskName}" Width="150"/>
+                                    <DataGridTextColumn Header="Path" Binding="{Binding TaskPath}" Width="200"/>
+                                    <DataGridTextColumn Header="State" Binding="{Binding State}" Width="80"/>
+                                    <DataGridTextColumn Header="Actions" Binding="{Binding Actions}" Width="250"/>
+                                    <DataGridTextColumn Header="Author" Binding="{Binding Author}" Width="120"/>
+                                    <DataGridCheckBoxColumn Header="⚠️" Binding="{Binding IsSuspicious}" Width="40"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </GroupBox>
+
+                        <Button Content="📤 Export Tasks" Command="{Binding ExportScheduledTasksCommand}"
+                                Height="30" Width="150" HorizontalAlignment="Right" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Browser Forensics Tab -->
+            <TabItem Header="🌐 Browser"
+                     Visibility="{Binding AdvancedForensicsBrowser, Source={x:Static services:TabVisibilityService.Instance}}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+                        <GroupBox Header="🌐 Browser Artifact Extraction" Margin="0,0,0,10">
+                            <StackPanel Margin="5">
+                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+                                    Extract browsing history, cookies, downloads, and optionally saved passwords from installed browsers (Chrome, Firefox, Edge).
+                                </TextBlock>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Profile Path:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Text="{Binding BrowserForensicsProfile, UpdateSourceTrigger=PropertyChanged}" 
+                                             ToolTip="Optional: Specific browser profile path (leave empty for default)" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseBrowserProfileCommand}" Width="80" Margin="5"/>
+                                </Grid>
+                                <WrapPanel Margin="0,10,0,0">
+                                    <CheckBox Content="History" IsChecked="{Binding ExtractBrowserHistory}" Margin="10,5"/>
+                                    <CheckBox Content="Cookies" IsChecked="{Binding ExtractBrowserCookies}" Margin="10,5"/>
+                                    <CheckBox Content="Downloads" IsChecked="{Binding ExtractBrowserDownloads}" Margin="10,5"/>
+                                    <CheckBox Content="Passwords ⚠️" IsChecked="{Binding ExtractBrowserPasswords}" Margin="10,5"
+                                              ToolTip="Warning: Requires elevated privileges and may trigger security warnings"/>
+                                </WrapPanel>
+                                <Button Content="🔍 Extract Browser Artifacts" Command="{Binding ScanBrowserArtifactsCommand}"
+                                        Height="35" FontSize="12" FontWeight="Bold" 
+                                        Background="#FF9800" Foreground="White" Margin="0,10,0,0"
+                                        IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="Extracted Artifacts">
+                            <DataGrid ItemsSource="{Binding BrowserArtifacts}" AutoGenerateColumns="False"
+                                      IsReadOnly="True" CanUserAddRows="False" MaxHeight="400">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Browser" Binding="{Binding Browser}" Width="80"/>
+                                    <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="80"/>
+                                    <DataGridTextColumn Header="URL" Binding="{Binding Url}" Width="300"/>
+                                    <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="200"/>
+                                    <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp, StringFormat=yyyy-MM-dd HH:mm}" Width="130"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </GroupBox>
+
+                        <Button Content="📤 Export Artifacts" Command="{Binding ExportBrowserArtifactsCommand}"
+                                Height="30" Width="150" HorizontalAlignment="Right" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- IOC Scanner Tab -->
+            <TabItem Header="🎯 IOC"
+                     Visibility="{Binding AdvancedForensicsIOC, Source={x:Static services:TabVisibilityService.Instance}}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+                        <GroupBox Header="🎯 Indicators of Compromise Scanner" Margin="0,0,0,10">
+                            <StackPanel Margin="5">
+                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+                                    Scan files, registry, and network connections for known IOCs (malicious IPs, domains, file hashes, registry keys).
+                                </TextBlock>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="Scan Path:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Text="{Binding IOCScanPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseIOCPathCommand}" Width="80" Margin="5"/>
+
+                                    <TextBlock Grid.Row="1" Text="IOC Feed:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding IOCFeedUrl, UpdateSourceTrigger=PropertyChanged}" 
+                                             ToolTip="STIX/TAXII feed URL or IOC file URL" Margin="5"/>
+                                    <Button Grid.Row="1" Grid.Column="2" Content="Load Feed" Command="{Binding LoadIOCFeedCommand}" Width="80" Margin="5"/>
+                                </Grid>
+                                <WrapPanel Margin="0,10,0,0">
+                                    <CheckBox Content="Scan Files" IsChecked="{Binding ScanIOCFiles}" Margin="10,5"/>
+                                    <CheckBox Content="Scan Registry" IsChecked="{Binding ScanIOCRegistry}" Margin="10,5"/>
+                                    <CheckBox Content="Scan Network" IsChecked="{Binding ScanIOCNetwork}" Margin="10,5"/>
+                                </WrapPanel>
+                                <Button Content="🔍 Scan for IOCs" Command="{Binding ScanForIOCsCommand}"
+                                        Height="35" FontSize="12" FontWeight="Bold" 
+                                        Background="#f44336" Foreground="White" Margin="0,10,0,0"
+                                        IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="IOC Matches">
+                            <DataGrid ItemsSource="{Binding IOCMatches}" AutoGenerateColumns="False"
+                                      IsReadOnly="True" CanUserAddRows="False" MaxHeight="400">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Type" Binding="{Binding IOCType}" Width="80"/>
+                                    <DataGridTextColumn Header="IOC Value" Binding="{Binding IOCValue}" Width="200"/>
+                                    <DataGridTextColumn Header="Matched In" Binding="{Binding MatchedIn}" Width="100"/>
+                                    <DataGridTextColumn Header="Location" Binding="{Binding MatchLocation}" Width="250"/>
+                                    <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="80"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </GroupBox>
+
+                        <Button Content="📤 Export IOC Results" Command="{Binding ExportIOCResultsCommand}"
+                                Height="30" Width="150" HorizontalAlignment="Right" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Registry Diff Tab -->
+            <TabItem Header="📊 Registry"
+                     Visibility="{Binding AdvancedForensicsRegistry, Source={x:Static services:TabVisibilityService.Instance}}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+                        <GroupBox Header="📊 Registry Snapshot &amp; Comparison" Margin="0,0,0,10">
+                            <StackPanel Margin="5">
+                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+                                    Take snapshots of registry keys and compare them to detect changes made by malware or suspicious activity.
+                                </TextBlock>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Hive Filter:" VerticalAlignment="Center"/>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding RegistryHives}" 
+                                              SelectedItem="{Binding RegistryHiveFilter}" Margin="5" Width="150" HorizontalAlignment="Left"/>
+                                </Grid>
+                                <Button Content="📸 Take Registry Snapshot" Command="{Binding TakeRegistrySnapshotCommand}"
+                                        Height="35" FontSize="12" FontWeight="Bold" 
+                                        Background="#4CAF50" Foreground="White" Margin="0,10,0,0"
+                                        IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="Compare Snapshots" Margin="0,0,0,10">
+                            <StackPanel Margin="5">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="Snapshot 1:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Text="{Binding RegistrySnapshot1Path, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseSnapshot1Command}" Width="80" Margin="5"/>
+
+                                    <TextBlock Grid.Row="1" Text="Snapshot 2:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding RegistrySnapshot2Path, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                                    <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseSnapshot2Command}" Width="80" Margin="5"/>
+                                </Grid>
+                                <Button Content="🔍 Compare Snapshots" Command="{Binding CompareRegistrySnapshotsCommand}"
+                                        Height="35" FontSize="12" FontWeight="Bold" 
+                                        Background="#2196F3" Foreground="White" Margin="0,10,0,0"
+                                        IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="Registry Differences">
+                            <DataGrid ItemsSource="{Binding RegistryDiffs}" AutoGenerateColumns="False"
+                                      IsReadOnly="True" CanUserAddRows="False" MaxHeight="300">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Change" Binding="{Binding ChangeType}" Width="80"/>
+                                    <DataGridTextColumn Header="Key Path" Binding="{Binding KeyPath}" Width="300"/>
+                                    <DataGridTextColumn Header="Value Name" Binding="{Binding ValueName}" Width="150"/>
+                                    <DataGridTextColumn Header="Old Value" Binding="{Binding OldValue}" Width="150"/>
+                                    <DataGridTextColumn Header="New Value" Binding="{Binding NewValue}" Width="150"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </GroupBox>
+
+                        <Button Content="📤 Export Diff" Command="{Binding ExportRegistryDiffCommand}"
+                                Height="30" Width="150" HorizontalAlignment="Right" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- PCAP Parser Tab -->
+            <TabItem Header="📡 PCAP"
+                     Visibility="{Binding AdvancedForensicsPCAP, Source={x:Static services:TabVisibilityService.Instance}}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+                        <GroupBox Header="📡 Network Packet Capture Parser" Margin="0,0,0,10">
+                            <StackPanel Margin="5">
+                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+                                    Parse PCAP/PCAPNG files to extract network connections, HTTP traffic, DNS queries, and optionally extract transferred files.
+                                </TextBlock>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="PCAP File:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Text="{Binding PcapFilePath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowsePcapFileCommand}" Width="80" Margin="5"/>
+                                </Grid>
+                                <WrapPanel Margin="0,10,0,0">
+                                    <CheckBox Content="Filter HTTP Traffic" IsChecked="{Binding FilterHttpTraffic}" Margin="10,5"/>
+                                    <CheckBox Content="Filter DNS Traffic" IsChecked="{Binding FilterDnsTraffic}" Margin="10,5"/>
+                                    <CheckBox Content="Extract Files" IsChecked="{Binding ExtractPcapFiles}" Margin="10,5"
+                                              ToolTip="Extract files transferred over HTTP/FTP"/>
+                                </WrapPanel>
+                                <Button Content="🔍 Parse PCAP" Command="{Binding ParsePcapCommand}"
+                                        Height="35" FontSize="12" FontWeight="Bold" 
+                                        Background="#9C27B0" Foreground="White" Margin="0,10,0,0"
+                                        IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="Network Connections">
+                            <DataGrid ItemsSource="{Binding NetworkConnections}" AutoGenerateColumns="False"
+                                      IsReadOnly="True" CanUserAddRows="False" MaxHeight="200">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Source IP" Binding="{Binding SourceIP}" Width="120"/>
+                                    <DataGridTextColumn Header="Destination IP" Binding="{Binding DestinationIP}" Width="120"/>
+                                    <DataGridTextColumn Header="Port" Binding="{Binding DestinationPort}" Width="60"/>
+                                    <DataGridTextColumn Header="Protocol" Binding="{Binding Protocol}" Width="70"/>
+                                    <DataGridTextColumn Header="Packets" Binding="{Binding PacketCount}" Width="70"/>
+                                    <DataGridTextColumn Header="Bytes" Binding="{Binding BytesTransferred}" Width="100"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </GroupBox>
+
+                        <GroupBox Header="Parsed Packets" Margin="0,10,0,0">
+                            <DataGrid ItemsSource="{Binding ParsedPackets}" AutoGenerateColumns="False"
+                                      IsReadOnly="True" CanUserAddRows="False" MaxHeight="200">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="#" Binding="{Binding PacketNumber}" Width="50"/>
+                                    <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp, StringFormat=HH:mm:ss.fff}" Width="100"/>
+                                    <DataGridTextColumn Header="Protocol" Binding="{Binding Protocol}" Width="70"/>
+                                    <DataGridTextColumn Header="Source" Binding="{Binding SourceIP}" Width="120"/>
+                                    <DataGridTextColumn Header="Destination" Binding="{Binding DestinationIP}" Width="120"/>
+                                    <DataGridTextColumn Header="Info" Binding="{Binding Info}" Width="*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </GroupBox>
+
+                        <Button Content="📤 Export PCAP Results" Command="{Binding ExportPcapResultsCommand}"
+                                Height="30" Width="150" HorizontalAlignment="Right" Margin="0,10,0,0"/>
+                    </StackPanel>
                 </ScrollViewer>
             </TabItem>
 

@@ -681,6 +681,156 @@ namespace PlatypusTools.UI.ViewModels
         public ObservableCollection<MalwareAnalysisResult> MalwareResults { get; } = new();
         public ObservableCollection<BulkExtractorResult> BulkExtractorResults { get; } = new();
 
+        // ============ TASK SCHEDULER (DFIR) ============
+        private string _schedulerTaskName = string.Empty;
+        public string SchedulerTaskName
+        {
+            get => _schedulerTaskName;
+            set => SetProperty(ref _schedulerTaskName, value);
+        }
+
+        private string _schedulerTaskFilter = string.Empty;
+        public string SchedulerTaskFilter
+        {
+            get => _schedulerTaskFilter;
+            set => SetProperty(ref _schedulerTaskFilter, value);
+        }
+
+        public ObservableCollection<ScheduledTaskInfo> ScheduledTasks { get; } = new();
+
+        // ============ BROWSER FORENSICS ============
+        private string _browserForensicsProfile = string.Empty;
+        public string BrowserForensicsProfile
+        {
+            get => _browserForensicsProfile;
+            set => SetProperty(ref _browserForensicsProfile, value);
+        }
+
+        private bool _extractBrowserHistory = true;
+        public bool ExtractBrowserHistory
+        {
+            get => _extractBrowserHistory;
+            set => SetProperty(ref _extractBrowserHistory, value);
+        }
+
+        private bool _extractBrowserCookies = true;
+        public bool ExtractBrowserCookies
+        {
+            get => _extractBrowserCookies;
+            set => SetProperty(ref _extractBrowserCookies, value);
+        }
+
+        private bool _extractBrowserDownloads = true;
+        public bool ExtractBrowserDownloads
+        {
+            get => _extractBrowserDownloads;
+            set => SetProperty(ref _extractBrowserDownloads, value);
+        }
+
+        private bool _extractBrowserPasswords = false;
+        public bool ExtractBrowserPasswords
+        {
+            get => _extractBrowserPasswords;
+            set => SetProperty(ref _extractBrowserPasswords, value);
+        }
+
+        public ObservableCollection<BrowserArtifact> BrowserArtifacts { get; } = new();
+
+        // ============ IOC SCANNER ============
+        private string _iocScanPath = string.Empty;
+        public string IOCScanPath
+        {
+            get => _iocScanPath;
+            set => SetProperty(ref _iocScanPath, value);
+        }
+
+        private string _iocFeedUrl = string.Empty;
+        public string IOCFeedUrl
+        {
+            get => _iocFeedUrl;
+            set => SetProperty(ref _iocFeedUrl, value);
+        }
+
+        private bool _scanIOCFiles = true;
+        public bool ScanIOCFiles
+        {
+            get => _scanIOCFiles;
+            set => SetProperty(ref _scanIOCFiles, value);
+        }
+
+        private bool _scanIOCRegistry = true;
+        public bool ScanIOCRegistry
+        {
+            get => _scanIOCRegistry;
+            set => SetProperty(ref _scanIOCRegistry, value);
+        }
+
+        private bool _scanIOCNetwork = true;
+        public bool ScanIOCNetwork
+        {
+            get => _scanIOCNetwork;
+            set => SetProperty(ref _scanIOCNetwork, value);
+        }
+
+        public ObservableCollection<IOCMatch> IOCMatches { get; } = new();
+
+        // ============ REGISTRY DIFF ============
+        private string _registrySnapshot1Path = string.Empty;
+        public string RegistrySnapshot1Path
+        {
+            get => _registrySnapshot1Path;
+            set => SetProperty(ref _registrySnapshot1Path, value);
+        }
+
+        private string _registrySnapshot2Path = string.Empty;
+        public string RegistrySnapshot2Path
+        {
+            get => _registrySnapshot2Path;
+            set => SetProperty(ref _registrySnapshot2Path, value);
+        }
+
+        private string _registryHiveFilter = "HKLM";
+        public string RegistryHiveFilter
+        {
+            get => _registryHiveFilter;
+            set => SetProperty(ref _registryHiveFilter, value);
+        }
+
+        public ObservableCollection<string> RegistryHives { get; } = new() { "HKLM", "HKCU", "HKU", "HKCR", "HKCC" };
+        public ObservableCollection<RegistryDiffEntry> RegistryDiffs { get; } = new();
+
+        // ============ PCAP PARSER ============
+        private string _pcapFilePath = string.Empty;
+        public string PcapFilePath
+        {
+            get => _pcapFilePath;
+            set => SetProperty(ref _pcapFilePath, value);
+        }
+
+        private bool _filterHttpTraffic = true;
+        public bool FilterHttpTraffic
+        {
+            get => _filterHttpTraffic;
+            set => SetProperty(ref _filterHttpTraffic, value);
+        }
+
+        private bool _filterDnsTraffic = true;
+        public bool FilterDnsTraffic
+        {
+            get => _filterDnsTraffic;
+            set => SetProperty(ref _filterDnsTraffic, value);
+        }
+
+        private bool _extractPcapFiles = false;
+        public bool ExtractPcapFiles
+        {
+            get => _extractPcapFiles;
+            set => SetProperty(ref _extractPcapFiles, value);
+        }
+
+        public ObservableCollection<NetworkPacketInfo> ParsedPackets { get; } = new();
+        public ObservableCollection<NetworkConnectionInfo> NetworkConnections { get; } = new();
+
         #endregion
 
         #region Commands
@@ -771,6 +921,33 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand CancelCommand { get; }
         public ICommand ClearLogCommand { get; }
         public ICommand ExportResultsCommand { get; }
+
+        // Task Scheduler (DFIR)
+        public ICommand ScanScheduledTasksCommand { get; }
+        public ICommand ExportScheduledTasksCommand { get; }
+
+        // Browser Forensics
+        public ICommand ScanBrowserArtifactsCommand { get; }
+        public ICommand BrowseBrowserProfileCommand { get; }
+        public ICommand ExportBrowserArtifactsCommand { get; }
+
+        // IOC Scanner
+        public ICommand ScanForIOCsCommand { get; }
+        public ICommand BrowseIOCPathCommand { get; }
+        public ICommand LoadIOCFeedCommand { get; }
+        public ICommand ExportIOCResultsCommand { get; }
+
+        // Registry Diff
+        public ICommand TakeRegistrySnapshotCommand { get; }
+        public ICommand CompareRegistrySnapshotsCommand { get; }
+        public ICommand BrowseSnapshot1Command { get; }
+        public ICommand BrowseSnapshot2Command { get; }
+        public ICommand ExportRegistryDiffCommand { get; }
+
+        // PCAP Parser
+        public ICommand ParsePcapCommand { get; }
+        public ICommand BrowsePcapFileCommand { get; }
+        public ICommand ExportPcapResultsCommand { get; }
 
         #endregion
 
@@ -871,6 +1048,33 @@ namespace PlatypusTools.UI.ViewModels
             CancelCommand = new RelayCommand(_ => Cancel(), _ => IsRunning);
             ClearLogCommand = new RelayCommand(_ => ClearAll());
             ExportResultsCommand = new AsyncRelayCommand(ExportResultsAsync);
+
+            // Task Scheduler Commands
+            ScanScheduledTasksCommand = new AsyncRelayCommand(ScanScheduledTasksAsync, () => !IsRunning);
+            ExportScheduledTasksCommand = new AsyncRelayCommand(ExportScheduledTasksAsync, () => ScheduledTasks.Count > 0);
+
+            // Browser Forensics Commands
+            ScanBrowserArtifactsCommand = new AsyncRelayCommand(ScanBrowserArtifactsAsync, () => !IsRunning);
+            BrowseBrowserProfileCommand = new RelayCommand(_ => BrowseFolder("Select browser profile folder", s => BrowserForensicsProfile = s));
+            ExportBrowserArtifactsCommand = new AsyncRelayCommand(ExportBrowserArtifactsAsync, () => BrowserArtifacts.Count > 0);
+
+            // IOC Scanner Commands
+            ScanForIOCsCommand = new AsyncRelayCommand(ScanForIOCsAsync, () => !IsRunning);
+            BrowseIOCPathCommand = new RelayCommand(_ => BrowseFolder("Select folder to scan for IOCs", s => IOCScanPath = s));
+            LoadIOCFeedCommand = new AsyncRelayCommand(LoadIOCFeedAsync, () => !IsRunning);
+            ExportIOCResultsCommand = new AsyncRelayCommand(ExportIOCResultsAsync, () => IOCMatches.Count > 0);
+
+            // Registry Diff Commands
+            TakeRegistrySnapshotCommand = new AsyncRelayCommand(TakeRegistrySnapshotAsync, () => !IsRunning);
+            CompareRegistrySnapshotsCommand = new AsyncRelayCommand(CompareRegistrySnapshotsAsync, () => !IsRunning);
+            BrowseSnapshot1Command = new RelayCommand(_ => BrowseFile("Registry Snapshot", "JSON|*.json|All files|*.*", s => RegistrySnapshot1Path = s));
+            BrowseSnapshot2Command = new RelayCommand(_ => BrowseFile("Registry Snapshot", "JSON|*.json|All files|*.*", s => RegistrySnapshot2Path = s));
+            ExportRegistryDiffCommand = new AsyncRelayCommand(ExportRegistryDiffAsync, () => RegistryDiffs.Count > 0);
+
+            // PCAP Parser Commands
+            ParsePcapCommand = new AsyncRelayCommand(ParsePcapAsync, () => !IsRunning);
+            BrowsePcapFileCommand = new RelayCommand(_ => BrowseFile("PCAP File", "PCAP|*.pcap;*.pcapng;*.cap|All files|*.*", s => PcapFilePath = s));
+            ExportPcapResultsCommand = new AsyncRelayCommand(ExportPcapResultsAsync, () => ParsedPackets.Count > 0 || NetworkConnections.Count > 0);
 
             // Set default paths
             SetDefaultPaths();
@@ -4723,6 +4927,711 @@ Amcache_CL
 
         #endregion
 
+        #region Task Scheduler DFIR
+
+        private async Task ScanScheduledTasksAsync()
+        {
+            try
+            {
+                IsRunning = true;
+                StatusMessage = "Scanning Windows scheduled tasks...";
+                ScheduledTasks.Clear();
+
+                // Use schtasks.exe to query Windows Task Scheduler
+                await Task.Run(() =>
+                {
+                    try
+                    {
+                        var filter = SchedulerTaskFilter?.ToLowerInvariant() ?? "";
+                        var psi = new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = "schtasks.exe",
+                            Arguments = "/Query /FO CSV /V",
+                            RedirectStandardOutput = true,
+                            UseShellExecute = false,
+                            CreateNoWindow = true
+                        };
+                        
+                        using var process = System.Diagnostics.Process.Start(psi);
+                        if (process == null) return;
+                        
+                        var output = process.StandardOutput.ReadToEnd();
+                        process.WaitForExit();
+                        
+                        var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                        var isFirst = true;
+                        
+                        foreach (var line in lines)
+                        {
+                            if (isFirst) { isFirst = false; continue; } // Skip header
+                            
+                            var fields = ParseCsvLine(line);
+                            if (fields.Length < 10) continue;
+                            
+                            var taskName = fields.Length > 1 ? fields[1] : "";
+                            var nextRun = fields.Length > 2 ? fields[2] : "";
+                            var status = fields.Length > 3 ? fields[3] : "";
+                            var lastRun = fields.Length > 4 ? fields[4] : "";
+                            var author = fields.Length > 7 ? fields[7] : "";
+                            var taskToRun = fields.Length > 8 ? fields[8] : "";
+                            
+                            if (!string.IsNullOrEmpty(filter) && !taskName.ToLowerInvariant().Contains(filter))
+                                continue;
+                            
+                            // Check for suspicious patterns
+                            var isSuspicious = taskToRun.ToLowerInvariant().Contains("powershell") ||
+                                               taskToRun.ToLowerInvariant().Contains("cmd /c") ||
+                                               taskToRun.ToLowerInvariant().Contains("regsvr32") ||
+                                               taskToRun.ToLowerInvariant().Contains("mshta");
+                            
+                            DateTime? lastRunTime = null;
+                            DateTime? nextRunTime = null;
+                            if (DateTime.TryParse(lastRun, out var lr)) lastRunTime = lr;
+                            if (DateTime.TryParse(nextRun, out var nr)) nextRunTime = nr;
+                            
+                            App.Current?.Dispatcher?.Invoke(() =>
+                            {
+                                ScheduledTasks.Add(new ScheduledTaskInfo
+                                {
+                                    TaskName = Path.GetFileName(taskName),
+                                    TaskPath = taskName,
+                                    State = status,
+                                    Actions = taskToRun,
+                                    Triggers = nextRun,
+                                    LastRunTime = lastRunTime,
+                                    NextRunTime = nextRunTime,
+                                    Author = author,
+                                    IsSuspicious = isSuspicious
+                                });
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        App.Current?.Dispatcher?.Invoke(() =>
+                            OutputLog += $"[{DateTime.Now:HH:mm:ss}] Warning: {ex.Message}\n");
+                    }
+                });
+
+                OutputLog += $"[{DateTime.Now:HH:mm:ss}] Found {ScheduledTasks.Count} scheduled tasks\n";
+                StatusMessage = $"Found {ScheduledTasks.Count} scheduled tasks";
+
+                Artifacts.Add(new ForensicArtifact
+                {
+                    Type = "ScheduledTasks",
+                    Name = "Task Scheduler Scan",
+                    Source = "System",
+                    RecordCount = ScheduledTasks.Count,
+                    Timestamp = DateTime.Now,
+                    OutputPath = "Memory"
+                });
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error scanning tasks: {ex.Message}";
+                OutputLog += $"[{DateTime.Now:HH:mm:ss}] ERROR: {ex.Message}\n";
+            }
+            finally
+            {
+                IsRunning = false;
+            }
+        }
+
+        private async Task ExportScheduledTasksAsync()
+        {
+            var dialog = new SaveFileDialog
+            {
+                Title = "Export Scheduled Tasks",
+                Filter = "JSON|*.json|CSV|*.csv",
+                FileName = $"scheduled_tasks_{DateTime.Now:yyyyMMdd_HHmmss}"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    if (dialog.FileName.EndsWith(".json"))
+                    {
+                        var json = JsonSerializer.Serialize(ScheduledTasks, new JsonSerializerOptions { WriteIndented = true });
+                        await File.WriteAllTextAsync(dialog.FileName, json);
+                    }
+                    else
+                    {
+                        var sb = new StringBuilder();
+                        sb.AppendLine("TaskName,TaskPath,State,Actions,Author,IsSuspicious");
+                        foreach (var t in ScheduledTasks)
+                        {
+                            sb.AppendLine($"\"{t.TaskName}\",\"{t.TaskPath}\",\"{t.State}\",\"{t.Actions}\",\"{t.Author}\",{t.IsSuspicious}");
+                        }
+                        await File.WriteAllTextAsync(dialog.FileName, sb.ToString());
+                    }
+                    StatusMessage = $"Exported to: {dialog.FileName}";
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = $"Export failed: {ex.Message}";
+                }
+            }
+        }
+
+        #endregion
+
+        #region Browser Forensics DFIR
+
+        private async Task ScanBrowserArtifactsAsync()
+        {
+            try
+            {
+                IsRunning = true;
+                StatusMessage = "Scanning browser artifacts...";
+                BrowserArtifacts.Clear();
+
+                var service = PlatypusTools.UI.Services.ServiceLocator.BrowserForensics;
+                
+                // Configure the service
+                service.ExtractHistory = ExtractBrowserHistory;
+                service.ExtractCookies = ExtractBrowserCookies;
+                service.ExtractDownloads = ExtractBrowserDownloads;
+                service.ExtractCredentials = ExtractBrowserPasswords;
+
+                var result = await service.ExtractArtifactsAsync();
+
+                // Map history entries
+                foreach (var entry in result.History)
+                {
+                    BrowserArtifacts.Add(new BrowserArtifact
+                    {
+                        Browser = entry.Browser,
+                        Type = "History",
+                        Url = entry.Url,
+                        Title = entry.Title,
+                        Timestamp = entry.VisitTime,
+                        Data = $"Visits: {entry.VisitCount}"
+                    });
+                }
+
+                // Map downloads
+                foreach (var download in result.Downloads)
+                {
+                    BrowserArtifacts.Add(new BrowserArtifact
+                    {
+                        Browser = download.Browser,
+                        Type = "Download",
+                        Url = download.Url,
+                        Title = Path.GetFileName(download.TargetPath),
+                        Timestamp = download.StartTime,
+                        Data = download.TargetPath
+                    });
+                }
+
+                // Map cookies
+                foreach (var cookie in result.Cookies)
+                {
+                    BrowserArtifacts.Add(new BrowserArtifact
+                    {
+                        Browser = cookie.Browser,
+                        Type = "Cookie",
+                        Url = cookie.Host,
+                        Title = cookie.Name,
+                        Timestamp = cookie.ExpiryTime,
+                        Data = cookie.Path
+                    });
+                }
+
+                OutputLog += $"[{DateTime.Now:HH:mm:ss}] Extracted {BrowserArtifacts.Count} browser artifacts\n";
+                if (result.Errors.Any())
+                {
+                    OutputLog += $"[{DateTime.Now:HH:mm:ss}] Warnings: {string.Join(", ", result.Errors)}\n";
+                }
+                StatusMessage = $"Found {BrowserArtifacts.Count} browser artifacts";
+
+                Artifacts.Add(new ForensicArtifact
+                {
+                    Type = "BrowserForensics",
+                    Name = "Browser Artifact Extraction",
+                    Source = "Browsers",
+                    RecordCount = BrowserArtifacts.Count,
+                    Timestamp = DateTime.Now,
+                    OutputPath = "Memory"
+                });
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error scanning browsers: {ex.Message}";
+                OutputLog += $"[{DateTime.Now:HH:mm:ss}] ERROR: {ex.Message}\n";
+            }
+            finally
+            {
+                IsRunning = false;
+            }
+        }
+
+        private async Task ExportBrowserArtifactsAsync()
+        {
+            var dialog = new SaveFileDialog
+            {
+                Title = "Export Browser Artifacts",
+                Filter = "JSON|*.json|CSV|*.csv",
+                FileName = $"browser_artifacts_{DateTime.Now:yyyyMMdd_HHmmss}"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    if (dialog.FileName.EndsWith(".json"))
+                    {
+                        var json = JsonSerializer.Serialize(BrowserArtifacts, new JsonSerializerOptions { WriteIndented = true });
+                        await File.WriteAllTextAsync(dialog.FileName, json);
+                    }
+                    else
+                    {
+                        var sb = new StringBuilder();
+                        sb.AppendLine("Browser,Type,Url,Title,Timestamp,Data");
+                        foreach (var a in BrowserArtifacts)
+                        {
+                            sb.AppendLine($"\"{a.Browser}\",\"{a.Type}\",\"{a.Url}\",\"{a.Title}\",\"{a.Timestamp}\",\"{a.Data}\"");
+                        }
+                        await File.WriteAllTextAsync(dialog.FileName, sb.ToString());
+                    }
+                    StatusMessage = $"Exported to: {dialog.FileName}";
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = $"Export failed: {ex.Message}";
+                }
+            }
+        }
+
+        #endregion
+
+        #region IOC Scanner DFIR
+
+        private async Task ScanForIOCsAsync()
+        {
+            try
+            {
+                IsRunning = true;
+                StatusMessage = "Scanning for IOCs...";
+                IOCMatches.Clear();
+
+                var service = PlatypusTools.UI.Services.ServiceLocator.IOCScanner;
+                
+                // Configure scan options
+                service.ScanFileHashes = ScanIOCFiles;
+                service.ScanFileContents = ScanIOCFiles;
+                service.ScanNetworkIOCs = ScanIOCNetwork;
+
+                var scanPath = string.IsNullOrWhiteSpace(IOCScanPath) 
+                    ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) 
+                    : IOCScanPath;
+
+                var result = await service.ScanDirectoryAsync(scanPath);
+
+                foreach (var match in result.Matches)
+                {
+                    IOCMatches.Add(new IOCMatch
+                    {
+                        IOCType = match.IOC.Type.ToString(),
+                        IOCValue = match.IOC.Value,
+                        MatchedIn = Path.GetFileName(match.MatchLocation),
+                        MatchLocation = match.MatchLocation,
+                        Severity = match.IOC.Severity.ToString(),
+                        Source = match.IOC.Source
+                    });
+                }
+
+                OutputLog += $"[{DateTime.Now:HH:mm:ss}] Scanned {result.FilesScanned} files, found {IOCMatches.Count} IOC matches\n";
+                if (result.Errors.Any())
+                {
+                    OutputLog += $"[{DateTime.Now:HH:mm:ss}] Warnings: {string.Join(", ", result.Errors.Take(5))}\n";
+                }
+                StatusMessage = $"Found {IOCMatches.Count} IOC matches";
+
+                Artifacts.Add(new ForensicArtifact
+                {
+                    Type = "IOCScanner",
+                    Name = "IOC Scan",
+                    Source = scanPath,
+                    RecordCount = IOCMatches.Count,
+                    Timestamp = DateTime.Now,
+                    OutputPath = "Memory"
+                });
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error scanning IOCs: {ex.Message}";
+                OutputLog += $"[{DateTime.Now:HH:mm:ss}] ERROR: {ex.Message}\n";
+            }
+            finally
+            {
+                IsRunning = false;
+            }
+        }
+
+        private async Task LoadIOCFeedAsync()
+        {
+            try
+            {
+                IsRunning = true;
+                StatusMessage = "Loading IOC feed...";
+
+                if (string.IsNullOrWhiteSpace(IOCFeedUrl))
+                {
+                    StatusMessage = "Please enter a feed URL";
+                    return;
+                }
+
+                var service = PlatypusTools.UI.Services.ServiceLocator.IOCScanner;
+                
+                // Create a feed entry
+                var feed = new PlatypusTools.UI.Services.Forensics.IOCFeed
+                {
+                    Name = "Custom Feed",
+                    Url = IOCFeedUrl,
+                    FeedType = PlatypusTools.UI.Services.Forensics.IOCFeedType.PlainText,
+                    IsEnabled = true
+                };
+                
+                var count = await service.UpdateFeedAsync(feed);
+
+                OutputLog += $"[{DateTime.Now:HH:mm:ss}] Loaded {count} IOCs from feed\n";
+                StatusMessage = $"Loaded {count} IOCs from feed";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error loading feed: {ex.Message}";
+                OutputLog += $"[{DateTime.Now:HH:mm:ss}] ERROR: {ex.Message}\n";
+            }
+            finally
+            {
+                IsRunning = false;
+            }
+        }
+
+        private async Task ExportIOCResultsAsync()
+        {
+            var dialog = new SaveFileDialog
+            {
+                Title = "Export IOC Results",
+                Filter = "JSON|*.json|CSV|*.csv",
+                FileName = $"ioc_matches_{DateTime.Now:yyyyMMdd_HHmmss}"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    if (dialog.FileName.EndsWith(".json"))
+                    {
+                        var json = JsonSerializer.Serialize(IOCMatches, new JsonSerializerOptions { WriteIndented = true });
+                        await File.WriteAllTextAsync(dialog.FileName, json);
+                    }
+                    else
+                    {
+                        var sb = new StringBuilder();
+                        sb.AppendLine("IOCType,IOCValue,MatchedIn,MatchLocation,Severity,Source");
+                        foreach (var m in IOCMatches)
+                        {
+                            sb.AppendLine($"\"{m.IOCType}\",\"{m.IOCValue}\",\"{m.MatchedIn}\",\"{m.MatchLocation}\",\"{m.Severity}\",\"{m.Source}\"");
+                        }
+                        await File.WriteAllTextAsync(dialog.FileName, sb.ToString());
+                    }
+                    StatusMessage = $"Exported to: {dialog.FileName}";
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = $"Export failed: {ex.Message}";
+                }
+            }
+        }
+
+        #endregion
+
+        #region Registry Diff DFIR
+
+        private async Task TakeRegistrySnapshotAsync()
+        {
+            try
+            {
+                IsRunning = true;
+                StatusMessage = "Taking registry snapshot...";
+
+                var service = PlatypusTools.UI.Services.ServiceLocator.RegistryDiff;
+                
+                // Set the hive to snapshot
+                service.ScanHKLM = RegistryHiveFilter == "HKLM" || RegistryHiveFilter == "All";
+                service.ScanHKCU = RegistryHiveFilter == "HKCU" || RegistryHiveFilter == "All";
+
+                var snapshot = await service.CreateSnapshotAsync($"Snapshot_{DateTime.Now:yyyyMMdd_HHmmss}");
+                
+                // Save the snapshot
+                await service.SaveSnapshotAsync(snapshot);
+                
+                RegistrySnapshot1Path = snapshot.Id;
+                OutputLog += $"[{DateTime.Now:HH:mm:ss}] Registry snapshot created: {snapshot.Name}\n";
+                StatusMessage = $"Snapshot saved: {snapshot.Name}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error taking snapshot: {ex.Message}";
+                OutputLog += $"[{DateTime.Now:HH:mm:ss}] ERROR: {ex.Message}\n";
+            }
+            finally
+            {
+                IsRunning = false;
+            }
+        }
+
+        private async Task CompareRegistrySnapshotsAsync()
+        {
+            try
+            {
+                IsRunning = true;
+                StatusMessage = "Comparing registry snapshots...";
+                RegistryDiffs.Clear();
+
+                if (string.IsNullOrWhiteSpace(RegistrySnapshot1Path) || string.IsNullOrWhiteSpace(RegistrySnapshot2Path))
+                {
+                    StatusMessage = "Please select both snapshot files";
+                    return;
+                }
+
+                var service = PlatypusTools.UI.Services.ServiceLocator.RegistryDiff;
+                
+                // Load snapshots
+                var snapshot1 = await service.LoadSnapshotAsync(RegistrySnapshot1Path);
+                var snapshot2 = await service.LoadSnapshotAsync(RegistrySnapshot2Path);
+                
+                if (snapshot1 == null || snapshot2 == null)
+                {
+                    StatusMessage = "Failed to load one or both snapshots";
+                    return;
+                }
+
+                var result = service.Compare(snapshot1, snapshot2);
+
+                foreach (var diff in result.Changes)
+                {
+                    RegistryDiffs.Add(new RegistryDiffEntry
+                    {
+                        ChangeType = diff.ChangeType.ToString(),
+                        KeyPath = diff.KeyPath,
+                        ValueName = diff.ValueName ?? "",
+                        OldValue = diff.OldValue ?? "",
+                        NewValue = diff.NewValue ?? "",
+                        Timestamp = DateTime.Now
+                    });
+                }
+
+                OutputLog += $"[{DateTime.Now:HH:mm:ss}] Found {RegistryDiffs.Count} registry differences\n";
+                StatusMessage = $"Found {RegistryDiffs.Count} registry differences";
+
+                Artifacts.Add(new ForensicArtifact
+                {
+                    Type = "RegistryDiff",
+                    Name = "Registry Comparison",
+                    Source = "Registry",
+                    RecordCount = RegistryDiffs.Count,
+                    Timestamp = DateTime.Now,
+                    OutputPath = "Memory"
+                });
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error comparing snapshots: {ex.Message}";
+                OutputLog += $"[{DateTime.Now:HH:mm:ss}] ERROR: {ex.Message}\n";
+            }
+            finally
+            {
+                IsRunning = false;
+            }
+        }
+
+        private async Task ExportRegistryDiffAsync()
+        {
+            var dialog = new SaveFileDialog
+            {
+                Title = "Export Registry Diff",
+                Filter = "JSON|*.json|CSV|*.csv",
+                FileName = $"registry_diff_{DateTime.Now:yyyyMMdd_HHmmss}"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    if (dialog.FileName.EndsWith(".json"))
+                    {
+                        var json = JsonSerializer.Serialize(RegistryDiffs, new JsonSerializerOptions { WriteIndented = true });
+                        await File.WriteAllTextAsync(dialog.FileName, json);
+                    }
+                    else
+                    {
+                        var sb = new StringBuilder();
+                        sb.AppendLine("ChangeType,KeyPath,ValueName,OldValue,NewValue,Timestamp");
+                        foreach (var d in RegistryDiffs)
+                        {
+                            sb.AppendLine($"\"{d.ChangeType}\",\"{d.KeyPath}\",\"{d.ValueName}\",\"{d.OldValue}\",\"{d.NewValue}\",\"{d.Timestamp}\"");
+                        }
+                        await File.WriteAllTextAsync(dialog.FileName, sb.ToString());
+                    }
+                    StatusMessage = $"Exported to: {dialog.FileName}";
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = $"Export failed: {ex.Message}";
+                }
+            }
+        }
+
+        #endregion
+
+        #region PCAP Parser DFIR
+
+        private async Task ParsePcapAsync()
+        {
+            try
+            {
+                IsRunning = true;
+                StatusMessage = "Parsing PCAP file...";
+                ParsedPackets.Clear();
+                NetworkConnections.Clear();
+
+                if (string.IsNullOrWhiteSpace(PcapFilePath) || !File.Exists(PcapFilePath))
+                {
+                    StatusMessage = "Please select a valid PCAP file";
+                    return;
+                }
+
+                var service = PlatypusTools.UI.Services.ServiceLocator.PcapParser;
+                
+                // Configure parsing options
+                service.ExtractHttp = FilterHttpTraffic;
+                service.ExtractDns = FilterDnsTraffic;
+                service.ExtractPayloads = ExtractPcapFiles;
+
+                var result = await service.AnalyzeAsync(PcapFilePath);
+
+                // Note: PcapAnalysisResult doesn't store raw packets for memory efficiency
+                // We use HttpRequests and DNS records for the packet view
+                var packetIndex = 1;
+                foreach (var httpReq in result.HttpRequests.Take(1000))
+                {
+                    ParsedPackets.Add(new NetworkPacketInfo
+                    {
+                        PacketNumber = packetIndex++,
+                        Timestamp = httpReq.Timestamp,
+                        Protocol = "HTTP",
+                        SourceIP = httpReq.SourceIP?.ToString() ?? "",
+                        SourcePort = 0,
+                        DestinationIP = httpReq.DestIP?.ToString() ?? "",
+                        DestinationPort = 80,
+                        Length = 0,
+                        Info = $"{httpReq.Method} {httpReq.Host}{httpReq.Path}"
+                    });
+                }
+                
+                foreach (var dns in result.DnsRecords.Take(1000))
+                {
+                    ParsedPackets.Add(new NetworkPacketInfo
+                    {
+                        PacketNumber = packetIndex++,
+                        Timestamp = dns.Timestamp,
+                        Protocol = "DNS",
+                        SourceIP = dns.SourceIP?.ToString() ?? "",
+                        SourcePort = 0,
+                        DestinationIP = dns.DestIP?.ToString() ?? "",
+                        DestinationPort = 53,
+                        Length = 0,
+                        Info = $"{dns.RecordType} {dns.QueryName} -> {dns.Answer ?? "N/A"}"
+                    });
+                }
+
+                // Map connections
+                foreach (var conn in result.Connections)
+                {
+                    NetworkConnections.Add(new NetworkConnectionInfo
+                    {
+                        SourceIP = conn.SourceIP?.ToString() ?? "",
+                        DestinationIP = conn.DestIP?.ToString() ?? "",
+                        DestinationPort = conn.DestPort,
+                        Protocol = conn.Protocol,
+                        PacketCount = conn.PacketCount,
+                        BytesTransferred = conn.BytesSent + conn.BytesReceived,
+                        FirstSeen = conn.FirstSeen,
+                        LastSeen = conn.LastSeen
+                    });
+                }
+
+                OutputLog += $"[{DateTime.Now:HH:mm:ss}] Parsed {result.TotalPackets} packets, {NetworkConnections.Count} connections\n";
+                if (result.Errors.Any())
+                {
+                    OutputLog += $"[{DateTime.Now:HH:mm:ss}] Warnings: {string.Join(", ", result.Errors.Take(3))}\n";
+                }
+                StatusMessage = $"Parsed {result.TotalPackets} packets, {NetworkConnections.Count} unique connections";
+
+                Artifacts.Add(new ForensicArtifact
+                {
+                    Type = "PCAP",
+                    Name = Path.GetFileName(PcapFilePath),
+                    Source = PcapFilePath,
+                    RecordCount = result.TotalPackets,
+                    Timestamp = DateTime.Now,
+                    OutputPath = "Memory"
+                });
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error parsing PCAP: {ex.Message}";
+                OutputLog += $"[{DateTime.Now:HH:mm:ss}] ERROR: {ex.Message}\n";
+            }
+            finally
+            {
+                IsRunning = false;
+            }
+        }
+
+        private async Task ExportPcapResultsAsync()
+        {
+            var dialog = new SaveFileDialog
+            {
+                Title = "Export PCAP Analysis",
+                Filter = "JSON|*.json|CSV|*.csv",
+                FileName = $"pcap_analysis_{DateTime.Now:yyyyMMdd_HHmmss}"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    if (dialog.FileName.EndsWith(".json"))
+                    {
+                        var export = new { Packets = ParsedPackets, Connections = NetworkConnections };
+                        var json = JsonSerializer.Serialize(export, new JsonSerializerOptions { WriteIndented = true });
+                        await File.WriteAllTextAsync(dialog.FileName, json);
+                    }
+                    else
+                    {
+                        var sb = new StringBuilder();
+                        sb.AppendLine("SourceIP,DestinationIP,Port,Protocol,PacketCount,BytesTransferred");
+                        foreach (var c in NetworkConnections)
+                        {
+                            sb.AppendLine($"\"{c.SourceIP}\",\"{c.DestinationIP}\",{c.DestinationPort},\"{c.Protocol}\",{c.PacketCount},{c.BytesTransferred}");
+                        }
+                        await File.WriteAllTextAsync(dialog.FileName, sb.ToString());
+                    }
+                    StatusMessage = $"Exported to: {dialog.FileName}";
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = $"Export failed: {ex.Message}";
+                }
+            }
+        }
+
+        #endregion
+
         #region Helpers
 
         private async Task<(bool Success, string Output, string Error)> RunProcessAsync(string fileName, string arguments, string? outputFile)
@@ -4758,6 +5667,37 @@ Amcache_CL
             {
                 return (false, "", ex.Message);
             }
+        }
+
+        /// <summary>
+        /// Parse a CSV line handling quoted fields with embedded commas.
+        /// </summary>
+        private static string[] ParseCsvLine(string line)
+        {
+            var fields = new List<string>();
+            var inQuotes = false;
+            var current = new StringBuilder();
+            
+            for (int i = 0; i < line.Length; i++)
+            {
+                var c = line[i];
+                if (c == '"')
+                {
+                    inQuotes = !inQuotes;
+                }
+                else if (c == ',' && !inQuotes)
+                {
+                    fields.Add(current.ToString().Trim('"'));
+                    current.Clear();
+                }
+                else
+                {
+                    current.Append(c);
+                }
+            }
+            
+            fields.Add(current.ToString().Trim('"'));
+            return fields.ToArray();
         }
 
         private int CountJsonRecords(string filePath)
@@ -5021,6 +5961,75 @@ Amcache_CL
             : $"{Name} - {WindowTitle} (PID: {Id}) - {MemoryMB} MB";
             
         public override string ToString() => DisplayName;
+    }
+
+    // DFIR Model Classes
+    public class ScheduledTaskInfo
+    {
+        public string TaskName { get; set; } = string.Empty;
+        public string TaskPath { get; set; } = string.Empty;
+        public string State { get; set; } = string.Empty;
+        public string Actions { get; set; } = string.Empty;
+        public string Triggers { get; set; } = string.Empty;
+        public DateTime? LastRunTime { get; set; }
+        public DateTime? NextRunTime { get; set; }
+        public string Author { get; set; } = string.Empty;
+        public bool IsSuspicious { get; set; }
+    }
+
+    public class BrowserArtifact
+    {
+        public string Browser { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public string Url { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public DateTime? Timestamp { get; set; }
+        public string Data { get; set; } = string.Empty;
+    }
+
+    public class IOCMatch
+    {
+        public string IOCType { get; set; } = string.Empty;
+        public string IOCValue { get; set; } = string.Empty;
+        public string MatchedIn { get; set; } = string.Empty;
+        public string MatchLocation { get; set; } = string.Empty;
+        public string Severity { get; set; } = string.Empty;
+        public string Source { get; set; } = string.Empty;
+    }
+
+    public class RegistryDiffEntry
+    {
+        public string ChangeType { get; set; } = string.Empty;
+        public string KeyPath { get; set; } = string.Empty;
+        public string ValueName { get; set; } = string.Empty;
+        public string OldValue { get; set; } = string.Empty;
+        public string NewValue { get; set; } = string.Empty;
+        public DateTime? Timestamp { get; set; }
+    }
+
+    public class NetworkPacketInfo
+    {
+        public int PacketNumber { get; set; }
+        public DateTime Timestamp { get; set; }
+        public string Protocol { get; set; } = string.Empty;
+        public string SourceIP { get; set; } = string.Empty;
+        public int SourcePort { get; set; }
+        public string DestinationIP { get; set; } = string.Empty;
+        public int DestinationPort { get; set; }
+        public int Length { get; set; }
+        public string Info { get; set; } = string.Empty;
+    }
+
+    public class NetworkConnectionInfo
+    {
+        public string SourceIP { get; set; } = string.Empty;
+        public string DestinationIP { get; set; } = string.Empty;
+        public int DestinationPort { get; set; }
+        public string Protocol { get; set; } = string.Empty;
+        public int PacketCount { get; set; }
+        public long BytesTransferred { get; set; }
+        public DateTime FirstSeen { get; set; }
+        public DateTime LastSeen { get; set; }
     }
 
     #endregion
