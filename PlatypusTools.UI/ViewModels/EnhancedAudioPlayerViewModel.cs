@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using PlatypusTools.Core.Models.Audio;
 using PlatypusTools.Core.Services;
 using PlatypusTools.UI.Services;
+using PlatypusTools.UI.Utilities;
 
 namespace PlatypusTools.UI.ViewModels;
 
@@ -103,17 +104,13 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         {
             try
             {
-                var image = new BitmapImage();
-                using (var stream = new MemoryStream(track.AlbumArt))
+                using var stream = new MemoryStream(track.AlbumArt);
+                var image = ImageHelper.LoadFromStream(stream);
+                if (image != null)
                 {
-                    image.BeginInit();
-                    image.CacheOption = BitmapCacheOption.OnLoad;
-                    image.StreamSource = stream;
-                    image.EndInit();
-                    image.Freeze();
+                    AlbumArtImage = image;
+                    return;
                 }
-                AlbumArtImage = image;
-                return;
             }
             catch { }
         }
@@ -163,13 +160,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     {
         try
         {
-            var image = new BitmapImage();
-            image.BeginInit();
-            image.CacheOption = BitmapCacheOption.OnLoad;
-            image.UriSource = new Uri(path);
-            image.EndInit();
-            image.Freeze();
-            return image;
+            return ImageHelper.LoadFromFile(path);
         }
         catch
         {
@@ -249,16 +240,12 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                     {
                         try
                         {
-                            var image = new BitmapImage();
-                            using (var stream = new MemoryStream(imageBytes))
+                            using var stream = new MemoryStream(imageBytes);
+                            var image = ImageHelper.LoadFromStream(stream);
+                            if (image != null)
                             {
-                                image.BeginInit();
-                                image.CacheOption = BitmapCacheOption.OnLoad;
-                                image.StreamSource = stream;
-                                image.EndInit();
-                                image.Freeze();
+                                AlbumArtImage = image;
                             }
-                            AlbumArtImage = image;
                         }
                         catch { }
                     });
@@ -1246,6 +1233,16 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         set => SetProperty(ref _visualizerSensitivity, Math.Clamp(value, 0.1, 2.0));
     }
     
+    // FPS control for visualizer performance
+    private int _visualizerFps = 22;
+    public int VisualizerFps
+    {
+        get => _visualizerFps;
+        set => SetProperty(ref _visualizerFps, Math.Clamp(value, 10, 60));
+    }
+    
+    public List<int> FpsOptions { get; } = new() { 15, 22, 30, 45, 60 };
+    
     // Queue Sort properties
     private string _queueSortBy = "None";
     public string QueueSortBy
@@ -1399,6 +1396,12 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     public ICommand LoadPlaylistCommand { get; }
     public ICommand PlayPlaylistCommand { get; }
     public ICommand AddSelectedToPlaylistCommand { get; }
+    
+    // Library management commands
+    public ICommand RemoveTrackFromLibraryCommand { get; }
+    public ICommand RemoveSelectedTracksFromLibraryCommand { get; }
+    public ICommand ClearLibraryCommand { get; }
+    public ICommand RemoveMissingTracksCommand { get; }
     
     // Navigation commands
     public ICommand ScrollToCurrentTrackCommand { get; }
@@ -1614,6 +1617,12 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 }
             }
         });
+        
+        // Library management commands
+        RemoveTrackFromLibraryCommand = new AsyncRelayCommand<AudioTrack>(RemoveTrackFromLibraryAsync);
+        RemoveSelectedTracksFromLibraryCommand = new AsyncRelayCommand(RemoveSelectedTrackFromLibraryAsync);
+        ClearLibraryCommand = new AsyncRelayCommand(ClearLibraryAsync);
+        RemoveMissingTracksCommand = new AsyncRelayCommand(RemoveMissingTracksAsync);
         
         ShowLibraryFromPlaylistCommand = new RelayCommand(_ =>
         {
@@ -2481,6 +2490,160 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         {
             System.Diagnostics.Debug.WriteLine($"Error loading library folders: {ex.Message}");
         }
+    }
+    
+    #endregion
+    
+    #region Track Removal
+    
+    /// <summary>
+    /// Remove a single track from the library.
+    /// </summary>
+    private async Task RemoveTrackFromLibraryAsync(AudioTrack? track)
+    {
+        if (track == null) return;
+        
+        _allLibraryTracks.RemoveAll(t => t.Id == track.Id);
+        LibraryTracks.Remove(track);
+        
+        // Also remove from queue if present
+        var queueTrack = Queue.FirstOrDefault(t => t.Id == track.Id);
+        if (queueTrack != null)
+        {
+            Queue.Remove(queueTrack);
+            _playerService.RemoveFromQueue(queueTrack);
+        }
+        
+        // Update stats
+        RaisePropertyChanged(nameof(LibraryTrackCount));
+        RaisePropertyChanged(nameof(LibraryArtistCount));
+        RaisePropertyChanged(nameof(LibraryAlbumCount));
+        
+        // Save the updated library cache
+        await SaveLibraryCacheAsync();
+        
+        StatusMessage = $"Removed: {track.DisplayTitle}";
+    }
+    
+    /// <summary>
+    /// Remove the currently selected track from the library.
+    /// </summary>
+    private async Task RemoveSelectedTrackFromLibraryAsync()
+    {
+        if (SelectedLibraryTrack == null) return;
+        await RemoveTrackFromLibraryAsync(SelectedLibraryTrack);
+    }
+    
+    /// <summary>
+    /// Clear all tracks from the library.
+    /// </summary>
+    private async Task ClearLibraryAsync()
+    {
+        var result = MessageBox.Show(
+            $"Are you sure you want to clear all {_allLibraryTracks.Count:N0} tracks from the library?\n\nThis will not delete the actual files, only remove them from the library index.",
+            "Clear Library",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+        
+        if (result != MessageBoxResult.Yes) return;
+        
+        var count = _allLibraryTracks.Count;
+        _allLibraryTracks.Clear();
+        LibraryTracks.Clear();
+        
+        // Also clear the queue
+        Queue.Clear();
+        _playerService.ClearQueue();
+        
+        // Update stats
+        RaisePropertyChanged(nameof(LibraryTrackCount));
+        RaisePropertyChanged(nameof(LibraryArtistCount));
+        RaisePropertyChanged(nameof(LibraryAlbumCount));
+        
+        // Save the updated library cache
+        await SaveLibraryCacheAsync();
+        
+        // Also clear the LibraryIndexService
+        await _libraryIndexService.ClearAsync();
+        
+        StatusMessage = $"Cleared {count:N0} tracks from library";
+    }
+    
+    /// <summary>
+    /// Remove tracks whose files no longer exist on disk.
+    /// </summary>
+    private async Task RemoveMissingTracksAsync()
+    {
+        StatusMessage = "Checking for missing files...";
+        IsScanning = true;
+        
+        var missingTracks = new List<AudioTrack>();
+        var total = _allLibraryTracks.Count;
+        var checked_count = 0;
+        
+        foreach (var track in _allLibraryTracks.ToList())
+        {
+            if (!File.Exists(track.FilePath))
+            {
+                missingTracks.Add(track);
+            }
+            
+            checked_count++;
+            if (checked_count % 100 == 0)
+            {
+                ScanProgress = (int)((double)checked_count / total * 100);
+                ScanStatus = $"Checked {checked_count:N0}/{total:N0} files...";
+                await Task.Delay(1); // Yield to UI
+            }
+        }
+        
+        if (missingTracks.Count > 0)
+        {
+            var result = MessageBox.Show(
+                $"Found {missingTracks.Count:N0} tracks with missing files.\n\nRemove them from the library?",
+                "Missing Tracks",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+            
+            if (result == MessageBoxResult.Yes)
+            {
+                foreach (var track in missingTracks)
+                {
+                    _allLibraryTracks.RemoveAll(t => t.Id == track.Id);
+                    LibraryTracks.Remove(track);
+                    
+                    // Also remove from queue if present
+                    var queueTrack = Queue.FirstOrDefault(t => t.Id == track.Id);
+                    if (queueTrack != null)
+                    {
+                        Queue.Remove(queueTrack);
+                        _playerService.RemoveFromQueue(queueTrack);
+                    }
+                }
+                
+                // Update stats
+                RaisePropertyChanged(nameof(LibraryTrackCount));
+                RaisePropertyChanged(nameof(LibraryArtistCount));
+                RaisePropertyChanged(nameof(LibraryAlbumCount));
+                
+                // Save the updated library cache
+                await SaveLibraryCacheAsync();
+                
+                StatusMessage = $"Removed {missingTracks.Count:N0} missing tracks";
+            }
+            else
+            {
+                StatusMessage = $"Found {missingTracks.Count:N0} missing tracks (not removed)";
+            }
+        }
+        else
+        {
+            StatusMessage = "All tracks found on disk";
+        }
+        
+        IsScanning = false;
+        ScanProgress = 0;
+        ScanStatus = "";
     }
     
     #endregion

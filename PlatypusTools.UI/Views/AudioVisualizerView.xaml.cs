@@ -36,23 +36,25 @@ namespace PlatypusTools.UI.Views
     /// </summary>
     public partial class AudioVisualizerView : UserControl
     {
-        private double[] _spectrumData = new double[128]; // Always have data
-        private double[] _smoothedData = new double[128]; // Smoothed for display
-        private double[] _peakHeights = new double[128]; // Peak hold heights
-        private double[] _barHeights = new double[128]; // Current bar heights for smooth animation
+        private double[] _spectrumData = new double[64]; // Match service band count
+        private double[] _smoothedData = new double[64]; // Smoothed for display
+        private double[] _peakHeights = new double[64]; // Peak hold heights
+        private double[] _barHeights = new double[64]; // Current bar heights for smooth animation
         private DispatcherTimer? _renderTimer;
-        private int _barCount = 72;
+        private int _barCount = 64; // Reduced for performance (was 128)
         private string _visualizationMode = "Bars"; // Bars, Mirror, Waveform, Circular, Radial, Particles, Aurora, WaveGrid, Starfield, Toasters
         private bool _hasExternalData = false;
         private DateTime _lastExternalUpdate = DateTime.MinValue;
         private static readonly Random _random = new Random();
         private double _animationPhase = 0; // For smooth idle animation
         private bool _subscribedToService = false;
-        private bool _timerStarted = false; // Tracks if render timer is running
+        private bool _isMusicPlaying = false; // Track if music is actually playing
         
-        // HD quality settings - tuned for smoothness
-        private const double PEAK_FALL_SPEED = 0.008; // How fast peaks fall (per frame) - slower for smoother
-        private double _sensitivity = 0.7; // User-adjustable sensitivity (0.1-2.0)
+        // HD quality settings - tuned for smoothness with sensitivity control
+        private const double PEAK_FALL_SPEED = 0.02; // How fast peaks fall (per frame) - slightly faster
+        private double _sensitivity = 1.0; // User-adjustable sensitivity (0.1-3.0)
+        private double _riseSpeed = 0.5; // Attack speed for smooth animation - faster
+        private double _fallSpeed = 0.1; // Decay speed for smooth animation - faster
         private const bool USE_LOGARITHMIC_FREQ = true; // Logarithmic frequency mapping
         
         // Color scheme
@@ -66,6 +68,23 @@ namespace PlatypusTools.UI.Views
         private int _lastBarCount = 0;
         private bool _needsFullRebuild = true;
         
+        // Performance: Pre-cached brushes
+        private Brush? _cachedBarBrush;
+        private Brush? _cachedPeakBrush;
+        private VisualizerColorScheme _lastColorScheme = VisualizerColorScheme.BlueGreen;
+        
+        // Performance: Frame skipping
+        private int _frameCount = 0;
+        private bool _isRendering = false;
+        
+        // Performance settings (adjustable)
+        private int _maxStars = 400; // More stars for better effect
+        private int _maxParticles = 100;
+        private int _maxBarCount = 64;
+        private int _targetFps = 22; // Target frame rate
+        private double _cpuThrottlePercent = 0.5; // Max CPU usage (0.1-1.0)
+        private long _maxMemoryBytes = 50 * 1024 * 1024; // 50MB max for visualizer
+        
         // After Dark: Starfield
         private readonly List<Star> _stars = new();
         
@@ -75,7 +94,7 @@ namespace PlatypusTools.UI.Views
         // For advanced visualizations
         private readonly List<Particle> _particles = new();
         private double _auroraPhase = 0;
-        private double[] _previousSmoothed = new double[128];
+        private double[] _previousSmoothed = new double[64]; // Match bar count
 
         public AudioVisualizerView()
         {
@@ -105,15 +124,15 @@ namespace PlatypusTools.UI.Views
                 });
             }
             
-            // Initialize stars for starfield mode (After Dark style)
-            for (int i = 0; i < 200; i++)
+            // Initialize stars for starfield mode (After Dark style) - more, smaller stars
+            for (int i = 0; i < 400; i++)
             {
                 _stars.Add(new Star
                 {
                     X = _random.NextDouble() - 0.5,
                     Y = _random.NextDouble() - 0.5,
                     Z = _random.NextDouble() * 4 + 0.1,
-                    Speed = 0.01 + _random.NextDouble() * 0.03
+                    Speed = 0.005 + _random.NextDouble() * 0.02 // Slower base speed
                 });
             }
             
@@ -141,7 +160,7 @@ namespace PlatypusTools.UI.Views
         }
         
         /// <summary>
-        /// Subscribes to EnhancedAudioPlayerService for spectrum data.
+        /// Subscribes to EnhancedAudioPlayerService for spectrum data and playback state.
         /// </summary>
         private void SubscribeToService()
         {
@@ -149,8 +168,13 @@ namespace PlatypusTools.UI.Views
             {
                 try
                 {
-                    // Subscribe to EnhancedAudioPlayerService for spectrum data
-                    PlatypusTools.UI.Services.EnhancedAudioPlayerService.Instance.SpectrumDataUpdated += OnSpectrumDataFromEnhancedService;
+                    // Subscribe to EnhancedAudioPlayerService for spectrum data and playback state
+                    var service = PlatypusTools.UI.Services.EnhancedAudioPlayerService.Instance;
+                    service.SpectrumDataUpdated += OnSpectrumDataFromEnhancedService;
+                    service.PlaybackStateChanged += OnPlaybackStateChanged;
+                    
+                    // Get initial playback state
+                    _isMusicPlaying = service.IsPlaying;
                     
                     _subscribedToService = true;
                     System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Subscribed to EnhancedAudioPlayerService");
@@ -160,6 +184,22 @@ namespace PlatypusTools.UI.Views
                     System.Diagnostics.Debug.WriteLine($"AudioVisualizerView: Failed to subscribe: {ex.Message}");
                 }
             }
+        }
+        
+        /// <summary>
+        /// Handler for playback state changes - stop visualizer when not playing.
+        /// </summary>
+        private void OnPlaybackStateChanged(object? sender, bool isPlaying)
+        {
+            Dispatcher.BeginInvoke(() =>
+            {
+                _isMusicPlaying = isPlaying;
+                if (!isPlaying)
+                {
+                    // Clear spectrum data when not playing
+                    _hasExternalData = false;
+                }
+            });
         }
         
         /// <summary>
@@ -201,12 +241,11 @@ namespace PlatypusTools.UI.Views
                 _renderTimer.Tick -= OnRenderTick;
             }
             
-            // Create and start new timer
-            _renderTimer = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(16) };
+            // Create and start new timer - ~22 FPS for balanced performance
+            _renderTimer = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(45) };
             _renderTimer.Tick += OnRenderTick;
             _renderTimer.Start();
-            _timerStarted = true;
-            System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Render timer started");
+            System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Render timer started (22 FPS)");
         }
         
         /// <summary>
@@ -251,7 +290,6 @@ namespace PlatypusTools.UI.Views
                 _renderTimer.Stop();
                 _renderTimer.Tick -= OnRenderTick;
                 _renderTimer = null;
-                _timerStarted = false;
                 System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Render timer stopped");
             }
         }
@@ -340,7 +378,9 @@ namespace PlatypusTools.UI.Views
             {
                 try
                 {
-                    PlatypusTools.UI.Services.EnhancedAudioPlayerService.Instance.SpectrumDataUpdated -= OnSpectrumDataFromEnhancedService;
+                    var service = PlatypusTools.UI.Services.EnhancedAudioPlayerService.Instance;
+                    service.SpectrumDataUpdated -= OnSpectrumDataFromEnhancedService;
+                    service.PlaybackStateChanged -= OnPlaybackStateChanged;
                     _subscribedToService = false;
                     System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Unsubscribed from EnhancedAudioPlayerService");
                 }
@@ -351,13 +391,23 @@ namespace PlatypusTools.UI.Views
         
         private void OnRenderTick(object? sender, EventArgs e)
         {
+            // Skip if already rendering (prevents UI thread blocking)
+            if (_isRendering)
+                return;
+                
             try
             {
+                _isRendering = true;
+                _frameCount++;
                 RenderVisualization();
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"AudioVisualizerView.OnRenderTick error: {ex.Message}");
+            }
+            finally
+            {
+                _isRendering = false;
             }
         }
 
@@ -370,14 +420,152 @@ namespace PlatypusTools.UI.Views
         }
 
         /// <summary>
-        /// Sets the visualizer sensitivity (0.1 = very smooth, 2.0 = very responsive).
+        /// Sets the visualizer sensitivity (0.1 = very smooth, 3.0 = very responsive).
+        /// Also adjusts rise/fall speeds for optimal animation.
         /// </summary>
         public void SetSensitivity(double sensitivity)
         {
-            _sensitivity = Math.Clamp(sensitivity, 0.1, 2.0);
+            _sensitivity = Math.Clamp(sensitivity, 0.1, 3.0);
+            
+            // Adjust rise/fall speeds based on sensitivity
+            // Higher sensitivity = faster response
+            _riseSpeed = 0.2 + (_sensitivity * 0.3); // 0.23 to 1.1
+            _fallSpeed = 0.04 + (_sensitivity * 0.04); // 0.044 to 0.16
         }
+        
+        /// <summary>
+        /// Gets the current sensitivity value.
+        /// </summary>
+        public double GetSensitivity() => _sensitivity;
+        
+        #region Performance Settings
+        
+        /// <summary>
+        /// Sets the target frame rate for the visualizer (10-60 FPS).
+        /// Lower values use less CPU.
+        /// </summary>
+        public void SetTargetFps(int fps)
+        {
+            _targetFps = Math.Clamp(fps, 10, 60);
+            int intervalMs = 1000 / _targetFps;
+            
+            if (_renderTimer != null)
+            {
+                _renderTimer.Interval = TimeSpan.FromMilliseconds(intervalMs);
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"AudioVisualizerView: Target FPS set to {_targetFps} ({intervalMs}ms)");
+        }
+        
+        /// <summary>
+        /// Gets the current target FPS.
+        /// </summary>
+        public int GetTargetFps() => _targetFps;
+        
+        /// <summary>
+        /// Sets the maximum number of bars to render (16-128).
+        /// Lower values use less CPU and memory.
+        /// </summary>
+        public void SetMaxBarCount(int barCount)
+        {
+            _maxBarCount = Math.Clamp(barCount, 16, 128);
+            _barCount = Math.Min(_barCount, _maxBarCount);
+            _needsFullRebuild = true;
+        }
+        
+        /// <summary>
+        /// Gets the current max bar count.
+        /// </summary>
+        public int GetMaxBarCount() => _maxBarCount;
+        
+        /// <summary>
+        /// Sets the CPU throttle percentage (0.1 = 10%, 1.0 = 100%).
+        /// This affects animation smoothness vs CPU usage.
+        /// </summary>
+        public void SetCpuThrottle(double percent)
+        {
+            _cpuThrottlePercent = Math.Clamp(percent, 0.1, 1.0);
+            
+            // Adjust bar count based on CPU throttle
+            int adjustedBars = (int)(_maxBarCount * _cpuThrottlePercent);
+            _barCount = Math.Max(16, adjustedBars);
+            _needsFullRebuild = true;
+            
+            System.Diagnostics.Debug.WriteLine($"AudioVisualizerView: CPU throttle set to {_cpuThrottlePercent:P0}, bars: {_barCount}");
+        }
+        
+        /// <summary>
+        /// Gets the current CPU throttle percentage.
+        /// </summary>
+        public double GetCpuThrottle() => _cpuThrottlePercent;
+        
+        /// <summary>
+        /// Sets the maximum memory usage in MB (10-100 MB).
+        /// This limits particles and other effects.
+        /// </summary>
+        public void SetMaxMemoryMB(int megabytes)
+        {
+            _maxMemoryBytes = Math.Clamp(megabytes, 10, 100) * 1024L * 1024L;
+            
+            // Adjust particle and star counts based on memory limit
+            _maxParticles = (int)(megabytes * 2); // ~2 particles per MB
+            _maxStars = (int)(megabytes * 8); // ~8 stars per MB
+            
+            // Trim existing collections if needed
+            while (_particles.Count > _maxParticles)
+                _particles.RemoveAt(_particles.Count - 1);
+            while (_stars.Count > _maxStars)
+                _stars.RemoveAt(_stars.Count - 1);
+                
+            System.Diagnostics.Debug.WriteLine($"AudioVisualizerView: Max memory set to {megabytes}MB, particles: {_maxParticles}, stars: {_maxStars}");
+        }
+        
+        /// <summary>
+        /// Gets the current max memory in MB.
+        /// </summary>
+        public int GetMaxMemoryMB() => (int)(_maxMemoryBytes / (1024 * 1024));
+        
+        /// <summary>
+        /// Applies a performance preset.
+        /// </summary>
+        public void ApplyPerformancePreset(string preset)
+        {
+            switch (preset.ToLowerInvariant())
+            {
+                case "low":
+                    SetTargetFps(15);
+                    SetMaxBarCount(32);
+                    SetCpuThrottle(0.3);
+                    SetMaxMemoryMB(20);
+                    break;
+                case "medium":
+                    SetTargetFps(22);
+                    SetMaxBarCount(64);
+                    SetCpuThrottle(0.5);
+                    SetMaxMemoryMB(50);
+                    break;
+                case "high":
+                    SetTargetFps(30);
+                    SetMaxBarCount(96);
+                    SetCpuThrottle(0.75);
+                    SetMaxMemoryMB(75);
+                    break;
+                case "ultra":
+                    SetTargetFps(60);
+                    SetMaxBarCount(128);
+                    SetCpuThrottle(1.0);
+                    SetMaxMemoryMB(100);
+                    break;
+                default:
+                    // Default to medium
+                    ApplyPerformancePreset("medium");
+                    break;
+            }
+        }
+        
+        #endregion
 
-        public void UpdateSpectrumData(double[] spectrumData, string mode = "Bars", int barCount = 72)
+        public void UpdateSpectrumData(double[] spectrumData, string mode = "Bars", int barCount = 128)
         {
             // Always update mode and bar count
             _visualizationMode = mode;
@@ -395,10 +583,17 @@ namespace PlatypusTools.UI.Views
         /// <summary>
         /// Updates spectrum data with color scheme and sensitivity.
         /// </summary>
-        public void UpdateSpectrumData(double[] spectrumData, string mode, int barCount, int colorSchemeIndex, double sensitivity = 0.7)
+        public void UpdateSpectrumData(double[] spectrumData, string mode, int barCount, int colorSchemeIndex, double sensitivity = 0.7, int fps = 22)
         {
             SetColorScheme(colorSchemeIndex);
             SetSensitivity(sensitivity);
+            
+            // Update FPS if it changed
+            if (fps != _targetFps)
+            {
+                SetTargetFps(fps);
+            }
+            
             UpdateSpectrumData(spectrumData, mode, barCount);
         }
         
@@ -525,19 +720,24 @@ namespace PlatypusTools.UI.Views
             var canvas = VisualizerCanvas;
             if (canvas == null || canvas.ActualWidth < 1 || canvas.ActualHeight < 1) return;
 
-            // Check if we need full rebuild (mode changed, size changed, bar count changed)
+            // Check if we need full rebuild (mode changed, size changed, bar count changed, color scheme changed)
             bool modeChanged = _lastMode != _visualizationMode;
             bool barCountChanged = _lastBarCount != _barCount;
+            bool colorChanged = _lastColorScheme != _colorScheme;
             
-            if (_needsFullRebuild || modeChanged || barCountChanged)
+            if (_needsFullRebuild || modeChanged || barCountChanged || colorChanged)
             {
                 canvas.Children.Clear();
                 _cachedBars.Clear();
                 _cachedPeaks.Clear();
                 _cachedBackground = null;
+                _cachedBarBrush = null;
+                _cachedPeakBrush = null;
+                _cachedWaveformLine = null;
                 _needsFullRebuild = false;
                 _lastMode = _visualizationMode;
                 _lastBarCount = _barCount;
+                _lastColorScheme = _colorScheme;
             }
 
             // Draw/update background using theme color
@@ -561,17 +761,37 @@ namespace PlatypusTools.UI.Views
                 _cachedBackground.Fill = bgBrush;
             }
 
-            // Advance animation phase
-            _animationPhase += 0.05;
-
-            // If no external data for 300ms, generate animated idle data
-            if (!_hasExternalData || (DateTime.Now - _lastExternalUpdate).TotalMilliseconds > 300)
+            // When music is not playing and no recent data, show idle state (decay bars)
+            bool hasRecentData = _hasExternalData && (DateTime.Now - _lastExternalUpdate).TotalMilliseconds < 100;
+            
+            if (!_isMusicPlaying && !hasRecentData)
             {
-                GenerateIdleAnimation();
+                // Decay all bars to zero when not playing
+                for (int i = 0; i < _barHeights.Length; i++)
+                {
+                    _barHeights[i] *= 0.92; // Smooth decay
+                    _smoothedData[i] = _barHeights[i];
+                    _peakHeights[i] *= 0.95;
+                    if (_barHeights[i] < 0.001) _barHeights[i] = 0;
+                    if (_peakHeights[i] < 0.001) _peakHeights[i] = 0;
+                }
+            }
+            else
+            {
+                // Apply smoothing for fluid animation when playing
+                ApplySmoothing();
             }
 
-            // Apply smoothing for fluid animation
-            ApplySmoothing();
+            // Advance animation phase (only for idle animations like starfield/toasters)
+            _animationPhase += 0.05;
+
+            // For dynamic modes, clear non-cached elements before each frame
+            // This prevents elements from piling up and causing trails/artifacts
+            bool isDynamicMode = _visualizationMode is "Starfield" or "Toasters" or "Particles" or "Aurora" or "WaveGrid" or "Wave Grid" or "Circular" or "Radial" or "Mirror";
+            if (isDynamicMode)
+            {
+                ClearDynamicElements(canvas);
+            }
 
             switch (_visualizationMode)
             {
@@ -606,6 +826,24 @@ namespace PlatypusTools.UI.Views
                 default: // Bars
                     RenderBars(canvas);
                     break;
+            }
+        }
+        
+        /// <summary>
+        /// Clears all non-cached elements from the canvas.
+        /// Used by dynamic modes (Starfield, Toasters, etc.) that create new elements each frame.
+        /// Preserves the cached background rectangle.
+        /// </summary>
+        private void ClearDynamicElements(Canvas canvas)
+        {
+            // Remove all children except the cached background
+            for (int i = canvas.Children.Count - 1; i >= 0; i--)
+            {
+                var child = canvas.Children[i];
+                if (child != _cachedBackground)
+                {
+                    canvas.Children.RemoveAt(i);
+                }
             }
         }
         
@@ -649,27 +887,22 @@ namespace PlatypusTools.UI.Views
                 _spectrumData = ResampleSpectrum(_spectrumData, _barCount);
             }
             
-            // Sensitivity-based smoothing: lower sensitivity = smoother animation
-            // Rise speed: 0.1 (very smooth) to 0.5 (responsive)
-            // Fall speed: 0.02 (very smooth) to 0.12 (responsive)
-            double riseSpeed = 0.1 + (_sensitivity * 0.2);
-            double fallSpeed = 0.02 + (_sensitivity * 0.05);
-            
-            // HD quality: smooth rise/fall with peak hold
+            // Use pre-configured rise/fall speeds (set by SetSensitivity)
+            // HD quality: smooth rise/fall with peak hold (like reference pro-grade visualizer)
             for (int i = 0; i < _barCount; i++)
             {
-                double target = i < _spectrumData.Length ? _spectrumData[i] * _sensitivity : 0.05;
+                double target = i < _spectrumData.Length ? _spectrumData[i] * _sensitivity : 0;
                 
                 // Apply attack/release envelope for smooth animation
                 if (target > _barHeights[i])
                 {
-                    // Smooth attack (lerp toward target)
-                    _barHeights[i] += (target - _barHeights[i]) * riseSpeed;
+                    // Fast attack - rise quickly to match the music
+                    _barHeights[i] += (target - _barHeights[i]) * _riseSpeed;
                 }
                 else
                 {
-                    // Smooth decay (lerp toward lower value)
-                    _barHeights[i] += (target - _barHeights[i]) * fallSpeed;
+                    // Smooth decay - fall gradually for fluid animation
+                    _barHeights[i] += (target - _barHeights[i]) * _fallSpeed;
                     if (_barHeights[i] < 0.001) _barHeights[i] = 0;
                 }
                 
@@ -692,13 +925,16 @@ namespace PlatypusTools.UI.Views
         private void RenderBars(Canvas canvas)
         {
             int numBars = _barCount;
-            if (numBars == 0) numBars = 72;
+            if (numBars == 0) numBars = 128;
             
             double barWidth = canvas.ActualWidth / numBars;
             double maxHeight = canvas.ActualHeight;
 
-            var brush = GetColorSchemeBrush(true);
-            var peakBrush = new SolidColorBrush(Colors.White);
+            // Cache brushes for performance
+            if (_cachedBarBrush == null)
+                _cachedBarBrush = GetColorSchemeBrush(true);
+            if (_cachedPeakBrush == null)
+                _cachedPeakBrush = new SolidColorBrush(Colors.White);
 
             // Ensure we have enough cached rectangles
             while (_cachedBars.Count < numBars)
@@ -706,8 +942,8 @@ namespace PlatypusTools.UI.Views
                 var bar = new Rectangle
                 {
                     Opacity = 0.85,
-                    RadiusX = 2,
-                    RadiusY = 2
+                    RadiusX = 1,
+                    RadiusY = 1
                 };
                 _cachedBars.Add(bar);
                 canvas.Children.Add(bar);
@@ -718,7 +954,7 @@ namespace PlatypusTools.UI.Views
                 var peak = new Rectangle
                 {
                     Height = 3,
-                    Fill = peakBrush,
+                    Fill = _cachedPeakBrush ?? new SolidColorBrush(Colors.White),
                     Opacity = 0.9,
                     RadiusX = 1,
                     RadiusY = 1,
@@ -730,134 +966,144 @@ namespace PlatypusTools.UI.Views
 
             for (int i = 0; i < numBars && i < _smoothedData.Length; i++)
             {
-                double value = Math.Min(1.0, _smoothedData[i] * 2); // Clamp and amplify
-                double barHeight = Math.Max(4, value * maxHeight); // Minimum height of 4px
+                double value = Math.Min(1.0, _smoothedData[i] * 2.5); // Clamp and amplify for HD visibility
+                double barHeight = Math.Max(2, value * maxHeight); // Minimum height of 2px
 
                 // Update existing bar instead of creating new one
                 var bar = _cachedBars[i];
-                bar.Width = Math.Max(2, barWidth - 2);
+                bar.Width = Math.Max(1, barWidth - 1); // Tighter bars for HD
                 bar.Height = barHeight;
-                bar.Fill = brush;
-                Canvas.SetLeft(bar, i * barWidth + 1);
+                bar.Fill = _cachedBarBrush;
+                Canvas.SetLeft(bar, i * barWidth);
                 Canvas.SetTop(bar, maxHeight - barHeight);
                 
-                // Update peak indicator
+                // Peak indicators disabled - they were distracting
+                // Keep the cached peaks but hide them
                 var peakLine = _cachedPeaks[i];
-                if (i < _peakHeights.Length && _peakHeights[i] > 0.02)
-                {
-                    double peakY = Math.Min(1.0, _peakHeights[i] * 2) * maxHeight;
-                    peakLine.Width = Math.Max(2, barWidth - 2);
-                    peakLine.Visibility = Visibility.Visible;
-                    Canvas.SetLeft(peakLine, i * barWidth + 1);
-                    Canvas.SetTop(peakLine, maxHeight - peakY - 2);
-                }
-                else
-                {
-                    peakLine.Visibility = Visibility.Collapsed;
-                }
+                peakLine.Visibility = Visibility.Collapsed;
             }
         }
 
         private void RenderMirrorBars(Canvas canvas)
         {
             int numBars = _barCount;
-            if (numBars == 0) numBars = 72;
+            if (numBars == 0) numBars = 128;
             
             double barWidth = canvas.ActualWidth / numBars;
             double maxHeight = canvas.ActualHeight / 2;
 
-            var brush = GetColorSchemeBrush(false);
+            // Cache brush for performance
+            if (_cachedBarBrush == null)
+                _cachedBarBrush = GetColorSchemeBrush(false);
 
             double centerY = canvas.ActualHeight / 2;
 
             for (int i = 0; i < numBars && i < _smoothedData.Length; i++)
             {
-                double value = Math.Min(1.0, _smoothedData[i] * 2);
+                double value = Math.Min(1.0, _smoothedData[i] * 2.5);
                 double barHeight = Math.Max(2, value * maxHeight);
 
                 // Top bar
                 var barTop = new Rectangle
                 {
-                    Width = Math.Max(2, barWidth - 2),
+                    Width = Math.Max(1, barWidth - 1),
                     Height = barHeight,
-                    Fill = brush,
+                    Fill = _cachedBarBrush,
                     Opacity = 0.85,
-                    RadiusX = 2,
-                    RadiusY = 2
+                    RadiusX = 1,
+                    RadiusY = 1
                 };
-                Canvas.SetLeft(barTop, i * barWidth + 1);
+                Canvas.SetLeft(barTop, i * barWidth);
                 Canvas.SetTop(barTop, centerY - barHeight);
                 canvas.Children.Add(barTop);
 
                 // Bottom bar (mirrored)
                 var barBottom = new Rectangle
                 {
-                    Width = Math.Max(2, barWidth - 2),
+                    Width = Math.Max(1, barWidth - 1),
                     Height = barHeight,
-                    Fill = brush,
+                    Fill = _cachedBarBrush,
                     Opacity = 0.85,
-                    RadiusX = 2,
-                    RadiusY = 2
+                    RadiusX = 1,
+                    RadiusY = 1
                 };
-                Canvas.SetLeft(barBottom, i * barWidth + 1);
+                Canvas.SetLeft(barBottom, i * barWidth);
                 Canvas.SetTop(barBottom, centerY);
                 canvas.Children.Add(barBottom);
                 
                 // Draw peak indicators for mirror mode
                 if (i < _peakHeights.Length && _peakHeights[i] > 0.02)
                 {
-                    double peakHeight = Math.Min(1.0, _peakHeights[i] * 2) * maxHeight;
+                    double peakHeight = Math.Min(1.0, _peakHeights[i] * 2.5) * maxHeight;
                     // Top peak
                     var peakTop = new Rectangle
                     {
-                        Width = Math.Max(2, barWidth - 2),
+                        Width = Math.Max(1, barWidth - 1),
                         Height = 2,
-                        Fill = new SolidColorBrush(Colors.White),
+                        Fill = _cachedPeakBrush ?? new SolidColorBrush(Colors.White),
                         Opacity = 0.9
                     };
-                    Canvas.SetLeft(peakTop, i * barWidth + 1);
+                    Canvas.SetLeft(peakTop, i * barWidth);
                     Canvas.SetTop(peakTop, centerY - peakHeight - 1);
                     canvas.Children.Add(peakTop);
                     
                     // Bottom peak
                     var peakBottom = new Rectangle
                     {
-                        Width = Math.Max(2, barWidth - 2),
+                        Width = Math.Max(1, barWidth - 1),
                         Height = 2,
-                        Fill = new SolidColorBrush(Colors.White),
+                        Fill = _cachedPeakBrush ?? new SolidColorBrush(Colors.White),
                         Opacity = 0.9
                     };
-                    Canvas.SetLeft(peakBottom, i * barWidth + 1);
+                    Canvas.SetLeft(peakBottom, i * barWidth);
                     Canvas.SetTop(peakBottom, centerY + peakHeight - 1);
                     canvas.Children.Add(peakBottom);
                 }
             }
         }
 
+        // Cached polyline for waveform mode
+        private Polyline? _cachedWaveformLine;
+        
         private void RenderWaveform(Canvas canvas)
         {
             if (_smoothedData.Length < 2) return;
 
-            var polyline = new Polyline
+            // Cache brush for performance
+            if (_cachedBarBrush == null)
+                _cachedBarBrush = GetColorSchemeBrush(false);
+
+            // Use cached polyline for performance
+            if (_cachedWaveformLine == null)
             {
-                Stroke = GetColorSchemeBrush(false),
-                StrokeThickness = 3,
-                Opacity = 0.9
-            };
+                _cachedWaveformLine = new Polyline
+                {
+                    Stroke = _cachedBarBrush,
+                    StrokeThickness = 2,
+                    Opacity = 0.9,
+                    StrokeLineJoin = PenLineJoin.Round
+                };
+                canvas.Children.Add(_cachedWaveformLine);
+            }
+            else if (!canvas.Children.Contains(_cachedWaveformLine))
+            {
+                canvas.Children.Add(_cachedWaveformLine);
+            }
 
             double width = canvas.ActualWidth;
             double height = canvas.ActualHeight;
             double centerY = height / 2;
             double pointSpacing = width / _smoothedData.Length;
 
+            // Clear and rebuild points (more efficient than recreating polyline)
+            _cachedWaveformLine.Points.Clear();
             for (int i = 0; i < _smoothedData.Length; i++)
             {
                 double x = i * pointSpacing;
-                double y = centerY - (_smoothedData[i] * centerY * 1.5);
-                polyline.Points.Add(new Point(x, y));
+                double y = centerY - (_smoothedData[i] * centerY * 2.0 * _sensitivity);
+                _cachedWaveformLine.Points.Add(new Point(x, y));
             }
-
-            canvas.Children.Add(polyline);
+            _cachedWaveformLine.Stroke = _cachedBarBrush;
         }
 
         private void RenderCircular(Canvas canvas)
@@ -871,7 +1117,7 @@ namespace PlatypusTools.UI.Views
             for (int i = 0; i < _smoothedData.Length; i++)
             {
                 double angle = (i / (double)_smoothedData.Length) * Math.PI * 2 - Math.PI / 2;
-                double value = Math.Min(1.0, _smoothedData[i] * 2);
+                double value = Math.Min(1.0, _smoothedData[i] * 2.5);
                 double barRadius = radius * value * 0.6;
 
                 double startX = centerX + Math.Cos(angle) * (radius * 0.3);
@@ -887,7 +1133,7 @@ namespace PlatypusTools.UI.Views
                     X2 = endX,
                     Y2 = endY,
                     Stroke = new SolidColorBrush(color),
-                    StrokeThickness = Math.Max(3, canvas.ActualWidth / _smoothedData.Length * 0.8),
+                    StrokeThickness = Math.Max(2, canvas.ActualWidth / _smoothedData.Length * 0.8),
                     StrokeStartLineCap = PenLineCap.Round,
                     StrokeEndLineCap = PenLineCap.Round,
                     Opacity = 0.85
@@ -1256,11 +1502,11 @@ namespace PlatypusTools.UI.Views
                 if (screenX < 0 || screenX > width || screenY < 0 || screenY > height)
                     continue;
                 
-                // Size based on distance (closer = larger)
-                double size = Math.Max(1, (1 / star.Z) * 4 * (1 + avgIntensity));
+                // Size based on distance (closer = larger) - smaller stars overall
+                double size = Math.Max(0.5, (1 / star.Z) * 2 * (1 + avgIntensity * 0.5));
                 
                 // Calculate streak length for warp effect
-                double streakLength = Math.Min(50, star.Speed * speedMultiplier * 100 / star.Z);
+                double streakLength = Math.Min(30, star.Speed * speedMultiplier * 60 / star.Z);
                 
                 // Previous position for streak
                 double prevZ = star.Z + star.Speed * speedMultiplier;
@@ -1273,7 +1519,7 @@ namespace PlatypusTools.UI.Views
                 starColor = Color.FromArgb(brightness, starColor.R, starColor.G, starColor.B);
                 
                 // Draw streak line
-                if (streakLength > 2)
+                if (streakLength > 1.5)
                 {
                     var line = new Line
                     {
@@ -1282,7 +1528,7 @@ namespace PlatypusTools.UI.Views
                         X2 = screenX,
                         Y2 = screenY,
                         Stroke = new SolidColorBrush(starColor),
-                        StrokeThickness = size * 0.5,
+                        StrokeThickness = Math.Max(0.5, size * 0.3),
                         StrokeStartLineCap = PenLineCap.Round,
                         StrokeEndLineCap = PenLineCap.Round
                     };

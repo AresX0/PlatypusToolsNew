@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using PlatypusTools.Core.Services;
+using PlatypusTools.UI.Utilities;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -506,26 +507,14 @@ namespace PlatypusTools.UI.ViewModels
                         {
                             // Just show original image - use stream to avoid file lock
                             using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                            var bitmap = new BitmapImage();
-                            bitmap.BeginInit();
-                            bitmap.StreamSource = fs;
-                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                            bitmap.EndInit();
-                            bitmap.Freeze();
-                            return bitmap;
+                            return ImageHelper.LoadFromStream(fs);
                         }
                         
                         ct.ThrowIfCancellationRequested();
                         
                         // Load preview from temp file
                         using var stream = new FileStream(tempPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                        var result = new BitmapImage();
-                        result.BeginInit();
-                        result.StreamSource = stream;
-                        result.CacheOption = BitmapCacheOption.OnLoad;
-                        result.EndInit();
-                        result.Freeze();
-                        return result;
+                        return ImageHelper.LoadFromStream(stream);
                     }
                     finally
                     {

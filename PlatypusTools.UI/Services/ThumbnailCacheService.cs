@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using PlatypusTools.UI.Utilities;
 
 namespace PlatypusTools.UI.Services
 {
@@ -166,15 +167,7 @@ namespace PlatypusTools.UI.Services
                     // Handle images
                     if (IsImageFile(ext))
                     {
-                        var bitmap = new BitmapImage();
-                        bitmap.BeginInit();
-                        bitmap.UriSource = new Uri(filePath);
-                        bitmap.DecodePixelWidth = size;
-                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
-                        bitmap.EndInit();
-                        bitmap.Freeze();
-                        return bitmap;
+                        return ImageHelper.LoadFromFile(filePath, decodePixelWidth: size);
                     }
                     
                     // For other file types, return null (use default icon)
@@ -196,13 +189,7 @@ namespace PlatypusTools.UI.Services
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.UriSource = new Uri(cachePath);
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.EndInit();
-                    bitmap.Freeze();
-                    return bitmap;
+                    return ImageHelper.LoadFromFile(cachePath);
                 }
                 catch
                 {

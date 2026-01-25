@@ -43,7 +43,6 @@ namespace PlatypusTools.UI.ViewModels
         private readonly DispatcherTimer _autoSaveTimer;
         private DateTime _lastAutoSave = DateTime.MinValue;
         private const int AutoSaveIntervalMinutes = 5;
-        private bool _hasUnsavedChanges = false;
         
         private CancellationTokenSource? _operationCts;
         private bool _disposed;
@@ -2043,7 +2042,6 @@ namespace PlatypusTools.UI.ViewModels
                 await _editorService.SaveProjectAsync(Project, autoSaveFile);
                 
                 _lastAutoSave = DateTime.Now;
-                _hasUnsavedChanges = false;
                 LogDebug($"[AUTOSAVE] Saved to: {autoSaveFile}");
                 
                 // Cleanup old auto-saves (keep last 5)

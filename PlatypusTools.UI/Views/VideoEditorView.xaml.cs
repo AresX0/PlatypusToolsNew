@@ -12,6 +12,7 @@ using LibVLCSharp.Shared;
 using PlatypusTools.Core.Models.Video;
 using PlatypusTools.Core.Services.Video;
 using PlatypusTools.UI.Converters;
+using PlatypusTools.UI.Utilities;
 using PlatypusTools.UI.ViewModels;
 
 namespace PlatypusTools.UI.Views
@@ -645,15 +646,10 @@ namespace PlatypusTools.UI.Views
                 
                 try
                 {
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.UriSource = new Uri(sourcePath, UriKind.Absolute);
-                    bitmap.EndInit();
-                    bitmap.Freeze();
+                    var bitmap = ImageHelper.LoadFromFile(sourcePath);
                     
                     PreviewFrameImage.Source = bitmap;
-                    Log($"[PREVIEW] Image loaded: {bitmap.PixelWidth}x{bitmap.PixelHeight}");
+                    Log($"[PREVIEW] Image loaded: {bitmap?.PixelWidth}x{bitmap?.PixelHeight}");
                     
                     // Set a default duration for images (5 seconds)
                     if (vm != null)
@@ -824,17 +820,12 @@ namespace PlatypusTools.UI.Views
                 Log($"[OVERLAY] Loading overlay image: {overlayPath}");
                 
                 // Load the image
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.UriSource = new Uri(overlayPath, UriKind.Absolute);
-                bitmap.EndInit();
-                bitmap.Freeze(); // Make thread-safe
+                var bitmap = ImageHelper.LoadFromFile(overlayPath);
                 
                 OverlayImage.Source = bitmap;
                 OverlayImage.Visibility = Visibility.Visible;
                 
-                Log($"[OVERLAY] Overlay displayed: {bitmap.PixelWidth}x{bitmap.PixelHeight}");
+                Log($"[OVERLAY] Overlay displayed: {bitmap?.PixelWidth}x{bitmap?.PixelHeight}");
             }
             catch (Exception ex)
             {
@@ -898,19 +889,13 @@ namespace PlatypusTools.UI.Views
                     {
                         try
                         {
-                            var bitmap = new BitmapImage();
-                            bitmap.BeginInit();
-                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                            bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                            bitmap.UriSource = new Uri(framePath, UriKind.Absolute);
-                            bitmap.EndInit();
-                            bitmap.Freeze();
+                            var bitmap = ImageHelper.LoadUncached(framePath);
                             
                             PreviewFrameImage.Source = bitmap;
                             PreviewFrameImage.Visibility = Visibility.Visible;
                             PreviewMediaElement.Visibility = Visibility.Collapsed;
                             
-                            Log($"[FRAME] SUCCESS - Frame loaded and displayed: {bitmap.PixelWidth}x{bitmap.PixelHeight}");
+                            Log($"[FRAME] SUCCESS - Frame loaded and displayed: {bitmap?.PixelWidth}x{bitmap?.PixelHeight}");
                         }
                         catch (Exception ex)
                         {
@@ -1014,19 +999,13 @@ namespace PlatypusTools.UI.Views
                     {
                         try
                         {
-                            var bitmap = new BitmapImage();
-                            bitmap.BeginInit();
-                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                            bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                            bitmap.UriSource = new Uri(outputPath, UriKind.Absolute);
-                            bitmap.EndInit();
-                            bitmap.Freeze();
+                            var bitmap = ImageHelper.LoadUncached(outputPath);
 
                             PreviewFrameImage.Source = bitmap;
                             PreviewFrameImage.Visibility = Visibility.Visible;
                             PreviewMediaElement.Visibility = Visibility.Collapsed;
 
-                            Log($"[DIRECT FFMPEG] SUCCESS - Frame displayed: {bitmap.PixelWidth}x{bitmap.PixelHeight}");
+                            Log($"[DIRECT FFMPEG] SUCCESS - Frame displayed: {bitmap?.PixelWidth}x{bitmap?.PixelHeight}");
                         }
                         catch (Exception ex)
                         {

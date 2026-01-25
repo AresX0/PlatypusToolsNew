@@ -9,6 +9,7 @@ using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using PlatypusTools.Core.Models.ImageScaler;
 using PlatypusTools.Core.Services;
+using PlatypusTools.UI.Utilities;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -400,13 +401,7 @@ namespace PlatypusTools.UI.ViewModels
             {
                 try
                 {
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.UriSource = new Uri(SelectedItem.SourcePath);
-                    bitmap.EndInit();
-                    bitmap.Freeze();
-                    OriginalPreviewImage = bitmap;
+                    OriginalPreviewImage = ImageHelper.LoadFromFile(SelectedItem.SourcePath);
                 }
                 catch
                 {
@@ -419,13 +414,7 @@ namespace PlatypusTools.UI.ViewModels
             {
                 try
                 {
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.UriSource = new Uri(SelectedItem.OutputPath);
-                    bitmap.EndInit();
-                    bitmap.Freeze();
-                    UpscaledPreviewImage = bitmap;
+                    UpscaledPreviewImage = ImageHelper.LoadFromFile(SelectedItem.OutputPath);
                 }
                 catch
                 {

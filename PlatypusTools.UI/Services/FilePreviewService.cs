@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using PlatypusTools.UI.Utilities;
 
 namespace PlatypusTools.UI.Services
 {
@@ -54,15 +55,7 @@ namespace PlatypusTools.UI.Services
                 {
                     ct.ThrowIfCancellationRequested();
                     
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.UriSource = new Uri(filePath);
-                    bitmap.DecodePixelWidth = maxWidth;
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
-                    bitmap.EndInit();
-                    bitmap.Freeze();
-                    return bitmap;
+                    return ImageHelper.LoadFromFile(filePath, decodePixelWidth: maxWidth);
                 }
                 catch
                 {

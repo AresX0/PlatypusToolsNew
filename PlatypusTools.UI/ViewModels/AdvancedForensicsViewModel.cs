@@ -3230,32 +3230,34 @@ Amcache_CL
 
         private async Task<int> CopyDirectoryAsync(string source, string dest)
         {
-            return await Task.Run(() =>
+            return await Task.Run(() => CopyDirectoryRecursive(source, dest));
+        }
+
+        private int CopyDirectoryRecursive(string source, string dest)
+        {
+            Directory.CreateDirectory(dest);
+            var copiedCount = 0;
+
+            foreach (var file in Directory.GetFiles(source))
             {
-                Directory.CreateDirectory(dest);
-                var copiedCount = 0;
-
-                foreach (var file in Directory.GetFiles(source))
+                try
                 {
-                    try
-                    {
-                        File.Copy(file, Path.Combine(dest, Path.GetFileName(file)), true);
-                        copiedCount++;
-                    }
-                    catch { /* Skip locked files */ }
+                    File.Copy(file, Path.Combine(dest, Path.GetFileName(file)), true);
+                    copiedCount++;
                 }
+                catch { /* Skip locked files */ }
+            }
 
-                foreach (var dir in Directory.GetDirectories(source))
+            foreach (var dir in Directory.GetDirectories(source))
+            {
+                try
                 {
-                    try
-                    {
-                        copiedCount += CopyDirectoryAsync(dir, Path.Combine(dest, Path.GetFileName(dir))).Result;
-                    }
-                    catch { /* Skip inaccessible dirs */ }
+                    copiedCount += CopyDirectoryRecursive(dir, Path.Combine(dest, Path.GetFileName(dir)));
                 }
+                catch { /* Skip inaccessible dirs */ }
+            }
 
-                return copiedCount;
-            });
+            return copiedCount;
         }
 
         #endregion

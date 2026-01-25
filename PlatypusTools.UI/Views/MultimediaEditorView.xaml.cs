@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Microsoft.Win32;
+using PlatypusTools.UI.Utilities;
 using PlatypusTools.UI.ViewModels;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
@@ -128,13 +129,7 @@ namespace PlatypusTools.UI.Views
                 _currentImage.SaveAsPng(ms);
                 ms.Position = 0;
 
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.StreamSource = ms;
-                bitmap.EndInit();
-                bitmap.Freeze();
-
+                var bitmap = ImageHelper.LoadFromStream(ms);
                 ImageEditPreview.Source = bitmap;
             }
             catch (Exception ex)

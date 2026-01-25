@@ -19,6 +19,12 @@ namespace PlatypusTools.Core.Services.AI
     /// </summary>
     public class LocalWhisperService : IAISpeechToText
     {
+        // Shared HttpClient for all downloads (reuse to avoid socket exhaustion)
+        private static readonly HttpClient _httpClient = new()
+        {
+            Timeout = Timeout.InfiniteTimeSpan // Use per-request cancellation instead
+        };
+        
         private string _whisperPath;
         private string _modelPath;
         private readonly string _tempDir;
@@ -111,28 +117,29 @@ namespace PlatypusTools.Core.Services.AI
                 // Download whisper.cpp release
                 var url = string.Format(WHISPER_DOWNLOAD_URL, WHISPER_VERSION);
                 
-                using var client = new HttpClient();
-                client.Timeout = TimeSpan.FromMinutes(10);
+                // Use CancellationToken with timeout for long downloads
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                cts.CancelAfter(TimeSpan.FromMinutes(10));
                 
-                using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cts.Token);
                 
                 if (!response.IsSuccessStatusCode)
                 {
                     // Try alternative: use Windows x64 build
                     url = $"https://github.com/ggerganov/whisper.cpp/releases/download/v{WHISPER_VERSION}/whisper-blas-bin-x64.zip";
                     response.Dispose();
-                    using var altResponse = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                    using var altResponse = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cts.Token);
                     
                     if (!altResponse.IsSuccessStatusCode)
                     {
                         return false;
                     }
                     
-                    await DownloadFileAsync(altResponse, zipPath, progress, cancellationToken);
+                    await DownloadFileAsync(altResponse, zipPath, progress, cts.Token);
                 }
                 else
                 {
-                    await DownloadFileAsync(response, zipPath, progress, cancellationToken);
+                    await DownloadFileAsync(response, zipPath, progress, cts.Token);
                 }
 
                 // Extract
@@ -468,10 +475,11 @@ namespace PlatypusTools.Core.Services.AI
 
             try
             {
-                using var client = new HttpClient();
-                client.Timeout = TimeSpan.FromMinutes(30); // Models can be large
+                // Use CancellationToken with timeout for large model downloads
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                cts.CancelAfter(TimeSpan.FromMinutes(30)); // Models can be large
                 
-                using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cts.Token);
                 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -481,15 +489,15 @@ namespace PlatypusTools.Core.Services.AI
                 var totalBytes = response.Content.Headers.ContentLength ?? -1;
                 var downloadedBytes = 0L;
 
-                using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                using var stream = await response.Content.ReadAsStreamAsync(cts.Token);
                 using var fileStream = new FileStream(modelPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
 
                 var buffer = new byte[81920];
                 int bytesRead;
 
-                while ((bytesRead = await stream.ReadAsync(buffer, cancellationToken)) > 0)
+                while ((bytesRead = await stream.ReadAsync(buffer, cts.Token)) > 0)
                 {
-                    await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
+                    await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), cts.Token);
                     downloadedBytes += bytesRead;
 
                     if (totalBytes > 0)

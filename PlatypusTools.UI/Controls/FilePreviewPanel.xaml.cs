@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+using PlatypusTools.UI.Utilities;
 
 namespace PlatypusTools.UI.Controls
 {
@@ -98,17 +99,12 @@ namespace PlatypusTools.UI.Controls
         {
             try
             {
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.UriSource = new Uri(filePath);
-                bitmap.EndInit();
-                bitmap.Freeze();
+                var bitmap = ImageHelper.LoadFromFile(filePath);
 
                 ImagePreview.Source = bitmap;
                 ImageScrollViewer.Visibility = Visibility.Visible;
                 FileInfoPanel.Visibility = Visibility.Visible;
-                FileDimensionsText.Text = $"{bitmap.PixelWidth}×{bitmap.PixelHeight}";
+                FileDimensionsText.Text = $"{bitmap?.PixelWidth}×{bitmap?.PixelHeight}";
             }
             catch
             {

@@ -91,6 +91,34 @@ namespace PlatypusTools.UI.Utilities
         }
 
         /// <summary>
+        /// Loads a BitmapImage from file, ignoring the image cache.
+        /// Use this for images that may change at the same path (e.g., extracted video frames).
+        /// </summary>
+        /// <param name="filePath">Path to the image file</param>
+        /// <returns>Frozen BitmapImage or null if failed</returns>
+        public static BitmapImage? LoadUncached(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+                return null;
+
+            try
+            {
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                bitmap.UriSource = new Uri(filePath, UriKind.Absolute);
+                bitmap.EndInit();
+                bitmap.Freeze();
+                return bitmap;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Converts a System.Drawing.Bitmap to a frozen WPF BitmapImage.
         /// Properly disposes the source bitmap's stream after conversion.
         /// </summary>

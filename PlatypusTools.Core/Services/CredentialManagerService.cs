@@ -271,9 +271,12 @@ namespace PlatypusTools.Core.Services
         {
             using var aes = Aes.Create();
             var salt = RandomNumberGenerator.GetBytes(16);
-            using var key = new Rfc2898DeriveBytes(password, salt, 100000, HashAlgorithmName.SHA256);
-            aes.Key = key.GetBytes(32);
-            aes.IV = key.GetBytes(16);
+            
+            // Use the static Pbkdf2 method instead of the obsolete constructor
+            var keyBytes = Rfc2898DeriveBytes.Pbkdf2(password, salt, 100000, HashAlgorithmName.SHA256, 32);
+            var ivBytes = Rfc2898DeriveBytes.Pbkdf2(password, salt, 100000, HashAlgorithmName.SHA256, 16);
+            aes.Key = keyBytes;
+            aes.IV = ivBytes;
 
             using var ms = new MemoryStream();
             ms.Write(salt, 0, salt.Length);
@@ -291,9 +294,11 @@ namespace PlatypusTools.Core.Services
             var salt = encrypted.Take(16).ToArray();
             var cipherText = encrypted.Skip(16).ToArray();
 
-            using var key = new Rfc2898DeriveBytes(password, salt, 100000, HashAlgorithmName.SHA256);
-            aes.Key = key.GetBytes(32);
-            aes.IV = key.GetBytes(16);
+            // Use the static Pbkdf2 method instead of the obsolete constructor
+            var keyBytes = Rfc2898DeriveBytes.Pbkdf2(password, salt, 100000, HashAlgorithmName.SHA256, 32);
+            var ivBytes = Rfc2898DeriveBytes.Pbkdf2(password, salt, 100000, HashAlgorithmName.SHA256, 16);
+            aes.Key = keyBytes;
+            aes.IV = ivBytes;
 
             using var ms = new MemoryStream(cipherText);
             using var cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Read);

@@ -4,6 +4,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Media.Imaging;
 using PlatypusTools.Core.Services;
+using PlatypusTools.UI.Utilities;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -88,13 +89,7 @@ namespace PlatypusTools.UI.ViewModels
                     _info.Thumbnail.Save(ms, ImageFormat.Png);
                     ms.Position = 0;
                     
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.StreamSource = ms;
-                    bitmap.EndInit();
-                    bitmap.Freeze();
-                    Thumbnail = bitmap;
+                    Thumbnail = ImageHelper.LoadFromStream(ms);
                 }
             }
             catch

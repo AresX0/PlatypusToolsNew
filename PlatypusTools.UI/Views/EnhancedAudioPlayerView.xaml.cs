@@ -102,8 +102,9 @@ public partial class EnhancedAudioPlayerView : UserControl
                 int barCount = vm?.BarCount ?? 32;
                 int colorIndex = vm?.ColorSchemeIndex ?? 0;
                 double sensitivity = vm?.VisualizerSensitivity ?? 0.7;
+                int fps = vm?.VisualizerFps ?? 22;
                 
-                VisualizerControl.UpdateSpectrumData(doubleData, mode, barCount, colorIndex, sensitivity);
+                VisualizerControl.UpdateSpectrumData(doubleData, mode, barCount, colorIndex, sensitivity, fps);
             }
         });
     }

@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using PlatypusTools.Core.Services;
+using PlatypusTools.UI.Utilities;
 using Windows.Data.Pdf;
 using Windows.Storage;
 using Windows.Storage.Streams;
@@ -812,14 +813,7 @@ namespace PlatypusTools.UI.ViewModels
             // Convert to BitmapImage on UI thread
             await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.StreamSource = stream.AsStreamForRead();
-                bitmap.EndInit();
-                bitmap.Freeze();
-                
-                PreviewImage = bitmap;
+                PreviewImage = ImageHelper.LoadFromStream(stream.AsStreamForRead());
             });
         }
         
@@ -834,14 +828,7 @@ namespace PlatypusTools.UI.ViewModels
             {
                 try
                 {
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.UriSource = new Uri(filePath);
-                    bitmap.EndInit();
-                    bitmap.Freeze();
-                    
-                    PreviewImage = bitmap;
+                    PreviewImage = ImageHelper.LoadFromFile(filePath);
                 }
                 catch
                 {

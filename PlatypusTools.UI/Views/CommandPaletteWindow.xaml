@@ -59,6 +59,8 @@
                      Background="Transparent"
                      BorderThickness="0"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     VirtualizingStackPanel.IsVirtualizing="True"
+                     VirtualizingStackPanel.VirtualizationMode="Recycling"
                      MouseDoubleClick="CommandList_MouseDoubleClick"
                      PreviewKeyDown="CommandList_PreviewKeyDown">
                 <ListBox.ItemTemplate>

@@ -64,10 +64,27 @@ public class EnhancedAudioPlayerService : IDisposable
     private readonly DispatcherTimer _positionTimer;
     private readonly DispatcherTimer _spectrumTimer;
     
-    // Spectrum analyzer
-    private readonly float[] _spectrumData = new float[32];
-    private readonly Complex[] _fftBuffer = new Complex[1024];
-    private readonly float[] _sampleBuffer = new float[1024];
+    // Spectrum analyzer - balanced FFT size for performance
+    private const int FFT_SIZE = 1024; // Reduced for performance (was 4096)
+    private const int SPECTRUM_BANDS = 64; // Reduced for performance (was 128)
+    private readonly float[] _spectrumData = new float[SPECTRUM_BANDS];
+    private readonly float[] _fftMagnitudes = new float[FFT_SIZE / 2];
+    private readonly float[] _smoothedSpectrum = new float[SPECTRUM_BANDS]; // Smoothed output
+    private volatile bool _fftInProgress = false; // Prevent overlapping FFT computations
+    
+    // Spectrum analyzer sample provider for capturing audio
+    private SpectrumAnalyzerSampleProvider? _spectrumAnalyzer;
+    
+    // Shared HttpClient for lyrics downloads (reuse to avoid socket exhaustion)
+    private static readonly HttpClient _httpClient = new()
+    {
+        Timeout = TimeSpan.FromSeconds(10)
+    };
+    
+    static EnhancedAudioPlayerService()
+    {
+        _httpClient.DefaultRequestHeaders.Add("User-Agent", "PlatypusTools/1.0");
+    }
     
     // Events
     public event EventHandler<AudioTrack?>? TrackChanged;
@@ -148,7 +165,7 @@ public class EnhancedAudioPlayerService : IDisposable
         _positionTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         _positionTimer.Tick += (s, e) => PositionChanged?.Invoke(this, Position);
         
-        _spectrumTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
+        _spectrumTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(45) }; // ~22 FPS
         _spectrumTimer.Tick += (s, e) => GenerateSpectrum();
         _spectrumTimer.Start();
         
@@ -238,7 +255,7 @@ public class EnhancedAudioPlayerService : IDisposable
             // Apply ReplayGain if enabled
             ApplyReplayGain();
             
-            // Build audio pipeline: Reader -> Speed -> EQ -> Volume -> Output
+            // Build audio pipeline: Reader -> Speed -> EQ -> Spectrum Analyzer -> Volume -> Output
             _speedController = new SpeedControlSampleProvider(_audioFileReader.ToSampleProvider());
             _speedController.SetSpeed((float)_playbackSpeed);
             
@@ -248,7 +265,10 @@ public class EnhancedAudioPlayerService : IDisposable
                 _equalizer.UpdateBand(i, _eqBands[i]);
             }
             
-            _volumeController = new VolumeSampleProvider(_equalizer);
+            // Add spectrum analyzer to capture audio samples for FFT
+            _spectrumAnalyzer = new SpectrumAnalyzerSampleProvider(_equalizer, FFT_SIZE);
+            
+            _volumeController = new VolumeSampleProvider(_spectrumAnalyzer);
             ApplyVolume();
             
             _wavePlayer = new WaveOutEvent();
@@ -324,6 +344,7 @@ public class EnhancedAudioPlayerService : IDisposable
         
         _equalizer = null;
         _speedController = null;
+        _spectrumAnalyzer = null;
         _volumeController = null;
         
         // Clear preload unless we're doing gapless transition
@@ -677,24 +698,98 @@ public class EnhancedAudioPlayerService : IDisposable
     
     private void GenerateSpectrum()
     {
-        // Generate simple spectrum data for visualization
-        // In a real implementation, we'd capture samples from the audio pipeline
-        for (int i = 0; i < _spectrumData.Length; i++)
+        // Skip if FFT is already in progress (prevents UI thread blocking)
+        if (_fftInProgress)
+            return;
+            
+        // When not playing, output silent spectrum (visualizer will stop)
+        if (!_isPlaying || _isPaused)
         {
-            if (_isPlaying && !_isPaused)
+            // Clear spectrum data when not playing
+            for (int i = 0; i < _spectrumData.Length; i++)
             {
-                // Simulate spectrum with smooth movement
-                var target = (float)(_random.NextDouble() * 0.5 + 0.2);
-                _spectrumData[i] = _spectrumData[i] * 0.7f + target * 0.3f;
+                _spectrumData[i] = 0f;
             }
-            else
+            SpectrumDataUpdated?.Invoke(this, _spectrumData);
+            return;
+        }
+        
+        // Get real FFT data from the spectrum analyzer if available
+        if (_spectrumAnalyzer != null)
+        {
+            try
             {
-                // Decay when not playing
-                _spectrumData[i] *= 0.9f;
+                _fftInProgress = true;
+                var fftData = _spectrumAnalyzer.GetFFTData();
+                if (fftData != null && fftData.Length > 0)
+                {
+                    ComputeSpectrumFromFFT(fftData);
+                    SpectrumDataUpdated?.Invoke(this, _spectrumData);
+                    return;
+                }
+            }
+            finally
+            {
+                _fftInProgress = false;
             }
         }
         
+        // Fallback: no data
+        for (int i = 0; i < _spectrumData.Length; i++)
+        {
+            _spectrumData[i] = 0f;
+        }
         SpectrumDataUpdated?.Invoke(this, _spectrumData);
+    }
+    
+    /// <summary>
+    /// Compute spectrum bands from FFT magnitude data using logarithmic frequency mapping.
+    /// Based on pro-grade spectrum analyzer implementation.
+    /// </summary>
+    private void ComputeSpectrumFromFFT(float[] fftData)
+    {
+        int fftLength = fftData.Length;
+        int numBands = _spectrumData.Length;
+        
+        for (int i = 0; i < numBands; i++)
+        {
+            // Logarithmic frequency mapping: more resolution for bass frequencies
+            // Maps lower bands to lower frequencies with higher resolution
+            double logIndex = Math.Pow((double)i / numBands, 2) * (fftLength - 1);
+            int index = Math.Min((int)logIndex, fftLength - 1);
+            
+            // Average nearby bins for smoother result
+            float sum = 0;
+            int count = 0;
+            int range = Math.Max(1, fftLength / (numBands * 2));
+            for (int j = Math.Max(0, index - range); j <= Math.Min(fftLength - 1, index + range); j++)
+            {
+                sum += fftData[j];
+                count++;
+            }
+            float magnitude = count > 0 ? sum / count : fftData[index];
+            
+            // Convert to dB scale for better visualization
+            float db = 20f * MathF.Log10(magnitude + 1e-6f);
+            
+            // Normalize: db typically ranges from -60 to 0
+            // Map to 0-1 range
+            float targetHeight = MathF.Max(0, (db + 60f) / 60f);
+            
+            // Smooth rise/fall for fluid animation
+            if (targetHeight > _smoothedSpectrum[i])
+            {
+                // Fast attack (instant rise like reference code)
+                _smoothedSpectrum[i] = targetHeight;
+            }
+            else
+            {
+                // Smooth decay
+                _smoothedSpectrum[i] = _smoothedSpectrum[i] * 0.85f + targetHeight * 0.15f;
+            }
+            
+            _spectrumData[i] = _smoothedSpectrum[i];
+        }
     }
     
     #endregion
@@ -889,16 +984,12 @@ public class EnhancedAudioPlayerService : IDisposable
         
         try
         {
-            using var httpClient = new HttpClient();
-            httpClient.Timeout = TimeSpan.FromSeconds(10);
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "PlatypusTools/1.0");
-            
             // Use LRCLIB.net API - a free lyrics API
             var artist = Uri.EscapeDataString(track.Artist.Trim());
             var title = Uri.EscapeDataString(track.Title.Trim());
             var url = $"https://lrclib.net/api/get?artist_name={artist}&track_name={title}";
             
-            var response = await httpClient.GetAsync(url);
+            var response = await _httpClient.GetAsync(url);
             if (!response.IsSuccessStatusCode)
                 return null;
             
@@ -1391,6 +1482,103 @@ public class VolumeSampleProvider : ISampleProvider
         }
         
         return samplesRead;
+    }
+}
+
+/// <summary>
+/// Spectrum analyzer sample provider that captures audio samples and performs real FFT analysis.
+/// Based on pro-grade spectrum analyzer implementation with proper FFT using NAudio.Dsp.
+/// </summary>
+public class SpectrumAnalyzerSampleProvider : ISampleProvider
+{
+    private readonly ISampleProvider _source;
+    private readonly int _fftSize;
+    private readonly Complex[] _fftBuffer;
+    private readonly float[] _fftMagnitudes;
+    private readonly float[] _sampleBuffer;
+    private int _sampleIndex;
+    private readonly object _lock = new();
+    
+    // Hanning window for FFT to reduce spectral leakage
+    private readonly float[] _hanningWindow;
+    
+    public WaveFormat WaveFormat => _source.WaveFormat;
+    
+    public SpectrumAnalyzerSampleProvider(ISampleProvider source, int fftSize = 4096)
+    {
+        _source = source;
+        _fftSize = fftSize;
+        _fftBuffer = new Complex[fftSize];
+        _fftMagnitudes = new float[fftSize / 2];
+        _sampleBuffer = new float[fftSize];
+        _sampleIndex = 0;
+        
+        // Pre-compute Hanning window
+        _hanningWindow = new float[fftSize];
+        for (int i = 0; i < fftSize; i++)
+        {
+            _hanningWindow[i] = 0.5f * (1f - MathF.Cos(2f * MathF.PI * i / (fftSize - 1)));
+        }
+    }
+    
+    public int Read(float[] buffer, int offset, int count)
+    {
+        int samplesRead = _source.Read(buffer, offset, count);
+        
+        // Capture mono samples for FFT (mix stereo to mono if needed)
+        int channels = _source.WaveFormat.Channels;
+        
+        lock (_lock)
+        {
+            for (int i = 0; i < samplesRead; i += channels)
+            {
+                // Mix to mono
+                float sample = 0;
+                for (int ch = 0; ch < channels; ch++)
+                {
+                    if (offset + i + ch < buffer.Length)
+                        sample += buffer[offset + i + ch];
+                }
+                sample /= channels;
+                
+                // Add to circular buffer
+                _sampleBuffer[_sampleIndex] = sample;
+                _sampleIndex = (_sampleIndex + 1) % _fftSize;
+            }
+        }
+        
+        return samplesRead;
+    }
+    
+    /// <summary>
+    /// Gets the current FFT magnitude data for visualization.
+    /// Returns magnitude values in the range 0-1.
+    /// </summary>
+    public float[] GetFFTData()
+    {
+        lock (_lock)
+        {
+            // Copy samples to FFT buffer with Hanning window applied
+            int readIndex = _sampleIndex;
+            for (int i = 0; i < _fftSize; i++)
+            {
+                float sample = _sampleBuffer[readIndex] * _hanningWindow[i];
+                _fftBuffer[i] = new Complex { X = sample, Y = 0 };
+                readIndex = (readIndex + 1) % _fftSize;
+            }
+        }
+        
+        // Perform FFT using NAudio.Dsp
+        FastFourierTransform.FFT(true, (int)Math.Log2(_fftSize), _fftBuffer);
+        
+        // Calculate magnitudes (only first half - Nyquist)
+        for (int i = 0; i < _fftSize / 2; i++)
+        {
+            float magnitude = MathF.Sqrt(_fftBuffer[i].X * _fftBuffer[i].X + _fftBuffer[i].Y * _fftBuffer[i].Y);
+            _fftMagnitudes[i] = magnitude;
+        }
+        
+        return _fftMagnitudes;
     }
 }
 

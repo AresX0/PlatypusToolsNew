@@ -400,4 +400,109 @@
 
 ---
 
-*Last updated: January 20, 2026*
+## 🔬 Code Analysis - Performance & Consistency Issues (January 25, 2026)
+
+Based on automated code analysis, the following improvements are recommended:
+
+### 🔴 HIGH Priority - Performance Issues
+
+| # | Issue | Location | Impact | Fix |
+|---|-------|----------|--------|-----|
+| PERF-001 | BitmapImage not using ImageHelper | 20+ locations across ViewModels/Views | Memory leaks, file handle issues | Replace `new BitmapImage()` with `ImageHelper.LoadFromFile()` or `ImageHelper.LoadThumbnail()` |
+| PERF-002 | .Result blocking calls in async context | AdvancedForensicsViewModel.cs:3252 | UI thread blocking, deadlocks | Replace `.Result` with proper `await` |
+| PERF-003 | HttpClient created per-request | EnhancedAudioPlayerService:892, LocalWhisperService | Socket exhaustion, connection pooling issues | Use shared/singleton HttpClient via IHttpClientFactory or static instance |
+| PERF-004 | Missing UI Virtualization | Some DataGrids/ListBoxes | Memory bloat with large lists | Add `VirtualizingStackPanel.IsVirtualizing="True"` and `EnableRowVirtualization="True"` |
+
+### 🟡 MEDIUM Priority - Code Consistency Issues
+
+| # | Issue | Location | Impact | Fix |
+|---|-------|----------|--------|-----|
+| CONS-001 | Direct INotifyPropertyChanged instead of BindableBase | 18+ model classes | Code duplication, inconsistent patterns | Migrate models to inherit from BindableBase |
+| CONS-002 | Mixed exception handling patterns | 100+ catch(Exception) blocks | Swallowed errors, inconsistent logging | Standardize with LoggingService, specific exception types |
+| CONS-003 | Synchronous File I/O in some places | EnhancedAudioPlayerViewModel:2462 | UI blocking | Use `File.WriteAllTextAsync` instead of `File.WriteAllText` |
+| CONS-004 | Command naming inconsistency | Various ViewModels | Confusing API | Standardize: `VerbNounCommand` pattern (e.g., `SaveFileCommand`) |
+| CONS-005 | Mixed RelayCommand patterns | Some use `async _` lambda, others use AsyncRelayCommand | Inconsistent async handling | Use `AsyncRelayCommand` for all async operations |
+
+### 🟢 LOW Priority - Code Quality Improvements
+
+| # | Issue | Location | Impact | Fix |
+|---|-------|----------|--------|-----|
+| QUAL-001 | Unused fields (CS0169 warnings) | EnhancedAudioPlayerService, ScrubBar, etc. | Dead code, confusion | Remove unused fields or implement properly |
+| QUAL-002 | Nullable warnings (CS8604, CS8601, etc.) | Multiple services and ViewModels | Potential NullReferenceExceptions | Add null checks or use nullable annotations |
+| QUAL-003 | Obsolete API usage (SYSLIB0060, SYSLIB0014) | CredentialManagerService, FtpClientService | Future compatibility issues | Migrate to modern APIs (Rfc2898DeriveBytes.Pbkdf2, HttpClient) |
+| QUAL-004 | Hardcoded strings | URLs, paths, messages | Localization barriers | Extract to constants or resources |
+
+### 📊 Detailed Findings by Category
+
+#### BitmapImage Issues (PERF-001)
+Files requiring ImageHelper migration:
+- `EnhancedAudioPlayerViewModel.cs` (3 locations: lines 106, 166, 252)
+- `FilePreviewPanel.xaml.cs` (line 101)
+- `VideoEditorView.xaml.cs` (4 locations: lines 648, 827, 901, 1017)
+- `SimilarVideoGroupViewModel.cs` (line 91)
+- `NativeImageEditView.xaml.cs` (2 locations: lines 173, 1078)
+- `PdfToolsViewModel.cs` (2 locations: lines 815, 837)
+- `MultimediaEditorView.xaml.cs` (line 131)
+- `BatchWatermarkViewModel.cs` (2 locations: lines 509, 522)
+- `BatchUpscaleViewModel.cs` (2 locations: lines 403, 422)
+- `ComparisonViewer.xaml.cs` (2 locations: lines 307, 313)
+
+#### HttpClient Singleton Pattern (PERF-003)
+Files requiring shared HttpClient:
+- `UpdateService.cs` - Already uses singleton pattern ✓
+- `IOCScannerService.cs` - Already uses singleton pattern ✓
+- `EnhancedAudioPlayerService.cs` - Uses `using var httpClient` per request ❌
+- `CodecManager.cs` - Already uses singleton pattern ✓
+- `LocalWhisperService.cs` - Uses `using var client` per request ❌
+
+#### Models Using Direct INotifyPropertyChanged (CONS-001)
+Should inherit from BindableBase instead:
+- `TransitionItem` (TransitionPickerWindow.xaml.cs)
+- `TimelineTrack` (Models/VideoEditor/TimelineTrack.cs)
+- `TimelineModel` (Models/VideoEditor/TimelineModel.cs)
+- `TimelineClip` (Models/VideoEditor/TimelineClip.cs & Core/Models/Video/TimelineClip.cs)
+- `PlaylistItem` (Models/VideoEditor/PlaylistItem.cs)
+- `ArchiveEntry` (Core/Models/Archive/ArchiveEntry.cs)
+- `RenameOperation` (Core/Models/RenameOperation.cs)
+- `BatchUpscaleItem/Job/Overrides` (Core/Models/ImageScaler/BatchUpscaleJob.cs)
+- `VideoConversionTask` (Core/Models/VideoConversionTask.cs)
+- `MetadataField/Template/SelectableMetadataTag` (Core/Models/Metadata/MetadataTemplate.cs)
+- `AppSettings` (Services/SettingsManager.cs)
+- `TabVisibilityService` (Services/TabVisibilityService.cs)
+
+### 📋 Recommended Action Plan
+
+**Week 1: Performance Critical**
+1. [ ] PERF-001: Create ImageHelper wrapper methods for common patterns, migrate 20+ files
+2. [ ] PERF-002: Fix .Result blocking call in AdvancedForensicsViewModel
+3. [ ] PERF-003: Create shared HttpClientFactory service, migrate 2 files
+
+**Week 2: Consistency**
+1. [ ] CONS-001: Create `ModelBase` class in Core for models, migrate 12+ model classes
+2. [ ] CONS-002: Create centralized error handling with IErrorHandler interface
+3. [ ] CONS-003: Audit and fix all synchronous File I/O in ViewModels
+
+**Week 3: Quality**
+1. [ ] QUAL-001: Remove all unused fields (build warnings)
+2. [ ] QUAL-002: Enable `<Nullable>enable</Nullable>` and fix all warnings
+3. [ ] QUAL-003: Update obsolete APIs to modern equivalents
+
+### 🔍 Commands for Validation
+
+```powershell
+# Count BitmapImage direct usage
+grep -r "new BitmapImage\(" --include="*.cs" | wc -l
+
+# Find .Result blocking calls  
+grep -rn "\.Result" --include="*.cs" | grep -v "tests"
+
+# Find synchronous File operations
+grep -rn "File\.WriteAllText\|File\.ReadAllText" --include="*.cs" | grep -v "Async"
+
+# Count INotifyPropertyChanged implementations
+grep -rn ": INotifyPropertyChanged" --include="*.cs" | wc -l
+```
+
+---
+
+*Last updated: January 25, 2026*

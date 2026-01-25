@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Microsoft.Win32;
+using PlatypusTools.UI.Utilities;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
@@ -170,12 +171,7 @@ namespace PlatypusTools.UI.Views
                 _currentImage.SaveAsPng(ms);
                 ms.Position = 0;
 
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.StreamSource = ms;
-                bitmap.EndInit();
-                bitmap.Freeze();
+                var bitmap = ImageHelper.LoadFromStream(ms);
 
                 ImagePreview.Source = bitmap;
                 DrawingOverlay.Width = _currentImage.Width;
@@ -1075,15 +1071,12 @@ namespace PlatypusTools.UI.Views
                 _currentImage.SaveAsPng(ms);
                 ms.Position = 0;
 
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.StreamSource = ms;
-                bitmap.EndInit();
-                bitmap.Freeze();
-
-                Clipboard.SetImage(bitmap);
-                StatusText.Text = "Copied to clipboard";
+                var bitmap = ImageHelper.LoadFromStream(ms);
+                if (bitmap != null)
+                {
+                    Clipboard.SetImage(bitmap);
+                    StatusText.Text = "Copied to clipboard";
+                }
             }
             catch (Exception ex)
             {
