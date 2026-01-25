@@ -92,8 +92,6 @@ namespace PlatypusTools.UI.Controls.VideoEditor
 
         public event EventHandler<TimeSpan>? Seeked;
         public event EventHandler<TimeSpan>? Paused;
-        public event EventHandler<TimeSpan>? InPointChanged;
-        public event EventHandler<TimeSpan>? OutPointChanged;
 
         #endregion
 

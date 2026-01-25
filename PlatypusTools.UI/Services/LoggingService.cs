@@ -40,7 +40,7 @@ namespace PlatypusTools.UI.Services
             Directory.CreateDirectory(_logDirectory);
             _currentLogFile = Path.Combine(_logDirectory, $"platypus_{DateTime.Now:yyyyMMdd}.log");
             
-            _flushTimer = new Timer(_ => FlushAsync().Wait(), null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+            _flushTimer = new Timer(async _ => await FlushAsync(), null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
         }
 
         public void Log(LogLevel level, string message, string? category = null, Exception? exception = null)
@@ -157,7 +157,8 @@ namespace PlatypusTools.UI.Services
             _disposed = true;
             
             _flushTimer.Dispose();
-            FlushAsync().Wait();
+            // Use GetAwaiter().GetResult() in Dispose - safer than Wait() for sync-over-async
+            FlushAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             _writeLock.Dispose();
         }
     }

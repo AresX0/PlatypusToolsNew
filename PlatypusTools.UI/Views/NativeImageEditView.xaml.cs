@@ -48,7 +48,6 @@ namespace PlatypusTools.UI.Views
         private Color _selectedColor = Colors.Red;
         private Color _pickedColor = Colors.Transparent;
         private int _lineThickness = 3;
-        private int _colorTolerance = 30;
 
         public NativeImageEditView()
         {

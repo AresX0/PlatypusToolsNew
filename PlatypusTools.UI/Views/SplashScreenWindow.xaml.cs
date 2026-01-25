@@ -6,8 +6,6 @@ namespace PlatypusTools.UI.Views
 {
     public partial class SplashScreenWindow : Window
     {
-        private bool _videoLooped = false;
-
         public SplashScreenWindow()
         {
             InitializeComponent();
@@ -60,7 +58,6 @@ namespace PlatypusTools.UI.Views
             // Loop the video
             VideoPlayer.Position = TimeSpan.Zero;
             VideoPlayer.Play();
-            _videoLooped = true;
         }
 
         public void UpdateStatus(string message)

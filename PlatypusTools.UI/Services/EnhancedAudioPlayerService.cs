@@ -68,7 +68,6 @@ public class EnhancedAudioPlayerService : IDisposable
     private readonly float[] _spectrumData = new float[32];
     private readonly Complex[] _fftBuffer = new Complex[1024];
     private readonly float[] _sampleBuffer = new float[1024];
-    private int _sampleBufferPos;
     
     // Events
     public event EventHandler<AudioTrack?>? TrackChanged;
@@ -1316,7 +1315,6 @@ public class SpeedControlSampleProvider : ISampleProvider
 {
     private readonly ISampleProvider _source;
     private float _speed = 1.0f;
-    private float _position;
     private readonly float[] _sourceBuffer = new float[4096];
     
     public WaveFormat WaveFormat => _source.WaveFormat;

@@ -42,8 +42,8 @@ namespace PlatypusTools.UI.ViewModels
         // Auto-save support
         private readonly DispatcherTimer _autoSaveTimer;
         private DateTime _lastAutoSave = DateTime.MinValue;
-        private bool _hasUnsavedChanges;
         private const int AutoSaveIntervalMinutes = 5;
+        private bool _hasUnsavedChanges = false;
         
         private CancellationTokenSource? _operationCts;
         private bool _disposed;

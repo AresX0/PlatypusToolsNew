@@ -14,7 +14,6 @@ namespace PlatypusTools.Core.Services
     /// </summary>
     public class FtpClientService : IDisposable
     {
-        private FtpWebRequest? _request;
         private bool _disposed;
 
         public string Host { get; set; } = string.Empty;

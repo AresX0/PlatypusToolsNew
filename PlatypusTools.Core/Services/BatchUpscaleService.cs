@@ -23,7 +23,6 @@ namespace PlatypusTools.Core.Services
         private readonly object _lock = new();
         private CancellationTokenSource? _cts;
         private bool _isProcessing;
-        private int _activeWorkers;
         
         public event EventHandler<BatchUpscaleJob>? JobStarted;
         public event EventHandler<BatchUpscaleJob>? JobCompleted;

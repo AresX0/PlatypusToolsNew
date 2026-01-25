@@ -20,15 +20,32 @@ namespace PlatypusTools.UI.Views
     public partial class MultimediaEditorView : UserControl
     {
         private DispatcherTimer? _videoTimer;
-        private bool _isDraggingSlider;
         private SixLabors.ImageSharp.Image? _currentImage;
         private string? _originalImagePath;
+        private bool _isDraggingSlider;
 
         public MultimediaEditorView()
         {
             InitializeComponent();
             DataContextChanged += MultimediaEditorView_DataContextChanged;
             InitializeVideoTimer();
+            SetupSliderDragEvents();
+        }
+
+        private void SetupSliderDragEvents()
+        {
+            // Hook into slider thumb drag events to prevent feedback loop during seeking
+            VideoSeekSlider.AddHandler(System.Windows.Controls.Primitives.Thumb.DragStartedEvent,
+                new System.Windows.Controls.Primitives.DragStartedEventHandler((s, e) => _isDraggingSlider = true));
+            VideoSeekSlider.AddHandler(System.Windows.Controls.Primitives.Thumb.DragCompletedEvent,
+                new System.Windows.Controls.Primitives.DragCompletedEventHandler((s, e) =>
+                {
+                    _isDraggingSlider = false;
+                    if (NativeVideoPlayer.NaturalDuration.HasTimeSpan)
+                    {
+                        NativeVideoPlayer.Position = TimeSpan.FromSeconds(VideoSeekSlider.Value);
+                    }
+                }));
         }
 
         private void InitializeVideoTimer()

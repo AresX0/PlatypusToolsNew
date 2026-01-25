@@ -47,8 +47,8 @@ namespace PlatypusTools.UI.Views
         private DateTime _lastExternalUpdate = DateTime.MinValue;
         private static readonly Random _random = new Random();
         private double _animationPhase = 0; // For smooth idle animation
-        private bool _timerStarted = false;
         private bool _subscribedToService = false;
+        private bool _timerStarted = false; // Tracks if render timer is running
         
         // HD quality settings - tuned for smoothness
         private const double PEAK_FALL_SPEED = 0.008; // How fast peaks fall (per frame) - slower for smoother
