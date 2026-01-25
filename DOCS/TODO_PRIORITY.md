@@ -1,9 +1,74 @@
 # PlatypusTools - Priority Feature List
 
 **Created**: January 19, 2026  
-**Updated**: January 26, 2026  
+**Updated**: January 24, 2026  
 **Purpose**: Quick wins and high-impact features for Audio Player (MusicBee-inspired) and Video Editor (Shotcut-inspired)  
 **Legend**: ⭐ = 1-2 hours | ⭐⭐ = 3-4 hours | ⭐⭐⭐ = 5-8 hours | ✅ = Complete | 🔄 = Partial | ❌ = Not Started
+
+---
+
+## 📊 Feature Implementation Status (Validated January 24, 2026)
+
+### High-Impact Missing Features
+
+| Feature | Priority | Description | Status | Notes |
+|---------|----------|-------------|--------|-------|
+| Cloud Storage Integration | ⭐⭐⭐ | OneDrive/Google Drive/Dropbox sync | 🔄 Partial | Only cleanup implemented, no file sync |
+| Batch Rename Tool | ⭐⭐⭐ | Regex-based file renaming with preview | ✅ Complete | FileRenamerService with full preview/undo |
+| Task Scheduler | ⭐⭐ | Schedule cleanup, backup, analysis tasks | 🔄 Partial | Views Windows tasks only, can't schedule app tasks |
+| Command Palette | ⭐⭐⭐ | Ctrl+Shift+P quick access to all functions | ✅ Complete | CommandPaletteWindow with Ctrl+Shift+P |
+| Multi-language Support | ⭐⭐ | Resource file localization | ❌ Not Started | No .resx files or ResourceManager |
+| Dark/Light Theme Auto-Switch | ⭐ | Follow Windows system theme | 🔄 Partial | "Use system" option exists, no runtime auto-switch |
+| Drag-Drop File Processing | ⭐⭐⭐ | Drop files directly onto main window | ✅ Complete | DragDropService singleton in multiple views |
+
+### DFIR-Specific Enhancements
+
+| Feature | Description | Status | Notes |
+|---------|-------------|--------|-------|
+| YARA Rules Integration | Scan files/memory with YARA rules | ✅ Complete | YaraService with community rule sources |
+| IOC Scanner | Import threat intel feeds and scan | ❌ Not Started | No dedicated IOCScannerService |
+| Registry Diff Tool | Compare registry snapshots before/after | ❌ Not Started | No RegistrySnapshotService |
+| Browser Forensics | Parse Chrome/Firefox/Edge artifacts | 🔄 Partial | Plaso integration can parse; no dedicated UI |
+| Network Artifact Extraction | Parse PCAP files for IOCs | ❌ Not Started | No PCAP parsing capability |
+
+### Quick Wins (All Complete ✅)
+
+| Feature | Description | Status | Location |
+|---------|-------------|--------|----------|
+| Copy Path context menu | Right-click any file in lists | ✅ Complete | ClipboardService.CopyPath/CopyPaths |
+| File count in folder views | Show "245 files" in status | ✅ Complete | Multiple views show FileCount |
+| Keyboard navigation | Arrow keys in file lists | ✅ Complete | PreviewKeyDown handlers everywhere |
+| Open in Explorer | One-click to show file in Explorer | ✅ Complete | Context menus, buttons, service methods |
+| Tooltips on all buttons | Accessibility improvement | ✅ Complete | Extensive ToolTip usage |
+| Operation history/Undo | Undo last file operations | ✅ Complete | UndoRedoService with full stack |
+
+### Architecture Improvements
+
+| Feature | Description | Status | Notes |
+|---------|-------------|--------|-------|
+| ForensicOperationBase | Reusable forensic operation patterns | ✅ Complete | IForensicOperation.cs with 11 services |
+| Dependency Injection | Microsoft.Extensions.DependencyInjection | 🔄 Partial | Uses ServiceLocator pattern, not proper DI |
+| Unit Tests for DFIR | Test coverage for forensic services | ❌ Not Started | No tests for YaraService, etc. |
+
+### Summary
+
+| Category | ✅ Complete | 🔄 Partial | ❌ Not Started |
+|----------|-------------|------------|----------------|
+| High-Impact | 3 | 3 | 1 |
+| DFIR-Specific | 1 | 1 | 3 |
+| Quick Wins | 6 | 0 | 0 |
+| Architecture | 1 | 1 | 1 |
+| **Total** | **11** | **5** | **5** |
+
+### Recommended Next Steps (Priority Order)
+
+1. **IOC Scanner** (⭐⭐⭐) - Create IOCScannerService with STIX/TAXII feed import
+2. **Registry Diff Tool** (⭐⭐⭐) - RegistrySnapshotService for before/after comparison
+3. **Multi-language Support** (⭐⭐) - Add .resx files, implement ResourceManager
+4. **PCAP Parser** (⭐⭐⭐) - Network forensics with Wireshark pcapng support
+5. **Unit Tests for DFIR** (⭐⭐) - Add test coverage for all forensic services
+6. **True DI Container** (⭐⭐⭐) - Migrate ServiceLocator to IServiceCollection
+7. **System Theme Auto-Switch** (⭐) - Registry watcher for AppsUseLightTheme
 
 ---
 
