@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -2188,7 +2189,14 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 await using var fileStream = new FileStream(cacheFile, FileMode.Open, FileAccess.Read, FileShare.Read, 
                     bufferSize: 65536, useAsync: true); // 64KB buffer for faster reads
                 
-                _allLibraryTracks = await JsonSerializer.DeserializeAsync<List<AudioTrack>>(fileStream) ?? new();
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    AllowTrailingCommas = true,
+                    ReadCommentHandling = JsonCommentHandling.Skip
+                };
+                
+                _allLibraryTracks = await JsonSerializer.DeserializeAsync<List<AudioTrack>>(fileStream, options) ?? new();
                 
                 // Update UI on main thread - batch operation for performance
                 await Application.Current.Dispatcher.InvokeAsync(() =>
@@ -2204,10 +2212,26 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 _ = BackgroundLyricsScanAsync();
                 _ = BackgroundAlbumArtScanAsync();
             }
+            catch (JsonException jsonEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"JSON error loading library cache: {jsonEx.Message} at position {jsonEx.BytePositionInLine}");
+                StatusMessage = $"Library cache corrupted - rescan needed";
+                _allLibraryTracks = new List<AudioTrack>();
+                
+                // Backup corrupted file and delete
+                try
+                {
+                    var backupPath = cacheFile + ".corrupted";
+                    if (File.Exists(backupPath)) File.Delete(backupPath);
+                    File.Move(cacheFile, backupPath);
+                }
+                catch { }
+            }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error loading library cache: {ex.Message}");
-                StatusMessage = "Library cache load failed";
+                System.Diagnostics.Debug.WriteLine($"Error loading library cache: {ex.GetType().Name}: {ex.Message}");
+                StatusMessage = $"Library cache load failed: {ex.Message}";
+                _allLibraryTracks = new List<AudioTrack>();
             }
         }
     }
@@ -2215,6 +2239,12 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     #endregion
     
     #region Library Folder Management
+    
+    // Semaphore to limit concurrent metadata reads (controls CPU usage)
+    private static readonly SemaphoreSlim _scanSemaphore = new(Environment.ProcessorCount / 2, Environment.ProcessorCount / 2);
+    
+    // Maximum parallel file scans - limits to ~25% of CPU cores
+    private static int MaxParallelScans => Math.Max(2, Environment.ProcessorCount / 4);
     
     private void AddLibraryFolder()
     {
@@ -2230,11 +2260,245 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         {
             LibraryFolders.Add(folder);
             _ = SaveLibraryFoldersAsync();
-            StatusMessage = $"Added folder: {Path.GetFileName(folder)}";
+            StatusMessage = $"Added folder: {Path.GetFileName(folder)} - scanning in background...";
+            
+            // Automatically scan the newly added folder in the background (always recursive)
+            _ = ScanSingleFolderInBackgroundAsync(folder);
         }
         else if (LibraryFolders.Contains(folder, StringComparer.OrdinalIgnoreCase))
         {
             StatusMessage = "Folder already in library";
+        }
+    }
+    
+    /// <summary>
+    /// Scans a single folder in the background with throttled resource usage.
+    /// Always scans all subfolders recursively.
+    /// Limits CPU to ~25% by using controlled parallelism.
+    /// </summary>
+    private async Task ScanSingleFolderInBackgroundAsync(string folder)
+    {
+        if (!Directory.Exists(folder)) return;
+        
+        IsScanning = true;
+        _scanCts = new CancellationTokenSource();
+        var token = _scanCts.Token;
+        
+        var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma"
+        };
+        
+        // Build index of existing tracks for incremental scanning
+        var existingPaths = new HashSet<string>(_allLibraryTracks.Select(t => t.FilePath.ToLowerInvariant()));
+        
+        int discoveredFiles = 0;
+        int processedFiles = 0;
+        int addedFiles = 0;
+        
+        ScanStatus = $"Discovering files in {Path.GetFileName(folder)}...";
+        System.Diagnostics.Debug.WriteLine($"[SCAN] Starting scan of folder: {folder}");
+        
+        try
+        {
+            // Phase 1: Discover all files first (fast, low resource)
+            var filesToScan = new List<string>();
+            await Task.Run(() =>
+            {
+                foreach (var file in EnumerateAudioFilesRobust(folder, recursive: true, extensions))
+                {
+                    if (token.IsCancellationRequested) break;
+                    
+                    // Skip files already in library
+                    if (!existingPaths.Contains(file.ToLowerInvariant()))
+                    {
+                        filesToScan.Add(file);
+                    }
+                    discoveredFiles++;
+                    
+                    // Update UI every 100 files during discovery
+                    if (discoveredFiles % 100 == 0)
+                    {
+                        var count = discoveredFiles;
+                        var newCount = filesToScan.Count;
+                        Application.Current?.Dispatcher?.BeginInvoke(() =>
+                        {
+                            ScanStatus = $"Discovering: {count} files found ({newCount} new)...";
+                        });
+                        System.Diagnostics.Debug.WriteLine($"[SCAN] Discovery: {count} files, {newCount} new");
+                        Thread.Sleep(5); // Brief pause
+                    }
+                }
+            }, token);
+            
+            System.Diagnostics.Debug.WriteLine($"[SCAN] Discovery complete: {discoveredFiles} total, {filesToScan.Count} new files to scan");
+            ScanStatus = $"Found {filesToScan.Count} new files to scan...";
+            
+            if (filesToScan.Count == 0)
+            {
+                StatusMessage = "No new files found in folder";
+                IsScanning = false;
+                ScanStatus = "";
+                System.Diagnostics.Debug.WriteLine($"[SCAN] No new files, scan complete");
+                return;
+            }
+            
+            // Phase 2: Parallel metadata extraction with throttling
+            // Use partitions to control memory and CPU usage
+            var partitioner = Partitioner.Create(filesToScan, EnumerablePartitionerOptions.NoBuffering);
+            var parallelOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = MaxParallelScans,
+                CancellationToken = token
+            };
+            
+            var newTracks = new System.Collections.Concurrent.ConcurrentBag<AudioTrack>();
+            var updateLock = new object();
+            var lastUpdateTime = DateTime.Now;
+            
+            System.Diagnostics.Debug.WriteLine($"[SCAN] Starting parallel scan with {MaxParallelScans} threads");
+            
+            await Task.Run(() =>
+            {
+                Parallel.ForEach(partitioner, parallelOptions, file =>
+                {
+                    if (token.IsCancellationRequested) return;
+                    
+                    try
+                    {
+                        // Throttle with semaphore to limit concurrent TagLib operations
+                        _scanSemaphore.Wait(token);
+                        try
+                        {
+                            var track = LoadTrackSync(file);
+                            if (track != null)
+                            {
+                                newTracks.Add(track);
+                                Interlocked.Increment(ref addedFiles);
+                            }
+                        }
+                        finally
+                        {
+                            _scanSemaphore.Release();
+                        }
+                        
+                        var currentProcessed = Interlocked.Increment(ref processedFiles);
+                        
+                        // Update UI every 25 files or every 500ms
+                        if (currentProcessed % 25 == 0)
+                        {
+                            var progress = (int)(currentProcessed * 100.0 / filesToScan.Count);
+                            var added = addedFiles;
+                            Application.Current?.Dispatcher?.Invoke(() =>
+                            {
+                                ScanStatus = $"Scanning: {currentProcessed}/{filesToScan.Count} ({added} tracks)";
+                                ScanProgress = progress;
+                            });
+                            
+                            if (currentProcessed % 100 == 0)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[SCAN] Progress: {currentProcessed}/{filesToScan.Count} ({progress}%), {added} tracks added");
+                            }
+                            
+                            // Small delay to reduce CPU usage
+                            Thread.Sleep(2);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[SCAN] Error processing file: {ex.Message}");
+                        Interlocked.Increment(ref processedFiles);
+                    }
+                });
+            }, token);
+            
+            System.Diagnostics.Debug.WriteLine($"[SCAN] Parallel scan complete: {newTracks.Count} tracks loaded");
+            
+            // Phase 3: Add tracks to library on UI thread
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                System.Diagnostics.Debug.WriteLine($"[SCAN] Adding {newTracks.Count} tracks to library on UI thread");
+                foreach (var track in newTracks)
+                {
+                    _allLibraryTracks.Add(track);
+                }
+                
+                FilterLibraryTracks();
+                RaisePropertyChanged(nameof(LibraryTrackCount));
+                RaisePropertyChanged(nameof(LibraryArtistCount));
+                RaisePropertyChanged(nameof(LibraryAlbumCount));
+                System.Diagnostics.Debug.WriteLine($"[SCAN] UI updated: {_allLibraryTracks.Count} total tracks");
+            });
+            
+            StatusMessage = $"Added {addedFiles} tracks from {Path.GetFileName(folder)}";
+            System.Diagnostics.Debug.WriteLine($"[SCAN] Scan complete: {addedFiles} tracks added");
+            
+            // Save cache
+            await SaveLibraryCacheAsync();
+            System.Diagnostics.Debug.WriteLine($"[SCAN] Cache saved");
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "Scan cancelled";
+            System.Diagnostics.Debug.WriteLine($"[SCAN] Scan cancelled by user");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[SCAN] Error scanning folder {folder}: {ex.Message}");
+            StatusMessage = $"Error scanning folder: {ex.Message}";
+        }
+        finally
+        {
+            IsScanning = false;
+            ScanStatus = "";
+            ScanProgress = 0;
+        }
+    }
+    
+    /// <summary>
+    /// Synchronous track loading for use in parallel scanning.
+    /// </summary>
+    private AudioTrack? LoadTrackSync(string filePath)
+    {
+        if (!File.Exists(filePath)) return null;
+        
+        try
+        {
+            var track = new AudioTrack
+            {
+                FilePath = filePath,
+                Title = Path.GetFileNameWithoutExtension(filePath)
+            };
+            
+            using var file = TagLib.File.Create(filePath);
+            track.Title = file.Tag.Title ?? track.Title;
+            track.Artist = file.Tag.FirstPerformer ?? "";
+            track.Album = file.Tag.Album ?? "";
+            track.AlbumArtist = file.Tag.FirstAlbumArtist ?? "";
+            track.Genre = file.Tag.FirstGenre ?? "";
+            track.Year = (int)file.Tag.Year;
+            track.TrackNumber = (int)file.Tag.Track;
+            track.DiscNumber = (int)file.Tag.Disc;
+            track.Duration = file.Properties.Duration;
+            track.Bitrate = file.Properties.AudioBitrate;
+            track.SampleRate = file.Properties.AudioSampleRate;
+            track.Channels = file.Properties.AudioChannels;
+            track.FileSize = new FileInfo(filePath).Length;
+            
+            // Check for ReplayGain tags
+            if (file.Tag is TagLib.Ogg.XiphComment xiph)
+            {
+                if (double.TryParse(xiph.GetFirstField("REPLAYGAIN_TRACK_GAIN")?.Replace(" dB", ""), out var tg))
+                    track.TrackGain = tg;
+                if (double.TryParse(xiph.GetFirstField("REPLAYGAIN_ALBUM_GAIN")?.Replace(" dB", ""), out var ag))
+                    track.AlbumGain = ag;
+            }
+            
+            return track;
+        }
+        catch
+        {
+            return null;
         }
     }
     
@@ -2248,9 +2512,6 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     
     private async Task ScanAllLibraryFoldersAsync()
     {
-        const int BatchSize = 300;
-        const int SaveInterval = 600; // Save cache every 600 files
-        
         if (LibraryFolders.Count == 0)
         {
             StatusMessage = "No library folders. Add a folder first.";
@@ -2259,6 +2520,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         
         IsScanning = true;
         _scanCts = new CancellationTokenSource();
+        var token = _scanCts.Token;
         
         // PERFORMANCE: Build index of existing tracks for incremental scanning
         // This allows skipping files already in the library (by path + file size)
@@ -2266,34 +2528,32 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             t => (t.FilePath.ToLowerInvariant(), t.FileSize),
             t => t);
         
-        _allLibraryTracks.Clear();
-        
         var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma"
         };
         
-        int scannedFiles = 0;
-        int skippedFiles = 0;
-        int batchCount = 0;
-        var batchTracks = new List<AudioTrack>();
-        
         ScanStatus = "Discovering files...";
         
-        // Process folders using robust enumeration
-        foreach (var folder in LibraryFolders.ToList())
+        // Phase 1: Discover all files and categorize them
+        var filesToScan = new List<string>();
+        var cachedTracks = new List<AudioTrack>();
+        int discoveredTotal = 0;
+        
+        await Task.Run(() =>
         {
-            if (_scanCts.Token.IsCancellationRequested) break;
-            if (!Directory.Exists(folder)) continue;
-            
-            try
+            foreach (var folder in LibraryFolders.ToList())
             {
-                // Use robust enumeration for deep directories
-                foreach (var file in EnumerateAudioFilesRobust(folder, IncludeSubfolders, extensions))
+                if (token.IsCancellationRequested) break;
+                if (!Directory.Exists(folder)) continue;
+                
+                // Always scan recursively for library folders
+                foreach (var file in EnumerateAudioFilesRobust(folder, recursive: true, extensions))
                 {
-                    if (_scanCts.Token.IsCancellationRequested) break;
+                    if (token.IsCancellationRequested) break;
                     
-                    // INCREMENTAL: Check if file already scanned (same path + size = unchanged)
+                    discoveredTotal++;
+                    
                     try
                     {
                         var fileInfo = new FileInfo(file);
@@ -2302,63 +2562,115 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                         if (existingTracks.TryGetValue(key, out var existingTrack))
                         {
                             // File unchanged, reuse existing track metadata
-                            _allLibraryTracks.Add(existingTrack);
-                            batchTracks.Add(existingTrack);
-                            skippedFiles++;
+                            cachedTracks.Add(existingTrack);
                         }
                         else
                         {
-                            // New or modified file, scan metadata
-                            var track = await LoadTrackAsync(file);
-                            if (track != null)
-                            {
-                                _allLibraryTracks.Add(track);
-                                batchTracks.Add(track);
-                            }
+                            // New or modified file, needs scanning
+                            filesToScan.Add(file);
                         }
                     }
                     catch
                     {
-                        // If FileInfo fails, fall back to full scan
-                        var track = await LoadTrackAsync(file);
-                        if (track != null)
-                        {
-                            _allLibraryTracks.Add(track);
-                            batchTracks.Add(track);
-                        }
+                        // If FileInfo fails, queue for full scan
+                        filesToScan.Add(file);
                     }
                     
-                    scannedFiles++;
-                    
-                    // Update UI in batches of 300
-                    if (scannedFiles % BatchSize == 0)
+                    // Yield periodically to avoid hogging CPU during discovery
+                    if (discoveredTotal % 500 == 0)
                     {
-                        batchCount++;
-                        ScanStatus = $"Scanned {scannedFiles} files ({_allLibraryTracks.Count} tracks)...";
-                        ScanProgress = Math.Min(99, batchCount * 5); // Progress indicator
-                        
-                        // Update filtered view and counts in real-time
-                        FilterLibraryTracks();
-                        RaisePropertyChanged(nameof(LibraryTrackCount));
-                        RaisePropertyChanged(nameof(LibraryArtistCount));
-                        RaisePropertyChanged(nameof(LibraryAlbumCount));
-                        
-                        // Clear batch and yield to UI
-                        batchTracks.Clear();
-                        await Task.Delay(1);
-                    }
-                    
-                    // Save cache periodically
-                    if (scannedFiles % SaveInterval == 0)
-                    {
-                        await SaveLibraryCacheAsync();
+                        Thread.Sleep(10);
                     }
                 }
             }
-            catch (Exception ex)
+        }, token);
+        
+        ScanStatus = $"Found {discoveredTotal} files ({cachedTracks.Count} cached, {filesToScan.Count} to scan)...";
+        
+        // Clear and add cached tracks first
+        _allLibraryTracks.Clear();
+        foreach (var track in cachedTracks)
+        {
+            _allLibraryTracks.Add(track);
+        }
+        
+        if (filesToScan.Count == 0)
+        {
+            FilterLibraryTracks();
+            RaisePropertyChanged(nameof(LibraryTrackCount));
+            RaisePropertyChanged(nameof(LibraryArtistCount));
+            RaisePropertyChanged(nameof(LibraryAlbumCount));
+            
+            StatusMessage = $"Library updated: {_allLibraryTracks.Count} tracks (all from cache)";
+            IsScanning = false;
+            ScanStatus = "";
+            await SaveLibraryCacheAsync();
+            return;
+        }
+        
+        // Phase 2: Parallel metadata extraction with throttling (limits to ~25% CPU)
+        var partitioner = Partitioner.Create(filesToScan, EnumerablePartitionerOptions.NoBuffering);
+        var parallelOptions = new ParallelOptions
+        {
+            MaxDegreeOfParallelism = MaxParallelScans,
+            CancellationToken = token
+        };
+        
+        var newTracks = new ConcurrentBag<AudioTrack>();
+        int processedFiles = 0;
+        int addedFiles = 0;
+        
+        await Task.Run(() =>
+        {
+            Parallel.ForEach(partitioner, parallelOptions, file =>
             {
-                System.Diagnostics.Debug.WriteLine($"Error scanning folder {folder}: {ex.Message}");
-            }
+                if (token.IsCancellationRequested) return;
+                
+                try
+                {
+                    // Throttle with semaphore to limit concurrent TagLib operations
+                    _scanSemaphore.Wait(token);
+                    try
+                    {
+                        var track = LoadTrackSync(file);
+                        if (track != null)
+                        {
+                            newTracks.Add(track);
+                            Interlocked.Increment(ref addedFiles);
+                        }
+                    }
+                    finally
+                    {
+                        _scanSemaphore.Release();
+                    }
+                    
+                    var currentProcessed = Interlocked.Increment(ref processedFiles);
+                    
+                    // Update UI every 50 files
+                    if (currentProcessed % 50 == 0)
+                    {
+                        var progress = (int)(currentProcessed * 100.0 / filesToScan.Count);
+                        Application.Current?.Dispatcher?.BeginInvoke(() =>
+                        {
+                            ScanStatus = $"Scanning: {currentProcessed}/{filesToScan.Count} ({cachedTracks.Count + addedFiles} total tracks)";
+                            ScanProgress = progress;
+                        });
+                        
+                        // Small delay to reduce UI thread pressure and CPU usage
+                        Thread.Sleep(5);
+                    }
+                }
+                catch
+                {
+                    Interlocked.Increment(ref processedFiles);
+                }
+            });
+        }, token);
+        
+        // Phase 3: Add new tracks to library
+        foreach (var track in newTracks)
+        {
+            _allLibraryTracks.Add(track);
         }
         
         IsScanning = false;
@@ -2369,9 +2681,9 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         RaisePropertyChanged(nameof(LibraryArtistCount));
         RaisePropertyChanged(nameof(LibraryAlbumCount));
         
-        // Show incremental scan results if applicable
-        if (skippedFiles > 0)
-            StatusMessage = $"Library updated: {_allLibraryTracks.Count} tracks ({skippedFiles} cached, {scannedFiles - skippedFiles} new)";
+        // Show results
+        if (cachedTracks.Count > 0)
+            StatusMessage = $"Library updated: {_allLibraryTracks.Count} tracks ({cachedTracks.Count} cached, {addedFiles} new)";
         else
             StatusMessage = $"Library updated: {_allLibraryTracks.Count} tracks from {LibraryFolders.Count} folders";
         

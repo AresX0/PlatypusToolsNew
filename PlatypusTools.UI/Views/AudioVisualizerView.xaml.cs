@@ -259,16 +259,16 @@ namespace PlatypusTools.UI.Views
                 });
             }
             
-            // Initialize matrix columns (digital rain) - reduced for performance
-            for (int i = 0; i < 30; i++)
+            // Initialize matrix columns (digital rain) - 60 columns for denser effect with smaller font
+            for (int i = 0; i < 60; i++)
             {
                 _matrixColumns.Add(new MatrixColumn
                 {
-                    X = i / 30.0,
+                    X = i / 60.0,
                     Y = _random.NextDouble() * -1.0, // Start above screen
                     Speed = 0.01 + _random.NextDouble() * 0.02,
-                    Length = 6 + _random.Next(8),
-                    Characters = new char[15]
+                    Length = 8 + _random.Next(12), // Longer trails for smaller font
+                    Characters = new char[20] // More characters per trail
                 });
                 // Initialize with random characters
                 for (int j = 0; j < _matrixColumns[i].Characters.Length; j++)
@@ -1924,6 +1924,9 @@ namespace PlatypusTools.UI.Views
             
             ClearDynamicElements(canvas);
             
+            // Enable clipping to prevent characters from rendering outside canvas
+            canvas.ClipToBounds = true;
+            
             // Black background for Matrix effect
             var background = new Rectangle
             {
@@ -1951,18 +1954,19 @@ namespace PlatypusTools.UI.Views
             // Speed multiplier based on audio - stops when no audio
             double speedMultiplier = bassIntensity > 0.01 ? (0.5 + bassIntensity * 3.0) : 0;
             
-            // Font size based on canvas width - larger for fewer columns
-            double fontSize = Math.Max(16, width / 30);
+            // Font size - half the previous size for denser rain with more lines
+            double fontSize = Math.Max(8, width / 60);
             double charHeight = fontSize * 1.2;
             double charWidth = fontSize * 0.7;
             
-            // Create a DrawingVisual for efficient rendering
-            var drawingVisual = new DrawingVisual();
-            using (var dc = drawingVisual.RenderOpen())
+            // Create a DrawingVisual for the glow layer (rendered first, behind main text)
+            var glowVisual = new DrawingVisual();
+            using (var dc = glowVisual.RenderOpen())
             {
                 var typeface = new Typeface(new FontFamily("Consolas"), FontStyles.Normal, FontWeights.Bold, FontStretches.Normal);
+                double dpi = VisualTreeHelper.GetDpi(this).PixelsPerDip;
                 
-                // Update and render each column
+                // Update columns and render glow for bright characters
                 foreach (var column in _matrixColumns)
                 {
                     // Move column down
@@ -1973,7 +1977,7 @@ namespace PlatypusTools.UI.Views
                     {
                         column.Y = _random.NextDouble() * -0.5 - 0.2;
                         column.Speed = 0.008 + _random.NextDouble() * 0.012;
-                        column.Length = 6 + _random.Next(8);
+                        column.Length = 8 + _random.Next(12);
                         // Randomize some characters
                         for (int i = 0; i < column.Characters.Length; i++)
                         {
@@ -1983,6 +1987,57 @@ namespace PlatypusTools.UI.Views
                     }
                     
                     // Calculate screen position
+                    double screenX = column.X * width;
+                    double startY = column.Y * height;
+                    
+                    // Draw glow for head and bright characters (first 3 chars get glow)
+                    for (int i = 0; i < Math.Min(3, column.Length) && i < column.Characters.Length; i++)
+                    {
+                        double charY = startY - (i * charHeight);
+                        if (charY < -charHeight || charY > height) continue;
+                        
+                        // Glow intensity - strongest at head, fading for next chars
+                        double glowIntensity = i == 0 ? 1.0 : (i == 1 ? 0.6 : 0.3);
+                        glowIntensity *= (0.7 + avgIntensity * 0.5);
+                        
+                        // Glow color - bright green with some white
+                        byte glowG = (byte)(200 + 55 * glowIntensity);
+                        byte glowRB = (byte)(80 * glowIntensity);
+                        var glowColor = Color.FromArgb((byte)(180 * glowIntensity), glowRB, glowG, glowRB);
+                        
+                        // Draw larger, semi-transparent glow text
+                        var glowText = new FormattedText(
+                            column.Characters[i].ToString(),
+                            System.Globalization.CultureInfo.CurrentCulture,
+                            FlowDirection.LeftToRight,
+                            typeface,
+                            fontSize * 1.5, // Larger for glow spread
+                            new SolidColorBrush(glowColor),
+                            dpi);
+                        
+                        // Center the larger glow text
+                        double offsetX = (fontSize * 0.5) / 2 * -0.5;
+                        double offsetY = (fontSize * 0.5) / 2 * -0.3;
+                        dc.DrawText(glowText, new Point(screenX + offsetX, charY + offsetY));
+                    }
+                }
+            }
+            
+            // Add glow layer with blur effect
+            var glowHost = new DrawingVisualHost(glowVisual);
+            glowHost.Effect = new BlurEffect { Radius = fontSize * 0.8, KernelType = KernelType.Gaussian };
+            canvas.Children.Add(glowHost);
+            
+            // Create main DrawingVisual for sharp text (rendered on top of glow)
+            var drawingVisual = new DrawingVisual();
+            using (var dc = drawingVisual.RenderOpen())
+            {
+                var typeface = new Typeface(new FontFamily("Consolas"), FontStyles.Normal, FontWeights.Bold, FontStretches.Normal);
+                double dpi = VisualTreeHelper.GetDpi(this).PixelsPerDip;
+                
+                // Render each column (positions already updated above)
+                foreach (var column in _matrixColumns)
+                {
                     double screenX = column.X * width;
                     double startY = column.Y * height;
                     
@@ -2018,9 +2073,14 @@ namespace PlatypusTools.UI.Views
                         Color color;
                         if (i == 0)
                         {
-                            // Head is bright white-green
-                            byte r = (byte)(180 + avgIntensity * 75);
+                            // Head is bright white-green (glowing)
+                            byte r = (byte)(200 + avgIntensity * 55);
                             color = Color.FromRgb(r, 255, r);
+                        }
+                        else if (i == 1)
+                        {
+                            // Second char is still quite bright
+                            color = Color.FromRgb((byte)(100 * brightness), (byte)(200 + 55 * brightness), (byte)(100 * brightness));
                         }
                         else
                         {
@@ -2036,14 +2096,14 @@ namespace PlatypusTools.UI.Views
                             typeface,
                             fontSize,
                             new SolidColorBrush(color),
-                            VisualTreeHelper.GetDpi(this).PixelsPerDip);
+                            dpi);
                         
                         dc.DrawText(formattedText, new Point(screenX, charY));
                     }
                 }
             }
             
-            // Add the DrawingVisual to the canvas using a host
+            // Add the main text DrawingVisual on top
             var host = new DrawingVisualHost(drawingVisual);
             canvas.Children.Add(host);
             
@@ -2778,7 +2838,7 @@ namespace PlatypusTools.UI.Views
         public double Y { get; set; }  // Head position (can be negative, starts above screen)
         public double Speed { get; set; }  // Fall speed
         public int Length { get; set; }  // Number of characters in the trail
-        public char[] Characters { get; set; } = new char[15];  // Characters in this column (reduced for performance)
+        public char[] Characters { get; set; } = new char[20];  // Characters in this column (more for longer trails)
     }
     
     /// <summary>

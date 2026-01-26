@@ -98,6 +98,17 @@ namespace PlatypusTools.UI
                 _splashScreen?.UpdateStatus("Loading...");
                 var mainWindow = new MainWindow();
                 
+                // Ensure splash screen shows for at least 5 seconds to display the platypus video
+                StartupProfiler.BeginPhase("Minimum splash display");
+                _splashScreen?.UpdateStatus("Almost ready...");
+                var elapsed = StartupProfiler.TotalElapsed;
+                var minimumSplashTime = TimeSpan.FromSeconds(5);
+                if (elapsed < minimumSplashTime)
+                {
+                    var remaining = minimumSplashTime - elapsed;
+                    await Task.Delay(remaining);
+                }
+                
                 // Close splash and show main window
                 _splashScreen?.Close();
                 _splashScreen = null;

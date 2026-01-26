@@ -833,9 +833,6 @@
       <Component Id="CMP_vcruntime140_cor3_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_vcruntime140_cor3_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\vcruntime140_cor3.dll" KeyPath="yes" />
       </Component>
-      <Component Id="CMP_vlc_debug_log" Guid="*" Directory="INSTALLFOLDER">
-        <File Id="FIL_vlc_debug_log" Source="$(var.PlatypusTools.UI.TargetDir)publish\vlc_debug.log" KeyPath="yes" />
-      </Component>
       <Component Id="CMP_WebView2Loader_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_WebView2Loader_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\WebView2Loader.dll" KeyPath="yes" />
       </Component>
@@ -4601,7 +4598,6 @@
       <ComponentRef Id="CMP_UIAutomationProvider_dll" />
       <ComponentRef Id="CMP_UIAutomationTypes_dll" />
       <ComponentRef Id="CMP_vcruntime140_cor3_dll" />
-      <ComponentRef Id="CMP_vlc_debug_log" />
       <ComponentRef Id="CMP_WebView2Loader_dll" />
       <ComponentRef Id="CMP_WindowsBase_dll" />
       <ComponentRef Id="CMP_WindowsFormsIntegration_dll" />
