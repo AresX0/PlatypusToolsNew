@@ -64,11 +64,6 @@ namespace PlatypusTools.UI
             try
             {
                 _splashScreen?.UpdateStatus("Initializing...");
-                
-                // Check dependencies
-                StartupProfiler.BeginPhase("Dependency check");
-                _splashScreen?.UpdateStatus("Checking dependencies...");
-                await CheckDependenciesAsync();
 
                 // If the first argument is a directory, expose it for viewmodels to pick up
                 StartupProfiler.BeginPhase("Process arguments");
@@ -89,9 +84,8 @@ namespace PlatypusTools.UI
                     }
                 }
 
-                // Configure logging
+                // Configure logging (fast - just sets file paths)
                 StartupProfiler.BeginPhase("Configure logging");
-                _splashScreen?.UpdateStatus("Configuring logging...");
                 ConfigureLogging();
 
                 // Load theme BEFORE creating main window to ensure resources are available
@@ -99,12 +93,9 @@ namespace PlatypusTools.UI
                 _splashScreen?.UpdateStatus("Loading theme...");
                 LoadInitialTheme();
 
-                // Small delay to let the video play for at least one cycle
-                await Task.Delay(300);
-
-                // Create and show main window
+                // Create and show main window IMMEDIATELY - don't wait for dependency checks
                 StartupProfiler.BeginPhase("Create main window");
-                _splashScreen?.UpdateStatus("Loading main window...");
+                _splashScreen?.UpdateStatus("Loading...");
                 var mainWindow = new MainWindow();
                 
                 // Close splash and show main window
@@ -114,6 +105,14 @@ namespace PlatypusTools.UI
                 StartupProfiler.BeginPhase("Show main window");
                 mainWindow.Show();
                 StartupProfiler.Finish();
+                
+                // Run dependency checks in background AFTER main window is shown
+                // This doesn't block startup - user can start using the app immediately
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(2000); // Wait for app to fully load
+                    await CheckDependenciesInBackgroundAsync();
+                });
             }
             catch (Exception ex)
             {
@@ -201,6 +200,49 @@ namespace PlatypusTools.UI
             SimpleLogger.MinLevel = Core.Services.LogLevel.Debug;
 
             SimpleLogger.Info($"Application starting. LogFile='{SimpleLogger.LogFile}', MinLevel={SimpleLogger.MinLevel}");
+        }
+
+        /// <summary>
+        /// Background dependency check that runs after main window is shown.
+        /// Does not block startup - just logs missing dependencies.
+        /// </summary>
+        private async Task CheckDependenciesInBackgroundAsync()
+        {
+            try
+            {
+                // Run all checks in parallel for speed
+                var checkerTask = Task.Run(async () =>
+                {
+                    var checker = new PrerequisiteCheckerService();
+                    return await checker.GetMissingPrerequisitesAsync();
+                });
+                
+                var legacyTask = Task.Run(async () =>
+                {
+                    var legacyChecker = new DependencyCheckerService();
+                    return await legacyChecker.CheckAllDependenciesAsync();
+                });
+
+                await Task.WhenAll(checkerTask, legacyTask);
+
+                var missing = await checkerTask;
+                var legacyResult = await legacyTask;
+
+                if (missing.Count > 0)
+                {
+                    var names = string.Join(", ", missing.ConvertAll(p => p.DisplayName));
+                    SimpleLogger.Info($"Optional tools not found: {names}");
+                }
+
+                if (!legacyResult.WebView2Installed)
+                {
+                    SimpleLogger.Info("WebView2 not installed - help viewer will have limited functionality");
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Warn($"Background dependency check failed: {ex.Message}");
+            }
         }
 
         private async Task CheckDependenciesAsync()

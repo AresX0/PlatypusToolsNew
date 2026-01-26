@@ -31,6 +31,8 @@
       </Directory>
       <Directory Id="DIR_es" Name="es">
       </Directory>
+      <Directory Id="DIR_es_ES" Name="es-ES">
+      </Directory>
       <Directory Id="DIR_fr" Name="fr">
       </Directory>
       <Directory Id="DIR_it" Name="it">
