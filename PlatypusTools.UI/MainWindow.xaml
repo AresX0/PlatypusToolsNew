@@ -35,8 +35,8 @@
             <MenuItem Header="View">
                 <MenuItem Header="Fullscreen Mode" Click="ToggleFullScreen_Click" InputGestureText="F11" />
                 <Separator />
-                <MenuItem Header="Toggle Staging Panel" Command="{Binding ToggleStagingInDuplicatesCommand}" IsCheckable="True" IsChecked="{Binding Duplicates.StagingVisible, Mode=TwoWay}" />
-                <MenuItem Header="Show Preview Panel" IsCheckable="True" IsChecked="{Binding Duplicates.PreviewVisible, Mode=TwoWay}" Command="{Binding TogglePreviewPanelCommand}" />
+                <MenuItem Header="Toggle Staging Panel" Command="{Binding ToggleStagingInDuplicatesCommand}" IsCheckable="True" IsChecked="{Binding DuplicatesStagingVisible, Mode=TwoWay}" />
+                <MenuItem Header="Show Preview Panel" IsCheckable="True" IsChecked="{Binding DuplicatesPreviewVisible, Mode=TwoWay}" Command="{Binding TogglePreviewPanelCommand}" />
                 <Separator />
                 <MenuItem Header="Dark Theme" IsCheckable="True" IsChecked="{Binding IsDarkTheme, Mode=TwoWay}" Command="{Binding ToggleThemeCommand}" InputGestureText="Ctrl+Shift+D" />
             </MenuItem>
@@ -136,7 +136,7 @@
                             </TabItem>
                             <TabItem Header="Audio Trim"
                                      Visibility="{Binding AudioTrim, Source={x:Static services:TabVisibilityService.Instance}}">
-                                <views:NativeAudioTrimView />
+                                <controls:LazyTabContent ViewType="{x:Type views:NativeAudioTrimView}" />
                             </TabItem>
                         </TabControl>
                     </TabItem>
@@ -146,7 +146,7 @@
                         <TabControl>
                             <TabItem Header="Image Edit"
                                      Visibility="{Binding ImageEdit, Source={x:Static services:TabVisibilityService.Instance}}">
-                                <views:NativeImageEditView />
+                                <controls:LazyTabContent ViewType="{x:Type views:NativeImageEditView}" />
                             </TabItem>
                             <TabItem Header="Image Converter"
                                      Visibility="{Binding ImageConverter, Source={x:Static services:TabVisibilityService.Instance}}">
@@ -170,7 +170,7 @@
                             </TabItem>
                             <TabItem Header="3D Model Editor"
                                      Visibility="{Binding Model3DEditor, Source={x:Static services:TabVisibilityService.Instance}}">
-                                <views:Model3DEditorView />
+                                <controls:LazyTabContent ViewType="{x:Type views:Model3DEditorView}" />
                             </TabItem>
                         </TabControl>
                     </TabItem>
@@ -180,11 +180,11 @@
                         <TabControl>
                             <TabItem Header="Video Player"
                                      Visibility="{Binding VideoPlayer, Source={x:Static services:TabVisibilityService.Instance}}">
-                                <views:NativeVideoPlayerView />
+                                <controls:LazyTabContent ViewType="{x:Type views:NativeVideoPlayerView}" />
                             </TabItem>
                             <TabItem Header="Video Editor"
                                      Visibility="{Binding VideoEditor, Source={x:Static services:TabVisibilityService.Instance}}">
-                                <views:ShotcutNativeEditorView />
+                                <controls:LazyTabContent ViewType="{x:Type views:ShotcutNativeEditorView}" />
                             </TabItem>
                             <TabItem Header="Upscaler"
                                      Visibility="{Binding Upscaler, Source={x:Static services:TabVisibilityService.Instance}}">

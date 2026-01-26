@@ -88,8 +88,8 @@ namespace PlatypusTools.UI.ViewModels
                 RunArchivedScriptCommand = new RelayCommand(_ => RunArchivedScript());
                 RunParityTestsCommand = new RelayCommand(_ => RunParityTests());
                 OpenCredentialManagerCommand = new RelayCommand(_ => OpenCredentialManager());
-                ToggleStagingInDuplicatesCommand = new RelayCommand(_ => Duplicates.StagingVisible = !Duplicates.StagingVisible);
-                TogglePreviewPanelCommand = new RelayCommand(_ => Duplicates.PreviewVisible = !Duplicates.PreviewVisible);
+                ToggleStagingInDuplicatesCommand = new RelayCommand(_ => DuplicatesStagingVisible = !DuplicatesStagingVisible);
+                TogglePreviewPanelCommand = new RelayCommand(_ => DuplicatesPreviewVisible = !DuplicatesPreviewVisible);
                 ToggleThemeCommand = new RelayCommand(_ => ToggleTheme());
 
                 SimpleLogger.Debug("Commands created successfully");
@@ -177,6 +177,36 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand ToggleStagingInDuplicatesCommand { get; }
         public ICommand TogglePreviewPanelCommand { get; }
         public ICommand ToggleThemeCommand { get; }
+        
+        // Proxy properties to avoid forcing DuplicatesViewModel creation at startup
+        // These are only populated when Duplicates tab is accessed
+        private bool _stagingVisible = true;
+        public bool DuplicatesStagingVisible
+        {
+            get => _duplicates.IsValueCreated ? _duplicates.Value.StagingVisible : _stagingVisible;
+            set
+            {
+                if (_duplicates.IsValueCreated)
+                    _duplicates.Value.StagingVisible = value;
+                else
+                    _stagingVisible = value;
+                RaisePropertyChanged();
+            }
+        }
+        
+        private bool _previewVisible = true;
+        public bool DuplicatesPreviewVisible
+        {
+            get => _duplicates.IsValueCreated ? _duplicates.Value.PreviewVisible : _previewVisible;
+            set
+            {
+                if (_duplicates.IsValueCreated)
+                    _duplicates.Value.PreviewVisible = value;
+                else
+                    _previewVisible = value;
+                RaisePropertyChanged();
+            }
+        }
 
         private bool _isDarkTheme;
         public bool IsDarkTheme { get => _isDarkTheme; set { _isDarkTheme = value; RaisePropertyChanged(); } }

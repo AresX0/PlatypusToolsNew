@@ -14,6 +14,9 @@
       <Component Id="CMP_PlatypusTools_UI_exe" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_PlatypusTools_UI_exe" Source="$(var.PlatypusTools.UI.TargetDir)publish\PlatypusTools.UI.exe" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_vlc_debug_log" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_vlc_debug_log" Source="$(var.PlatypusTools.UI.TargetDir)publish\vlc_debug.log" KeyPath="yes" />
+      </Component>
       <Directory Id="DIR_Assets" Name="Assets">
         <Component Id="CMP_Assets_PlatypusToolsIntro_mp4" Guid="*" Directory="DIR_Assets">
           <File Id="FIL_Assets_PlatypusToolsIntro_mp4" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\PlatypusToolsIntro.mp4" KeyPath="yes" />
@@ -1838,6 +1841,7 @@
       <ComponentRef Id="CMP_Microsoft_Web_WebView2_WinForms_xml" />
       <ComponentRef Id="CMP_Microsoft_Web_WebView2_Wpf_xml" />
       <ComponentRef Id="CMP_PlatypusTools_UI_exe" />
+      <ComponentRef Id="CMP_vlc_debug_log" />
       <ComponentRef Id="CMP_Assets_PlatypusToolsIntro_mp4" />
       <ComponentRef Id="CMP_Assets_PlatypusTools_Help_html" />
       <ComponentRef Id="CMP_Assets_platypus_swimming_mp4" />
