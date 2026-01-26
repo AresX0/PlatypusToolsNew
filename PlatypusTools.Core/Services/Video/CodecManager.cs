@@ -53,8 +53,8 @@ namespace PlatypusTools.Core.Services.Video
             Directory.CreateDirectory(_ffmpegDir);
             Directory.CreateDirectory(_whisperDir);
             
-            _httpClient = new HttpClient();
-            _httpClient.Timeout = TimeSpan.FromMinutes(30);
+            // Use shared HttpClient from factory for downloads
+            _httpClient = HttpClientFactory.Download;
         }
 
         /// <summary>

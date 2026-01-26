@@ -59,7 +59,11 @@ namespace PlatypusTools.Core.Services
         public virtual async Task<FFmpegResult> RunAsync(string inputPath, string outputPath, int scale = 2, IProgress<string>? progress = null, CancellationToken cancellationToken = default)
         {
             var exe = FindVideo2x();
-            if (exe == null) return new FFmpegResult { ExitCode = -1, StdErr = "video2x not found" };
+            if (exe == null)
+            {
+                // Fallback to FFmpeg with lanczos scaling (high quality upscale)
+                return await RunWithFfmpegFallback(inputPath, outputPath, scale, progress, cancellationToken);
+            }
 
             // Basic best-effort CLI invocation; video2x CLI may differ across versions so we use reasonable defaults.
             string fileName = Path.GetFileName(exe).ToLowerInvariant();
@@ -117,6 +121,29 @@ namespace PlatypusTools.Core.Services
             }
 
             return new FFmpegResult { ExitCode = p.ExitCode, StdOut = stdout.ToString(), StdErr = stderr.ToString() };
+        }
+
+        /// <summary>
+        /// Fallback upscaling using FFmpeg with lanczos filter when video2x is not available.
+        /// Provides good quality upscaling using FFmpeg's built-in scaling filters.
+        /// </summary>
+        private async Task<FFmpegResult> RunWithFfmpegFallback(string inputPath, string outputPath, int scale, IProgress<string>? progress, CancellationToken cancellationToken)
+        {
+            var ffmpeg = FFmpegService.FindFfmpeg();
+            if (ffmpeg == null)
+            {
+                return new FFmpegResult { ExitCode = -1, StdErr = "Neither video2x nor ffmpeg found. Please install FFmpeg." };
+            }
+
+            progress?.Report("Using FFmpeg fallback for upscaling (video2x not found)...");
+            progress?.Report($"Scale factor: {scale}x using lanczos algorithm");
+
+            // Use scale filter with lanczos algorithm for high-quality upscaling
+            // iw*scale:ih*scale scales to the target resolution
+            // lanczos is one of the best scaling algorithms available in FFmpeg
+            var args = $"-i \"{inputPath}\" -vf \"scale=iw*{scale}:ih*{scale}:flags=lanczos\" -c:a copy -y \"{outputPath}\"";
+
+            return await FFmpegService.RunAsync(args, ffmpeg, progress, cancellationToken);
         }
     }
 }

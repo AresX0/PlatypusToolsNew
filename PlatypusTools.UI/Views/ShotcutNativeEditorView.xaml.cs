@@ -1,15 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.Win32;
+using PlatypusTools.Core.Services.Video;
+using PlatypusTools.UI.ViewModels;
 using PlatypusTools.UI.Models.VideoEditor;
+using Filter = PlatypusTools.Core.Models.Video.Filter;
+using MediaType = PlatypusTools.UI.Models.VideoEditor.MediaType;
 
 namespace PlatypusTools.UI.Views
 {
@@ -17,10 +23,42 @@ namespace PlatypusTools.UI.Views
     /// Native Shotcut-style video editor view.
     /// Combines playlist, player, properties, and timeline panels.
     /// </summary>
-    public partial class ShotcutNativeEditorView : UserControl
+    public partial class ShotcutNativeEditorView : UserControl, INotifyPropertyChanged
     {
         public ObservableCollection<PlaylistItem> PlaylistItems { get; } = new();
         public TimelineModel TimelineModel { get; } = new();
+        
+        // Filter collections
+        public ObservableCollection<Filter> ShotcutFilters { get; } = new();
+        public ObservableCollection<Filter> FilteredShotcutFilters { get; } = new();
+        
+        // Filter commands
+        public ICommand ToggleFilterFavoriteCommand { get; }
+        public ICommand ApplyShotcutFilterCommand { get; }
+        public ICommand RemoveShotcutFilterCommand { get; }
+        
+        // Filter search
+        private string _filterSearchText = string.Empty;
+        public string FilterSearchText
+        {
+            get => _filterSearchText;
+            set
+            {
+                _filterSearchText = value;
+                OnPropertyChanged();
+                FilterFilters();
+            }
+        }
+        
+        // Selected clip for filter application
+        public TimelineClip? SelectedClip => _selectedTimelineClip;
+        public bool HasSelectedClip => _selectedTimelineClip != null;
+        
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
 
         private PlaylistItem? _selectedPlaylistItem;
         private TimelineClip? _selectedTimelineClip;
@@ -35,9 +73,17 @@ namespace PlatypusTools.UI.Views
 
         public ShotcutNativeEditorView()
         {
+            // Initialize filter commands before InitializeComponent
+            ToggleFilterFavoriteCommand = new RelayCommand(param => ExecuteToggleFilterFavorite(param as Filter));
+            ApplyShotcutFilterCommand = new RelayCommand(param => ExecuteApplyFilter(param as Filter), _ => HasSelectedClip);
+            RemoveShotcutFilterCommand = new RelayCommand(param => ExecuteRemoveFilter(param as Filter), _ => HasSelectedClip);
+            
             InitializeComponent();
             DataContext = this;
             PlaylistBox.ItemsSource = PlaylistItems;
+            
+            // Load filters
+            InitializeFilters();
             
             // Initialize timeline playback timer
             _timelinePlaybackTimer = new DispatcherTimer
@@ -56,6 +102,52 @@ namespace PlatypusTools.UI.Views
             VideoPlayer.Seeked += VideoPlayer_Seeked;
             VideoPlayer.Played += VideoPlayer_Played;
             VideoPlayer.Paused += VideoPlayer_Paused;
+        }
+        
+        private void InitializeFilters()
+        {
+            var allFilters = FilterLibrary.GetAllFilters();
+            foreach (var filter in allFilters)
+            {
+                ShotcutFilters.Add(filter);
+                FilteredShotcutFilters.Add(filter);
+            }
+        }
+        
+        private void FilterFilters()
+        {
+            FilteredShotcutFilters.Clear();
+            var query = FilterSearchText?.ToLowerInvariant() ?? "";
+            
+            foreach (var filter in ShotcutFilters)
+            {
+                var matchesSearch = string.IsNullOrEmpty(query) || 
+                                    filter.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                                    filter.Description.Contains(query, StringComparison.OrdinalIgnoreCase);
+                if (matchesSearch)
+                {
+                    FilteredShotcutFilters.Add(filter);
+                }
+            }
+        }
+        
+        private void ExecuteToggleFilterFavorite(Filter? filter)
+        {
+            if (filter == null) return;
+            filter.IsFavorite = !filter.IsFavorite;
+        }
+        
+        private void ExecuteApplyFilter(Filter? filter)
+        {
+            if (filter == null || _selectedTimelineClip == null) return;
+            var newFilter = filter.Clone();
+            _selectedTimelineClip.Filters.Add(newFilter);
+        }
+        
+        private void ExecuteRemoveFilter(Filter? filter)
+        {
+            if (filter == null || _selectedTimelineClip == null) return;
+            _selectedTimelineClip.Filters.Remove(filter);
         }
         
         private void TimelinePlaybackTimer_Tick(object? sender, EventArgs e)
@@ -164,6 +256,8 @@ namespace PlatypusTools.UI.Views
         private void Timeline_ClipSelected(object? sender, TimelineClip clip)
         {
             _selectedTimelineClip = clip;
+            OnPropertyChanged(nameof(SelectedClip));
+            OnPropertyChanged(nameof(HasSelectedClip));
             UpdatePropertiesPanel(clip);
             
             // Load clip into player for preview
@@ -542,6 +636,12 @@ namespace PlatypusTools.UI.Views
                         Type = Core.Models.Video.ClipType.Video
                     };
                     
+                    // Copy filters to the core clip
+                    foreach (var filter in uiClip.Filters)
+                    {
+                        coreClip.Filters.Add(filter);
+                    }
+                    
                     coreTrack.Clips.Add(coreClip);
                 }
                 
@@ -790,14 +890,14 @@ namespace PlatypusTools.UI.Views
             PlaylistItems.Add(item);
         }
 
-        private MediaType GetMediaType(string extension)
+        private Models.VideoEditor.MediaType GetMediaType(string extension)
         {
             return extension switch
             {
-                ".mp4" or ".avi" or ".mkv" or ".mov" or ".wmv" or ".webm" => MediaType.Video,
-                ".mp3" or ".wav" or ".aac" or ".flac" or ".ogg" => MediaType.Audio,
-                ".png" or ".jpg" or ".jpeg" or ".gif" or ".bmp" => MediaType.Image,
-                _ => MediaType.Video
+                ".mp4" or ".avi" or ".mkv" or ".mov" or ".wmv" or ".webm" => Models.VideoEditor.MediaType.Video,
+                ".mp3" or ".wav" or ".aac" or ".flac" or ".ogg" => Models.VideoEditor.MediaType.Audio,
+                ".png" or ".jpg" or ".jpeg" or ".gif" or ".bmp" => Models.VideoEditor.MediaType.Image,
+                _ => Models.VideoEditor.MediaType.Video
             };
         }
 

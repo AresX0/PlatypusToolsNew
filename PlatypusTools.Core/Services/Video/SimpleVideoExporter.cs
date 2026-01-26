@@ -296,6 +296,19 @@ namespace PlatypusTools.Core.Services.Video
                 filters.Add($"pad={settings.Width}:{settings.Height}:(ow-iw)/2:(oh-ih)/2:black");
                 filters.Add($"fps={settings.FrameRate}");
                 filters.Add("format=yuv420p");
+                
+                // Apply clip filters (from filter library)
+                if (clip.Filters != null && clip.Filters.Count > 0)
+                {
+                    foreach (var filter in clip.Filters.Where(f => f.IsEnabled))
+                    {
+                        var ffmpegFilter = filter.BuildFFmpegFilter();
+                        if (!string.IsNullOrEmpty(ffmpegFilter))
+                        {
+                            filters.Add(ffmpegFilter);
+                        }
+                    }
+                }
 
                 var filterChain = string.Join(",", filters);
                 filterComplex.Append($"[{srcIdx}:v]{filterChain}[{outLabel}]; ");

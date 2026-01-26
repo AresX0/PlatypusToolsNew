@@ -24,8 +24,8 @@ namespace PlatypusTools.UI.Services
 
         public UpdateService()
         {
-            _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "PlatypusTools-UpdateChecker");
+            // Use shared HttpClient from factory
+            _httpClient = HttpClientFactory.Api;
             
             // Get current version from assembly
             var assembly = System.Reflection.Assembly.GetExecutingAssembly();

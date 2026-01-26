@@ -19,6 +19,7 @@ namespace PlatypusTools.UI.Services
         private Dictionary<string, bool> _visibleTabs = new();
         private bool _glassEnabled = false;
         private GlassLevel _glassLevel = GlassLevel.Auto;
+        private string _language = "en-US";
         
         // Audio Visualizer Settings
         private bool _visualizerEnabled = true;
@@ -41,6 +42,15 @@ namespace PlatypusTools.UI.Services
         {
             get => _checkForUpdatesOnStartup;
             set { _checkForUpdatesOnStartup = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets the application language culture code (e.g., "en-US", "es-ES").
+        /// </summary>
+        public string Language
+        {
+            get => _language;
+            set { _language = value ?? "en-US"; OnPropertyChanged(); }
         }
 
         /// <summary>

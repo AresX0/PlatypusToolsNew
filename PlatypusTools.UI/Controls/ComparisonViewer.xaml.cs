@@ -304,13 +304,13 @@ namespace PlatypusTools.UI.Controls
         {
             try
             {
-                LeftImage = new BitmapImage(new System.Uri(leftPath));
+                LeftImage = Utilities.ImageHelper.LoadFromFile(leftPath);
             }
             catch { }
 
             try
             {
-                RightImage = new BitmapImage(new System.Uri(rightPath));
+                RightImage = Utilities.ImageHelper.LoadFromFile(rightPath);
             }
             catch { }
         }

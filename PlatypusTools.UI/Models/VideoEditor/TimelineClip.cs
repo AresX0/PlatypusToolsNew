@@ -1,7 +1,9 @@
 using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
+using PlatypusTools.Core.Models.Video;
 
 namespace PlatypusTools.UI.Models.VideoEditor
 {
@@ -124,6 +126,11 @@ namespace PlatypusTools.UI.Models.VideoEditor
         /// Indicates if this clip represents audio only (extracted from video)
         /// </summary>
         public bool IsAudioOnly { get; set; }
+        
+        /// <summary>
+        /// Applied filters for this clip
+        /// </summary>
+        public ObservableCollection<Filter> Filters { get; } = new();
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? name = null)

@@ -152,12 +152,26 @@ namespace PlatypusTools.UI.Controls.VideoEditor
 
             try
             {
-                LoadMedia(new Uri(path));
+                // Use UriKind.Absolute for file paths to ensure proper parsing
+                var uri = new Uri(path, UriKind.Absolute);
+                LoadMedia(uri);
+                
+                // Auto-play when media is loaded from double-click
+                // MediaOpened will be called when ready, then we play
+                VideoPlayer.MediaOpened -= AutoPlayOnOpen;
+                VideoPlayer.MediaOpened += AutoPlayOnOpen;
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Failed to create URI from path: {path}, Error: {ex.Message}");
                 LoadMedia((Uri?)null);
             }
+        }
+
+        private void AutoPlayOnOpen(object sender, RoutedEventArgs e)
+        {
+            VideoPlayer.MediaOpened -= AutoPlayOnOpen;
+            Play();
         }
 
         public void Play(double speed = 1.0)

@@ -109,13 +109,13 @@ namespace PlatypusTools.Core.Services
                         // Skip directories we can't access
                     }
 
-                    // Recursively add subdirectory sizes
+                    // Recursively add subdirectory sizes (synchronously to avoid deadlock)
                     try
                     {
                         var subDirs = dirInfo.GetDirectories();
                         foreach (var dir in subDirs)
                         {
-                            size += CalculateDirectorySize(dir.FullName).Result;
+                            size += CalculateDirectorySizeSync(dir.FullName);
                         }
                     }
                     catch (UnauthorizedAccessException)
@@ -130,6 +130,37 @@ namespace PlatypusTools.Core.Services
                     throw new InvalidOperationException($"Failed to calculate directory size: {ex.Message}", ex);
                 }
             });
+        }
+
+        /// <summary>
+        /// Synchronously calculates the total size of a directory (used internally to avoid blocking on async).
+        /// </summary>
+        private long CalculateDirectorySizeSync(string path)
+        {
+            if (!Directory.Exists(path))
+                return 0;
+
+            long size = 0;
+            var dirInfo = new DirectoryInfo(path);
+
+            try
+            {
+                var files = dirInfo.GetFiles();
+                size += files.Sum(f => f.Length);
+            }
+            catch (UnauthorizedAccessException) { }
+
+            try
+            {
+                var subDirs = dirInfo.GetDirectories();
+                foreach (var dir in subDirs)
+                {
+                    size += CalculateDirectorySizeSync(dir.FullName);
+                }
+            }
+            catch (UnauthorizedAccessException) { }
+
+            return size;
         }
 
         /// <summary>

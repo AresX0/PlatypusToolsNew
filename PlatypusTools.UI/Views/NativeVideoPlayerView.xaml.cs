@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -16,47 +17,94 @@ namespace PlatypusTools.UI.Views
         private static LibVLC? _libVLC;
         private MediaPlayer? _mediaPlayer;
         private Media? _currentMedia;
+        
+        // Logging
+        private static readonly string LogPath = Path.Combine(AppContext.BaseDirectory, "vlc_debug.log");
+
+        private static void Log(string message)
+        {
+            try
+            {
+                var line = $"[{DateTime.Now:HH:mm:ss.fff}] {message}";
+                File.AppendAllText(LogPath, line + Environment.NewLine);
+                System.Diagnostics.Debug.WriteLine($"[VLC] {message}");
+            }
+            catch { }
+        }
 
         public NativeVideoPlayerView()
         {
             InitializeComponent();
+            Log("NativeVideoPlayerView constructor starting");
             InitializeLibVLC();
             InitializeTimer();
             
             Loaded += NativeVideoPlayerView_Loaded;
             Unloaded += NativeVideoPlayerView_Unloaded;
+            Log("NativeVideoPlayerView constructor complete");
         }
         
         private void InitializeLibVLC()
         {
+            Log("InitializeLibVLC starting");
             try
             {
                 if (_libVLC == null)
                 {
-                    LibVLCSharp.Shared.Core.Initialize();
+                    // Determine the path to libvlc native libraries
+                    var baseDir = AppContext.BaseDirectory;
+                    var libvlcPath = Path.Combine(baseDir, "libvlc", "win-x64");
+                    
+                    Log($"Looking for libvlc at: {libvlcPath}");
+                    Log($"libvlc.dll exists: {File.Exists(Path.Combine(libvlcPath, "libvlc.dll"))}");
+                    Log($"libvlccore.dll exists: {File.Exists(Path.Combine(libvlcPath, "libvlccore.dll"))}");
+                    
+                    if (!File.Exists(Path.Combine(libvlcPath, "libvlc.dll")))
+                    {
+                        Log("ERROR: libvlc.dll not found!");
+                        return;
+                    }
+                    
+                    Log("Calling Core.Initialize() with libvlc path...");
+                    LibVLCSharp.Shared.Core.Initialize(libvlcPath);
+                    Log("Core.Initialize() succeeded, creating LibVLC instance...");
                     _libVLC = new LibVLC("--no-video-title-show", "--quiet");
+                    Log($"LibVLC created: {_libVLC != null}");
+                }
+                else
+                {
+                    Log("LibVLC already initialized (static)");
                 }
                 
+                Log("Creating MediaPlayer...");
                 _mediaPlayer = new MediaPlayer(_libVLC);
+                Log($"MediaPlayer created: {_mediaPlayer != null}");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[VLC] Init failed: {ex.Message}");
+                Log($"InitializeLibVLC FAILED: {ex.GetType().Name}: {ex.Message}");
+                Log($"Stack: {ex.StackTrace}");
             }
         }
         
         private void NativeVideoPlayerView_Loaded(object sender, RoutedEventArgs e)
         {
+            Log("NativeVideoPlayerView_Loaded fired");
             // Ensure we have a MediaPlayer (recreate if was disposed)
             if (_mediaPlayer == null && _libVLC != null)
             {
+                Log("MediaPlayer was null, recreating...");
                 _mediaPlayer = new MediaPlayer(_libVLC);
             }
+            
+            Log($"State: _libVLC={_libVLC != null}, _mediaPlayer={_mediaPlayer != null}, VlcVideoView.MediaPlayer={VlcVideoView.MediaPlayer != null}");
             
             // Attach media player to VideoView after control is loaded
             if (_mediaPlayer != null && VlcVideoView.MediaPlayer == null)
             {
+                Log("Attaching MediaPlayer to VlcVideoView...");
                 VlcVideoView.MediaPlayer = _mediaPlayer;
+                Log("MediaPlayer attached to VlcVideoView");
             }
         }
         
@@ -88,6 +136,7 @@ namespace PlatypusTools.UI.Views
 
         private void BrowseVideo_Click(object sender, RoutedEventArgs e)
         {
+            Log("BrowseVideo_Click");
             var dialog = new OpenFileDialog
             {
                 Filter = "Video Files|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm;*.m4v;*.mpg;*.mpeg|All Files|*.*",
@@ -97,60 +146,102 @@ namespace PlatypusTools.UI.Views
             {
                 _currentFilePath = dialog.FileName;
                 VideoFilePathBox.Text = dialog.FileName;
+                Log($"Selected file: {dialog.FileName}");
                 LoadVideo(dialog.FileName);
             }
         }
         
         private async void LoadVideo(string path)
         {
-            if (_libVLC == null || _mediaPlayer == null) return;
+            Log($"LoadVideo called with: {path}");
+            Log($"File exists: {File.Exists(path)}");
+            
+            if (_libVLC == null)
+            {
+                Log("ERROR: _libVLC is null, cannot load video");
+                return;
+            }
+            
+            // Ensure MediaPlayer exists and is connected to VideoView
+            if (_mediaPlayer == null)
+            {
+                Log("MediaPlayer is null, creating new one...");
+                _mediaPlayer = new MediaPlayer(_libVLC);
+            }
+            
+            Log($"MediaPlayer state: {_mediaPlayer?.State}");
+            
+            // Ensure MediaPlayer is attached to the VideoView
+            if (VlcVideoView.MediaPlayer != _mediaPlayer)
+            {
+                Log("Attaching MediaPlayer to VlcVideoView in LoadVideo...");
+                VlcVideoView.MediaPlayer = _mediaPlayer;
+            }
             
             try
             {
                 // Dispose previous media
                 _currentMedia?.Dispose();
+                Log("Previous media disposed");
                 
                 // Create new media
+                Log("Creating Media object...");
                 _currentMedia = new Media(_libVLC, path, FromType.FromPath);
-                _mediaPlayer.Media = _currentMedia;
+                Log($"Media created, Duration (before parse): {_currentMedia.Duration}");
+                
+                _mediaPlayer!.Media = _currentMedia;
+                Log("Media assigned to player");
                 
                 // Set volume
-                _mediaPlayer.Volume = (int)(VolumeSlider.Value * 100);
+                _mediaPlayer!.Volume = (int)(VolumeSlider.Value * 100);
+                Log($"Volume set to: {_mediaPlayer.Volume}");
                 
                 // Parse to get duration
+                Log("Parsing media...");
                 await _currentMedia.Parse(MediaParseOptions.ParseLocal);
+                Log($"Parse complete, Duration: {_currentMedia.Duration}ms");
                 
                 if (_currentMedia.Duration > 0)
                 {
                     var duration = TimeSpan.FromMilliseconds(_currentMedia.Duration);
                     SeekSlider.Maximum = duration.TotalSeconds;
                     DurationText.Text = duration.ToString(@"hh\:mm\:ss");
+                    Log($"Duration set: {duration}");
                 }
                 
                 _timer?.Start();
+                Log("Timer started");
                 
                 // Auto-play when video is loaded
-                _mediaPlayer.Play();
+                Log("Calling Play()...");
+                var playResult = _mediaPlayer.Play();
+                Log($"Play() returned: {playResult}, State after: {_mediaPlayer.State}");
             }
             catch (Exception ex)
             {
+                Log($"ERROR in LoadVideo: {ex.GetType().Name}: {ex.Message}");
+                Log($"Stack: {ex.StackTrace}");
                 MessageBox.Show($"Error loading video: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void Play_Click(object sender, RoutedEventArgs e)
         {
-            _mediaPlayer?.Play();
+            Log($"Play_Click: _mediaPlayer={_mediaPlayer != null}, State={_mediaPlayer?.State}");
+            var result = _mediaPlayer?.Play();
+            Log($"Play returned: {result}");
             _timer?.Start();
         }
 
         private void Pause_Click(object sender, RoutedEventArgs e)
         {
+            Log($"Pause_Click: State={_mediaPlayer?.State}");
             _mediaPlayer?.Pause();
         }
 
         private void Stop_Click(object sender, RoutedEventArgs e)
         {
+            Log($"Stop_Click: State={_mediaPlayer?.State}");
             _mediaPlayer?.Stop();
             _timer?.Stop();
             SeekSlider.Value = 0;

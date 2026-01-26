@@ -2216,7 +2216,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         if (!string.IsNullOrEmpty(folder) && !LibraryFolders.Contains(folder, StringComparer.OrdinalIgnoreCase))
         {
             LibraryFolders.Add(folder);
-            SaveLibraryFolders();
+            _ = SaveLibraryFoldersAsync();
             StatusMessage = $"Added folder: {Path.GetFileName(folder)}";
         }
         else if (LibraryFolders.Contains(folder, StringComparer.OrdinalIgnoreCase))
@@ -2229,7 +2229,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     {
         if (SelectedLibraryFolder == null) return;
         LibraryFolders.Remove(SelectedLibraryFolder);
-        SaveLibraryFolders();
+        _ = SaveLibraryFoldersAsync();
         StatusMessage = "Folder removed from library";
     }
     
@@ -2443,7 +2443,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         catch { }
     }
     
-    private void SaveLibraryFolders()
+    private async Task SaveLibraryFoldersAsync()
     {
         try
         {
@@ -2456,7 +2456,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 Directory.CreateDirectory(dir);
             
             var json = JsonSerializer.Serialize(LibraryFolders.ToList());
-            File.WriteAllText(foldersPath, json);
+            await File.WriteAllTextAsync(foldersPath, json);
         }
         catch (Exception ex)
         {

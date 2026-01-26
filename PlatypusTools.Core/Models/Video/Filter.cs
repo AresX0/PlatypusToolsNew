@@ -88,6 +88,45 @@ namespace PlatypusTools.Core.Models.Video
                 Parameters = Parameters.ConvertAll(p => p.Clone())
             };
         }
+        
+        /// <summary>
+        /// Builds the FFmpeg filter string with current parameter values.
+        /// </summary>
+        public string BuildFFmpegFilter()
+        {
+            if (string.IsNullOrEmpty(FFmpegFilterName))
+                return string.Empty;
+            
+            // Build parameter list
+            var paramParts = new List<string>();
+            foreach (var param in Parameters)
+            {
+                var value = param.Value ?? param.DefaultValue;
+                if (value != null)
+                {
+                    // Format based on type
+                    var valueStr = param.Type switch
+                    {
+                        FilterParameterType.Double => 
+                            Convert.ToDouble(value).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture),
+                        FilterParameterType.Integer => Convert.ToInt32(value).ToString(),
+                        FilterParameterType.Boolean => Convert.ToBoolean(value) ? "1" : "0",
+                        FilterParameterType.Color => value.ToString()?.TrimStart('#') ?? "",
+                        _ => value.ToString() ?? ""
+                    };
+                    
+                    paramParts.Add($"{param.Name}={valueStr}");
+                }
+            }
+            
+            // Combine: filtername=param1=val1:param2=val2
+            if (paramParts.Count > 0)
+            {
+                return $"{FFmpegFilterName}={string.Join(":", paramParts)}";
+            }
+            
+            return FFmpegFilterName;
+        }
     }
 
     /// <summary>

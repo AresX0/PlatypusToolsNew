@@ -342,13 +342,40 @@ namespace PlatypusTools.UI.Services.Forensics
                 {
                     try
                     {
-                        copiedCount += CopyDirectoryAsync(dir, Path.Combine(dest, Path.GetFileName(dir))).Result;
+                        copiedCount += CopyDirectorySync(dir, Path.Combine(dest, Path.GetFileName(dir)));
                     }
                     catch { /* Skip inaccessible dirs */ }
                 }
 
                 return copiedCount;
             });
+        }
+
+        private int CopyDirectorySync(string source, string dest)
+        {
+            int copiedCount = 0;
+            Directory.CreateDirectory(dest);
+
+            foreach (var file in Directory.GetFiles(source))
+            {
+                try
+                {
+                    File.Copy(file, Path.Combine(dest, Path.GetFileName(file)), true);
+                    copiedCount++;
+                }
+                catch { }
+            }
+
+            foreach (var dir in Directory.GetDirectories(source))
+            {
+                try
+                {
+                    copiedCount += CopyDirectorySync(dir, Path.Combine(dest, Path.GetFileName(dir)));
+                }
+                catch { }
+            }
+
+            return copiedCount;
         }
 
         private List<string> BuildTargetsList()

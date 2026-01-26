@@ -152,8 +152,8 @@ namespace PlatypusTools.UI.Services.Forensics
 
         public IOCScannerService()
         {
-            _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "PlatypusTools-IOCScanner/1.0");
+            // Use shared HttpClient from factory
+            _httpClient = PlatypusTools.Core.Services.HttpClientFactory.Api;
             LoadDatabase();
             LoadFeeds();
         }
@@ -828,7 +828,7 @@ namespace PlatypusTools.UI.Services.Forensics
                 if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
 
                 var json = JsonSerializer.Serialize(_iocs, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(IOCDatabasePath, json);
+                _ = File.WriteAllTextAsync(IOCDatabasePath, json);
             }
             catch (Exception ex)
             {
@@ -883,7 +883,7 @@ namespace PlatypusTools.UI.Services.Forensics
                 if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
 
                 var json = JsonSerializer.Serialize(_feeds, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(FeedsConfigPath, json);
+                _ = File.WriteAllTextAsync(FeedsConfigPath, json);
             }
             catch (Exception ex)
             {

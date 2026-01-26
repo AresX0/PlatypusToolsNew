@@ -164,7 +164,7 @@ namespace PlatypusTools.Core.Services.Video
                 { 
                     WriteIndented = true 
                 });
-                File.WriteAllText(_presetsPath, json);
+                File.WriteAllTextAsync(_presetsPath, json).ConfigureAwait(false);
             }
             catch
             {
@@ -197,7 +197,7 @@ namespace PlatypusTools.Core.Services.Video
                 { 
                     WriteIndented = true 
                 });
-                File.WriteAllText(_favoritesPath, json);
+                _ = File.WriteAllTextAsync(_favoritesPath, json);
             }
             catch
             {

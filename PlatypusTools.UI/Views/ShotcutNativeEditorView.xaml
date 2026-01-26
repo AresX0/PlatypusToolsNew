@@ -395,15 +395,33 @@
                                      MaxHeight="200" Margin="0,0,0,8">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel Orientation="Horizontal" Margin="4,2">
-                                            <Button Content="⭐" Background="Transparent" BorderThickness="0"
-                                                    Foreground="{Binding IsFavorite, Converter={StaticResource BoolToFavoriteIconConverter}}"
+                                        <Grid Margin="2,1">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="20"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Button Grid.Column="0" 
+                                                    Content="{Binding IsFavorite, Converter={StaticResource BoolToFavoriteIconConverter}}"
                                                     Command="{Binding DataContext.ToggleFilterFavoriteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}"
-                                                    FontSize="10" Padding="2" Cursor="Hand" ToolTip="Toggle Favorite"/>
-                                            <TextBlock Text="{Binding Icon}" FontSize="12" Margin="4,0,4,0"/>
-                                            <TextBlock Text="{Binding Name}" Foreground="White" FontSize="11"/>
-                                        </StackPanel>
+                                                    Background="Transparent" BorderThickness="0"
+                                                    Foreground="#FFD700" Padding="2,0" Cursor="Hand"
+                                                    FontSize="11" ToolTip="Toggle Favorite"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Icon}" 
+                                                       FontSize="12" VerticalAlignment="Center"/>
+                                            <StackPanel Grid.Column="2" Margin="4,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" Foreground="White" FontSize="11"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="3" Content="+" 
+                                                    Command="{Binding DataContext.ApplyShotcutFilterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="#3B82F6" Foreground="White"
+                                                    BorderThickness="0" Padding="6,2" 
+                                                    FontWeight="Bold" Cursor="Hand"
+                                                    ToolTip="Add filter to clip"/>
+                                        </Grid>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
