@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.14.6 - 2026-01-25
+
+### Added
+- **Matrix Digital Rain Visualizer** - Added new audio visualizer mode inspired by The Matrix
+  - Falling Japanese katakana/letter/number columns with variable speeds
+  - Characters randomly change creating the iconic "glitch" effect
+  - Bright white-green head character with fading green trail
+  - Audio-reactive: bass affects fall speed, overall intensity affects brightness
+  - Subtle glow overlay effect at higher audio levels
+
+### Fixed
+- **Splash Screen Video** - Added retry timer and improved error handling for video playback
+  - Videos now attempt up to 5 retries at 500ms intervals
+  - Better cleanup on window close
+- **Terminal Vertical Text** - Fixed text display issue where characters appeared vertically
+  - Properly splits output by newline characters into separate paragraphs
+  - Correct paragraph-based buffer limit
+
+---
+
 ## v3.2.13.11 - 2026-01-25
 
 ### Fixed

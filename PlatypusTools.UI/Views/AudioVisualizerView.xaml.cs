@@ -91,6 +91,10 @@ namespace PlatypusTools.UI.Views
         // After Dark: Flying Toasters
         private readonly List<Toaster> _toasters = new();
         
+        // Matrix: Digital Rain
+        private readonly List<MatrixColumn> _matrixColumns = new();
+        private const string MatrixChars = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ@#$%^&*";
+        
         // For advanced visualizations
         private readonly List<Particle> _particles = new();
         private double _auroraPhase = 0;
@@ -147,6 +151,24 @@ namespace PlatypusTools.UI.Views
                     WingPhase = _random.NextDouble() * Math.PI * 2,
                     Size = 30 + _random.NextDouble() * 20
                 });
+            }
+            
+            // Initialize matrix columns (digital rain)
+            for (int i = 0; i < 60; i++)
+            {
+                _matrixColumns.Add(new MatrixColumn
+                {
+                    X = i / 60.0,
+                    Y = _random.NextDouble() * -1.0, // Start above screen
+                    Speed = 0.01 + _random.NextDouble() * 0.02,
+                    Length = 8 + _random.Next(15),
+                    Characters = new char[25]
+                });
+                // Initialize with random characters
+                for (int j = 0; j < _matrixColumns[i].Characters.Length; j++)
+                {
+                    _matrixColumns[i].Characters[j] = MatrixChars[_random.Next(MatrixChars.Length)];
+                }
             }
             
             Loaded += OnLoaded;
@@ -822,6 +844,9 @@ namespace PlatypusTools.UI.Views
                     break;
                 case "Toasters":
                     RenderFlyingToasters(canvas);
+                    break;
+                case "Matrix":
+                    RenderMatrix(canvas);
                     break;
                 default: // Bars
                     RenderBars(canvas);
@@ -1716,6 +1741,152 @@ namespace PlatypusTools.UI.Views
                 }
             }
         }
+        
+        /// <summary>
+        /// Renders Matrix-style digital rain visualization.
+        /// Characters fall down in columns with varying speeds, creating the iconic "digital rain" effect.
+        /// Audio affects fall speed and character brightness.
+        /// </summary>
+        private void RenderMatrix(Canvas canvas)
+        {
+            double width = canvas.ActualWidth;
+            double height = canvas.ActualHeight;
+            if (width <= 0 || height <= 0) return;
+            
+            ClearDynamicElements(canvas);
+            
+            // Black background for Matrix effect
+            var background = new Rectangle
+            {
+                Width = width,
+                Height = height,
+                Fill = new SolidColorBrush(Color.FromRgb(0, 10, 0)) // Very dark green-black
+            };
+            Canvas.SetLeft(background, 0);
+            Canvas.SetTop(background, 0);
+            canvas.Children.Add(background);
+            
+            // Calculate average intensity from audio
+            double avgIntensity = 0;
+            double bassIntensity = 0;
+            for (int i = 0; i < Math.Min(10, _smoothedData.Length); i++)
+            {
+                bassIntensity += _smoothedData[i];
+            }
+            bassIntensity /= Math.Min(10, _smoothedData.Length);
+            
+            for (int i = 0; i < _smoothedData.Length; i++)
+                avgIntensity += _smoothedData[i];
+            avgIntensity /= _smoothedData.Length;
+            
+            // Speed multiplier based on audio
+            double speedMultiplier = 1.0 + bassIntensity * 3.0;
+            
+            // Font size based on canvas width
+            double fontSize = Math.Max(12, width / 50);
+            double charHeight = fontSize * 1.2;
+            
+            // Update and render each column
+            foreach (var column in _matrixColumns)
+            {
+                // Move column down
+                column.Y += column.Speed * speedMultiplier;
+                
+                // Reset when fully off screen
+                if (column.Y > 1.0 + (column.Length * charHeight / height))
+                {
+                    column.Y = _random.NextDouble() * -0.5 - 0.2;
+                    column.Speed = 0.005 + _random.NextDouble() * 0.015;
+                    column.Length = 8 + _random.Next(15);
+                    // Randomize some characters
+                    for (int i = 0; i < column.Characters.Length; i++)
+                    {
+                        if (_random.NextDouble() < 0.3)
+                            column.Characters[i] = MatrixChars[_random.Next(MatrixChars.Length)];
+                    }
+                }
+                
+                // Calculate screen position
+                double screenX = column.X * width;
+                double startY = column.Y * height;
+                
+                // Render characters in this column
+                for (int i = 0; i < column.Length && i < column.Characters.Length; i++)
+                {
+                    double charY = startY - (i * charHeight);
+                    
+                    // Skip if off screen
+                    if (charY < -charHeight || charY > height) continue;
+                    
+                    // Occasionally change character (creates the "glitching" effect)
+                    if (_random.NextDouble() < 0.02)
+                        column.Characters[i] = MatrixChars[_random.Next(MatrixChars.Length)];
+                    
+                    // Calculate brightness - brightest at the head (bottom), fading up
+                    double brightness;
+                    if (i == 0)
+                    {
+                        // Head character is bright white-green
+                        brightness = 1.0;
+                    }
+                    else
+                    {
+                        // Fade based on position in trail
+                        brightness = 1.0 - (i / (double)column.Length);
+                        brightness = Math.Pow(brightness, 0.7); // Adjust falloff curve
+                    }
+                    
+                    // Audio modulates brightness
+                    brightness *= (0.5 + avgIntensity);
+                    brightness = Math.Min(1.0, brightness);
+                    
+                    // Color calculation - green with brightness variation
+                    byte green, red, blue;
+                    if (i == 0)
+                    {
+                        // Head is bright white-green
+                        red = (byte)(180 + avgIntensity * 75);
+                        green = (byte)(255);
+                        blue = (byte)(180 + avgIntensity * 75);
+                    }
+                    else
+                    {
+                        // Trail is pure green with fading
+                        red = 0;
+                        green = (byte)(50 + 205 * brightness);
+                        blue = 0;
+                    }
+                    
+                    var charText = new TextBlock
+                    {
+                        Text = column.Characters[i].ToString(),
+                        FontFamily = new FontFamily("Consolas"),
+                        FontSize = fontSize,
+                        FontWeight = i == 0 ? FontWeights.Bold : FontWeights.Normal,
+                        Foreground = new SolidColorBrush(Color.FromRgb(red, green, blue))
+                    };
+                    
+                    Canvas.SetLeft(charText, screenX);
+                    Canvas.SetTop(charText, charY);
+                    canvas.Children.Add(charText);
+                }
+            }
+            
+            // Add subtle glow overlay based on audio intensity
+            if (avgIntensity > 0.2)
+            {
+                var glow = new Rectangle
+                {
+                    Width = width,
+                    Height = height,
+                    Fill = new SolidColorBrush(Color.FromArgb((byte)(avgIntensity * 30), 0, 255, 0)),
+                    IsHitTestVisible = false
+                };
+                Canvas.SetLeft(glow, 0);
+                Canvas.SetTop(glow, 0);
+                canvas.Children.Add(glow);
+            }
+        }
     }
     
     /// <summary>
@@ -1752,5 +1923,17 @@ namespace PlatypusTools.UI.Views
         public double Speed { get; set; }
         public double WingPhase { get; set; }  // Wing flap animation phase
         public double Size { get; set; }
+    }
+    
+    /// <summary>
+    /// Represents a column of falling characters for the Matrix digital rain visualization.
+    /// </summary>
+    internal class MatrixColumn
+    {
+        public double X { get; set; }  // 0 to 1 (horizontal position)
+        public double Y { get; set; }  // Head position (can be negative, starts above screen)
+        public double Speed { get; set; }  // Fall speed
+        public int Length { get; set; }  // Number of characters in the trail
+        public char[] Characters { get; set; } = new char[25];  // Characters in this column
     }
 }

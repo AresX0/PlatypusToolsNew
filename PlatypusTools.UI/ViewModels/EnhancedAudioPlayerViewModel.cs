@@ -1188,6 +1188,9 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         5 => "Particles",
         6 => "Aurora",
         7 => "Wave Grid",
+        8 => "Starfield",
+        9 => "Toasters",
+        10 => "Matrix",
         _ => "Bars"
     };
     
@@ -1208,7 +1211,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     // Dropdown collections for visualizer controls
     public List<string> VisualizerModes { get; } = new()
     {
-        "Bars", "Mirror", "Waveform", "Circular", "Radial", "Particles", "Aurora", "Wave Grid", "Starfield", "Toasters"
+        "Bars", "Mirror", "Waveform", "Circular", "Radial", "Particles", "Aurora", "Wave Grid", "Starfield", "Toasters", "Matrix"
     };
     
     public List<string> ColorSchemes { get; } = new()

@@ -197,28 +197,49 @@ namespace PlatypusTools.UI.Views
 
         private void AppendOutput(string text, Brush? color = null)
         {
-            var doc = OutputTextBox.Document;
-            var paragraph = doc.Blocks.LastBlock as Paragraph ?? new Paragraph();
+            if (string.IsNullOrEmpty(text)) return;
             
-            if (doc.Blocks.Count == 0)
-                doc.Blocks.Add(paragraph);
-
-            var run = new Run(text)
+            var doc = OutputTextBox.Document;
+            var foreground = color ?? Brushes.LightGreen;
+            
+            // Split text by newlines and create proper paragraphs
+            var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            
+            for (int i = 0; i < lines.Length; i++)
             {
-                Foreground = color ?? Brushes.LightGreen
-            };
-            paragraph.Inlines.Add(run);
+                var line = lines[i];
+                
+                // Get or create the last paragraph
+                var paragraph = doc.Blocks.LastBlock as Paragraph;
+                if (paragraph == null)
+                {
+                    paragraph = new Paragraph { Margin = new Thickness(0) };
+                    doc.Blocks.Add(paragraph);
+                }
+                
+                // Add the text to the current paragraph
+                if (!string.IsNullOrEmpty(line))
+                {
+                    var run = new Run(line) { Foreground = foreground };
+                    paragraph.Inlines.Add(run);
+                }
+                
+                // If this isn't the last segment, start a new paragraph for the next line
+                if (i < lines.Length - 1)
+                {
+                    var newParagraph = new Paragraph { Margin = new Thickness(0) };
+                    doc.Blocks.Add(newParagraph);
+                }
+            }
 
             // Auto-scroll to bottom
             OutputTextBox.ScrollToEnd();
             OutputScroller.ScrollToEnd();
 
-            // Limit buffer size (keep last 100KB)
-            var allText = new TextRange(doc.ContentStart, doc.ContentEnd).Text;
-            if (allText.Length > 100000)
+            // Limit buffer size (keep last 100KB worth of paragraphs)
+            while (doc.Blocks.Count > 5000)
             {
-                var range = new TextRange(doc.ContentStart, doc.ContentStart.GetPositionAtOffset(50000));
-                range.Text = "";
+                doc.Blocks.Remove(doc.Blocks.FirstBlock);
             }
         }
 
