@@ -95,6 +95,112 @@ namespace PlatypusTools.UI.Views
         private readonly List<MatrixColumn> _matrixColumns = new();
         private const string MatrixChars = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ@#$%^&*";
         
+        // Star Wars Crawl
+        private double _crawlPosition = 0;
+        private double _crawlSpeed = 1.0;
+        private static readonly string[] StarWarsCrawlText = new[]
+        {
+            "STAR WARS",
+            "",
+            "EPISODE IV",
+            "A NEW HOPE",
+            "",
+            "It is a period of civil war.",
+            "Rebel spaceships, striking",
+            "from a hidden base, have won",
+            "their first victory against",
+            "the evil Galactic Empire.",
+            "",
+            "During the battle, Rebel",
+            "spies managed to steal secret",
+            "plans to the Empire's",
+            "ultimate weapon, the DEATH",
+            "STAR, an armored space",
+            "station with enough power",
+            "to destroy an entire planet.",
+            "",
+            "Pursued by the Empire's",
+            "sinister agents, Princess",
+            "Leia races home aboard her",
+            "starship, custodian of the",
+            "stolen plans that can save",
+            "her people and restore",
+            "freedom to the galaxy....",
+            "",
+            "",
+            "EPISODE V",
+            "THE EMPIRE STRIKES BACK",
+            "",
+            "It is a dark time for the",
+            "Rebellion. Although the Death",
+            "Star has been destroyed,",
+            "Imperial troops have driven",
+            "the Rebel forces from their",
+            "hidden base and pursued them",
+            "across the galaxy.",
+            "",
+            "Evading the dreaded Imperial",
+            "Starfleet, a group of freedom",
+            "fighters led by Luke Skywalker",
+            "has established a new secret",
+            "base on the remote ice world",
+            "of Hoth.",
+            "",
+            "The evil lord Darth Vader,",
+            "obsessed with finding young",
+            "Skywalker, has dispatched",
+            "thousands of remote probes",
+            "into the far reaches of space....",
+            "",
+            "",
+            "EPISODE VI",
+            "RETURN OF THE JEDI",
+            "",
+            "Luke Skywalker has returned",
+            "to his home planet of",
+            "Tatooine in an attempt to",
+            "rescue his friend Han Solo",
+            "from the clutches of the",
+            "vile gangster Jabba the Hutt.",
+            "",
+            "Little does Luke know that",
+            "the GALACTIC EMPIRE has",
+            "secretly begun construction",
+            "on a new armored space",
+            "station even more powerful",
+            "than the first dreaded",
+            "Death Star.",
+            "",
+            "When completed, this ultimate",
+            "weapon will spell certain",
+            "doom for the small band of",
+            "rebels struggling to restore",
+            "freedom to the galaxy....",
+            "",
+            "",
+            "THE END",
+            "",
+            "May the Force be with you."
+        };
+        
+        // Stargate: Dialing and Wormhole effect - authentic sequence
+        private double _stargateDialPosition = 0;  // Current dial rotation (degrees)
+        private double _stargateTargetPosition = 0; // Target rotation for current chevron
+        private int _stargateChevronLit = 0;       // Number of chevrons locked
+        private double _stargateWormholePhase = 0; // Wormhole animation phase
+        private bool _stargateIsDialing = true;   // Whether in dial or wormhole mode
+        private double _stargateDialTimer = 0;    // Timer for current state
+        private int _stargateDialDirection = 1;   // 1 = clockwise, -1 = counter-clockwise (alternates)
+        private double _stargateChevronEngageTimer = 0; // Timer for chevron lock animation
+        private bool _stargateChevronEngaging = false;  // Currently in chevron lock animation
+        private double _stargateKawooshPhase = 0; // Kawoosh animation phase (0-1)
+        private bool _stargateKawooshActive = false; // Whether kawoosh is playing
+        
+        // Target glyph positions for each chevron (random but consistent per song)
+        private readonly int[] _stargateTargetGlyphs = new int[9];
+        
+        private static readonly string[] StargateGlyphs = { "☣", "☄", "☉", "☽", "☾", "♀", "♂", "♃", "♄", "♅", "♆", "♇", "♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓", "♔", "♕", "♖", "♗", "♘", "♙", "♚", "♛", "♜", "♝", "♞", "♟", "♠", "♣", "♥", "♦" };
+        
         // For advanced visualizations
         private readonly List<Particle> _particles = new();
         private double _auroraPhase = 0;
@@ -153,16 +259,16 @@ namespace PlatypusTools.UI.Views
                 });
             }
             
-            // Initialize matrix columns (digital rain)
-            for (int i = 0; i < 60; i++)
+            // Initialize matrix columns (digital rain) - reduced for performance
+            for (int i = 0; i < 30; i++)
             {
                 _matrixColumns.Add(new MatrixColumn
                 {
-                    X = i / 60.0,
+                    X = i / 30.0,
                     Y = _random.NextDouble() * -1.0, // Start above screen
                     Speed = 0.01 + _random.NextDouble() * 0.02,
-                    Length = 8 + _random.Next(15),
-                    Characters = new char[25]
+                    Length = 6 + _random.Next(8),
+                    Characters = new char[15]
                 });
                 // Initialize with random characters
                 for (int j = 0; j < _matrixColumns[i].Characters.Length; j++)
@@ -272,6 +378,7 @@ namespace PlatypusTools.UI.Views
         
         /// <summary>
         /// Resets the visualizer for a new track. Call this when track changes.
+        /// For Stargate mode, this starts a new dialing sequence.
         /// </summary>
         public void Reset()
         {
@@ -291,6 +398,28 @@ namespace PlatypusTools.UI.Views
                 _hasExternalData = false;
                 _lastExternalUpdate = DateTime.MinValue;
                 
+                // Reset Stargate to dialing mode for new song
+                _stargateIsDialing = true;
+                _stargateChevronLit = 0;
+                _stargateDialTimer = 0;
+                _stargateWormholePhase = 0;
+                _stargateDialPosition = 0;
+                _stargateTargetPosition = 0;
+                _stargateDialDirection = 1;
+                _stargateChevronEngageTimer = 0;
+                _stargateChevronEngaging = false;
+                _stargateKawooshPhase = 0;
+                _stargateKawooshActive = false;
+                
+                // Generate random target glyph positions for each chevron (new address each song)
+                for (int i = 0; i < _stargateTargetGlyphs.Length; i++)
+                {
+                    _stargateTargetGlyphs[i] = _random.Next(0, 39);
+                }
+                
+                // Reset Star Wars crawl position
+                _crawlPosition = 0;
+                
                 // Ensure timer is running
                 StartRenderTimer();
                 
@@ -298,7 +427,7 @@ namespace PlatypusTools.UI.Views
                 InvalidateVisual();
                 RenderVisualization();
                 
-                System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Reset for new track");
+                System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Reset for new track - Stargate will dial");
             });
         }
         
@@ -620,6 +749,15 @@ namespace PlatypusTools.UI.Views
         }
         
         /// <summary>
+        /// Updates spectrum data with all parameters including crawl speed.
+        /// </summary>
+        public void UpdateSpectrumData(double[] spectrumData, string mode, int barCount, int colorSchemeIndex, double sensitivity, int fps, double crawlSpeed)
+        {
+            _crawlSpeed = crawlSpeed;
+            UpdateSpectrumData(spectrumData, mode, barCount, colorSchemeIndex, sensitivity, fps);
+        }
+        
+        /// <summary>
         /// Gets the gradient brush for the current color scheme.
         /// </summary>
         private Brush GetColorSchemeBrush(bool vertical = true)
@@ -747,6 +885,30 @@ namespace PlatypusTools.UI.Views
             bool barCountChanged = _lastBarCount != _barCount;
             bool colorChanged = _lastColorScheme != _colorScheme;
             
+            // Reset Star Wars crawl position and Stargate state when switching modes
+            if (modeChanged)
+            {
+                _crawlPosition = 0;
+                // Reset Stargate to fresh dialing state
+                _stargateDialPosition = 0;
+                _stargateTargetPosition = 0;
+                _stargateChevronLit = 0;
+                _stargateWormholePhase = 0;
+                _stargateIsDialing = true;
+                _stargateDialTimer = 0;
+                _stargateDialDirection = 1;
+                _stargateChevronEngageTimer = 0;
+                _stargateChevronEngaging = false;
+                _stargateKawooshPhase = 0;
+                _stargateKawooshActive = false;
+                
+                // Generate new target glyphs for this viewing session
+                for (int i = 0; i < _stargateTargetGlyphs.Length; i++)
+                {
+                    _stargateTargetGlyphs[i] = _random.Next(0, 39);
+                }
+            }
+            
             if (_needsFullRebuild || modeChanged || barCountChanged || colorChanged)
             {
                 canvas.Children.Clear();
@@ -809,7 +971,7 @@ namespace PlatypusTools.UI.Views
 
             // For dynamic modes, clear non-cached elements before each frame
             // This prevents elements from piling up and causing trails/artifacts
-            bool isDynamicMode = _visualizationMode is "Starfield" or "Toasters" or "Particles" or "Aurora" or "WaveGrid" or "Wave Grid" or "Circular" or "Radial" or "Mirror";
+            bool isDynamicMode = _visualizationMode is "Starfield" or "Toasters" or "Particles" or "Aurora" or "WaveGrid" or "Wave Grid" or "Circular" or "Radial" or "Mirror" or "Matrix" or "Star Wars Crawl" or "Stargate";
             if (isDynamicMode)
             {
                 ClearDynamicElements(canvas);
@@ -847,6 +1009,12 @@ namespace PlatypusTools.UI.Views
                     break;
                 case "Matrix":
                     RenderMatrix(canvas);
+                    break;
+                case "Star Wars Crawl":
+                    RenderStarWarsCrawl(canvas);
+                    break;
+                case "Stargate":
+                    RenderStargate(canvas);
                     break;
                 default: // Bars
                     RenderBars(canvas);
@@ -1746,6 +1914,7 @@ namespace PlatypusTools.UI.Views
         /// Renders Matrix-style digital rain visualization.
         /// Characters fall down in columns with varying speeds, creating the iconic "digital rain" effect.
         /// Audio affects fall speed and character brightness.
+        /// OPTIMIZED: Uses DrawingVisual instead of individual TextBlocks for much better performance.
         /// </summary>
         private void RenderMatrix(Canvas canvas)
         {
@@ -1779,113 +1948,788 @@ namespace PlatypusTools.UI.Views
                 avgIntensity += _smoothedData[i];
             avgIntensity /= _smoothedData.Length;
             
-            // Speed multiplier based on audio
-            double speedMultiplier = 1.0 + bassIntensity * 3.0;
+            // Speed multiplier based on audio - stops when no audio
+            double speedMultiplier = bassIntensity > 0.01 ? (0.5 + bassIntensity * 3.0) : 0;
             
-            // Font size based on canvas width
-            double fontSize = Math.Max(12, width / 50);
+            // Font size based on canvas width - larger for fewer columns
+            double fontSize = Math.Max(16, width / 30);
             double charHeight = fontSize * 1.2;
+            double charWidth = fontSize * 0.7;
             
-            // Update and render each column
-            foreach (var column in _matrixColumns)
+            // Create a DrawingVisual for efficient rendering
+            var drawingVisual = new DrawingVisual();
+            using (var dc = drawingVisual.RenderOpen())
             {
-                // Move column down
-                column.Y += column.Speed * speedMultiplier;
+                var typeface = new Typeface(new FontFamily("Consolas"), FontStyles.Normal, FontWeights.Bold, FontStretches.Normal);
                 
-                // Reset when fully off screen
-                if (column.Y > 1.0 + (column.Length * charHeight / height))
+                // Update and render each column
+                foreach (var column in _matrixColumns)
                 {
-                    column.Y = _random.NextDouble() * -0.5 - 0.2;
-                    column.Speed = 0.005 + _random.NextDouble() * 0.015;
-                    column.Length = 8 + _random.Next(15);
-                    // Randomize some characters
-                    for (int i = 0; i < column.Characters.Length; i++)
+                    // Move column down
+                    column.Y += column.Speed * speedMultiplier;
+                    
+                    // Reset when fully off screen
+                    if (column.Y > 1.0 + (column.Length * charHeight / height))
                     {
-                        if (_random.NextDouble() < 0.3)
+                        column.Y = _random.NextDouble() * -0.5 - 0.2;
+                        column.Speed = 0.008 + _random.NextDouble() * 0.012;
+                        column.Length = 6 + _random.Next(8);
+                        // Randomize some characters
+                        for (int i = 0; i < column.Characters.Length; i++)
+                        {
+                            if (_random.NextDouble() < 0.4)
+                                column.Characters[i] = MatrixChars[_random.Next(MatrixChars.Length)];
+                        }
+                    }
+                    
+                    // Calculate screen position
+                    double screenX = column.X * width;
+                    double startY = column.Y * height;
+                    
+                    // Render characters in this column
+                    for (int i = 0; i < column.Length && i < column.Characters.Length; i++)
+                    {
+                        double charY = startY - (i * charHeight);
+                        
+                        // Skip if off screen
+                        if (charY < -charHeight || charY > height) continue;
+                        
+                        // Occasionally change character (creates the "glitching" effect)
+                        if (_random.NextDouble() < 0.03)
                             column.Characters[i] = MatrixChars[_random.Next(MatrixChars.Length)];
+                        
+                        // Calculate brightness - brightest at the head (bottom), fading up
+                        double brightness;
+                        if (i == 0)
+                        {
+                            brightness = 1.0;
+                        }
+                        else
+                        {
+                            brightness = 1.0 - (i / (double)column.Length);
+                            brightness = Math.Pow(brightness, 0.6);
+                        }
+                        
+                        // Audio modulates brightness
+                        brightness *= (0.5 + avgIntensity);
+                        brightness = Math.Min(1.0, brightness);
+                        
+                        // Color calculation
+                        Color color;
+                        if (i == 0)
+                        {
+                            // Head is bright white-green
+                            byte r = (byte)(180 + avgIntensity * 75);
+                            color = Color.FromRgb(r, 255, r);
+                        }
+                        else
+                        {
+                            // Trail is pure green with fading
+                            color = Color.FromRgb(0, (byte)(60 + 195 * brightness), 0);
+                        }
+                        
+                        // Draw the character using FormattedText
+                        var formattedText = new FormattedText(
+                            column.Characters[i].ToString(),
+                            System.Globalization.CultureInfo.CurrentCulture,
+                            FlowDirection.LeftToRight,
+                            typeface,
+                            fontSize,
+                            new SolidColorBrush(color),
+                            VisualTreeHelper.GetDpi(this).PixelsPerDip);
+                        
+                        dc.DrawText(formattedText, new Point(screenX, charY));
                     }
-                }
-                
-                // Calculate screen position
-                double screenX = column.X * width;
-                double startY = column.Y * height;
-                
-                // Render characters in this column
-                for (int i = 0; i < column.Length && i < column.Characters.Length; i++)
-                {
-                    double charY = startY - (i * charHeight);
-                    
-                    // Skip if off screen
-                    if (charY < -charHeight || charY > height) continue;
-                    
-                    // Occasionally change character (creates the "glitching" effect)
-                    if (_random.NextDouble() < 0.02)
-                        column.Characters[i] = MatrixChars[_random.Next(MatrixChars.Length)];
-                    
-                    // Calculate brightness - brightest at the head (bottom), fading up
-                    double brightness;
-                    if (i == 0)
-                    {
-                        // Head character is bright white-green
-                        brightness = 1.0;
-                    }
-                    else
-                    {
-                        // Fade based on position in trail
-                        brightness = 1.0 - (i / (double)column.Length);
-                        brightness = Math.Pow(brightness, 0.7); // Adjust falloff curve
-                    }
-                    
-                    // Audio modulates brightness
-                    brightness *= (0.5 + avgIntensity);
-                    brightness = Math.Min(1.0, brightness);
-                    
-                    // Color calculation - green with brightness variation
-                    byte green, red, blue;
-                    if (i == 0)
-                    {
-                        // Head is bright white-green
-                        red = (byte)(180 + avgIntensity * 75);
-                        green = (byte)(255);
-                        blue = (byte)(180 + avgIntensity * 75);
-                    }
-                    else
-                    {
-                        // Trail is pure green with fading
-                        red = 0;
-                        green = (byte)(50 + 205 * brightness);
-                        blue = 0;
-                    }
-                    
-                    var charText = new TextBlock
-                    {
-                        Text = column.Characters[i].ToString(),
-                        FontFamily = new FontFamily("Consolas"),
-                        FontSize = fontSize,
-                        FontWeight = i == 0 ? FontWeights.Bold : FontWeights.Normal,
-                        Foreground = new SolidColorBrush(Color.FromRgb(red, green, blue))
-                    };
-                    
-                    Canvas.SetLeft(charText, screenX);
-                    Canvas.SetTop(charText, charY);
-                    canvas.Children.Add(charText);
                 }
             }
             
+            // Add the DrawingVisual to the canvas using a host
+            var host = new DrawingVisualHost(drawingVisual);
+            canvas.Children.Add(host);
+            
             // Add subtle glow overlay based on audio intensity
-            if (avgIntensity > 0.2)
+            if (avgIntensity > 0.25)
             {
                 var glow = new Rectangle
                 {
                     Width = width,
                     Height = height,
-                    Fill = new SolidColorBrush(Color.FromArgb((byte)(avgIntensity * 30), 0, 255, 0)),
+                    Fill = new SolidColorBrush(Color.FromArgb((byte)(avgIntensity * 25), 0, 255, 0)),
                     IsHitTestVisible = false
                 };
                 Canvas.SetLeft(glow, 0);
                 Canvas.SetTop(glow, 0);
                 canvas.Children.Add(glow);
             }
+        }
+        
+        /// <summary>
+        /// Renders Star Wars opening crawl style text visualization.
+        /// Text scrolls upward with perspective, audio affects shimmer and glow.
+        /// </summary>
+        private void RenderStarWarsCrawl(Canvas canvas)
+        {
+            double width = canvas.ActualWidth;
+            double height = canvas.ActualHeight;
+            if (width <= 0 || height <= 0) return;
+            
+            ClearDynamicElements(canvas);
+            
+            // Black space background with stars
+            var background = new Rectangle
+            {
+                Width = width,
+                Height = height,
+                Fill = new SolidColorBrush(Color.FromRgb(0, 0, 0))
+            };
+            Canvas.SetLeft(background, 0);
+            Canvas.SetTop(background, 0);
+            canvas.Children.Add(background);
+            
+            // Draw some background stars
+            for (int i = 0; i < 50; i++)
+            {
+                double starX = (i * 17 + _crawlPosition * 3) % width;
+                double starY = (i * 23 + i * i) % height;
+                double starSize = 1 + (i % 3);
+                byte brightness = (byte)(150 + (i * 7) % 100);
+                
+                var star = new Ellipse
+                {
+                    Width = starSize,
+                    Height = starSize,
+                    Fill = new SolidColorBrush(Color.FromRgb(brightness, brightness, brightness))
+                };
+                Canvas.SetLeft(star, starX);
+                Canvas.SetTop(star, starY);
+                canvas.Children.Add(star);
+            }
+            
+            // Calculate audio intensity for effects
+            double avgIntensity = 0;
+            for (int i = 0; i < _smoothedData.Length; i++)
+                avgIntensity += _smoothedData[i];
+            avgIntensity /= _smoothedData.Length;
+            
+            // Update crawl position (scrolling upward) - only when audio is playing
+            if (avgIntensity > 0.01)
+            {
+                _crawlPosition += 0.8 * _crawlSpeed;
+            }
+            
+            // Calculate total height of text content
+            double lineHeight = height / 18; // About 18 lines visible
+            double totalTextHeight = StarWarsCrawlText.Length * lineHeight;
+            
+            // Reset when all text has scrolled past
+            if (_crawlPosition > height + totalTextHeight)
+            {
+                _crawlPosition = 0;
+            }
+            
+            // Perspective vanishing point
+            double vanishY = height * 0.15; // Vanishing point near top
+            double bottomY = height * 1.1;  // Start point below screen
+            
+            // Render each line of text
+            for (int i = 0; i < StarWarsCrawlText.Length; i++)
+            {
+                string line = StarWarsCrawlText[i];
+                if (string.IsNullOrEmpty(line)) continue;
+                
+                // Calculate Y position for this line
+                double lineY = bottomY - _crawlPosition + (i * lineHeight);
+                
+                // Skip if off screen
+                if (lineY > bottomY || lineY < vanishY - lineHeight) continue;
+                
+                // Calculate perspective scale (smaller as it gets higher/further away)
+                double progress = (bottomY - lineY) / (bottomY - vanishY);
+                progress = Math.Clamp(progress, 0, 1);
+                double scale = 1.0 - (progress * 0.85); // Scale from 1.0 to 0.15
+                
+                // Calculate alpha (fade out as it approaches vanishing point)
+                double alpha = 1.0 - Math.Pow(progress, 2);
+                alpha = Math.Clamp(alpha, 0, 1);
+                
+                // Skip if too faded
+                if (alpha < 0.05) continue;
+                
+                // Calculate font size with perspective
+                double baseFontSize = line.StartsWith("EPISODE") || line.StartsWith("STAR WARS") || 
+                                      line.Contains("NEW HOPE") || line.Contains("EMPIRE STRIKES") || 
+                                      line.Contains("RETURN OF") || line == "THE END"
+                    ? lineHeight * 1.2  // Titles larger
+                    : lineHeight * 0.7; // Regular text
+                double fontSize = baseFontSize * scale;
+                
+                if (fontSize < 6) continue; // Too small to read
+                
+                // Calculate X position (centered with perspective)
+                double textWidth = line.Length * fontSize * 0.5; // Approximate
+                double centerX = width / 2;
+                double perspectiveX = centerX - (textWidth / 2);
+                
+                // Calculate screen Y position (with perspective compression)
+                double screenY = vanishY + (lineY - vanishY) * scale;
+                
+                // Color with audio-reactive shimmer
+                byte baseYellow = 229;
+                byte shimmer = (byte)(avgIntensity * 25);
+                Color textColor = Color.FromArgb(
+                    (byte)(alpha * 255),
+                    (byte)Math.Min(255, baseYellow + shimmer),
+                    (byte)Math.Min(255, 177 + shimmer),
+                    46
+                );
+                
+                // Create text element
+                var textBlock = new TextBlock
+                {
+                    Text = line,
+                    FontFamily = new FontFamily("Franklin Gothic Medium, Arial"),
+                    FontSize = fontSize,
+                    FontWeight = line.StartsWith("EPISODE") || line.StartsWith("STAR WARS") || line == "THE END"
+                        ? FontWeights.Bold 
+                        : FontWeights.Normal,
+                    Foreground = new SolidColorBrush(textColor),
+                    TextAlignment = TextAlignment.Center
+                };
+                
+                // Apply horizontal scale transform for perspective
+                textBlock.RenderTransformOrigin = new Point(0.5, 0.5);
+                textBlock.RenderTransform = new ScaleTransform(scale, 1.0);
+                
+                Canvas.SetLeft(textBlock, perspectiveX);
+                Canvas.SetTop(textBlock, screenY);
+                canvas.Children.Add(textBlock);
+            }
+            
+            // Add glow overlay at bottom (where text appears from)
+            var bottomGlow = new Rectangle
+            {
+                Width = width,
+                Height = height * 0.15,
+                Fill = new LinearGradientBrush
+                {
+                    StartPoint = new Point(0, 0),
+                    EndPoint = new Point(0, 1),
+                    GradientStops = new GradientStopCollection
+                    {
+                        new GradientStop(Color.FromArgb(0, 0, 0, 0), 0),
+                        new GradientStop(Color.FromArgb((byte)(30 + avgIntensity * 20), 255, 200, 50), 1)
+                    }
+                }
+            };
+            Canvas.SetLeft(bottomGlow, 0);
+            Canvas.SetTop(bottomGlow, height * 0.85);
+            canvas.Children.Add(bottomGlow);
+        }
+        
+        /// <summary>
+        /// Renders Stargate SG-1 style visualization with authentic dialing sequence and wormhole effect.
+        /// Features rotating ring with glyphs that stops at each symbol, chevron lock animation,
+        /// kawoosh effect, and persistent wormhole until song ends.
+        /// </summary>
+        private void RenderStargate(Canvas canvas)
+        {
+            double width = canvas.ActualWidth;
+            double height = canvas.ActualHeight;
+            if (width <= 0 || height <= 0) return;
+            
+            ClearDynamicElements(canvas);
+            
+            // Black/dark blue background like space
+            var background = new Rectangle
+            {
+                Width = width,
+                Height = height,
+                Fill = new LinearGradientBrush
+                {
+                    StartPoint = new Point(0, 0),
+                    EndPoint = new Point(0, 1),
+                    GradientStops = new GradientStopCollection
+                    {
+                        new GradientStop(Color.FromRgb(5, 5, 20), 0),
+                        new GradientStop(Color.FromRgb(2, 2, 10), 1)
+                    }
+                }
+            };
+            Canvas.SetLeft(background, 0);
+            Canvas.SetTop(background, 0);
+            canvas.Children.Add(background);
+            
+            // Calculate audio intensity
+            double avgIntensity = 0;
+            double bassIntensity = 0;
+            for (int i = 0; i < Math.Min(10, _smoothedData.Length); i++)
+                bassIntensity += _smoothedData[i];
+            bassIntensity = _smoothedData.Length > 0 ? bassIntensity / Math.Min(10, _smoothedData.Length) : 0;
+            
+            for (int i = 0; i < _smoothedData.Length; i++)
+                avgIntensity += _smoothedData[i];
+            avgIntensity = _smoothedData.Length > 0 ? avgIntensity / _smoothedData.Length : 0;
+            
+            // Gate dimensions
+            double centerX = width / 2;
+            double centerY = height / 2;
+            double outerRadius = Math.Min(width, height) * 0.42;
+            double innerRadius = outerRadius * 0.72;
+            double glyphRadius = outerRadius * 0.86;
+            double chevronBaseRadius = outerRadius * 1.02;
+            
+            // ==== AUTHENTIC DIALING STATE MACHINE ====
+            const int numGlyphs = 39;
+            const double degreesPerGlyph = 360.0 / numGlyphs;
+            
+            if (_stargateIsDialing && avgIntensity > 0.01)
+            {
+                if (!_stargateChevronEngaging)
+                {
+                    // Rotate ring toward target glyph for current chevron
+                    int currentChevronIndex = _stargateChevronLit;
+                    if (currentChevronIndex < 7 && currentChevronIndex < _stargateTargetGlyphs.Length)
+                    {
+                        // Calculate target position (glyph should align to top = 270 degrees)
+                        double targetGlyphAngle = _stargateTargetGlyphs[currentChevronIndex] * degreesPerGlyph;
+                        _stargateTargetPosition = 270 - targetGlyphAngle;
+                        
+                        // Normalize positions
+                        while (_stargateTargetPosition < 0) _stargateTargetPosition += 360;
+                        while (_stargateTargetPosition >= 360) _stargateTargetPosition -= 360;
+                        
+                        double currentNormalized = _stargateDialPosition % 360;
+                        if (currentNormalized < 0) currentNormalized += 360;
+                        
+                        // Calculate distance to target in current direction
+                        double distance = _stargateDialDirection > 0
+                            ? (_stargateTargetPosition - currentNormalized + 360) % 360
+                            : (currentNormalized - _stargateTargetPosition + 360) % 360;
+                        
+                        // Rotate ring - speed based on bass
+                        double rotateSpeed = 1.5 + bassIntensity * 4;
+                        
+                        if (distance > 3) // Still rotating
+                        {
+                            _stargateDialPosition += _stargateDialDirection * rotateSpeed;
+                        }
+                        else // Reached target - start chevron engagement
+                        {
+                            _stargateChevronEngaging = true;
+                            _stargateChevronEngageTimer = 0;
+                        }
+                    }
+                }
+                else
+                {
+                    // Chevron engagement animation
+                    _stargateChevronEngageTimer += 0.08 + avgIntensity * 0.1;
+                    
+                    if (_stargateChevronEngageTimer >= 1.0)
+                    {
+                        // Chevron locked!
+                        _stargateChevronLit++;
+                        _stargateChevronEngaging = false;
+                        _stargateChevronEngageTimer = 0;
+                        _stargateDialDirection *= -1; // Alternate direction for next glyph
+                        
+                        // After 7 chevrons, trigger kawoosh
+                        if (_stargateChevronLit >= 7)
+                        {
+                            _stargateIsDialing = false;
+                            _stargateKawooshActive = true;
+                            _stargateKawooshPhase = 0;
+                        }
+                    }
+                }
+            }
+            
+            // Update wormhole/kawoosh animation
+            if (!_stargateIsDialing)
+            {
+                if (_stargateKawooshActive)
+                {
+                    _stargateKawooshPhase += 0.04;
+                    if (_stargateKawooshPhase >= 1.0)
+                    {
+                        _stargateKawooshActive = false;
+                    }
+                }
+                _stargateWormholePhase += 0.08 + avgIntensity * 0.15;
+            }
+            
+            // ==== DRAW THE GATE ====
+            
+            // Outer ring shadow/glow
+            var outerGlow = new Ellipse
+            {
+                Width = outerRadius * 2.15,
+                Height = outerRadius * 2.15,
+                Fill = new RadialGradientBrush
+                {
+                    GradientStops = new GradientStopCollection
+                    {
+                        new GradientStop(Color.FromArgb(0, 50, 50, 80), 0.85),
+                        new GradientStop(Color.FromArgb(80, 40, 40, 60), 0.95),
+                        new GradientStop(Color.FromArgb(0, 30, 30, 50), 1)
+                    }
+                }
+            };
+            Canvas.SetLeft(outerGlow, centerX - outerRadius * 1.075);
+            Canvas.SetTop(outerGlow, centerY - outerRadius * 1.075);
+            canvas.Children.Add(outerGlow);
+            
+            // Outer ring (naquadah ring with detail)
+            var outerRing = new Ellipse
+            {
+                Width = outerRadius * 2,
+                Height = outerRadius * 2,
+                Stroke = new LinearGradientBrush
+                {
+                    StartPoint = new Point(0, 0),
+                    EndPoint = new Point(1, 1),
+                    GradientStops = new GradientStopCollection
+                    {
+                        new GradientStop(Color.FromRgb(100, 100, 120), 0),
+                        new GradientStop(Color.FromRgb(60, 60, 80), 0.5),
+                        new GradientStop(Color.FromRgb(90, 90, 110), 1)
+                    }
+                },
+                StrokeThickness = outerRadius * 0.14,
+                Fill = new SolidColorBrush(Color.FromRgb(35, 35, 50))
+            };
+            Canvas.SetLeft(outerRing, centerX - outerRadius);
+            Canvas.SetTop(outerRing, centerY - outerRadius);
+            canvas.Children.Add(outerRing);
+            
+            // Inner ring track for glyphs
+            var glyphTrack = new Ellipse
+            {
+                Width = glyphRadius * 2,
+                Height = glyphRadius * 2,
+                Stroke = new SolidColorBrush(Color.FromRgb(55, 55, 75)),
+                StrokeThickness = outerRadius * 0.08,
+                Fill = new SolidColorBrush(Color.FromRgb(30, 30, 45))
+            };
+            Canvas.SetLeft(glyphTrack, centerX - glyphRadius);
+            Canvas.SetTop(glyphTrack, centerY - glyphRadius);
+            canvas.Children.Add(glyphTrack);
+            
+            // Draw glyphs around the ring (39 glyphs in a Stargate)
+            double fontSize = Math.Max(10, outerRadius * 0.07);
+            for (int i = 0; i < numGlyphs; i++)
+            {
+                double glyphAngle = i * degreesPerGlyph + _stargateDialPosition;
+                double radians = glyphAngle * Math.PI / 180;
+                double glyphX = centerX + Math.Cos(radians) * glyphRadius;
+                double glyphY = centerY + Math.Sin(radians) * glyphRadius;
+                
+                string glyph = StargateGlyphs[i % StargateGlyphs.Length];
+                
+                // Check if this glyph is at the top (under the master chevron)
+                double normalizedAngle = (glyphAngle % 360 + 360) % 360;
+                bool isActive = Math.Abs(normalizedAngle - 270) < 6;
+                
+                // Check if this glyph is a target for a locked chevron
+                bool isLocked = false;
+                for (int c = 0; c < _stargateChevronLit && c < _stargateTargetGlyphs.Length; c++)
+                {
+                    if (_stargateTargetGlyphs[c] == i) isLocked = true;
+                }
+                
+                Color glyphColor;
+                if (isActive)
+                    glyphColor = Color.FromRgb(255, 180, 80); // Bright orange at top
+                else if (isLocked)
+                    glyphColor = Color.FromRgb(255, 120, 50); // Orange for locked glyphs
+                else
+                    glyphColor = Color.FromRgb(130, 130, 160); // Gray for normal
+                
+                var glyphText = new TextBlock
+                {
+                    Text = glyph,
+                    FontFamily = new FontFamily("Segoe UI Symbol"),
+                    FontSize = fontSize,
+                    Foreground = new SolidColorBrush(glyphColor)
+                };
+                Canvas.SetLeft(glyphText, glyphX - fontSize * 0.4);
+                Canvas.SetTop(glyphText, glyphY - fontSize * 0.5);
+                canvas.Children.Add(glyphText);
+            }
+            
+            // ==== DRAW 9 CHEVRONS ====
+            // Positions around gate - index 6 is top (master chevron)
+            // Angles: 0=-50°(2:00), 1=-10°(3:00), 2=30°(4:00), 3=70°(5:00), 4=110°(7:00), 
+            //         5=150°(8:00), 6=-90°(12:00 TOP), 7=-130°(10:00), 8=190°(9:00)
+            // Bottom two (indices 3 and 4 at 70° and 110°) are NOT used for 7-symbol addresses
+            double[] chevronAngles = { -50, -10, 30, 70, 110, 150, -90, -130, 190 }; // -90 is top (master)
+            
+            // Lighting order: 6 side chevrons first, then top (index 6) LAST
+            // Skip indices 3 and 4 (the bottom two at ~5 and ~7 o'clock)
+            int[] lightingOrder = { 0, 1, 2, 5, 8, 7, 6 }; // Top chevron (6) lights last
+            
+            for (int i = 0; i < 9; i++)
+            {
+                double chevronAngle = chevronAngles[i];
+                double radians = chevronAngle * Math.PI / 180;
+                double chevronX = centerX + Math.Cos(radians) * chevronBaseRadius;
+                double chevronY = centerY + Math.Sin(radians) * chevronBaseRadius;
+                
+                // Determine if this chevron should be lit based on lighting order
+                bool isLit = false;
+                bool isEngaging = false;
+                
+                for (int lit = 0; lit < _stargateChevronLit && lit < lightingOrder.Length; lit++)
+                {
+                    if (lightingOrder[lit] == i) isLit = true;
+                }
+                
+                // Check if this is the chevron currently engaging
+                if (_stargateChevronEngaging && _stargateChevronLit < lightingOrder.Length)
+                {
+                    if (lightingOrder[_stargateChevronLit] == i) isEngaging = true;
+                }
+                
+                // Chevron engage offset (moves inward when engaging)
+                double engageOffset = isEngaging ? Math.Sin(_stargateChevronEngageTimer * Math.PI) * 8 : 0;
+                double effectiveX = chevronX - Math.Cos(radians) * engageOffset;
+                double effectiveY = chevronY - Math.Sin(radians) * engageOffset;
+                
+                // Chevron size scales with gate
+                double chevronSize = outerRadius * 0.12;
+                
+                // Create chevron shape (V-shape pointing inward)
+                var chevron = new Polygon
+                {
+                    Points = new PointCollection
+                    {
+                        new Point(effectiveX, effectiveY),
+                        new Point(effectiveX + Math.Cos(radians + 0.5) * chevronSize, effectiveY + Math.Sin(radians + 0.5) * chevronSize),
+                        new Point(effectiveX + Math.Cos(radians) * chevronSize * 1.5, effectiveY + Math.Sin(radians) * chevronSize * 1.5),
+                        new Point(effectiveX + Math.Cos(radians - 0.5) * chevronSize, effectiveY + Math.Sin(radians - 0.5) * chevronSize)
+                    },
+                    Stroke = new SolidColorBrush(Color.FromRgb(120, 120, 140)),
+                    StrokeThickness = 2
+                };
+                
+                // Color based on state
+                if (isEngaging)
+                {
+                    // Pulsing during engagement
+                    byte brightness = (byte)(150 + Math.Sin(_stargateChevronEngageTimer * Math.PI * 4) * 105);
+                    chevron.Fill = new SolidColorBrush(Color.FromRgb(brightness, (byte)(brightness * 0.5), 20));
+                }
+                else if (isLit)
+                {
+                    chevron.Fill = new SolidColorBrush(Color.FromRgb(255, 140, 40));
+                }
+                else
+                {
+                    chevron.Fill = new SolidColorBrush(Color.FromRgb(60, 40, 30));
+                }
+                
+                canvas.Children.Add(chevron);
+                
+                // Glow for lit chevrons
+                if (isLit || isEngaging)
+                {
+                    byte glowAlpha = (byte)(isEngaging ? 200 * Math.Sin(_stargateChevronEngageTimer * Math.PI) : 120);
+                    var glow = new Ellipse
+                    {
+                        Width = chevronSize * 2,
+                        Height = chevronSize * 2,
+                        Fill = new RadialGradientBrush
+                        {
+                            GradientStops = new GradientStopCollection
+                            {
+                                new GradientStop(Color.FromArgb(glowAlpha, 255, 180, 80), 0),
+                                new GradientStop(Color.FromArgb((byte)(glowAlpha / 2), 255, 120, 40), 0.5),
+                                new GradientStop(Color.FromArgb(0, 255, 80, 20), 1)
+                            }
+                        }
+                    };
+                    Canvas.SetLeft(glow, effectiveX - chevronSize + Math.Cos(radians) * chevronSize * 0.5);
+                    Canvas.SetTop(glow, effectiveY - chevronSize + Math.Sin(radians) * chevronSize * 0.5);
+                    canvas.Children.Add(glow);
+                }
+            }
+            
+            // ==== DRAW EVENT HORIZON ====
+            if (!_stargateIsDialing)
+            {
+                double wormholeRadius = innerRadius * 0.95;
+                
+                // Kawoosh effect (water splash forward)
+                if (_stargateKawooshActive)
+                {
+                    double kawooshExtent = Math.Sin(_stargateKawooshPhase * Math.PI) * wormholeRadius * 0.8;
+                    double kawooshAlpha = 1 - _stargateKawooshPhase;
+                    
+                    // Main kawoosh splash
+                    var kawoosh = new Ellipse
+                    {
+                        Width = wormholeRadius * 1.6,
+                        Height = kawooshExtent,
+                        Fill = new RadialGradientBrush
+                        {
+                            GradientStops = new GradientStopCollection
+                            {
+                                new GradientStop(Color.FromArgb((byte)(kawooshAlpha * 255), 200, 230, 255), 0),
+                                new GradientStop(Color.FromArgb((byte)(kawooshAlpha * 180), 100, 180, 255), 0.4),
+                                new GradientStop(Color.FromArgb((byte)(kawooshAlpha * 80), 50, 120, 220), 0.7),
+                                new GradientStop(Color.FromArgb(0, 30, 80, 180), 1)
+                            }
+                        }
+                    };
+                    Canvas.SetLeft(kawoosh, centerX - wormholeRadius * 0.8);
+                    Canvas.SetTop(kawoosh, centerY - kawooshExtent / 2);
+                    canvas.Children.Add(kawoosh);
+                }
+                
+                // Stable wormhole (rippling water effect)
+                for (int ring = 0; ring < 6; ring++)
+                {
+                    double ringRadius = wormholeRadius * (1 - ring * 0.12);
+                    double ripple = Math.Sin(_stargateWormholePhase * 1.5 + ring * 0.7) * 4;
+                    
+                    byte blue = (byte)(180 + ring * 12);
+                    byte green = (byte)(160 + ring * 8);
+                    byte alpha = (byte)(200 - ring * 25);
+                    
+                    var wormholeRing = new Ellipse
+                    {
+                        Width = (ringRadius + ripple) * 2,
+                        Height = (ringRadius + ripple) * 2,
+                        Fill = new RadialGradientBrush
+                        {
+                            GradientStops = new GradientStopCollection
+                            {
+                                new GradientStop(Color.FromArgb(alpha, 80, green, blue), 0.2),
+                                new GradientStop(Color.FromArgb((byte)(alpha * 0.6), 50, (byte)(green - 20), blue), 0.6),
+                                new GradientStop(Color.FromArgb((byte)(alpha * 0.2), 30, (byte)(green - 40), (byte)(blue - 20)), 1)
+                            }
+                        }
+                    };
+                    Canvas.SetLeft(wormholeRing, centerX - ringRadius - ripple);
+                    Canvas.SetTop(wormholeRing, centerY - ringRadius - ripple);
+                    canvas.Children.Add(wormholeRing);
+                }
+                
+                // Audio-reactive distortions on wormhole
+                int numDistortions = Math.Min(8, _smoothedData.Length / 6);
+                for (int i = 0; i < numDistortions; i++)
+                {
+                    int freqIdx = i * (_smoothedData.Length / numDistortions);
+                    double intensity = freqIdx < _smoothedData.Length ? _smoothedData[freqIdx] : avgIntensity;
+                    
+                    if (intensity > 0.15)
+                    {
+                        double angle = (i * 360.0 / numDistortions + _stargateWormholePhase * 30) * Math.PI / 180;
+                        double dist = wormholeRadius * 0.4 + intensity * wormholeRadius * 0.3;
+                        double dx = centerX + Math.Cos(angle) * dist;
+                        double dy = centerY + Math.Sin(angle) * dist;
+                        double size = 20 + intensity * 60;
+                        
+                        var ripple = new Ellipse
+                        {
+                            Width = size,
+                            Height = size,
+                            Fill = new RadialGradientBrush
+                            {
+                                GradientStops = new GradientStopCollection
+                                {
+                                    new GradientStop(Color.FromArgb((byte)(intensity * 200), 180, 220, 255), 0),
+                                    new GradientStop(Color.FromArgb((byte)(intensity * 100), 100, 180, 255), 0.5),
+                                    new GradientStop(Color.FromArgb(0, 60, 140, 220), 1)
+                                }
+                            }
+                        };
+                        Canvas.SetLeft(ripple, dx - size / 2);
+                        Canvas.SetTop(ripple, dy - size / 2);
+                        canvas.Children.Add(ripple);
+                    }
+                }
+                
+                // Center glow based on bass
+                if (bassIntensity > 0.1)
+                {
+                    double pulseSize = 40 + bassIntensity * 100;
+                    var centerGlow = new Ellipse
+                    {
+                        Width = pulseSize,
+                        Height = pulseSize,
+                        Fill = new RadialGradientBrush
+                        {
+                            GradientStops = new GradientStopCollection
+                            {
+                                new GradientStop(Color.FromArgb((byte)(bassIntensity * 200), 255, 255, 255), 0),
+                                new GradientStop(Color.FromArgb((byte)(bassIntensity * 100), 180, 220, 255), 0.4),
+                                new GradientStop(Color.FromArgb(0, 100, 180, 255), 1)
+                            }
+                        }
+                    };
+                    Canvas.SetLeft(centerGlow, centerX - pulseSize / 2);
+                    Canvas.SetTop(centerGlow, centerY - pulseSize / 2);
+                    canvas.Children.Add(centerGlow);
+                }
+            }
+            else
+            {
+                // Dark inner when gate is inactive/dialing
+                var innerCircle = new Ellipse
+                {
+                    Width = innerRadius * 2,
+                    Height = innerRadius * 2,
+                    Fill = new RadialGradientBrush
+                    {
+                        GradientStops = new GradientStopCollection
+                        {
+                            new GradientStop(Color.FromRgb(10, 10, 20), 0),
+                            new GradientStop(Color.FromRgb(5, 5, 15), 1)
+                        }
+                    }
+                };
+                Canvas.SetLeft(innerCircle, centerX - innerRadius);
+                Canvas.SetTop(innerCircle, centerY - innerRadius);
+                canvas.Children.Add(innerCircle);
+            }
+            
+            // ==== STATUS TEXT ====
+            string statusText;
+            if (_stargateIsDialing)
+            {
+                if (_stargateChevronEngaging)
+                    statusText = $"CHEVRON {_stargateChevronLit + 1} ENGAGING...";
+                else if (_stargateChevronLit > 0)
+                    statusText = $"CHEVRON {_stargateChevronLit} LOCKED";
+                else
+                    statusText = "DIALING...";
+            }
+            else if (_stargateKawooshActive)
+            {
+                statusText = "WORMHOLE ESTABLISHED";
+            }
+            else
+            {
+                statusText = "EVENT HORIZON ACTIVE";
+            }
+            
+            var dialingText = new TextBlock
+            {
+                Text = statusText,
+                FontFamily = new FontFamily("Consolas"),
+                FontSize = Math.Max(14, height * 0.025),
+                FontWeight = FontWeights.Bold,
+                Foreground = new SolidColorBrush(!_stargateIsDialing 
+                    ? Color.FromRgb(100, 200, 255) 
+                    : Color.FromRgb(255, 180, 80))
+            };
+            // Position halfway between the stargate's right edge and the right edge of the canvas
+            double stargateRightEdge = centerX + outerRadius;
+            double textX = stargateRightEdge + (width - stargateRightEdge) / 2 - statusText.Length * 4;
+            Canvas.SetLeft(dialingText, textX);
+            Canvas.SetTop(dialingText, centerY - 10);
+            canvas.Children.Add(dialingText);
         }
     }
     
@@ -1934,6 +2778,29 @@ namespace PlatypusTools.UI.Views
         public double Y { get; set; }  // Head position (can be negative, starts above screen)
         public double Speed { get; set; }  // Fall speed
         public int Length { get; set; }  // Number of characters in the trail
-        public char[] Characters { get; set; } = new char[25];  // Characters in this column
+        public char[] Characters { get; set; } = new char[15];  // Characters in this column (reduced for performance)
+    }
+    
+    /// <summary>
+    /// A FrameworkElement that hosts a DrawingVisual for efficient Canvas rendering.
+    /// Used by Matrix visualizer to avoid creating many TextBlock elements.
+    /// </summary>
+    internal class DrawingVisualHost : FrameworkElement
+    {
+        private readonly DrawingVisual _visual;
+        
+        public DrawingVisualHost(DrawingVisual visual)
+        {
+            _visual = visual;
+            AddVisualChild(visual);
+        }
+        
+        protected override int VisualChildrenCount => 1;
+        
+        protected override Visual GetVisualChild(int index)
+        {
+            if (index != 0) throw new ArgumentOutOfRangeException(nameof(index));
+            return _visual;
+        }
     }
 }

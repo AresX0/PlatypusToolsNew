@@ -103,8 +103,9 @@ public partial class EnhancedAudioPlayerView : UserControl
                 int colorIndex = vm?.ColorSchemeIndex ?? 0;
                 double sensitivity = vm?.VisualizerSensitivity ?? 0.7;
                 int fps = vm?.VisualizerFps ?? 22;
+                double crawlSpeed = vm?.CrawlScrollSpeed ?? 1.0;
                 
-                VisualizerControl.UpdateSpectrumData(doubleData, mode, barCount, colorIndex, sensitivity, fps);
+                VisualizerControl.UpdateSpectrumData(doubleData, mode, barCount, colorIndex, sensitivity, fps, crawlSpeed);
             }
         });
     }
@@ -121,6 +122,9 @@ public partial class EnhancedAudioPlayerView : UserControl
         7 => "Wave Grid",
         8 => "Starfield",
         9 => "Toasters",
+        10 => "Matrix",
+        11 => "Star Wars Crawl",
+        12 => "Stargate",
         _ => "Bars"
     };
     
@@ -420,11 +424,14 @@ public partial class EnhancedAudioPlayerView : UserControl
                 string mode = GetVisualizerModeName(vm?.VisualizerModeIndex ?? 0);
                 int barCount = vm?.BarCount ?? 32;
                 int colorIndex = vm?.ColorSchemeIndex ?? 0;
+                double sensitivity = vm?.VisualizerSensitivity ?? 0.7;
+                int fps = vm?.VisualizerFps ?? 22;
+                double crawlSpeed = vm?.CrawlScrollSpeed ?? 1.0;
                 
                 fullscreenVisualizer.Dispatcher.InvokeAsync(() =>
                 {
                     fullscreenVisualizer.SetColorScheme(colorIndex);
-                    fullscreenVisualizer.UpdateSpectrumData(doubleData, mode, barCount);
+                    fullscreenVisualizer.UpdateSpectrumData(doubleData, mode, barCount, colorIndex, sensitivity, fps, crawlSpeed);
                     
                     // Update lyrics if enabled
                     if (lyricsText != null && vm?.ShowLyricsOverlay == true)

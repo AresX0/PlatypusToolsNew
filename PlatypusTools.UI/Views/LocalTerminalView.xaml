@@ -100,10 +100,15 @@
                                  IsReadOnly="True"
                                  BorderThickness="0"
                                  VerticalScrollBarVisibility="Disabled"
-                                 HorizontalScrollBarVisibility="Disabled">
+                                 HorizontalScrollBarVisibility="Disabled"
+                                 MinWidth="800">
+                        <FlowDocument PageWidth="2000" LineHeight="1">
+                            <Paragraph/>
+                        </FlowDocument>
                         <RichTextBox.Resources>
                             <Style TargetType="Paragraph">
                                 <Setter Property="Margin" Value="0"/>
+                                <Setter Property="LineHeight" Value="16"/>
                             </Style>
                         </RichTextBox.Resources>
                     </RichTextBox>

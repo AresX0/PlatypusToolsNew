@@ -1191,6 +1191,8 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         8 => "Starfield",
         9 => "Toasters",
         10 => "Matrix",
+        11 => "Star Wars Crawl",
+        12 => "Stargate",
         _ => "Bars"
     };
     
@@ -1211,7 +1213,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     // Dropdown collections for visualizer controls
     public List<string> VisualizerModes { get; } = new()
     {
-        "Bars", "Mirror", "Waveform", "Circular", "Radial", "Particles", "Aurora", "Wave Grid", "Starfield", "Toasters", "Matrix"
+        "Bars", "Mirror", "Waveform", "Circular", "Radial", "Particles", "Aurora", "Wave Grid", "Starfield", "Toasters", "Matrix", "Star Wars Crawl", "Stargate"
     };
     
     public List<string> ColorSchemes { get; } = new()
@@ -1234,6 +1236,14 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     {
         get => _visualizerSensitivity;
         set => SetProperty(ref _visualizerSensitivity, Math.Clamp(value, 0.1, 2.0));
+    }
+    
+    // Star Wars Crawl scroll speed (0.5 = slow, 1.0 = normal, 2.0 = fast)
+    private double _crawlScrollSpeed = 1.0;
+    public double CrawlScrollSpeed
+    {
+        get => _crawlScrollSpeed;
+        set => SetProperty(ref _crawlScrollSpeed, Math.Clamp(value, 0.25, 3.0));
     }
     
     // FPS control for visualizer performance
