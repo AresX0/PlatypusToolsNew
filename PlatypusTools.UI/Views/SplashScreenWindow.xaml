@@ -8,7 +8,8 @@
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Width="480" Height="360"
-        Topmost="True">
+        Topmost="True"
+        ShowInTaskbar="False">
     <Border Background="#FF1565C0" CornerRadius="12" Padding="0">
         <Grid>
             <Grid.RowDefinitions>
@@ -16,13 +17,15 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             
-            <!-- Video Player -->
+            <!-- Video Player - LoadedBehavior=Manual for better control -->
             <Border Grid.Row="0" CornerRadius="12,12,0,0" ClipToBounds="True">
                 <MediaElement x:Name="VideoPlayer" 
-                              LoadedBehavior="Play" 
+                              LoadedBehavior="Manual" 
                               UnloadedBehavior="Stop"
                               Stretch="UniformToFill"
-                              MediaEnded="VideoPlayer_MediaEnded" />
+                              MediaOpened="VideoPlayer_MediaOpened"
+                              MediaEnded="VideoPlayer_MediaEnded"
+                              IsMuted="True" />
             </Border>
             
             <!-- Loading Text and Progress -->

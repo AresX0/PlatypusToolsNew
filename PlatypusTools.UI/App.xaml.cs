@@ -12,11 +12,28 @@ namespace PlatypusTools.UI
     public partial class App : Application
     {
         private SplashScreenWindow? _splashScreen;
+        private string[]? _startupArgs;
 
-        protected override async void OnStartup(StartupEventArgs e)
+        protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+            _startupArgs = e.Args;
             
+            // IMMEDIATELY show splash screen with video - this is the first thing that happens
+            // No async, no delays - get that video playing NOW
+            _splashScreen = new SplashScreenWindow();
+            _splashScreen.Show();
+            
+            // Force the window to render before continuing
+            _splashScreen.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);
+            
+            // Now kick off the async initialization in the background
+            // The video will loop while everything loads
+            Dispatcher.BeginInvoke(new Action(async () => await InitializeApplicationAsync()));
+        }
+        
+        private async Task InitializeApplicationAsync()
+        {
             // Start startup profiling
             StartupProfiler.Start();
             StartupProfiler.BeginPhase("Exception handlers");
@@ -43,26 +60,21 @@ namespace PlatypusTools.UI
                 typeof(System.Windows.Controls.UserControl),
                 FrameworkElement.LoadedEvent,
                 new RoutedEventHandler(OnUserControlLoaded));
-            
-            StartupProfiler.BeginPhase("Splash screen");
-
-            // Show splash screen
-            _splashScreen = new SplashScreenWindow();
-            _splashScreen.Show();
-            _splashScreen.UpdateStatus("Initializing...");
 
             try
             {
+                _splashScreen?.UpdateStatus("Initializing...");
+                
                 // Check dependencies
                 StartupProfiler.BeginPhase("Dependency check");
-                _splashScreen.UpdateStatus("Checking dependencies...");
+                _splashScreen?.UpdateStatus("Checking dependencies...");
                 await CheckDependenciesAsync();
 
                 // If the first argument is a directory, expose it for viewmodels to pick up
                 StartupProfiler.BeginPhase("Process arguments");
-                if (e.Args != null && e.Args.Length > 0)
+                if (_startupArgs != null && _startupArgs.Length > 0)
                 {
-                    var arg0 = e.Args[0];
+                    var arg0 = _startupArgs[0];
                     try
                     {
                         if (!string.IsNullOrWhiteSpace(arg0) && System.IO.Directory.Exists(arg0))
@@ -79,24 +91,24 @@ namespace PlatypusTools.UI
 
                 // Configure logging
                 StartupProfiler.BeginPhase("Configure logging");
-                _splashScreen.UpdateStatus("Configuring logging...");
+                _splashScreen?.UpdateStatus("Configuring logging...");
                 ConfigureLogging();
 
                 // Load theme BEFORE creating main window to ensure resources are available
                 StartupProfiler.BeginPhase("Load theme");
-                _splashScreen.UpdateStatus("Loading theme...");
+                _splashScreen?.UpdateStatus("Loading theme...");
                 LoadInitialTheme();
 
-                // Reduced splash delay for faster startup (was 1500ms)
-                await Task.Delay(500);
+                // Small delay to let the video play for at least one cycle
+                await Task.Delay(300);
 
                 // Create and show main window
                 StartupProfiler.BeginPhase("Create main window");
-                _splashScreen.UpdateStatus("Loading main window...");
+                _splashScreen?.UpdateStatus("Loading main window...");
                 var mainWindow = new MainWindow();
                 
                 // Close splash and show main window
-                _splashScreen.Close();
+                _splashScreen?.Close();
                 _splashScreen = null;
                 
                 StartupProfiler.BeginPhase("Show main window");

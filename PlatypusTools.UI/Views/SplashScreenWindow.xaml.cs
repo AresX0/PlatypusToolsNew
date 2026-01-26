@@ -6,57 +6,85 @@ namespace PlatypusTools.UI.Views
 {
     public partial class SplashScreenWindow : Window
     {
+        private string? _videoPath;
+        
         public SplashScreenWindow()
         {
             InitializeComponent();
+            
+            // Find video path IMMEDIATELY in constructor so it's ready when window loads
+            FindVideoPath();
+            
+            // Start loading video as soon as window is initialized
+            if (!string.IsNullOrEmpty(_videoPath))
+            {
+                VideoPlayer.Source = new Uri(_videoPath, UriKind.Absolute);
+            }
+            
             Loaded += SplashScreenWindow_Loaded;
         }
-
-        private void SplashScreenWindow_Loaded(object sender, RoutedEventArgs e)
+        
+        private void FindVideoPath()
         {
             try
             {
-                // Try to find the intro video file (new branding)
                 var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                var videoPath = Path.Combine(baseDir, "Assets", "PlatypusToolsIntro.mp4");
-
-                // Fallback to old video if new one not found
-                if (!File.Exists(videoPath))
-                {
-                    videoPath = Path.Combine(baseDir, "Assets", "platypus_swimming.mp4");
-                }
                 
-                if (!File.Exists(videoPath))
+                // Try multiple paths in priority order
+                string[] possiblePaths = 
                 {
-                    // Try alternate locations
-                    videoPath = Path.Combine(baseDir, "PlatypusToolsIntro.mp4");
-                }
+                    Path.Combine(baseDir, "Assets", "PlatypusToolsIntro.mp4"),
+                    Path.Combine(baseDir, "Assets", "platypus_swimming.mp4"),
+                    Path.Combine(baseDir, "PlatypusToolsIntro.mp4"),
+                    Path.Combine(baseDir, "platypus_swimming.mp4")
+                };
                 
-                if (!File.Exists(videoPath))
+                foreach (var path in possiblePaths)
                 {
-                    videoPath = Path.Combine(baseDir, "platypus_swimming.mp4");
-                }
-
-                if (File.Exists(videoPath))
-                {
-                    VideoPlayer.Source = new Uri(videoPath, UriKind.Absolute);
-                    System.Diagnostics.Debug.WriteLine($"Splash video loaded: {videoPath}");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("No splash video found");
+                    if (File.Exists(path))
+                    {
+                        _videoPath = path;
+                        return;
+                    }
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to load splash video: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Failed to find splash video: {ex.Message}");
+            }
+        }
+
+        private void SplashScreenWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            // If video wasn't set in constructor, try again
+            if (VideoPlayer.Source == null && !string.IsNullOrEmpty(_videoPath))
+            {
+                VideoPlayer.Source = new Uri(_videoPath, UriKind.Absolute);
+            }
+            
+            // Force video to start playing immediately
+            VideoPlayer.Play();
+            
+            if (!string.IsNullOrEmpty(_videoPath))
+            {
+                System.Diagnostics.Debug.WriteLine($"Splash video loaded: {_videoPath}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("No splash video found");
             }
         }
 
         private void VideoPlayer_MediaEnded(object sender, RoutedEventArgs e)
         {
-            // Loop the video
+            // Loop the video continuously until splash screen is closed
             VideoPlayer.Position = TimeSpan.Zero;
+            VideoPlayer.Play();
+        }
+        
+        private void VideoPlayer_MediaOpened(object sender, RoutedEventArgs e)
+        {
+            // Video is ready - ensure it starts playing
             VideoPlayer.Play();
         }
 
