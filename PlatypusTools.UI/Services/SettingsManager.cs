@@ -270,6 +270,7 @@ namespace PlatypusTools.UI.Services
                 new("Multimedia.Video.Upscaler", "Upscaler", "Multimedia.Video"),
                 new("Multimedia.Video.VideoCombiner", "Video Combiner", "Multimedia.Video"),
                 new("Multimedia.Video.VideoConverter", "Video Converter", "Multimedia.Video"),
+                new("Multimedia.Video.ScreenRecorder", "Screen Recorder", "Multimedia.Video"),
                 new("Multimedia.MediaLibrary", "📚 Media Library", "Multimedia"),
                 new("Multimedia.ExternalTools", "🔧 External Tools", "Multimedia"),
 

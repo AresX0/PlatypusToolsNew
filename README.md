@@ -22,6 +22,12 @@ A comprehensive Windows system utility combining file management, media conversi
   - Interactive viewport with mouse controls
   - Automatic image tracing for embedded raster SVGs
 - **Video Converter** - Convert video formats with FFmpeg
+- **Screen Recorder** - Record your screen to video:
+  - Multiple codecs: H.264, H.265, VP9
+  - Configurable frame rate (15-60 FPS)
+  - Microphone and system audio capture
+  - Global hotkeys (Ctrl+Shift+R/S)
+  - 3-second countdown delay option
 - **Audio Library** - Manage and tag audio files
 
 ### 🔧 System Tools

@@ -1,0 +1,247 @@
+<UserControl x:Class="PlatypusTools.UI.Views.ScreenRecorderView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="1000">
+    
+    <UserControl.DataContext>
+        <vm:ScreenRecorderViewModel />
+    </UserControl.DataContext>
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="🎬 Screen Recorder" FontSize="24" FontWeight="Bold" 
+                       Foreground="{DynamicResource TextPrimary}"/>
+            <TextBlock Text="Record your screen to video with optional audio capture" 
+                       Foreground="{DynamicResource TextSecondary}" Margin="0,5,0,0"/>
+        </StackPanel>
+        
+        <!-- Main Controls -->
+        <Border Grid.Row="1" Background="{DynamicResource CardBackground}" CornerRadius="8" 
+                Padding="20" Margin="0,0,0,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Settings -->
+                <StackPanel Grid.Column="0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="120"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Output Folder -->
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Output Folder:" 
+                                   VerticalAlignment="Center" Margin="0,0,10,10"
+                                   Foreground="{DynamicResource TextPrimary}"/>
+                        <Grid Grid.Row="0" Grid.Column="1" Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}"
+                                     IsEnabled="{Binding IsNotRecording}" VerticalContentAlignment="Center"/>
+                            <Button Grid.Column="1" Content="📁" Width="35" Margin="5,0,0,0"
+                                    Command="{Binding BrowseOutputFolderCommand}" ToolTip="Browse for folder"/>
+                            <Button Grid.Column="2" Content="📂" Width="35" Margin="5,0,0,0"
+                                    Command="{Binding OpenOutputFolderCommand}" ToolTip="Open folder"/>
+                        </Grid>
+                        
+                        <!-- Frame Rate -->
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Frame Rate:" 
+                                   VerticalAlignment="Center" Margin="0,0,10,10"
+                                   Foreground="{DynamicResource TextPrimary}"/>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,10">
+                            <ComboBox Width="100" ItemsSource="{Binding FrameRateOptions}"
+                                      SelectedItem="{Binding FrameRate}"
+                                      IsEnabled="{Binding IsNotRecording}"/>
+                            <TextBlock Text=" FPS" VerticalAlignment="Center" 
+                                       Foreground="{DynamicResource TextSecondary}" Margin="5,0,0,0"/>
+                        </StackPanel>
+                        
+                        <!-- Video Codec -->
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Video Codec:" 
+                                   VerticalAlignment="Center" Margin="0,0,10,10"
+                                   Foreground="{DynamicResource TextPrimary}"/>
+                        <ComboBox Grid.Row="2" Grid.Column="1" Width="150" HorizontalAlignment="Left"
+                                  ItemsSource="{Binding CodecOptions}"
+                                  SelectedItem="{Binding SelectedCodec}"
+                                  IsEnabled="{Binding IsNotRecording}" Margin="0,0,0,10"/>
+                        
+                        <!-- Record Microphone Audio -->
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Microphone:" 
+                                   VerticalAlignment="Center" Margin="0,0,10,10"
+                                   Foreground="{DynamicResource TextPrimary}"/>
+                        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,10">
+                            <CheckBox IsChecked="{Binding RecordAudio}" VerticalAlignment="Center"
+                                      IsEnabled="{Binding IsNotRecording}" Content="Record microphone audio"/>
+                        </StackPanel>
+                        
+                        <!-- Audio Device -->
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Audio Device:" 
+                                   VerticalAlignment="Center" Margin="0,0,10,10"
+                                   Foreground="{DynamicResource TextPrimary}"/>
+                        <Grid Grid.Row="4" Grid.Column="1" Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" MaxWidth="400"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ComboBox Grid.Column="0" ItemsSource="{Binding AudioDevices}"
+                                      SelectedValue="{Binding SelectedAudioDevice}"
+                                      SelectedValuePath="Name"
+                                      DisplayMemberPath="Name"
+                                      IsEnabled="{Binding RecordAudio}"/>
+                            <Button Grid.Column="1" Content="🔄" Width="35" Margin="5,0,0,0"
+                                    Command="{Binding RefreshAudioDevicesCommand}" 
+                                    ToolTip="Refresh audio devices"/>
+                        </Grid>
+                        
+                        <!-- Record System Audio -->
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="System Audio:" 
+                                   VerticalAlignment="Center" Margin="0,0,10,10"
+                                   Foreground="{DynamicResource TextPrimary}"/>
+                        <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,10">
+                            <CheckBox IsChecked="{Binding RecordSystemAudio}" VerticalAlignment="Center"
+                                      IsEnabled="{Binding IsNotRecording}" Content="Record system audio (what you hear)"/>
+                        </StackPanel>
+                        
+                        <!-- Start Delay -->
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Start Delay:" 
+                                   VerticalAlignment="Center" Margin="0,0,10,0"
+                                   Foreground="{DynamicResource TextPrimary}"/>
+                        <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal">
+                            <CheckBox IsChecked="{Binding UseStartDelay}" VerticalAlignment="Center"
+                                      IsEnabled="{Binding IsNotRecording}" Content="3 second countdown before recording"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+                
+                <!-- Recording Controls -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="30,0,0,0" MinWidth="200">
+                    <!-- Countdown Display -->
+                    <Border Visibility="{Binding IsCountingDown, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            Background="#FF6600" CornerRadius="8" Padding="15,10" Margin="0,0,0,10">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="⏱ STARTING IN" FontSize="14" FontWeight="Bold" 
+                                       Foreground="White" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding CountdownDisplay}" FontSize="48" 
+                                       FontWeight="Bold" Foreground="White" 
+                                       HorizontalAlignment="Center" FontFamily="Consolas"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- Big Record Button -->
+                    <Button Command="{Binding StartRecordingCommand}" 
+                            Visibility="{Binding IsNotRecording, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            Height="80" Width="180" FontSize="18" FontWeight="Bold">
+                        <StackPanel>
+                            <TextBlock Text="⏺" FontSize="32" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Start Recording" HorizontalAlignment="Center"/>
+                            <TextBlock Text="(Ctrl+Shift+R)" FontSize="10" Opacity="0.7" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    
+                    <StackPanel Visibility="{Binding IsRecording, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <!-- Recording indicator -->
+                        <Border Background="#CC0000" CornerRadius="8" Padding="15,10" Margin="0,0,0,10">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="🔴 RECORDING" FontSize="16" FontWeight="Bold" 
+                                           Foreground="White" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding RecordingDuration}" FontSize="24" 
+                                           FontWeight="Bold" Foreground="White" 
+                                           HorizontalAlignment="Center" FontFamily="Consolas"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Stop/Cancel buttons -->
+                        <Button Content="⏹ Stop (Ctrl+Shift+S)" Command="{Binding StopRecordingCommand}"
+                                Click="StopRecording_Click"
+                                Height="40" FontWeight="Bold" Margin="0,0,0,5"
+                                Style="{DynamicResource PrimaryButton}"/>
+                        <Button Content="❌ Cancel" Command="{Binding CancelRecordingCommand}"
+                                Click="CancelRecording_Click"
+                                Height="35" Style="{DynamicResource SecondaryButton}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- Log/Status Area -->
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            
+            <Grid Grid.Row="0" Margin="0,0,0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Recording Log" FontWeight="SemiBold" 
+                           Foreground="{DynamicResource TextPrimary}"/>
+                <Button Grid.Column="1" Content="Clear" Padding="10,2"
+                        Command="{Binding ClearLogCommand}"/>
+            </Grid>
+            
+            <Border Grid.Row="1" Background="{DynamicResource CardBackground}" 
+                    CornerRadius="8" Padding="10">
+                <ListBox ItemsSource="{Binding LogMessages}" 
+                         Background="Transparent" BorderThickness="0"
+                         FontFamily="Consolas" FontSize="12"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" TextWrapping="NoWrap"
+                                       Foreground="{DynamicResource TextSecondary}"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+        </Grid>
+        
+        <!-- Status Bar -->
+        <Border Grid.Row="3" Background="{DynamicResource CardBackground}" 
+                CornerRadius="8" Padding="15,10" Margin="0,15,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" 
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextPrimary}"/>
+                
+                <Button Grid.Column="1" Content="▶ Open Last Recording"
+                        Command="{Binding OpenLastRecordingCommand}"
+                        Style="{DynamicResource SecondaryButton}"
+                        Visibility="{Binding LastRecordingPath, Converter={StaticResource InverseNullToVisibilityConverter}}"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

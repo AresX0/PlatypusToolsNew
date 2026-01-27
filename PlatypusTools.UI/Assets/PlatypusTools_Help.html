@@ -148,7 +148,7 @@
 <header>
     <h1>🦆 PlatypusTools</h1>
     <p>Advanced File Management &amp; Media Tools Suite</p>
-    <div class="version">Version 3.2.7.2 | Built with .NET 10 / WPF</div>
+    <div class="version">Version 3.2.15.1 | Built with .NET 10 / WPF</div>
 </header>
 
 <div class="container">
@@ -173,7 +173,22 @@
     <h2>Overview</h2>
     <p>PlatypusTools is a powerful, all-in-one Windows system utility that combines file management, multimedia editing, system cleanup, security tools, digital forensics, and metadata editing into a single, modern WPF application.</p>
     
-    <h3>What's New in v3.2.8</h3>
+    <h3>What's New in v3.2.15</h3>
+    <ul>
+        <li><strong>Screen Recorder</strong> <span class="new-badge">New</span> - Record your screen to video with FFmpeg backend
+            <ul>
+                <li>Multiple video codecs: H.264, H.265 (HEVC), VP9</li>
+                <li>Configurable frame rates: 15, 24, 30, 60 FPS</li>
+                <li>Microphone audio recording with device selection</li>
+                <li>System audio loopback (record what you hear)</li>
+                <li>3-second countdown delay option</li>
+                <li>Global hotkeys: <kbd>Ctrl+Shift+R</kbd> (Start), <kbd>Ctrl+Shift+S</kbd> (Stop)</li>
+                <li>Real-time duration display and recording log</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>Previous Updates (v3.2.8)</h3>
     <ul>
         <li><strong>Advanced Forensics Tab</strong> <span class="new-badge">New</span> - Complete DFIR toolkit with memory acquisition &amp; analysis, artifact collection, timeline creation, malware analysis, and OpenSearch integration</li>
         <li><strong>Memory Acquisition</strong> <span class="new-badge">New</span> - Live memory dump using WinPmem with raw/aff4/crashdump formats</li>
@@ -530,6 +545,51 @@
     
     <div class="tip">
         <strong>Note:</strong> The exporter automatically converts 5.1 and 7.1 surround audio to stereo for maximum compatibility.
+    </div>
+    
+    <h4>Screen Recorder <span class="new-badge">New in v3.2.15</span></h4>
+    <p>Record your entire screen to video files with audio capture support.</p>
+    
+    <h5>Features</h5>
+    <ul>
+        <li><strong>Full Screen Capture</strong> - Records your entire primary display</li>
+        <li><strong>Multiple Codecs</strong> - H.264 (best compatibility), H.265/HEVC (smaller files), VP9 (web-friendly)</li>
+        <li><strong>Frame Rate Options</strong> - 15, 24, 30, or 60 FPS</li>
+        <li><strong>Microphone Audio</strong> - Record commentary with your microphone</li>
+        <li><strong>System Audio</strong> - Capture audio playing from your computer (games, music, etc.)</li>
+        <li><strong>Countdown Timer</strong> - Optional 3-second delay before recording starts</li>
+        <li><strong>Global Hotkeys</strong> - Start/stop recording from any application</li>
+    </ul>
+    
+    <h5>How to Use</h5>
+    <ol>
+        <li><strong>Configure Output</strong> - Set the output folder for your recordings</li>
+        <li><strong>Choose Settings</strong> - Select frame rate, codec, and audio options</li>
+        <li><strong>Start Recording</strong> - Click the record button or press <kbd>Ctrl+Shift+R</kbd></li>
+        <li><strong>Stop Recording</strong> - Click stop or press <kbd>Ctrl+Shift+S</kbd></li>
+    </ol>
+    
+    <h5>Audio Options</h5>
+    <table>
+        <tr><th>Option</th><th>Description</th></tr>
+        <tr><td>Microphone</td><td>Record audio from your microphone or headset</td></tr>
+        <tr><td>System Audio</td><td>Record audio output (requires WASAPI loopback device)</td></tr>
+        <tr><td>Both</td><td>Enable both options to mix microphone and system audio</td></tr>
+    </table>
+    
+    <h5>Keyboard Shortcuts</h5>
+    <table>
+        <tr><th>Shortcut</th><th>Action</th></tr>
+        <tr><td><kbd>Ctrl+Shift+R</kbd></td><td>Start recording (works globally)</td></tr>
+        <tr><td><kbd>Ctrl+Shift+S</kbd></td><td>Stop recording (works globally)</td></tr>
+    </table>
+    
+    <div class="tip">
+        <strong>Tip:</strong> For system audio recording, ensure "Stereo Mix" is enabled in Windows Sound settings, or install a virtual audio cable driver.
+    </div>
+    
+    <div class="warning">
+        <strong>Requirement:</strong> Screen Recorder requires FFmpeg to be installed and accessible via PATH or in the Tools folder.
     </div>
     
     <h4>Video Converter</h4>
@@ -1081,6 +1141,14 @@
         <tr><td><kbd>Delete</kbd></td><td>Delete Selected</td></tr>
         <tr><td><kbd>Enter</kbd></td><td>Open Selected</td></tr>
     </table>
+    
+    <h3>Screen Recorder (Global Hotkeys)</h3>
+    <table>
+        <tr><th>Shortcut</th><th>Action</th></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd></td><td>Start Recording</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></td><td>Stop Recording</td></tr>
+    </table>
+    <p><em>These shortcuts work from any application when the Screen Recorder tab has been visited.</em></p>
 </section>
 
 <section id="configuration" class="section">

@@ -91,6 +91,7 @@ namespace PlatypusTools.UI.Services
         public Visibility Upscaler => GetVisibility("Multimedia.Video.Upscaler");
         public Visibility VideoCombiner => GetVisibility("Multimedia.Video.VideoCombiner");
         public Visibility VideoConverter => GetVisibility("Multimedia.Video.VideoConverter");
+        public Visibility ScreenRecorder => GetVisibility("Multimedia.Video.ScreenRecorder");
         public Visibility MediaLibrary => GetVisibility("Multimedia.MediaLibrary");
         public Visibility ExternalTools => GetVisibility("Multimedia.ExternalTools");
 

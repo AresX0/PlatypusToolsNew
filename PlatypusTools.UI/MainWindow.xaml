@@ -198,6 +198,10 @@
                                      Visibility="{Binding VideoConverter, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <controls:LazyTabContent ViewType="{x:Type views:VideoConverterView}" ViewDataContext="{Binding VideoConverter}" />
                             </TabItem>
+                            <TabItem Header="Screen Recorder"
+                                     Visibility="{Binding ScreenRecorder, Source={x:Static services:TabVisibilityService.Instance}}">
+                                <controls:LazyTabContent ViewType="{x:Type views:ScreenRecorderView}" />
+                            </TabItem>
                         </TabControl>
                     </TabItem>
                     

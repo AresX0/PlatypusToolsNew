@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.15.0 - 2026-01-27
+
+### Added
+- **Screen Recorder** - New tab for recording your screen to video files
+  - FFmpeg-based screen capture with gdigrab backend
+  - Multiple video codec support: H.264, H.265 (HEVC), VP9
+  - Configurable frame rate (15, 24, 30, 60 FPS)
+  - Microphone audio recording with device selection
+  - System audio loopback recording (capture what you hear)
+  - 3-second countdown delay option before recording starts
+  - Global hotkeys: Ctrl+Shift+R (Start), Ctrl+Shift+S (Stop)
+  - Real-time duration display during recording
+  - Recording log with detailed status messages
+  - Output folder customization with quick-open buttons
+  - Automatic output file naming with timestamps
+
+---
+
 ## v3.2.14.6 - 2026-01-25
 
 ### Added
