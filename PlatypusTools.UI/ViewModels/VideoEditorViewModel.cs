@@ -3816,8 +3816,11 @@ After installation, restart PlatypusTools.
 
         private void UpdatePreviewFrame()
         {
-            // TODO: Update preview frame at current time
+            // Update the preview to reflect the current timeline state at CurrentTime
+            // This updates both the preview source and selected clip transform properties
+            UpdatePreviewSource();
             OnPropertyChanged(nameof(SelectedClipTransform));
+            OnPropertyChanged(nameof(SelectedClipColorGrading));
         }
 
         private static string FormatTime(TimeSpan time)

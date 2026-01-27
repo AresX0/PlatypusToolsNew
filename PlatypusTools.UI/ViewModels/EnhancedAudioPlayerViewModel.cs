@@ -1127,14 +1127,10 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 t.DisplayArtist.Contains(query, StringComparison.OrdinalIgnoreCase) ||
                 t.DisplayAlbum.Contains(query, StringComparison.OrdinalIgnoreCase));
         
-        // Display up to 2000 tracks in UI for performance (still plenty for browsing)
         // Create new collection in one shot to avoid UI freeze from individual add notifications
-        var tracksToShow = filtered.Take(2000).ToList();
+        // UI virtualization handles performance for large collections
+        var tracksToShow = filtered.ToList();
         LibraryTracks = new ObservableCollection<AudioTrack>(tracksToShow);
-        
-        // Update status if there are more tracks than displayed
-        if (_allLibraryTracks.Count > 2000 && tracksToShow.Count == 2000)
-            StatusMessage = $"Showing 2,000 of {_allLibraryTracks.Count:N0} tracks. Use search to narrow results.";
     }
     
     // AP-004: Queue Reorder
@@ -1204,11 +1200,17 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         set => SetProperty(ref _colorSchemeIndex, value);
     }
     
-    private int _barCount = 32;
-    public int BarCount
+    private int _density = 32;
+    /// <summary>
+    /// Density setting for visualizer effects:
+    /// - Bar-based modes: number of bars
+    /// - Starfield: number of stars (value * 10)
+    /// - Particles: particle count multiplier
+    /// </summary>
+    public int Density
     {
-        get => _barCount;
-        set => SetProperty(ref _barCount, value);
+        get => _density;
+        set => SetProperty(ref _density, value);
     }
     
     // Dropdown collections for visualizer controls
@@ -1222,7 +1224,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         "Blue-Green", "Rainbow", "Fire", "Purple", "Neon", "Ocean", "Sunset", "Monochrome", "Pip-Boy", "LCARS"
     };
     
-    public List<int> BarCountOptions { get; } = new() { 16, 24, 32, 48, 64, 72, 96, 128 };
+    public List<int> DensityOptions { get; } = new() { 16, 24, 32, 48, 64, 72, 96, 128 };
     
     private double _visualizerIntensity = 1.0;
     public double VisualizerIntensity
@@ -2352,9 +2354,10 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 CancellationToken = token
             };
             
-            var newTracks = new System.Collections.Concurrent.ConcurrentBag<AudioTrack>();
+            var pendingTracks = new System.Collections.Concurrent.ConcurrentBag<AudioTrack>();
             var updateLock = new object();
-            var lastUpdateTime = DateTime.Now;
+            var lastUiUpdateTime = DateTime.Now;
+            const int BatchSize = 50; // Add tracks to UI every 50 files for instant population
             
             System.Diagnostics.Debug.WriteLine($"[SCAN] Starting parallel scan with {MaxParallelScans} threads");
             
@@ -2373,7 +2376,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                             var track = LoadTrackSync(file);
                             if (track != null)
                             {
-                                newTracks.Add(track);
+                                pendingTracks.Add(track);
                                 Interlocked.Increment(ref addedFiles);
                             }
                         }
@@ -2384,12 +2387,43 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                         
                         var currentProcessed = Interlocked.Increment(ref processedFiles);
                         
-                        // Update UI every 25 files or every 500ms
+                        // INSTANT POPULATION: Flush tracks to library every BatchSize files
+                        // This makes tracks appear in the UI immediately as they're scanned
+                        if (pendingTracks.Count >= BatchSize)
+                        {
+                            lock (updateLock)
+                            {
+                                if (pendingTracks.Count >= BatchSize)
+                                {
+                                    var tracksToAdd = new List<AudioTrack>();
+                                    while (pendingTracks.TryTake(out var t))
+                                    {
+                                        tracksToAdd.Add(t);
+                                    }
+                                    
+                                    if (tracksToAdd.Count > 0)
+                                    {
+                                        Application.Current?.Dispatcher?.Invoke(() =>
+                                        {
+                                            foreach (var t in tracksToAdd)
+                                            {
+                                                _allLibraryTracks.Add(t);
+                                            }
+                                            FilterLibraryTracks();
+                                            RaisePropertyChanged(nameof(LibraryTrackCount));
+                                        });
+                                        System.Diagnostics.Debug.WriteLine($"[SCAN] Flushed {tracksToAdd.Count} tracks to UI (total: {_allLibraryTracks.Count})");
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Update status text every 25 files
                         if (currentProcessed % 25 == 0)
                         {
                             var progress = (int)(currentProcessed * 100.0 / filesToScan.Count);
                             var added = addedFiles;
-                            Application.Current?.Dispatcher?.Invoke(() =>
+                            Application.Current?.Dispatcher?.BeginInvoke(() =>
                             {
                                 ScanStatus = $"Scanning: {currentProcessed}/{filesToScan.Count} ({added} tracks)";
                                 ScanProgress = progress;
@@ -2412,13 +2446,12 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 });
             }, token);
             
-            System.Diagnostics.Debug.WriteLine($"[SCAN] Parallel scan complete: {newTracks.Count} tracks loaded");
+            System.Diagnostics.Debug.WriteLine($"[SCAN] Parallel scan complete, flushing remaining {pendingTracks.Count} tracks");
             
-            // Phase 3: Add tracks to library on UI thread
+            // Flush any remaining tracks to library on UI thread
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                System.Diagnostics.Debug.WriteLine($"[SCAN] Adding {newTracks.Count} tracks to library on UI thread");
-                foreach (var track in newTracks)
+                while (pendingTracks.TryTake(out var track))
                 {
                     _allLibraryTracks.Add(track);
                 }
@@ -2427,7 +2460,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 RaisePropertyChanged(nameof(LibraryTrackCount));
                 RaisePropertyChanged(nameof(LibraryArtistCount));
                 RaisePropertyChanged(nameof(LibraryAlbumCount));
-                System.Diagnostics.Debug.WriteLine($"[SCAN] UI updated: {_allLibraryTracks.Count} total tracks");
+                System.Diagnostics.Debug.WriteLine($"[SCAN] Final UI update: {_allLibraryTracks.Count} total tracks");
             });
             
             StatusMessage = $"Added {addedFiles} tracks from {Path.GetFileName(folder)}";

@@ -1544,7 +1544,64 @@ namespace PlatypusTools.UI.Views
         /// </summary>
         private void Track_Drop(object sender, DragEventArgs e)
         {
-            // TODO: Handle clip drop between tracks
+            // Get the target track from the drop target
+            if (sender is FrameworkElement element && element.DataContext is TimelineTrack targetTrack)
+            {
+                var vm = DataContext as VideoEditorViewModel;
+                
+                // Check if we're dropping a clip (from dragging)
+                if (_draggingClip != null)
+                {
+                    // Find the source track containing the clip
+                    TimelineTrack? sourceTrack = null;
+                    if (vm != null)
+                    {
+                        foreach (var track in vm.Tracks)
+                        {
+                            if (track.Clips.Contains(_draggingClip))
+                            {
+                                sourceTrack = track;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Only move if dropping on a different track of compatible type
+                    if (sourceTrack != null && sourceTrack != targetTrack)
+                    {
+                        // Check type compatibility (video to video, audio to audio)
+                        // Use fully qualified TrackType from Core which has Overlay
+                        var coreVideo = PlatypusTools.Core.Models.Video.TrackType.Video;
+                        var coreOverlay = PlatypusTools.Core.Models.Video.TrackType.Overlay;
+                        var coreAudio = PlatypusTools.Core.Models.Video.TrackType.Audio;
+                        
+                        bool compatible = (sourceTrack.Type == coreVideo || sourceTrack.Type == coreOverlay) &&
+                                          (targetTrack.Type == coreVideo || targetTrack.Type == coreOverlay) ||
+                                          sourceTrack.Type == coreAudio && targetTrack.Type == coreAudio;
+                        
+                        if (compatible)
+                        {
+                            // Move clip to target track
+                            sourceTrack.Clips.Remove(_draggingClip);
+                            targetTrack.Clips.Add(_draggingClip);
+                            
+                            vm?.LogDebug($"Moved clip '{_draggingClip.Name}' from {sourceTrack.Name} to {targetTrack.Name}");
+                            if (vm != null)
+                            {
+                                vm.StatusMessage = $"Moved {_draggingClip.Name} to {targetTrack.Name}";
+                            }
+                        }
+                        else
+                        {
+                            if (vm != null)
+                            {
+                                vm.StatusMessage = "Cannot move clip between incompatible track types";
+                            }
+                        }
+                    }
+                }
+            }
+            
             e.Handled = true;
         }
 

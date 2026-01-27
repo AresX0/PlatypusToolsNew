@@ -436,17 +436,49 @@ namespace PlatypusTools.UI.Services.Forensics
             result.Logs.Add($"Total freed: {FormatBytes(total)}");
         }
 
-        private Task ExecuteForensicScanAsync(ScheduledTask task, TaskExecutionResult result, CancellationToken token)
+        private async Task ExecuteForensicScanAsync(ScheduledTask task, TaskExecutionResult result, CancellationToken token)
         {
             result.Logs.Add("Running forensic scan...");
             
             task.Parameters.TryGetValue("ScanPath", out var scanPath);
-            scanPath ??= Environment.GetFolderPath(Environment.SpecialFolder.System);
+            scanPath ??= Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
             result.Logs.Add($"Scan path: {scanPath}");
-            result.Logs.Add("Forensic scan completed (placeholder)");
             
-            return Task.CompletedTask;
+            // Run browser forensics scan
+            try
+            {
+                using var browserService = ForensicsServiceFactory.CreateBrowserForensicsService();
+                var scanResult = await browserService.ExtractArtifactsAsync(token);
+                result.Logs.Add($"Collected {scanResult.History.Count} history items");
+                result.Logs.Add($"Collected {scanResult.Downloads.Count} download records");
+                result.Logs.Add($"Collected {scanResult.Cookies.Count} cookies");
+                
+                // Analyze for suspicious activity in downloads
+                int suspiciousCount = 0;
+                foreach (var download in scanResult.Downloads)
+                {
+                    if (token.IsCancellationRequested) break;
+                    // Check for common malware indicators using TargetPath
+                    var fileName = Path.GetFileName(download.TargetPath);
+                    if (download.Url != null && (
+                        download.Url.Contains("malware", StringComparison.OrdinalIgnoreCase) ||
+                        fileName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ||
+                        fileName.EndsWith(".bat", StringComparison.OrdinalIgnoreCase) ||
+                        fileName.EndsWith(".ps1", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        suspiciousCount++;
+                    }
+                }
+                
+                result.Logs.Add($"Found {suspiciousCount} potentially suspicious downloads");
+            }
+            catch (Exception ex)
+            {
+                result.Logs.Add($"Browser forensics error: {ex.Message}");
+            }
+            
+            result.Logs.Add("Forensic scan completed");
         }
 
         private async Task ExecuteYaraScanAsync(ScheduledTask task, TaskExecutionResult result, CancellationToken token)
@@ -540,11 +572,52 @@ namespace PlatypusTools.UI.Services.Forensics
             return Task.CompletedTask;
         }
 
-        private Task ExecuteIOCScanAsync(ScheduledTask task, TaskExecutionResult result, CancellationToken token)
+        private async Task ExecuteIOCScanAsync(ScheduledTask task, TaskExecutionResult result, CancellationToken token)
         {
             result.Logs.Add("Running IOC scan...");
-            result.Logs.Add("IOC scan requires IOCScannerService (placeholder)");
-            return Task.CompletedTask;
+            
+            task.Parameters.TryGetValue("ScanPath", out var scanPath);
+            scanPath ??= Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            
+            try
+            {
+                using var iocService = ForensicsServiceFactory.CreateIOCScannerService();
+                
+                // Check if we have any IOCs loaded
+                if (iocService.IOCs.Count == 0)
+                {
+                    result.Logs.Add("No IOCs loaded. Updating feeds...");
+                    await iocService.UpdateAllFeedsAsync(token);
+                }
+                
+                result.Logs.Add($"Scanning with {iocService.IOCs.Count} IOC indicators...");
+                result.Logs.Add($"Scan path: {scanPath}");
+                
+                var scanResult = await iocService.ScanDirectoryAsync(scanPath, token);
+                
+                result.Logs.Add($"Files scanned: {scanResult.FilesScanned}");
+                result.Logs.Add($"IOCs checked: {scanResult.IOCsChecked}");
+                result.Logs.Add($"Matches found: {scanResult.Matches.Count}");
+                
+                // Log first 10 matches
+                var matchesToLog = Math.Min(scanResult.Matches.Count, 10);
+                for (int i = 0; i < matchesToLog; i++)
+                {
+                    var match = scanResult.Matches[i];
+                    result.Logs.Add($"  [{match.IOC.Severity}] {match.IOC.Type}: {match.MatchLocation}");
+                }
+                
+                if (scanResult.Matches.Count > 10)
+                {
+                    result.Logs.Add($"  ... and {scanResult.Matches.Count - 10} more matches");
+                }
+                
+                result.Logs.Add("IOC scan completed");
+            }
+            catch (Exception ex)
+            {
+                result.Logs.Add($"IOC scan error: {ex.Message}");
+            }
         }
 
         #endregion

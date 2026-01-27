@@ -99,13 +99,13 @@ public partial class EnhancedAudioPlayerView : UserControl
                 // Get mode and settings from ViewModel
                 var vm = DataContext as EnhancedAudioPlayerViewModel;
                 string mode = GetVisualizerModeName(vm?.VisualizerModeIndex ?? 0);
-                int barCount = vm?.BarCount ?? 32;
+                int density = vm?.Density ?? 32;
                 int colorIndex = vm?.ColorSchemeIndex ?? 0;
                 double sensitivity = vm?.VisualizerSensitivity ?? 0.7;
                 int fps = vm?.VisualizerFps ?? 22;
                 double crawlSpeed = vm?.CrawlScrollSpeed ?? 1.0;
                 
-                VisualizerControl.UpdateSpectrumData(doubleData, mode, barCount, colorIndex, sensitivity, fps, crawlSpeed);
+                VisualizerControl.UpdateSpectrumData(doubleData, mode, density, colorIndex, sensitivity, fps, crawlSpeed);
             }
         });
     }
@@ -422,7 +422,7 @@ public partial class EnhancedAudioPlayerView : UserControl
                     doubleData[i] = data[i];
                 
                 string mode = GetVisualizerModeName(vm?.VisualizerModeIndex ?? 0);
-                int barCount = vm?.BarCount ?? 32;
+                int density = vm?.Density ?? 32;
                 int colorIndex = vm?.ColorSchemeIndex ?? 0;
                 double sensitivity = vm?.VisualizerSensitivity ?? 0.7;
                 int fps = vm?.VisualizerFps ?? 22;
@@ -431,7 +431,7 @@ public partial class EnhancedAudioPlayerView : UserControl
                 fullscreenVisualizer.Dispatcher.InvokeAsync(() =>
                 {
                     fullscreenVisualizer.SetColorScheme(colorIndex);
-                    fullscreenVisualizer.UpdateSpectrumData(doubleData, mode, barCount, colorIndex, sensitivity, fps, crawlSpeed);
+                    fullscreenVisualizer.UpdateSpectrumData(doubleData, mode, density, colorIndex, sensitivity, fps, crawlSpeed);
                     
                     // Update lyrics if enabled
                     if (lyricsText != null && vm?.ShowLyricsOverlay == true)

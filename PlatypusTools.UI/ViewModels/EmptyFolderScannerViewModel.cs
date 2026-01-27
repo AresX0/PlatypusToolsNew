@@ -202,6 +202,9 @@ namespace PlatypusTools.UI.ViewModels
                 StatusMessage = "Deleting selected folders...";
                 _cts = new CancellationTokenSource();
 
+                // Ensure scanner has current IgnoreJunkFiles setting
+                _scanner.IgnoreJunkFiles = IgnoreJunkFiles;
+
                 var progress = new Progress<string>(msg => StatusMessage = msg);
                 var deleted = await _scanner.DeleteFoldersAsync(selectedPaths, progress, _cts.Token);
 
@@ -245,12 +248,19 @@ namespace PlatypusTools.UI.ViewModels
                 StatusMessage = "Deleting all empty folders...";
                 _cts = new CancellationTokenSource();
 
+                // Ensure scanner has current IgnoreJunkFiles setting
+                _scanner.IgnoreJunkFiles = IgnoreJunkFiles;
+
                 var allPaths = EmptyFolders.Select(f => f.Path).ToList();
                 var progress = new Progress<string>(msg => StatusMessage = msg);
                 var deleted = await _scanner.DeleteFoldersAsync(allPaths, progress, _cts.Token);
 
-                EmptyFolders.Clear();
-                StatusMessage = $"Deleted {deleted} folder(s).";
+                // Remove only folders that were actually deleted (no longer exist)
+                var toRemove = EmptyFolders.Where(f => !System.IO.Directory.Exists(f.Path)).ToList();
+                foreach (var item in toRemove)
+                    EmptyFolders.Remove(item);
+
+                StatusMessage = $"Deleted {deleted} folder(s). {EmptyFolders.Count} remaining.";
             }
             catch (Exception ex)
             {

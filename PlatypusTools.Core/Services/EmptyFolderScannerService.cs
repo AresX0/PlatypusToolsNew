@@ -245,6 +245,7 @@ namespace PlatypusTools.Core.Services
             CancellationToken cancellationToken = default)
         {
             int deleted = 0;
+            int failed = 0;
 
             await Task.Run(() =>
             {
@@ -260,25 +261,116 @@ namespace PlatypusTools.Core.Services
 
                     try
                     {
-                        if (Directory.Exists(path))
+                        if (!Directory.Exists(path))
                         {
-                            // Double-check it's still empty
-                            if (IsEmptyFolder(path))
-                            {
-                                progress?.Report($"Deleting: {path}");
-                                Directory.Delete(path, false);
-                                deleted++;
-                            }
+                            // Already deleted (maybe by a previous iteration or externally)
+                            deleted++;
+                            continue;
+                        }
+
+                        progress?.Report($"Deleting: {path}");
+                        
+                        // Use recursive force delete - this handles nested empty folders and junk files
+                        if (ForceDeleteEmptyFolder(path))
+                        {
+                            deleted++;
+                        }
+                        else
+                        {
+                            failed++;
                         }
                     }
                     catch (Exception ex)
                     {
                         SimpleLogger.Error($"Failed to delete folder '{path}': {ex.Message}");
+                        failed++;
                     }
+                }
+                
+                if (failed > 0)
+                {
+                    progress?.Report($"Deleted {deleted} folder(s), {failed} failed");
                 }
             }, cancellationToken);
 
             return deleted;
+        }
+
+        /// <summary>
+        /// Recursively deletes an "empty" folder - handles junk files and nested empty subfolders.
+        /// Returns true if the folder was successfully deleted.
+        /// </summary>
+        private bool ForceDeleteEmptyFolder(string path)
+        {
+            try
+            {
+                if (!Directory.Exists(path))
+                    return true; // Already gone
+
+                // First, recursively process all subdirectories
+                var subDirs = Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly);
+                foreach (var subDir in subDirs)
+                {
+                    // Recursively try to delete the subdirectory
+                    if (!ForceDeleteEmptyFolder(subDir))
+                    {
+                        // Subdirectory couldn't be deleted - it has real content
+                        SimpleLogger.Error($"Cannot delete folder '{path}': subdirectory '{subDir}' contains non-empty content");
+                        return false;
+                    }
+                }
+
+                // Now handle files in this folder
+                var files = Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly);
+                foreach (var file in files)
+                {
+                    var fileName = Path.GetFileName(file);
+                    
+                    // If IgnoreJunkFiles is enabled, we can delete junk files
+                    if (IgnoreJunkFiles && IsJunkFile(fileName))
+                    {
+                        try
+                        {
+                            // Remove read-only, hidden, system attributes if set
+                            var attrs = File.GetAttributes(file);
+                            if ((attrs & (FileAttributes.ReadOnly | FileAttributes.Hidden | FileAttributes.System)) != 0)
+                                File.SetAttributes(file, FileAttributes.Normal);
+                            File.Delete(file);
+                        }
+                        catch (Exception ex)
+                        {
+                            SimpleLogger.Error($"Failed to delete junk file '{file}': {ex.Message}");
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        // Non-junk file found - folder is not truly empty
+                        SimpleLogger.Error($"Cannot delete folder '{path}': contains non-junk file '{fileName}'");
+                        return false;
+                    }
+                }
+
+                // Now the folder should be completely empty - delete it
+                // Remove any special attributes from the folder itself
+                try
+                {
+                    var dirInfo = new DirectoryInfo(path);
+                    if ((dirInfo.Attributes & (FileAttributes.ReadOnly | FileAttributes.Hidden | FileAttributes.System)) != 0)
+                    {
+                        dirInfo.Attributes = FileAttributes.Normal;
+                    }
+                }
+                catch { }
+
+                Directory.Delete(path, false);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error($"ForceDeleteEmptyFolder failed for '{path}': {ex.Message}");
+                return false;
+            }
         }
     }
 }

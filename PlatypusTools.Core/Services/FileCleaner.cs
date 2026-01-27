@@ -4,9 +4,12 @@ using System.IO;
 
 namespace PlatypusTools.Core.Services
 {
+    /// <summary>
+    /// Static utility class for file cleaning operations.
+    /// Provides methods for filtering, enumerating, and removing files.
+    /// </summary>
     public static class FileCleaner
     {
-        // TODO: Port logic from Get-FilteredFiles, Get-ProposedName, Rename-ItemCaseAware, etc.
 
         public static IEnumerable<FileInfo> GetFilteredFiles(string path, bool recurse, IEnumerable<string>? extensions = null)
         {

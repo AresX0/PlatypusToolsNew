@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Microsoft.Win32;
@@ -551,15 +553,23 @@ namespace PlatypusTools.UI.ViewModels
 
         private void DeleteSelected()
         {
+            // Handle duplicates (exact matches)
             var files = Groups.SelectMany(g => g.Files).Where(f => f.IsSelected).Select(f => f.Path).ToList();
-            if (files.Count == 0) return;
+            // Handle similar images
+            var imageFiles = SimilarImageGroups.SelectMany(g => g.Images).Where(i => i.IsSelected).Select(i => i.FilePath).ToList();
+            // Handle similar videos
+            var videoFiles = SimilarVideoGroups.SelectMany(g => g.Videos).Where(v => v.IsSelected).Select(v => v.FilePath).ToList();
+            
+            var allFiles = files.Concat(imageFiles).Concat(videoFiles).ToList();
+            if (allFiles.Count == 0) return;
+            
             if (DryRun)
             {
-                System.Windows.MessageBox.Show($"Dry-run: would remove {files.Count} files.", "Preview", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                System.Windows.MessageBox.Show($"Dry-run: would remove {allFiles.Count} files.", "Preview", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
                 return;
             }
 
-            var confirm = System.Windows.MessageBox.Show($"Proceed to remove {files.Count} files?", "Confirm", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
+            var confirm = System.Windows.MessageBox.Show($"Proceed to remove {allFiles.Count} files?", "Confirm", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
             if (confirm != System.Windows.MessageBoxResult.Yes) return;
 
             DeleteSelectedConfirmed();
@@ -568,10 +578,18 @@ namespace PlatypusTools.UI.ViewModels
         // Public API for tests and non-UI callers to delete selected files without confirmation dialogs
         public void DeleteSelectedConfirmed()
         {
-            var files = Groups.SelectMany(g => g.Files).Where(f => f.IsSelected).Select(f => f.Path).ToList();
-            if (files.Count == 0) return;
+            int deletedCount = 0;
+            var deletedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            
+            // Collect all selected files from all modes
+            var filesToDelete = new List<string>();
+            filesToDelete.AddRange(Groups.SelectMany(g => g.Files).Where(f => f.IsSelected).Select(f => f.Path));
+            filesToDelete.AddRange(SimilarImageGroups.SelectMany(g => g.Images).Where(i => i.IsSelected).Select(i => i.FilePath));
+            filesToDelete.AddRange(SimilarVideoGroups.SelectMany(g => g.Videos).Where(v => v.IsSelected).Select(v => v.FilePath));
+            
+            if (filesToDelete.Count == 0) return;
 
-            foreach (var f in files)
+            foreach (var f in filesToDelete)
             {
                 try
                 {
@@ -583,11 +601,63 @@ namespace PlatypusTools.UI.ViewModels
                     {
                         File.Delete(f);
                     }
+                    deletedPaths.Add(f);
+                    deletedCount++;
                 }
                 catch { }
             }
-            // Refresh scan
-            _ = ScanAsync();
+            
+            // Remove deleted files from the UI collections (instead of rescanning)
+            // Process duplicate groups
+            foreach (var group in Groups.ToList())
+            {
+                var filesToRemove = group.Files.Where(f => deletedPaths.Contains(f.Path)).ToList();
+                foreach (var file in filesToRemove)
+                {
+                    group.Files.Remove(file);
+                }
+                
+                // If group has 0 or 1 files remaining, remove the group (no longer duplicates)
+                if (group.Files.Count <= 1)
+                {
+                    Groups.Remove(group);
+                }
+            }
+            
+            // Process similar image groups
+            foreach (var group in SimilarImageGroups.ToList())
+            {
+                var imagesToRemove = group.Images.Where(i => deletedPaths.Contains(i.FilePath)).ToList();
+                foreach (var image in imagesToRemove)
+                {
+                    group.Images.Remove(image);
+                }
+                
+                // If group has 0 or 1 images remaining, remove the group
+                if (group.Images.Count <= 1)
+                {
+                    SimilarImageGroups.Remove(group);
+                }
+            }
+            
+            // Process similar video groups
+            foreach (var group in SimilarVideoGroups.ToList())
+            {
+                var videosToRemove = group.Videos.Where(v => deletedPaths.Contains(v.FilePath)).ToList();
+                foreach (var video in videosToRemove)
+                {
+                    group.Videos.Remove(video);
+                }
+                
+                // If group has 0 or 1 videos remaining, remove the group
+                if (group.Videos.Count <= 1)
+                {
+                    SimilarVideoGroups.Remove(group);
+                }
+            }
+            
+            StatusMessage = $"Deleted {deletedCount} file(s). {Groups.Count} duplicate groups, {SimilarImageGroups.Count} similar image groups, {SimilarVideoGroups.Count} similar video groups remaining.";
+            ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
         }
     }
 }

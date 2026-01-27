@@ -286,11 +286,35 @@ namespace PlatypusTools.UI.ViewModels
             StatusBarViewModel.Instance.StartOperation("Batch upscale", TotalCount);
         }
         
+        private bool _isPaused;
+        public bool IsPaused
+        {
+            get => _isPaused;
+            set
+            {
+                if (SetProperty(ref _isPaused, value))
+                {
+                    RaiseCommandsCanExecuteChanged();
+                }
+            }
+        }
+        
         private void PauseProcessing()
         {
-            // Pausing not directly supported by the service
-            // Would need to implement pause in BatchUpscaleService
-            StatusMessage = "Pause not implemented yet";
+            if (_service.IsPaused)
+            {
+                // Resume
+                _service.ResumeProcessing();
+                IsPaused = false;
+                StatusMessage = "Processing resumed...";
+            }
+            else
+            {
+                // Pause
+                _service.PauseProcessing();
+                IsPaused = true;
+                StatusMessage = "Processing paused (current item will complete)";
+            }
         }
         
         private void CancelProcessing()

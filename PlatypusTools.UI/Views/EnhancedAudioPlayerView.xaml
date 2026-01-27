@@ -190,11 +190,11 @@
                         <ComboBox ItemsSource="{Binding ColorSchemes}" SelectedIndex="{Binding ColorSchemeIndex}"
                                   Width="90" FontSize="11" Margin="0,0,15,0" ToolTip="Color Scheme"/>
                         
-                        <!-- Bar Count -->
-                        <TextBlock Text="Bars:" FontSize="11" VerticalAlignment="Center" Margin="0,0,5,0"
+                        <!-- Density (bars for bar modes, stars for starfield, etc) -->
+                        <TextBlock Text="Density:" FontSize="11" VerticalAlignment="Center" Margin="0,0,5,0"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        <ComboBox ItemsSource="{Binding BarCountOptions}" SelectedItem="{Binding BarCount}"
-                                  Width="55" FontSize="11" Margin="0,0,10,0" ToolTip="Bar Count"/>
+                        <ComboBox ItemsSource="{Binding DensityOptions}" SelectedItem="{Binding Density}"
+                                  Width="55" FontSize="11" Margin="0,0,10,0" ToolTip="Density (bars, stars, or particles depending on mode)"/>
                         
                         <!-- FPS -->
                         <TextBlock Text="FPS:" FontSize="11" VerticalAlignment="Center" Margin="0,0,5,0"
@@ -491,91 +491,94 @@
                     <!-- Library Tab -->
                     <TabItem Header="📚 Library">
                         <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="0,0,8,8" Padding="10">
-                            <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <Grid>
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" MaxHeight="250"/>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto" MinHeight="150"/>
+                                    <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
                                 
-                                <!-- Library Folder Management -->
-                                <Expander Grid.Row="0" Header="📂 Library Folders" IsExpanded="True" Margin="0,0,0,8">
-                                    <StackPanel Margin="5">
-                                        <ListBox ItemsSource="{Binding LibraryFolders}" 
-                                                 SelectedItem="{Binding SelectedLibraryFolder}"
-                                                 MaxHeight="80" Margin="0,0,0,5"
-                                                 HorizontalContentAlignment="Stretch">
-                                            <ListBox.ItemTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" FontSize="11" ToolTip="{Binding}"/>
-                                                </DataTemplate>
-                                            </ListBox.ItemTemplate>
-                                        </ListBox>
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                            <Button Content="📁 Add Folder" Command="{Binding AddLibraryFolderCommand}" 
-                                                    Padding="6,4" Margin="0,0,5,0" FontSize="11"/>
-                                            <Button Content="✕ Remove" Command="{Binding RemoveLibraryFolderCommand}" 
-                                                    Padding="6,4" FontSize="11"/>
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Button Content="🔄 Scan All Folders" Command="{Binding ScanAllLibraryFoldersCommand}" 
-                                                    Padding="8,4" Margin="0,0,5,0" FontWeight="Bold" FontSize="11"/>
-                                            <CheckBox Content="Include Subfolders" IsChecked="{Binding IncludeSubfolders}" 
-                                                      VerticalAlignment="Center" FontSize="11"/>
-                                        </StackPanel>
-                                        <ProgressBar Value="{Binding ScanProgress}" IsIndeterminate="{Binding IsScanning}" 
-                                                     Height="12" Margin="0,5,0,0"/>
-                                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                                            <TextBlock Text="Tracks: " FontSize="10" FontWeight="Bold"/>
-                                            <TextBlock Text="{Binding LibraryTrackCount, FallbackValue=0}" FontSize="10" Margin="0,0,10,0"/>
-                                            <TextBlock Text="Artists: " FontSize="10" FontWeight="Bold"/>
-                                            <TextBlock Text="{Binding LibraryArtistCount, FallbackValue=0}" FontSize="10" Margin="0,0,10,0"/>
-                                            <TextBlock Text="Albums: " FontSize="10" FontWeight="Bold"/>
-                                            <TextBlock Text="{Binding LibraryAlbumCount, FallbackValue=0}" FontSize="10"/>
-                                        </StackPanel>
+                                <!-- Scrollable area for folder management and playlists -->
+                                <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" MaxHeight="250">
+                                    <StackPanel>
+                                        <!-- Library Folder Management -->
+                                        <Expander Header="📂 Library Folders" IsExpanded="True" Margin="0,0,0,8">
+                                            <StackPanel Margin="5">
+                                                <ListBox ItemsSource="{Binding LibraryFolders}" 
+                                                         SelectedItem="{Binding SelectedLibraryFolder}"
+                                                         MaxHeight="80" Margin="0,0,0,5"
+                                                         HorizontalContentAlignment="Stretch">
+                                                    <ListBox.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" FontSize="11" ToolTip="{Binding}"/>
+                                                        </DataTemplate>
+                                                    </ListBox.ItemTemplate>
+                                                </ListBox>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                                    <Button Content="📁 Add Folder" Command="{Binding AddLibraryFolderCommand}" 
+                                                            Padding="6,4" Margin="0,0,5,0" FontSize="11"/>
+                                                    <Button Content="✕ Remove" Command="{Binding RemoveLibraryFolderCommand}" 
+                                                            Padding="6,4" FontSize="11"/>
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button Content="🔄 Scan All Folders" Command="{Binding ScanAllLibraryFoldersCommand}" 
+                                                            Padding="8,4" Margin="0,0,5,0" FontWeight="Bold" FontSize="11"/>
+                                                    <CheckBox Content="Include Subfolders" IsChecked="{Binding IncludeSubfolders}" 
+                                                              VerticalAlignment="Center" FontSize="11"/>
+                                                </StackPanel>
+                                                <ProgressBar Value="{Binding ScanProgress}" IsIndeterminate="{Binding IsScanning}" 
+                                                             Height="12" Margin="0,5,0,0"/>
+                                                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                                    <TextBlock Text="Tracks: " FontSize="10" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding LibraryTrackCount, FallbackValue=0}" FontSize="10" Margin="0,0,10,0"/>
+                                                    <TextBlock Text="Artists: " FontSize="10" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding LibraryArtistCount, FallbackValue=0}" FontSize="10" Margin="0,0,10,0"/>
+                                                    <TextBlock Text="Albums: " FontSize="10" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding LibraryAlbumCount, FallbackValue=0}" FontSize="10"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Expander>
+                                        
+                                        <!-- Playlists Section -->
+                                        <Expander Header="🎵 Playlists" IsExpanded="True" Margin="0,0,0,8">
+                                            <StackPanel Margin="5">
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                                    <Button Content="📚 Show All" Command="{Binding ShowLibraryFromPlaylistCommand}" 
+                                                            Padding="6,4" Margin="0,0,5,0" FontSize="11" ToolTip="Return to full library view"/>
+                                                    <Button Content="➕ New Playlist" Command="{Binding CreatePlaylistCommand}" 
+                                                            Padding="6,4" Margin="0,0,5,0" FontSize="11"/>
+                                                    <Button Content="✏️ Rename" Command="{Binding RenamePlaylistCommand}" 
+                                                            Padding="6,4" Margin="0,0,5,0" FontSize="11"/>
+                                                    <Button Content="🗑️ Delete" Command="{Binding DeletePlaylistCommand}" 
+                                                            Padding="6,4" FontSize="11"/>
+                                                </StackPanel>
+                                                <ItemsControl ItemsSource="{Binding SmartPlaylists}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel/>
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <StackPanel Orientation="Horizontal" Margin="0,0,5,3">
+                                                                <Button Content="▶" Padding="4,3" Margin="0,0,2,0" FontSize="10"
+                                                                        Command="{Binding DataContext.PlayPlaylistCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                        CommandParameter="{Binding}" ToolTip="Play this playlist"/>
+                                                                <ToggleButton Content="{Binding Name}" Padding="8,3" FontSize="11"
+                                                                              IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                                              Command="{Binding DataContext.LoadPlaylistCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                              CommandParameter="{Binding}"/>
+                                                            </StackPanel>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </Expander>
                                     </StackPanel>
-                                </Expander>
-                                
-                                <!-- Playlists Section -->
-                                <Expander Grid.Row="1" Header="🎵 Playlists" IsExpanded="True" Margin="0,0,0,8">
-                                    <StackPanel Margin="5">
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                            <Button Content="📚 Show All" Command="{Binding ShowLibraryFromPlaylistCommand}" 
-                                                    Padding="6,4" Margin="0,0,5,0" FontSize="11" ToolTip="Return to full library view"/>
-                                            <Button Content="➕ New Playlist" Command="{Binding CreatePlaylistCommand}" 
-                                                    Padding="6,4" Margin="0,0,5,0" FontSize="11"/>
-                                            <Button Content="✏️ Rename" Command="{Binding RenamePlaylistCommand}" 
-                                                    Padding="6,4" Margin="0,0,5,0" FontSize="11"/>
-                                            <Button Content="🗑️ Delete" Command="{Binding DeletePlaylistCommand}" 
-                                                    Padding="6,4" FontSize="11"/>
-                                        </StackPanel>
-                                        <ItemsControl ItemsSource="{Binding SmartPlaylists}">
-                                            <ItemsControl.ItemsPanel>
-                                                <ItemsPanelTemplate>
-                                                    <WrapPanel/>
-                                                </ItemsPanelTemplate>
-                                            </ItemsControl.ItemsPanel>
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <StackPanel Orientation="Horizontal" Margin="0,0,5,3">
-                                                        <Button Content="▶" Padding="4,3" Margin="0,0,2,0" FontSize="10"
-                                                                Command="{Binding DataContext.PlayPlaylistCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                CommandParameter="{Binding}" ToolTip="Play this playlist"/>
-                                                        <ToggleButton Content="{Binding Name}" Padding="8,3" FontSize="11"
-                                                                      IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                                                      Command="{Binding DataContext.LoadPlaylistCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                      CommandParameter="{Binding}"/>
-                                                    </StackPanel>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </StackPanel>
-                                </Expander>
+                                </ScrollViewer>
                                 
                                 <!-- Search & Actions -->
-                                <Grid Grid.Row="2" Margin="0,0,0,5">
+                                <Grid Grid.Row="1" Margin="0,0,0,5">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
@@ -600,14 +603,15 @@
                                     </StackPanel>
                                 </Grid>
                                 
-                                <!-- Track List -->
-                                <DataGrid Grid.Row="3" ItemsSource="{Binding LibraryTracks}" 
+                                <!-- Track List - DataGrid handles its own scrolling, virtualization works properly -->
+                                <DataGrid Grid.Row="2" ItemsSource="{Binding LibraryTracks}" 
                                           SelectedItem="{Binding SelectedLibraryTrack}"
                                           AutoGenerateColumns="False" IsReadOnly="True"
                                           CanUserSortColumns="True" GridLinesVisibility="Horizontal"
                                           VirtualizingStackPanel.IsVirtualizing="True"
                                           VirtualizingStackPanel.VirtualizationMode="Recycling"
-                                          EnableRowVirtualization="True" FontSize="11">
+                                          EnableRowVirtualization="True" FontSize="11"
+                                          ScrollViewer.CanContentScroll="True">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Title" Binding="{Binding DisplayTitle}" Width="*"/>
                                         <DataGridTextColumn Header="Artist" Binding="{Binding DisplayArtist}" Width="80"/>
@@ -637,7 +641,6 @@
                                     </DataGrid.InputBindings>
                                 </DataGrid>
                             </Grid>
-                            </ScrollViewer>
                         </Border>
                     </TabItem>
                 

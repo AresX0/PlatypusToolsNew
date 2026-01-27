@@ -23,6 +23,8 @@ namespace PlatypusTools.Core.Services
         private readonly object _lock = new();
         private CancellationTokenSource? _cts;
         private bool _isProcessing;
+        private bool _isPaused;
+        private readonly ManualResetEventSlim _pauseEvent = new(true); // Initially not paused
         
         public event EventHandler<BatchUpscaleJob>? JobStarted;
         public event EventHandler<BatchUpscaleJob>? JobCompleted;
@@ -37,7 +39,32 @@ namespace PlatypusTools.Core.Services
         }
         
         public bool IsProcessing => _isProcessing;
+        public bool IsPaused => _isPaused;
         public int QueuedJobCount => _jobQueue.Count;
+        
+        /// <summary>
+        /// Pauses processing. Current item will complete but next item won't start.
+        /// </summary>
+        public void PauseProcessing()
+        {
+            if (_isProcessing && !_isPaused)
+            {
+                _isPaused = true;
+                _pauseEvent.Reset();
+            }
+        }
+        
+        /// <summary>
+        /// Resumes processing after a pause.
+        /// </summary>
+        public void ResumeProcessing()
+        {
+            if (_isPaused)
+            {
+                _isPaused = false;
+                _pauseEvent.Set();
+            }
+        }
         
         /// <summary>
         /// Creates a new batch job from a list of files.
@@ -154,6 +181,10 @@ namespace PlatypusTools.Core.Services
             
             foreach (var item in job.Items)
             {
+                if (ct.IsCancellationRequested) break;
+                
+                // Wait if paused
+                _pauseEvent.Wait(ct);
                 if (ct.IsCancellationRequested) break;
                 
                 await semaphore.WaitAsync(ct);

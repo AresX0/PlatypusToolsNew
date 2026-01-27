@@ -211,7 +211,21 @@ namespace PlatypusTools.UI.ViewModels
 
         private void CreateTask()
         {
-            StatusMessage = "Task creation dialog not implemented yet";
+            try
+            {
+                // Open Windows Task Scheduler's create task wizard
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "taskschd.msc",
+                    UseShellExecute = true
+                };
+                System.Diagnostics.Process.Start(psi);
+                StatusMessage = "Task Scheduler opened. Create a new task using the Action menu.";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error opening Task Scheduler: {ex.Message}";
+            }
         }
 
         public async Task RunTaskAsync()

@@ -85,6 +85,10 @@ namespace PlatypusTools.UI.Views
         private double _cpuThrottlePercent = 0.5; // Max CPU usage (0.1-1.0)
         private long _maxMemoryBytes = 50 * 1024 * 1024; // 50MB max for visualizer
         
+        // Density setting - used for different purposes per visualizer mode
+        private int _density = 32;
+        private int _targetStarCount = 400; // Current target star count based on density
+        
         // After Dark: Starfield
         private readonly List<Star> _stars = new();
         
@@ -235,14 +239,20 @@ namespace PlatypusTools.UI.Views
             }
             
             // Initialize stars for starfield mode (After Dark style) - more, smaller stars
+            // About 5% of stars get a special color (yellow, red, or blue)
             for (int i = 0; i < 400; i++)
             {
+                int colorType = 0; // White by default
+                if (_random.NextDouble() < 0.05) // 5% chance of colored star
+                    colorType = _random.Next(1, 4); // 1=yellow, 2=red, 3=blue
+                
                 _stars.Add(new Star
                 {
                     X = _random.NextDouble() - 0.5,
                     Y = _random.NextDouble() - 0.5,
                     Z = _random.NextDouble() * 4 + 0.1,
-                    Speed = 0.005 + _random.NextDouble() * 0.02 // Slower base speed
+                    Speed = 0.005 + _random.NextDouble() * 0.02, // Slower base speed
+                    ColorType = colorType
                 });
             }
             
@@ -716,11 +726,24 @@ namespace PlatypusTools.UI.Views
         
         #endregion
 
-        public void UpdateSpectrumData(double[] spectrumData, string mode = "Bars", int barCount = 128)
+        public void UpdateSpectrumData(double[] spectrumData, string mode = "Bars", int density = 128)
         {
-            // Always update mode and bar count
+            // Always update mode and density
             _visualizationMode = mode;
-            _barCount = Math.Max(barCount, 8);
+            _density = Math.Max(density, 8);
+            _barCount = _density; // For bar-based modes
+            
+            // Adjust star count for starfield mode (density * 10 for meaningful star count)
+            if (mode == "Starfield")
+            {
+                _targetStarCount = Math.Clamp(_density * 10, 100, 1280);
+                AdjustStarCount(_targetStarCount);
+            }
+            // Adjust particle count for particle-based modes
+            else if (mode == "Particles")
+            {
+                _maxParticles = Math.Clamp(_density * 2, 32, 256);
+            }
             
             if (spectrumData != null && spectrumData.Length > 0)
             {
@@ -732,9 +755,38 @@ namespace PlatypusTools.UI.Views
         }
         
         /// <summary>
+        /// Dynamically adjusts star count to match target.
+        /// </summary>
+        private void AdjustStarCount(int targetCount)
+        {
+            // Add stars if needed
+            while (_stars.Count < targetCount)
+            {
+                int colorType = 0;
+                if (_random.NextDouble() < 0.05)
+                    colorType = _random.Next(1, 4);
+                
+                _stars.Add(new Star
+                {
+                    X = _random.NextDouble() - 0.5,
+                    Y = _random.NextDouble() - 0.5,
+                    Z = _random.NextDouble() * 4 + 0.1,
+                    Speed = 0.005 + _random.NextDouble() * 0.02,
+                    ColorType = colorType
+                });
+            }
+            
+            // Remove stars if too many
+            while (_stars.Count > targetCount)
+            {
+                _stars.RemoveAt(_stars.Count - 1);
+            }
+        }
+        
+        /// <summary>
         /// Updates spectrum data with color scheme and sensitivity.
         /// </summary>
-        public void UpdateSpectrumData(double[] spectrumData, string mode, int barCount, int colorSchemeIndex, double sensitivity = 0.7, int fps = 22)
+        public void UpdateSpectrumData(double[] spectrumData, string mode, int density, int colorSchemeIndex, double sensitivity = 0.7, int fps = 22)
         {
             SetColorScheme(colorSchemeIndex);
             SetSensitivity(sensitivity);
@@ -745,16 +797,16 @@ namespace PlatypusTools.UI.Views
                 SetTargetFps(fps);
             }
             
-            UpdateSpectrumData(spectrumData, mode, barCount);
+            UpdateSpectrumData(spectrumData, mode, density);
         }
         
         /// <summary>
         /// Updates spectrum data with all parameters including crawl speed.
         /// </summary>
-        public void UpdateSpectrumData(double[] spectrumData, string mode, int barCount, int colorSchemeIndex, double sensitivity, int fps, double crawlSpeed)
+        public void UpdateSpectrumData(double[] spectrumData, string mode, int density, int colorSchemeIndex, double sensitivity, int fps, double crawlSpeed)
         {
             _crawlSpeed = crawlSpeed;
-            UpdateSpectrumData(spectrumData, mode, barCount, colorSchemeIndex, sensitivity, fps);
+            UpdateSpectrumData(spectrumData, mode, density, colorSchemeIndex, sensitivity, fps);
         }
         
         /// <summary>
@@ -1664,6 +1716,17 @@ namespace PlatypusTools.UI.Views
             double centerX = width / 2;
             double centerY = height / 2;
             
+            // Draw black background so starfield works in light mode
+            var background = new System.Windows.Shapes.Rectangle
+            {
+                Width = width,
+                Height = height,
+                Fill = Brushes.Black
+            };
+            Canvas.SetLeft(background, 0);
+            Canvas.SetTop(background, 0);
+            canvas.Children.Add(background);
+            
             // Calculate average intensity from bass frequencies
             double avgIntensity = 0;
             int bassCount = Math.Min(10, _smoothedData.Length);
@@ -1695,8 +1758,8 @@ namespace PlatypusTools.UI.Views
                 if (screenX < 0 || screenX > width || screenY < 0 || screenY > height)
                     continue;
                 
-                // Size based on distance (closer = larger) - smaller stars overall
-                double size = Math.Max(0.5, (1 / star.Z) * 2 * (1 + avgIntensity * 0.5));
+                // Size based on distance (closer = larger) - much smaller stars
+                double size = Math.Max(0.3, (1 / star.Z) * 1.2 * (1 + avgIntensity * 0.3));
                 
                 // Calculate streak length for warp effect
                 double streakLength = Math.Min(30, star.Speed * speedMultiplier * 60 / star.Z);
@@ -1708,8 +1771,24 @@ namespace PlatypusTools.UI.Views
                 
                 // Brightness based on distance and intensity
                 byte brightness = (byte)Math.Clamp(255 * (1 / star.Z) * 0.5 * (1 + avgIntensity), 50, 255);
-                var starColor = GetColorFromScheme(1.0 / star.Z);
-                starColor = Color.FromArgb(brightness, starColor.R, starColor.G, starColor.B);
+                
+                // Determine star color based on ColorType
+                Color starColor;
+                switch (star.ColorType)
+                {
+                    case 1: // Yellow star
+                        starColor = Color.FromArgb(brightness, 255, 255, 100);
+                        break;
+                    case 2: // Red star
+                        starColor = Color.FromArgb(brightness, 255, 120, 120);
+                        break;
+                    case 3: // Blue star
+                        starColor = Color.FromArgb(brightness, 150, 180, 255);
+                        break;
+                    default: // White star
+                        starColor = Color.FromArgb(brightness, 255, 255, 255);
+                        break;
+                }
                 
                 // Draw streak line
                 if (streakLength > 1.5)
@@ -1721,7 +1800,7 @@ namespace PlatypusTools.UI.Views
                         X2 = screenX,
                         Y2 = screenY,
                         Stroke = new SolidColorBrush(starColor),
-                        StrokeThickness = Math.Max(0.5, size * 0.3),
+                        StrokeThickness = Math.Max(0.3, size * 0.25),
                         StrokeStartLineCap = PenLineCap.Round,
                         StrokeEndLineCap = PenLineCap.Round
                     };
@@ -2815,6 +2894,7 @@ namespace PlatypusTools.UI.Views
         public double Y { get; set; }  // -0.5 to 0.5 (centered)
         public double Z { get; set; }  // Depth (0.1 to 4.0)
         public double Speed { get; set; }
+        public int ColorType { get; set; }  // 0=white, 1=yellow, 2=red, 3=blue
     }
     
     /// <summary>
