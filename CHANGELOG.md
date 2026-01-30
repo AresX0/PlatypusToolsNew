@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.16.0 - 2026-01-30
+
+### Added
+- **Bundled Tools** - FFmpeg and ExifTool are now included in the installer
+  - FFmpeg 8.0.1 essentials build (ffmpeg.exe, ffprobe.exe, ffplay.exe)
+  - ExifTool 13.47 64-bit for metadata operations
+  - Tools are installed to `C:\Program Files\PlatypusTools\Tools\` subfolder
+  - No external downloads required for Screen Recorder or Video Editor features
+
+### Fixed
+- **Screen Recorder** - Now works out of the box with bundled FFmpeg
+- **Video Editor** - Uses bundled FFmpeg for all video processing
+- **Metadata Features** - ExifTool bundled for reliable metadata extraction
+
+---
+
 ## v3.2.15.0 - 2026-01-27
 
 ### Added

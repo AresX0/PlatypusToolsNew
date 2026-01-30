@@ -125,3 +125,7 @@ _ReSharper*/
 
 releases/
 archive/shotcutsource/
+
+Tools/ffmpeg/
+Tools/exiftool/
+Tools/*.zip
