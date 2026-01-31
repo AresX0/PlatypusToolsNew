@@ -1,0 +1,272 @@
+<UserControl x:Class="PlatypusTools.UI.Views.WindowsUpdateRepairView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="900"
+             Background="{DynamicResource BackgroundBrush}">
+    
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="🔄 Windows Update Repair" 
+                       FontSize="24" FontWeight="Bold"
+                       Foreground="{DynamicResource ForegroundBrush}"/>
+            <TextBlock Text="Diagnose and fix Windows Update problems using multiple repair methods"
+                       FontSize="14" Opacity="0.7"
+                       Foreground="{DynamicResource ForegroundBrush}"
+                       Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <!-- Action Buttons -->
+        <Grid Grid.Row="1" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button x:Name="ScanButton" Grid.Column="0" 
+                    Content="🔍 Scan for Issues" 
+                    Click="ScanButton_Click"
+                    Padding="16,10" Margin="0,0,8,0"
+                    Style="{DynamicResource AccentButtonStyle}"/>
+
+            <Button x:Name="RepairButton" Grid.Column="1"
+                    Content="🔧 Repair All" 
+                    Click="RepairButton_Click"
+                    Padding="16,10" Margin="0,0,8,0"
+                    IsEnabled="False"/>
+
+            <Button x:Name="QuickFixButton" Grid.Column="2"
+                    Content="⚡ Quick Fix" 
+                    Click="QuickFixButton_Click"
+                    Padding="16,10" Margin="0,0,8,0"
+                    ToolTip="Runs essential fixes only (Reset components, Clear cache)"/>
+
+            <Button x:Name="CancelButton" Grid.Column="4"
+                    Content="❌ Cancel" 
+                    Click="CancelButton_Click"
+                    Padding="16,10"
+                    IsEnabled="False"/>
+        </Grid>
+
+        <!-- Main Content - Split View -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Panel - Options & Status -->
+            <Border Grid.Column="0" 
+                    Background="{DynamicResource SurfaceBrush}"
+                    CornerRadius="8" Margin="0,0,8,0"
+                    Padding="16">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <!-- Scan Results Summary -->
+                        <TextBlock Text="Scan Status" FontWeight="SemiBold" FontSize="14"
+                                   Foreground="{DynamicResource ForegroundBrush}"
+                                   Margin="0,0,0,8"/>
+                        
+                        <Border x:Name="StatusBorder" 
+                                Background="{DynamicResource SurfaceVariantBrush}"
+                                CornerRadius="4" Padding="12" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock x:Name="StatusText" 
+                                           Text="Click 'Scan for Issues' to begin"
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource ForegroundBrush}"/>
+                                <StackPanel x:Name="StatusDetails" Visibility="Collapsed" Margin="0,8,0,0">
+                                    <TextBlock x:Name="ServicesStatus" Foreground="{DynamicResource ForegroundBrush}"/>
+                                    <TextBlock x:Name="DismStatus" Foreground="{DynamicResource ForegroundBrush}"/>
+                                    <TextBlock x:Name="CacheStatus" Foreground="{DynamicResource ForegroundBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Repair Options -->
+                        <TextBlock Text="Repair Options" FontWeight="SemiBold" FontSize="14"
+                                   Foreground="{DynamicResource ForegroundBrush}"
+                                   Margin="0,0,0,8"/>
+
+                        <CheckBox x:Name="ChkCreateRestore" 
+                                  Content="Create restore point first"
+                                  IsChecked="True" Margin="0,4"
+                                  Foreground="{DynamicResource ForegroundBrush}"/>
+                        
+                        <CheckBox x:Name="ChkTroubleshooter" 
+                                  Content="Run Windows troubleshooter"
+                                  IsChecked="True" Margin="0,4"
+                                  Foreground="{DynamicResource ForegroundBrush}"/>
+                        
+                        <CheckBox x:Name="ChkResetComponents" 
+                                  Content="Reset Windows Update components"
+                                  IsChecked="True" Margin="0,4"
+                                  Foreground="{DynamicResource ForegroundBrush}"/>
+                        
+                        <CheckBox x:Name="ChkClearCache" 
+                                  Content="Clear Windows Update cache"
+                                  IsChecked="True" Margin="0,4"
+                                  Foreground="{DynamicResource ForegroundBrush}"/>
+                        
+                        <CheckBox x:Name="ChkReregisterDlls" 
+                                  Content="Re-register system DLLs"
+                                  IsChecked="True" Margin="0,4"
+                                  Foreground="{DynamicResource ForegroundBrush}"/>
+                        
+                        <CheckBox x:Name="ChkRunSfc" 
+                                  Content="Run System File Checker (SFC)"
+                                  IsChecked="True" Margin="0,4"
+                                  Foreground="{DynamicResource ForegroundBrush}"
+                                  ToolTip="May take 10-15 minutes"/>
+                        
+                        <CheckBox x:Name="ChkRunDism" 
+                                  Content="Run DISM RestoreHealth"
+                                  IsChecked="True" Margin="0,4"
+                                  Foreground="{DynamicResource ForegroundBrush}"
+                                  ToolTip="May take 15-30 minutes"/>
+
+                        <!-- Individual Actions -->
+                        <TextBlock Text="Individual Actions" FontWeight="SemiBold" FontSize="14"
+                                   Foreground="{DynamicResource ForegroundBrush}"
+                                   Margin="0,24,0,8"/>
+
+                        <Button x:Name="BtnSfc" Content="Run SFC Only"
+                                Click="BtnSfc_Click"
+                                HorizontalAlignment="Stretch" Margin="0,4"
+                                Padding="8,6"/>
+                        
+                        <Button x:Name="BtnDism" Content="Run DISM Only"
+                                Click="BtnDism_Click"
+                                HorizontalAlignment="Stretch" Margin="0,4"
+                                Padding="8,6"/>
+                        
+                        <Button x:Name="BtnResetComponents" Content="Reset Components Only"
+                                Click="BtnResetComponents_Click"
+                                HorizontalAlignment="Stretch" Margin="0,4"
+                                Padding="8,6"/>
+                        
+                        <Button x:Name="BtnClearCache" Content="Clear Cache Only"
+                                Click="BtnClearCache_Click"
+                                HorizontalAlignment="Stretch" Margin="0,4"
+                                Padding="8,6"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Right Panel - Log Output -->
+            <Border Grid.Column="1" 
+                    Background="{DynamicResource SurfaceBrush}"
+                    CornerRadius="8" Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                        <TextBlock Text="Operation Log" FontWeight="SemiBold" FontSize="14"
+                                   Foreground="{DynamicResource ForegroundBrush}"/>
+                        <Button x:Name="ClearLogButton" Content="Clear"
+                                Click="ClearLogButton_Click"
+                                HorizontalAlignment="Right"
+                                Padding="8,4"/>
+                    </Grid>
+
+                    <Border Grid.Row="1" 
+                            Background="{DynamicResource SurfaceVariantBrush}"
+                            CornerRadius="4">
+                        <ScrollViewer x:Name="LogScrollViewer" 
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Auto">
+                            <TextBox x:Name="LogTextBox"
+                                     IsReadOnly="True"
+                                     TextWrapping="Wrap"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     Foreground="{DynamicResource ForegroundBrush}"
+                                     FontFamily="Consolas"
+                                     FontSize="12"
+                                     Padding="8"
+                                     VerticalScrollBarVisibility="Disabled"/>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Progress -->
+                    <StackPanel Grid.Row="2" Margin="0,8,0,0">
+                        <ProgressBar x:Name="ProgressBar" 
+                                     Height="6" 
+                                     IsIndeterminate="False"
+                                     Visibility="Collapsed"/>
+                        <TextBlock x:Name="ProgressText"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource ForegroundBrush}"
+                                   Opacity="0.7"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Issues List -->
+        <Border Grid.Row="3" 
+                Background="{DynamicResource SurfaceBrush}"
+                CornerRadius="8" Padding="16"
+                Margin="0,16,0,0"
+                Visibility="Collapsed"
+                x:Name="IssuesPanel">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <TextBlock Grid.Row="0" Text="Detected Issues" FontWeight="SemiBold" FontSize="14"
+                           Foreground="{DynamicResource ForegroundBrush}"
+                           Margin="0,0,0,8"/>
+
+                <ItemsControl x:Name="IssuesList" Grid.Row="1">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{DynamicResource SurfaceVariantBrush}"
+                                    CornerRadius="4" Padding="12" Margin="0,0,0,4">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" 
+                                               Text="{Binding SeverityIcon}" 
+                                               FontSize="16" 
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,12,0"/>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Description}" 
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource ForegroundBrush}"/>
+                                        <TextBlock Text="{Binding RecommendedFix}" 
+                                                   FontSize="12" Opacity="0.7"
+                                                   Foreground="{DynamicResource ForegroundBrush}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

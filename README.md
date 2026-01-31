@@ -25,7 +25,7 @@ A comprehensive Windows system utility combining file management, media conversi
 - **Screen Recorder** - Record your screen to video:
   - Multiple codecs: H.264, H.265, VP9
   - Configurable frame rate (15-60 FPS)
-  - Microphone and system audio capture
+  - System audio capture (record what you hear)
   - Global hotkeys (Ctrl+Shift+R/S)
   - 3-second countdown delay option
 - **Audio Library** - Manage and tag audio files
@@ -35,6 +35,12 @@ A comprehensive Windows system utility combining file management, media conversi
 - Startup manager
 - Privacy cleaner
 - System audit
+- **Windows Update Repair** - Diagnose and fix Windows Update issues:
+  - DISM health checks and repairs
+  - SFC system file scan
+  - Windows Update service restart
+  - Component store cleanup
+  - Modern troubleshooter integration (Windows 10/11)
 
 ### 🔒 Security
 - Forensics analyzer with HTML export

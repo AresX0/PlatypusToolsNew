@@ -193,7 +193,9 @@ namespace PlatypusTools.UI.Views
         private int _stargateChevronLit = 0;       // Number of chevrons locked
         private double _stargateWormholePhase = 0; // Wormhole animation phase
         private bool _stargateIsDialing = true;   // Whether in dial or wormhole mode
+#pragma warning disable CS0414 // Field is assigned but never used - reserved for future use
         private double _stargateDialTimer = 0;    // Timer for current state
+#pragma warning restore CS0414
         private int _stargateDialDirection = 1;   // 1 = clockwise, -1 = counter-clockwise (alternates)
         private double _stargateChevronEngageTimer = 0; // Timer for chevron lock animation
         private bool _stargateChevronEngaging = false;  // Currently in chevron lock animation

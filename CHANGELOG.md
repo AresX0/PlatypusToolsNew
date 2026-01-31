@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.17.0 - 2026-01-31
+
+### Added
+- **Admin Rights Control** - New setting to control administrator elevation behavior
+  - Added "Launch with administrator rights" checkbox in Settings → General → Startup
+  - App now uses on-demand elevation via UAC prompt instead of forcing admin rights in manifest
+  - Users can disable admin elevation for normal use, re-enable when system tools are needed
+  - Changed app.manifest from `requireAdministrator` to `asInvoker` for flexibility
+
+### Changed
+- **Tab Reorganization** - Moved tabs to more logical locations:
+  - **Windows Update Repair** moved from Tools → System tab (after System Restore)
+  - **Screen Recorder** moved from Multimedia/Video → Tools tab (after Plex Backup)
+- **MSDT Deprecation Handling** - Updated Windows Update troubleshooter for Windows 11 23H2+
+  - Primary method: PowerShell `Get-TroubleshootingPack` command
+  - Fallback: Opens Windows Settings troubleshooter via `ms-settings:troubleshoot`
+  - Legacy: MSDT.exe as final fallback with deprecation warning
+
+### Fixed
+- **Video Player Freeze** - Fixed UI freezing when loading videos in the native video player
+  - LibVLC initialization now runs asynchronously in background thread
+  - Video player no longer blocks UI thread during heavy native library loading
+- **Screen Recorder Microphone Issue** - Removed microphone audio recording option
+  - Microphone recording caused recordings to fail on many systems
+  - System audio recording still available and working
+
+---
+
 ## v3.2.16.0 - 2026-01-30
 
 ### Added

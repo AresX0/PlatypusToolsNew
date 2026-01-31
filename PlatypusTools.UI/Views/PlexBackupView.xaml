@@ -1,0 +1,530 @@
+<UserControl x:Class="PlatypusTools.UI.Views.PlexBackupView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:PlatypusTools.UI.Views"
+             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             xmlns:services="clr-namespace:PlatypusTools.Core.Services;assembly=PlatypusTools.Core"
+             mc:Ignorable="d" 
+             d:DesignHeight="800" d:DesignWidth="1200"
+             Background="{DynamicResource BackgroundBrush}">
+    
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        
+        <!-- Status indicator style with DataTrigger -->
+        <Style x:Key="StatusEllipse" TargetType="Ellipse">
+            <Setter Property="Width" Value="12"/>
+            <Setter Property="Height" Value="12"/>
+            <Setter Property="Fill" Value="Gray"/>
+        </Style>
+        
+        <!-- Mode enum values for ComboBox -->
+        <ObjectDataProvider x:Key="BackupModes" MethodName="GetValues" ObjectType="{x:Type services:PlexBackupMode}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="services:PlexBackupMode"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        
+        <ObjectDataProvider x:Key="BackupTypes" MethodName="GetValues" ObjectType="{x:Type services:PlexBackupType}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="services:PlexBackupType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </UserControl.Resources>
+    
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="350"/>
+        </Grid.ColumnDefinitions>
+        
+        <!-- Left Panel: Main Controls -->
+        <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="0,0,10,0">
+            <StackPanel>
+                
+                <!-- Header -->
+                <Border Background="#E65100" CornerRadius="5" Padding="15" Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <TextBlock Text="🎬" FontSize="32" VerticalAlignment="Center" Margin="0,0,15,0"/>
+                        
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Plex Media Server Backup" FontSize="20" FontWeight="Bold" Foreground="White"/>
+                            <TextBlock Text="Native C# backup and restore for Plex" Foreground="#CCFFFFFF" FontSize="12"/>
+                        </StackPanel>
+                        
+                        <Button Grid.Column="2" Content="↻ Refresh" 
+                                Command="{Binding RefreshStatusCommand}"
+                                Padding="15,8" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+                
+                <!-- Plex Status Panel -->
+                <GroupBox Header="📊 Plex Status" Margin="0,0,0,10">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Plex Running -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,8">
+                            <Ellipse Width="12" Height="12">
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse">
+                                        <Setter Property="Fill" Value="#F44336"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding PlexIsRunning}" Value="True">
+                                                <Setter Property="Fill" Value="#4CAF50"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                            <TextBlock Text="Plex Running" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        
+                        <!-- App Data Found -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,8">
+                            <Ellipse Width="12" Height="12">
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse">
+                                        <Setter Property="Fill" Value="#F44336"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding PlexAppDataExists}" Value="True">
+                                                <Setter Property="Fill" Value="#4CAF50"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                            <TextBlock Text="App Data Found" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        
+                        <!-- Registry Found -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,8">
+                            <Ellipse Width="12" Height="12">
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse">
+                                        <Setter Property="Fill" Value="#F44336"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding PlexRegistryExists}" Value="True">
+                                                <Setter Property="Fill" Value="#4CAF50"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                            <TextBlock Text="Registry Found" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        
+                        <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,5,0,0">
+                            <Run Text="Version: " FontWeight="SemiBold"/>
+                            <Run Text="{Binding PlexVersion, Mode=OneWay}"/>
+                        </TextBlock>
+                    </Grid>
+                </GroupBox>
+                
+                <!-- Mode and Type Selection -->
+                <GroupBox Header="⚙️ Operation Mode" Margin="0,0,0,10">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                            <TextBlock Text="Mode:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <ComboBox ItemsSource="{Binding Source={StaticResource BackupModes}}"
+                                      SelectedItem="{Binding Mode}"
+                                      IsEnabled="{Binding IsNotRunning}"/>
+                            <TextBlock Text="Backup: Create new backup&#x0a;Continue: Resume interrupted backup&#x0a;Restore: Restore from backup" 
+                                       FontSize="10" Foreground="Gray" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        
+                        <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                            <TextBlock Text="Backup Type:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <ComboBox ItemsSource="{Binding Source={StaticResource BackupTypes}}"
+                                      SelectedItem="{Binding BackupType}"
+                                      IsEnabled="{Binding IsNotRunning}"/>
+                            <TextBlock Text="Default: Built-in ZIP compression&#x0a;SevenZip: 7-Zip compression&#x0a;Robocopy: File mirroring" 
+                                       FontSize="10" Foreground="Gray" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+                
+                <!-- Directory Configuration -->
+                <GroupBox Header="📁 Directories" Margin="0,0,0,10">
+                    <StackPanel Margin="10">
+                        
+                        <!-- Plex App Data Directory -->
+                        <TextBlock Text="Plex App Data Directory:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding PlexAppDataDir, UpdateSourceTrigger=PropertyChanged}" 
+                                     IsEnabled="{Binding IsNotRunning}" VerticalContentAlignment="Center"/>
+                            <Button Grid.Column="1" Content="📂" Width="30" Margin="5,0,0,0"
+                                    Command="{Binding BrowsePlexAppDataCommand}" ToolTip="Browse"/>
+                            <Button Grid.Column="2" Content="📁" Width="30" Margin="5,0,0,0"
+                                    Command="{Binding OpenPlexFolderCommand}" ToolTip="Open in Explorer"/>
+                        </Grid>
+                        
+                        <!-- Backup Root Directory -->
+                        <TextBlock Text="Backup Root Directory:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding BackupRootDir, UpdateSourceTrigger=PropertyChanged}" 
+                                     IsEnabled="{Binding IsNotRunning}" VerticalContentAlignment="Center"/>
+                            <Button Grid.Column="1" Content="📂" Width="30" Margin="5,0,0,0"
+                                    Command="{Binding BrowseBackupRootCommand}" ToolTip="Browse"/>
+                            <Button Grid.Column="2" Content="📁" Width="30" Margin="5,0,0,0"
+                                    Command="{Binding OpenBackupFolderCommand}" ToolTip="Open in Explorer"/>
+                        </Grid>
+                        
+                        <!-- Restore From Directory (only for Restore mode) -->
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Mode}" Value="Restore">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <TextBlock Text="Restore From Directory:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Text="{Binding BackupDir, UpdateSourceTrigger=PropertyChanged}" 
+                                         IsEnabled="{Binding IsNotRunning}" VerticalContentAlignment="Center"/>
+                                <Button Grid.Column="1" Content="📂" Width="30" Margin="5,0,0,0"
+                                        Command="{Binding BrowseBackupDirCommand}" ToolTip="Browse"/>
+                            </Grid>
+                        </StackPanel>
+                        
+                        <!-- Temp Directory -->
+                        <TextBlock Text="Temporary Directory (for staging):" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding TempDir, UpdateSourceTrigger=PropertyChanged}" 
+                                     IsEnabled="{Binding IsNotRunning}" VerticalContentAlignment="Center"/>
+                            <Button Grid.Column="1" Content="📂" Width="30" Margin="5,0,0,0"
+                                    Command="{Binding BrowseTempDirCommand}" ToolTip="Browse"/>
+                        </Grid>
+                        
+                        <!-- 7-Zip Path (only for 7-Zip mode) -->
+                        <StackPanel Visibility="{Binding Is7ZipSelected, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="7-Zip Executable Path:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Text="{Binding SevenZipPath, UpdateSourceTrigger=PropertyChanged}" 
+                                         IsEnabled="{Binding IsNotRunning}" VerticalContentAlignment="Center"/>
+                                <Button Grid.Column="1" Content="📂" Width="30" Margin="5,0,0,0"
+                                        Command="{Binding Browse7ZipCommand}" ToolTip="Browse"/>
+                                <Ellipse Grid.Column="2" Width="12" Height="12" Margin="8,0,0,0" VerticalAlignment="Center">
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse">
+                                            <Setter Property="Fill" Value="#F44336"/>
+                                            <Setter Property="ToolTip" Value="7-Zip Not Found"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Is7ZipAvailable}" Value="True">
+                                                    <Setter Property="Fill" Value="#4CAF50"/>
+                                                    <Setter Property="ToolTip" Value="7-Zip Found"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                            </Grid>
+                        </StackPanel>
+                        
+                    </StackPanel>
+                </GroupBox>
+                
+                <!-- Options -->
+                <GroupBox Header="🔧 Options" Margin="0,0,0,10">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Left Column: Numeric Options -->
+                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                            <TextBlock Text="Number Settings:" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                            
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="80"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Keep Backups:" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="1" Text="{Binding KeepBackups}" 
+                                         IsEnabled="{Binding IsNotRunning}" TextAlignment="Center"/>
+                            </Grid>
+                            
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="80"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Retries:" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="1" Text="{Binding Retries}" 
+                                         IsEnabled="{Binding IsNotRunning}" TextAlignment="Center"/>
+                            </Grid>
+                            
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="80"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Retry Wait (sec):" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="1" Text="{Binding RetryWaitSec}" 
+                                         IsEnabled="{Binding IsNotRunning}" TextAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+                        
+                        <!-- Right Column: Toggle Options -->
+                        <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                            <TextBlock Text="Behavior Settings:" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                            
+                            <CheckBox Content="Test Mode (Dry Run)" IsChecked="{Binding TestMode}" 
+                                      IsEnabled="{Binding IsNotRunning}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Don't Restart Plex" IsChecked="{Binding NoRestart}" 
+                                      IsEnabled="{Binding IsNotRunning}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Skip Version Check" IsChecked="{Binding NoVersionCheck}" 
+                                      IsEnabled="{Binding IsNotRunning}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Allow Inactive Plex" IsChecked="{Binding Inactive}" 
+                                      IsEnabled="{Binding IsNotRunning}" Margin="0,0,0,8"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+                
+                <!-- Exclusions -->
+                <GroupBox Header="🚫 Exclusions" Margin="0,0,0,10">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Exclude Directories -->
+                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                            <TextBlock Text="Exclude Directories:" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                            <CheckBox Content="Diagnostics" IsChecked="{Binding ExcludeDiagnostics}" 
+                                      IsEnabled="{Binding IsNotRunning}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Crash Reports" IsChecked="{Binding ExcludeCrashReports}" 
+                                      IsEnabled="{Binding IsNotRunning}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Updates" IsChecked="{Binding ExcludeUpdates}" 
+                                      IsEnabled="{Binding IsNotRunning}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Logs" IsChecked="{Binding ExcludeLogs}" 
+                                      IsEnabled="{Binding IsNotRunning}" Margin="0,0,0,8"/>
+                        </StackPanel>
+                        
+                        <!-- Exclude Files -->
+                        <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                            <TextBlock Text="Exclude Files/Folders:" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                            <CheckBox Content="Thumbnails (*.bif)" IsChecked="{Binding ExcludeThumbnails}" 
+                                      IsEnabled="{Binding IsNotRunning}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Transcode Cache" IsChecked="{Binding ExcludeTranscode}" 
+                                      IsEnabled="{Binding IsNotRunning}" Margin="0,0,0,8"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+                
+                <!-- Action Buttons -->
+                <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="5" Padding="15" Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Progress -->
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding StatusMessage}" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <ProgressBar Value="{Binding Progress}" Height="20" 
+                                         Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}"/>
+                        </StackPanel>
+                        
+                        <!-- Execute Button -->
+                        <Button Grid.Column="1" Padding="20,10" Margin="10,0,0,0"
+                                Command="{Binding ExecuteCommand}"
+                                IsEnabled="{Binding IsNotRunning}"
+                                FontWeight="Bold" FontSize="14">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                    <Setter Property="Content" Value="▶ Start Backup"/>
+                                    <Setter Property="Background" Value="#4CAF50"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Mode}" Value="Restore">
+                                            <Setter Property="Content" Value="⬇ Start Restore"/>
+                                            <Setter Property="Background" Value="#2196F3"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Mode}" Value="Continue">
+                                            <Setter Property="Content" Value="▶ Continue Backup"/>
+                                            <Setter Property="Background" Value="#FF9800"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        
+                        <!-- Cancel Button -->
+                        <Button Grid.Column="2" Content="✖ Cancel" Padding="20,10" Margin="10,0,0,0"
+                                Command="{Binding CancelCommand}"
+                                Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}"
+                                Background="#F44336" Foreground="White"/>
+                    </Grid>
+                </Border>
+                
+                <!-- Output Log -->
+                <GroupBox Header="📋 Output Log" Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="200"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <TextBox Text="{Binding Output, Mode=OneWay}" 
+                                 IsReadOnly="True" 
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 HorizontalScrollBarVisibility="Auto"
+                                 FontFamily="Consolas"
+                                 FontSize="11"
+                                 Background="#1E1E1E"
+                                 Foreground="#D4D4D4"
+                                 Padding="10"/>
+                        
+                        <Button Grid.Row="1" Content="Clear Log" 
+                                Command="{Binding ClearOutputCommand}"
+                                HorizontalAlignment="Right" Margin="0,5,0,0" Padding="10,5"/>
+                    </Grid>
+                </GroupBox>
+                
+            </StackPanel>
+        </ScrollViewer>
+        
+        <!-- Right Panel: Available Backups -->
+        <Border Grid.Column="1" Background="{DynamicResource SurfaceBrush}" CornerRadius="5" Padding="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="📦 Available Backups" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <Button Content="↻" Width="30" Height="30" Margin="10,0,0,0"
+                            Command="{Binding RefreshBackupsCommand}" ToolTip="Refresh Backups"/>
+                </StackPanel>
+                
+                <ListBox Grid.Row="1" 
+                         ItemsSource="{Binding AvailableBackups}"
+                         SelectedItem="{Binding SelectedBackup}"
+                         HorizontalContentAlignment="Stretch"
+                         Background="Transparent"
+                         BorderThickness="0">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{DynamicResource BackgroundBrush}" CornerRadius="5" Padding="10" Margin="0,0,0,5">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="12"/>
+                                        
+                                        <TextBlock FontSize="11" Foreground="Gray" Margin="0,3,0,0">
+                                            <Run Text="Created: "/>
+                                            <Run Text="{Binding Created, StringFormat='yyyy-MM-dd HH:mm'}"/>
+                                        </TextBlock>
+                                        
+                                        <TextBlock FontSize="11" Foreground="Gray" Margin="0,2,0,0">
+                                            <Run Text="Plex: "/>
+                                            <Run Text="{Binding PlexVersion, TargetNullValue='Unknown'}"/>
+                                            <Run Text=" | "/>
+                                            <Run Text="{Binding BackupType}"/>
+                                        </TextBlock>
+                                        
+                                        <TextBlock FontSize="11" Foreground="Gray" Margin="0,2,0,0">
+                                            <Run Text="{Binding FileCount}"/>
+                                            <Run Text=" files | "/>
+                                            <Run Text="{Binding FormattedSize}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                    
+                                    <Button Grid.Column="1" Content="🗑" Width="30" Height="30"
+                                            Command="{Binding DataContext.DeleteBackupCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            ToolTip="Delete Backup" VerticalAlignment="Center"
+                                            Background="#F44336" Foreground="White"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                    
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+                
+                <!-- No backups message -->
+                <TextBlock Grid.Row="1" Text="No backups found in the selected directory."
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="Gray" FontStyle="Italic">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding AvailableBackups.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+        </Border>
+        
+    </Grid>
+</UserControl>

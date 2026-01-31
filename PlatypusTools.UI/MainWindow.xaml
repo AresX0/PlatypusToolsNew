@@ -198,10 +198,6 @@
                                      Visibility="{Binding VideoConverter, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <controls:LazyTabContent ViewType="{x:Type views:VideoConverterView}" ViewDataContext="{Binding VideoConverter}" />
                             </TabItem>
-                            <TabItem Header="Screen Recorder"
-                                     Visibility="{Binding ScreenRecorder, Source={x:Static services:TabVisibilityService.Instance}}">
-                                <controls:LazyTabContent ViewType="{x:Type views:ScreenRecorderView}" />
-                            </TabItem>
                         </TabControl>
                     </TabItem>
                     
@@ -254,6 +250,10 @@
                     <TabItem Header="System Restore"
                              Visibility="{Binding SystemRestore, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:SystemRestoreView}" ViewDataContext="{Binding SystemRestore}" />
+                    </TabItem>
+                    <TabItem Header="🔄 Windows Update Repair"
+                             Visibility="{Binding WindowsUpdateRepair, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <views:WindowsUpdateRepairView />
                     </TabItem>
                     <TabItem Header="💻 Terminal">
                         <views:LocalTerminalView/>
@@ -345,6 +345,14 @@
                     <TabItem Header="Web Browser"
                              Visibility="{Binding SimpleBrowser, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:SimpleBrowserView}" ViewDataContext="{Binding SimpleBrowser}" />
+                    </TabItem>
+                    <TabItem Header="Plex Backup"
+                             Visibility="{Binding PlexBackup, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:PlexBackupView}" ViewDataContext="{Binding PlexBackup}" />
+                    </TabItem>
+                    <TabItem Header="Screen Recorder"
+                             Visibility="{Binding ScreenRecorder, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:ScreenRecorderView}" />
                     </TabItem>
                 </TabControl>
             </TabItem>

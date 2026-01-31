@@ -2,8 +2,11 @@ using PlatypusTools.Core.Services;
 using PlatypusTools.UI.Views;
 using PlatypusTools.UI.ViewModels;
 using PlatypusTools.UI.Utilities;
+using PlatypusTools.UI.Services;
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -19,6 +22,13 @@ namespace PlatypusTools.UI
             base.OnStartup(e);
             _startupArgs = e.Args;
             
+            // Check if we need to run as admin but aren't elevated
+            if (ShouldElevate())
+            {
+                RestartAsAdmin();
+                return;
+            }
+            
             // IMMEDIATELY show splash screen with video - this is the first thing that happens
             // No async, no delays - get that video playing NOW
             _splashScreen = new SplashScreenWindow();
@@ -30,6 +40,80 @@ namespace PlatypusTools.UI
             // Now kick off the async initialization in the background
             // The video will loop while everything loads
             Dispatcher.BeginInvoke(new Action(async () => await InitializeApplicationAsync()));
+        }
+        
+        /// <summary>
+        /// Checks if the application should run elevated based on settings and current state.
+        /// </summary>
+        private bool ShouldElevate()
+        {
+            try
+            {
+                // Check if already running as admin
+                var identity = WindowsIdentity.GetCurrent();
+                var principal = new WindowsPrincipal(identity);
+                if (principal.IsInRole(WindowsBuiltInRole.Administrator))
+                    return false; // Already elevated
+                
+                // Check if admin mode is requested in settings
+                var settings = SettingsManager.Current;
+                return settings.RequireAdminRights;
+            }
+            catch
+            {
+                return false; // On error, don't try to elevate
+            }
+        }
+        
+        /// <summary>
+        /// Restarts the application with administrator privileges.
+        /// </summary>
+        private void RestartAsAdmin()
+        {
+            try
+            {
+                var exePath = Process.GetCurrentProcess().MainModule?.FileName;
+                if (string.IsNullOrEmpty(exePath))
+                {
+                    exePath = Environment.ProcessPath;
+                }
+                
+                if (!string.IsNullOrEmpty(exePath))
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = exePath,
+                        UseShellExecute = true,
+                        Verb = "runas", // Request elevation
+                        Arguments = string.Join(" ", _startupArgs ?? Array.Empty<string>())
+                    };
+                    
+                    Process.Start(startInfo);
+                }
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                // User cancelled UAC prompt - continue without elevation
+                // Re-show splash and continue normally
+                _splashScreen = new SplashScreenWindow();
+                _splashScreen.Show();
+                _splashScreen.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);
+                Dispatcher.BeginInvoke(new Action(async () => await InitializeApplicationAsync()));
+                return;
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error($"Failed to restart as admin: {ex.Message}");
+                // Continue without elevation
+                _splashScreen = new SplashScreenWindow();
+                _splashScreen.Show();
+                _splashScreen.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);
+                Dispatcher.BeginInvoke(new Action(async () => await InitializeApplicationAsync()));
+                return;
+            }
+            
+            // Exit this instance since we launched an elevated one
+            Shutdown();
         }
         
         private async Task InitializeApplicationAsync()

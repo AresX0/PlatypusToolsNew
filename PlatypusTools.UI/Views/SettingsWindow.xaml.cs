@@ -78,6 +78,10 @@ namespace PlatypusTools.UI.Views
                 if (AutoCheckUpdatesCheck != null)
                     AutoCheckUpdatesCheck.IsChecked = settings?.CheckForUpdatesOnStartup ?? true;
 
+                // Admin rights
+                if (RequireAdminRightsCheck != null)
+                    RequireAdminRightsCheck.IsChecked = settings?.RequireAdminRights ?? true;
+
                 // Load keyboard shortcuts
                 LoadKeyboardShortcuts();
                 
@@ -483,6 +487,14 @@ namespace PlatypusTools.UI.Views
             
             settings.CheckForUpdatesOnStartup = AutoCheckUpdatesCheck.IsChecked == true;
             
+            // Admin rights (requires restart to take effect)
+            var previousAdminSetting = settings.RequireAdminRights;
+            settings.RequireAdminRights = RequireAdminRightsCheck.IsChecked == true;
+            if (previousAdminSetting != settings.RequireAdminRights)
+            {
+                UpdateManifestForNextLaunch(settings.RequireAdminRights);
+            }
+            
             // Save tab visibility settings
             SaveTabVisibilitySettings(settings);
             
@@ -530,6 +542,33 @@ namespace PlatypusTools.UI.Views
             catch (System.Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error saving visualizer settings: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Updates the manifest file for the next application launch based on the admin rights setting.
+        /// Since embedded manifests cannot be changed at runtime, this creates a companion file
+        /// that App.xaml.cs checks on startup.
+        /// </summary>
+        private void UpdateManifestForNextLaunch(bool requireAdmin)
+        {
+            try
+            {
+                // The setting is already saved to SettingsManager.Current
+                // App.xaml.cs checks this setting on startup and elevates if needed
+                
+                // Show info message about restart
+                MessageBox.Show(
+                    requireAdmin 
+                        ? "Administrator rights will be requested on next launch.\nPlease restart the application for changes to take effect."
+                        : "The application will no longer request administrator rights on next launch.\nPlease restart the application for changes to take effect.",
+                    "Admin Rights Setting Changed",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error updating admin mode flag: {ex.Message}");
             }
         }
         

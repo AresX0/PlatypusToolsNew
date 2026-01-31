@@ -65,15 +65,15 @@ Set-Location $ProjectRoot
 
 # Console colors
 function Write-Step { param([string]$Message) Write-Host "`n=== $Message ===" -ForegroundColor Cyan }
-function Write-Success { param([string]$Message) Write-Host "✓ $Message" -ForegroundColor Green }
-function Write-Warning { param([string]$Message) Write-Host "⚠ $Message" -ForegroundColor Yellow }
-function Write-Error { param([string]$Message) Write-Host "✗ $Message" -ForegroundColor Red }
+function Write-Success { param([string]$Message) Write-Host "[OK] $Message" -ForegroundColor Green }
+function Write-Warning { param([string]$Message) Write-Host "[!] $Message" -ForegroundColor Yellow }
+function Write-Error { param([string]$Message) Write-Host "[X] $Message" -ForegroundColor Red }
 
 Write-Host "`n" -NoNewline
-Write-Host "╔═══════════════════════════════════════════════════════════════╗" -ForegroundColor Magenta
-Write-Host "║        PlatypusTools Release Build Script                     ║" -ForegroundColor Magenta
-Write-Host "║        Clean Build → MSI + Self-Contained EXE                 ║" -ForegroundColor Magenta
-Write-Host "╚═══════════════════════════════════════════════════════════════╝" -ForegroundColor Magenta
+Write-Host "+===============================================================+" -ForegroundColor Magenta
+Write-Host "|        PlatypusTools Release Build Script                     |" -ForegroundColor Magenta
+Write-Host "|        Clean Build → MSI + Self-Contained EXE                 |" -ForegroundColor Magenta
+Write-Host "+===============================================================+" -ForegroundColor Magenta
 
 # Get version from csproj if not specified
 if (-not $Version) {
@@ -270,9 +270,9 @@ if ($productWxsContent -match '<Package[^>]*Version="([^"]+)"') {
 
 # === Summary ===
 Write-Host "`n" -NoNewline
-Write-Host "╔═══════════════════════════════════════════════════════════════╗" -ForegroundColor Green
-Write-Host "║                    BUILD COMPLETE                             ║" -ForegroundColor Green
-Write-Host "╚═══════════════════════════════════════════════════════════════╝" -ForegroundColor Green
+Write-Host "+===============================================================+" -ForegroundColor Green
+Write-Host "|                    BUILD COMPLETE                             |" -ForegroundColor Green
+Write-Host "+===============================================================+" -ForegroundColor Green
 
 Write-Host "`nBuild Artifacts:" -ForegroundColor White
 Write-Host "  Self-contained EXE: $exePath" -ForegroundColor Gray
@@ -282,9 +282,10 @@ Write-Host "                      Size: $msiSizeMB MB" -ForegroundColor Gray
 
 Write-Host "`nVersion: $Version" -ForegroundColor Cyan
 
-Write-Host "`n⚠ IMPORTANT: Before uploading to GitHub, verify:" -ForegroundColor Yellow
+Write-Host "`n[!] IMPORTANT: Before uploading to GitHub, verify:" -ForegroundColor Yellow
 Write-Host "  1. Test the MSI installer on a clean machine" -ForegroundColor Yellow
 Write-Host "  2. Verify installed version matches $Version" -ForegroundColor Yellow
 Write-Host "  3. Test the self-contained EXE runs correctly" -ForegroundColor Yellow
 
 Write-Host "`n"
+

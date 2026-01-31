@@ -17,6 +17,8 @@ namespace PlatypusTools.UI.Views
         private static LibVLC? _libVLC;
         private MediaPlayer? _mediaPlayer;
         private Media? _currentMedia;
+        private bool _isInitialized = false;
+        private bool _isInitializing = false;
         
         // Logging
         private static readonly string LogPath = Path.Combine(AppContext.BaseDirectory, "vlc_debug.log");
@@ -36,76 +38,116 @@ namespace PlatypusTools.UI.Views
         {
             InitializeComponent();
             Log("NativeVideoPlayerView constructor starting");
-            InitializeLibVLC();
+            // Defer heavy initialization to Loaded event to avoid UI freeze
             InitializeTimer();
             
             Loaded += NativeVideoPlayerView_Loaded;
             Unloaded += NativeVideoPlayerView_Unloaded;
-            Log("NativeVideoPlayerView constructor complete");
+            Log("NativeVideoPlayerView constructor complete (deferred init)");
         }
         
-        private void InitializeLibVLC()
+        private async void InitializeLibVLCAsync()
         {
-            Log("InitializeLibVLC starting");
+            if (_isInitialized || _isInitializing) return;
+            _isInitializing = true;
+            
+            Log("InitializeLibVLCAsync starting on background thread");
+            
             try
             {
-                if (_libVLC == null)
+                // Run heavy native library loading on background thread
+                await System.Threading.Tasks.Task.Run(() =>
                 {
-                    // Determine the path to libvlc native libraries
-                    var baseDir = AppContext.BaseDirectory;
-                    var libvlcPath = Path.Combine(baseDir, "libvlc", "win-x64");
-                    
-                    Log($"Looking for libvlc at: {libvlcPath}");
-                    Log($"libvlc.dll exists: {File.Exists(Path.Combine(libvlcPath, "libvlc.dll"))}");
-                    Log($"libvlccore.dll exists: {File.Exists(Path.Combine(libvlcPath, "libvlccore.dll"))}");
-                    
-                    if (!File.Exists(Path.Combine(libvlcPath, "libvlc.dll")))
+                    try
                     {
-                        Log("ERROR: libvlc.dll not found!");
-                        return;
+                        if (_libVLC == null)
+                        {
+                            // Determine the path to libvlc native libraries
+                            var baseDir = AppContext.BaseDirectory;
+                            var libvlcPath = Path.Combine(baseDir, "libvlc", "win-x64");
+                            
+                            Log($"Looking for libvlc at: {libvlcPath}");
+                            Log($"libvlc.dll exists: {File.Exists(Path.Combine(libvlcPath, "libvlc.dll"))}");
+                            Log($"libvlccore.dll exists: {File.Exists(Path.Combine(libvlcPath, "libvlccore.dll"))}");
+                            
+                            if (!File.Exists(Path.Combine(libvlcPath, "libvlc.dll")))
+                            {
+                                Log("ERROR: libvlc.dll not found!");
+                                return;
+                            }
+                            
+                            Log("Calling Core.Initialize() with libvlc path...");
+                            LibVLCSharp.Shared.Core.Initialize(libvlcPath);
+                            Log("Core.Initialize() succeeded, creating LibVLC instance...");
+                            _libVLC = new LibVLC("--no-video-title-show", "--quiet");
+                            Log($"LibVLC created: {_libVLC != null}");
+                        }
+                        else
+                        {
+                            Log("LibVLC already initialized (static)");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log($"InitializeLibVLCAsync background FAILED: {ex.GetType().Name}: {ex.Message}");
+                        Log($"Stack: {ex.StackTrace}");
+                    }
+                });
+                
+                // Back on UI thread - create MediaPlayer and attach to VideoView
+                if (_libVLC != null)
+                {
+                    Log("Creating MediaPlayer on UI thread...");
+                    _mediaPlayer = new MediaPlayer(_libVLC);
+                    Log($"MediaPlayer created: {_mediaPlayer != null}");
+                    
+                    if (_mediaPlayer != null && VlcVideoView.MediaPlayer == null)
+                    {
+                        Log("Attaching MediaPlayer to VlcVideoView...");
+                        VlcVideoView.MediaPlayer = _mediaPlayer;
+                        Log("MediaPlayer attached to VlcVideoView");
                     }
                     
-                    Log("Calling Core.Initialize() with libvlc path...");
-                    LibVLCSharp.Shared.Core.Initialize(libvlcPath);
-                    Log("Core.Initialize() succeeded, creating LibVLC instance...");
-                    _libVLC = new LibVLC("--no-video-title-show", "--quiet");
-                    Log($"LibVLC created: {_libVLC != null}");
+                    _isInitialized = true;
                 }
-                else
-                {
-                    Log("LibVLC already initialized (static)");
-                }
-                
-                Log("Creating MediaPlayer...");
-                _mediaPlayer = new MediaPlayer(_libVLC);
-                Log($"MediaPlayer created: {_mediaPlayer != null}");
             }
             catch (Exception ex)
             {
-                Log($"InitializeLibVLC FAILED: {ex.GetType().Name}: {ex.Message}");
+                Log($"InitializeLibVLCAsync FAILED: {ex.GetType().Name}: {ex.Message}");
                 Log($"Stack: {ex.StackTrace}");
+            }
+            finally
+            {
+                _isInitializing = false;
             }
         }
         
         private void NativeVideoPlayerView_Loaded(object sender, RoutedEventArgs e)
         {
             Log("NativeVideoPlayerView_Loaded fired");
-            // Ensure we have a MediaPlayer (recreate if was disposed)
-            if (_mediaPlayer == null && _libVLC != null)
+            
+            // Start async initialization when view is loaded
+            if (!_isInitialized && !_isInitializing)
             {
-                Log("MediaPlayer was null, recreating...");
-                _mediaPlayer = new MediaPlayer(_libVLC);
+                InitializeLibVLCAsync();
+            }
+            else if (_isInitialized)
+            {
+                // Already initialized, just ensure MediaPlayer is attached
+                if (_mediaPlayer == null && _libVLC != null)
+                {
+                    Log("MediaPlayer was null, recreating...");
+                    _mediaPlayer = new MediaPlayer(_libVLC);
+                }
+                
+                if (_mediaPlayer != null && VlcVideoView.MediaPlayer == null)
+                {
+                    Log("Re-attaching MediaPlayer to VlcVideoView...");
+                    VlcVideoView.MediaPlayer = _mediaPlayer;
+                }
             }
             
-            Log($"State: _libVLC={_libVLC != null}, _mediaPlayer={_mediaPlayer != null}, VlcVideoView.MediaPlayer={VlcVideoView.MediaPlayer != null}");
-            
-            // Attach media player to VideoView after control is loaded
-            if (_mediaPlayer != null && VlcVideoView.MediaPlayer == null)
-            {
-                Log("Attaching MediaPlayer to VlcVideoView...");
-                VlcVideoView.MediaPlayer = _mediaPlayer;
-                Log("MediaPlayer attached to VlcVideoView");
-            }
+            Log($"State: _libVLC={_libVLC != null}, _mediaPlayer={_mediaPlayer != null}, _isInitialized={_isInitialized}");
         }
         
         private void NativeVideoPlayerView_Unloaded(object sender, RoutedEventArgs e)

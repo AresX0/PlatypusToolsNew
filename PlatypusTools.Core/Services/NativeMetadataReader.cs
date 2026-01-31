@@ -126,12 +126,38 @@ namespace PlatypusTools.Core.Services
                     // GPS data
                     if (directory is GpsDirectory gpsDir)
                     {
-                        var location = gpsDir.GetGeoLocation();
-                        if (location != null)
+                        // MetadataExtractor 2.9+ uses direct property access instead of GetGeoLocation()
+                        var latitude = gpsDir.GetDescription(GpsDirectory.TagLatitude);
+                        var latitudeRef = gpsDir.GetDescription(GpsDirectory.TagLatitudeRef);
+                        var longitude = gpsDir.GetDescription(GpsDirectory.TagLongitude);
+                        var longitudeRef = gpsDir.GetDescription(GpsDirectory.TagLongitudeRef);
+                        
+                        if (!string.IsNullOrEmpty(latitude) && !string.IsNullOrEmpty(longitude))
                         {
-                            metadata["GPSLatitude"] = location.Latitude.ToString("F6");
-                            metadata["GPSLongitude"] = location.Longitude.ToString("F6");
-                            metadata["GPSPosition"] = $"{location.Latitude:F6}, {location.Longitude:F6}";
+                            // Try to parse the raw rational values for more precision
+                            var latRationals = gpsDir.GetRationalArray(GpsDirectory.TagLatitude);
+                            var lonRationals = gpsDir.GetRationalArray(GpsDirectory.TagLongitude);
+                            
+                            if (latRationals != null && lonRationals != null && latRationals.Length >= 3 && lonRationals.Length >= 3)
+                            {
+                                double lat = latRationals[0].ToDouble() + latRationals[1].ToDouble() / 60.0 + latRationals[2].ToDouble() / 3600.0;
+                                double lon = lonRationals[0].ToDouble() + lonRationals[1].ToDouble() / 60.0 + lonRationals[2].ToDouble() / 3600.0;
+                                
+                                // Apply reference direction
+                                if (latitudeRef?.Equals("S", StringComparison.OrdinalIgnoreCase) == true) lat = -lat;
+                                if (longitudeRef?.Equals("W", StringComparison.OrdinalIgnoreCase) == true) lon = -lon;
+                                
+                                metadata["GPSLatitude"] = lat.ToString("F6");
+                                metadata["GPSLongitude"] = lon.ToString("F6");
+                                metadata["GPSPosition"] = $"{lat:F6}, {lon:F6}";
+                            }
+                            else
+                            {
+                                // Fallback to description strings
+                                metadata["GPSLatitude"] = latitude;
+                                metadata["GPSLongitude"] = longitude;
+                                metadata["GPSPosition"] = $"{latitude}, {longitude}";
+                            }
                         }
                     }
 

@@ -66,6 +66,7 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<FtpClientViewModel> _ftpClient = new(() => new FtpClientViewModel());
         private readonly Lazy<TerminalClientViewModel> _terminalClient = new(() => new TerminalClientViewModel());
         private readonly Lazy<SimpleBrowserViewModel> _simpleBrowser = new(() => new SimpleBrowserViewModel());
+        private readonly Lazy<PlexBackupViewModel> _plexBackup = new(() => new PlexBackupViewModel());
         
         #endregion
 
@@ -157,6 +158,7 @@ namespace PlatypusTools.UI.ViewModels
         public FtpClientViewModel FtpClient => _ftpClient.Value;
         public TerminalClientViewModel TerminalClient => _terminalClient.Value;
         public SimpleBrowserViewModel SimpleBrowser => _simpleBrowser.Value;
+        public PlexBackupViewModel PlexBackup => _plexBackup.Value;
         
         #endregion
 

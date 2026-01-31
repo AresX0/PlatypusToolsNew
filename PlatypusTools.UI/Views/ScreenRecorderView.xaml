@@ -49,8 +49,6 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         
                         <!-- Output Folder -->
@@ -92,48 +90,20 @@
                                   SelectedItem="{Binding SelectedCodec}"
                                   IsEnabled="{Binding IsNotRecording}" Margin="0,0,0,10"/>
                         
-                        <!-- Record Microphone Audio -->
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Microphone:" 
+                        <!-- Record System Audio -->
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="System Audio:" 
                                    VerticalAlignment="Center" Margin="0,0,10,10"
                                    Foreground="{DynamicResource TextPrimary}"/>
                         <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,10">
-                            <CheckBox IsChecked="{Binding RecordAudio}" VerticalAlignment="Center"
-                                      IsEnabled="{Binding IsNotRecording}" Content="Record microphone audio"/>
-                        </StackPanel>
-                        
-                        <!-- Audio Device -->
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Audio Device:" 
-                                   VerticalAlignment="Center" Margin="0,0,10,10"
-                                   Foreground="{DynamicResource TextPrimary}"/>
-                        <Grid Grid.Row="4" Grid.Column="1" Margin="0,0,0,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" MaxWidth="400"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <ComboBox Grid.Column="0" ItemsSource="{Binding AudioDevices}"
-                                      SelectedValue="{Binding SelectedAudioDevice}"
-                                      SelectedValuePath="Name"
-                                      DisplayMemberPath="Name"
-                                      IsEnabled="{Binding RecordAudio}"/>
-                            <Button Grid.Column="1" Content="🔄" Width="35" Margin="5,0,0,0"
-                                    Command="{Binding RefreshAudioDevicesCommand}" 
-                                    ToolTip="Refresh audio devices"/>
-                        </Grid>
-                        
-                        <!-- Record System Audio -->
-                        <TextBlock Grid.Row="5" Grid.Column="0" Text="System Audio:" 
-                                   VerticalAlignment="Center" Margin="0,0,10,10"
-                                   Foreground="{DynamicResource TextPrimary}"/>
-                        <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,10">
                             <CheckBox IsChecked="{Binding RecordSystemAudio}" VerticalAlignment="Center"
                                       IsEnabled="{Binding IsNotRecording}" Content="Record system audio (what you hear)"/>
                         </StackPanel>
                         
                         <!-- Start Delay -->
-                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Start Delay:" 
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Start Delay:" 
                                    VerticalAlignment="Center" Margin="0,0,10,0"
                                    Foreground="{DynamicResource TextPrimary}"/>
-                        <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal">
+                        <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal">
                             <CheckBox IsChecked="{Binding UseStartDelay}" VerticalAlignment="Center"
                                       IsEnabled="{Binding IsNotRecording}" Content="3 second countdown before recording"/>
                         </StackPanel>

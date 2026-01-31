@@ -91,7 +91,6 @@ namespace PlatypusTools.UI.Services
         public Visibility Upscaler => GetVisibility("Multimedia.Video.Upscaler");
         public Visibility VideoCombiner => GetVisibility("Multimedia.Video.VideoCombiner");
         public Visibility VideoConverter => GetVisibility("Multimedia.Video.VideoConverter");
-        public Visibility ScreenRecorder => GetVisibility("Multimedia.Video.ScreenRecorder");
         public Visibility MediaLibrary => GetVisibility("Multimedia.MediaLibrary");
         public Visibility ExternalTools => GetVisibility("Multimedia.ExternalTools");
 
@@ -105,6 +104,7 @@ namespace PlatypusTools.UI.Services
         public Visibility RegistryCleaner => GetVisibility("System.RegistryCleaner");
         public Visibility ScheduledTasks => GetVisibility("System.ScheduledTasks");
         public Visibility SystemRestore => GetVisibility("System.SystemRestore");
+        public Visibility WindowsUpdateRepair => GetVisibility("System.WindowsUpdateRepair");
 
         // Security
         public Visibility Security => GetVisibility("Security");
@@ -148,6 +148,8 @@ namespace PlatypusTools.UI.Services
         public Visibility FtpClient => GetVisibility("Tools.FtpClient");
         public Visibility TerminalClient => GetVisibility("Tools.TerminalClient");
         public Visibility SimpleBrowser => GetVisibility("Tools.SimpleBrowser");
+        public Visibility PlexBackup => GetVisibility("Tools.PlexBackup");
+        public Visibility ScreenRecorder => GetVisibility("Tools.ScreenRecorder");
 
         // FileManagement - Robocopy
         public Visibility Robocopy => GetVisibility("FileManagement.Robocopy");

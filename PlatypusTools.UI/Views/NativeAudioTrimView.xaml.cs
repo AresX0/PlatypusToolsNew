@@ -93,7 +93,7 @@ namespace PlatypusTools.UI.Views
             if (process.ExitCode != 0)
             {
                 var error = await process.StandardError.ReadToEndAsync();
-                throw new Exception($"FFmpeg exited with code {process.ExitCode}: {error}");
+                throw new InvalidOperationException($"FFmpeg exited with code {process.ExitCode}: {error}");
             }
         }
 

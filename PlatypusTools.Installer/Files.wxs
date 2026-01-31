@@ -4,7 +4,10 @@
     <!-- Directory structure -->
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="PlatypusTools">
-        <Directory Id="ToolsFolder" Name="Tools" />
+        <Directory Id="ToolsFolder" Name="Tools">
+          <Directory Id="FFmpegFolder" Name="ffmpeg" />
+          <Directory Id="ExifToolFolder" Name="exiftool" />
+        </Directory>
         <Directory Id="DataFolder" Name="Data" />
         <Directory Id="LogsFolder" Name="Logs" />
       </Directory>
@@ -47,20 +50,6 @@
                      Type="string" 
                      Value="3.2.16.0" />
     </Component>
-  </Fragment>
-
-  <Fragment>
-    <!-- FFmpeg subfolder -->
-    <StandardDirectory Id="ProgramFiles64Folder">
-      <Directory Id="INSTALLFOLDER2" Name="PlatypusTools">
-        <Directory Id="ToolsFolder2" Name="Tools">
-          <Directory Id="FFmpegFolder" Name="ffmpeg" />
-          <Directory Id="ExifToolFolder" Name="exiftool">
-            <Directory Id="ExifToolFilesFolder" Name="exiftool_files" />
-          </Directory>
-        </Directory>
-      </Directory>
-    </StandardDirectory>
   </Fragment>
 
   <Fragment>

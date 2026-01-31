@@ -4,10 +4,11 @@
   
   <Package Name="PlatypusTools"
            Manufacturer="PlatypusTools"
-           Version="3.2.16.0"
+           Version="3.2.17.1"
            UpgradeCode="A1B2C3D4-E5F6-4A5B-9C8D-1E2F3A4B5C6D"
            InstallerVersion="500"
-           Compressed="yes">
+           Compressed="yes"
+           Scope="perMachine">
 
     <SummaryInformation Keywords="Installer"
                         Description="PlatypusTools - Comprehensive System Utilities Suite"
@@ -15,10 +16,13 @@
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
+    <!-- Launch conditions -->
+    <Launch Condition="VersionNT64" Message="This application requires a 64-bit version of Windows." />
+
     <MediaTemplate EmbedCab="yes" />
 
     <!-- Icon for Add/Remove Programs -->
-    <Icon Id="PlatypusIcon" SourceFile="C:\Projects\PlatypusToolsNew\JosephThePlatypus.ico" />
+    <Icon Id="PlatypusIcon" SourceFile="..\JosephThePlatypus.ico" />
     <Property Id="ARPPRODUCTICON" Value="PlatypusIcon" />
     <Property Id="ARPURLINFOABOUT" Value="https://github.com/AresX0/PlatypusTools" />
 

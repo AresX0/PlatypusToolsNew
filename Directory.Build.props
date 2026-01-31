@@ -2,14 +2,94 @@
   <PropertyGroup>
     <!-- Enable .NET analyzers and configure analysis behavior -->
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+    <AnalysisMode>Recommended</AnalysisMode>
     <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
     <!-- Ignore missing prune package data for .NET 10 -->
     <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
-    <!-- Optional: set analysis suppressions later or per-project -->
+    
+    <!-- Suppress warnings that are too noisy for WPF desktop applications -->
+    <NoWarn>
+      $(NoWarn);
+      CA1001;
+      CA1050;
+      CA1051;
+      CA1068;
+      CA1304;
+      CA1311;
+      CA1507;
+      CA1512;
+      CA1513;
+      CA1805;
+      CA1806;
+      CA1835;
+      CA1838;
+      CA1850;
+      CA1854;
+      CA1859;
+      CA1860;
+      CA1862;
+      CA1866;
+      CA1868;
+      CA1869;
+      CA1872;
+      CA1816;
+      CA2007;
+      CA2024;
+      CA2101;
+      CA5350;
+      CA5351;
+      CA1031;
+      CA1303;
+      CA1305;
+      CA1307;
+      CA1308;
+      CA1310;
+      CA1822;
+      CA1852;
+      CA1861
+    </NoWarn>
+    <!--
+      CA1001: Types owning disposables - ViewModels are long-lived, disposed with app
+      CA1050: Types in namespaces - Some helper types intentionally global
+      CA1051: Visible instance fields - Record-like types use public fields
+      CA1068: CancellationToken last parameter - Breaking API change, not worth it
+      CA1304: ToLower/ToUpper culture - Desktop app with consistent locale
+      CA1311: ToLower/ToUpper culture - Desktop app with consistent locale  
+      CA1507: Use nameof - Style preference for property change notifications
+      CA1512: Use ThrowIfNotEqual - Style preference
+      CA1513: Use ThrowIf - Style preference
+      CA1805: Default value initialization - Explicit for clarity
+      CA1806: Unused P/Invoke return - Intentional for Win32 interop
+      CA1835: Memory-based async - Micro-optimization not needed
+      CA1838: StringBuilder P/Invoke - Working correctly as-is
+      CA1850: Prefer static HashData - Not always applicable
+      CA1854: TryGetValue pattern - Micro-optimization not needed
+      CA1859: Concrete return types - Interface returns are intentional
+      CA1860: Use Count > 0 vs Any() - Micro-optimization not needed
+      CA1862: StringComparison Contains - Desktop app with consistent culture
+      CA1866: Char vs String - Micro-optimization not needed
+      CA1868: Guard Remove with Contains - Intentional for thread safety
+      CA1869: Cache JsonSerializerOptions - Micro-optimization not needed
+      CA1872: Use Convert.ToHexString - Compatibility with older patterns
+      CA1816: GC.SuppressFinalize - No finalizers in these types
+      CA2007: ConfigureAwait - Not needed in WPF apps (we want UI thread context)
+      CA2024: EndOfStream in async - Acceptable for these use cases
+      CA2101: P/Invoke marshaling - Working correctly as-is
+      CA5350: SHA1 weak crypto - Required for IOC/forensics matching
+      CA5351: MD5 broken crypto - Required for IOC/forensics matching
+      CA1031: Catch general exceptions - Intentional for UI error handling
+      CA1303: Literal strings - Localization not required for this app
+      CA1305: IFormatProvider - Desktop app with consistent locale
+      CA1307: StringComparison overload - Desktop app with consistent culture
+      CA1308: ToUpperInvariant vs ToLowerInvariant - Micro-optimization not needed
+      CA1310: StringComparison for StartsWith/EndsWith - Desktop app
+      CA1822: Members can be static - Style preference, not a bug
+      CA1852: Types can be sealed - Style preference, not a bug
+      CA1861: Static readonly arrays - Micro-optimization not needed
+    -->
   </PropertyGroup>
   <ItemGroup>
     <!-- The analyzers package is included as PrivateAssets so it won't flow to consumers -->
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.100" PrivateAssets="all" />
   </ItemGroup>
 </Project>

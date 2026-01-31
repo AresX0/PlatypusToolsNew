@@ -98,6 +98,10 @@
                                 <CheckBox x:Name="StartWithWindowsCheck" Content="Start with Windows" Margin="0,4"/>
                                 <CheckBox x:Name="StartMinimizedCheck" Content="Start minimized" Margin="0,4"/>
                                 <CheckBox x:Name="RestoreLastSessionCheck" Content="Restore last session" Margin="0,4"/>
+                                <CheckBox x:Name="RequireAdminRightsCheck" Content="Launch with administrator rights" IsChecked="True" Margin="0,4"
+                                          ToolTip="When enabled, the application will request administrator privileges on startup. Change takes effect after restart."/>
+                                <TextBlock Text="↳ Restart required for admin rights change to take effect" 
+                                           FontSize="11" Foreground="{DynamicResource ForegroundDimBrush}" Margin="20,2,0,0"/>
                             </StackPanel>
                         </GroupBox>
                         
@@ -271,7 +275,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.2.15.1"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.2.17.1"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="Gray" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" Width="160" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>

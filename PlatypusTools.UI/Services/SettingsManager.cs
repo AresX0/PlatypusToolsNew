@@ -126,6 +126,19 @@ namespace PlatypusTools.UI.Services
             set { _visualizerNormalize = value; OnPropertyChanged(); }
         }
 
+        // Admin rights setting
+        private bool _requireAdminRights = true;
+
+        /// <summary>
+        /// Gets or sets whether the application should request admin rights on next launch.
+        /// When changed, this takes effect on the next application restart.
+        /// </summary>
+        public bool RequireAdminRights
+        {
+            get => _requireAdminRights;
+            set { _requireAdminRights = value; OnPropertyChanged(); }
+        }
+
         /// <summary>
         /// Dictionary mapping tab keys to their visibility state.
         /// Keys follow the pattern: "MainTab" or "MainTab.SubTab" for nested tabs.
@@ -322,6 +335,7 @@ namespace PlatypusTools.UI.Services
                 new("Tools.FtpClient", "FTP Client", "Tools"),
                 new("Tools.TerminalClient", "Terminal Client", "Tools"),
                 new("Tools.SimpleBrowser", "Simple Browser", "Tools"),
+                new("Tools.PlexBackup", "Plex Backup", "Tools"),
             };
         }
     }

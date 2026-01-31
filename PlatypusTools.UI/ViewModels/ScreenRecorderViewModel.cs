@@ -25,7 +25,7 @@ namespace PlatypusTools.UI.ViewModels
         private bool _isStopping;
         private bool _isCountingDown;
         private int _countdownSeconds;
-        private bool _recordAudio = true;
+        private bool _recordAudio = false; // Microphone recording disabled - causes failures
         private bool _recordSystemAudio = true;
         private bool _useStartDelay;
         private string? _selectedAudioDevice;
@@ -305,7 +305,7 @@ namespace PlatypusTools.UI.ViewModels
 
             StatusMessage = "Starting recording...";
             AddLogMessage($"Starting recording to: {outputPath}");
-            AddLogMessage($"Audio: Mic={RecordAudio}, SystemAudio={RecordSystemAudio}");
+            AddLogMessage($"Audio: SystemAudio={RecordSystemAudio}");
 
             var success = await _recorderService.StartRecordingAsync(options);
             
