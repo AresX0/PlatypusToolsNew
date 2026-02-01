@@ -93,68 +93,104 @@ namespace PlatypusTools.Core.Services
         public PlexStatus GetPlexStatus()
         {
             var status = new PlexStatus();
+            System.Diagnostics.Debug.WriteLine("[PlexBackupService] GetPlexStatus started");
 
-            // Check if Plex app data folder exists
-            var appDataDir = string.IsNullOrEmpty(Options.PlexAppDataDir) 
-                ? DefaultPlexAppDataDir 
-                : Options.PlexAppDataDir;
-            status.AppDataFolderExists = Directory.Exists(appDataDir);
-            status.AppDataPath = appDataDir;
-
-            // Check if Plex is running
-            var plexProcesses = Process.GetProcessesByName("Plex Media Server");
-            status.IsRunning = plexProcesses.Length > 0;
-
-            if (status.IsRunning && plexProcesses.Length > 0)
-            {
-                try
-                {
-                    status.ExecutablePath = plexProcesses[0].MainModule?.FileName;
-                }
-                catch { /* Access denied */ }
-            }
-
-            // Try to get Plex version
-            if (!string.IsNullOrEmpty(status.ExecutablePath) && File.Exists(status.ExecutablePath))
-            {
-                try
-                {
-                    var versionInfo = FileVersionInfo.GetVersionInfo(status.ExecutablePath);
-                    status.Version = versionInfo.FileVersion;
-                }
-                catch { }
-            }
-            else if (File.Exists(DefaultPlexServerPath))
-            {
-                try
-                {
-                    var versionInfo = FileVersionInfo.GetVersionInfo(DefaultPlexServerPath);
-                    status.Version = versionInfo.FileVersion;
-                    status.ExecutablePath = DefaultPlexServerPath;
-                }
-                catch { }
-            }
-
-            // Check for running Plex services
             try
             {
+                // Check if Plex app data folder exists
+                var appDataDir = string.IsNullOrEmpty(Options.PlexAppDataDir) 
+                    ? DefaultPlexAppDataDir 
+                    : Options.PlexAppDataDir;
+                status.AppDataFolderExists = Directory.Exists(appDataDir);
+                status.AppDataPath = appDataDir;
+                System.Diagnostics.Debug.WriteLine($"[PlexBackupService] AppData check completed: exists={status.AppDataFolderExists}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PlexBackupService] Error checking AppData: {ex.Message}");
+            }
+
+            try
+            {
+                // Check if Plex is running
+                var plexProcesses = Process.GetProcessesByName("Plex Media Server");
+                status.IsRunning = plexProcesses.Length > 0;
+                System.Diagnostics.Debug.WriteLine($"[PlexBackupService] Process check: running={status.IsRunning}");
+
+                if (status.IsRunning && plexProcesses.Length > 0)
+                {
+                    try
+                    {
+                        status.ExecutablePath = plexProcesses[0].MainModule?.FileName;
+                    }
+                    catch { /* Access denied */ }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PlexBackupService] Error checking processes: {ex.Message}");
+            }
+
+            try
+            {
+                // Try to get Plex version
+                if (!string.IsNullOrEmpty(status.ExecutablePath) && File.Exists(status.ExecutablePath))
+                {
+                    try
+                    {
+                        var versionInfo = FileVersionInfo.GetVersionInfo(status.ExecutablePath);
+                        status.Version = versionInfo.FileVersion;
+                    }
+                    catch { }
+                }
+                else if (File.Exists(DefaultPlexServerPath))
+                {
+                    try
+                    {
+                        var versionInfo = FileVersionInfo.GetVersionInfo(DefaultPlexServerPath);
+                        status.Version = versionInfo.FileVersion;
+                        status.ExecutablePath = DefaultPlexServerPath;
+                    }
+                    catch { }
+                }
+                System.Diagnostics.Debug.WriteLine($"[PlexBackupService] Version check: {status.Version ?? "Unknown"}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PlexBackupService] Error getting version: {ex.Message}");
+            }
+
+            // Check for running Plex services - wrap in try-catch since this can fail without admin rights
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("[PlexBackupService] Checking for Plex services...");
                 var services = System.ServiceProcess.ServiceController.GetServices();
                 status.RunningServices = services
                     .Where(s => s.DisplayName.StartsWith("Plex", StringComparison.OrdinalIgnoreCase) && 
                                s.Status == System.ServiceProcess.ServiceControllerStatus.Running)
                     .Select(s => s.DisplayName)
                     .ToList();
+                System.Diagnostics.Debug.WriteLine($"[PlexBackupService] Found {status.RunningServices.Count} running Plex services");
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PlexBackupService] Error checking services (may require admin): {ex.Message}");
+                status.RunningServices = new List<string>(); // Initialize to empty list
+            }
 
-            // Check registry
             try
             {
+                // Check registry
                 using var key = Registry.CurrentUser.OpenSubKey(@"Software\Plex, Inc.\Plex Media Server");
                 status.RegistryKeyExists = key != null;
+                System.Diagnostics.Debug.WriteLine($"[PlexBackupService] Registry check: exists={status.RegistryKeyExists}");
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PlexBackupService] Error checking registry: {ex.Message}");
+            }
 
+            System.Diagnostics.Debug.WriteLine("[PlexBackupService] GetPlexStatus completed");
             return status;
         }
 

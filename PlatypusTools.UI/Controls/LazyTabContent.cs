@@ -67,38 +67,51 @@ namespace PlatypusTools.UI.Controls
         {
             if ((bool)e.NewValue && !_isLoaded && !_isLoading)
             {
+                System.Diagnostics.Debug.WriteLine($"[LazyTabContent] Tab became visible: {ViewType?.Name ?? "Unknown"}");
                 LoadViewAsync();
             }
         }
 
         private async void LoadViewAsync()
         {
-            if (_isLoaded || _isLoading || ViewType == null) return;
+            if (_isLoaded || _isLoading || ViewType == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[LazyTabContent] Skipping load for {ViewType?.Name}: isLoaded={_isLoaded}, isLoading={_isLoading}");
+                return;
+            }
 
             _isLoading = true;
+            System.Diagnostics.Debug.WriteLine($"[LazyTabContent] Starting load for: {ViewType.Name}");
 
             try
             {
                 // Trigger async initialization for ViewModel if it implements IAsyncInitializable
                 if (ViewDataContext is IAsyncInitializable asyncInit && !asyncInit.IsInitialized)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[LazyTabContent] Calling InitializeAsync on ViewModel for: {ViewType.Name}");
                     await asyncInit.InitializeAsync();
+                    System.Diagnostics.Debug.WriteLine($"[LazyTabContent] ViewModel InitializeAsync completed for: {ViewType.Name}");
                 }
 
                 // Small delay to allow UI to render loading state
                 await System.Threading.Tasks.Task.Delay(10);
 
+                System.Diagnostics.Debug.WriteLine($"[LazyTabContent] Creating view instance for: {ViewType.Name}");
+                
                 // Create view on UI thread - use InvokeAsync to avoid blocking
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     try
                     {
+                        System.Diagnostics.Debug.WriteLine($"[LazyTabContent] Activator.CreateInstance for: {ViewType.Name}");
                         var view = Activator.CreateInstance(ViewType);
+                        System.Diagnostics.Debug.WriteLine($"[LazyTabContent] View instance created: {ViewType.Name}");
                         
                         if (view is FrameworkElement fe)
                         {
                             if (ViewDataContext != null)
                             {
+                                System.Diagnostics.Debug.WriteLine($"[LazyTabContent] Setting DataContext for: {ViewType.Name}");
                                 fe.DataContext = ViewDataContext;
                             }
                             
@@ -111,16 +124,20 @@ namespace PlatypusTools.UI.Controls
                             // Don't wrap in ScrollViewer - let views manage their own scrolling
                             // Views like VideoEditorView have complex layouts with internal scrolling
                             Content = fe;
+                            System.Diagnostics.Debug.WriteLine($"[LazyTabContent] Content set successfully for: {ViewType.Name}");
                         }
                         else
                         {
                             Content = view;
+                            System.Diagnostics.Debug.WriteLine($"[LazyTabContent] Non-FrameworkElement content set for: {ViewType.Name}");
                         }
                         
                         _isLoaded = true;
+                        System.Diagnostics.Debug.WriteLine($"[LazyTabContent] Load completed for: {ViewType.Name}");
                     }
                     catch (Exception ex)
                     {
+                        System.Diagnostics.Debug.WriteLine($"[LazyTabContent] ERROR creating view {ViewType.Name}: {ex}");
                         Content = CreateErrorDisplay(ex);
                         _isLoaded = true; // Mark as loaded so we don't retry
                     }

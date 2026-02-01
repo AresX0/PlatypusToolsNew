@@ -23,16 +23,18 @@
         
         <!-- Toolbar -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
-            <Button Content="📂 Open Archive" Click="OnOpenArchiveClick" Width="120" Margin="0,0,8,0"/>
-            <Button Content="📦 Create Archive" Click="OnCreateArchiveClick" Width="120" Margin="0,0,8,0"/>
+            <Button Content="📂 Open Archive" Click="OnOpenArchiveClick" Width="130" Margin="0,0,8,0" Padding="6,4"/>
+            <Button Content="📦 Create Archive" Click="OnCreateArchiveClick" Width="130" Margin="0,0,8,0" Padding="6,4"
+                    Background="#FF2196F3" Foreground="White"/>
             <Separator Margin="8,0"/>
-            <Button Content="📤 Extract All" Click="OnExtractAllClick" Width="100" Margin="0,0,8,0" 
-                    Background="LightGreen" FontWeight="Bold"/>
-            <Button Content="📤 Extract Selected" Click="OnExtractSelectedClick" Width="120" Margin="0,0,8,0"/>
+            <Button Content="📤 Extract All" Click="OnExtractAllClick" Width="110" Margin="0,0,8,0" Padding="6,4"
+                    Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
+            <Button Content="📤 Extract Selected" Click="OnExtractSelectedClick" Width="130" Margin="0,0,8,0" Padding="6,4"/>
             <Separator Margin="8,0"/>
-            <Button Content="➕ Add Files" Click="OnAddFilesClick" Width="90" Margin="0,0,8,0"/>
+            <Button Content="➕ Add Files" Click="OnAddFilesClick" Width="100" Margin="0,0,8,0" Padding="6,4"/>
             <Button Content="🔍 Test" Click="OnTestClick" Width="80" Margin="0,0,8,0" Padding="6,2"/>
-            <Button Content="Cancel" Click="OnCancelClick" Width="80" Background="LightCoral"
+            <Button Content="❌ Cancel" Click="OnCancelClick" Width="90" Padding="6,4"
+                    Background="#FFF44336" Foreground="White"
                     Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>
         </StackPanel>
         

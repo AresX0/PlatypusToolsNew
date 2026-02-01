@@ -63,9 +63,9 @@
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}"
                                      IsEnabled="{Binding IsNotRecording}" VerticalContentAlignment="Center"/>
-                            <Button Grid.Column="1" Content="📁" Width="35" Margin="5,0,0,0"
+                            <Button Grid.Column="1" Content="📁" MinWidth="36" Padding="6,4" Margin="5,0,0,0"
                                     Command="{Binding BrowseOutputFolderCommand}" ToolTip="Browse for folder"/>
-                            <Button Grid.Column="2" Content="📂" Width="35" Margin="5,0,0,0"
+                            <Button Grid.Column="2" Content="📂" MinWidth="36" Padding="6,4" Margin="5,0,0,0"
                                     Command="{Binding OpenOutputFolderCommand}" ToolTip="Open folder"/>
                         </Grid>
                         
@@ -151,10 +151,10 @@
                         <Button Content="⏹ Stop (Ctrl+Shift+S)" Command="{Binding StopRecordingCommand}"
                                 Click="StopRecording_Click"
                                 Height="40" FontWeight="Bold" Margin="0,0,0,5"
-                                Style="{DynamicResource PrimaryButton}"/>
+                                Background="#FFF44336" Foreground="White"/>
                         <Button Content="❌ Cancel" Command="{Binding CancelRecordingCommand}"
                                 Click="CancelRecording_Click"
-                                Height="35" Style="{DynamicResource SecondaryButton}"/>
+                                Height="35" Background="#FF9E9E9E" Foreground="White"/>
                     </StackPanel>
                 </StackPanel>
             </Grid>

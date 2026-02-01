@@ -23,12 +23,12 @@
                 </Grid.ColumnDefinitions>
                 <TextBox Grid.Column="0" Text="{Binding SelectedFolder, UpdateSourceTrigger=PropertyChanged}" 
                          VerticalContentAlignment="Center" Margin="0,0,8,0" />
-                <Button Grid.Column="1" Content="Browse..." Command="{Binding BrowseCommand}" 
+                <Button Grid.Column="1" Content="📁 Browse..." Command="{Binding BrowseCommand}" 
                         Padding="16,6" Margin="0,0,8,0" />
-                <Button Grid.Column="2" Content="Scan" Command="{Binding ScanCommand}" 
-                        Padding="24,6" Margin="0,0,8,0" Background="#1E88E5" Foreground="White" />
-                <Button Grid.Column="3" Content="Cancel" Command="{Binding CancelCommand}" 
-                        Padding="16,6" />
+                <Button Grid.Column="2" Content="🔍 Scan" Command="{Binding ScanCommand}" 
+                        Padding="24,6" Margin="0,0,8,0" Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
+                <Button Grid.Column="3" Content="❌ Cancel" Command="{Binding CancelCommand}" 
+                        Padding="16,6" Background="#FFF44336" Foreground="White"/>
             </Grid>
         </GroupBox>
 

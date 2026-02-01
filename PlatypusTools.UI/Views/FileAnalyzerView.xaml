@@ -43,15 +43,15 @@
         <!-- Action Buttons -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
             <Button Content="Analyze" Width="100" Height="30" Margin="0,0,5,0"
-                    Click="OnAnalyzeClick"/>
+                    Click="OnAnalyzeClick" Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
             <Button Content="Find Duplicates" Width="120" Height="30" Margin="0,0,5,0"
-                    Click="OnFindDuplicatesClick"/>
+                    Click="OnFindDuplicatesClick" Background="#FF2196F3" Foreground="White"/>
             <Button Content="Build Tree" Width="100" Height="30" Margin="0,0,5,0"
-                    Click="OnBuildTreeClick"/>
+                    Click="OnBuildTreeClick" Background="#FF2196F3" Foreground="White"/>
             <Button Content="Export" Width="80" Height="30" Margin="0,0,5,0"
-                    Click="OnExportClick"/>
+                    Click="OnExportClick" Background="#FF2196F3" Foreground="White"/>
             <Button Content="Clear" Width="80" Height="30" Margin="0,0,5,0"
-                    Click="OnClearClick"/>
+                    Click="OnClearClick" Background="#FFF44336" Foreground="White"/>
         </StackPanel>
 
         <!-- Summary Stats -->

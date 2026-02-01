@@ -121,24 +121,24 @@
                 <!-- Quick Toggle Buttons (Right side of header) -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
                     <ToggleButton IsChecked="{Binding ShowEqualizer}" 
-                                  ToolTip="Toggle Equalizer (E)" Width="28" Height="24"
+                                  ToolTip="Toggle Equalizer (E)" MinWidth="32" Height="26" Padding="4,2"
                                   Background="Transparent" BorderThickness="1" BorderBrush="#666">
                         <TextBlock Text="🎚️" FontSize="12"/>
                     </ToggleButton>
                     <ToggleButton IsChecked="{Binding ShowFileInfo}" 
                                   Command="{Binding ToggleFileInfoCommand}"
-                                  ToolTip="Toggle File Info" Width="28" Height="24" Margin="4,0,0,0"
+                                  ToolTip="Toggle File Info" MinWidth="32" Height="26" Margin="4,0,0,0" Padding="4,2"
                                   Background="Transparent" BorderThickness="1" BorderBrush="#666">
                         <TextBlock Text="ℹ️" FontSize="12"/>
                     </ToggleButton>
                     <ToggleButton IsChecked="{Binding AutoDjEnabled}" 
                                   Command="{Binding ToggleAutoDjCommand}"
-                                  ToolTip="Toggle Auto DJ" Width="28" Height="24" Margin="4,0,0,0"
+                                  ToolTip="Toggle Auto DJ" MinWidth="32" Height="26" Margin="4,0,0,0" Padding="4,2"
                                   Background="Transparent" BorderThickness="1" BorderBrush="#666">
                         <TextBlock Text="🎧" FontSize="12"/>
                     </ToggleButton>
                     <Button Content="🔲" Command="{Binding ToggleMiniPlayerCommand}"
-                            ToolTip="Toggle Mini Player" Width="28" Height="24" Margin="8,0,0,0"
+                            ToolTip="Toggle Mini Player" MinWidth="32" Height="26" Margin="8,0,0,0" Padding="4,2"
                             Background="Transparent" BorderThickness="1" BorderBrush="#666"/>
                 </StackPanel>
             </Grid>

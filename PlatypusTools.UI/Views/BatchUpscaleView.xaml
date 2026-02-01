@@ -68,17 +68,19 @@
         
         <!-- Actions -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
-            <Button Content="Add Files..." Command="{Binding AddFilesCommand}" Width="100" Margin="0,0,8,0"/>
-            <Button Content="Add Folder..." Command="{Binding AddFolderCommand}" Width="100" Margin="0,0,8,0"/>
-            <Button Content="Remove Selected" Command="{Binding RemoveSelectedCommand}" Width="120" Margin="0,0,8,0"
-                    IsEnabled="{Binding CanModifyQueue}"/>
-            <Button Content="Clear All" Command="{Binding ClearQueueCommand}" Width="80" Margin="0,0,24,0"
+            <Button Content="📁 Add Files..." Command="{Binding AddFilesCommand}" Width="110" Margin="0,0,8,0" Padding="6,4"/>
+            <Button Content="📂 Add Folder..." Command="{Binding AddFolderCommand}" Width="120" Margin="0,0,8,0" Padding="6,4"/>
+            <Button Content="🗑️ Remove Selected" Command="{Binding RemoveSelectedCommand}" Width="140" Margin="0,0,8,0" Padding="6,4"
+                    IsEnabled="{Binding CanModifyQueue}" Background="#FFF44336" Foreground="White"/>
+            <Button Content="🧹 Clear All" Command="{Binding ClearQueueCommand}" Width="100" Margin="0,0,24,0" Padding="6,4"
                     IsEnabled="{Binding CanModifyQueue}"/>
             
-            <Button Content="▶ Start" Command="{Binding StartProcessingCommand}" Width="80" Margin="0,0,8,0"
-                    Background="LightGreen" FontWeight="Bold"/>
-            <Button Content="⏸ Pause" Command="{Binding PauseProcessingCommand}" Width="80" Margin="0,0,8,0"/>
-            <Button Content="⏹ Cancel" Command="{Binding CancelProcessingCommand}" Width="80" Background="LightCoral"/>
+            <Button Content="▶ Start" Command="{Binding StartProcessingCommand}" Width="85" Margin="0,0,8,0" Padding="6,4"
+                    Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
+            <Button Content="⏸ Pause" Command="{Binding PauseProcessingCommand}" Width="85" Margin="0,0,8,0" Padding="6,4"
+                    Background="#FFFF9800" Foreground="White"/>
+            <Button Content="⏹ Cancel" Command="{Binding CancelProcessingCommand}" Width="90" Padding="6,4"
+                    Background="#FFF44336" Foreground="White"/>
         </StackPanel>
 
         <!-- GridSplitter -->

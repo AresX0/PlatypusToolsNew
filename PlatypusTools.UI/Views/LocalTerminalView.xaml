@@ -43,7 +43,7 @@
                     <TextBox x:Name="WorkingDirBox" Width="250" 
                              Text="{Binding WorkingDirectory, UpdateSourceTrigger=PropertyChanged}"
                              VerticalAlignment="Center"/>
-                    <Button Content="📁" Width="28" Margin="4,0,0,0" Click="BrowseDirectory_Click"
+                    <Button Content="📁" MinWidth="36" Padding="6,4" Margin="4,0,0,0" Click="BrowseDirectory_Click"
                             ToolTip="Browse for directory"/>
                 </StackPanel>
                 

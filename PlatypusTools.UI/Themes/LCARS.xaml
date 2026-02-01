@@ -185,6 +185,19 @@
     <SolidColorBrush x:Key="ControlBorderBrush" Color="{StaticResource LcarsGold}"/>
     <SolidColorBrush x:Key="MenuForegroundBrush" Color="{StaticResource LcarsBlack}"/>
     
+    <!-- Text brushes for views - bright gold/white for visibility on dark backgrounds -->
+    <SolidColorBrush x:Key="TextPrimary" Color="#FFFFF0C8"/>
+    <SolidColorBrush x:Key="TextSecondary" Color="#FFCCAA66"/>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFFFF0C8"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FFCCAA66"/>
+    <SolidColorBrush x:Key="SecondaryTextBrush" Color="#FFCCAA66"/>
+    <SolidColorBrush x:Key="ForegroundDimBrush" Color="#FFB89B4D"/>
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource LcarsBlack}"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#FF1A1A1A"/>
+    <SolidColorBrush x:Key="CardBackground" Color="#FF252520"/>
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FF252520"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource LcarsGold}"/>
+    
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource LcarsGold}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource LcarsPeach}"/>
     <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource LcarsLavender}"/>

@@ -45,12 +45,15 @@
         </GroupBox>
         
         <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,0,8">
-            <Button Content="Add Files..." Command="{Binding AddFilesCommand}" Width="120" />
-            <Button Content="Remove Selected" Command="{Binding RemoveSelectedCommand}" Width="120" Margin="8,0,0,0" />
-            <Button Content="Move Up" Command="{Binding MoveUpCommand}" Width="80" Margin="8,0,0,0" />
-            <Button Content="Move Down" Command="{Binding MoveDownCommand}" Width="80" Margin="8,0,0,0" />
-            <Button Content="Combine" Command="{Binding CombineCommand}" Width="120" Margin="8,0,0,0" Background="LightGreen" FontWeight="Bold"/>
-            <Button Content="Cancel" Command="{Binding CancelCommand}" Width="90" Margin="8,0,0,0" />
+            <Button Content="📁 Add Files..." Command="{Binding AddFilesCommand}" Width="120" Padding="6,2"/>
+            <Button Content="🗑️ Remove Selected" Command="{Binding RemoveSelectedCommand}" Width="140" Margin="8,0,0,0" Padding="6,2"
+                    Background="#FFF44336" Foreground="White"/>
+            <Button Content="⬆ Move Up" Command="{Binding MoveUpCommand}" Width="90" Margin="8,0,0,0" Padding="6,2"/>
+            <Button Content="⬇ Move Down" Command="{Binding MoveDownCommand}" Width="100" Margin="8,0,0,0" Padding="6,2"/>
+            <Button Content="🎬 Combine" Command="{Binding CombineCommand}" Width="120" Margin="8,0,0,0" Padding="6,2"
+                    Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
+            <Button Content="❌ Cancel" Command="{Binding CancelCommand}" Width="90" Margin="8,0,0,0" Padding="6,2"
+                    Background="#FF9E9E9E" Foreground="White"/>
             <TextBlock VerticalAlignment="Center" Margin="8,0,0,0">FFmpeg: <TextBlock Text="{Binding FfmpegFoundText}" FontWeight="Bold" /></TextBlock>
             <TextBlock VerticalAlignment="Center" Margin="8,0,0,0">Progress: <TextBlock Text="{Binding LastProgress}" FontWeight="Bold" /></TextBlock>
         </StackPanel>

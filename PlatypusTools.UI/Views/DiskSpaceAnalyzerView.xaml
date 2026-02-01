@@ -25,8 +25,8 @@
                     <TextBlock VerticalAlignment="Center" Width="100">Root Path:</TextBlock>
                     <TextBox x:Name="RootPathTextBox" Width="500" Text="{Binding RootPath, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="0,0,8,0" />
                     <Button Content="Browse..." Click="OnBrowseClick" Width="90" Margin="0,0,8,0" />
-                    <Button Content="Analyze" Click="OnAnalyzeClick" Width="90" FontWeight="Bold" Margin="0,0,8,0" />
-                    <Button Content="Export" Command="{Binding ExportCommand}" Width="90" />
+                    <Button Content="Analyze" Click="OnAnalyzeClick" Width="90" FontWeight="Bold" Margin="0,0,8,0" Background="#FF4CAF50" Foreground="White" />
+                    <Button Content="Export" Command="{Binding ExportCommand}" Width="90" Background="#FF2196F3" Foreground="White" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8">
                     <TextBlock VerticalAlignment="Center" Width="100">Total Size:</TextBlock>

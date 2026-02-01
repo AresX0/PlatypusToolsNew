@@ -162,10 +162,10 @@
             <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <ProgressBar Grid.Column="1" Value="{Binding OverallProgress}" Height="25" Minimum="0" Maximum="100" 
                          Visibility="{Binding IsConverting, Converter={StaticResource BoolToVisibilityConverter}}"/>
-            <Button Grid.Column="2" Content="Start Conversion" Command="{Binding StartConversionCommand}" Width="130" Height="32" 
-                    Margin="10,0,5,0" Background="LightGreen" FontWeight="Bold"/>
-            <Button Grid.Column="3" Content="Cancel" Command="{Binding CancelConversionCommand}" Width="80" Height="32" 
-                    Background="LightCoral"/>
+            <Button Grid.Column="2" Content="▶ Start Conversion" Command="{Binding StartConversionCommand}" Width="145" Height="32" 
+                    Margin="10,0,5,0" Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
+            <Button Grid.Column="3" Content="❌ Cancel" Command="{Binding CancelConversionCommand}" Width="90" Height="32" 
+                    Background="#FFF44336" Foreground="White"/>
         </Grid>
     </Grid>
 </UserControl>

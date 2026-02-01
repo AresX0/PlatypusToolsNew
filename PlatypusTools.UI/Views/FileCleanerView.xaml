@@ -20,8 +20,9 @@
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                     <TextBlock VerticalAlignment="Center" Width="100">Folder Path:</TextBlock>
                     <TextBox Width="600" Text="{Binding FolderPath, UpdateSourceTrigger=PropertyChanged}" />
-                    <Button Content="Browse..." Command="{Binding BrowseFolderCommand}" Width="90" Margin="8,0,0,0" />
-                    <Button Content="Scan" Command="{Binding ScanCommand}" Width="90" Margin="8,0,0,0" FontWeight="Bold" />
+                    <Button Content="📁 Browse..." Command="{Binding BrowseFolderCommand}" Width="100" Margin="8,0,0,0" Padding="6,4"/>
+                    <Button Content="🔍 Scan" Command="{Binding ScanCommand}" Width="90" Margin="8,0,0,0" FontWeight="Bold" Padding="6,4"
+                            Background="#FF4CAF50" Foreground="White"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <CheckBox IsChecked="{Binding IncludeSubfolders}" Margin="100,0,24,0">Include Subfolders</CheckBox>
@@ -304,11 +305,15 @@
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Apply Changes" Command="{Binding ApplyChangesCommand}" Width="120" Margin="0,0,8,0" 
-                        FontWeight="Bold" Height="32" Background="LightGreen" />
-                <Button Content="Undo Last" Command="{Binding UndoLastCommand}" Width="100" Margin="0,0,8,0" Height="32" />
-                <Button Content="Export CSV" Command="{Binding ExportCsvCommand}" Width="100" Margin="0,0,8,0" Height="32" />
-                <Button Content="Reset All" Command="{Binding ResetAllCommand}" Width="100" Height="32" />
+                <Button Content="✅ Apply Changes" Command="{Binding ApplyChangesCommand}" Width="135" Margin="0,0,8,0" 
+                        FontWeight="Bold" Height="32" Padding="8,4"
+                        Background="#FF4CAF50" Foreground="White"/>
+                <Button Content="↩ Undo Last" Command="{Binding UndoLastCommand}" Width="110" Margin="0,0,8,0" Height="32" Padding="8,4"
+                        Background="#FFFF9800" Foreground="White"/>
+                <Button Content="📊 Export CSV" Command="{Binding ExportCsvCommand}" Width="115" Margin="0,0,8,0" Height="32" Padding="8,4"
+                        Background="#FF2196F3" Foreground="White"/>
+                <Button Content="🔄 Reset All" Command="{Binding ResetAllCommand}" Width="105" Height="32" Padding="8,4"
+                        Background="#FFF44336" Foreground="White"/>
             </StackPanel>
         </Grid>
     </Grid>

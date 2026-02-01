@@ -188,7 +188,7 @@
                              VerticalAlignment="Center" Margin="0,0,8,0" 
                              ToolTip="Enter a folder path or drive letter to scan for media files"/>
                     <Button Grid.Row="0" Grid.Column="1" Content="📁" Command="{Binding BrowseScanPathCommand}" 
-                            Width="32" ToolTip="Browse for folder"/>
+                            MinWidth="36" Padding="6,4" ToolTip="Browse for folder"/>
 
                     <Button Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Content="🔍 Scan for Media Files" 
                             Command="{Binding ScanForMediaCommand}" Margin="0,8,0,0" FontWeight="Bold"/>

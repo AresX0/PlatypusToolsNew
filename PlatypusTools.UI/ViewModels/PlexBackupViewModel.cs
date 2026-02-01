@@ -21,44 +21,155 @@ namespace PlatypusTools.UI.ViewModels
     {
         private readonly PlexBackupService _backupService;
         private CancellationTokenSource? _cts;
+        private bool _isInitialized;
 
         #region Constructor
 
         public PlexBackupViewModel()
         {
-            _backupService = new PlexBackupService();
-            _backupService.ProgressChanged += OnProgressChanged;
-            _backupService.LogMessage += OnLogMessage;
+            Debug.WriteLine("[PlexBackupViewModel] Constructor started");
+            
+            try
+            {
+                Debug.WriteLine("[PlexBackupViewModel] Creating PlexBackupService");
+                _backupService = new PlexBackupService();
+                _backupService.ProgressChanged += OnProgressChanged;
+                _backupService.LogMessage += OnLogMessage;
+                Debug.WriteLine("[PlexBackupViewModel] PlexBackupService created successfully");
 
-            // Initialize commands
-            ExecuteCommand = new AsyncRelayCommand(ExecuteAsync, CanExecute);
-            CancelCommand = new RelayCommand(_ => Cancel(), _ => IsRunning);
-            RefreshStatusCommand = new AsyncRelayCommand(RefreshStatusAsync);
-            BrowsePlexAppDataCommand = new RelayCommand(_ => BrowsePlexAppData());
-            BrowseBackupRootCommand = new RelayCommand(_ => BrowseBackupRoot());
-            BrowseBackupDirCommand = new RelayCommand(_ => BrowseBackupDir());
-            BrowseTempDirCommand = new RelayCommand(_ => BrowseTempDir());
-            Browse7ZipCommand = new RelayCommand(_ => Browse7Zip());
-            OpenBackupFolderCommand = new RelayCommand(_ => OpenBackupFolder(), _ => !string.IsNullOrEmpty(BackupRootDir) && Directory.Exists(BackupRootDir));
-            OpenPlexFolderCommand = new RelayCommand(_ => OpenPlexFolder(), _ => !string.IsNullOrEmpty(PlexAppDataDir) && Directory.Exists(PlexAppDataDir));
-            ClearOutputCommand = new RelayCommand(_ => Output = string.Empty);
-            RefreshBackupsCommand = new AsyncRelayCommand(RefreshBackupsAsync);
-            DeleteBackupCommand = new AsyncRelayCommand<PlexBackupInfo>(DeleteBackupAsync);
+                // Initialize commands
+                Debug.WriteLine("[PlexBackupViewModel] Initializing commands");
+                ExecuteCommand = new AsyncRelayCommand(ExecuteAsync, CanExecute);
+                CancelCommand = new RelayCommand(_ => Cancel(), _ => IsRunning);
+                RefreshStatusCommand = new AsyncRelayCommand(RefreshStatusAsync);
+                BrowsePlexAppDataCommand = new RelayCommand(_ => BrowsePlexAppData());
+                BrowseBackupRootCommand = new RelayCommand(_ => BrowseBackupRoot());
+                BrowseBackupDirCommand = new RelayCommand(_ => BrowseBackupDir());
+                BrowseTempDirCommand = new RelayCommand(_ => BrowseTempDir());
+                Browse7ZipCommand = new RelayCommand(_ => Browse7Zip());
+                OpenBackupFolderCommand = new RelayCommand(_ => OpenBackupFolder(), _ => !string.IsNullOrEmpty(BackupRootDir) && Directory.Exists(BackupRootDir));
+                OpenPlexFolderCommand = new RelayCommand(_ => OpenPlexFolder(), _ => !string.IsNullOrEmpty(PlexAppDataDir) && Directory.Exists(PlexAppDataDir));
+                ClearOutputCommand = new RelayCommand(_ => Output = string.Empty);
+                RefreshBackupsCommand = new AsyncRelayCommand(RefreshBackupsAsync);
+                DeleteBackupCommand = new AsyncRelayCommand<PlexBackupInfo>(DeleteBackupAsync);
+                Debug.WriteLine("[PlexBackupViewModel] Commands initialized");
 
-            // Set defaults
-            PlexAppDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Plex Media Server");
-            BackupRootDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            TempDir = Path.GetTempPath();
-            SevenZipPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "7-Zip", "7z.exe");
+                // Set defaults - wrap in try-catch to avoid path issues
+                Debug.WriteLine("[PlexBackupViewModel] Setting default paths");
+                try
+                {
+                    PlexAppDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Plex Media Server");
+                    Debug.WriteLine($"[PlexBackupViewModel] PlexAppDataDir = {PlexAppDataDir}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[PlexBackupViewModel] Error setting PlexAppDataDir: {ex.Message}");
+                    PlexAppDataDir = string.Empty;
+                }
+                
+                try
+                {
+                    BackupRootDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                    Debug.WriteLine($"[PlexBackupViewModel] BackupRootDir = {BackupRootDir}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[PlexBackupViewModel] Error setting BackupRootDir: {ex.Message}");
+                    BackupRootDir = string.Empty;
+                }
+                
+                try
+                {
+                    TempDir = Path.GetTempPath();
+                    Debug.WriteLine($"[PlexBackupViewModel] TempDir = {TempDir}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[PlexBackupViewModel] Error setting TempDir: {ex.Message}");
+                    TempDir = string.Empty;
+                }
+                
+                try
+                {
+                    SevenZipPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "7-Zip", "7z.exe");
+                    Debug.WriteLine($"[PlexBackupViewModel] SevenZipPath = {SevenZipPath}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[PlexBackupViewModel] Error setting SevenZipPath: {ex.Message}");
+                    SevenZipPath = string.Empty;
+                }
 
-            // Initialize async
-            _ = InitializeAsync();
+                Debug.WriteLine("[PlexBackupViewModel] Constructor completed, scheduling async initialization");
+                
+                // Initialize async - use Task.Run to avoid any potential blocking
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        await InitializeAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[PlexBackupViewModel] Async initialization failed: {ex}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[PlexBackupViewModel] CRITICAL ERROR in constructor: {ex}");
+                // Set defaults to prevent null references
+                _backupService = new PlexBackupService();
+                ExecuteCommand = new RelayCommand(_ => { });
+                CancelCommand = new RelayCommand(_ => { });
+                RefreshStatusCommand = new RelayCommand(_ => { });
+                BrowsePlexAppDataCommand = new RelayCommand(_ => { });
+                BrowseBackupRootCommand = new RelayCommand(_ => { });
+                BrowseBackupDirCommand = new RelayCommand(_ => { });
+                BrowseTempDirCommand = new RelayCommand(_ => { });
+                Browse7ZipCommand = new RelayCommand(_ => { });
+                OpenBackupFolderCommand = new RelayCommand(_ => { });
+                OpenPlexFolderCommand = new RelayCommand(_ => { });
+                ClearOutputCommand = new RelayCommand(_ => { });
+                RefreshBackupsCommand = new RelayCommand(_ => { });
+                DeleteBackupCommand = new RelayCommand(_ => { });
+            }
         }
 
         private async Task InitializeAsync()
         {
-            await RefreshStatusAsync();
-            await RefreshBackupsAsync();
+            if (_isInitialized)
+            {
+                Debug.WriteLine("[PlexBackupViewModel] Already initialized, skipping");
+                return;
+            }
+            
+            Debug.WriteLine("[PlexBackupViewModel] InitializeAsync started");
+            
+            try
+            {
+                Debug.WriteLine("[PlexBackupViewModel] Calling RefreshStatusAsync");
+                await RefreshStatusAsync();
+                Debug.WriteLine("[PlexBackupViewModel] RefreshStatusAsync completed");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[PlexBackupViewModel] RefreshStatusAsync failed: {ex.Message}");
+            }
+            
+            try
+            {
+                Debug.WriteLine("[PlexBackupViewModel] Calling RefreshBackupsAsync");
+                await RefreshBackupsAsync();
+                Debug.WriteLine("[PlexBackupViewModel] RefreshBackupsAsync completed");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[PlexBackupViewModel] RefreshBackupsAsync failed: {ex.Message}");
+            }
+            
+            _isInitialized = true;
+            Debug.WriteLine("[PlexBackupViewModel] InitializeAsync completed");
         }
 
         #endregion
@@ -442,62 +553,116 @@ namespace PlatypusTools.UI.ViewModels
 
         private async Task RefreshStatusAsync()
         {
+            Debug.WriteLine("[PlexBackupViewModel] RefreshStatusAsync started");
             try
             {
-                var status = await Task.Run(() => _backupService.GetPlexStatus());
-
-                Application.Current.Dispatcher.Invoke(() =>
+                Debug.WriteLine("[PlexBackupViewModel] Calling GetPlexStatus on background thread");
+                var status = await Task.Run(() =>
                 {
-                    PlexIsRunning = status.IsRunning;
-                    PlexAppDataExists = status.AppDataFolderExists;
-                    PlexRegistryExists = status.RegistryKeyExists;
-                    PlexVersion = status.Version ?? "Unknown";
-                    PlexExecutablePath = status.ExecutablePath ?? "Not found";
-                    
-                    PlexServices.Clear();
-                    foreach (var service in status.RunningServices)
+                    try
                     {
-                        PlexServices.Add(service);
+                        return _backupService.GetPlexStatus();
                     }
-
-                    if (string.IsNullOrEmpty(PlexAppDataDir) && !string.IsNullOrEmpty(status.AppDataPath))
+                    catch (Exception ex)
                     {
-                        PlexAppDataDir = status.AppDataPath;
+                        Debug.WriteLine($"[PlexBackupViewModel] GetPlexStatus threw: {ex.Message}");
+                        return new PlexStatus(); // Return empty status on error
+                    }
+                });
+                Debug.WriteLine("[PlexBackupViewModel] GetPlexStatus completed");
+
+                // Use InvokeAsync instead of Invoke to avoid blocking
+                Debug.WriteLine("[PlexBackupViewModel] Dispatching UI updates");
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    try
+                    {
+                        PlexIsRunning = status.IsRunning;
+                        PlexAppDataExists = status.AppDataFolderExists;
+                        PlexRegistryExists = status.RegistryKeyExists;
+                        PlexVersion = status.Version ?? "Unknown";
+                        PlexExecutablePath = status.ExecutablePath ?? "Not found";
+                        
+                        PlexServices.Clear();
+                        if (status.RunningServices != null)
+                        {
+                            foreach (var service in status.RunningServices)
+                            {
+                                PlexServices.Add(service);
+                            }
+                        }
+
+                        if (string.IsNullOrEmpty(PlexAppDataDir) && !string.IsNullOrEmpty(status.AppDataPath))
+                        {
+                            PlexAppDataDir = status.AppDataPath;
+                        }
+                        Debug.WriteLine("[PlexBackupViewModel] UI updates dispatched successfully");
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[PlexBackupViewModel] Error in UI dispatch: {ex.Message}");
                     }
                 });
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error refreshing Plex status: {ex.Message}");
+                Debug.WriteLine($"[PlexBackupViewModel] Error refreshing Plex status: {ex.Message}");
             }
+            Debug.WriteLine("[PlexBackupViewModel] RefreshStatusAsync completed");
         }
 
         private async Task RefreshBackupsAsync()
         {
+            Debug.WriteLine("[PlexBackupViewModel] RefreshBackupsAsync started");
             try
             {
                 if (string.IsNullOrEmpty(BackupRootDir) || !Directory.Exists(BackupRootDir))
                 {
-                    AvailableBackups.Clear();
+                    Debug.WriteLine($"[PlexBackupViewModel] BackupRootDir is empty or doesn't exist: '{BackupRootDir}'");
+                    await Application.Current.Dispatcher.InvokeAsync(() => AvailableBackups.Clear());
                     return;
                 }
 
+                Debug.WriteLine($"[PlexBackupViewModel] Looking for backups in: {BackupRootDir}");
                 _backupService.Options.BackupRootDir = BackupRootDir;
-                var backups = await Task.Run(() => _backupService.GetAvailableBackups());
-
-                Application.Current.Dispatcher.Invoke(() =>
+                var backups = await Task.Run(() =>
                 {
-                    AvailableBackups.Clear();
-                    foreach (var backup in backups)
+                    try
                     {
-                        AvailableBackups.Add(backup);
+                        return _backupService.GetAvailableBackups();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[PlexBackupViewModel] GetAvailableBackups threw: {ex.Message}");
+                        return new System.Collections.Generic.List<PlexBackupInfo>();
+                    }
+                });
+
+                Debug.WriteLine($"[PlexBackupViewModel] Found {backups.Count} backups");
+
+                // Use InvokeAsync instead of Invoke to avoid blocking
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    try
+                    {
+                        AvailableBackups.Clear();
+                        foreach (var backup in backups)
+                        {
+                            AvailableBackups.Add(backup);
+                        }
+                        Debug.WriteLine("[PlexBackupViewModel] Backups updated in UI");
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[PlexBackupViewModel] Error updating backups in UI: {ex.Message}");
                     }
                 });
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error refreshing backups: {ex.Message}");
+                Debug.WriteLine($"[PlexBackupViewModel] Error refreshing backups: {ex.Message}");
             }
+            Debug.WriteLine("[PlexBackupViewModel] RefreshBackupsAsync completed");
         }
 
         private async Task DeleteBackupAsync(PlexBackupInfo? backup)

@@ -65,12 +65,14 @@
         <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,0,8">
             <CheckBox IsChecked="{Binding DryRun}" Content="Dry Run (Preview Only)" VerticalAlignment="Center" Margin="0,0,16,0" 
                       FontWeight="SemiBold"/>
-            <Button Content="Scan All Recent" Command="{Binding ScanAllRecentCommand}" Width="120" FontWeight="Bold" Background="LightGreen" Margin="0,0,8,0"
-                    ToolTip="Scan all items in Windows Recent folder, Quick Access, etc."/>
-            <Button Content="Scan Matching" Command="{Binding ScanCommand}" Width="120" FontWeight="Bold" Background="LightBlue"
-                    ToolTip="Scan for shortcuts matching target directories"/>
-            <Button Content="Remove Selected" Command="{Binding RemoveSelectedCommand}" Width="120" Margin="8,0,0,0" 
-                    Background="LightCoral" FontWeight="Bold"/>
+            <Button Content="🔍 Scan All Recent" Command="{Binding ScanAllRecentCommand}" Width="140" Margin="0,0,8,0" Padding="8,4"
+                    ToolTip="Scan all items in Windows Recent folder, Quick Access, etc." 
+                    Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
+            <Button Content="🎯 Scan Matching" Command="{Binding ScanCommand}" Width="130" Padding="8,4"
+                    ToolTip="Scan for shortcuts matching target directories"
+                    Background="#FF2196F3" Foreground="White" FontWeight="Bold"/>
+            <Button Content="🗑️ Remove Selected" Command="{Binding RemoveSelectedCommand}" Width="140" Margin="8,0,0,0" Padding="8,4"
+                    Background="#FFF44336" Foreground="White" FontWeight="Bold"/>
             <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="16,0,0,0" FontWeight="SemiBold"/>
         </StackPanel>
 

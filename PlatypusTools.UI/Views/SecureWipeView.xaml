@@ -160,12 +160,15 @@
                 <ComboBox ItemsSource="{Binding AvailableDrives}" SelectedItem="{Binding SelectedDrive}"
                           DisplayMemberPath="Name" Width="60" Margin="0,0,4,0"/>
                 <Button Content="🧹 Wipe Free Space" Command="{Binding WipeFreeSpaceCommand}" 
-                        MinWidth="145" Margin="0,0,8,0"/>
+                        MinWidth="155" Margin="0,0,8,0" Padding="8,4"
+                        Background="#FFFF9800" Foreground="White"/>
                 <Button Content="❌ Cancel" Command="{Binding CancelCommand}" 
-                        MinWidth="90" Margin="0,0,8,0"
+                        MinWidth="90" Margin="0,0,8,0" Padding="8,4"
+                        Background="#FF9E9E9E" Foreground="White"
                         Visibility="{Binding IsWiping, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                 <Button Content="🔥 WIPE NOW" Command="{Binding WipeCommand}" 
-                        MinWidth="130" FontWeight="Bold" Background="#FFCCCC">
+                        MinWidth="130" FontWeight="Bold" Padding="8,4"
+                        Background="#FFF44336" Foreground="White">
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                             <Style.Triggers>

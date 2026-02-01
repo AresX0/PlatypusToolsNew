@@ -26,7 +26,7 @@
                 </Grid.ColumnDefinitions>
                 <TextBox x:Name="UrlTextBox" Grid.Column="0" Text="{Binding Url, UpdateSourceTrigger=PropertyChanged}" 
                          VerticalContentAlignment="Center" Margin="0,0,8,0"/>
-                <Button Grid.Column="1" Content="Scan" Width="90" Click="OnScanClick" FontWeight="Bold"/>
+                <Button Grid.Column="1" Content="Scan" Width="90" Click="OnScanClick" FontWeight="Bold" Background="#FF2196F3" Foreground="White"/>
             </Grid>
             </ScrollViewer>
         </GroupBox>
@@ -79,9 +79,9 @@
 
         <!-- Action Buttons -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,8">
-            <Button Content="Download Selected" Click="OnDownloadClick" Width="130" Margin="0,0,8,0" FontWeight="Bold"/>
-            <Button Content="Cancel" Click="OnCancelClick" Width="80" Margin="0,0,8,0"/>
-            <Button Content="Select All" Click="OnSelectAllClick" Width="90" Margin="0,0,8,0"/>
+            <Button Content="Download Selected" Click="OnDownloadClick" Width="130" Margin="0,0,8,0" FontWeight="Bold" Background="#FF4CAF50" Foreground="White"/>
+            <Button Content="Cancel" Click="OnCancelClick" Width="80" Margin="0,0,8,0" Background="#FFF44336" Foreground="White"/>
+            <Button Content="Select All" Click="OnSelectAllClick" Width="90" Margin="0,0,8,0" Background="#FF2196F3" Foreground="White"/>
             <Button Content="Select None" Click="OnSelectNoneClick" Width="90" Margin="0,0,16,0"/>
             <TextBlock VerticalAlignment="Center" Margin="0,0,4,0">Items:</TextBlock>
             <TextBlock x:Name="ItemCountText" VerticalAlignment="Center" FontWeight="Bold" Text="{Binding DownloadItems.Count, FallbackValue=0}"/>

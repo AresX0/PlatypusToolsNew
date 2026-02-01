@@ -126,7 +126,7 @@
                     <!-- Actions -->
                     <GroupBox Header="Actions" Grid.Row="1" Margin="0,0,0,10">
                         <WrapPanel Margin="10">
-                            <Button x:Name="AudioTrimButton" Content="✂️ Trim Audio" Click="AudioTrim_Click" Width="150" Height="40" Margin="0,0,10,5" FontWeight="Bold" Background="LightGreen"/>
+                            <Button x:Name="AudioTrimButton" Content="✂️ Trim Audio" Click="AudioTrim_Click" Width="150" Height="40" Margin="0,0,10,5" FontWeight="Bold" Background="#FF4CAF50" Foreground="White"/>
                             <Button x:Name="AudioPreviewButton" Content="▶ Preview" Click="AudioPreview_Click" Width="120" Height="40" Margin="0,0,10,5"/>
                             <Button Content="📂 Open Output Folder" Click="OpenOutputFolder_Click" Width="160" Height="40" Margin="0,0,10,5"/>
                         </WrapPanel>
@@ -203,7 +203,7 @@
                                 <ComboBoxItem Content="GIF"/>
                                 <ComboBoxItem Content="WEBP"/>
                             </ComboBox>
-                            <Button x:Name="ImageSaveButton" Grid.Column="2" Content="💾 Save As..." Click="ImageSave_Click" Width="120" Height="35" Margin="10,0,5,0" FontWeight="Bold" Background="LightGreen"/>
+                            <Button x:Name="ImageSaveButton" Grid.Column="2" Content="💾 Save As..." Click="ImageSave_Click" Width="120" Height="35" Margin="10,0,5,0" FontWeight="Bold" Background="#FF4CAF50" Foreground="White"/>
                             <Button x:Name="ImageResetButton" Grid.Column="3" Content="↩ Reset" Click="ImageReset_Click" Width="80" Height="35"/>
                         </Grid>
                     </GroupBox>
@@ -252,7 +252,7 @@
                         <WrapPanel Margin="5">
                             <Button Content="Open in VLC" Command="{Binding OpenInVlcCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
                                     ToolTip="Open selected file in VLC Media Player for playback and basic editing"/>
-                            <Button Content="Embed VLC Here" Command="{Binding EmbedVlcCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="LightBlue"
+                            <Button Content="Embed VLC Here" Command="{Binding EmbedVlcCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
                                     ToolTip="Embed VLC player directly in this tab"/>
                             <Button Content="Convert Format" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
                                     ToolTip="Use VLC to convert video/audio format" IsEnabled="False"/>
@@ -351,7 +351,7 @@
                         <WrapPanel Margin="5">
                             <Button Content="Open in Audacity" Command="{Binding OpenInAudacityCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
                                     ToolTip="Open selected audio file in Audacity for editing"/>
-                            <Button Content="Embed Audacity Here" Command="{Binding EmbedAudacityCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="LightBlue"
+                            <Button Content="Embed Audacity Here" Command="{Binding EmbedAudacityCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
                                     ToolTip="Embed Audacity directly in this tab"/>
                             <Button Content="Record Audio" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
                                     ToolTip="Start audio recording in Audacity" IsEnabled="False"/>
@@ -456,7 +456,7 @@
                         <WrapPanel Margin="5">
                             <Button Content="Open in GIMP" Command="{Binding OpenInGimpCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
                                     ToolTip="Open selected image in GIMP for editing"/>
-                            <Button Content="Embed GIMP Here" Command="{Binding EmbedGimpCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="LightBlue"
+                            <Button Content="Embed GIMP Here" Command="{Binding EmbedGimpCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
                                     ToolTip="Embed GIMP directly in this tab"/>
                             <Button Content="Resize Image" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
                                     ToolTip="Resize or scale image" IsEnabled="False"/>
@@ -569,9 +569,9 @@
                         <WrapPanel Margin="5">
                             <Button Content="Open in Shotcut" Command="{Binding OpenInShotcutCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
                                     ToolTip="Open selected video file in Shotcut for editing"/>
-                            <Button Content="Launch Shotcut" Command="{Binding OpenInShotcutCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="LightGreen"
+                            <Button Content="Launch Shotcut" Command="{Binding OpenInShotcutCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF4CAF50" Foreground="White"
                                     ToolTip="Launch Shotcut video editor"/>
-                            <Button Content="Embed Shotcut Here" Command="{Binding EmbedShotcutCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="LightBlue"
+                            <Button Content="Embed Shotcut Here" Command="{Binding EmbedShotcutCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
                                     ToolTip="Embed Shotcut directly in this tab (experimental)"/>
                         </WrapPanel>
                     </GroupBox>
@@ -675,9 +675,9 @@
                         <WrapPanel Margin="5">
                             <Button Content="Open in FreeCAD" Command="{Binding OpenInFreecadCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
                                     ToolTip="Open selected 3D model file in FreeCAD"/>
-                            <Button Content="Launch FreeCAD" Command="{Binding OpenInFreecadCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="LightGreen"
+                            <Button Content="Launch FreeCAD" Command="{Binding OpenInFreecadCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF4CAF50" Foreground="White"
                                     ToolTip="Launch FreeCAD 3D modeler"/>
-                            <Button Content="Embed FreeCAD Here" Command="{Binding EmbedFreecadCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="LightBlue"
+                            <Button Content="Embed FreeCAD Here" Command="{Binding EmbedFreecadCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
                                     ToolTip="Embed FreeCAD directly in this tab (experimental)"/>
                         </WrapPanel>
                     </GroupBox>

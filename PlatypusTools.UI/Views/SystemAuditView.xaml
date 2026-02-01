@@ -27,18 +27,18 @@
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                    <Button Content="Full System Audit" Command="{Binding RunFullAuditCommand}" Width="140" Height="35" 
-                            Margin="0,0,5,0" Background="LightBlue" FontWeight="Bold"/>
-                    <Button Content="Scan Elevated Users" Command="{Binding ScanElevatedUsersCommand}" Width="140" Height="35" 
-                            Margin="0,0,5,0" Background="LightCoral"/>
-                    <Button Content="Scan Critical ACLs" Command="{Binding ScanCriticalAclsCommand}" Width="140" Height="35" 
-                            Margin="0,0,5,0" Background="LightCoral"/>
-                    <Button Content="Scan Outbound Traffic" Command="{Binding ScanOutboundTrafficCommand}" Width="160" Height="35" 
-                            Margin="0,0,5,0" Background="LightGreen"/>
-                    <Button Content="Scan Inbound Traffic" Command="{Binding ScanInboundTrafficCommand}" Width="160" Height="35" 
-                            Margin="0,0,5,0" Background="LightGreen"/>
-                    <Button Content="Open Users &amp; Groups" Command="{Binding OpenUsersAndGroupsCommand}" Width="160" Height="35" 
-                            Margin="0,0,5,0" Background="LightYellow"/>
+                    <Button Content="🔍 Full System Audit" Command="{Binding RunFullAuditCommand}" Width="160" Height="35" 
+                            Margin="0,0,5,0" Background="#FF2196F3" Foreground="White" FontWeight="Bold"/>
+                    <Button Content="👤 Scan Elevated Users" Command="{Binding ScanElevatedUsersCommand}" Width="160" Height="35" 
+                            Margin="0,0,5,0" Background="#FFFF9800" Foreground="White"/>
+                    <Button Content="🔒 Scan Critical ACLs" Command="{Binding ScanCriticalAclsCommand}" Width="150" Height="35" 
+                            Margin="0,0,5,0" Background="#FFF44336" Foreground="White"/>
+                    <Button Content="⬆ Scan Outbound Traffic" Command="{Binding ScanOutboundTrafficCommand}" Width="180" Height="35" 
+                            Margin="0,0,5,0" Background="#FF4CAF50" Foreground="White"/>
+                    <Button Content="⬇ Scan Inbound Traffic" Command="{Binding ScanInboundTrafficCommand}" Width="170" Height="35" 
+                            Margin="0,0,5,0" Background="#FF4CAF50" Foreground="White"/>
+                    <Button Content="👥 Open Users &amp; Groups" Command="{Binding OpenUsersAndGroupsCommand}" Width="170" Height="35" 
+                            Margin="0,0,5,0" Background="#FF9C27B0" Foreground="White"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <Button Content="Firewall" Command="{Binding RunFirewallAuditCommand}" Width="100" Height="35" Margin="0,0,5,0"/>

@@ -101,10 +101,10 @@
                                         <TextBlock Text="{Binding Url}" FontSize="10" Opacity="0.6" TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                        <Button Content="▶" Width="24" Height="24" FontSize="10"
+                                        <Button Content="▶" MinWidth="28" Height="24" FontSize="10" Padding="4,2"
                                                 Command="{Binding DataContext.NavigateToFavoriteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding}" ToolTip="Open"/>
-                                        <Button Content="🗑" Width="24" Height="24" FontSize="10" Margin="4,0,0,0"
+                                        <Button Content="🗑" MinWidth="28" Height="24" FontSize="10" Padding="4,2" Margin="4,0,0,0"
                                                 Command="{Binding DataContext.RemoveFavoriteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding}" ToolTip="Remove"/>
                                     </StackPanel>
