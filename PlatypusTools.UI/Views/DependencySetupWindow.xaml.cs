@@ -293,7 +293,7 @@ namespace PlatypusTools.UI.Views
         
         private async Task<bool> DownloadAndInstallExifToolAsync()
         {
-            var toolsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "exiftool_files");
+            var toolsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools");
             if (!Directory.Exists(toolsPath)) Directory.CreateDirectory(toolsPath);
             
             // Download ExifTool Windows executable

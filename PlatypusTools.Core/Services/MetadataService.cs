@@ -492,8 +492,10 @@ namespace PlatypusTools.Core.Services
             var allPaths = new List<string>
             {
                 // Installed location (MSI installs Tools folder next to exe)
+                Path.Combine(appPath, "Tools", "exiftool", "exiftool.exe"),  // MSI installs here
                 Path.Combine(appPath, "Tools", "exiftool-13.45_64", "exiftool.exe"),
                 Path.Combine(appPath, "Tools", "exiftool.exe"),
+                Path.Combine(appPath, "Tools", "exiftool_files", "exiftool.exe"),
                 Path.Combine(appPath, "exiftool-13.45_64", "exiftool.exe"),
                 // Program Files locations (system-installed)
                 @"C:\Program Files\ExifTool\exiftool.exe",

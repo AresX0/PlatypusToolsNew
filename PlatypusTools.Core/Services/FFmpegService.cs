@@ -24,6 +24,27 @@ namespace PlatypusTools.Core.Services
             {
                 var candidate = Path.Combine(toolsFolder, "ffmpeg.exe");
                 if (File.Exists(candidate)) return candidate;
+                
+                // Also check subdirectory (MSI installs to Tools/ffmpeg/ffmpeg.exe)
+                candidate = Path.Combine(toolsFolder, "ffmpeg", "ffmpeg.exe");
+                if (File.Exists(candidate)) return candidate;
+            }
+            
+            // Check common installation paths relative to app
+            var appPath = AppDomain.CurrentDomain.BaseDirectory;
+            var searchPaths = new[]
+            {
+                Path.Combine(appPath, "Tools", "ffmpeg.exe"),
+                Path.Combine(appPath, "Tools", "ffmpeg", "ffmpeg.exe"),  // MSI installs here
+                Path.Combine(appPath, "ffmpeg.exe"),
+                Path.Combine(appPath, "ffmpeg", "ffmpeg.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "PlatypusTools", "Tools", "ffmpeg", "ffmpeg.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "PlatypusTools", "Tools", "ffmpeg.exe"),
+            };
+            
+            foreach (var path in searchPaths)
+            {
+                if (File.Exists(path)) return path;
             }
 
             // search PATH

@@ -978,7 +978,7 @@ namespace PlatypusTools.UI.Views
         
         private async Task<bool> DownloadAndInstallExifToolAsync()
         {
-            var toolsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "exiftool_files");
+            var toolsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools");
             if (!Directory.Exists(toolsPath)) Directory.CreateDirectory(toolsPath);
             
             var exifToolUrl = "https://exiftool.org/exiftool-12.76.zip";
