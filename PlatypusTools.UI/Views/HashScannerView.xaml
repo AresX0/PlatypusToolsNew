@@ -40,7 +40,7 @@
                 </Grid>
 
                 <!-- File Info -->
-                <StackPanel Orientation="Horizontal" Margin="0,8,0,0" Visibility="{Binding FileName, Converter={StaticResource NullOrEmptyToVisibilityConverter}}">
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0" Visibility="{Binding FileName, Converter={StaticResource StringToVisibilityConverter}}">
                     <TextBlock Text="📄" Margin="0,0,5,0"/>
                     <TextBlock Text="{Binding FileName}" FontWeight="SemiBold" Margin="0,0,15,0"/>
                     <TextBlock Text="Size:" Margin="0,0,5,0" Foreground="Gray"/>
@@ -53,14 +53,14 @@
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                     <CheckBox Content="Uppercase hashes" IsChecked="{Binding UseUppercase}" Margin="0,0,20,0"/>
                     <Button Content="🔄 Calculate" Command="{Binding CalculateHashesCommand}" 
-                            Width="100" Background="#FF4CAF50" Foreground="White" Margin="0,0,10,0"/>
+                            Width="100" Background="#FF4CAF50" Foreground="White" Margin="0,0,10,0" FontSize="12" Padding="5,3"/>
                     <Button Content="Cancel" Command="{Binding CancelCommand}" 
-                            Width="70" Background="#FFF44336" Foreground="White" Margin="0,0,10,0"
+                            Width="70" Background="#FFF44336" Foreground="White" Margin="0,0,10,0" FontSize="12" Padding="5,3"
                             Visibility="{Binding IsCalculating, Converter={StaticResource BoolToVisibilityConverter}}"/>
                     <Button Content="✓ Verify" Command="{Binding VerifyHashCommand}" 
-                            Width="70" Background="#FF2196F3" Foreground="White" Margin="0,0,10,0"
+                            Width="70" Background="#FF2196F3" Foreground="White" Margin="0,0,10,0" FontSize="12" Padding="5,3"
                             ToolTip="Verify a hash against calculated values"/>
-                    <Button Content="Clear" Command="{Binding ClearCommand}" Width="60"/>
+                    <Button Content="Clear" Command="{Binding ClearCommand}" Width="60" FontSize="12" Padding="5,3"/>
                 </StackPanel>
 
                 <!-- Progress -->

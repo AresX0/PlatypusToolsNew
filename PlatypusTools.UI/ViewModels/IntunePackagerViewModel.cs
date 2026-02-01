@@ -32,7 +32,7 @@ public class IntunePackagerViewModel : BindableBase
     private CancellationTokenSource? _cancellationTokenSource;
 
     private const string ToolExeName = "IntuneWinAppUtil.exe";
-    private const string GitHubReleaseUrl = "https://github.com/microsoft/Microsoft-Win32-Content-Prep-Tool/releases/latest/download/IntuneWinAppUtil.exe";
+    private const string GitHubReleaseUrl = "https://raw.githubusercontent.com/microsoft/Microsoft-Win32-Content-Prep-Tool/master/IntuneWinAppUtil.exe";
 
     public IntunePackagerViewModel()
     {

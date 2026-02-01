@@ -401,9 +401,15 @@ public class HashScannerViewModel : BindableBase
     {
         var dialog = new Views.InputDialogWindow("Enter the expected hash value to verify:", "")
         {
-            Title = "Verify Hash",
-            Owner = System.Windows.Application.Current.MainWindow
+            Title = "Verify Hash"
         };
+        
+        // Set owner if MainWindow exists and is not the dialog itself
+        var mainWindow = System.Windows.Application.Current.MainWindow;
+        if (mainWindow != null && mainWindow != dialog)
+        {
+            dialog.Owner = mainWindow;
+        }
 
         if (dialog.ShowDialog() == true)
         {

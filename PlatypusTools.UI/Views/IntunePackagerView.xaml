@@ -36,16 +36,13 @@
                 </Grid>
 
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                    <Ellipse Width="12" Height="12" Margin="0,0,8,0" 
-                             Fill="{Binding ToolAvailable, Converter={StaticResource BoolToColorConverter}, ConverterParameter=Green|Red, FallbackValue=Red}">
+                    <Ellipse Width="12" Height="12" Margin="0,0,8,0">
                         <Ellipse.Style>
                             <Style TargetType="Ellipse">
+                                <Setter Property="Fill" Value="#FFF44336"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding ToolAvailable}" Value="True">
                                         <Setter Property="Fill" Value="#FF4CAF50"/>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding ToolAvailable}" Value="False">
-                                        <Setter Property="Fill" Value="#FFF44336"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -53,12 +50,12 @@
                     </Ellipse>
                     <TextBlock Text="{Binding ToolVersion, FallbackValue='Not found'}" VerticalAlignment="Center" Margin="0,0,20,0"/>
                     <Button Content="⬇ Download Tool" Command="{Binding DownloadToolCommand}" 
-                            Width="120" Background="#FF2196F3" Foreground="White" Padding="5,3" Margin="0,0,10,0"
+                            Width="120" Background="#FF2196F3" Foreground="White" Padding="5,3" Margin="0,0,10,0" FontSize="12"
                             ToolTip="Download IntuneWinAppUtil.exe from Microsoft GitHub"/>
                     <Button Content="🔄 Check Version" Command="{Binding CheckToolVersionCommand}" 
-                            Width="110" Padding="5,3" Margin="0,0,10,0"/>
+                            Width="120" Padding="5,3" Margin="0,0,10,0" FontSize="12"/>
                     <Button Content="🌐 GitHub" Command="{Binding OpenGitHubCommand}" 
-                            Width="80" Padding="5,3"
+                            Width="80" Padding="5,3" FontSize="12"
                             ToolTip="Open Microsoft Win32 Content Prep Tool GitHub page"/>
                 </StackPanel>
             </StackPanel>
