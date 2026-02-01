@@ -325,6 +325,7 @@ namespace PlatypusTools.UI.Services
                 new("Security.ForensicsAnalyzer", "Forensics Analyzer", "Security"),
                 new("Security.SecureWipe", "Secure Wipe", "Security"),
                 new("Security.AdvancedForensics", "🔬 Advanced Forensics", "Security"),
+                new("Security.HashScanner", "Hash Scanner", "Security"),
                 new("Security.AdvancedForensics.Memory", "Memory Analysis", "Security.AdvancedForensics"),
                 new("Security.AdvancedForensics.Artifacts", "Artifacts", "Security.AdvancedForensics"),
                 new("Security.AdvancedForensics.Timeline", "Timeline", "Security.AdvancedForensics"),
@@ -358,6 +359,7 @@ namespace PlatypusTools.UI.Services
                 new("Tools.TerminalClient", "Terminal Client", "Tools"),
                 new("Tools.SimpleBrowser", "Simple Browser", "Tools"),
                 new("Tools.PlexBackup", "Plex Backup", "Tools"),
+                new("Tools.IntunePackager", "Intune Packager", "Tools"),
             };
         }
     }

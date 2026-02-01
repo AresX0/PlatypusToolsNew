@@ -68,6 +68,8 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<TerminalClientViewModel> _terminalClient = new(() => new TerminalClientViewModel());
         private readonly Lazy<SimpleBrowserViewModel> _simpleBrowser = new(() => new SimpleBrowserViewModel());
         private readonly Lazy<PlexBackupViewModel> _plexBackup = new(() => new PlexBackupViewModel());
+        private readonly Lazy<IntunePackagerViewModel> _intunePackager = new(() => new IntunePackagerViewModel());
+        private readonly Lazy<HashScannerViewModel> _hashScanner = new(() => new HashScannerViewModel());
         
         #endregion
 
@@ -161,6 +163,8 @@ namespace PlatypusTools.UI.ViewModels
         public TerminalClientViewModel TerminalClient => _terminalClient.Value;
         public SimpleBrowserViewModel SimpleBrowser => _simpleBrowser.Value;
         public PlexBackupViewModel PlexBackup => _plexBackup.Value;
+        public IntunePackagerViewModel IntunePackager => _intunePackager.Value;
+        public HashScannerViewModel HashScanner => _hashScanner.Value;
         
         #endregion
 

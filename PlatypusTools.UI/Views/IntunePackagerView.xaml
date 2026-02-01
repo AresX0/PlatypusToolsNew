@@ -1,0 +1,178 @@
+<UserControl x:Class="PlatypusTools.UI.Views.IntunePackagerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:IntunePackagerViewModel}">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*" MinHeight="150"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Tool Status & Configuration -->
+        <GroupBox Header="📦 Microsoft Win32 Content Prep Tool" Grid.Row="0" Margin="0,0,0,10">
+            <StackPanel Margin="5">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Tool Path:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBox Grid.Column="1" Text="{Binding ToolPath, UpdateSourceTrigger=PropertyChanged}" 
+                             IsReadOnly="True" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                    <Button Grid.Column="2" Content="Browse..." Command="{Binding BrowseToolPathCommand}" 
+                            Width="80" Margin="0,0,5,0" Padding="5,3"/>
+                    <Button Grid.Column="3" Content="📂 Folder" Command="{Binding OpenToolFolderCommand}" 
+                            Width="75" Padding="5,3" ToolTip="Open folder containing the tool"/>
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <Ellipse Width="12" Height="12" Margin="0,0,8,0" 
+                             Fill="{Binding ToolAvailable, Converter={StaticResource BoolToColorConverter}, ConverterParameter=Green|Red, FallbackValue=Red}">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ToolAvailable}" Value="True">
+                                        <Setter Property="Fill" Value="#FF4CAF50"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding ToolAvailable}" Value="False">
+                                        <Setter Property="Fill" Value="#FFF44336"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <TextBlock Text="{Binding ToolVersion, FallbackValue='Not found'}" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                    <Button Content="⬇ Download Tool" Command="{Binding DownloadToolCommand}" 
+                            Width="120" Background="#FF2196F3" Foreground="White" Padding="5,3" Margin="0,0,10,0"
+                            ToolTip="Download IntuneWinAppUtil.exe from Microsoft GitHub"/>
+                    <Button Content="🔄 Check Version" Command="{Binding CheckToolVersionCommand}" 
+                            Width="110" Padding="5,3" Margin="0,0,10,0"/>
+                    <Button Content="🌐 GitHub" Command="{Binding OpenGitHubCommand}" 
+                            Width="80" Padding="5,3"
+                            ToolTip="Open Microsoft Win32 Content Prep Tool GitHub page"/>
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Package Configuration -->
+        <GroupBox Header="Package Configuration" Grid.Row="1" Margin="0,0,0,10">
+            <Grid Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" MinWidth="120"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Source Folder -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Source Folder:" VerticalAlignment="Center" Margin="0,0,10,8"
+                           ToolTip="Folder containing all setup files. All files in this folder will be compressed into the .intunewin file."/>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SourceFolder, UpdateSourceTrigger=PropertyChanged}" 
+                         Margin="0,0,10,8"/>
+                <Button Grid.Row="0" Grid.Column="2" Content="Browse..." Command="{Binding BrowseSourceFolderCommand}" 
+                        Width="80" Margin="0,0,0,8" Padding="5,3"/>
+
+                <!-- Setup File -->
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Setup File:" VerticalAlignment="Center" Margin="0,0,10,8"
+                           ToolTip="The main setup file (e.g., setup.exe or setup.msi)"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SetupFile, UpdateSourceTrigger=PropertyChanged}" 
+                         Margin="0,0,10,8"/>
+                <Button Grid.Row="1" Grid.Column="2" Content="Browse..." Command="{Binding BrowseSetupFileCommand}" 
+                        Width="80" Margin="0,0,0,8" Padding="5,3"/>
+
+                <!-- Output Folder -->
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Output Folder:" VerticalAlignment="Center" Margin="0,0,10,8"
+                           ToolTip="Folder where the .intunewin file will be created"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}" 
+                         Margin="0,0,10,8"/>
+                <Button Grid.Row="2" Grid.Column="2" Content="Browse..." Command="{Binding BrowseOutputFolderCommand}" 
+                        Width="80" Margin="0,0,0,8" Padding="5,3"/>
+
+                <!-- Catalog Folder (optional) -->
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Catalog Folder:" VerticalAlignment="Center" Margin="0,0,10,8"
+                           ToolTip="Optional: Catalog files for Windows 10 S mode"/>
+                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding CatalogFolder, UpdateSourceTrigger=PropertyChanged}" 
+                         IsEnabled="{Binding IncludeCatalog}" Margin="0,0,10,8"/>
+                <Button Grid.Row="3" Grid.Column="2" Content="Browse..." Command="{Binding BrowseCatalogFolderCommand}" 
+                        Width="80" Margin="0,0,0,8" Padding="5,3"/>
+
+                <!-- Options -->
+                <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,5,0,0">
+                    <CheckBox Content="Include Catalog Files (Windows 10 S mode)" IsChecked="{Binding IncludeCatalog}" 
+                              Margin="0,0,20,0" VerticalAlignment="Center"/>
+                    <CheckBox Content="Quiet Mode (no prompts, overwrite existing)" IsChecked="{Binding QuietMode}" 
+                              VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
+        <!-- Output Log -->
+        <GroupBox Header="Output Log" Grid.Row="3" Margin="0,0,0,10">
+            <ListBox ItemsSource="{Binding OutputLog}" 
+                     HorizontalContentAlignment="Stretch"
+                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     FontFamily="Consolas"
+                     FontSize="12"
+                     Background="{DynamicResource ControlBackgroundBrush}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" TextWrapping="NoWrap"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </GroupBox>
+
+        <!-- Action Buttons & Status -->
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" 
+                       FontWeight="SemiBold" Margin="0,0,10,0"/>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="📦 Create Package" Command="{Binding CreatePackageCommand}" 
+                        Width="140" Height="36" Margin="0,0,10,0"
+                        Background="#FF4CAF50" Foreground="White" FontWeight="Bold"
+                        IsEnabled="{Binding CanCreatePackage}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsPackaging}" Value="True">
+                                    <Setter Property="IsEnabled" Value="False"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <Button Content="Cancel" Command="{Binding CancelCommand}" 
+                        Width="80" Height="36"
+                        Background="#FFF44336" Foreground="White"
+                        IsEnabled="{Binding IsPackaging}"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

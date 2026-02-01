@@ -114,6 +114,7 @@ namespace PlatypusTools.UI.Services
         public Visibility RebootAnalyzer => GetVisibility("Security.RebootAnalyzer");
         public Visibility SecureWipe => GetVisibility("Security.SecureWipe");
         public Visibility AdvancedForensics => GetVisibility("Security.AdvancedForensics");
+        public Visibility HashScanner => GetVisibility("Security.HashScanner");
         
         // Advanced Forensics sub-tabs
         public Visibility AdvancedForensicsMemory => GetVisibility("Security.AdvancedForensics.Memory");
@@ -151,6 +152,7 @@ namespace PlatypusTools.UI.Services
         public Visibility SimpleBrowser => GetVisibility("Tools.SimpleBrowser");
         public Visibility PlexBackup => GetVisibility("Tools.PlexBackup");
         public Visibility ScreenRecorder => GetVisibility("Tools.ScreenRecorder");
+        public Visibility IntunePackager => GetVisibility("Tools.IntunePackager");
 
         // FileManagement - Robocopy
         public Visibility Robocopy => GetVisibility("FileManagement.Robocopy");

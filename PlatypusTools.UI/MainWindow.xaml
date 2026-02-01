@@ -289,6 +289,10 @@
                              Visibility="{Binding AdvancedForensics, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:AdvancedForensicsView}" ViewDataContext="{Binding AdvancedForensics}" />
                     </TabItem>
+                    <TabItem Header="🔢 Hash Scanner"
+                             Visibility="{Binding HashScanner, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:HashScannerView}" ViewDataContext="{Binding HashScanner}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
 
@@ -357,6 +361,10 @@
                     <TabItem Header="Screen Recorder"
                              Visibility="{Binding ScreenRecorder, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:ScreenRecorderView}" />
+                    </TabItem>
+                    <TabItem Header="Intune Packager"
+                             Visibility="{Binding IntunePackager, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:IntunePackagerView}" ViewDataContext="{Binding IntunePackager}" />
                     </TabItem>
                 </TabControl>
             </TabItem>
