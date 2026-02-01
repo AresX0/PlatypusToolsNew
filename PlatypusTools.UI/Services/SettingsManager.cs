@@ -139,6 +139,28 @@ namespace PlatypusTools.UI.Services
             set { _requireAdminRights = value; OnPropertyChanged(); }
         }
 
+        // First-run and dependency settings
+        private bool _hasSeenDependencyPrompt = false;
+        private bool _autoInstallDependencies = false;
+
+        /// <summary>
+        /// Gets or sets whether the user has seen the dependency setup prompt.
+        /// </summary>
+        public bool HasSeenDependencyPrompt
+        {
+            get => _hasSeenDependencyPrompt;
+            set { _hasSeenDependencyPrompt = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to automatically install missing dependencies.
+        /// </summary>
+        public bool AutoInstallDependencies
+        {
+            get => _autoInstallDependencies;
+            set { _autoInstallDependencies = value; OnPropertyChanged(); }
+        }
+
         /// <summary>
         /// Dictionary mapping tab keys to their visibility state.
         /// Keys follow the pattern: "MainTab" or "MainTab.SubTab" for nested tabs.

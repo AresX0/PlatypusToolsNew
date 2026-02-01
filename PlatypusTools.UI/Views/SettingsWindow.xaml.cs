@@ -1,7 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using PlatypusTools.Core.Services;
 using PlatypusTools.UI.Services;
 
 namespace PlatypusTools.UI.Views
@@ -30,7 +35,7 @@ namespace PlatypusTools.UI.Views
                 _panels = new[] 
                 { 
                     GeneralPanel, AppearancePanel, KeyboardPanel, 
-                    AIPanel, UpdatesPanel, BackupPanel, TabVisibilityPanel, VisualizerPanel, AdvancedPanel 
+                    AIPanel, UpdatesPanel, BackupPanel, TabVisibilityPanel, VisualizerPanel, DependenciesPanel, AdvancedPanel 
                 };
             }
             catch (System.Exception ex)
@@ -255,6 +260,7 @@ namespace PlatypusTools.UI.Views
                 "Backup" => BackupPanel,
                 "TabVisibility" => TabVisibilityPanel,
                 "Visualizer" => VisualizerPanel,
+                "Dependencies" => DependenciesPanel,
                 "Advanced" => AdvancedPanel,
                 _ => GeneralPanel
             };
@@ -265,6 +271,10 @@ namespace PlatypusTools.UI.Views
             // Load tab visibility settings when switching to that panel
             if (tag == "TabVisibility")
                 LoadTabVisibilitySettings();
+            
+            // Load dependency status when switching to that panel
+            if (tag == "Dependencies")
+                _ = LoadDependencyStatusAsync();
         }
         
         private void CustomizeTheme_Click(object sender, RoutedEventArgs e)
@@ -728,6 +738,296 @@ namespace PlatypusTools.UI.Views
                     checkbox.IsChecked = visible;
                 }
             }
+        }
+        
+        #endregion
+        
+        #region Dependencies Panel
+        
+        private readonly DependencyCheckerService _depChecker = new();
+        
+        private async Task LoadDependencyStatusAsync()
+        {
+            try
+            {
+                DepFFmpegStatus.Text = "⏳";
+                DepExifToolStatus.Text = "⏳";
+                DepWebView2Status.Text = "⏳";
+                DepFFmpegInfo.Text = "Checking...";
+                DepExifToolInfo.Text = "Checking...";
+                DepWebView2Info.Text = "Checking...";
+                
+                var result = await _depChecker.CheckAllDependenciesAsync();
+                
+                // FFmpeg
+                if (result.FFmpegInstalled)
+                {
+                    DepFFmpegStatus.Text = "✅";
+                    DepFFmpegInfo.Text = "Installed";
+                    DepFFmpegBtn.IsEnabled = false;
+                    DepFFmpegBtn.Content = "Installed";
+                }
+                else
+                {
+                    DepFFmpegStatus.Text = "❌";
+                    DepFFmpegInfo.Text = "Not found - required for video editing";
+                    DepFFmpegBtn.IsEnabled = true;
+                    DepFFmpegBtn.Content = "Install";
+                }
+                
+                // ExifTool
+                if (result.ExifToolInstalled)
+                {
+                    DepExifToolStatus.Text = "✅";
+                    DepExifToolInfo.Text = "Installed";
+                    DepExifToolBtn.IsEnabled = false;
+                    DepExifToolBtn.Content = "Installed";
+                }
+                else
+                {
+                    DepExifToolStatus.Text = "❌";
+                    DepExifToolInfo.Text = "Not found - required for metadata";
+                    DepExifToolBtn.IsEnabled = true;
+                    DepExifToolBtn.Content = "Install";
+                }
+                
+                // WebView2
+                if (result.WebView2Installed)
+                {
+                    DepWebView2Status.Text = "✅";
+                    DepWebView2Info.Text = "Installed";
+                    DepWebView2Btn.IsEnabled = false;
+                    DepWebView2Btn.Content = "Installed";
+                }
+                else
+                {
+                    DepWebView2Status.Text = "❌";
+                    DepWebView2Info.Text = "Not found - required for help system";
+                    DepWebView2Btn.IsEnabled = true;
+                    DepWebView2Btn.Content = "Install";
+                }
+                
+                // Load setting
+                ShowDependencyPromptCheck.IsChecked = !SettingsManager.Current.HasSeenDependencyPrompt;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading dependency status: {ex.Message}");
+            }
+        }
+        
+        private async void DepRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadDependencyStatusAsync();
+        }
+        
+        private async void DepInstallFFmpeg_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                DepFFmpegBtn.IsEnabled = false;
+                DepFFmpegBtn.Content = "Installing...";
+                DepFFmpegStatus.Text = "⏳";
+                
+                var success = await DownloadAndInstallFFmpegAsync();
+                
+                if (success)
+                {
+                    MessageBox.Show("FFmpeg installed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("FFmpeg installation failed. Please install manually.", "Installation Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                
+                await LoadDependencyStatusAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error installing FFmpeg: {ex.Message}\n\nPlease install manually.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                await LoadDependencyStatusAsync();
+            }
+        }
+        
+        private async void DepInstallExifTool_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                DepExifToolBtn.IsEnabled = false;
+                DepExifToolBtn.Content = "Installing...";
+                DepExifToolStatus.Text = "⏳";
+                
+                var success = await DownloadAndInstallExifToolAsync();
+                
+                if (success)
+                {
+                    MessageBox.Show("ExifTool installed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("ExifTool installation failed. Please install manually.", "Installation Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                
+                await LoadDependencyStatusAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error installing ExifTool: {ex.Message}\n\nPlease install manually.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                await LoadDependencyStatusAsync();
+            }
+        }
+        
+        private async void DepInstallWebView2_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                DepWebView2Btn.IsEnabled = false;
+                DepWebView2Btn.Content = "Installing...";
+                DepWebView2Status.Text = "⏳";
+                
+                var success = await DownloadAndInstallWebView2Async();
+                
+                if (success)
+                {
+                    MessageBox.Show("WebView2 Runtime installer launched. Please follow the installer prompts.", "WebView2", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("WebView2 installation failed. Please install manually from Microsoft.", "Installation Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                
+                await Task.Delay(3000);
+                await LoadDependencyStatusAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error installing WebView2: {ex.Message}\n\nPlease install manually.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                await LoadDependencyStatusAsync();
+            }
+        }
+        
+        private void DepOpenFFmpegSite_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo { FileName = "https://ffmpeg.org/download.html", UseShellExecute = true });
+        }
+        
+        private void DepOpenExifToolSite_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo { FileName = "https://exiftool.org/", UseShellExecute = true });
+        }
+        
+        private void DepOpenWebView2Site_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo { FileName = "https://developer.microsoft.com/en-us/microsoft-edge/webview2/", UseShellExecute = true });
+        }
+        
+        private void DepOpenToolsFolder_Click(object sender, RoutedEventArgs e)
+        {
+            var toolsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools");
+            if (!Directory.Exists(toolsPath)) Directory.CreateDirectory(toolsPath);
+            Process.Start(new ProcessStartInfo { FileName = toolsPath, UseShellExecute = true });
+        }
+        
+        private void OpenDependencySetup_Click(object sender, RoutedEventArgs e)
+        {
+            var setupWindow = new DependencySetupWindow();
+            setupWindow.Owner = this;
+            setupWindow.ShowDialog();
+            _ = LoadDependencyStatusAsync();
+        }
+        
+        private async Task<bool> DownloadAndInstallFFmpegAsync()
+        {
+            var toolsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools");
+            if (!Directory.Exists(toolsPath)) Directory.CreateDirectory(toolsPath);
+            
+            var ffmpegUrl = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip";
+            var zipPath = Path.Combine(Path.GetTempPath(), "ffmpeg.zip");
+            var extractPath = Path.Combine(Path.GetTempPath(), "ffmpeg_extract");
+            
+            using var client = new HttpClient();
+            client.Timeout = TimeSpan.FromMinutes(10);
+            
+            var response = await client.GetAsync(ffmpegUrl);
+            if (!response.IsSuccessStatusCode) return false;
+            
+            await using var fs = new FileStream(zipPath, FileMode.Create);
+            await response.Content.CopyToAsync(fs);
+            fs.Close();
+            
+            if (Directory.Exists(extractPath)) Directory.Delete(extractPath, true);
+            System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, extractPath);
+            
+            var ffmpegExe = Directory.GetFiles(extractPath, "ffmpeg.exe", SearchOption.AllDirectories);
+            if (ffmpegExe.Length == 0) return false;
+            
+            var destPath = Path.Combine(toolsPath, "ffmpeg.exe");
+            File.Copy(ffmpegExe[0], destPath, true);
+            
+            var ffprobeExe = Directory.GetFiles(extractPath, "ffprobe.exe", SearchOption.AllDirectories);
+            if (ffprobeExe.Length > 0)
+            {
+                File.Copy(ffprobeExe[0], Path.Combine(toolsPath, "ffprobe.exe"), true);
+            }
+            
+            try { File.Delete(zipPath); } catch { }
+            try { Directory.Delete(extractPath, true); } catch { }
+            
+            return File.Exists(destPath);
+        }
+        
+        private async Task<bool> DownloadAndInstallExifToolAsync()
+        {
+            var toolsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "exiftool_files");
+            if (!Directory.Exists(toolsPath)) Directory.CreateDirectory(toolsPath);
+            
+            var exifToolUrl = "https://exiftool.org/exiftool-12.76.zip";
+            var zipPath = Path.Combine(Path.GetTempPath(), "exiftool.zip");
+            var extractPath = Path.Combine(Path.GetTempPath(), "exiftool_extract");
+            
+            using var client = new HttpClient();
+            client.Timeout = TimeSpan.FromMinutes(5);
+            
+            var response = await client.GetAsync(exifToolUrl);
+            if (!response.IsSuccessStatusCode) return false;
+            
+            await using var fs = new FileStream(zipPath, FileMode.Create);
+            await response.Content.CopyToAsync(fs);
+            fs.Close();
+            
+            if (Directory.Exists(extractPath)) Directory.Delete(extractPath, true);
+            System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, extractPath);
+            
+            var exeFiles = Directory.GetFiles(extractPath, "*.exe", SearchOption.AllDirectories);
+            if (exeFiles.Length == 0) return false;
+            
+            var destPath = Path.Combine(toolsPath, "exiftool.exe");
+            File.Copy(exeFiles[0], destPath, true);
+            
+            try { File.Delete(zipPath); } catch { }
+            try { Directory.Delete(extractPath, true); } catch { }
+            
+            return File.Exists(destPath);
+        }
+        
+        private async Task<bool> DownloadAndInstallWebView2Async()
+        {
+            var installerPath = Path.Combine(Path.GetTempPath(), "MicrosoftEdgeWebview2Setup.exe");
+            var webView2Url = "https://go.microsoft.com/fwlink/p/?LinkId=2124703";
+            
+            using var client = new HttpClient();
+            client.Timeout = TimeSpan.FromMinutes(2);
+            
+            var response = await client.GetAsync(webView2Url);
+            if (!response.IsSuccessStatusCode) return false;
+            
+            await using var fs = new FileStream(installerPath, FileMode.Create);
+            await response.Content.CopyToAsync(fs);
+            fs.Close();
+            
+            Process.Start(new ProcessStartInfo { FileName = installerPath, UseShellExecute = true });
+            
+            return true;
         }
         
         #endregion

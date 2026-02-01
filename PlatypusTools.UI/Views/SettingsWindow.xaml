@@ -78,6 +78,12 @@
                         <TextBlock Text="Tab Visibility"/>
                     </StackPanel>
                 </ListBoxItem>
+                <ListBoxItem Tag="Dependencies">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📦" Width="24"/>
+                        <TextBlock Text="Dependencies"/>
+                    </StackPanel>
+                </ListBoxItem>
                 <ListBoxItem Tag="Advanced">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="🔧" Width="24"/>
@@ -512,6 +518,85 @@
                             <StackPanel Margin="8">
                                 <CheckBox x:Name="EnableGPUAccelerationCheck" Content="Enable GPU acceleration" IsChecked="True" Margin="0,4"/>
                                 <CheckBox x:Name="EnableAudioNormalizationCheck" Content="Normalize audio input" IsChecked="True" Margin="0,4"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                    
+                    <!-- Dependencies Settings -->
+                    <StackPanel x:Name="DependenciesPanel" Visibility="Collapsed">
+                        <TextBlock Text="Dependencies" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
+                        <TextBlock Text="Some features require external tools. Use this section to check and install them." 
+                                   TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,16"/>
+                        
+                        <GroupBox Header="Dependency Status" Margin="0,0,0,16">
+                            <StackPanel Margin="8">
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="30"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="DepFFmpegStatus" Text="⏳" FontSize="14"/>
+                                    <TextBlock Grid.Column="1" Text="FFmpeg" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="DepFFmpegInfo" Grid.Column="2" Text="Checking..." Foreground="Gray"/>
+                                    <Button x:Name="DepFFmpegBtn" Grid.Column="3" Content="Install" Width="80" Click="DepInstallFFmpeg_Click"/>
+                                </Grid>
+                                <Grid Margin="0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="30"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="DepExifToolStatus" Text="⏳" FontSize="14"/>
+                                    <TextBlock Grid.Column="1" Text="ExifTool" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="DepExifToolInfo" Grid.Column="2" Text="Checking..." Foreground="Gray"/>
+                                    <Button x:Name="DepExifToolBtn" Grid.Column="3" Content="Install" Width="80" Click="DepInstallExifTool_Click"/>
+                                </Grid>
+                                <Grid Margin="0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="30"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="DepWebView2Status" Text="⏳" FontSize="14"/>
+                                    <TextBlock Grid.Column="1" Text="WebView2" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="DepWebView2Info" Grid.Column="2" Text="Checking..." Foreground="Gray"/>
+                                    <Button x:Name="DepWebView2Btn" Grid.Column="3" Content="Install" Width="80" Click="DepInstallWebView2_Click"/>
+                                </Grid>
+                                <Button Content="🔄 Refresh Status" Width="140" HorizontalAlignment="Left" Margin="0,12,0,0" Click="DepRefresh_Click"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox Header="Installation Options" Margin="0,0,0,16">
+                            <StackPanel Margin="8">
+                                <CheckBox x:Name="ShowDependencyPromptCheck" Content="Show dependency setup on startup if tools are missing" IsChecked="True" Margin="0,4"/>
+                                <TextBlock Text="When enabled, a setup window will appear on startup if any dependencies are missing." 
+                                           Foreground="Gray" FontSize="11" Margin="20,2,0,8"/>
+                                <Button Content="Open Dependency Setup Window..." Width="220" HorizontalAlignment="Left" Margin="0,8,0,0" Click="OpenDependencySetup_Click"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox Header="Manual Installation">
+                            <StackPanel Margin="8">
+                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,8">
+                                    If automatic installation fails, you can download and install the tools manually:
+                                </TextBlock>
+                                <StackPanel Orientation="Horizontal" Margin="0,4">
+                                    <Button Content="FFmpeg Website ↗" Width="140" Click="DepOpenFFmpegSite_Click"/>
+                                    <TextBlock Text="Video editing, screen recording" VerticalAlignment="Center" Foreground="Gray" Margin="12,0,0,0"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,8">
+                                    <Button Content="ExifTool Website ↗" Width="140" Click="DepOpenExifToolSite_Click"/>
+                                    <TextBlock Text="Metadata editing" VerticalAlignment="Center" Foreground="Gray" Margin="12,0,0,0"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,8">
+                                    <Button Content="WebView2 Runtime ↗" Width="140" Click="DepOpenWebView2Site_Click"/>
+                                    <TextBlock Text="Help system, browser features" VerticalAlignment="Center" Foreground="Gray" Margin="12,0,0,0"/>
+                                </StackPanel>
+                                <Button Content="📁 Open Tools Folder" Width="160" HorizontalAlignment="Left" Margin="0,12,0,0" Click="DepOpenToolsFolder_Click"/>
                             </StackPanel>
                         </GroupBox>
                     </StackPanel>

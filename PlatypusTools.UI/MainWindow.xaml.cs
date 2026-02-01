@@ -40,7 +40,7 @@ namespace PlatypusTools.UI
                 }
             };
             
-            this.Loaded += (s, e) =>
+            this.Loaded += async (s, e) =>
             {
                 StatusBarViewModel.Instance.Reset();
                 RefreshRecentWorkspacesMenu();
@@ -50,10 +50,49 @@ namespace PlatypusTools.UI
                 {
                     InitializeGlassTheme();
                 }
+                
+                // Show dependency setup on first run or if dependencies are missing and user hasn't opted out
+                await CheckAndShowDependencySetupAsync();
             };
             
             // Subscribe to workspace changes
             RecentWorkspacesService.Instance.WorkspacesChanged += (s, e) => RefreshRecentWorkspacesMenu();
+        }
+        
+        /// <summary>
+        /// Checks if dependencies are missing and shows setup dialog if needed.
+        /// </summary>
+        private async System.Threading.Tasks.Task CheckAndShowDependencySetupAsync()
+        {
+            try
+            {
+                var settings = SettingsManager.Current;
+                
+                // If user has opted out of the prompt, skip
+                if (settings.HasSeenDependencyPrompt)
+                    return;
+                
+                // Check if any dependencies are missing
+                var checker = new PlatypusTools.Core.Services.DependencyCheckerService();
+                var result = await checker.CheckAllDependenciesAsync();
+                
+                // If all dependencies are met, mark as seen and skip
+                if (result.AllDependenciesMet)
+                {
+                    settings.HasSeenDependencyPrompt = true;
+                    SettingsManager.SaveCurrent();
+                    return;
+                }
+                
+                // Show the dependency setup window
+                var setupWindow = new Views.DependencySetupWindow();
+                setupWindow.Owner = this;
+                setupWindow.ShowDialog();
+            }
+            catch (System.Exception ex)
+            {
+                PlatypusTools.Core.Services.SimpleLogger.Error($"Error checking dependencies: {ex.Message}");
+            }
         }
         
         /// <summary>
