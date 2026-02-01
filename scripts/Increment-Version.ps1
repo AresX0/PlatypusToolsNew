@@ -1,17 +1,33 @@
 <#
 .SYNOPSIS
-    Increments the patch version (fourth number) in all version files.
+    Increments the version in all version files.
     
 .DESCRIPTION
     This script finds all version references in the project and increments
-    the fourth number (build/patch). For example: 3.2.6.1 -> 3.2.6.2
+    the version using a 4-part scheme: Major.Minor.Build.Revision
+    
+    Minor increment: Adds 1 to Revision, with overflow at 10
+    - 3.3.0.9 -> 3.3.0.10 -> 3.3.1.0 (revision 10 overflows to build)
+    - 3.3.9.10 -> 3.3.10.0 -> 3.4.0.0 (build 10 overflows to minor)
+    - 3.9.10.0 -> 3.10.0.0 -> 4.0.0.0 (minor 10 overflows to major)
+    
+    Major increment: Adds 5 to Minor, with overflow at 10
+    - 3.3.0.0 -> 3.8.0.0
+    - 3.8.0.0 -> 4.3.0.0 (8+5=13, overflow: major+1, minor=3)
+    
+.PARAMETER Major
+    If specified, performs a major version increment (+5 to minor).
     
 .PARAMETER WhatIf
     Shows what changes would be made without actually making them.
     
 .EXAMPLE
     .\Increment-Version.ps1
-    Increments version in all project files.
+    Increments revision (minor change) in all project files.
+    
+.EXAMPLE
+    .\Increment-Version.ps1 -Major
+    Increments by 5 (major change) in all project files.
     
 .EXAMPLE
     .\Increment-Version.ps1 -WhatIf
@@ -19,35 +35,84 @@
 #>
 
 param(
+    [switch]$Major,
     [switch]$WhatIf
 )
 
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 
-# Files containing version information
+# Files containing version information - support both 3-part and 4-part versions
 $VersionFiles = @(
-    @{ Path = "PlatypusTools.UI\PlatypusTools.UI.csproj"; Pattern = '<Version>(\d+)\.(\d+)\.(\d+)\.(\d+)</Version>' },
-    @{ Path = "PlatypusTools.Core\PlatypusTools.Core.csproj"; Pattern = '<Version>(\d+)\.(\d+)\.(\d+)\.(\d+)</Version>' },
-    @{ Path = "PlatypusTools.Installer\Product.wxs"; Pattern = 'Version="(\d+)\.(\d+)\.(\d+)\.(\d+)"' },
-    @{ Path = "PlatypusTools.UI\Views\SettingsWindow.xaml"; Pattern = 'Text="Version: (\d+)\.(\d+)\.(\d+)\.(\d+)"' },
-    @{ Path = "PlatypusTools.UI\Views\AboutWindow.xaml"; Pattern = 'Text="(\d+)\.(\d+)\.(\d+)\.(\d+)"' }
+    @{ Path = "PlatypusTools.UI\PlatypusTools.UI.csproj"; Pattern = '<Version>(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?</Version>'; Template = '<Version>{0}</Version>' },
+    @{ Path = "PlatypusTools.Core\PlatypusTools.Core.csproj"; Pattern = '<Version>(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?</Version>'; Template = '<Version>{0}</Version>' },
+    @{ Path = "PlatypusTools.Installer\Product.wxs"; Pattern = 'Version="(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?"'; Template = 'Version="{0}"' },
+    @{ Path = "PlatypusTools.Installer\Files.wxs"; Pattern = 'Value="(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?"'; Template = 'Value="{0}"' },
+    @{ Path = "PlatypusTools.UI\Views\SettingsWindow.xaml"; Pattern = 'Text="Version: (\d+)\.(\d+)\.(\d+)(?:\.(\d+))?"'; Template = 'Text="Version: {0}"' },
+    @{ Path = "PlatypusTools.UI\Views\AboutWindow.xaml"; Pattern = 'Text="(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?"'; Template = 'Text="{0}"' }
 )
+
+function Increment-MinorVersion {
+    param([int]$Maj, [int]$Min, [int]$Bld, [int]$Rev)
+    
+    $Rev++
+    
+    # Overflow logic: any octet > 10 carries over
+    if ($Rev -gt 10) {
+        $Rev = 0
+        $Bld++
+    }
+    if ($Bld -gt 10) {
+        $Bld = 0
+        $Min++
+    }
+    if ($Min -gt 10) {
+        $Min = 0
+        $Maj++
+    }
+    
+    return @($Maj, $Min, $Bld, $Rev)
+}
+
+function Increment-MajorVersion {
+    param([int]$Maj, [int]$Min, [int]$Bld, [int]$Rev)
+    
+    $Min += 5
+    $Bld = 0
+    $Rev = 0
+    
+    # Overflow logic
+    if ($Min -gt 10) {
+        $Maj++
+        $Min = $Min - 10
+    }
+    
+    return @($Maj, $Min, $Bld, $Rev)
+}
 
 # Get current version from the UI csproj
 $UICsprojPath = Join-Path $ProjectRoot "PlatypusTools.UI\PlatypusTools.UI.csproj"
 $UICsprojContent = Get-Content $UICsprojPath -Raw
 
-if ($UICsprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)\.(\d+)</Version>') {
-    $Major = [int]$Matches[1]
-    $Minor = [int]$Matches[2]
-    $Build = [int]$Matches[3]
-    $Revision = [int]$Matches[4]
+if ($UICsprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?</Version>') {
+    $MajorNum = [int]$Matches[1]
+    $MinorNum = [int]$Matches[2]
+    $BuildNum = [int]$Matches[3]
+    $RevisionNum = if ($Matches[4]) { [int]$Matches[4] } else { 0 }
     
-    $CurrentVersion = "$Major.$Minor.$Build.$Revision"
-    $NewRevision = $Revision + 1
-    $NewVersion = "$Major.$Minor.$Build.$NewRevision"
+    $CurrentVersion = "$MajorNum.$MinorNum.$BuildNum.$RevisionNum"
     
+    if ($Major) {
+        $NewParts = Increment-MajorVersion -Maj $MajorNum -Min $MinorNum -Bld $BuildNum -Rev $RevisionNum
+        Write-Host "Performing MAJOR version increment (+5 to minor)" -ForegroundColor Magenta
+    } else {
+        $NewParts = Increment-MinorVersion -Maj $MajorNum -Min $MinorNum -Bld $BuildNum -Rev $RevisionNum
+        Write-Host "Performing minor version increment (+1 to revision)" -ForegroundColor Cyan
+    }
+    
+    $NewVersion = "$($NewParts[0]).$($NewParts[1]).$($NewParts[2]).$($NewParts[3])"
+    
+    Write-Host ""
     Write-Host "Current Version: $CurrentVersion"
     Write-Host "New Version:     $NewVersion"
     Write-Host ""
@@ -64,7 +129,7 @@ if ($UICsprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)\.(\d+)</Version>') {
             
             if ($Content -match $FileInfo.Pattern) {
                 $OldMatch = $Matches[0]
-                $NewMatch = $OldMatch -replace '(\d+)\.(\d+)\.(\d+)\.(\d+)', $NewVersion
+                $NewMatch = $FileInfo.Template -f $NewVersion
                 
                 if ($WhatIf) {
                     Write-Host "  $($FileInfo.Path)"
@@ -87,8 +152,13 @@ if ($UICsprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)\.(\d+)</Version>') {
     $HelpFilePath = Join-Path $ProjectRoot "PlatypusTools.UI\Assets\PlatypusTools_Help.html"
     if (Test-Path $HelpFilePath) {
         $HelpContent = Get-Content $HelpFilePath -Raw
+        # Match both old 3-part versions and 4-part versions
         $HelpNewContent = $HelpContent -replace "v$([regex]::Escape($CurrentVersion))", "v$NewVersion"
         $HelpNewContent = $HelpNewContent -replace "Version $([regex]::Escape($CurrentVersion))", "Version $NewVersion"
+        # Also update any 3-part version references
+        $ThreePartCurrent = "$MajorNum.$MinorNum.$BuildNum"
+        $HelpNewContent = $HelpNewContent -replace "v$([regex]::Escape($ThreePartCurrent))", "v$NewVersion"
+        $HelpNewContent = $HelpNewContent -replace "Version $([regex]::Escape($ThreePartCurrent))", "Version $NewVersion"
         
         if ($WhatIf) {
             Write-Host "  PlatypusTools.UI\Assets\PlatypusTools_Help.html (multiple occurrences)"
