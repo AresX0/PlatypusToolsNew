@@ -4,69 +4,140 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
+             xmlns:local="clr-namespace:PlatypusTools.UI.Views"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="900">
+    <UserControl.Resources>
+        <local:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter"/>
+    </UserControl.Resources>
     <Grid Margin="5">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*" MinHeight="100"/>
-            <RowDefinition Height="5"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="280" MinWidth="200"/>
+        </Grid.ColumnDefinitions>
 
-        <!-- File Selection -->
-        <GroupBox Header="Video File" Grid.Row="0" Margin="0,0,0,5">
-            <Grid Margin="5">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="File:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <TextBox x:Name="VideoFilePathBox" Grid.Column="1" IsReadOnly="True" Margin="0,0,10,0"/>
-                <Button Grid.Column="2" Content="Browse..." Click="BrowseVideo_Click" Width="80" Padding="5"/>
-            </Grid>
-        </GroupBox>
+        <!-- Main Player Panel -->
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*" MinHeight="100"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <!-- Video Display using LibVLC -->
-        <Border Grid.Row="1" Background="Black" CornerRadius="4">
-            <vlc:VideoView x:Name="VlcVideoView" Background="Black"/>
-        </Border>
-
-        <!-- GridSplitter -->
-        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 
-                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
-        
-        <!-- Video Controls -->
-        <GroupBox Grid.Row="3" Header="Playback Controls" Margin="0,5,0,0">
-            <StackPanel Margin="5">
-                <Grid Margin="0,5">
+            <!-- File Selection -->
+            <GroupBox Header="Now Playing" Grid.Row="0" Margin="0,0,0,5">
+                <Grid Margin="5">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="PositionText" Grid.Column="0" Text="00:00:00" VerticalAlignment="Center" Margin="0,0,10,0" FontFamily="Consolas"/>
-                    <Slider x:Name="SeekSlider" Grid.Column="1" Minimum="0" Maximum="100" ValueChanged="SeekSlider_ValueChanged" Margin="0,0,10,0"/>
-                    <TextBlock x:Name="DurationText" Grid.Column="2" Text="00:00:00" VerticalAlignment="Center" FontFamily="Consolas"/>
+                    <TextBlock Grid.Column="0" Text="File:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBox x:Name="VideoFilePathBox" Grid.Column="1" IsReadOnly="True" Margin="0,0,10,0"/>
+                    <Button Grid.Column="2" Content="Browse..." Click="BrowseVideo_Click" Width="80" Padding="5"/>
                 </Grid>
-                <WrapPanel HorizontalAlignment="Center" Margin="0,5">
-                    <Button Content="▶ Play" Click="Play_Click" Width="80" Height="35" Margin="5" FontWeight="Bold"/>
-                    <Button Content="⏸ Pause" Click="Pause_Click" Width="80" Height="35" Margin="5"/>
-                    <Button Content="⏹ Stop" Click="Stop_Click" Width="80" Height="35" Margin="5"/>
-                    <Button Content="⏪ -10s" Click="Back_Click" Width="80" Height="35" Margin="5" Padding="6,2"/>
-                    <Button Content="⏩ +10s" Click="Forward_Click" Width="80" Height="35" Margin="5" Padding="6,2"/>
-                    <Button Content="⛶ Fullscreen" Click="Fullscreen_Click" Width="100" Height="35" Margin="5" ToolTip="Press Escape to exit fullscreen"/>
-                </WrapPanel>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5">
-                    <TextBlock Text="Volume:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <Slider x:Name="VolumeSlider" Minimum="0" Maximum="1" Value="0.7" Width="150" ValueChanged="Volume_ValueChanged"/>
-                    <Button Content="🔇 Mute" Click="Mute_Click" Width="80" Height="30" Margin="10,0,0,0" Padding="6,2"/>
+            </GroupBox>
+
+            <!-- Video Display using LibVLC -->
+            <Border Grid.Row="1" Background="Black" CornerRadius="4">
+                <vlc:VideoView x:Name="VlcVideoView" Background="Black"/>
+            </Border>
+
+            <!-- GridSplitter -->
+            <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 
+                          Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+            
+            <!-- Video Controls -->
+            <GroupBox Grid.Row="3" Header="Playback Controls" Margin="0,5,0,0">
+                <StackPanel Margin="5">
+                    <Grid Margin="0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="PositionText" Grid.Column="0" Text="00:00:00" VerticalAlignment="Center" Margin="0,0,10,0" FontFamily="Consolas"/>
+                        <Slider x:Name="SeekSlider" Grid.Column="1" Minimum="0" Maximum="100" ValueChanged="SeekSlider_ValueChanged" Margin="0,0,10,0"/>
+                        <TextBlock x:Name="DurationText" Grid.Column="2" Text="00:00:00" VerticalAlignment="Center" FontFamily="Consolas"/>
+                    </Grid>
+                    <WrapPanel HorizontalAlignment="Center" Margin="0,5">
+                        <Button Content="⏮" Click="Previous_Click" Width="40" Height="35" Margin="3" ToolTip="Previous in Queue" FontSize="14"/>
+                        <Button Content="▶ Play" Click="Play_Click" Width="70" Height="35" Margin="3" FontWeight="Bold"/>
+                        <Button Content="⏸ Pause" Click="Pause_Click" Width="70" Height="35" Margin="3"/>
+                        <Button Content="⏹ Stop" Click="Stop_Click" Width="70" Height="35" Margin="3"/>
+                        <Button Content="⏭" Click="Next_Click" Width="40" Height="35" Margin="3" ToolTip="Next in Queue" FontSize="14"/>
+                        <Button Content="⏪" Click="Back_Click" Width="40" Height="35" Margin="3" Padding="6,2" ToolTip="-10s"/>
+                        <Button Content="⏩" Click="Forward_Click" Width="40" Height="35" Margin="3" Padding="6,2" ToolTip="+10s"/>
+                        <Button Content="⛶" Click="Fullscreen_Click" Width="40" Height="35" Margin="3" ToolTip="Fullscreen (ESC to exit)"/>
+                    </WrapPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5">
+                        <TextBlock Text="Volume:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <Slider x:Name="VolumeSlider" Minimum="0" Maximum="1" Value="0.7" Width="150" ValueChanged="Volume_ValueChanged"/>
+                        <Button Content="🔇" Click="Mute_Click" Width="40" Height="28" Margin="10,0,0,0" ToolTip="Mute"/>
+                    </StackPanel>
                 </StackPanel>
-                <TextBlock HorizontalAlignment="Center" Margin="0,10,0,0" FontStyle="Italic" Foreground="#666">
-                    LibVLC-powered video player - Plays any format (AVI, MKV, MP4, WebM, etc.)
-                </TextBlock>
-            </StackPanel>
+            </GroupBox>
+        </Grid>
+
+        <!-- GridSplitter for Queue Panel -->
+        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                      Background="#CCCCCC" Cursor="SizeWE"/>
+
+        <!-- Queue Panel -->
+        <GroupBox Grid.Column="2" Header="Queue" Margin="5,0,0,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Queue Controls -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
+                    <Button Content="+ Add Files" Click="AddToQueue_Click" Width="80" Height="28" Margin="0,0,5,0" 
+                            Background="#FF4CAF50" Foreground="White"/>
+                    <Button Content="Clear" Click="ClearQueue_Click" Width="55" Height="28" Margin="0,0,5,0"/>
+                    <Button Content="🔀" Click="ShuffleQueue_Click" Width="30" Height="28" ToolTip="Shuffle Queue"/>
+                </StackPanel>
+
+                <!-- Queue List -->
+                <ListBox x:Name="QueueListBox" Grid.Row="1" Margin="5" 
+                         SelectionMode="Extended" 
+                         MouseDoubleClick="QueueItem_DoubleClick"
+                         AllowDrop="True"
+                         Drop="QueueListBox_Drop"
+                         DragOver="QueueListBox_DragOver">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding Index}" Foreground="#888" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="{Binding FileName}" TextTrimming="CharacterEllipsis" 
+                                           VerticalAlignment="Center" Margin="5,0" 
+                                           ToolTip="{Binding FullPath}"
+                                           FontWeight="{Binding IsPlaying, Converter={StaticResource BoolToFontWeightConverter}}"/>
+                                <Button Grid.Column="2" Content="✕" Width="22" Height="22" 
+                                        Click="RemoveFromQueue_Click" Tag="{Binding}"
+                                        Background="Transparent" BorderThickness="0"
+                                        ToolTip="Remove from queue"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- Queue Info -->
+                <StackPanel Grid.Row="2" Margin="5">
+                    <TextBlock x:Name="QueueInfoText" Text="0 items in queue" Foreground="#666" FontSize="11"/>
+                    <CheckBox x:Name="RepeatCheckBox" Content="Repeat Queue" Margin="0,5,0,0"/>
+                    <CheckBox x:Name="AutoPlayCheckBox" Content="Auto-play next" IsChecked="True" Margin="0,3,0,0"/>
+                </StackPanel>
+            </Grid>
         </GroupBox>
     </Grid>
 </UserControl>

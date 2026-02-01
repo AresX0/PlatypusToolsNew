@@ -1,13 +1,61 @@
 using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using LibVLCSharp.Shared;
 
 namespace PlatypusTools.UI.Views
 {
+    /// <summary>
+    /// Converter to show bold font for currently playing item
+    /// </summary>
+    public class BoolToFontWeightConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value is bool b && b ? FontWeights.Bold : FontWeights.Normal;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Represents a video file in the queue
+    /// </summary>
+    public class QueueItem : INotifyPropertyChanged
+    {
+        private bool _isPlaying;
+        private int _index;
+
+        public string FullPath { get; set; } = string.Empty;
+        public string FileName => Path.GetFileName(FullPath);
+
+        public int Index
+        {
+            get => _index;
+            set { _index = value; OnPropertyChanged(nameof(Index)); }
+        }
+
+        public bool IsPlaying
+        {
+            get => _isPlaying;
+            set { _isPlaying = value; OnPropertyChanged(nameof(IsPlaying)); }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+
     public partial class NativeVideoPlayerView : UserControl
     {
         private DispatcherTimer? _timer;
@@ -19,6 +67,10 @@ namespace PlatypusTools.UI.Views
         private Media? _currentMedia;
         private bool _isInitialized = false;
         private bool _isInitializing = false;
+
+        // Queue
+        private readonly ObservableCollection<QueueItem> _queue = new();
+        private int _currentQueueIndex = -1;
         
         // Logging
         private static readonly string LogPath = Path.Combine(AppContext.BaseDirectory, "vlc_debug.log");
@@ -40,6 +92,10 @@ namespace PlatypusTools.UI.Views
             Log("NativeVideoPlayerView constructor starting");
             // Defer heavy initialization to Loaded event to avoid UI freeze
             InitializeTimer();
+            
+            // Initialize queue
+            QueueListBox.ItemsSource = _queue;
+            UpdateQueueInfo();
             
             Loaded += NativeVideoPlayerView_Loaded;
             Unloaded += NativeVideoPlayerView_Unloaded;
@@ -100,6 +156,12 @@ namespace PlatypusTools.UI.Views
                     Log("Creating MediaPlayer on UI thread...");
                     _mediaPlayer = new MediaPlayer(_libVLC);
                     Log($"MediaPlayer created: {_mediaPlayer != null}");
+                    
+                    // Hook up end reached event for auto-play next
+                    if (_mediaPlayer != null)
+                    {
+                        _mediaPlayer.EndReached += MediaPlayer_EndReached;
+                    }
                     
                     if (_mediaPlayer != null && VlcVideoView.MediaPlayer == null)
                     {
@@ -176,13 +238,29 @@ namespace PlatypusTools.UI.Views
             }
         }
 
+        private void MediaPlayer_EndReached(object? sender, EventArgs e)
+        {
+            // EndReached is called from a VLC thread, need to dispatch to UI thread
+            Dispatcher.BeginInvoke(() =>
+            {
+                Log("MediaPlayer EndReached event fired");
+                
+                if (AutoPlayCheckBox.IsChecked == true && _queue.Count > 0 && _currentQueueIndex >= 0)
+                {
+                    Log("Auto-playing next in queue");
+                    PlayNextInQueue();
+                }
+            });
+        }
+
         private void BrowseVideo_Click(object sender, RoutedEventArgs e)
         {
             Log("BrowseVideo_Click");
             var dialog = new OpenFileDialog
             {
-                Filter = "Video Files|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm;*.m4v;*.mpg;*.mpeg|All Files|*.*",
-                Title = "Select Video File"
+                Filter = "Video Files|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm;*.m4v;*.mpg;*.mpeg;*.ts;*.mts;*.m2ts;*.vob;*.ogv;*.3gp;*.3g2;*.divx;*.xvid;*.asf;*.rm;*.rmvb|All Files|*.*",
+                Title = "Select Video File",
+                Multiselect = false
             };
             if (dialog.ShowDialog() == true)
             {
@@ -542,5 +620,190 @@ namespace PlatypusTools.UI.Views
 
             fullscreenWindow.ShowDialog();
         }
+
+        #region Queue Management
+
+        private void UpdateQueueInfo()
+        {
+            QueueInfoText.Text = $"{_queue.Count} item{(_queue.Count == 1 ? "" : "s")} in queue";
+            // Update indices
+            for (int i = 0; i < _queue.Count; i++)
+            {
+                _queue[i].Index = i + 1;
+            }
+        }
+
+        private void AddToQueue_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Video Files|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm;*.m4v;*.mpg;*.mpeg;*.ts;*.mts;*.m2ts;*.vob;*.ogv;*.3gp;*.3g2;*.divx;*.xvid;*.asf;*.rm;*.rmvb|All Files|*.*",
+                Title = "Add Videos to Queue",
+                Multiselect = true
+            };
+            if (dialog.ShowDialog() == true)
+            {
+                foreach (var file in dialog.FileNames)
+                {
+                    _queue.Add(new QueueItem { FullPath = file });
+                }
+                UpdateQueueInfo();
+                Log($"Added {dialog.FileNames.Length} files to queue");
+            }
+        }
+
+        private void ClearQueue_Click(object sender, RoutedEventArgs e)
+        {
+            _queue.Clear();
+            _currentQueueIndex = -1;
+            UpdateQueueInfo();
+            Log("Queue cleared");
+        }
+
+        private void ShuffleQueue_Click(object sender, RoutedEventArgs e)
+        {
+            if (_queue.Count <= 1) return;
+
+            var random = new Random();
+            var items = _queue.ToList();
+            
+            // Fisher-Yates shuffle
+            for (int i = items.Count - 1; i > 0; i--)
+            {
+                int j = random.Next(i + 1);
+                (items[i], items[j]) = (items[j], items[i]);
+            }
+
+            _queue.Clear();
+            foreach (var item in items)
+            {
+                _queue.Add(item);
+            }
+            
+            _currentQueueIndex = -1;
+            UpdateQueueInfo();
+            Log("Queue shuffled");
+        }
+
+        private void RemoveFromQueue_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is QueueItem item)
+            {
+                int idx = _queue.IndexOf(item);
+                _queue.Remove(item);
+                
+                // Adjust current index if needed
+                if (idx < _currentQueueIndex)
+                    _currentQueueIndex--;
+                else if (idx == _currentQueueIndex)
+                    _currentQueueIndex = -1;
+                    
+                UpdateQueueInfo();
+            }
+        }
+
+        private void QueueItem_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (QueueListBox.SelectedItem is QueueItem item)
+            {
+                PlayFromQueue(_queue.IndexOf(item));
+            }
+        }
+
+        private void PlayFromQueue(int index)
+        {
+            if (index < 0 || index >= _queue.Count) return;
+
+            // Clear previous playing state
+            foreach (var item in _queue)
+                item.IsPlaying = false;
+
+            _currentQueueIndex = index;
+            var queueItem = _queue[index];
+            queueItem.IsPlaying = true;
+
+            _currentFilePath = queueItem.FullPath;
+            VideoFilePathBox.Text = queueItem.FullPath;
+            LoadVideo(queueItem.FullPath);
+            
+            Log($"Playing from queue index {index}: {queueItem.FileName}");
+        }
+
+        private void Previous_Click(object sender, RoutedEventArgs e)
+        {
+            if (_queue.Count == 0) return;
+
+            int newIndex;
+            if (_currentQueueIndex <= 0)
+            {
+                // Wrap to end if repeat is enabled, otherwise stay at start
+                newIndex = RepeatCheckBox.IsChecked == true ? _queue.Count - 1 : 0;
+            }
+            else
+            {
+                newIndex = _currentQueueIndex - 1;
+            }
+
+            PlayFromQueue(newIndex);
+        }
+
+        private void Next_Click(object sender, RoutedEventArgs e)
+        {
+            PlayNextInQueue();
+        }
+
+        private void PlayNextInQueue()
+        {
+            if (_queue.Count == 0) return;
+
+            int newIndex;
+            if (_currentQueueIndex >= _queue.Count - 1)
+            {
+                // Wrap to beginning if repeat is enabled
+                newIndex = RepeatCheckBox.IsChecked == true ? 0 : -1;
+            }
+            else
+            {
+                newIndex = _currentQueueIndex + 1;
+            }
+
+            if (newIndex >= 0)
+                PlayFromQueue(newIndex);
+        }
+
+        private void QueueListBox_DragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effects = DragDropEffects.Copy;
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+            }
+            e.Handled = true;
+        }
+
+        private void QueueListBox_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                var videoExtensions = new[] { ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v", ".mpg", ".mpeg", ".ts", ".mts", ".m2ts", ".vob", ".ogv", ".3gp", ".divx" };
+                
+                foreach (var file in files)
+                {
+                    var ext = Path.GetExtension(file).ToLowerInvariant();
+                    if (videoExtensions.Contains(ext) || File.Exists(file))
+                    {
+                        _queue.Add(new QueueItem { FullPath = file });
+                    }
+                }
+                UpdateQueueInfo();
+                Log($"Dropped {files.Length} files to queue");
+            }
+        }
+
+        #endregion
     }
 }
