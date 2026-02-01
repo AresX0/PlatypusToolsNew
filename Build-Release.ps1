@@ -243,7 +243,50 @@ Write-Success "EXE built: $exePath"
 Write-Host "  Size: $exeSizeMB MB" -ForegroundColor Gray
 Write-Host "  Created: $($exeInfo.LastWriteTime)" -ForegroundColor Gray
 
-# === STEP 8: Version verification ===
+# === STEP 8: Code Signing ===
+Write-Step "Code Signing EXE and MSI"
+
+$certThumbprint = "B4FA73AB05DC5AE2D245D1C629D5EC59E4FC0D40"
+$timestampServer = "http://timestamp.digicert.com"
+
+# Check if certificate exists
+$cert = Get-ChildItem Cert:\CurrentUser\My\$certThumbprint -ErrorAction SilentlyContinue
+if (-not $cert) {
+    $cert = Get-ChildItem Cert:\LocalMachine\My\$certThumbprint -ErrorAction SilentlyContinue
+}
+
+if ($cert) {
+    Write-Host "Found certificate: $($cert.Subject)" -ForegroundColor Gray
+    
+    # Sign the EXE
+    try {
+        $sigResult = Set-AuthenticodeSignature -FilePath $exePath -Certificate $cert -TimestampServer $timestampServer
+        if ($sigResult.Status -eq "Valid") {
+            Write-Success "EXE signed successfully"
+        } else {
+            Write-Warning "EXE signing status: $($sigResult.Status) - $($sigResult.StatusMessage)"
+        }
+    } catch {
+        Write-Warning "Failed to sign EXE: $_"
+    }
+    
+    # Sign the MSI
+    try {
+        $sigResult = Set-AuthenticodeSignature -FilePath $msiPath -Certificate $cert -TimestampServer $timestampServer
+        if ($sigResult.Status -eq "Valid") {
+            Write-Success "MSI signed successfully"
+        } else {
+            Write-Warning "MSI signing status: $($sigResult.Status) - $($sigResult.StatusMessage)"
+        }
+    } catch {
+        Write-Warning "Failed to sign MSI: $_"
+    }
+} else {
+    Write-Warning "Code signing certificate not found (thumbprint: $certThumbprint)"
+    Write-Warning "Skipping code signing - EXE and MSI will be unsigned"
+}
+
+# === STEP 9: Version verification ===
 Write-Step "Verifying version numbers"
 
 # Check EXE version

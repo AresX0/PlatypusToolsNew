@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlatypusTools v3.2.8 - Help Documentation</title>
+    <title>PlatypusTools v3.3.0.2.2 - Help Documentation</title>
     <style>
         :root {
             --primary: #2d5aa8;
@@ -1220,6 +1220,33 @@
         <li>The app will auto-detect if these tools are in your system PATH</li>
     </ul>
     
+    <h4>Windows Defender / SmartScreen Blocking</h4>
+    <p>Windows Defender or SmartScreen may flag PlatypusTools because it uses a self-signed certificate. This is a false positive.</p>
+    <ul>
+        <li><strong>Option 1: Allow through Defender</strong>
+            <ol>
+                <li>Open Windows Security → Virus &amp; threat protection</li>
+                <li>Under "Current threats", find PlatypusTools and click "Allow"</li>
+                <li>Or add an exclusion: Protection history → Add exclusion → Folder → Select the PlatypusTools install folder</li>
+            </ol>
+        </li>
+        <li><strong>Option 2: Install the certificate (Recommended for organizations)</strong>
+            <ol>
+                <li>Download <code>PlatypusTools.cer</code> from the GitHub releases or scripts folder</li>
+                <li>Right-click the .cer file → Install Certificate</li>
+                <li>Select "Local Machine" → Next</li>
+                <li>Select "Place all certificates in the following store" → Browse → "Trusted Root Certification Authorities" → OK → Next → Finish</li>
+            </ol>
+        </li>
+        <li><strong>Option 3: PowerShell installation (Run as Administrator)</strong>
+            <pre><code>Import-Certificate -FilePath "PlatypusTools.cer" -CertStoreLocation Cert:\LocalMachine\Root</code></pre>
+        </li>
+    </ul>
+    <div class="tip">
+        <strong>For IT Administrators:</strong> Deploy the certificate via Group Policy or Intune using the 
+        <code>Install-PlatypusToolsCert.ps1</code> script included in the scripts folder.
+    </div>
+    
     <h4>Access Denied errors</h4>
     <ul>
         <li>Run PlatypusTools as Administrator</li>
@@ -1266,7 +1293,7 @@
 </div>
 
 <footer>
-    <p>PlatypusTools v3.2.8 | © 2026 PlatypusTools Project | Built with .NET 10 / WPF</p>
+    <p>PlatypusTools v3.3.0.2.2 | © 2026 PlatypusTools Project | Built with .NET 10 / WPF</p>
 </footer>
 
 </body>
