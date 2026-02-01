@@ -111,6 +111,7 @@ namespace PlatypusTools.UI.Services
         public Visibility FolderHider => GetVisibility("Security.FolderHider");
         public Visibility SystemAudit => GetVisibility("Security.SystemAudit");
         public Visibility ForensicsAnalyzer => GetVisibility("Security.ForensicsAnalyzer");
+        public Visibility RebootAnalyzer => GetVisibility("Security.RebootAnalyzer");
         public Visibility SecureWipe => GetVisibility("Security.SecureWipe");
         public Visibility AdvancedForensics => GetVisibility("Security.AdvancedForensics");
         

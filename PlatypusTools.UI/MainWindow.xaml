@@ -277,7 +277,11 @@
                              Visibility="{Binding ForensicsAnalyzer, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:ForensicsAnalyzerView}" ViewDataContext="{Binding ForensicsAnalyzer}" />
                     </TabItem>
-                    <TabItem Header="🔥 Secure Wipe"
+                    <TabItem Header="� Reboot Analyzer"
+                             Visibility="{Binding RebootAnalyzer, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:RebootAnalyzerView}" ViewDataContext="{Binding RebootAnalyzer}" />
+                    </TabItem>
+                    <TabItem Header="�🔥 Secure Wipe"
                              Visibility="{Binding SecureWipe, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:SecureWipeView}" ViewDataContext="{Binding SecureWipe}" />
                     </TabItem>
