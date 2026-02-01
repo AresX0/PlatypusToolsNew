@@ -97,6 +97,25 @@ powershell -ExecutionPolicy Bypass -File PlatypusTools.ps1
 
 ---
 
+## 🔨 Building Releases
+
+> **⚠️ IMPORTANT: Use ONLY the build script for releases**
+
+```powershell
+cd C:\Projects\PlatypusToolsNew
+.\Build-Release.ps1
+```
+
+This script handles everything:
+- Auto-increments version number
+- Updates all version files
+- Cleans and rebuilds everything
+- Outputs MSI to `releases\PlatypusToolsSetup-vX.Y.Z.msi`
+
+See [.github/copilot-instructions.md](.github/copilot-instructions.md) for detailed build rules.
+
+---
+
 See `PlatypusTools_Help.html` for full user documentation.
 
 ---

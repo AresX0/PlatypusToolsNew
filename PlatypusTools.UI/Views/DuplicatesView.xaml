@@ -99,28 +99,42 @@
                       EnableRowVirtualization="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Hash" Binding="{Binding Hash}" Width="250" CanUserResize="True" MinWidth="150" />
-                    <DataGridTextColumn Header="# Files" Binding="{Binding Files.Count}" Width="80" CanUserResize="True" MinWidth="60" />
-                    <DataGridTemplateColumn Header="Files" Width="600" MinWidth="200" CanUserResize="True">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <ItemsControl ItemsSource="{Binding Files}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                            <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                            <TextBlock Text="{Binding Path}" Width="240" TextTrimming="CharacterEllipsis" />
-                                            <Button Content="Preview" Command="{Binding DataContext.PreviewFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" Width="70" Margin="0,0,0,0" />
-                                            <Button Content="Open" Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" Width="65" Margin="8,0,0,0" Padding="6,2"/>
-                                            <Button Content="Folder" Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" Width="65" Margin="4,0,0,0" Padding="6,2"/>
-                                            <Button Content="Rename" Command="{Binding DataContext.RenameFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" Width="70" Margin="4,0,0,0" Padding="6,2"/>
-                                            <Button Content="Stage" Command="{Binding DataContext.StageFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" Width="80" Margin="4,0,0,0" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="# Files" Binding="{Binding Files.Count}" Width="60" CanUserResize="True" MinWidth="50" />
+                    <DataGridTemplateColumn Header="Files" Width="*" MinWidth="200" CanUserResize="True">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <ItemsControl ItemsSource="{Binding Files}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                <TextBlock Text="{Binding Path}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip="{Binding Path}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Actions" Width="340" MinWidth="340" CanUserResize="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <ItemsControl ItemsSource="{Binding Files}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                <Button Content="Preview" Command="{Binding DataContext.PreviewFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" Width="60" Padding="4,2"/>
+                                                <Button Content="Open" Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" Width="50" Margin="4,0,0,0" Padding="4,2"/>
+                                                <Button Content="Folder" Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" Width="55" Margin="4,0,0,0" Padding="4,2"/>
+                                                <Button Content="Rename" Command="{Binding DataContext.RenameFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" Width="60" Margin="4,0,0,0" Padding="4,2"/>
+                                                <Button Content="Stage" Command="{Binding DataContext.StageFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" Width="55" Margin="4,0,0,0" Padding="4,2"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
         

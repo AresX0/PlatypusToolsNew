@@ -172,10 +172,13 @@ namespace PlatypusTools.UI.Services
         {
             try
             {
+                // Use msiexec.exe explicitly to avoid "No application is associated" errors
                 var psi = new System.Diagnostics.ProcessStartInfo
                 {
-                    FileName = installerPath,
-                    UseShellExecute = true
+                    FileName = "msiexec.exe",
+                    Arguments = $"/i \"{installerPath}\"",
+                    UseShellExecute = true,
+                    Verb = "runas" // Request admin elevation for MSI installation
                 };
 
                 System.Diagnostics.Process.Start(psi);

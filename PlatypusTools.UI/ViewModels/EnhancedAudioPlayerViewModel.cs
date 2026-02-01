@@ -2181,11 +2181,15 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "PlatypusTools", "enhanced_audio_library.json");
         
+        System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Looking for cache at: {cacheFile}");
+        System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Cache exists: {File.Exists(cacheFile)}");
+        
         if (File.Exists(cacheFile))
         {
             try
             {
                 StatusMessage = "Loading library cache...";
+                System.Diagnostics.Debug.WriteLine("[AudioLibrary] Loading cache file...");
                 
                 // Use stream-based deserialization for better performance with large files
                 await using var fileStream = new FileStream(cacheFile, FileMode.Open, FileAccess.Read, FileShare.Read, 
@@ -2199,6 +2203,8 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 };
                 
                 _allLibraryTracks = await JsonSerializer.DeserializeAsync<List<AudioTrack>>(fileStream, options) ?? new();
+                
+                System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Loaded {_allLibraryTracks.Count} tracks from cache");
                 
                 // Update UI on main thread - batch operation for performance
                 await Application.Current.Dispatcher.InvokeAsync(() =>
@@ -2228,6 +2234,9 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                     File.Move(cacheFile, backupPath);
                 }
                 catch { }
+                
+                // Auto-scan library folders if cache was corrupted
+                await AutoScanLibraryFoldersAsync();
             }
             catch (Exception ex)
             {
@@ -2235,6 +2244,34 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 StatusMessage = $"Library cache load failed: {ex.Message}";
                 _allLibraryTracks = new List<AudioTrack>();
             }
+        }
+        else
+        {
+            // No cache file exists - check if we have library folders to scan
+            System.Diagnostics.Debug.WriteLine("[AudioLibrary] No cache file found, checking for library folders...");
+            await AutoScanLibraryFoldersAsync();
+        }
+    }
+    
+    /// <summary>
+    /// Automatically scans all configured library folders if any exist.
+    /// Called when cache is missing or corrupted.
+    /// </summary>
+    private async Task AutoScanLibraryFoldersAsync()
+    {
+        // Wait a moment for library folders to load (they're loaded async in constructor)
+        await Task.Delay(500);
+        
+        if (LibraryFolders.Count > 0)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Auto-scanning {LibraryFolders.Count} library folder(s)...");
+            StatusMessage = $"Building library from {LibraryFolders.Count} folder(s)...";
+            await ScanAllLibraryFoldersAsync();
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("[AudioLibrary] No library folders configured");
+            StatusMessage = "Add a folder to start building your library";
         }
     }
     
@@ -2791,14 +2828,24 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             
             var dir = Path.GetDirectoryName(cacheFile);
             if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+            {
                 Directory.CreateDirectory(dir);
+                System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Created directory: {dir}");
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Saving {_allLibraryTracks.Count} tracks to: {cacheFile}");
             
             // Use stream-based serialization for better performance with large libraries
             await using var fileStream = new FileStream(cacheFile, FileMode.Create, FileAccess.Write, FileShare.None,
                 bufferSize: 65536, useAsync: true);
             await JsonSerializer.SerializeAsync(fileStream, _allLibraryTracks);
+            
+            System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Cache saved successfully ({new FileInfo(cacheFile).Length:N0} bytes)");
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Error saving cache: {ex.Message}");
+        }
     }
     
     private async Task SaveLibraryFoldersAsync()
@@ -2830,18 +2877,29 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "PlatypusTools", "enhanced_library_folders.json");
             
+            System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Looking for folders at: {foldersPath}");
+            System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Folders file exists: {File.Exists(foldersPath)}");
+            
             if (File.Exists(foldersPath))
             {
                 var json = await File.ReadAllTextAsync(foldersPath);
                 var folders = JsonSerializer.Deserialize<List<string>>(json);
                 if (folders != null)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Loaded {folders.Count} library folder(s)");
                     foreach (var folder in folders)
                     {
                         if (!LibraryFolders.Contains(folder))
+                        {
                             LibraryFolders.Add(folder);
+                            System.Diagnostics.Debug.WriteLine($"[AudioLibrary]   - {folder}");
+                        }
                     }
                 }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[AudioLibrary] No library folders file found");
             }
         }
         catch (Exception ex)

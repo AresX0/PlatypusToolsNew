@@ -48,11 +48,11 @@ namespace PlatypusTools.UI.ViewModels
             };
             
             BrowseCommand = new RelayCommand(_ => Browse());
-            ScanCommand = new RelayCommand(async _ => await ScanAsync(), _ => !IsScanning);
-            ScanSimilarCommand = new RelayCommand(async _ => await ScanSimilarAsync(), _ => !IsScanning);
-            ScanSimilarVideosCommand = new RelayCommand(async _ => await ScanSimilarVideosAsync(), _ => !IsScanning);
+            ScanCommand = new RelayCommand(async _ => await ScanAsync(), _ => !IsScanning && !IsDeleting);
+            ScanSimilarCommand = new RelayCommand(async _ => await ScanSimilarAsync(), _ => !IsScanning && !IsDeleting);
+            ScanSimilarVideosCommand = new RelayCommand(async _ => await ScanSimilarVideosAsync(), _ => !IsScanning && !IsDeleting);
             CancelScanCommand = new RelayCommand(_ => CancelScan(), _ => IsScanning);
-            DeleteSelectedCommand = new RelayCommand(_ => DeleteSelected(), _ => Groups.Any(g => g.Files.Any(f => f.IsSelected)) || SimilarImageGroups.Any(g => g.Images.Any(i => i.IsSelected)) || SimilarVideoGroups.Any(g => g.Videos.Any(v => v.IsSelected)));
+            DeleteSelectedCommand = new RelayCommand(_ => DeleteSelected(), _ => !IsDeleting && (Groups.Any(g => g.Files.Any(f => f.IsSelected)) || SimilarImageGroups.Any(g => g.Images.Any(i => i.IsSelected)) || SimilarVideoGroups.Any(g => g.Videos.Any(v => v.IsSelected))));
 
             OpenFileCommand = new RelayCommand(obj => OpenFile(obj as string));
             OpenFolderCommand = new RelayCommand(obj => OpenFolder(obj as string));
@@ -551,7 +551,7 @@ namespace PlatypusTools.UI.ViewModels
         }
         public bool UseRecycleBin { get; set; }
 
-        private void DeleteSelected()
+        private async void DeleteSelected()
         {
             // Handle duplicates (exact matches)
             var files = Groups.SelectMany(g => g.Files).Where(f => f.IsSelected).Select(f => f.Path).ToList();
@@ -572,12 +572,27 @@ namespace PlatypusTools.UI.ViewModels
             var confirm = System.Windows.MessageBox.Show($"Proceed to remove {allFiles.Count} files?", "Confirm", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
             if (confirm != System.Windows.MessageBoxResult.Yes) return;
 
-            DeleteSelectedConfirmed();
+            await DeleteSelectedConfirmedAsync();
         }
+
+        private bool _isDeleting = false;
+        public bool IsDeleting { get => _isDeleting; set { _isDeleting = value; RaisePropertyChanged(); } }
+        
+        private double _deleteProgress = 0;
+        public double DeleteProgress { get => _deleteProgress; set { _deleteProgress = value; RaisePropertyChanged(); } }
 
         // Public API for tests and non-UI callers to delete selected files without confirmation dialogs
         public void DeleteSelectedConfirmed()
         {
+            // Synchronous wrapper for backwards compatibility with tests
+            _ = DeleteSelectedConfirmedAsync();
+        }
+        
+        // Async version with progress updates
+        public async Task DeleteSelectedConfirmedAsync()
+        {
+            if (IsDeleting) return;
+            
             int deletedCount = 0;
             var deletedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             
@@ -588,23 +603,51 @@ namespace PlatypusTools.UI.ViewModels
             filesToDelete.AddRange(SimilarVideoGroups.SelectMany(g => g.Videos).Where(v => v.IsSelected).Select(v => v.FilePath));
             
             if (filesToDelete.Count == 0) return;
+            
+            IsDeleting = true;
+            DeleteProgress = 0;
+            int totalFiles = filesToDelete.Count;
+            int processedFiles = 0;
 
-            foreach (var f in filesToDelete)
+            try
             {
-                try
+                await Task.Run(async () =>
                 {
-                    if (UseRecycleBin)
+                    foreach (var f in filesToDelete)
                     {
-                        Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(f, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+                        try
+                        {
+                            if (UseRecycleBin)
+                            {
+                                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(f, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+                            }
+                            else
+                            {
+                                File.Delete(f);
+                            }
+                            deletedPaths.Add(f);
+                            deletedCount++;
+                        }
+                        catch { }
+                        
+                        processedFiles++;
+                        var progress = (double)processedFiles / totalFiles * 100;
+                        var fileName = Path.GetFileName(f);
+                        
+                        // Update UI on dispatcher thread
+                        await App.Current.Dispatcher.InvokeAsync(() =>
+                        {
+                            DeleteProgress = progress;
+                            StatusMessage = $"Deleting: {fileName} ({processedFiles}/{totalFiles})";
+                            StatusBarViewModel.Instance.UpdateProgress(progress, StatusMessage);
+                        });
                     }
-                    else
-                    {
-                        File.Delete(f);
-                    }
-                    deletedPaths.Add(f);
-                    deletedCount++;
-                }
-                catch { }
+                });
+            }
+            finally
+            {
+                IsDeleting = false;
+                DeleteProgress = 0;
             }
             
             // Remove deleted files from the UI collections (instead of rescanning)
@@ -657,7 +700,11 @@ namespace PlatypusTools.UI.ViewModels
             }
             
             StatusMessage = $"Deleted {deletedCount} file(s). {Groups.Count} duplicate groups, {SimilarImageGroups.Count} similar image groups, {SimilarVideoGroups.Count} similar video groups remaining.";
+            StatusBarViewModel.Instance.UpdateProgress(0, StatusMessage);
             ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)ScanSimilarCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)ScanSimilarVideosCommand).RaiseCanExecuteChanged();
         }
     }
 }

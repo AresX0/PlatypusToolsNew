@@ -148,7 +148,7 @@
 <header>
     <h1>🦆 PlatypusTools</h1>
     <p>Advanced File Management &amp; Media Tools Suite</p>
-    <div class="version">Version 3.2.15.1 | Built with .NET 10 / WPF</div>
+    <div class="version">Version 3.2.20 | Built with .NET 10 / WPF</div>
 </header>
 
 <div class="container">
@@ -307,15 +307,17 @@
     </table>
     
     <h3>Duplicates Scanner</h3>
-    <p>Find and remove duplicate files to free up disk space. Supports both exact hash matching and visual similarity detection for images.</p>
+    <p>Find and remove duplicate files to free up disk space. Supports exact hash matching, visual similarity detection for images, and video similarity analysis.</p>
     
     <h4>Features</h4>
     <ul>
         <li><strong>Hash-based Detection</strong> - Find exact duplicates using MD5/SHA256 hashing</li>
         <li><strong>Similar Images</strong> - Find visually similar images using perceptual hashing</li>
+        <li><strong>Similar Videos</strong><span class="new-badge">NEW</span> - Find similar videos by comparing key frames (requires FFmpeg)</li>
         <li><strong>Staging Area</strong> - Stage files for review before deletion</li>
         <li><strong>Smart Selection</strong> - Auto-select newest, oldest, largest, or smallest duplicates</li>
         <li><strong>Preview</strong> - Preview files before deleting</li>
+        <li><strong>Per-File Actions</strong> - Each file has Preview, Open, Folder, Rename, and Stage buttons in a dedicated Actions column</li>
     </ul>
     
     <h4>Selection Buttons</h4>
@@ -326,6 +328,16 @@
         <tr><td>Select Largest</td><td>Select the largest file in each group</td></tr>
         <tr><td>Select Smallest</td><td>Select the smallest file in each group</td></tr>
         <tr><td>Keep One Per Group</td><td>Keep one file and select all others for deletion</td></tr>
+    </table>
+    
+    <h4>Per-File Actions</h4>
+    <table>
+        <tr><th>Button</th><th>Action</th></tr>
+        <tr><td>Preview</td><td>Open a preview window for the file</td></tr>
+        <tr><td>Open</td><td>Open the file with the default application</td></tr>
+        <tr><td>Folder</td><td>Open the containing folder in Explorer</td></tr>
+        <tr><td>Rename</td><td>Rename the file inline</td></tr>
+        <tr><td>Stage</td><td>Move file to staging area for later review</td></tr>
     </table>
     
     <div class="tip">
