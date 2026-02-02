@@ -1190,6 +1190,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         10 => "Matrix",
         11 => "Star Wars Crawl",
         12 => "Stargate",
+        13 => "Klingon",
         _ => "Bars"
     };
     
@@ -1216,12 +1217,12 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     // Dropdown collections for visualizer controls
     public List<string> VisualizerModes { get; } = new()
     {
-        "Bars", "Mirror", "Waveform", "Circular", "Radial", "Particles", "Aurora", "Wave Grid", "Starfield", "Toasters", "Matrix", "Star Wars Crawl", "Stargate"
+        "Bars", "Mirror", "Waveform", "Circular", "Radial", "Particles", "Aurora", "Wave Grid", "Starfield", "Toasters", "Matrix", "Star Wars Crawl", "Stargate", "Klingon"
     };
     
     public List<string> ColorSchemes { get; } = new()
     {
-        "Blue-Green", "Rainbow", "Fire", "Purple", "Neon", "Ocean", "Sunset", "Monochrome", "Pip-Boy", "LCARS"
+        "Blue-Green", "Rainbow", "Fire", "Purple", "Neon", "Ocean", "Sunset", "Monochrome", "Pip-Boy", "LCARS", "Klingon"
     };
     
     public List<int> DensityOptions { get; } = new() { 16, 24, 32, 48, 64, 72, 96, 128 };
@@ -1418,6 +1419,10 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     public ICommand RemoveSelectedTracksFromLibraryCommand { get; }
     public ICommand ClearLibraryCommand { get; }
     public ICommand RemoveMissingTracksCommand { get; }
+    
+    // Screensaver commands
+    public ICommand LaunchScreensaverCommand { get; }
+    public ICommand InstallScreensaverCommand { get; }
     
     // Navigation commands
     public ICommand ScrollToCurrentTrackCommand { get; }
@@ -1633,6 +1638,14 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 }
             }
         });
+        
+        // Screensaver commands
+        LaunchScreensaverCommand = new RelayCommand(_ =>
+        {
+            Views.ScreensaverWindow.Launch(VisualizerModeName, ColorSchemeIndex);
+        });
+        
+        InstallScreensaverCommand = new AsyncRelayCommand(InstallScreensaverAsync);
         
         // Library management commands
         RemoveTrackFromLibraryCommand = new AsyncRelayCommand<AudioTrack>(RemoveTrackFromLibraryAsync);
@@ -3060,6 +3073,50 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         IsScanning = false;
         ScanProgress = 0;
         ScanStatus = "";
+    }
+    
+    /// <summary>
+    /// Installs the PlatypusTools visualizer as a Windows screensaver.
+    /// </summary>
+    private async Task InstallScreensaverAsync()
+    {
+        var result = MessageBox.Show(
+            "Install PlatypusTools Visualizer as a Windows Screensaver?\n\n" +
+            "This will copy the application to the Windows System folder.\n" +
+            "You may be prompted for administrator permissions.",
+            "Install Screensaver",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+        
+        if (result != MessageBoxResult.Yes)
+            return;
+        
+        StatusMessage = "Installing screensaver...";
+        
+        var (success, message) = await Services.ScreensaverInstallerService.InstallAsync();
+        
+        if (success)
+        {
+            MessageBox.Show(message, "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            
+            // Ask if they want to open Windows screensaver settings
+            var openSettings = MessageBox.Show(
+                "Would you like to open Windows Screen Saver Settings to select the screensaver?",
+                "Open Settings",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+            
+            if (openSettings == MessageBoxResult.Yes)
+            {
+                Services.ScreensaverInstallerService.OpenWindowsScreensaverSettings();
+            }
+        }
+        else
+        {
+            MessageBox.Show(message, "Installation Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        
+        StatusMessage = success ? "Screensaver installed" : "Screensaver installation failed";
     }
     
     #endregion

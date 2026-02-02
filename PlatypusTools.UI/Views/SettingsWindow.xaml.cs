@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using PlatypusTools.Core.Services;
 using PlatypusTools.UI.Services;
 
@@ -17,6 +18,7 @@ namespace PlatypusTools.UI.Views
     public partial class SettingsWindow : Window
     {
         private StackPanel[]? _panels;
+        private bool _isInitialized = false;
         
         public SettingsWindow()
         {
@@ -26,6 +28,7 @@ namespace PlatypusTools.UI.Views
             InitializePanels();
             
             LoadSettings();
+            _isInitialized = true;
         }
         
         private void InitializePanels()
@@ -54,6 +57,8 @@ namespace PlatypusTools.UI.Views
                 // Theme
                 if (settings?.Theme == ThemeManager.LCARS)
                     LCARSThemeRadio.IsChecked = true;
+                else if (settings?.Theme == ThemeManager.Klingon)
+                    KlingonThemeRadio.IsChecked = true;
                 else if (settings?.Theme == ThemeManager.PipBoy)
                     PipBoyThemeRadio.IsChecked = true;
                 else if (settings?.Theme == ThemeManager.Dark)
@@ -92,6 +97,9 @@ namespace PlatypusTools.UI.Views
                 
                 // Load Audio Visualizer settings
                 LoadVisualizerSettings(settings);
+                
+                // Load Font settings
+                LoadFontSettings(settings);
             }
             catch (System.Exception ex)
             {
@@ -169,6 +177,39 @@ namespace PlatypusTools.UI.Views
             catch (System.Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error loading visualizer settings: {ex.Message}");
+            }
+        }
+        
+        private void LoadFontSettings(AppSettings? settings)
+        {
+            if (settings == null) return;
+            
+            try
+            {
+                // Font family combo
+                if (FontFamilyCombo != null)
+                {
+                    foreach (System.Windows.Controls.ComboBoxItem item in FontFamilyCombo.Items)
+                    {
+                        if (item.Tag?.ToString() == settings.CustomFontFamily)
+                        {
+                            FontFamilyCombo.SelectedItem = item;
+                            break;
+                        }
+                    }
+                }
+                
+                // Font scale slider
+                if (FontScaleSlider != null)
+                {
+                    FontScaleSlider.Value = settings.FontScale;
+                    if (FontScaleLabel != null)
+                        FontScaleLabel.Text = $"{(int)(settings.FontScale * 100)}%";
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading font settings: {ex.Message}");
             }
         }
         
@@ -311,6 +352,90 @@ namespace PlatypusTools.UI.Views
             }
         }
         
+        private void FontFamilyCombo_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+            // Just update the label - don't apply until OK/Apply clicked
+            if (FontScaleLabel != null && FontScaleSlider != null)
+            {
+                FontScaleLabel.Text = $"{(int)(FontScaleSlider.Value * 100)}%";
+            }
+        }
+        
+        private void FontScaleSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (!_isInitialized) return;
+            if (FontScaleSlider == null || FontScaleLabel == null) return;
+            // Just update the label - don't apply until OK/Apply clicked
+            var scale = Math.Round(FontScaleSlider.Value, 1);
+            FontScaleLabel.Text = $"{(int)(scale * 100)}%";
+        }
+        
+        private void ApplyFontSettings()
+        {
+            var settings = SettingsManager.Current;
+            var fontFamily = settings.CustomFontFamily;
+            var fontScale = settings.FontScale;
+            
+            // Store font scale in resources
+            if (Application.Current.Resources.Contains("GlobalFontScale"))
+            {
+                Application.Current.Resources["GlobalFontScale"] = fontScale;
+            }
+            else
+            {
+                Application.Current.Resources.Add("GlobalFontScale", fontScale);
+            }
+            
+            // Apply custom font family if not "Default"
+            if (fontFamily != "Default" && !string.IsNullOrEmpty(fontFamily))
+            {
+                var ff = new System.Windows.Media.FontFamily(fontFamily);
+                
+                // Update global font resource
+                if (Application.Current.Resources.Contains("GlobalFontFamily"))
+                {
+                    Application.Current.Resources["GlobalFontFamily"] = ff;
+                }
+                else
+                {
+                    Application.Current.Resources.Add("GlobalFontFamily", ff);
+                }
+                
+                // Override all theme-specific font resources
+                var fontKeys = new[] { "LcarsFont", "LcarsHeaderFont", "PipBoyFont", "PipBoyHeaderFont", 
+                                       "PipBoyDisplayFont", "KlingonFontFamily", "KlingonDisplayFont" };
+                foreach (var key in fontKeys)
+                {
+                    Application.Current.Resources[key] = ff;
+                }
+                
+                // Set font directly on all open windows
+                foreach (Window window in Application.Current.Windows)
+                {
+                    window.FontFamily = ff;
+                }
+            }
+            else
+            {
+                // Reset to default - reapply theme to restore original fonts
+                if (Application.Current.Resources.Contains("GlobalFontFamily"))
+                {
+                    Application.Current.Resources.Remove("GlobalFontFamily");
+                }
+                ThemeManager.ApplyTheme(settings.Theme ?? ThemeManager.Light);
+            }
+            
+            // Apply scale transform to all windows
+            foreach (Window window in Application.Current.Windows)
+            {
+                if (window.Content is System.Windows.FrameworkElement content)
+                {
+                    content.LayoutTransform = new System.Windows.Media.ScaleTransform(fontScale, fontScale);
+                }
+            }
+        }
+        
         private void ResetShortcuts_Click(object sender, RoutedEventArgs e)
         {
             var result = MessageBox.Show("Reset all keyboard shortcuts to defaults?", "Reset Shortcuts",
@@ -436,6 +561,145 @@ namespace PlatypusTools.UI.Views
             }
         }
         
+        private void InstallKlingonFont_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Find the font file in the application directory
+                var appDir = AppDomain.CurrentDomain.BaseDirectory;
+                var fontPaths = new[]
+                {
+                    System.IO.Path.Combine(appDir, "Assets", "KlingonFont.ttf"),
+                    System.IO.Path.Combine(appDir, "Assets", "Klingon-pIqaD-HaSta.ttf"),
+                    System.IO.Path.Combine(appDir, "Assets", "klingon font.ttf"),
+                    System.IO.Path.Combine(appDir, "KlingonFont.ttf")
+                };
+                
+                string? sourceFontPath = null;
+                foreach (var path in fontPaths)
+                {
+                    if (System.IO.File.Exists(path))
+                    {
+                        sourceFontPath = path;
+                        break;
+                    }
+                }
+                
+                if (sourceFontPath == null)
+                {
+                    // Try to extract from resources
+                    var resourcePath = "pack://application:,,,/Assets/KlingonFont.ttf";
+                    var tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "KlingonFont.ttf");
+                    
+                    try
+                    {
+                        var streamInfo = System.Windows.Application.GetResourceStream(new Uri(resourcePath));
+                        if (streamInfo != null)
+                        {
+                            using (var stream = streamInfo.Stream)
+                            using (var fileStream = System.IO.File.Create(tempPath))
+                            {
+                                stream.CopyTo(fileStream);
+                            }
+                            sourceFontPath = tempPath;
+                        }
+                    }
+                    catch
+                    {
+                        // Resource not found
+                    }
+                }
+                
+                if (sourceFontPath == null)
+                {
+                    UpdateKlingonFontStatus("Font file not found", false);
+                    MessageBox.Show("Klingon font file not found. Please ensure KlingonFont.ttf is in the Assets folder.", 
+                        "Font Not Found", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                
+                // Check if font is already installed
+                var fontsFolder = Environment.GetFolderPath(Environment.SpecialFolder.Fonts);
+                var destPath = System.IO.Path.Combine(fontsFolder, "KlingonFont.ttf");
+                
+                if (System.IO.File.Exists(destPath))
+                {
+                    UpdateKlingonFontStatus("Already installed", true);
+                    MessageBox.Show("Klingon pIqaD font is already installed.", 
+                        "Font Installed", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+                
+                // Use Shell to install font (works without admin for current user)
+                try
+                {
+                    // Copy to user's local fonts folder first (no admin required)
+                    var localFontsFolder = System.IO.Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        "Microsoft", "Windows", "Fonts");
+                    
+                    if (!System.IO.Directory.Exists(localFontsFolder))
+                    {
+                        System.IO.Directory.CreateDirectory(localFontsFolder);
+                    }
+                    
+                    var localDestPath = System.IO.Path.Combine(localFontsFolder, "KlingonFont.ttf");
+                    System.IO.File.Copy(sourceFontPath, localDestPath, true);
+                    
+                    // Register the font in the user's registry
+                    using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                        @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts", true))
+                    {
+                        if (key != null)
+                        {
+                            key.SetValue("klingon font (TrueType)", localDestPath);
+                        }
+                    }
+                    
+                    // Notify the system about the new font
+                    NativeMethods.AddFontResource(localDestPath);
+                    NativeMethods.SendMessage(NativeMethods.HWND_BROADCAST, NativeMethods.WM_FONTCHANGE, IntPtr.Zero, IntPtr.Zero);
+                    
+                    UpdateKlingonFontStatus("Installed (restart apps to use)", true);
+                    MessageBox.Show("Klingon font installed successfully!\n\nNote: You may need to restart applications to use the font.", 
+                        "Font Installed", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // Try opening font file with shell (opens Font Viewer with Install button)
+                    var result = MessageBox.Show(
+                        "Cannot install font directly. Would you like to open the font file?\n\nClick 'Install' in the font viewer to install it.",
+                        "Install Font Manually", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = sourceFontPath,
+                            UseShellExecute = true
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateKlingonFontStatus("Install failed", false);
+                MessageBox.Show($"Failed to install font: {ex.Message}", 
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        
+        private void UpdateKlingonFontStatus(string status, bool success)
+        {
+            if (FindName("KlingonFontStatus") is TextBlock statusText)
+            {
+                statusText.Text = status;
+                statusText.Foreground = success ? 
+                    new SolidColorBrush(Colors.Green) : 
+                    new SolidColorBrush(Colors.Orange);
+            }
+        }
+        
         private void Apply_Click(object sender, RoutedEventArgs e)
         {
             SaveSettings();
@@ -463,6 +727,11 @@ namespace PlatypusTools.UI.Views
             {
                 settings.Theme = ThemeManager.LCARS;
                 ThemeManager.ApplyTheme(ThemeManager.LCARS);
+            }
+            else if (KlingonThemeRadio.IsChecked == true)
+            {
+                settings.Theme = ThemeManager.Klingon;
+                ThemeManager.ApplyTheme(ThemeManager.Klingon);
             }
             else if (PipBoyThemeRadio.IsChecked == true)
             {
@@ -511,6 +780,9 @@ namespace PlatypusTools.UI.Views
             // Save audio visualizer settings
             SaveVisualizerSettings(settings);
             
+            // Save font settings
+            SaveFontSettings(settings);
+            
             SettingsManager.SaveCurrent();
             
             // Refresh tab visibility in the main UI immediately
@@ -552,6 +824,31 @@ namespace PlatypusTools.UI.Views
             catch (System.Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error saving visualizer settings: {ex.Message}");
+            }
+        }
+        
+        private void SaveFontSettings(AppSettings settings)
+        {
+            try
+            {
+                // Font family combo
+                if (FontFamilyCombo?.SelectedItem is System.Windows.Controls.ComboBoxItem fontItem && fontItem.Tag != null)
+                {
+                    settings.CustomFontFamily = fontItem.Tag.ToString() ?? "Default";
+                }
+                
+                // Font scale slider
+                if (FontScaleSlider != null)
+                {
+                    settings.FontScale = Math.Round(FontScaleSlider.Value, 1);
+                }
+                
+                // Apply font settings immediately
+                ApplyFontSettings();
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error saving font settings: {ex.Message}");
             }
         }
         
@@ -1038,6 +1335,18 @@ namespace PlatypusTools.UI.Views
         public string Name { get; set; } = "";
         public string Shortcut { get; set; } = "";
         public string Description { get; set; } = "";
+    }
+    
+    internal static class NativeMethods
+    {
+        public static readonly IntPtr HWND_BROADCAST = new IntPtr(0xFFFF);
+        public const int WM_FONTCHANGE = 0x001D;
+        
+        [System.Runtime.InteropServices.DllImport("gdi32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+        public static extern int AddFontResource(string lpszFilename);
+        
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+        public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
     }
 }
 

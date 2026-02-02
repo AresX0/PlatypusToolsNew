@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
+using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using PlatypusTools.UI.ViewModels;
@@ -24,7 +25,8 @@ namespace PlatypusTools.UI.Views
         Sunset,         // Orange, pink, purple
         Monochrome,     // White/gray
         PipBoy,         // Fallout Pip-Boy green phosphor
-        LCARS           // Star Trek LCARS orange/tan/purple
+        LCARS,          // Star Trek LCARS orange/tan/purple
+        Klingon         // Klingon Empire - blood red, black, metal
     }
     
     /// <summary>
@@ -211,6 +213,10 @@ namespace PlatypusTools.UI.Views
         private readonly List<Particle> _particles = new();
         private double _auroraPhase = 0;
         private double[] _previousSmoothed = new double[64]; // Match bar count
+        
+        // Klingon visualizer assets
+        private ImageBrush? _klingonBackgroundBrush;
+        private FontFamily? _klingonFont;
 
         public AudioVisualizerView()
         {
@@ -878,6 +884,14 @@ namespace PlatypusTools.UI.Views
                     new GradientStop(Color.FromRgb(255, 153, 102), 0.75), // Butterscotch #FF9966
                     new GradientStop(Color.FromRgb(204, 153, 255), 1)     // African Violet #CC99FF
                 },
+                VisualizerColorScheme.Klingon => new GradientStopCollection
+                {
+                    new GradientStop(Color.FromRgb(40, 0, 0), 0),         // Deep black-red
+                    new GradientStop(Color.FromRgb(139, 0, 0), 0.3),      // Blood red
+                    new GradientStop(Color.FromRgb(255, 50, 50), 0.6),    // Fierce red
+                    new GradientStop(Color.FromRgb(180, 140, 100), 0.8),  // Bat'leth metal
+                    new GradientStop(Color.FromRgb(220, 180, 120), 1)     // Polished blade
+                },
                 _ => new GradientStopCollection // BlueGreen (default)
                 {
                     new GradientStop(Color.FromRgb(30, 144, 255), 0),
@@ -913,6 +927,9 @@ namespace PlatypusTools.UI.Views
                 VisualizerColorScheme.LCARS => value < 0.5 
                     ? Color.FromRgb((byte)(85 + value * 170), (byte)(136 + value * 68), (byte)(255 - value * 255))  // Blue to Gold
                     : Color.FromRgb((byte)(255 - value * 51), (byte)(204 - value * 51), (byte)(value * 255)), // Gold to Violet
+                VisualizerColorScheme.Klingon => value < 0.6
+                    ? Color.FromRgb((byte)(40 + value * 358), (byte)(value * 83), (byte)(value * 83))  // Black-red to Blood red
+                    : Color.FromRgb((byte)(180 + value * 40), (byte)(100 + value * 80), (byte)(60 + value * 60)), // Blood red to Metal
                 _ => Color.FromRgb((byte)(30 + value * 0), (byte)(144 + value * 111), (byte)(255 - value * 128))
             };
         }
@@ -1025,7 +1042,7 @@ namespace PlatypusTools.UI.Views
 
             // For dynamic modes, clear non-cached elements before each frame
             // This prevents elements from piling up and causing trails/artifacts
-            bool isDynamicMode = _visualizationMode is "Starfield" or "Toasters" or "Particles" or "Aurora" or "WaveGrid" or "Wave Grid" or "Circular" or "Radial" or "Mirror" or "Matrix" or "Star Wars Crawl" or "Stargate";
+            bool isDynamicMode = _visualizationMode is "Starfield" or "Toasters" or "Particles" or "Aurora" or "WaveGrid" or "Wave Grid" or "Circular" or "Radial" or "Mirror" or "Matrix" or "Star Wars Crawl" or "Stargate" or "Klingon";
             if (isDynamicMode)
             {
                 ClearDynamicElements(canvas);
@@ -1069,6 +1086,9 @@ namespace PlatypusTools.UI.Views
                     break;
                 case "Stargate":
                     RenderStargate(canvas);
+                    break;
+                case "Klingon":
+                    RenderKlingon(canvas);
                     break;
                 default: // Bars
                     RenderBars(canvas);
@@ -2871,6 +2891,374 @@ namespace PlatypusTools.UI.Views
             Canvas.SetLeft(dialingText, textX);
             Canvas.SetTop(dialingText, centerY - 10);
             canvas.Children.Add(dialingText);
+        }
+        
+        /// <summary>
+        /// Renders a Klingon Empire-themed visualization.
+        /// Features bat'leth-shaped bars, angular Klingon design elements,
+        /// blood red colors with metallic accents, and the Klingon trefoil emblem.
+        /// Audio intensity drives the aggression of the visual elements.
+        /// </summary>
+        private void RenderKlingon(Canvas canvas)
+        {
+            double width = canvas.ActualWidth;
+            double height = canvas.ActualHeight;
+            double centerX = width / 2;
+            double centerY = height / 2;
+            
+            if (width <= 0 || height <= 0) return;
+            
+            // Calculate average intensity and bass for reactive elements
+            double avgIntensity = 0;
+            double bassIntensity = 0;
+            int bassCount = Math.Min(10, _smoothedData.Length);
+            for (int i = 0; i < bassCount; i++)
+                bassIntensity += _smoothedData[i];
+            bassIntensity = bassCount > 0 ? bassIntensity / bassCount : 0.3;
+            
+            for (int i = 0; i < _smoothedData.Length; i++)
+                avgIntensity += _smoothedData[i];
+            avgIntensity /= Math.Max(1, _smoothedData.Length);
+            
+            // === LOAD KLINGON ASSETS (cached) ===
+            if (_klingonBackgroundBrush == null)
+            {
+                try
+                {
+                    var bitmap = new BitmapImage(new Uri("pack://application:,,,/Assets/Klingonrevised.png", UriKind.Absolute));
+                    _klingonBackgroundBrush = new ImageBrush(bitmap)
+                    {
+                        Stretch = Stretch.Uniform  // Keep aspect ratio, fit within bounds
+                    };
+                }
+                catch
+                {
+                    // Fallback to gradient if image not found
+                    _klingonBackgroundBrush = null;
+                }
+            }
+            
+            if (_klingonFont == null)
+            {
+                try
+                {
+                    // Load Klingon font from Assets folder
+                    var fontPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "KlingonFont.ttf");
+                    
+                    if (System.IO.File.Exists(fontPath))
+                    {
+                        // The font family name inside the TTF file is "klingon font"
+                        _klingonFont = new FontFamily(new Uri("file:///" + fontPath.Replace("\\", "/")), "#klingon font");
+                    }
+                    else
+                    {
+                        _klingonFont = new FontFamily("Impact");
+                    }
+                }
+                catch
+                {
+                    _klingonFont = new FontFamily("Impact");
+                }
+            }
+            
+            // === BACKGROUND - Dark gradient base ===
+            var background = new Rectangle
+            {
+                Width = width,
+                Height = height,
+                Fill = new RadialGradientBrush
+                {
+                    Center = new Point(0.5, 0.5),
+                    RadiusX = 1.0,
+                    RadiusY = 1.0,
+                    GradientStops = new GradientStopCollection
+                    {
+                        new GradientStop(Color.FromRgb(40, 10, 10), 0),
+                        new GradientStop(Color.FromRgb(25, 5, 5), 0.5),
+                        new GradientStop(Color.FromRgb(10, 0, 0), 1)
+                    }
+                }
+            };
+            Canvas.SetLeft(background, 0);
+            Canvas.SetTop(background, 0);
+            canvas.Children.Add(background);
+            
+            // === KLINGON LOGO - Centered and fully visible ===
+            if (_klingonBackgroundBrush != null)
+            {
+                // Calculate size to fit within canvas while maintaining aspect ratio
+                double logoSize = Math.Min(width, height) * 0.7; // 70% of smaller dimension
+                var logoRect = new Rectangle
+                {
+                    Width = logoSize,
+                    Height = logoSize,
+                    Fill = _klingonBackgroundBrush,
+                    Opacity = 0.3 + bassIntensity * 0.2 // Pulse with bass
+                };
+                // Center the logo
+                Canvas.SetLeft(logoRect, (width - logoSize) / 2);
+                Canvas.SetTop(logoRect, (height - logoSize) / 2);
+                canvas.Children.Add(logoRect);
+            }
+            else
+            {
+                // Fallback: render the trefoil emblem
+                double emblemSize = Math.Min(width, height) * 0.25;
+                double emblemPulse = 1.0 + bassIntensity * 0.15;
+                byte emblemAlpha = (byte)(40 + bassIntensity * 60);
+                RenderKlingonTrefoil(canvas, centerX, centerY, emblemSize * emblemPulse, emblemAlpha);
+            }
+            
+            // === ANGULAR GRID LINES (Klingon aesthetic) ===
+            byte gridAlpha = (byte)(30 + avgIntensity * 40);
+            var gridBrush = new SolidColorBrush(Color.FromArgb(gridAlpha, 139, 0, 0));
+            
+            // Diagonal crossed lines radiating from center
+            for (int i = 0; i < 8; i++)
+            {
+                double angle = i * 45 * Math.PI / 180;
+                double lineLength = Math.Max(width, height);
+                var line = new Line
+                {
+                    X1 = centerX,
+                    Y1 = centerY,
+                    X2 = centerX + Math.Cos(angle) * lineLength,
+                    Y2 = centerY + Math.Sin(angle) * lineLength,
+                    Stroke = gridBrush,
+                    StrokeThickness = 1
+                };
+                canvas.Children.Add(line);
+            }
+            
+            // === BAT'LETH-STYLE SPECTRUM BARS ===
+            int barCount = Math.Min(_barCount, _smoothedData.Length);
+            double barWidth = (width * 0.8) / barCount;
+            double barSpacing = barWidth * 0.15;
+            double effectiveBarWidth = barWidth - barSpacing;
+            double barAreaLeft = width * 0.1;
+            
+            for (int i = 0; i < barCount; i++)
+            {
+                double value = i < _smoothedData.Length ? _smoothedData[i] : 0;
+                double barHeight = Math.Max(4, value * height * 0.45 * _sensitivity);
+                double x = barAreaLeft + i * barWidth;
+                double y = centerY - barHeight;
+                
+                // Create angled/pointed bar (bat'leth blade style)
+                double pointOffset = effectiveBarWidth * 0.3;
+                
+                // Upper bar (pointing up)
+                var upperBlade = new Polygon
+                {
+                    Points = new PointCollection
+                    {
+                        new Point(x, centerY),
+                        new Point(x + pointOffset, y),
+                        new Point(x + effectiveBarWidth - pointOffset, y),
+                        new Point(x + effectiveBarWidth, centerY)
+                    },
+                    Fill = new LinearGradientBrush
+                    {
+                        StartPoint = new Point(0, 1),
+                        EndPoint = new Point(0, 0),
+                        GradientStops = new GradientStopCollection
+                        {
+                            new GradientStop(Color.FromRgb(80, 0, 0), 0),
+                            new GradientStop(Color.FromRgb(180, 30, 30), 0.5),
+                            new GradientStop(Color.FromRgb(220, 160, 100), 0.9),
+                            new GradientStop(Color.FromRgb(255, 200, 140), 1)
+                        }
+                    },
+                    Effect = value > 0.5 ? new DropShadowEffect
+                    {
+                        Color = Color.FromRgb(255, 50, 50),
+                        BlurRadius = value * 15,
+                        ShadowDepth = 0,
+                        Opacity = value
+                    } : null
+                };
+                canvas.Children.Add(upperBlade);
+                
+                // Lower bar (mirrored, pointing down)
+                var lowerBlade = new Polygon
+                {
+                    Points = new PointCollection
+                    {
+                        new Point(x, centerY),
+                        new Point(x + pointOffset, centerY + barHeight),
+                        new Point(x + effectiveBarWidth - pointOffset, centerY + barHeight),
+                        new Point(x + effectiveBarWidth, centerY)
+                    },
+                    Fill = new LinearGradientBrush
+                    {
+                        StartPoint = new Point(0, 0),
+                        EndPoint = new Point(0, 1),
+                        GradientStops = new GradientStopCollection
+                        {
+                            new GradientStop(Color.FromRgb(80, 0, 0), 0),
+                            new GradientStop(Color.FromRgb(180, 30, 30), 0.5),
+                            new GradientStop(Color.FromRgb(220, 160, 100), 0.9),
+                            new GradientStop(Color.FromRgb(255, 200, 140), 1)
+                        }
+                    },
+                    Effect = value > 0.5 ? new DropShadowEffect
+                    {
+                        Color = Color.FromRgb(255, 50, 50),
+                        BlurRadius = value * 15,
+                        ShadowDepth = 0,
+                        Opacity = value
+                    } : null
+                };
+                canvas.Children.Add(lowerBlade);
+                
+                // Peak indicator (blade tip style)
+                if (i < _peakHeights.Length && _peakHeights[i] > 0.01)
+                {
+                    double peakY = _peakHeights[i] * height * 0.45;
+                    var peakMark = new Polygon
+                    {
+                        Points = new PointCollection
+                        {
+                            new Point(x + effectiveBarWidth * 0.3, centerY - peakY - 3),
+                            new Point(x + effectiveBarWidth * 0.5, centerY - peakY - 8),
+                            new Point(x + effectiveBarWidth * 0.7, centerY - peakY - 3)
+                        },
+                        Fill = new SolidColorBrush(Color.FromRgb(255, 200, 140))
+                    };
+                    canvas.Children.Add(peakMark);
+                }
+            }
+            
+            // === KLINGON TEXT - Using Latin transliteration for visibility ===
+            if (avgIntensity > 0.4)
+            {
+                byte textAlpha = (byte)((avgIntensity - 0.4) * 400);
+                var battleCry = new TextBlock
+                {
+                    Text = "Qapla'!",  // Success/Victory
+                    FontFamily = new FontFamily("Impact"),
+                    FontSize = Math.Max(32, height * 0.12),
+                    FontWeight = FontWeights.Bold,
+                    Foreground = new SolidColorBrush(Color.FromArgb(textAlpha, 255, 200, 140)),
+                    Effect = new DropShadowEffect
+                    {
+                        Color = Colors.Black,
+                        BlurRadius = 10,
+                        ShadowDepth = 3,
+                        Opacity = 0.9
+                    }
+                };
+                Canvas.SetLeft(battleCry, width - 180);
+                Canvas.SetTop(battleCry, 20);
+                canvas.Children.Add(battleCry);
+            }
+            
+            // === HONOR TEXT ===
+            var honorText = new TextBlock
+            {
+                Text = "batlh",  // Honor
+                FontFamily = new FontFamily("klingon font, Impact, Arial"),
+                FontSize = Math.Max(24, height * 0.055),
+                FontWeight = FontWeights.Bold,
+                Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 180, 100)),
+                Effect = new DropShadowEffect
+                {
+                    Color = Colors.Black,
+                    BlurRadius = 6,
+                    ShadowDepth = 2,
+                    Opacity = 0.8
+                }
+            };
+            Canvas.SetLeft(honorText, 20);
+            Canvas.SetTop(honorText, height - 55);
+            canvas.Children.Add(honorText);
+            
+            // === Additional Klingon phrase ===
+            var gloryText = new TextBlock
+            {
+                Text = "tlhIngan maH!",  // We are Klingon!
+                FontFamily = new FontFamily("klingon font, Impact, Arial"),
+                FontSize = Math.Max(18, height * 0.04),
+                FontWeight = FontWeights.Bold,
+                Foreground = new SolidColorBrush(Color.FromArgb((byte)(120 + avgIntensity * 80), 220, 160, 100)),
+                Effect = new DropShadowEffect
+                {
+                    Color = Colors.Black,
+                    BlurRadius = 5,
+                    ShadowDepth = 2,
+                    Opacity = 0.8
+                }
+            };
+            Canvas.SetLeft(gloryText, 20);
+            Canvas.SetTop(gloryText, 20);
+            canvas.Children.Add(gloryText);
+        }
+        
+        /// <summary>
+        /// Renders the Klingon trefoil emblem (the three-pointed symbol).
+        /// </summary>
+        private void RenderKlingonTrefoil(Canvas canvas, double centerX, double centerY, double size, byte alpha)
+        {
+            // The Klingon emblem has 3 curved points arranged in a triangular pattern
+            double pointLength = size * 0.6;
+            double pointWidth = size * 0.25;
+            
+            // Draw three pointed sections
+            for (int i = 0; i < 3; i++)
+            {
+                double angle = (i * 120 - 90) * Math.PI / 180; // Start at top, 120° apart
+                double nextAngle = ((i + 1) * 120 - 90) * Math.PI / 180;
+                
+                double tipX = centerX + Math.Cos(angle) * pointLength;
+                double tipY = centerY + Math.Sin(angle) * pointLength;
+                
+                // Create curved blade shape
+                var blade = new PathGeometry();
+                var figure = new PathFigure { StartPoint = new Point(centerX, centerY) };
+                
+                // Control points for bezier curve
+                double ctrlDist = pointLength * 0.6;
+                double innerAngle1 = angle - 0.3;
+                double innerAngle2 = angle + 0.3;
+                
+                figure.Segments.Add(new BezierSegment(
+                    new Point(centerX + Math.Cos(innerAngle1) * ctrlDist, centerY + Math.Sin(innerAngle1) * ctrlDist),
+                    new Point(tipX + Math.Cos(angle - 0.5) * pointWidth, tipY + Math.Sin(angle - 0.5) * pointWidth),
+                    new Point(tipX, tipY),
+                    true
+                ));
+                
+                figure.Segments.Add(new BezierSegment(
+                    new Point(tipX + Math.Cos(angle + 0.5) * pointWidth, tipY + Math.Sin(angle + 0.5) * pointWidth),
+                    new Point(centerX + Math.Cos(innerAngle2) * ctrlDist, centerY + Math.Sin(innerAngle2) * ctrlDist),
+                    new Point(centerX, centerY),
+                    true
+                ));
+                
+                blade.Figures.Add(figure);
+                
+                var bladePath = new Path
+                {
+                    Data = blade,
+                    Fill = new SolidColorBrush(Color.FromArgb(alpha, 139, 0, 0)),
+                    Stroke = new SolidColorBrush(Color.FromArgb((byte)(alpha * 0.7), 100, 50, 50)),
+                    StrokeThickness = 1
+                };
+                canvas.Children.Add(bladePath);
+            }
+            
+            // Center circle
+            var centerCircle = new Ellipse
+            {
+                Width = size * 0.2,
+                Height = size * 0.2,
+                Fill = new SolidColorBrush(Color.FromArgb(alpha, 60, 0, 0)),
+                Stroke = new SolidColorBrush(Color.FromArgb((byte)(alpha * 0.8), 100, 50, 50)),
+                StrokeThickness = 1
+            };
+            Canvas.SetLeft(centerCircle, centerX - size * 0.1);
+            Canvas.SetTop(centerCircle, centerY - size * 0.1);
+            canvas.Children.Add(centerCircle);
         }
     }
     

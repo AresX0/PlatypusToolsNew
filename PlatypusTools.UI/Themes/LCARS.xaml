@@ -196,6 +196,8 @@
     <SolidColorBrush x:Key="SurfaceBrush" Color="#FF1A1A1A"/>
     <SolidColorBrush x:Key="CardBackground" Color="#FF252520"/>
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FF252520"/>
+    <SolidColorBrush x:Key="SurfaceVariantBrush" Color="#FF353530"/>
+    <SolidColorBrush x:Key="ForegroundBrush" Color="#FFFFF0C8"/>
     <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource LcarsGold}"/>
     
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource LcarsGold}"/>
@@ -232,10 +234,10 @@
     <SolidColorBrush x:Key="TitleBarCloseHoverBrush" Color="{StaticResource LcarsRed}"/>
 
     <!-- ======================== LCARS Typography ======================== -->
-    <!-- LCARS uses distinctive condensed fonts. We use a condensed fallback. -->
+    <!-- LCARS uses distinctive condensed fonts. Okuda font available via Settings > Advanced > Custom Fonts -->
     
-    <FontFamily x:Key="LcarsFont">Arial Narrow, Trebuchet MS, Arial, Segoe UI</FontFamily>
-    <FontFamily x:Key="LcarsHeaderFont">Arial Narrow, Trebuchet MS, Arial, Segoe UI</FontFamily>
+    <FontFamily x:Key="LcarsFont">Arial Narrow, Okuda, Trebuchet MS, Arial, Segoe UI</FontFamily>
+    <FontFamily x:Key="LcarsHeaderFont">Arial Narrow, Okuda, Trebuchet MS, Arial, Segoe UI</FontFamily>
     
     <Style x:Key="LcarsTextStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>

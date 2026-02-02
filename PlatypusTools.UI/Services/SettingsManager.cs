@@ -32,6 +32,10 @@ namespace PlatypusTools.UI.Services
         private bool _visualizerGpuAcceleration = true;
         private bool _visualizerNormalize = true;
 
+        // Font Settings
+        private string _customFontFamily = "Default";
+        private double _fontScale = 1.0;
+
         public string Theme
         {
             get => _theme;
@@ -124,6 +128,26 @@ namespace PlatypusTools.UI.Services
         {
             get => _visualizerNormalize;
             set { _visualizerNormalize = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets the custom font family. "Default" means use theme default.
+        /// Available: Default, klingon font, Okuda, Monofonto, Overseer, Consolas, Segoe UI
+        /// </summary>
+        public string CustomFontFamily
+        {
+            get => _customFontFamily;
+            set { _customFontFamily = value ?? "Default"; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets the font scale multiplier (0.5 to 2.0).
+        /// 1.0 = default theme sizes, 1.5 = 50% larger, etc.
+        /// </summary>
+        public double FontScale
+        {
+            get => _fontScale;
+            set { _fontScale = Math.Clamp(value, 0.5, 2.0); OnPropertyChanged(); }
         }
 
         // Admin rights setting

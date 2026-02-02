@@ -148,6 +148,8 @@
     <SolidColorBrush x:Key="CardBackground" Color="{StaticResource PipBoyGray}"/>
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource PipBoyGray}"/>
     <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource PipBoyBlackLight}"/>
+    <SolidColorBrush x:Key="SurfaceVariantBrush" Color="{StaticResource PipBoyGray}"/>
+    <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource PipBoyGreenBright}"/>
     <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource PipBoyAmberLight}"/>
     <SolidColorBrush x:Key="DisabledForegroundBrush" Color="{StaticResource PipBoyTextDim}"/>
     <SolidColorBrush x:Key="SelectionBackgroundBrush" Color="{StaticResource PipBoyGreenDark}"/>
@@ -179,11 +181,11 @@
     <SolidColorBrush x:Key="TitleBarCloseHoverBrush" Color="{StaticResource PipBoyRed}"/>
 
     <!-- ======================== Pip-Boy Typography ======================== -->
-    <!-- Terminal-style monospace fonts for authentic Pip-Boy look -->
+    <!-- Terminal-style fonts for authentic Pip-Boy look. Monofonto available via Settings > Advanced > Custom Fonts -->
     
-    <FontFamily x:Key="PipBoyFont">Consolas, Lucida Console, Courier New, Courier</FontFamily>
-    <FontFamily x:Key="PipBoyHeaderFont">Consolas, Lucida Console, Courier New, Courier</FontFamily>
-    <FontFamily x:Key="PipBoyDisplayFont">Share Tech Mono, VT323, Consolas, Courier New</FontFamily>
+    <FontFamily x:Key="PipBoyFont">Consolas, Monofonto, Lucida Console, Courier New, Courier</FontFamily>
+    <FontFamily x:Key="PipBoyHeaderFont">Consolas, Monofonto, Lucida Console, Courier New, Courier</FontFamily>
+    <FontFamily x:Key="PipBoyDisplayFont">Share Tech Mono, Monofonto, VT323, Consolas, Courier New</FontFamily>
     
     <Style x:Key="PipBoyTextStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>

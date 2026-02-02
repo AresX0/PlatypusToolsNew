@@ -497,6 +497,7 @@ namespace PlatypusTools.UI.ViewModels
                     PlatypusTools.UI.Services.ThemeManager.Dark,
                     PlatypusTools.UI.Services.ThemeManager.Light,
                     PlatypusTools.UI.Services.ThemeManager.LCARS,
+                    PlatypusTools.UI.Services.ThemeManager.Klingon,
                     PlatypusTools.UI.Services.ThemeManager.PipBoy
                 };
                 var customThemes = PlatypusTools.UI.Services.ThemeManager.GetCustomThemeNames();

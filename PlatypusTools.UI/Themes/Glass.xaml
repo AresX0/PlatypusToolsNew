@@ -78,6 +78,36 @@
     <SolidColorBrush x:Key="MenuForegroundBrush" Color="#FF000000" />
     <SolidColorBrush x:Key="MenuBackgroundBrush" Color="#70FFFFFF" />
     
+    <!-- Standard theme resource keys -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="#40FFFFFF" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#50FFFFFF" />
+    <SolidColorBrush x:Key="SurfaceVariantBrush" Color="#60FFFFFF" />
+    <SolidColorBrush x:Key="ForegroundBrush" Color="#FF000000" />
+    <SolidColorBrush x:Key="ForegroundDimBrush" Color="#FF606060" />
+    <SolidColorBrush x:Key="CardBackground" Color="#90FFFFFF" />
+    <SolidColorBrush x:Key="BorderBrush" Color="#60FFFFFF" />
+    <SolidColorBrush x:Key="PrimaryBrush" Color="#FF0078D4" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#FF0078D4" />
+    <SolidColorBrush x:Key="TextPrimary" Color="#FF000000" />
+    <SolidColorBrush x:Key="TextSecondary" Color="#FF404040" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FF000000" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FF404040" />
+    <SolidColorBrush x:Key="SecondaryTextBrush" Color="#FF404040" />
+    
+    <!-- Warning/Info box brushes for Glass -->
+    <SolidColorBrush x:Key="WarningBackgroundBrush" Color="#E0FFF4E5" />
+    <SolidColorBrush x:Key="WarningBorderBrush" Color="#FFFF9800" />
+    <SolidColorBrush x:Key="WarningForegroundBrush" Color="#FF663C00" />
+    <SolidColorBrush x:Key="InfoBackgroundBrush" Color="#E0E3F2FD" />
+    <SolidColorBrush x:Key="InfoBorderBrush" Color="#FF2196F3" />
+    <SolidColorBrush x:Key="InfoForegroundBrush" Color="#FF0D47A1" />
+    <SolidColorBrush x:Key="SuccessBackgroundBrush" Color="#E0E8F5E9" />
+    <SolidColorBrush x:Key="SuccessBorderBrush" Color="#FF4CAF50" />
+    <SolidColorBrush x:Key="SuccessForegroundBrush" Color="#FF1B5E20" />
+    <SolidColorBrush x:Key="ErrorBackgroundBrush" Color="#E0FFEBEE" />
+    <SolidColorBrush x:Key="ErrorBorderBrush" Color="#FFF44336" />
+    <SolidColorBrush x:Key="ErrorForegroundBrush" Color="#FFB71C1C" />
+    
     <!-- Title Bar Brushes (semi-transparent for glass effect) -->
     <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="#50FFFFFF" />
     <SolidColorBrush x:Key="TitleBarForegroundBrush" Color="#FF000000" />
@@ -307,6 +337,20 @@
         </Style.Triggers>
     </Style>
     
+    <!-- GroupBox -->
+    <Style TargetType="GroupBox">
+        <Setter Property="Background" Value="#90FFFFFF" />
+        <Setter Property="BorderBrush" Value="#60FFFFFF" />
+        <Setter Property="Foreground" Value="#FF000000" />
+    </Style>
+
+    <!-- Expander -->
+    <Style TargetType="Expander">
+        <Setter Property="Background" Value="#80FFFFFF" />
+        <Setter Property="Foreground" Value="#FF000000" />
+        <Setter Property="BorderBrush" Value="#60FFFFFF" />
+    </Style>
+
     <!-- Glass ScrollBar Style -->
     <Style x:Key="GlassScrollBarThumbStyle" TargetType="Thumb">
         <Setter Property="Background" Value="#60FFFFFF"/>

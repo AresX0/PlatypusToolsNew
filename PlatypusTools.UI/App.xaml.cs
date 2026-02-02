@@ -22,6 +22,34 @@ namespace PlatypusTools.UI
             base.OnStartup(e);
             _startupArgs = e.Args;
             
+            // Check for screensaver mode command-line arguments
+            if (_startupArgs != null && _startupArgs.Length > 0)
+            {
+                string arg = _startupArgs[0].ToLowerInvariant();
+                
+                // /s - Run screensaver in full screen
+                if (arg == "/s" || arg == "-s")
+                {
+                    RunAsScreensaver();
+                    return;
+                }
+                
+                // /c or /c:hwnd - Show configuration dialog
+                if (arg.StartsWith("/c") || arg.StartsWith("-c"))
+                {
+                    ShowScreensaverConfig();
+                    return;
+                }
+                
+                // /p hwnd - Preview mode (show in small preview window)
+                if (arg == "/p" || arg == "-p")
+                {
+                    // For preview, we just exit - preview in a tiny window isn't practical
+                    Shutdown();
+                    return;
+                }
+            }
+            
             // Check if we need to run as admin but aren't elevated
             if (ShouldElevate())
             {
@@ -40,6 +68,29 @@ namespace PlatypusTools.UI
             // Now kick off the async initialization in the background
             // The video will loop while everything loads
             Dispatcher.BeginInvoke(new Action(async () => await InitializeApplicationAsync()));
+        }
+        
+        /// <summary>
+        /// Runs the application in screensaver mode (fullscreen visualizer).
+        /// </summary>
+        private void RunAsScreensaver()
+        {
+            // Load screensaver settings
+            var settings = ScreensaverSettings.Load();
+            
+            // Create and show the screensaver window
+            var screensaverWindow = new ScreensaverWindow(settings.VisualizerMode, settings.ColorSchemeIndex);
+            screensaverWindow.Show();
+        }
+        
+        /// <summary>
+        /// Shows the screensaver configuration dialog.
+        /// </summary>
+        private void ShowScreensaverConfig()
+        {
+            var configWindow = new ScreensaverConfigWindow();
+            configWindow.ShowDialog();
+            Shutdown();
         }
         
         /// <summary>
@@ -182,6 +233,9 @@ namespace PlatypusTools.UI
                 _splashScreen?.UpdateStatus("Loading...");
                 var mainWindow = new MainWindow();
                 
+                // Apply font settings after window content is loaded
+                mainWindow.Loaded += (s, args) => ApplyFontSettingsFromConfig(Services.SettingsManager.Current);
+                
                 // Ensure splash screen shows for at least 5 seconds to display the platypus video
                 StartupProfiler.BeginPhase("Minimum splash display");
                 _splashScreen?.UpdateStatus("Almost ready...");
@@ -231,12 +285,84 @@ namespace PlatypusTools.UI
                 var theme = settings?.Theme ?? Services.ThemeManager.Light;
                 SimpleLogger.Debug($"App: Loading initial theme '{theme}'");
                 Services.ThemeManager.ApplyTheme(theme);
+                
+                // Apply font settings
+                ApplyFontSettingsFromConfig(settings);
             }
             catch (Exception ex)
             {
                 SimpleLogger.Error($"App: Failed to load initial theme: {ex.Message}");
                 // Apply default light theme as fallback
                 Services.ThemeManager.ApplyTheme(Services.ThemeManager.Light);
+            }
+        }
+        
+        /// <summary>
+        /// Applies font settings from configuration at startup.
+        /// </summary>
+        private void ApplyFontSettingsFromConfig(Services.AppSettings? settings)
+        {
+            if (settings == null) return;
+            
+            try
+            {
+                var fontFamily = settings.CustomFontFamily;
+                var fontScale = settings.FontScale;
+                
+                // Store font scale in resources
+                if (Resources.Contains("GlobalFontScale"))
+                {
+                    Resources["GlobalFontScale"] = fontScale;
+                }
+                else
+                {
+                    Resources.Add("GlobalFontScale", fontScale);
+                }
+                
+                // Apply custom font family if not "Default"
+                System.Windows.Media.FontFamily? ff = null;
+                if (fontFamily != "Default" && !string.IsNullOrEmpty(fontFamily))
+                {
+                    ff = new System.Windows.Media.FontFamily(fontFamily);
+                    if (Resources.Contains("GlobalFontFamily"))
+                    {
+                        Resources["GlobalFontFamily"] = ff;
+                    }
+                    else
+                    {
+                        Resources.Add("GlobalFontFamily", ff);
+                    }
+                    
+                    // Override all theme-specific font resources so the custom font takes effect
+                    var fontKeys = new[] { "LcarsFont", "LcarsHeaderFont", "PipBoyFont", "PipBoyHeaderFont", 
+                                           "PipBoyDisplayFont", "KlingonFontFamily", "KlingonDisplayFont" };
+                    foreach (var key in fontKeys)
+                    {
+                        if (Resources.Contains(key))
+                        {
+                            Resources[key] = ff;
+                        }
+                    }
+                }
+                
+                // Apply scale transform to main window content when available
+                if (MainWindow != null)
+                {
+                    if (MainWindow.Content is System.Windows.FrameworkElement content)
+                    {
+                        content.LayoutTransform = new System.Windows.Media.ScaleTransform(fontScale, fontScale);
+                    }
+                    if (ff != null)
+                    {
+                        MainWindow.FontFamily = ff;
+                    }
+                }
+                
+                SimpleLogger.Debug($"App: Applied font settings - Family={fontFamily}, Scale={fontScale}x");
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error($"App: Failed to apply font settings: {ex.Message}");
             }
         }
 

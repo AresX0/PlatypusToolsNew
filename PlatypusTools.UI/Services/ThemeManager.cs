@@ -24,6 +24,7 @@ namespace PlatypusTools.UI.Services
         public const string LCARS = "LCARS";
         public const string Glass = "Glass";
         public const string PipBoy = "PipBoy";
+        public const string Klingon = "Klingon";
 
         /// <summary>Gets the singleton instance.</summary>
         public static ThemeManager Instance => _instance ??= new ThemeManager();
@@ -82,9 +83,35 @@ namespace PlatypusTools.UI.Services
                 {
                     _isPipBoyTheme = value;
                     _isLcarsTheme = false;
+                    _isKlingonTheme = false;
                     if (value)
                     {
                         ApplyTheme(PipBoy);
+                    }
+                    else
+                    {
+                        ApplyTheme(_isDarkTheme ? Dark : Light);
+                    }
+                    ThemeChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+        
+        private bool _isKlingonTheme;
+        /// <summary>Gets or sets whether Klingon theme is active.</summary>
+        public bool IsKlingonTheme
+        {
+            get => _isKlingonTheme;
+            set
+            {
+                if (_isKlingonTheme != value)
+                {
+                    _isKlingonTheme = value;
+                    _isLcarsTheme = false;
+                    _isPipBoyTheme = false;
+                    if (value)
+                    {
+                        ApplyTheme(Klingon);
                     }
                     else
                     {
@@ -169,7 +196,8 @@ namespace PlatypusTools.UI.Services
                    path.Contains("themes\\dark.xaml") ||
                    path.Contains("themes\\lcars.xaml") ||
                    path.Contains("themes\\glass.xaml") ||
-                   path.Contains("themes\\pipboy.xaml");
+                   path.Contains("themes\\pipboy.xaml") ||
+                   path.Contains("themes\\klingon.xaml");
         }
 
         /// <summary>
@@ -190,9 +218,10 @@ namespace PlatypusTools.UI.Services
 
                 // Update singleton state
                 Instance._currentTheme = name;
-                Instance._isDarkTheme = name == Dark || name == LCARS || name == PipBoy; // LCARS and PipBoy are dark-based
+                Instance._isDarkTheme = name == Dark || name == LCARS || name == PipBoy || name == Klingon; // LCARS, PipBoy, Klingon are dark-based
                 Instance._isLcarsTheme = name == LCARS;
                 Instance._isPipBoyTheme = name == PipBoy;
+                Instance._isKlingonTheme = name == Klingon;
 
                 // Remove existing theme dictionaries
                 int removedCount = 0;
@@ -218,6 +247,9 @@ namespace PlatypusTools.UI.Services
                         break;
                     case PipBoy:
                         themePath = System.IO.Path.Combine(baseDir, "Themes", "PipBoy.xaml");
+                        break;
+                    case Klingon:
+                        themePath = System.IO.Path.Combine(baseDir, "Themes", "Klingon.xaml");
                         break;
                     case Dark:
                         themePath = System.IO.Path.Combine(baseDir, "Themes", "Dark.xaml");

@@ -68,6 +68,9 @@
                             </Setter.Value>
                         </Setter>
                     </Style>
+                    
+                    <!-- Global Font Settings (can be overridden by user preferences) -->
+                    <sys:Double x:Key="GlobalFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">12</sys:Double>
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
             

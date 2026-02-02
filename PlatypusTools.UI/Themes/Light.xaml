@@ -41,6 +41,8 @@
     <SolidColorBrush x:Key="SecondaryTextBrush" Color="#FF6E6E6E" />
     <SolidColorBrush x:Key="BackgroundBrush" Color="#FFFFFFFF" />
     <SolidColorBrush x:Key="SurfaceBrush" Color="#FFF5F5F5" />
+    <SolidColorBrush x:Key="SurfaceVariantBrush" Color="#FFECECEC" />
+    <SolidColorBrush x:Key="ForegroundBrush" Color="#FF1E1E1E" />
     <SolidColorBrush x:Key="PrimaryBrush" Color="#FF0078D4" />
     <SolidColorBrush x:Key="BorderBrush" Color="#FFCCCCCC" />
     <SolidColorBrush x:Key="ForegroundDimBrush" Color="#FF808080" />
@@ -534,12 +536,14 @@
 
     <!-- GroupBox -->
     <Style TargetType="GroupBox">
+        <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}" />
         <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}" />
     </Style>
 
     <!-- Expander -->
     <Style TargetType="Expander">
+        <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
         <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}" />
     </Style>
