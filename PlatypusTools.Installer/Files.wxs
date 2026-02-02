@@ -10,7 +10,7 @@
         </Directory>
         <Directory Id="DataFolder" Name="Data" />
         <Directory Id="LogsFolder" Name="Logs" />
-        <Directory Id="FontsFolder" Name="Fonts" />
+        <Directory Id="AppFontsFolder" Name="Fonts" />
       </Directory>
     </StandardDirectory>
 
@@ -49,7 +49,7 @@
                      Key="Software\PlatypusTools" 
                      Name="Version" 
                      Type="string" 
-                     Value="3.3.0.4" />
+                     Value="3.3.0.5" />
     </Component>
   </Fragment>
 
@@ -83,27 +83,27 @@
       </Component>
 
       <!-- Theme Fonts - bundled for user installation -->
-      <Component Id="FontKlingon" Directory="FontsFolder" Guid="A1B2C3D4-E5F6-4A5B-9C8D-0E1F2A3B4C5D">
+      <Component Id="FontKlingon" Directory="AppFontsFolder" Guid="A1B2C3D4-E5F6-4A5B-9C8D-0E1F2A3B4C5D">
         <File Id="KlingonFont.ttf" Source="..\PlatypusTools.UI\Assets\KlingonFont.ttf" KeyPath="yes" />
       </Component>
 
-      <Component Id="FontMonofonto" Directory="FontsFolder" Guid="B2C3D4E5-F6A7-4B5C-9D8E-1F2A3B4C5D6E">
+      <Component Id="FontMonofonto" Directory="AppFontsFolder" Guid="B2C3D4E5-F6A7-4B5C-9D8E-1F2A3B4C5D6E">
         <File Id="monofonto.otf" Source="..\PlatypusTools.UI\Assets\monofonto.otf" KeyPath="yes" />
       </Component>
 
-      <Component Id="FontOkuda" Directory="FontsFolder" Guid="C3D4E5F6-A7B8-4C5D-9E8F-2A3B4C5D6E7F">
+      <Component Id="FontOkuda" Directory="AppFontsFolder" Guid="C3D4E5F6-A7B8-4C5D-9E8F-2A3B4C5D6E7F">
         <File Id="Okuda.otf" Source="..\PlatypusTools.UI\Assets\Okuda.otf" KeyPath="yes" />
       </Component>
 
-      <Component Id="FontOkudaBold" Directory="FontsFolder" Guid="D4E5F6A7-B8C9-4D5E-9F0A-3B4C5D6E7F8A">
+      <Component Id="FontOkudaBold" Directory="AppFontsFolder" Guid="D4E5F6A7-B8C9-4D5E-9F0A-3B4C5D6E7F8A">
         <File Id="OkudaBold.otf" Source="..\PlatypusTools.UI\Assets\Okuda Bold.otf" KeyPath="yes" />
       </Component>
 
-      <Component Id="FontOverseer" Directory="FontsFolder" Guid="E5F6A7B8-C9D0-4E5F-9A0B-4C5D6E7F8A9B">
+      <Component Id="FontOverseer" Directory="AppFontsFolder" Guid="E5F6A7B8-C9D0-4E5F-9A0B-4C5D6E7F8A9B">
         <File Id="Overseer.otf" Source="..\PlatypusTools.UI\Assets\Overseer.otf" KeyPath="yes" />
       </Component>
 
-      <Component Id="FontOverseerBold" Directory="FontsFolder" Guid="F6A7B8C9-D0E1-4F5A-9B0C-5D6E7F8A9B0C">
+      <Component Id="FontOverseerBold" Directory="AppFontsFolder" Guid="F6A7B8C9-D0E1-4F5A-9B0C-5D6E7F8A9B0C">
         <File Id="OverseerBold.otf" Source="..\PlatypusTools.UI\Assets\Overseer Bold.otf" KeyPath="yes" />
       </Component>
     </ComponentGroup>

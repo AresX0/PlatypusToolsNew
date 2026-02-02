@@ -855,6 +855,36 @@
         <File Id="FIL_XmpCore_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\XmpCore.dll" KeyPath="yes" />
       </Component>
       <Directory Id="DIR_Assets" Name="Assets">
+        <Component Id="CMP_Assets_KlingonFont_ttf" Guid="*" Directory="DIR_Assets">
+          <File Id="FIL_Assets_KlingonFont_ttf" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\KlingonFont.ttf" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_Assets_monofonto_otf" Guid="*" Directory="DIR_Assets">
+          <File Id="FIL_Assets_monofonto_otf" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\monofonto.otf" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_Assets_Okuda_Bold_Italic_otf" Guid="*" Directory="DIR_Assets">
+          <File Id="FIL_Assets_Okuda_Bold_Italic_otf" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\Okuda Bold Italic.otf" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_Assets_Okuda_Bold_otf" Guid="*" Directory="DIR_Assets">
+          <File Id="FIL_Assets_Okuda_Bold_otf" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\Okuda Bold.otf" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_Assets_Okuda_Italic_otf" Guid="*" Directory="DIR_Assets">
+          <File Id="FIL_Assets_Okuda_Italic_otf" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\Okuda Italic.otf" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_Assets_Okuda_otf" Guid="*" Directory="DIR_Assets">
+          <File Id="FIL_Assets_Okuda_otf" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\Okuda.otf" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_Assets_Overseer_Bold_Italic_otf" Guid="*" Directory="DIR_Assets">
+          <File Id="FIL_Assets_Overseer_Bold_Italic_otf" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\Overseer Bold Italic.otf" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_Assets_Overseer_Bold_otf" Guid="*" Directory="DIR_Assets">
+          <File Id="FIL_Assets_Overseer_Bold_otf" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\Overseer Bold.otf" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_Assets_Overseer_Italic_otf" Guid="*" Directory="DIR_Assets">
+          <File Id="FIL_Assets_Overseer_Italic_otf" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\Overseer Italic.otf" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_Assets_Overseer_otf" Guid="*" Directory="DIR_Assets">
+          <File Id="FIL_Assets_Overseer_otf" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\Overseer.otf" KeyPath="yes" />
+        </Component>
         <Component Id="CMP_Assets_PlatypusToolsIntro_mp4" Guid="*" Directory="DIR_Assets">
           <File Id="FIL_Assets_PlatypusToolsIntro_mp4" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\PlatypusToolsIntro.mp4" KeyPath="yes" />
         </Component>
@@ -4163,6 +4193,9 @@
         <Component Id="CMP_Themes_Glass_xaml" Guid="*" Directory="DIR_Themes">
           <File Id="FIL_Themes_Glass_xaml" Source="$(var.PlatypusTools.UI.TargetDir)publish\Themes\Glass.xaml" KeyPath="yes" />
         </Component>
+        <Component Id="CMP_Themes_Klingon_xaml" Guid="*" Directory="DIR_Themes">
+          <File Id="FIL_Themes_Klingon_xaml" Source="$(var.PlatypusTools.UI.TargetDir)publish\Themes\Klingon.xaml" KeyPath="yes" />
+        </Component>
         <Component Id="CMP_Themes_LCARS_xaml" Guid="*" Directory="DIR_Themes">
           <File Id="FIL_Themes_LCARS_xaml" Source="$(var.PlatypusTools.UI.TargetDir)publish\Themes\LCARS.xaml" KeyPath="yes" />
         </Component>
@@ -4623,6 +4656,16 @@
       <ComponentRef Id="CMP_WinRT_Runtime_dll" />
       <ComponentRef Id="CMP_wpfgfx_cor3_dll" />
       <ComponentRef Id="CMP_XmpCore_dll" />
+      <ComponentRef Id="CMP_Assets_KlingonFont_ttf" />
+      <ComponentRef Id="CMP_Assets_monofonto_otf" />
+      <ComponentRef Id="CMP_Assets_Okuda_Bold_Italic_otf" />
+      <ComponentRef Id="CMP_Assets_Okuda_Bold_otf" />
+      <ComponentRef Id="CMP_Assets_Okuda_Italic_otf" />
+      <ComponentRef Id="CMP_Assets_Okuda_otf" />
+      <ComponentRef Id="CMP_Assets_Overseer_Bold_Italic_otf" />
+      <ComponentRef Id="CMP_Assets_Overseer_Bold_otf" />
+      <ComponentRef Id="CMP_Assets_Overseer_Italic_otf" />
+      <ComponentRef Id="CMP_Assets_Overseer_otf" />
       <ComponentRef Id="CMP_Assets_PlatypusToolsIntro_mp4" />
       <ComponentRef Id="CMP_Assets_PlatypusTools_Help_html" />
       <ComponentRef Id="CMP_Assets_platypus_swimming_mp4" />
@@ -5651,6 +5694,7 @@
       <ComponentRef Id="CMP_runtimes_win_x64_native_WebView2Loader_dll" />
       <ComponentRef Id="CMP_Themes_Dark_xaml" />
       <ComponentRef Id="CMP_Themes_Glass_xaml" />
+      <ComponentRef Id="CMP_Themes_Klingon_xaml" />
       <ComponentRef Id="CMP_Themes_LCARS_xaml" />
       <ComponentRef Id="CMP_Themes_Light_xaml" />
       <ComponentRef Id="CMP_Themes_PipBoy_png" />
