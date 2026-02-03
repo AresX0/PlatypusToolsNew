@@ -26,7 +26,8 @@ namespace PlatypusTools.UI.Views
         Monochrome,     // White/gray
         PipBoy,         // Fallout Pip-Boy green phosphor
         LCARS,          // Star Trek LCARS orange/tan/purple
-        Klingon         // Klingon Empire - blood red, black, metal
+        Klingon,        // Klingon Empire - blood red, black, metal
+        Federation      // United Federation of Planets - blue, silver, gold
     }
     
     /// <summary>
@@ -217,6 +218,59 @@ namespace PlatypusTools.UI.Views
         // Klingon visualizer assets
         private ImageBrush? _klingonBackgroundBrush;
         private FontFamily? _klingonFont;
+
+        // Federation visualizer assets
+        private ImageBrush? _federationBackgroundBrush;
+        private double _transporterPhase = 0;
+        private readonly List<TransporterParticle> _transporterParticles = new();
+
+        // Jedi visualizer assets
+        private double _jediTextScrollOffset = 0;
+        private BitmapImage? _lightsaberHiltImage;
+        // Aurebesh-style characters for R2-D2 beeps
+        private static readonly string AurebeshChars = "ᗩᗷᑕᗪᕮᖴᘜᕼᓰᒍᖽᐸᒪᗰᘉᓍᕈᕴᖇSᖶᑌᐺᗯ᙭ᖻᘔ";
+        // Helper to generate random Aurebesh-style beep sequence
+        private static string GenerateR2Beep(int length)
+        {
+            var rnd = new Random(DateTime.Now.Millisecond);
+            var chars = new char[length];
+            for (int i = 0; i < length; i++)
+                chars[i] = AurebeshChars[rnd.Next(AurebeshChars.Length)];
+            return new string(chars);
+        }
+        private readonly List<string> _r2d2Messages = new()
+        {
+            "[R2-D2]: ᗷᕮᕮᕈ ᗯᕼᓰSᖶᒪᕮ ᗷᓍᓍᕈ",
+            "LUKE: I've got a problem here.",
+            "[R2-D2]: ᗯᓍᖇᖇᓰᕮᗪ ᗷᕮᕮᕈ",
+            "LUKE: Artoo, see if you can't increase the power.",
+            "[R2-D2]: ᗷᕮᕮᕈ ᗷᕮᕮᕈ",
+            "LUKE: Hurry, Artoo, we're coming up on the target.",
+            "[R2-D2]: ᗩᖴᖴᓰᖇᗰᗩᖶᓰᐺᕮ ᗯᕼᓰSᖶᒪᕮ",
+            "LUKE: Artoo, that stabilizer's broken loose again.",
+            "[R2-D2]: ᑕᓍᘉᑕᕮᖇᘉᕮᗪ ᗷᕮᕮᕈ",
+            "LUKE: See if you can't lock it down.",
+            "[R2-D2]: ᗷᕮᕮᕈ ᗷᓍᓍᕈ ᗯᕼᓰSᖶᒪᕮ",
+            "LUKE: Red Five standing by.",
+            "[R2-D2]: ᕮ᙭ᑕᓰᖶᕮᗪ ᗯᕼᓰSᖶᒪᕮ!",
+            "LUKE: I've lost Artoo!",
+            "[R2-D2]: ᗩᒪᗩᖇᗰᕮᗪ Sᑕᖇᕮᗩᗰ!!",
+            "LUKE: Use the Force, Luke.",
+            "[R2-D2]: ᕴᑌᕮSᖶᓰᓍᘉ ᗷᕮᕮᕈ?",
+            "LUKE: Trust your feelings.",
+            "[R2-D2]: ᕼᓍᕈᕮᖴᑌᒪ ᗯᕼᓰSᖶᒪᕮ",
+            "LUKE: Great shot kid, that was one in a million!",
+            "[R2-D2]: ᑕᕮᒪᕮᗷᖇᗩᖶᓰᓍᘉ ᗷᕮᕮᕈS!"
+        };
+
+        // Time Lord visualizer assets
+        private BitmapImage? _timeVortexImage;
+        private BitmapImage? _tardisImage;
+        private double _vortexRotation = 0;
+        private double _tardisX = 0.5;
+        private double _tardisY = 0.5;
+        private double _tardisTumble = 0;
+        private double _tardisScale = 1.0;
 
         public AudioVisualizerView()
         {
@@ -1042,7 +1096,7 @@ namespace PlatypusTools.UI.Views
 
             // For dynamic modes, clear non-cached elements before each frame
             // This prevents elements from piling up and causing trails/artifacts
-            bool isDynamicMode = _visualizationMode is "Starfield" or "Toasters" or "Particles" or "Aurora" or "WaveGrid" or "Wave Grid" or "Circular" or "Radial" or "Mirror" or "Matrix" or "Star Wars Crawl" or "Stargate" or "Klingon";
+            bool isDynamicMode = _visualizationMode is "Starfield" or "Toasters" or "Particles" or "Aurora" or "WaveGrid" or "Wave Grid" or "Circular" or "Radial" or "Mirror" or "Matrix" or "Star Wars Crawl" or "Stargate" or "Klingon" or "Federation" or "Jedi" or "TimeLord";
             if (isDynamicMode)
             {
                 ClearDynamicElements(canvas);
@@ -1089,6 +1143,15 @@ namespace PlatypusTools.UI.Views
                     break;
                 case "Klingon":
                     RenderKlingon(canvas);
+                    break;
+                case "Federation":
+                    RenderFederation(canvas);
+                    break;
+                case "Jedi":
+                    RenderJedi(canvas);
+                    break;
+                case "TimeLord":
+                    RenderTimeLord(canvas);
                     break;
                 default: // Bars
                     RenderBars(canvas);
@@ -2519,7 +2582,7 @@ namespace PlatypusTools.UI.Views
                 _stargateWormholePhase += 0.08 + avgIntensity * 0.15;
             }
             
-            // ==== DRAW THE GATE ====
+            // ==== DRAW THE GATE (shape-based rendering) ====
             
             // Outer ring shadow/glow
             var outerGlow = new Ellipse
@@ -2576,7 +2639,7 @@ namespace PlatypusTools.UI.Views
             Canvas.SetTop(glyphTrack, centerY - glyphRadius);
             canvas.Children.Add(glyphTrack);
             
-            // Draw glyphs around the ring (39 glyphs in a Stargate)
+            // Draw glyphs around the ring (39 glyphs in a Stargate) - always shown for dialing
             double fontSize = Math.Max(10, outerRadius * 0.07);
             for (int i = 0; i < numGlyphs; i++)
             {
@@ -2715,124 +2778,284 @@ namespace PlatypusTools.UI.Views
                 }
             }
             
-            // ==== DRAW EVENT HORIZON ====
+            // ==== DRAW EVENT HORIZON (High-Resolution Swirling Wormhole) ====
             if (!_stargateIsDialing)
             {
                 double wormholeRadius = innerRadius * 0.95;
                 
-                // Kawoosh effect (water splash forward)
+                // Kawoosh effect (unstable vortex burst)
                 if (_stargateKawooshActive)
                 {
-                    double kawooshExtent = Math.Sin(_stargateKawooshPhase * Math.PI) * wormholeRadius * 0.8;
-                    double kawooshAlpha = 1 - _stargateKawooshPhase;
+                    double kawooshPhase = _stargateKawooshPhase;
+                    double kawooshExtent = Math.Sin(kawooshPhase * Math.PI) * wormholeRadius * 1.2;
+                    double kawooshAlpha = (1 - kawooshPhase) * (1 - kawooshPhase);
                     
-                    // Main kawoosh splash
-                    var kawoosh = new Ellipse
+                    // Expanding bubble ring
+                    double bubbleRadius = kawooshPhase * wormholeRadius * 1.5;
+                    var bubbleRing = new Ellipse
                     {
-                        Width = wormholeRadius * 1.6,
-                        Height = kawooshExtent,
-                        Fill = new RadialGradientBrush
-                        {
-                            GradientStops = new GradientStopCollection
-                            {
-                                new GradientStop(Color.FromArgb((byte)(kawooshAlpha * 255), 200, 230, 255), 0),
-                                new GradientStop(Color.FromArgb((byte)(kawooshAlpha * 180), 100, 180, 255), 0.4),
-                                new GradientStop(Color.FromArgb((byte)(kawooshAlpha * 80), 50, 120, 220), 0.7),
-                                new GradientStop(Color.FromArgb(0, 30, 80, 180), 1)
-                            }
-                        }
+                        Width = bubbleRadius * 2,
+                        Height = bubbleRadius * 2,
+                        Stroke = new SolidColorBrush(Color.FromArgb((byte)(kawooshAlpha * 200), 200, 240, 255)),
+                        StrokeThickness = 8 * (1 - kawooshPhase),
+                        Fill = null
                     };
-                    Canvas.SetLeft(kawoosh, centerX - wormholeRadius * 0.8);
-                    Canvas.SetTop(kawoosh, centerY - kawooshExtent / 2);
-                    canvas.Children.Add(kawoosh);
-                }
-                
-                // Stable wormhole (rippling water effect)
-                for (int ring = 0; ring < 6; ring++)
-                {
-                    double ringRadius = wormholeRadius * (1 - ring * 0.12);
-                    double ripple = Math.Sin(_stargateWormholePhase * 1.5 + ring * 0.7) * 4;
+                    Canvas.SetLeft(bubbleRing, centerX - bubbleRadius);
+                    Canvas.SetTop(bubbleRing, centerY - bubbleRadius);
+                    canvas.Children.Add(bubbleRing);
                     
-                    byte blue = (byte)(180 + ring * 12);
-                    byte green = (byte)(160 + ring * 8);
-                    byte alpha = (byte)(200 - ring * 25);
-                    
-                    var wormholeRing = new Ellipse
+                    // Main kawoosh splash (multiple layers)
+                    for (int k = 0; k < 5; k++)
                     {
-                        Width = (ringRadius + ripple) * 2,
-                        Height = (ringRadius + ripple) * 2,
-                        Fill = new RadialGradientBrush
-                        {
-                            GradientStops = new GradientStopCollection
-                            {
-                                new GradientStop(Color.FromArgb(alpha, 80, green, blue), 0.2),
-                                new GradientStop(Color.FromArgb((byte)(alpha * 0.6), 50, (byte)(green - 20), blue), 0.6),
-                                new GradientStop(Color.FromArgb((byte)(alpha * 0.2), 30, (byte)(green - 40), (byte)(blue - 20)), 1)
-                            }
-                        }
-                    };
-                    Canvas.SetLeft(wormholeRing, centerX - ringRadius - ripple);
-                    Canvas.SetTop(wormholeRing, centerY - ringRadius - ripple);
-                    canvas.Children.Add(wormholeRing);
-                }
-                
-                // Audio-reactive distortions on wormhole
-                int numDistortions = Math.Min(8, _smoothedData.Length / 6);
-                for (int i = 0; i < numDistortions; i++)
-                {
-                    int freqIdx = i * (_smoothedData.Length / numDistortions);
-                    double intensity = freqIdx < _smoothedData.Length ? _smoothedData[freqIdx] : avgIntensity;
-                    
-                    if (intensity > 0.15)
-                    {
-                        double angle = (i * 360.0 / numDistortions + _stargateWormholePhase * 30) * Math.PI / 180;
-                        double dist = wormholeRadius * 0.4 + intensity * wormholeRadius * 0.3;
-                        double dx = centerX + Math.Cos(angle) * dist;
-                        double dy = centerY + Math.Sin(angle) * dist;
-                        double size = 20 + intensity * 60;
+                        double kOffset = k * 0.1;
+                        double kPhase = Math.Max(0, kawooshPhase - kOffset);
+                        double kExtent = Math.Sin(kPhase * Math.PI) * wormholeRadius * (0.9 - k * 0.12);
+                        byte kAlpha = (byte)(kawooshAlpha * 220 * (1 - k * 0.15));
                         
-                        var ripple = new Ellipse
+                        var kawoosh = new Ellipse
                         {
-                            Width = size,
-                            Height = size,
+                            Width = wormholeRadius * (1.4 - k * 0.1),
+                            Height = Math.Max(1, kExtent),
                             Fill = new RadialGradientBrush
                             {
                                 GradientStops = new GradientStopCollection
                                 {
-                                    new GradientStop(Color.FromArgb((byte)(intensity * 200), 180, 220, 255), 0),
-                                    new GradientStop(Color.FromArgb((byte)(intensity * 100), 100, 180, 255), 0.5),
-                                    new GradientStop(Color.FromArgb(0, 60, 140, 220), 1)
+                                    new GradientStop(Color.FromArgb(kAlpha, 220, 245, 255), 0),
+                                    new GradientStop(Color.FromArgb((byte)(kAlpha * 0.7), 140, 200, 255), 0.4),
+                                    new GradientStop(Color.FromArgb((byte)(kAlpha * 0.3), 80, 150, 230), 0.7),
+                                    new GradientStop(Color.FromArgb(0, 40, 100, 200), 1)
                                 }
                             }
                         };
-                        Canvas.SetLeft(ripple, dx - size / 2);
-                        Canvas.SetTop(ripple, dy - size / 2);
-                        canvas.Children.Add(ripple);
+                        Canvas.SetLeft(kawoosh, centerX - wormholeRadius * (0.7 - k * 0.05));
+                        Canvas.SetTop(kawoosh, centerY - kExtent / 2);
+                        canvas.Children.Add(kawoosh);
                     }
                 }
                 
-                // Center glow based on bass
-                if (bassIntensity > 0.1)
+                // === HIGH-RESOLUTION EVENT HORIZON ===
+                // Base layer - deep blue-black center
+                var horizonBase = new Ellipse
                 {
-                    double pulseSize = 40 + bassIntensity * 100;
-                    var centerGlow = new Ellipse
+                    Width = wormholeRadius * 2,
+                    Height = wormholeRadius * 2,
+                    Fill = new RadialGradientBrush
                     {
-                        Width = pulseSize,
-                        Height = pulseSize,
-                        Fill = new RadialGradientBrush
+                        GradientStops = new GradientStopCollection
                         {
-                            GradientStops = new GradientStopCollection
-                            {
-                                new GradientStop(Color.FromArgb((byte)(bassIntensity * 200), 255, 255, 255), 0),
-                                new GradientStop(Color.FromArgb((byte)(bassIntensity * 100), 180, 220, 255), 0.4),
-                                new GradientStop(Color.FromArgb(0, 100, 180, 255), 1)
-                            }
+                            new GradientStop(Color.FromRgb(5, 15, 40), 0),
+                            new GradientStop(Color.FromRgb(20, 50, 100), 0.5),
+                            new GradientStop(Color.FromRgb(40, 90, 160), 0.8),
+                            new GradientStop(Color.FromRgb(60, 120, 200), 1)
                         }
+                    }
+                };
+                Canvas.SetLeft(horizonBase, centerX - wormholeRadius);
+                Canvas.SetTop(horizonBase, centerY - wormholeRadius);
+                canvas.Children.Add(horizonBase);
+                
+                // Swirling rings (smooth water-like rotation)
+                int numSwirls = 24;
+                for (int s = 0; s < numSwirls; s++)
+                {
+                    double sT = s / (double)numSwirls;
+                    double sRadius = wormholeRadius * (0.15 + sT * 0.8);
+                    
+                    // Swirl angle increases toward center (creates vortex twist)
+                    double swirlStrength = 2.0 + (1 - sT) * 4.0;
+                    double sAngle = _stargateWormholePhase * 0.5 + sT * swirlStrength;
+                    
+                    // Ring offset based on swirl
+                    double offsetX = Math.Cos(sAngle) * sRadius * 0.08 * (1 - sT);
+                    double offsetY = Math.Sin(sAngle) * sRadius * 0.08 * (1 - sT);
+                    
+                    // Smooth color gradient: blue -> cyan -> white toward center
+                    double hue = 0.55 + sT * 0.1; // 0.55 = cyan, 0.65 = blue
+                    var ringColor = HsvToRgb(hue, 0.6 - sT * 0.4, 0.7 + sT * 0.3 + avgIntensity * 0.2);
+                    byte ringAlpha = (byte)(80 + sT * 120 + avgIntensity * 50);
+                    
+                    // Ripple based on time
+                    double ripple = Math.Sin(_stargateWormholePhase * 2 + s * 0.4) * 3;
+                    
+                    var swirlRing = new Ellipse
+                    {
+                        Width = (sRadius + ripple) * 2,
+                        Height = (sRadius + ripple) * 2,
+                        Stroke = new SolidColorBrush(Color.FromArgb(ringAlpha, ringColor.R, ringColor.G, ringColor.B)),
+                        StrokeThickness = 3 + sT * 6,
+                        Fill = null
                     };
-                    Canvas.SetLeft(centerGlow, centerX - pulseSize / 2);
-                    Canvas.SetTop(centerGlow, centerY - pulseSize / 2);
-                    canvas.Children.Add(centerGlow);
+                    Canvas.SetLeft(swirlRing, centerX - sRadius - ripple + offsetX);
+                    Canvas.SetTop(swirlRing, centerY - sRadius - ripple + offsetY);
+                    canvas.Children.Add(swirlRing);
                 }
+                
+                // Flowing energy streams (spiral arms)
+                int numStreams = 48;
+                for (int st = 0; st < numStreams; st++)
+                {
+                    double stT = st / (double)numStreams;
+                    
+                    // Spiral from edge to center
+                    double spiralAngle = stT * Math.PI * 6 + _stargateWormholePhase;
+                    
+                    // Multiple points along each spiral arm
+                    for (int seg = 0; seg < 8; seg++)
+                    {
+                        double segT = seg / 8.0;
+                        double r = wormholeRadius * (0.9 - segT * 0.75);
+                        double twist = segT * Math.PI * 1.5;
+                        double angle = spiralAngle + twist;
+                        
+                        double px = centerX + Math.Cos(angle) * r;
+                        double py = centerY + Math.Sin(angle) * r;
+                        
+                        // Size decreases toward center
+                        double pSize = 4 + (1 - segT) * 8 + avgIntensity * 4;
+                        
+                        // Color: cyan edge -> white center
+                        byte pR = (byte)(100 + segT * 155);
+                        byte pG = (byte)(180 + segT * 75);
+                        byte pB = 255;
+                        byte pAlpha = (byte)(40 + segT * 80 + avgIntensity * 40);
+                        
+                        var streamPoint = new Ellipse
+                        {
+                            Width = pSize,
+                            Height = pSize,
+                            Fill = new RadialGradientBrush
+                            {
+                                GradientStops = new GradientStopCollection
+                                {
+                                    new GradientStop(Color.FromArgb(pAlpha, pR, pG, pB), 0),
+                                    new GradientStop(Color.FromArgb((byte)(pAlpha * 0.4), pR, pG, pB), 0.5),
+                                    new GradientStop(Color.FromArgb(0, pR, pG, pB), 1)
+                                }
+                            }
+                        };
+                        Canvas.SetLeft(streamPoint, px - pSize / 2);
+                        Canvas.SetTop(streamPoint, py - pSize / 2);
+                        canvas.Children.Add(streamPoint);
+                    }
+                }
+                
+                // Audio-reactive ripples (bass hits create expanding waves)
+                int numRipples = 6;
+                for (int rp = 0; rp < numRipples; rp++)
+                {
+                    double rpT = rp / (double)numRipples;
+                    double rpPhase = (_stargateWormholePhase * 0.5 + rpT * Math.PI * 2) % (Math.PI * 2);
+                    double rpRadius = (rpPhase / (Math.PI * 2)) * wormholeRadius * 0.9;
+                    double rpAlpha = (1 - rpPhase / (Math.PI * 2)) * (0.3 + bassIntensity * 0.5);
+                    
+                    if (rpRadius > 5)
+                    {
+                        var rippleRing = new Ellipse
+                        {
+                            Width = rpRadius * 2,
+                            Height = rpRadius * 2,
+                            Stroke = new SolidColorBrush(Color.FromArgb((byte)(rpAlpha * 255), 180, 220, 255)),
+                            StrokeThickness = 2 + (1 - rpRadius / wormholeRadius) * 4,
+                            Fill = null
+                        };
+                        Canvas.SetLeft(rippleRing, centerX - rpRadius);
+                        Canvas.SetTop(rippleRing, centerY - rpRadius);
+                        canvas.Children.Add(rippleRing);
+                    }
+                }
+                
+                // Frequency-reactive highlights (shimmer effect)
+                int numHighlights = Math.Min(16, _smoothedData.Length / 4);
+                for (int h = 0; h < numHighlights; h++)
+                {
+                    int freqIdx = h * (_smoothedData.Length / numHighlights);
+                    double intensity = freqIdx < _smoothedData.Length ? _smoothedData[freqIdx] * _sensitivity : 0;
+                    
+                    if (intensity > 0.1)
+                    {
+                        double hAngle = (h * 360.0 / numHighlights + _stargateWormholePhase * 40) * Math.PI / 180;
+                        double hDist = wormholeRadius * (0.2 + intensity * 0.5);
+                        double hx = centerX + Math.Cos(hAngle) * hDist;
+                        double hy = centerY + Math.Sin(hAngle) * hDist;
+                        double hSize = 15 + intensity * 50;
+                        
+                        var highlight = new Ellipse
+                        {
+                            Width = hSize,
+                            Height = hSize,
+                            Fill = new RadialGradientBrush
+                            {
+                                GradientStops = new GradientStopCollection
+                                {
+                                    new GradientStop(Color.FromArgb((byte)(intensity * 220), 240, 250, 255), 0),
+                                    new GradientStop(Color.FromArgb((byte)(intensity * 120), 150, 210, 255), 0.4),
+                                    new GradientStop(Color.FromArgb((byte)(intensity * 40), 80, 160, 230), 0.7),
+                                    new GradientStop(Color.FromArgb(0, 50, 120, 200), 1)
+                                }
+                            }
+                        };
+                        Canvas.SetLeft(highlight, hx - hSize / 2);
+                        Canvas.SetTop(highlight, hy - hSize / 2);
+                        canvas.Children.Add(highlight);
+                    }
+                }
+                
+                // Bright center core (pulsing with bass)
+                double coreSize = 30 + bassIntensity * 80;
+                var core3 = new Ellipse
+                {
+                    Width = coreSize * 2.5,
+                    Height = coreSize * 2.5,
+                    Fill = new RadialGradientBrush
+                    {
+                        GradientStops = new GradientStopCollection
+                        {
+                            new GradientStop(Color.FromArgb((byte)(60 + bassIntensity * 60), 150, 200, 255), 0),
+                            new GradientStop(Color.FromArgb((byte)(30 + bassIntensity * 30), 100, 160, 230), 0.5),
+                            new GradientStop(Color.FromArgb(0, 60, 120, 200), 1)
+                        }
+                    }
+                };
+                Canvas.SetLeft(core3, centerX - coreSize * 1.25);
+                Canvas.SetTop(core3, centerY - coreSize * 1.25);
+                canvas.Children.Add(core3);
+                
+                var core2 = new Ellipse
+                {
+                    Width = coreSize * 1.5,
+                    Height = coreSize * 1.5,
+                    Fill = new RadialGradientBrush
+                    {
+                        GradientStops = new GradientStopCollection
+                        {
+                            new GradientStop(Color.FromArgb((byte)(150 + bassIntensity * 80), 200, 230, 255), 0),
+                            new GradientStop(Color.FromArgb((byte)(80 + bassIntensity * 50), 140, 190, 250), 0.5),
+                            new GradientStop(Color.FromArgb(0, 80, 150, 220), 1)
+                        }
+                    }
+                };
+                Canvas.SetLeft(core2, centerX - coreSize * 0.75);
+                Canvas.SetTop(core2, centerY - coreSize * 0.75);
+                canvas.Children.Add(core2);
+                
+                var core1 = new Ellipse
+                {
+                    Width = coreSize,
+                    Height = coreSize,
+                    Fill = new RadialGradientBrush
+                    {
+                        GradientStops = new GradientStopCollection
+                        {
+                            new GradientStop(Color.FromArgb((byte)(220 + bassIntensity * 35), 255, 255, 255), 0),
+                            new GradientStop(Color.FromArgb((byte)(180 + bassIntensity * 50), 220, 240, 255), 0.3),
+                            new GradientStop(Color.FromArgb((byte)(100 + bassIntensity * 40), 180, 220, 255), 0.6),
+                            new GradientStop(Color.FromArgb(0, 120, 180, 240), 1)
+                        }
+                    }
+                };
+                Canvas.SetLeft(core1, centerX - coreSize / 2);
+                Canvas.SetTop(core1, centerY - coreSize / 2);
+                canvas.Children.Add(core1);
             }
             else
             {
@@ -2925,7 +3148,7 @@ namespace PlatypusTools.UI.Views
             {
                 try
                 {
-                    var bitmap = new BitmapImage(new Uri("pack://application:,,,/Assets/Klingonrevised.png", UriKind.Absolute));
+                    var bitmap = new BitmapImage(new Uri("pack://application:,,,/Assets/KlingonGlowLogo.png", UriKind.Absolute));
                     _klingonBackgroundBrush = new ImageBrush(bitmap)
                     {
                         Stretch = Stretch.Uniform  // Keep aspect ratio, fit within bounds
@@ -3260,6 +3483,1092 @@ namespace PlatypusTools.UI.Views
             Canvas.SetTop(centerCircle, centerY - size * 0.1);
             canvas.Children.Add(centerCircle);
         }
+
+        /// <summary>
+        /// Renders a United Federation of Planets themed visualization.
+        /// Features the Federation logo with a Voyager-style transporter beam effect.
+        /// Glowing particles shimmer and cascade like the transporter dematerialization effect.
+        /// </summary>
+        private void RenderFederation(Canvas canvas)
+        {
+            double width = canvas.ActualWidth;
+            double height = canvas.ActualHeight;
+            double centerX = width / 2;
+            double centerY = height / 2;
+            
+            if (width <= 0 || height <= 0) return;
+            
+            // Advance transporter phase for animation
+            _transporterPhase += 0.03;
+            if (_transporterPhase > Math.PI * 2) _transporterPhase -= Math.PI * 2;
+            
+            // Calculate average intensity and treble for reactive elements
+            double avgIntensity = 0;
+            double trebleIntensity = 0;
+            double bassIntensity = 0;
+            
+            int bassCount = Math.Min(10, _smoothedData.Length);
+            for (int i = 0; i < bassCount; i++)
+                bassIntensity += _smoothedData[i];
+            bassIntensity = bassCount > 0 ? bassIntensity / bassCount : 0.3;
+            
+            int trebleStart = _smoothedData.Length * 2 / 3;
+            int trebleCount = _smoothedData.Length - trebleStart;
+            for (int i = trebleStart; i < _smoothedData.Length; i++)
+                trebleIntensity += _smoothedData[i];
+            trebleIntensity = trebleCount > 0 ? trebleIntensity / trebleCount : 0.3;
+            
+            for (int i = 0; i < _smoothedData.Length; i++)
+                avgIntensity += _smoothedData[i];
+            avgIntensity /= Math.Max(1, _smoothedData.Length);
+            
+            // === LOAD FEDERATION ASSETS (cached) ===
+            if (_federationBackgroundBrush == null)
+            {
+                try
+                {
+                    var bitmap = new BitmapImage(new Uri("pack://application:,,,/Assets/FederationLogoTransparent.png", UriKind.Absolute));
+                    _federationBackgroundBrush = new ImageBrush(bitmap)
+                    {
+                        Stretch = Stretch.Uniform
+                    };
+                }
+                catch
+                {
+                    _federationBackgroundBrush = null;
+                }
+            }
+            
+            // === BACKGROUND - Deep space gradient with subtle blue ===
+            var background = new Rectangle
+            {
+                Width = width,
+                Height = height,
+                Fill = new RadialGradientBrush
+                {
+                    Center = new Point(0.5, 0.5),
+                    RadiusX = 1.2,
+                    RadiusY = 1.2,
+                    GradientStops = new GradientStopCollection
+                    {
+                        new GradientStop(Color.FromRgb(20, 35, 55), 0),
+                        new GradientStop(Color.FromRgb(10, 18, 30), 0.5),
+                        new GradientStop(Color.FromRgb(5, 8, 15), 1)
+                    }
+                }
+            };
+            Canvas.SetLeft(background, 0);
+            Canvas.SetTop(background, 0);
+            canvas.Children.Add(background);
+            
+            // === TRANSPORTER PARTICLE EFFECT ===
+            // Maintain transporter particles
+            int targetParticleCount = 200 + (int)(avgIntensity * 300);
+            
+            // Add new particles
+            while (_transporterParticles.Count < targetParticleCount)
+            {
+                _transporterParticles.Add(new TransporterParticle
+                {
+                    X = centerX + (_random.NextDouble() - 0.5) * width * 0.7,
+                    Y = _random.NextDouble() * height,
+                    VelocityY = -0.5 - _random.NextDouble() * 2,
+                    Size = 1 + _random.NextDouble() * 3,
+                    Phase = _random.NextDouble() * Math.PI * 2,
+                    Brightness = 0.3 + _random.NextDouble() * 0.7,
+                    ColorType = _random.Next(3) // 0=blue, 1=gold, 2=white
+                });
+            }
+            
+            // Remove excess particles
+            while (_transporterParticles.Count > targetParticleCount)
+            {
+                _transporterParticles.RemoveAt(_transporterParticles.Count - 1);
+            }
+            
+            // Update and render transporter particles
+            for (int i = _transporterParticles.Count - 1; i >= 0; i--)
+            {
+                var p = _transporterParticles[i];
+                
+                // Update position - cascade upward like transporter dematerialization
+                p.Y += p.VelocityY * (1 + avgIntensity);
+                p.Phase += 0.1;
+                
+                // Horizontal shimmer
+                double shimmer = Math.Sin(p.Phase) * 3 * (1 + trebleIntensity);
+                
+                // Reset particles that go off screen
+                if (p.Y < -10)
+                {
+                    p.Y = height + 10;
+                    p.X = centerX + (_random.NextDouble() - 0.5) * width * 0.7;
+                }
+                
+                // Pulsating brightness based on phase and audio
+                double pulseBrightness = p.Brightness * (0.5 + 0.5 * Math.Sin(p.Phase + _transporterPhase));
+                pulseBrightness *= (0.7 + bassIntensity * 0.6);
+                
+                // Determine color based on type
+                Color particleColor;
+                switch (p.ColorType)
+                {
+                    case 0: // Blue
+                        particleColor = Color.FromArgb(
+                            (byte)(pulseBrightness * 255),
+                            100, 180, 255);
+                        break;
+                    case 1: // Gold
+                        particleColor = Color.FromArgb(
+                            (byte)(pulseBrightness * 255),
+                            255, 215, 100);
+                        break;
+                    default: // White
+                        particleColor = Color.FromArgb(
+                            (byte)(pulseBrightness * 255),
+                            230, 240, 255);
+                        break;
+                }
+                
+                // Render particle with glow effect
+                var particle = new Ellipse
+                {
+                    Width = p.Size * (1 + trebleIntensity * 0.5),
+                    Height = p.Size * (1 + trebleIntensity * 0.5),
+                    Fill = new RadialGradientBrush
+                    {
+                        GradientStops = new GradientStopCollection
+                        {
+                            new GradientStop(particleColor, 0),
+                            new GradientStop(Color.FromArgb(0, particleColor.R, particleColor.G, particleColor.B), 1)
+                        }
+                    }
+                };
+                Canvas.SetLeft(particle, p.X + shimmer - p.Size / 2);
+                Canvas.SetTop(particle, p.Y - p.Size / 2);
+                canvas.Children.Add(particle);
+            }
+            
+            // === TRANSPORTER BEAM COLUMNS ===
+            // Voyager-style vertical shimmering beams
+            int beamCount = 5;
+            double beamSpacing = width * 0.12;
+            double beamStartX = centerX - (beamCount / 2.0) * beamSpacing;
+            
+            for (int i = 0; i < beamCount; i++)
+            {
+                double beamX = beamStartX + i * beamSpacing;
+                double beamIntensity = _smoothedData[i * (_smoothedData.Length / beamCount)] * _sensitivity;
+                
+                // Main beam
+                byte beamAlpha = (byte)(40 + beamIntensity * 120);
+                var beam = new Rectangle
+                {
+                    Width = 8 + beamIntensity * 15,
+                    Height = height,
+                    Fill = new LinearGradientBrush
+                    {
+                        StartPoint = new Point(0.5, 0),
+                        EndPoint = new Point(0.5, 1),
+                        GradientStops = new GradientStopCollection
+                        {
+                            new GradientStop(Color.FromArgb(0, 100, 180, 255), 0),
+                            new GradientStop(Color.FromArgb(beamAlpha, 150, 200, 255), 0.2),
+                            new GradientStop(Color.FromArgb((byte)(beamAlpha * 1.2), 200, 230, 255), 0.5),
+                            new GradientStop(Color.FromArgb(beamAlpha, 150, 200, 255), 0.8),
+                            new GradientStop(Color.FromArgb(0, 100, 180, 255), 1)
+                        }
+                    },
+                    Effect = new BlurEffect { Radius = 10 + beamIntensity * 8 }
+                };
+                Canvas.SetLeft(beam, beamX - beam.Width / 2);
+                Canvas.SetTop(beam, 0);
+                canvas.Children.Add(beam);
+                
+                // Shimmer effect - moving bright spots
+                double shimmerY = (height * ((Math.Sin(_transporterPhase * 2 + i) + 1) / 2));
+                var shimmerSpot = new Ellipse
+                {
+                    Width = 15 + beamIntensity * 20,
+                    Height = 30 + beamIntensity * 40,
+                    Fill = new RadialGradientBrush
+                    {
+                        GradientStops = new GradientStopCollection
+                        {
+                            new GradientStop(Color.FromArgb((byte)(180 + beamIntensity * 75), 255, 255, 255), 0),
+                            new GradientStop(Color.FromArgb((byte)(100 + beamIntensity * 50), 180, 220, 255), 0.4),
+                            new GradientStop(Color.FromArgb(0, 100, 180, 255), 1)
+                        }
+                    }
+                };
+                Canvas.SetLeft(shimmerSpot, beamX - shimmerSpot.Width / 2);
+                Canvas.SetTop(shimmerSpot, shimmerY - shimmerSpot.Height / 2);
+                canvas.Children.Add(shimmerSpot);
+            }
+            
+            // === FEDERATION LOGO - Centered with pulsating glow ===
+            if (_federationBackgroundBrush != null)
+            {
+                double logoSize = Math.Min(width, height) * 0.5;
+                double pulseScale = 1.0 + Math.Sin(_transporterPhase * 1.5) * 0.03 * (1 + bassIntensity);
+                double actualSize = logoSize * pulseScale;
+                
+                // Outer glow
+                var logoGlow = new Ellipse
+                {
+                    Width = actualSize * 1.5,
+                    Height = actualSize * 1.5,
+                    Fill = new RadialGradientBrush
+                    {
+                        GradientStops = new GradientStopCollection
+                        {
+                            new GradientStop(Color.FromArgb((byte)(50 + bassIntensity * 70), 100, 180, 255), 0),
+                            new GradientStop(Color.FromArgb((byte)(25 + bassIntensity * 35), 80, 150, 220), 0.5),
+                            new GradientStop(Color.FromArgb(0, 50, 100, 180), 1)
+                        }
+                    }
+                };
+                Canvas.SetLeft(logoGlow, centerX - actualSize * 0.75);
+                Canvas.SetTop(logoGlow, centerY - actualSize * 0.75);
+                canvas.Children.Add(logoGlow);
+                
+                // Logo itself (transparent PNG)
+                var logoRect = new Rectangle
+                {
+                    Width = actualSize,
+                    Height = actualSize,
+                    Fill = _federationBackgroundBrush,
+                    Opacity = 0.9 + bassIntensity * 0.1
+                };
+                Canvas.SetLeft(logoRect, centerX - actualSize / 2);
+                Canvas.SetTop(logoRect, centerY - actualSize / 2);
+                canvas.Children.Add(logoRect);
+            }
+            
+            // === SPECTRUM RING ===
+            // Circular spectrum visualization around the logo
+            double ringRadius = Math.Min(width, height) * 0.38;
+            int segmentCount = Math.Min(32, _smoothedData.Length);
+            
+            for (int i = 0; i < segmentCount; i++)
+            {
+                double angle = (i * 360.0 / segmentCount - 90) * Math.PI / 180;
+                double nextAngle = ((i + 1) * 360.0 / segmentCount - 90) * Math.PI / 180;
+                double value = i < _smoothedData.Length ? _smoothedData[i] : 0;
+                
+                double innerR = ringRadius;
+                double outerR = ringRadius + 10 + value * height * 0.15 * _sensitivity;
+                
+                // Create arc segment
+                var segment = new PathGeometry();
+                var figure = new PathFigure
+                {
+                    StartPoint = new Point(
+                        centerX + Math.Cos(angle) * innerR,
+                        centerY + Math.Sin(angle) * innerR)
+                };
+                
+                figure.Segments.Add(new LineSegment(
+                    new Point(centerX + Math.Cos(angle) * outerR, centerY + Math.Sin(angle) * outerR), true));
+                figure.Segments.Add(new ArcSegment(
+                    new Point(centerX + Math.Cos(nextAngle) * outerR, centerY + Math.Sin(nextAngle) * outerR),
+                    new Size(outerR, outerR), 0, false, SweepDirection.Clockwise, true));
+                figure.Segments.Add(new LineSegment(
+                    new Point(centerX + Math.Cos(nextAngle) * innerR, centerY + Math.Sin(nextAngle) * innerR), true));
+                figure.Segments.Add(new ArcSegment(
+                    new Point(centerX + Math.Cos(angle) * innerR, centerY + Math.Sin(angle) * innerR),
+                    new Size(innerR, innerR), 0, false, SweepDirection.Counterclockwise, true));
+                
+                segment.Figures.Add(figure);
+                
+                // Color gradient from blue to gold to white based on intensity
+                byte r, g, b;
+                if (value < 0.4)
+                {
+                    r = (byte)(80 + value * 150);
+                    g = (byte)(150 + value * 100);
+                    b = 255;
+                }
+                else if (value < 0.7)
+                {
+                    double t = (value - 0.4) / 0.3;
+                    r = (byte)(140 + t * 115);
+                    g = (byte)(190 + t * 25);
+                    b = (byte)(255 - t * 100);
+                }
+                else
+                {
+                    r = 255;
+                    g = (byte)(215 + (value - 0.7) * 40);
+                    b = (byte)(155 + (value - 0.7) * 100);
+                }
+                
+                var segmentPath = new Path
+                {
+                    Data = segment,
+                    Fill = new SolidColorBrush(Color.FromArgb((byte)(150 + value * 105), r, g, b)),
+                    Effect = value > 0.5 ? new BlurEffect { Radius = 3 } : null
+                };
+                canvas.Children.Add(segmentPath);
+            }
+            
+            // === STARFLEET TEXT ===
+            var starfleetText = new TextBlock
+            {
+                Text = "UNITED FEDERATION OF PLANETS",
+                FontFamily = new FontFamily("Segoe UI, Arial"),
+                FontSize = Math.Max(14, height * 0.025),
+                FontWeight = FontWeights.Light,
+                Foreground = new SolidColorBrush(Color.FromArgb((byte)(150 + avgIntensity * 100), 180, 210, 255)),
+                TextAlignment = TextAlignment.Center
+            };
+            starfleetText.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            Canvas.SetLeft(starfleetText, centerX - starfleetText.DesiredSize.Width / 2);
+            Canvas.SetTop(starfleetText, height - 40);
+            canvas.Children.Add(starfleetText);
+            
+            // === STARDATE ===
+            var stardate = new TextBlock
+            {
+                Text = $"STARDATE {DateTime.Now:yyMMdd}.{DateTime.Now:HHmm}",
+                FontFamily = new FontFamily("Consolas, Courier New"),
+                FontSize = Math.Max(12, height * 0.02),
+                Foreground = new SolidColorBrush(Color.FromArgb((byte)(120 + avgIntensity * 80), 150, 190, 230))
+            };
+            Canvas.SetLeft(stardate, 15);
+            Canvas.SetTop(stardate, 15);
+            canvas.Children.Add(stardate);
+        }
+
+        /// <summary>
+        /// Renders the Jedi visualizer with lightsabers and R2-D2 translator text.
+        /// </summary>
+        private void RenderJedi(Canvas canvas)
+        {
+            double width = canvas.ActualWidth;
+            double height = canvas.ActualHeight;
+            
+            if (width <= 0 || height <= 0) return;
+            
+            // Calculate audio metrics
+            double avgIntensity = 0;
+            double bassIntensity = 0;
+            double trebleIntensity = 0;
+            
+            int bassCount = Math.Min(10, _smoothedData.Length);
+            for (int i = 0; i < bassCount; i++)
+                bassIntensity += _smoothedData[i];
+            bassIntensity = bassCount > 0 ? bassIntensity / bassCount : 0.3;
+            
+            int trebleStart = _smoothedData.Length * 2 / 3;
+            int trebleCount = _smoothedData.Length - trebleStart;
+            for (int i = trebleStart; i < _smoothedData.Length; i++)
+                trebleIntensity += _smoothedData[i];
+            trebleIntensity = trebleCount > 0 ? trebleIntensity / trebleCount : 0.3;
+            
+            for (int i = 0; i < _smoothedData.Length; i++)
+                avgIntensity += _smoothedData[i];
+            avgIntensity /= Math.Max(1, _smoothedData.Length);
+            
+            // Advance animation
+            _jediTextScrollOffset += 0.5 + avgIntensity * 0.5;
+            
+            // === LOAD LIGHTSABER HILT IMAGE (cached) ===
+            if (_lightsaberHiltImage == null)
+            {
+                try
+                {
+                    _lightsaberHiltImage = new BitmapImage(new Uri("pack://application:,,,/Assets/lightsaber.png", UriKind.Absolute));
+                }
+                catch
+                {
+                    _lightsaberHiltImage = null;
+                }
+            }
+            
+            // === SPACE BACKGROUND ===
+            var background = new Rectangle
+            {
+                Width = width,
+                Height = height,
+                Fill = new LinearGradientBrush
+                {
+                    StartPoint = new Point(0, 0),
+                    EndPoint = new Point(0, 1),
+                    GradientStops = new GradientStopCollection
+                    {
+                        new GradientStop(Color.FromRgb(0, 0, 15), 0),
+                        new GradientStop(Color.FromRgb(5, 5, 25), 0.5),
+                        new GradientStop(Color.FromRgb(0, 0, 10), 1)
+                    }
+                }
+            };
+            Canvas.SetLeft(background, 0);
+            Canvas.SetTop(background, 0);
+            canvas.Children.Add(background);
+            
+            // === STARS ===
+            for (int i = 0; i < 80; i++)
+            {
+                double starX = (i * 47) % width;
+                double starY = (i * 31) % height;
+                double twinkle = 0.3 + 0.7 * Math.Sin(_animationPhase * 2 + i * 0.5);
+                
+                var star = new Ellipse
+                {
+                    Width = 1 + (i % 3),
+                    Height = 1 + (i % 3),
+                    Fill = new SolidColorBrush(Color.FromArgb((byte)(100 + twinkle * 155), 255, 255, 255))
+                };
+                Canvas.SetLeft(star, starX);
+                Canvas.SetTop(star, starY);
+                canvas.Children.Add(star);
+            }
+            
+            // === LIGHTSABERS ===
+            // Lightsaber colors: 0=blue (Luke), 1=green (Luke ROTJ), 2=purple (Mace), 3=red (enemy)
+            Color[] saberColors = {
+                Color.FromRgb(100, 180, 255),  // Blue
+                Color.FromRgb(100, 255, 100),  // Green
+                Color.FromRgb(180, 100, 255),  // Purple
+                Color.FromRgb(255, 50, 50)     // Red (occasional)
+            };
+            
+            // Responsive saber count and sizing based on window size
+            int saberCount = width < 600 ? 8 : (width < 1000 ? 12 : 16);
+            saberCount = Math.Min(saberCount, _smoothedData.Length);
+            
+            // Fixed blade width (8-12 pixels) regardless of window size
+            double bladeWidth = width < 600 ? 8 : (width < 1000 ? 10 : 12);
+            double saberSpacing = (width * 0.5) / saberCount;
+            double saberAreaStart = width * 0.05;
+            
+            // Hilt size scales with blade width
+            double hiltWidth = bladeWidth * 4;
+            double hiltHeight = Math.Min(80, height * 0.12);
+            
+            for (int i = 0; i < saberCount; i++)
+            {
+                int freqIndex = i * _smoothedData.Length / saberCount;
+                double value = freqIndex < _smoothedData.Length ? _smoothedData[freqIndex] * _sensitivity : 0;
+                double x = saberAreaStart + i * saberSpacing;
+                double saberHeight = 30 + value * height * 0.5;
+                double saberBottom = height - hiltHeight - 10;
+                
+                // Determine color based on position (mostly blue/green with occasional purple)
+                int colorIndex = i % 5 == 0 ? 2 : (i % 2);
+                Color saberColor = saberColors[colorIndex];
+                
+                // Hilt - use image if available, otherwise fallback to rectangle
+                if (_lightsaberHiltImage != null)
+                {
+                    var hiltImage = new Image
+                    {
+                        Source = _lightsaberHiltImage,
+                        Width = hiltWidth,
+                        Height = hiltHeight,
+                        Stretch = Stretch.Uniform
+                    };
+                    Canvas.SetLeft(hiltImage, x + (saberSpacing - hiltWidth) / 2);
+                    Canvas.SetTop(hiltImage, saberBottom);
+                    canvas.Children.Add(hiltImage);
+                }
+                else
+                {
+                    // Fallback hilt (metallic gray)
+                    var hilt = new Rectangle
+                    {
+                        Width = hiltWidth,
+                        Height = hiltHeight * 0.5,
+                        Fill = new LinearGradientBrush
+                        {
+                            StartPoint = new Point(0, 0.5),
+                            EndPoint = new Point(1, 0.5),
+                            GradientStops = new GradientStopCollection
+                            {
+                                new GradientStop(Color.FromRgb(80, 80, 90), 0),
+                                new GradientStop(Color.FromRgb(150, 150, 160), 0.3),
+                                new GradientStop(Color.FromRgb(100, 100, 110), 0.7),
+                                new GradientStop(Color.FromRgb(60, 60, 70), 1)
+                            }
+                        },
+                        RadiusX = 2,
+                        RadiusY = 2
+                    };
+                    Canvas.SetLeft(hilt, x + (saberSpacing - hiltWidth) / 2);
+                    Canvas.SetTop(hilt, saberBottom);
+                    canvas.Children.Add(hilt);
+                }
+                
+                // Blade glow (outer) - width is 3x blade for glow effect
+                double glowWidth = bladeWidth * 3;
+                var bladeGlow = new Rectangle
+                {
+                    Width = glowWidth,
+                    Height = saberHeight + 20,
+                    Fill = new LinearGradientBrush
+                    {
+                        StartPoint = new Point(0.5, 1),
+                        EndPoint = new Point(0.5, 0),
+                        GradientStops = new GradientStopCollection
+                        {
+                            new GradientStop(Color.FromArgb((byte)(100 + value * 100), saberColor.R, saberColor.G, saberColor.B), 0),
+                            new GradientStop(Color.FromArgb((byte)(60 + value * 60), saberColor.R, saberColor.G, saberColor.B), 0.5),
+                            new GradientStop(Color.FromArgb(0, saberColor.R, saberColor.G, saberColor.B), 1)
+                        }
+                    },
+                    Effect = new BlurEffect { Radius = 15 + value * 10 },
+                    RadiusX = glowWidth / 2,
+                    RadiusY = 5
+                };
+                Canvas.SetLeft(bladeGlow, x + (saberSpacing - glowWidth) / 2);
+                Canvas.SetTop(bladeGlow, saberBottom - saberHeight - 10);
+                canvas.Children.Add(bladeGlow);
+                
+                // Blade core (bright white/color center)
+                var bladeCore = new Rectangle
+                {
+                    Width = bladeWidth,
+                    Height = saberHeight,
+                    Fill = new LinearGradientBrush
+                    {
+                        StartPoint = new Point(0.5, 1),
+                        EndPoint = new Point(0.5, 0),
+                        GradientStops = new GradientStopCollection
+                        {
+                            new GradientStop(Colors.White, 0),
+                            new GradientStop(Color.FromArgb(255, 
+                                (byte)Math.Min(255, saberColor.R + 100), 
+                                (byte)Math.Min(255, saberColor.G + 100), 
+                                (byte)Math.Min(255, saberColor.B + 100)), 0.3),
+                            new GradientStop(saberColor, 0.8),
+                            new GradientStop(Color.FromArgb(200, saberColor.R, saberColor.G, saberColor.B), 1)
+                        }
+                    },
+                    RadiusX = bladeWidth / 2,
+                    RadiusY = 3
+                };
+                Canvas.SetLeft(bladeCore, x + (saberSpacing - bladeWidth) / 2);
+                Canvas.SetTop(bladeCore, saberBottom - saberHeight);
+                canvas.Children.Add(bladeCore);
+            }
+            
+            // === R2-D2 TRANSLATOR TEXT PANEL ===
+            double textPanelWidth = width * 0.38;
+            double textPanelX = width * 0.58;
+            double textPanelY = 30;
+            double textPanelHeight = height - 100;
+            
+            // Panel background
+            var textPanel = new Rectangle
+            {
+                Width = textPanelWidth,
+                Height = textPanelHeight,
+                Fill = new SolidColorBrush(Color.FromArgb(180, 0, 0, 0)),
+                Stroke = new SolidColorBrush(Color.FromArgb(150, 100, 180, 255)),
+                StrokeThickness = 1,
+                RadiusX = 5,
+                RadiusY = 5
+            };
+            Canvas.SetLeft(textPanel, textPanelX);
+            Canvas.SetTop(textPanel, textPanelY);
+            canvas.Children.Add(textPanel);
+            
+            // Panel header
+            var headerText = new TextBlock
+            {
+                Text = "◈ X-WING COMM CHANNEL ◈",
+                FontFamily = new FontFamily("Consolas, Courier New"),
+                FontSize = Math.Max(11, height * 0.02),
+                FontWeight = FontWeights.Bold,
+                Foreground = new SolidColorBrush(Color.FromRgb(100, 200, 255)),
+                TextAlignment = TextAlignment.Center,
+                Width = textPanelWidth - 20
+            };
+            Canvas.SetLeft(headerText, textPanelX + 10);
+            Canvas.SetTop(headerText, textPanelY + 8);
+            canvas.Children.Add(headerText);
+            
+            // Divider line
+            var divider = new Rectangle
+            {
+                Width = textPanelWidth - 20,
+                Height = 1,
+                Fill = new SolidColorBrush(Color.FromArgb(100, 100, 180, 255))
+            };
+            Canvas.SetLeft(divider, textPanelX + 10);
+            Canvas.SetTop(divider, textPanelY + 32);
+            canvas.Children.Add(divider);
+            
+            // Scrolling messages
+            double lineHeight = Math.Max(18, height * 0.028);
+            double textStartY = textPanelY + 45;
+            double visibleLines = (textPanelHeight - 60) / lineHeight;
+            int scrollOffset = (int)(_jediTextScrollOffset / 30) % _r2d2Messages.Count;
+            
+            for (int i = 0; i < (int)visibleLines + 2; i++)
+            {
+                int msgIndex = (scrollOffset + i) % _r2d2Messages.Count;
+                double yOffset = ((_jediTextScrollOffset % 30) / 30) * lineHeight;
+                double y = textStartY + i * lineHeight - yOffset;
+                
+                if (y < textStartY - lineHeight || y > textStartY + textPanelHeight - 50) continue;
+                
+                string msg = _r2d2Messages[msgIndex];
+                bool isR2 = msg.StartsWith("[R2");
+                
+                // Glow effect for R2's beeps based on audio
+                byte glowAlpha = isR2 ? (byte)(180 + avgIntensity * 75) : (byte)220;
+                Color textColor = isR2 
+                    ? Color.FromArgb(glowAlpha, 100, 220, 255)
+                    : Color.FromArgb(220, 255, 200, 100);
+                
+                var msgText = new TextBlock
+                {
+                    Text = msg,
+                    FontFamily = new FontFamily("Consolas, Courier New"),
+                    FontSize = Math.Max(10, height * 0.018),
+                    Foreground = new SolidColorBrush(textColor),
+                    Width = textPanelWidth - 25,
+                    TextWrapping = TextWrapping.Wrap
+                };
+                
+                if (isR2 && avgIntensity > 0.4)
+                {
+                    msgText.Effect = new BlurEffect { Radius = 1 + avgIntensity * 2 };
+                }
+                
+                Canvas.SetLeft(msgText, textPanelX + 12);
+                Canvas.SetTop(msgText, y);
+                canvas.Children.Add(msgText);
+            }
+            
+            // === FORCE PARTICLES ===
+            // Small glowing particles that react to music
+            int particleCount = 15 + (int)(avgIntensity * 20);
+            for (int i = 0; i < particleCount; i++)
+            {
+                double px = ((i * 73 + _animationPhase * 20) % (width * 0.5)) + width * 0.02;
+                double py = ((i * 47 + _animationPhase * 15) % (height - 100)) + 20;
+                double pSize = 2 + (i % 4) + bassIntensity * 3;
+                double pAlpha = 0.3 + 0.5 * Math.Sin(_animationPhase + i);
+                
+                // Blue or green particles
+                Color pColor = i % 2 == 0 
+                    ? Color.FromArgb((byte)(pAlpha * 200), 100, 180, 255)
+                    : Color.FromArgb((byte)(pAlpha * 200), 100, 255, 150);
+                
+                var particle = new Ellipse
+                {
+                    Width = pSize,
+                    Height = pSize,
+                    Fill = new RadialGradientBrush
+                    {
+                        GradientStops = new GradientStopCollection
+                        {
+                            new GradientStop(pColor, 0),
+                            new GradientStop(Color.FromArgb(0, pColor.R, pColor.G, pColor.B), 1)
+                        }
+                    }
+                };
+                Canvas.SetLeft(particle, px);
+                Canvas.SetTop(particle, py);
+                canvas.Children.Add(particle);
+            }
+            
+            // === JEDI ORDER EMBLEM (subtle) ===
+            double emblemSize = Math.Min(width, height) * 0.15;
+            double emblemX = width * 0.28;
+            double emblemY = 30;
+            
+            // Outer wings shape (simplified Jedi Order symbol)
+            var emblemPath = new Path
+            {
+                Stroke = new SolidColorBrush(Color.FromArgb((byte)(60 + bassIntensity * 60), 200, 180, 100)),
+                StrokeThickness = 2,
+                Fill = new SolidColorBrush(Color.FromArgb((byte)(20 + bassIntensity * 20), 200, 180, 100)),
+                Effect = new BlurEffect { Radius = 2 }
+            };
+            
+            var emblemGeometry = new PathGeometry();
+            var emblemFigure = new PathFigure
+            {
+                StartPoint = new Point(emblemX, emblemY + emblemSize * 0.5),
+                IsClosed = true
+            };
+            // Create stylized wing shape
+            emblemFigure.Segments.Add(new BezierSegment(
+                new Point(emblemX + emblemSize * 0.3, emblemY),
+                new Point(emblemX + emblemSize * 0.7, emblemY),
+                new Point(emblemX + emblemSize, emblemY + emblemSize * 0.5),
+                true));
+            emblemFigure.Segments.Add(new BezierSegment(
+                new Point(emblemX + emblemSize * 0.7, emblemY + emblemSize),
+                new Point(emblemX + emblemSize * 0.3, emblemY + emblemSize),
+                new Point(emblemX, emblemY + emblemSize * 0.5),
+                true));
+            emblemGeometry.Figures.Add(emblemFigure);
+            emblemPath.Data = emblemGeometry;
+            canvas.Children.Add(emblemPath);
+            
+            // === QUOTE ===
+            var quote = new TextBlock
+            {
+                Text = "\"The Force will be with you. Always.\"",
+                FontFamily = new FontFamily("Georgia, Times New Roman"),
+                FontSize = Math.Max(12, height * 0.022),
+                FontStyle = FontStyles.Italic,
+                Foreground = new SolidColorBrush(Color.FromArgb((byte)(120 + avgIntensity * 80), 200, 180, 100)),
+                TextAlignment = TextAlignment.Center
+            };
+            quote.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            Canvas.SetLeft(quote, (width * 0.5 - quote.DesiredSize.Width) / 2);
+            Canvas.SetTop(quote, height - 35);
+            canvas.Children.Add(quote);
+        }
+
+        /// <summary>
+        /// Renders the Time Lord visualizer with swirling time vortex tunnel and flying TARDIS.
+        /// Uses the TimeVortex.png image with multiple rotating/scaling layers for depth.
+        /// </summary>
+        private void RenderTimeLord(Canvas canvas)
+        {
+            double width = canvas.ActualWidth;
+            double height = canvas.ActualHeight;
+            
+            if (width <= 0 || height <= 0) return;
+            
+            // Calculate audio metrics with smoothing
+            double avgIntensity = 0;
+            double bassIntensity = 0;
+            double midIntensity = 0;
+            double trebleIntensity = 0;
+            
+            int bassCount = Math.Min(8, _smoothedData.Length);
+            for (int i = 0; i < bassCount; i++)
+                bassIntensity += _smoothedData[i];
+            bassIntensity = bassCount > 0 ? bassIntensity / bassCount : 0.3;
+            
+            int midStart = _smoothedData.Length / 3;
+            int midEnd = _smoothedData.Length * 2 / 3;
+            for (int i = midStart; i < midEnd; i++)
+                midIntensity += _smoothedData[i];
+            midIntensity = (midEnd - midStart) > 0 ? midIntensity / (midEnd - midStart) : 0.3;
+            
+            int trebleStart = _smoothedData.Length * 2 / 3;
+            for (int i = trebleStart; i < _smoothedData.Length; i++)
+                trebleIntensity += _smoothedData[i];
+            trebleIntensity = (_smoothedData.Length - trebleStart) > 0 ? trebleIntensity / (_smoothedData.Length - trebleStart) : 0.3;
+            
+            for (int i = 0; i < _smoothedData.Length; i++)
+                avgIntensity += _smoothedData[i];
+            avgIntensity /= Math.Max(1, _smoothedData.Length);
+            
+            // Load images (cached)
+            if (_timeVortexImage == null)
+            {
+                try
+                {
+                    _timeVortexImage = new BitmapImage(new Uri("pack://application:,,,/Assets/TimeVortex.png", UriKind.Absolute));
+                }
+                catch { _timeVortexImage = null; }
+            }
+            
+            if (_tardisImage == null)
+            {
+                try
+                {
+                    _tardisImage = new BitmapImage(new Uri("pack://application:,,,/Assets/Tardis.png", UriKind.Absolute));
+                }
+                catch { _tardisImage = null; }
+            }
+            
+            // === SMOOTH ANIMATION UPDATE ===
+            double rotationSpeed = 0.8 + bassIntensity * 2.0 + avgIntensity * 1.0;
+            _vortexRotation += rotationSpeed;
+            if (_vortexRotation >= 360) _vortexRotation -= 360;
+            
+            // TARDIS smooth orbital movement
+            double orbitSpeed = 0.015 + avgIntensity * 0.025;
+            _animationPhase += orbitSpeed;
+            
+            // Smooth spiral path for TARDIS
+            double spiralRadius = 0.12 + bassIntensity * 0.08;
+            double targetX = 0.5 + Math.Sin(_animationPhase * 1.1) * spiralRadius 
+                                + Math.Sin(_animationPhase * 2.3) * 0.04;
+            double targetY = 0.5 + Math.Cos(_animationPhase * 0.8) * spiralRadius * 0.8
+                                + Math.Cos(_animationPhase * 1.9) * 0.03;
+            
+            // Smooth interpolation
+            _tardisX += (targetX - _tardisX) * 0.06;
+            _tardisY += (targetY - _tardisY) * 0.06;
+            
+            // Gentle tumble
+            double moveDeltaX = targetX - _tardisX;
+            _tardisTumble += moveDeltaX * 60 + avgIntensity * 1.5;
+            
+            // Scale pulses with bass
+            double targetScale = 1.0 + bassIntensity * 0.25;
+            _tardisScale += (targetScale - _tardisScale) * 0.12;
+            
+            double centerX = width / 2;
+            double centerY = height / 2;
+            
+            // === BLACK BACKGROUND ===
+            var background = new Rectangle
+            {
+                Width = width,
+                Height = height,
+                Fill = new SolidColorBrush(Colors.Black)
+            };
+            canvas.Children.Add(background);
+            
+            // === LAYERED VORTEX IMAGES WITH BLUR ===
+            if (_timeVortexImage != null)
+            {
+                double baseSize = Math.Max(width, height) * 1.8;
+                
+                // Layer 1: Outermost - large, slow, heavily blurred
+                double layer1Size = baseSize * (1.4 + avgIntensity * 0.2);
+                var vortexLayer1 = new Image
+                {
+                    Source = _timeVortexImage,
+                    Width = layer1Size,
+                    Height = layer1Size,
+                    Stretch = Stretch.Uniform,
+                    Opacity = 0.5 + avgIntensity * 0.2,
+                    RenderTransformOrigin = new Point(0.5, 0.5),
+                    RenderTransform = new RotateTransform(_vortexRotation * 0.25),
+                    Effect = new BlurEffect { Radius = 25 }
+                };
+                Canvas.SetLeft(vortexLayer1, centerX - layer1Size / 2);
+                Canvas.SetTop(vortexLayer1, centerY - layer1Size / 2);
+                canvas.Children.Add(vortexLayer1);
+                
+                // Layer 2: Medium blur, counter rotation
+                double layer2Size = baseSize * (1.1 + avgIntensity * 0.15);
+                var vortexLayer2 = new Image
+                {
+                    Source = _timeVortexImage,
+                    Width = layer2Size,
+                    Height = layer2Size,
+                    Stretch = Stretch.Uniform,
+                    Opacity = 0.6 + avgIntensity * 0.25,
+                    RenderTransformOrigin = new Point(0.5, 0.5),
+                    RenderTransform = new RotateTransform(-_vortexRotation * 0.4),
+                    Effect = new BlurEffect { Radius = 15 }
+                };
+                Canvas.SetLeft(vortexLayer2, centerX - layer2Size / 2);
+                Canvas.SetTop(vortexLayer2, centerY - layer2Size / 2);
+                canvas.Children.Add(vortexLayer2);
+                
+                // Layer 3: Light blur
+                double layer3Size = baseSize * (0.85 + avgIntensity * 0.12);
+                var vortexLayer3 = new Image
+                {
+                    Source = _timeVortexImage,
+                    Width = layer3Size,
+                    Height = layer3Size,
+                    Stretch = Stretch.Uniform,
+                    Opacity = 0.75 + avgIntensity * 0.2,
+                    RenderTransformOrigin = new Point(0.5, 0.5),
+                    RenderTransform = new RotateTransform(_vortexRotation * 0.6),
+                    Effect = new BlurEffect { Radius = 8 }
+                };
+                Canvas.SetLeft(vortexLayer3, centerX - layer3Size / 2);
+                Canvas.SetTop(vortexLayer3, centerY - layer3Size / 2);
+                canvas.Children.Add(vortexLayer3);
+                
+                // Layer 4: Sharp core
+                double layer4Size = baseSize * (0.6 + bassIntensity * 0.15);
+                var vortexLayer4 = new Image
+                {
+                    Source = _timeVortexImage,
+                    Width = layer4Size,
+                    Height = layer4Size,
+                    Stretch = Stretch.Uniform,
+                    Opacity = 0.9 + bassIntensity * 0.1,
+                    RenderTransformOrigin = new Point(0.5, 0.5),
+                    RenderTransform = new RotateTransform(-_vortexRotation * 0.9),
+                    Effect = new BlurEffect { Radius = 3 }
+                };
+                Canvas.SetLeft(vortexLayer4, centerX - layer4Size / 2);
+                Canvas.SetTop(vortexLayer4, centerY - layer4Size / 2);
+                canvas.Children.Add(vortexLayer4);
+                
+                // Layer 5: Innermost - pulsing, sharp
+                double layer5Size = baseSize * (0.35 + bassIntensity * 0.2);
+                var vortexLayer5 = new Image
+                {
+                    Source = _timeVortexImage,
+                    Width = layer5Size,
+                    Height = layer5Size,
+                    Stretch = Stretch.Uniform,
+                    Opacity = 0.95,
+                    RenderTransformOrigin = new Point(0.5, 0.5),
+                    RenderTransform = new RotateTransform(_vortexRotation * 1.2)
+                };
+                Canvas.SetLeft(vortexLayer5, centerX - layer5Size / 2);
+                Canvas.SetTop(vortexLayer5, centerY - layer5Size / 2);
+                canvas.Children.Add(vortexLayer5);
+            }
+            
+            // === TARDIS ===
+            double tardisBaseSize = Math.Min(width, height) * 0.18;
+            double tardisDisplaySize = tardisBaseSize * _tardisScale;
+            double tardisDisplayX = _tardisX * width - tardisDisplaySize / 2;
+            double tardisDisplayY = _tardisY * height - tardisDisplaySize * 0.7;
+            
+            // Glow behind TARDIS
+            double glowRadius = tardisDisplaySize * 1.2;
+            var tardisGlow = new Ellipse
+            {
+                Width = glowRadius * 2,
+                Height = glowRadius * 2,
+                Fill = new RadialGradientBrush
+                {
+                    GradientStops = new GradientStopCollection
+                    {
+                        new GradientStop(Color.FromArgb((byte)(100 + avgIntensity * 100), 100, 180, 255), 0),
+                        new GradientStop(Color.FromArgb((byte)(50 + avgIntensity * 50), 80, 120, 200), 0.5),
+                        new GradientStop(Color.FromArgb(0, 50, 80, 150), 1)
+                    }
+                }
+            };
+            Canvas.SetLeft(tardisGlow, tardisDisplayX + tardisDisplaySize / 2 - glowRadius);
+            Canvas.SetTop(tardisGlow, tardisDisplayY + tardisDisplaySize * 0.7 - glowRadius);
+            canvas.Children.Add(tardisGlow);
+            
+            if (_tardisImage != null)
+            {
+                var tardis = new Image
+                {
+                    Source = _tardisImage,
+                    Width = tardisDisplaySize,
+                    Height = tardisDisplaySize * 1.4,
+                    Stretch = Stretch.Uniform,
+                    RenderTransformOrigin = new Point(0.5, 0.5),
+                    RenderTransform = new TransformGroup
+                    {
+                        Children = new TransformCollection
+                        {
+                            new RotateTransform(_tardisTumble * 0.2),
+                            new ScaleTransform(_tardisScale, _tardisScale)
+                        }
+                    }
+                };
+                Canvas.SetLeft(tardis, tardisDisplayX);
+                Canvas.SetTop(tardis, tardisDisplayY);
+                canvas.Children.Add(tardis);
+            }
+            else
+            {
+                // Fallback TARDIS box
+                var tardisBox = new Rectangle
+                {
+                    Width = tardisDisplaySize * 0.45,
+                    Height = tardisDisplaySize * 1.0,
+                    Fill = new LinearGradientBrush
+                    {
+                        StartPoint = new Point(0, 0),
+                        EndPoint = new Point(1, 1),
+                        GradientStops = new GradientStopCollection
+                        {
+                            new GradientStop(Color.FromRgb(0, 60, 140), 0),
+                            new GradientStop(Color.FromRgb(0, 40, 100), 1)
+                        }
+                    },
+                    Stroke = new SolidColorBrush(Color.FromRgb(0, 100, 200)),
+                    StrokeThickness = 2,
+                    RadiusX = 3,
+                    RadiusY = 3,
+                    RenderTransformOrigin = new Point(0.5, 0.5),
+                    RenderTransform = new RotateTransform(_tardisTumble * 0.2)
+                };
+                Canvas.SetLeft(tardisBox, tardisDisplayX + tardisDisplaySize * 0.275);
+                Canvas.SetTop(tardisBox, tardisDisplayY + tardisDisplaySize * 0.2);
+                canvas.Children.Add(tardisBox);
+            }
+            
+            // === STATUS TEXT ===
+            var statusText = new TextBlock
+            {
+                Text = "◈ TIME VORTEX ACTIVE ◈",
+                FontFamily = new FontFamily("Consolas, Courier New"),
+                FontSize = Math.Max(14, height * 0.025),
+                FontWeight = FontWeights.Bold,
+                Foreground = new SolidColorBrush(Color.FromArgb((byte)(180 + avgIntensity * 75), 150, 100, 255))
+            };
+            statusText.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            Canvas.SetLeft(statusText, (width - statusText.DesiredSize.Width) / 2);
+            Canvas.SetTop(statusText, 15);
+            canvas.Children.Add(statusText);
+            
+            // === QUOTE ===
+            var quote = new TextBlock
+            {
+                Text = "\"Allons-y!\"",
+                FontFamily = new FontFamily("Georgia, Times New Roman"),
+                FontSize = Math.Max(14, height * 0.028),
+                FontStyle = FontStyles.Italic,
+                Foreground = new SolidColorBrush(Color.FromArgb((byte)(150 + bassIntensity * 100), 200, 150, 255))
+            };
+            quote.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            Canvas.SetLeft(quote, (width - quote.DesiredSize.Width) / 2);
+            Canvas.SetTop(quote, height - 45);
+            canvas.Children.Add(quote);
+        }
+        
+        /// <summary>
+        /// Converts HSV color values to RGB Color.
+        /// </summary>
+        /// <param name="h">Hue (0.0 to 1.0)</param>
+        /// <param name="s">Saturation (0.0 to 1.0)</param>
+        /// <param name="v">Value/Brightness (0.0 to 1.0)</param>
+        /// <returns>RGB Color</returns>
+        private static Color HsvToRgb(double h, double s, double v)
+        {
+            h = Math.Clamp(h, 0, 1);
+            s = Math.Clamp(s, 0, 1);
+            v = Math.Clamp(v, 0, 1);
+            
+            int hi = (int)(h * 6) % 6;
+            double f = h * 6 - Math.Floor(h * 6);
+            double p = v * (1 - s);
+            double q = v * (1 - f * s);
+            double t = v * (1 - (1 - f) * s);
+            
+            double r, g, b;
+            switch (hi)
+            {
+                case 0: r = v; g = t; b = p; break;
+                case 1: r = q; g = v; b = p; break;
+                case 2: r = p; g = v; b = t; break;
+                case 3: r = p; g = q; b = v; break;
+                case 4: r = t; g = p; b = v; break;
+                default: r = v; g = p; b = q; break;
+            }
+            
+            return Color.FromRgb(
+                (byte)(r * 255),
+                (byte)(g * 255),
+                (byte)(b * 255)
+            );
+        }
+    }
+    
+    /// <summary>
+    /// Represents a particle for the Federation transporter effect.
+    /// </summary>
+    internal class TransporterParticle
+    {
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double VelocityY { get; set; }
+        public double Size { get; set; }
+        public double Phase { get; set; }
+        public double Brightness { get; set; }
+        public int ColorType { get; set; }  // 0=blue, 1=gold, 2=white
     }
     
     /// <summary>
@@ -3273,6 +4582,18 @@ namespace PlatypusTools.UI.Views
         public double VelocityY { get; set; }
         public double Size { get; set; }
         public double Hue { get; set; }
+    }
+
+    /// <summary>
+    /// Represents a lightsaber for the Jedi visualization.
+    /// </summary>
+    internal class Lightsaber
+    {
+        public double X { get; set; }
+        public double BaseHeight { get; set; }
+        public double CurrentHeight { get; set; }
+        public int ColorType { get; set; } // 0=blue, 1=green, 2=purple, 3=red
+        public double GlowPhase { get; set; }
     }
     
     /// <summary>

@@ -1191,6 +1191,9 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         11 => "Star Wars Crawl",
         12 => "Stargate",
         13 => "Klingon",
+        14 => "Federation",
+        15 => "Jedi",
+        16 => "TimeLord",
         _ => "Bars"
     };
     
@@ -1217,12 +1220,12 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     // Dropdown collections for visualizer controls
     public List<string> VisualizerModes { get; } = new()
     {
-        "Bars", "Mirror", "Waveform", "Circular", "Radial", "Particles", "Aurora", "Wave Grid", "Starfield", "Toasters", "Matrix", "Star Wars Crawl", "Stargate", "Klingon"
+        "Bars", "Mirror", "Waveform", "Circular", "Radial", "Particles", "Aurora", "Wave Grid", "Starfield", "Toasters", "Matrix", "Star Wars Crawl", "Stargate", "Klingon", "Federation", "Jedi", "TimeLord"
     };
     
     public List<string> ColorSchemes { get; } = new()
     {
-        "Blue-Green", "Rainbow", "Fire", "Purple", "Neon", "Ocean", "Sunset", "Monochrome", "Pip-Boy", "LCARS", "Klingon"
+        "Blue-Green", "Rainbow", "Fire", "Purple", "Neon", "Ocean", "Sunset", "Monochrome", "Pip-Boy", "LCARS", "Klingon", "Federation", "Jedi"
     };
     
     public List<int> DensityOptions { get; } = new() { 16, 24, 32, 48, 64, 72, 96, 128 };

@@ -311,7 +311,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.3.0.5"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.3.1.0"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="Gray" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" Width="160" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
@@ -666,15 +666,52 @@
                         
                         <GroupBox Header="Custom Fonts" Margin="0,16,0,0">
                             <StackPanel Margin="8">
-                                <TextBlock Text="Install custom fonts for themes and visualizers" 
-                                           TextWrapping="Wrap" Margin="0,0,0,8"/>
-                                <Button x:Name="InstallKlingonFontBtn" Content="📝 Install Klingon Font (pIqaD)" 
-                                        Width="220" HorizontalAlignment="Left" Margin="0,4" 
-                                        Click="InstallKlingonFont_Click"
-                                        ToolTip="Installs the Klingon pIqaD font system-wide for use in the Klingon theme"/>
-                                <TextBlock x:Name="KlingonFontStatus" Text="" 
-                                           FontSize="11" Foreground="{DynamicResource ForegroundDimBrush}" 
-                                           Margin="0,4,0,0"/>
+                                <TextBlock Text="Install custom fonts for themes and visualizers. Fonts are installed system-wide and require admin rights." 
+                                           TextWrapping="Wrap" Margin="0,0,0,12"/>
+                                
+                                <!-- Okuda Font (LCARS) -->
+                                <StackPanel Orientation="Horizontal" Margin="0,4">
+                                    <Button x:Name="InstallOkudaFontBtn" Content="📝 Install Okuda Font" 
+                                            Width="200" HorizontalAlignment="Left"
+                                            Click="InstallOkudaFont_Click"
+                                            ToolTip="LCARS theme font - Star Trek computer interface style"/>
+                                    <TextBlock x:Name="OkudaFontStatus" Text="" FontSize="11" 
+                                               Foreground="{DynamicResource ForegroundDimBrush}" 
+                                               VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                </StackPanel>
+                                
+                                <!-- Monofonto Font (PipBoy) -->
+                                <StackPanel Orientation="Horizontal" Margin="0,4">
+                                    <Button x:Name="InstallMonofontoFontBtn" Content="📝 Install Monofonto Font" 
+                                            Width="200" HorizontalAlignment="Left"
+                                            Click="InstallMonofontoFont_Click"
+                                            ToolTip="PipBoy theme font - Fallout terminal style"/>
+                                    <TextBlock x:Name="MonofontoFontStatus" Text="" FontSize="11" 
+                                               Foreground="{DynamicResource ForegroundDimBrush}" 
+                                               VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                </StackPanel>
+                                
+                                <!-- Overseer Font -->
+                                <StackPanel Orientation="Horizontal" Margin="0,4">
+                                    <Button x:Name="InstallOverseerFontBtn" Content="📝 Install Overseer Font" 
+                                            Width="200" HorizontalAlignment="Left"
+                                            Click="InstallOverseerFont_Click"
+                                            ToolTip="Vault-Tec Overseer style font"/>
+                                    <TextBlock x:Name="OverseerFontStatus" Text="" FontSize="11" 
+                                               Foreground="{DynamicResource ForegroundDimBrush}" 
+                                               VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                </StackPanel>
+                                
+                                <!-- Klingon Font -->
+                                <StackPanel Orientation="Horizontal" Margin="0,4">
+                                    <Button x:Name="InstallKlingonFontBtn" Content="📝 Install Klingon Font" 
+                                            Width="200" HorizontalAlignment="Left"
+                                            Click="InstallKlingonFont_Click"
+                                            ToolTip="Klingon theme font for the tlhIngan wo' theme"/>
+                                    <TextBlock x:Name="KlingonFontStatus" Text="" FontSize="11" 
+                                               Foreground="{DynamicResource ForegroundDimBrush}" 
+                                               VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                </StackPanel>
                             </StackPanel>
                         </GroupBox>
                     </StackPanel>

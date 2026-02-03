@@ -99,6 +99,7 @@
             <converters:BoolToConnectionBrushConverter x:Key="BoolToConnectionBrushConverter" />
             <converters:BoolToConnectionTextConverter x:Key="BoolToConnectionTextConverter" />
             <converters:BoolToFavoriteIconConverter x:Key="BoolToFavoriteIconConverter" />
+            <converters:ListToStringConverter x:Key="ListToStringConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

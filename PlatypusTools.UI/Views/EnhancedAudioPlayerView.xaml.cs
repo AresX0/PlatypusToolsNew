@@ -126,6 +126,9 @@ public partial class EnhancedAudioPlayerView : UserControl
         11 => "Star Wars Crawl",
         12 => "Stargate",
         13 => "Klingon",
+        14 => "Federation",
+        15 => "Jedi",
+        16 => "TimeLord",
         _ => "Bars"
     };
     

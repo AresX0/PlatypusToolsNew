@@ -42,8 +42,8 @@
                             <KeyBinding Key="Enter" Command="{Binding NavigateCommand}"/>
                         </TextBox.InputBindings>
                     </TextBox>
-                    <Button Content="→" HorizontalAlignment="Right" Width="30" Margin="2"
-                            Command="{Binding NavigateCommand}" Background="Transparent" BorderThickness="0"/>
+                    <Button Content="→" HorizontalAlignment="Right" MinWidth="34" Margin="2"
+                            Command="{Binding NavigateCommand}" Background="Transparent" BorderThickness="0" Padding="4,2"/>
                 </Grid>
 
                 <!-- Action Buttons -->

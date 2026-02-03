@@ -96,10 +96,10 @@
 
                 <!-- Queue Controls -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
-                    <Button Content="+ Add Files" Click="AddToQueue_Click" Width="80" Height="28" Margin="0,0,5,0" 
+                    <Button Content="+ Add Files" Click="AddToQueue_Click" MinWidth="90" Height="28" Margin="0,0,5,0" Padding="8,2"
                             Background="#FF4CAF50" Foreground="White"/>
-                    <Button Content="Clear" Click="ClearQueue_Click" Width="55" Height="28" Margin="0,0,5,0"/>
-                    <Button Content="🔀" Click="ShuffleQueue_Click" Width="30" Height="28" ToolTip="Shuffle Queue"/>
+                    <Button Content="Clear" Click="ClearQueue_Click" MinWidth="60" Height="28" Margin="0,0,5,0" Padding="6,2"/>
+                    <Button Content="🔀" Click="ShuffleQueue_Click" MinWidth="34" Height="28" ToolTip="Shuffle Queue" Padding="4,2"/>
                 </StackPanel>
 
                 <!-- Queue List -->
@@ -122,10 +122,10 @@
                                            VerticalAlignment="Center" Margin="5,0" 
                                            ToolTip="{Binding FullPath}"
                                            FontWeight="{Binding IsPlaying, Converter={StaticResource BoolToFontWeightConverter}}"/>
-                                <Button Grid.Column="2" Content="✕" Width="22" Height="22" 
+                                <Button Grid.Column="2" Content="✕" MinWidth="26" Height="24" 
                                         Click="RemoveFromQueue_Click" Tag="{Binding}"
                                         Background="Transparent" BorderThickness="0"
-                                        ToolTip="Remove from queue"/>
+                                        ToolTip="Remove from queue" Padding="4,2"/>
                             </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>

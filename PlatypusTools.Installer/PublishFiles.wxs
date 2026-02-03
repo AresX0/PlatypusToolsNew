@@ -335,8 +335,14 @@
       <Component Id="CMP_System_Diagnostics_Tracing_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_System_Diagnostics_Tracing_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Diagnostics.Tracing.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_System_DirectoryServices_AccountManagement_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_DirectoryServices_AccountManagement_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.DirectoryServices.AccountManagement.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_System_DirectoryServices_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_System_DirectoryServices_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.DirectoryServices.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_DirectoryServices_Protocols_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_DirectoryServices_Protocols_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.DirectoryServices.Protocols.dll" KeyPath="yes" />
       </Component>
       <Component Id="CMP_System_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_System_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.dll" KeyPath="yes" />
@@ -887,6 +893,9 @@
         </Component>
         <Component Id="CMP_Assets_PlatypusToolsIntro_mp4" Guid="*" Directory="DIR_Assets">
           <File Id="FIL_Assets_PlatypusToolsIntro_mp4" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\PlatypusToolsIntro.mp4" KeyPath="yes" />
+        </Component>
+        <Component Id="CMP_Assets_PlatypusToolsLogo_png" Guid="*" Directory="DIR_Assets">
+          <File Id="FIL_Assets_PlatypusToolsLogo_png" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\PlatypusToolsLogo.png" KeyPath="yes" />
         </Component>
         <Component Id="CMP_Assets_PlatypusTools_Help_html" Guid="*" Directory="DIR_Assets">
           <File Id="FIL_Assets_PlatypusTools_Help_html" Source="$(var.PlatypusTools.UI.TargetDir)publish\Assets\PlatypusTools_Help.html" KeyPath="yes" />
@@ -4483,7 +4492,9 @@
       <ComponentRef Id="CMP_System_Diagnostics_Tools_dll" />
       <ComponentRef Id="CMP_System_Diagnostics_TraceSource_dll" />
       <ComponentRef Id="CMP_System_Diagnostics_Tracing_dll" />
+      <ComponentRef Id="CMP_System_DirectoryServices_AccountManagement_dll" />
       <ComponentRef Id="CMP_System_DirectoryServices_dll" />
+      <ComponentRef Id="CMP_System_DirectoryServices_Protocols_dll" />
       <ComponentRef Id="CMP_System_dll" />
       <ComponentRef Id="CMP_System_Drawing_Common_dll" />
       <ComponentRef Id="CMP_System_Drawing_Design_dll" />
@@ -4667,6 +4678,7 @@
       <ComponentRef Id="CMP_Assets_Overseer_Italic_otf" />
       <ComponentRef Id="CMP_Assets_Overseer_otf" />
       <ComponentRef Id="CMP_Assets_PlatypusToolsIntro_mp4" />
+      <ComponentRef Id="CMP_Assets_PlatypusToolsLogo_png" />
       <ComponentRef Id="CMP_Assets_PlatypusTools_Help_html" />
       <ComponentRef Id="CMP_Assets_platypus_swimming_mp4" />
       <ComponentRef Id="CMP_cs_Microsoft_VisualBasic_Forms_resources_dll" />

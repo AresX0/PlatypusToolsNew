@@ -115,6 +115,7 @@ namespace PlatypusTools.UI.Services
         public Visibility SecureWipe => GetVisibility("Security.SecureWipe");
         public Visibility AdvancedForensics => GetVisibility("Security.AdvancedForensics");
         public Visibility HashScanner => GetVisibility("Security.HashScanner");
+        public Visibility AdSecurityAnalyzer => GetVisibility("Security.AdSecurityAnalyzer");
         
         // Advanced Forensics sub-tabs
         public Visibility AdvancedForensicsMemory => GetVisibility("Security.AdvancedForensics.Memory");

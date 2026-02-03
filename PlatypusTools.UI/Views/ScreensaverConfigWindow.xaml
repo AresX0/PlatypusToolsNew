@@ -43,6 +43,9 @@
                 <ComboBoxItem Content="Star Wars Crawl"/>
                 <ComboBoxItem Content="Stargate"/>
                 <ComboBoxItem Content="Klingon"/>
+                <ComboBoxItem Content="Federation"/>
+                <ComboBoxItem Content="Jedi"/>
+                <ComboBoxItem Content="TimeLord"/>
             </ComboBox>
         </StackPanel>
         
@@ -61,6 +64,8 @@
                 <ComboBoxItem Content="Pip-Boy"/>
                 <ComboBoxItem Content="LCARS"/>
                 <ComboBoxItem Content="Klingon"/>
+                <ComboBoxItem Content="Federation"/>
+                <ComboBoxItem Content="Jedi"/>
             </ComboBox>
         </StackPanel>
         

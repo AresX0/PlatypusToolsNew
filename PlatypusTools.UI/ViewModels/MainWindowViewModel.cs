@@ -70,6 +70,7 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<PlexBackupViewModel> _plexBackup = new(() => new PlexBackupViewModel());
         private readonly Lazy<IntunePackagerViewModel> _intunePackager = new(() => new IntunePackagerViewModel());
         private readonly Lazy<HashScannerViewModel> _hashScanner = new(() => new HashScannerViewModel());
+        private readonly Lazy<AdSecurityAnalyzerViewModel> _adSecurityAnalyzer = new(() => new AdSecurityAnalyzerViewModel());
         
         #endregion
 
@@ -165,6 +166,7 @@ namespace PlatypusTools.UI.ViewModels
         public PlexBackupViewModel PlexBackup => _plexBackup.Value;
         public IntunePackagerViewModel IntunePackager => _intunePackager.Value;
         public HashScannerViewModel HashScanner => _hashScanner.Value;
+        public AdSecurityAnalyzerViewModel AdSecurityAnalyzer => _adSecurityAnalyzer.Value;
         
         #endregion
 
@@ -228,16 +230,36 @@ namespace PlatypusTools.UI.ViewModels
             {
                 // Get the base directory for single-file publish compatibility
                 var baseDir = AppContext.BaseDirectory;
+                
+                // First, check if current theme has a custom logo
+                var customLogoPath = PlatypusTools.UI.Services.ThemeManager.GetThemeLogoPath(CurrentThemeName);
+                if (!string.IsNullOrEmpty(customLogoPath) && System.IO.File.Exists(customLogoPath))
+                {
+                    return customLogoPath;
+                }
+                
+                // Check for built-in theme-specific logos
                 if (CurrentThemeName == PlatypusTools.UI.Services.ThemeManager.PipBoy)
                 {
                     var pipBoyPath = System.IO.Path.Combine(baseDir, "Themes", "PipBoy.png");
                     if (System.IO.File.Exists(pipBoyPath))
                         return pipBoyPath;
                 }
+                else if (CurrentThemeName == PlatypusTools.UI.Services.ThemeManager.Klingon)
+                {
+                    var klingonPath = System.IO.Path.Combine(baseDir, "Assets", "Klingon.png");
+                    if (System.IO.File.Exists(klingonPath))
+                        return klingonPath;
+                }
+                
+                // Try new PlatypusToolsLogo first, fall back to old platypus.png
+                var newLogoPath = System.IO.Path.Combine(baseDir, "Assets", "PlatypusToolsLogo.png");
+                if (System.IO.File.Exists(newLogoPath))
+                    return newLogoPath;
                 var platypusPath = System.IO.Path.Combine(baseDir, "Assets", "platypus.png");
                 if (System.IO.File.Exists(platypusPath))
                     return platypusPath;
-                return "Assets/platypus.png"; // Fallback
+                return "Assets/PlatypusToolsLogo.png"; // Fallback
             }
         }
 

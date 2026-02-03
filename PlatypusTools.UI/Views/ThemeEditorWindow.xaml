@@ -76,9 +76,83 @@
             <!-- Color Editor -->
             <ScrollViewer Grid.Column="1" Margin="20,0,0,0" VerticalScrollBarVisibility="Auto">
                 <StackPanel x:Name="ColorEditor">
-                    <TextBlock Text="Theme Colors" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
+                    <TextBlock Text="Theme Settings" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
                     <TextBlock Text="Click any color swatch to open a color picker, or enter hex values directly." 
                                Opacity="0.7" Margin="0,0,0,16"/>
+                    
+                    <!-- Font Settings -->
+                    <GroupBox Header="Font Settings" Margin="0,0,0,12">
+                        <StackPanel>
+                            <Grid Margin="0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Font Family" VerticalAlignment="Center"/>
+                                <ComboBox x:Name="FontFamilyCombo" Grid.Column="1" SelectionChanged="FontFamily_Changed">
+                                    <ComboBoxItem Content="Segoe UI" Tag="Segoe UI" IsSelected="True"/>
+                                    <ComboBoxItem Content="Arial" Tag="Arial"/>
+                                    <ComboBoxItem Content="Calibri" Tag="Calibri"/>
+                                    <ComboBoxItem Content="Consolas" Tag="Consolas"/>
+                                    <ComboBoxItem Content="Courier New" Tag="Courier New"/>
+                                    <ComboBoxItem Content="Georgia" Tag="Georgia"/>
+                                    <ComboBoxItem Content="Tahoma" Tag="Tahoma"/>
+                                    <ComboBoxItem Content="Times New Roman" Tag="Times New Roman"/>
+                                    <ComboBoxItem Content="Trebuchet MS" Tag="Trebuchet MS"/>
+                                    <ComboBoxItem Content="Verdana" Tag="Verdana"/>
+                                    <ComboBoxItem Content="Inter" Tag="Inter"/>
+                                    <ComboBoxItem Content="Roboto" Tag="Roboto"/>
+                                    <ComboBoxItem Content="Open Sans" Tag="Open Sans"/>
+                                    <!-- Theme-specific fonts (require installation via Settings > Advanced) -->
+                                    <ComboBoxItem Content="Okuda (LCARS)" Tag="Okuda" ToolTip="LCARS theme font - install via Settings > Advanced"/>
+                                    <ComboBoxItem Content="Monofonto (PipBoy)" Tag="Monofonto" ToolTip="PipBoy theme font - install via Settings > Advanced"/>
+                                    <ComboBoxItem Content="Klingon" Tag="klingon font" ToolTip="Klingon theme font - install via Settings > Advanced"/>
+                                    <ComboBoxItem Content="Overseer" Tag="Overseer" ToolTip="Fallout-inspired font - install via Settings > Advanced"/>
+                                </ComboBox>
+                            </Grid>
+                            <Grid Margin="0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="60"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Font Size" VerticalAlignment="Center"/>
+                                <Slider x:Name="FontSizeSlider" Grid.Column="1" Minimum="10" Maximum="16" Value="12" 
+                                        TickFrequency="1" IsSnapToTickEnabled="True" 
+                                        ValueChanged="FontSize_Changed" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="FontSizeDisplay" Grid.Column="2" Text="12 pt" 
+                                           VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+                    </GroupBox>
+                    
+                    <!-- Logo Settings -->
+                    <GroupBox Header="Logo Settings" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Customize the title bar logo for this theme (optional)" 
+                                       Opacity="0.7" Margin="0,8,0,8"/>
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Width="48" Height="48" CornerRadius="4" 
+                                        Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" 
+                                        BorderThickness="1">
+                                    <Image x:Name="LogoPreview" Width="40" Height="40" Stretch="Uniform"/>
+                                </Border>
+                                <TextBox x:Name="LogoPathText" Grid.Column="1" Margin="8,0" 
+                                         VerticalAlignment="Center" IsReadOnly="True"
+                                         Text="(Default Logo)" ToolTip="Path to custom logo image"/>
+                                <Button Content="Browse..." Grid.Column="2" Padding="12,6" 
+                                        Click="BrowseLogo_Click" ToolTip="Select a custom logo image"/>
+                                <Button Content="Reset" Grid.Column="3" Padding="12,6" Margin="6,0,0,0"
+                                        Click="ResetLogo_Click" ToolTip="Use default logo"/>
+                            </Grid>
+                        </StackPanel>
+                    </GroupBox>
                     
                     <!-- Primary Colors -->
                     <GroupBox Header="Primary &amp; Accent Colors" Margin="0,0,0,12">
@@ -247,6 +321,64 @@
                         </StackPanel>
                     </GroupBox>
                     
+                    <!-- Menu Colors -->
+                    <GroupBox Header="Menu Colors" Margin="0,0,0,12">
+                        <StackPanel>
+                            <Grid Margin="0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="90"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Menu Background" VerticalAlignment="Center"/>
+                                <Border x:Name="MenuBackgroundColorPreview" Grid.Column="1" Height="28" CornerRadius="4" 
+                                        Background="#F5F5F5" BorderBrush="Gray" BorderThickness="1"
+                                        Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="MenuBackground"/>
+                                <TextBox x:Name="MenuBackgroundColorText" Grid.Column="2" Margin="8,0,0,0" Text="#F5F5F5"
+                                         VerticalAlignment="Center" TextChanged="ColorText_Changed" Tag="MenuBackground"/>
+                            </Grid>
+                            
+                            <Grid Margin="0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="90"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Menu Text" VerticalAlignment="Center"/>
+                                <Border x:Name="MenuForegroundColorPreview" Grid.Column="1" Height="28" CornerRadius="4" 
+                                        Background="#1E1E1E" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="MenuForeground"/>
+                                <TextBox x:Name="MenuForegroundColorText" Grid.Column="2" Margin="8,0,0,0" Text="#1E1E1E"
+                                         VerticalAlignment="Center" TextChanged="ColorText_Changed" Tag="MenuForeground"/>
+                            </Grid>
+                            
+                            <Grid Margin="0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="90"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Menu Hover" VerticalAlignment="Center"/>
+                                <Border x:Name="MenuHoverBackgroundColorPreview" Grid.Column="1" Height="28" CornerRadius="4" 
+                                        Background="#E0E0E0" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="MenuHoverBackground"/>
+                                <TextBox x:Name="MenuHoverBackgroundColorText" Grid.Column="2" Margin="8,0,0,0" Text="#E0E0E0"
+                                         VerticalAlignment="Center" TextChanged="ColorText_Changed" Tag="MenuHoverBackground"/>
+                            </Grid>
+                            
+                            <Grid Margin="0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="90"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Menu Border" VerticalAlignment="Center"/>
+                                <Border x:Name="MenuBorderColorPreview" Grid.Column="1" Height="28" CornerRadius="4" 
+                                        Background="#D0D0D0" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="MenuBorder"/>
+                                <TextBox x:Name="MenuBorderColorText" Grid.Column="2" Margin="8,0,0,0" Text="#D0D0D0"
+                                         VerticalAlignment="Center" TextChanged="ColorText_Changed" Tag="MenuBorder"/>
+                            </Grid>
+                        </StackPanel>
+                    </GroupBox>
+                    
                     <!-- Preview Panel -->
                     <GroupBox Header="Live Preview" Margin="0,0,0,12">
                         <Border x:Name="PreviewPanel" Padding="16" CornerRadius="4" Background="#FFFFFF">
@@ -274,18 +406,18 @@
         </Grid>
         
         <!-- Footer -->
-        <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" Padding="20,12">
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" Padding="12,12">
             <Grid>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                    <Button Content="📥 Import..." Margin="0,0,8,0" Click="Import_Click" ToolTip="Import a theme file"/>
-                    <Button Content="📤 Export..." Click="Export_Click" ToolTip="Export selected theme"/>
-                    <Button Content="📄 Export XAML..." Margin="8,0,0,0" Click="ExportXaml_Click" ToolTip="Export theme as XAML file"/>
+                    <Button Content="📥 Import..." Padding="12,6" Margin="0,0,6,0" Click="Import_Click" ToolTip="Import a theme file"/>
+                    <Button Content="📤 Export..." Padding="12,6" Click="Export_Click" ToolTip="Export selected theme"/>
+                    <Button Content="📄 Export XAML..." Padding="12,6" Margin="6,0,0,0" Click="ExportXaml_Click" ToolTip="Export theme as XAML file"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="Reset" Margin="0,0,8,0" Click="ResetDefault_Click" ToolTip="Reset to built-in themes"/>
-                    <Button Content="✓ Apply Theme" Width="120" Margin="0,0,8,0" Click="Apply_Click" 
+                    <Button Content="Reset" Padding="14,6" Margin="0,0,6,0" Click="ResetDefault_Click" ToolTip="Reset to built-in themes"/>
+                    <Button Content="✓ Apply Theme" Padding="14,6" Margin="0,0,6,0" Click="Apply_Click" 
                             Background="{DynamicResource PrimaryBrush}" Foreground="White"/>
-                    <Button Content="Close" Width="80" Click="Close_Click"/>
+                    <Button Content="Close" Padding="16,6" Click="Close_Click"/>
                 </StackPanel>
             </Grid>
         </Border>

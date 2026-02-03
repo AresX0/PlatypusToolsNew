@@ -388,12 +388,12 @@
                             <!-- Speed Control (compact) -->
                             <Expander Header="⏱️ Speed" IsExpanded="False" Padding="3">
                                 <WrapPanel HorizontalAlignment="Center">
-                                    <Button Content="0.5x" Click="SpeedButton_Click" Tag="0.5" Width="38" Margin="1" Padding="3,2"/>
-                                    <Button Content="0.75x" Click="SpeedButton_Click" Tag="0.75" Width="38" Margin="1" Padding="3,2"/>
-                                    <Button Content="1x" Click="SpeedButton_Click" Tag="1.0" Width="38" Margin="1" Padding="3,2"/>
-                                    <Button Content="1.25x" Click="SpeedButton_Click" Tag="1.25" Width="38" Margin="1" Padding="3,2"/>
-                                    <Button Content="1.5x" Click="SpeedButton_Click" Tag="1.5" Width="38" Margin="1" Padding="3,2"/>
-                                    <Button Content="2x" Click="SpeedButton_Click" Tag="2.0" Width="38" Margin="1" Padding="3,2"/>
+                                    <Button Content="0.5x" Click="SpeedButton_Click" Tag="0.5" MinWidth="44" Margin="1" Padding="4,2"/>
+                                    <Button Content="0.75x" Click="SpeedButton_Click" Tag="0.75" MinWidth="44" Margin="1" Padding="4,2"/>
+                                    <Button Content="1x" Click="SpeedButton_Click" Tag="1.0" MinWidth="44" Margin="1" Padding="4,2"/>
+                                    <Button Content="1.25x" Click="SpeedButton_Click" Tag="1.25" MinWidth="44" Margin="1" Padding="4,2"/>
+                                    <Button Content="1.5x" Click="SpeedButton_Click" Tag="1.5" MinWidth="44" Margin="1" Padding="4,2"/>
+                                    <Button Content="2x" Click="SpeedButton_Click" Tag="2.0" MinWidth="44" Margin="1" Padding="4,2"/>
                                 </WrapPanel>
                             </Expander>
                             
@@ -403,7 +403,7 @@
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                     <TextBlock Text="💤" FontSize="11" VerticalAlignment="Center" Margin="0,0,5,0"/>
                                     <TextBlock Text="{Binding SleepTimerStatusText}" FontSize="10" VerticalAlignment="Center"/>
-                                    <Button Content="✕" Width="16" Height="16" FontSize="9"
+                                    <Button Content="✕" Width="22" Height="22" FontSize="11"
                                             Command="{Binding CancelSleepTimerCommand}"
                                             Background="Transparent" BorderThickness="0" Margin="5,0,0,0"/>
                                 </StackPanel>

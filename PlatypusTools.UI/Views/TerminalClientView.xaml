@@ -53,8 +53,8 @@
                         </Grid.ColumnDefinitions>
                         <TextBox Grid.Column="0" Text="{Binding PrivateKeyPath, UpdateSourceTrigger=PropertyChanged}" 
                                  FontSize="11" IsReadOnly="True" ToolTip="{Binding PrivateKeyPath}"/>
-                        <Button Grid.Column="1" Content="..." Width="28" Margin="4,0,0,0"
-                                Command="{Binding BrowseKeyCommand}" ToolTip="Browse for key file"/>
+                        <Button Grid.Column="1" Content="..." MinWidth="32" Margin="4,0,0,0"
+                                Command="{Binding BrowseKeyCommand}" ToolTip="Browse for key file" Padding="4,2"/>
                     </Grid>
 
                     <StackPanel Orientation="Horizontal" Margin="0,8,0,0">

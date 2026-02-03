@@ -655,6 +655,11 @@ Based on remaining work and user value, here are the **recommended next features
 6. **Per-file Batch Upscale Settings** - Override settings per file (TASK-053)
 7. **Sample Plugin + Developer Guide** - Bootstrap plugin ecosystem (TASK-168)
 8. **Advanced Image Editing** - Text overlay, shape drawing, layers (TASK-310-317)
+9. **High-Resolution Visualizer Rendering** - Upgrade visualizers to GPU-shader-quality using Win2D/HLSL techniques
+   - Add per-pixel noise/swirl functions (from `Stargate_Wormhole_UWP_Win2D.md`)
+   - Consider WriteableBitmap for shader-like CPU rendering
+   - Potential Win2D integration for true GPU acceleration
+   - Reference: `Stargate_TimeVortex_FFmpeg_1080p_Export_Guide.md`
 
 ---
 

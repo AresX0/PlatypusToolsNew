@@ -340,6 +340,9 @@ namespace PlatypusTools.UI.Services
                     dict.Source = new Uri(xamlPath, UriKind.Absolute);
                     app.Resources.MergedDictionaries.Add(dict);
                     SimpleLogger.Info($"ThemeManager: Custom theme '{name}' loaded successfully");
+                    
+                    // Apply font from theme if present
+                    ApplyThemeFont(dict);
                 }
                 else
                 {
@@ -379,6 +382,44 @@ namespace PlatypusTools.UI.Services
             }
             catch { }
             return false;
+        }
+        
+        /// <summary>
+        /// Applies font settings from a theme resource dictionary to the application.
+        /// </summary>
+        private static void ApplyThemeFont(ResourceDictionary dict)
+        {
+            try
+            {
+                var app = Application.Current;
+                if (app == null) return;
+                
+                // Check if theme has font settings
+                if (dict.Contains("AppFontFamily"))
+                {
+                    var fontFamily = dict["AppFontFamily"] as System.Windows.Media.FontFamily;
+                    if (fontFamily != null)
+                    {
+                        // Apply to application resources
+                        app.Resources["DefaultFontFamily"] = fontFamily;
+                        SimpleLogger.Debug($"ThemeManager: Applied font family: {fontFamily.Source}");
+                    }
+                }
+                
+                if (dict.Contains("AppFontSize"))
+                {
+                    var fontSize = dict["AppFontSize"];
+                    if (fontSize is double size)
+                    {
+                        app.Resources["DefaultFontSize"] = size;
+                        SimpleLogger.Debug($"ThemeManager: Applied font size: {size}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Warn($"ThemeManager: Could not apply theme font: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -428,6 +469,44 @@ namespace PlatypusTools.UI.Services
             var safeName = string.Join("_", name.Split(System.IO.Path.GetInvalidFileNameChars()));
             var path = System.IO.Path.Combine(themesDir, $"{safeName}.xaml");
             return System.IO.File.Exists(path) ? path : null;
+        }
+
+        /// <summary>
+        /// Gets the custom logo path for a theme from themes.json.
+        /// Returns null if using default logo.
+        /// </summary>
+        public static string? GetThemeLogoPath(string themeName)
+        {
+            try
+            {
+                var themesFile = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "PlatypusTools", "themes.json");
+                    
+                if (System.IO.File.Exists(themesFile))
+                {
+                    var json = System.IO.File.ReadAllText(themesFile);
+                    using var doc = System.Text.Json.JsonDocument.Parse(json);
+                    foreach (var element in doc.RootElement.EnumerateArray())
+                    {
+                        if (element.TryGetProperty("Name", out var nameProperty) && 
+                            nameProperty.GetString() == themeName)
+                        {
+                            if (element.TryGetProperty("LogoPath", out var logoProperty))
+                            {
+                                var logoPath = logoProperty.GetString();
+                                if (!string.IsNullOrEmpty(logoPath) && System.IO.File.Exists(logoPath))
+                                {
+                                    return logoPath;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            catch { }
+            return null;
         }
 
         /// <summary>

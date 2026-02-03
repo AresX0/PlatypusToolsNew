@@ -293,6 +293,10 @@
                              Visibility="{Binding HashScanner, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:HashScannerView}" ViewDataContext="{Binding HashScanner}" />
                     </TabItem>
+                    <TabItem Header="🛡️ AD Security Analyzer"
+                             Visibility="{Binding AdSecurityAnalyzer, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:AdSecurityAnalyzerView}" ViewDataContext="{Binding AdSecurityAnalyzer}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
 

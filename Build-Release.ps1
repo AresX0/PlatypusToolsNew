@@ -6,14 +6,16 @@
     This script performs a COMPLETE clean build of both the self-contained executable
     and the MSI installer. It handles all the steps required to avoid stale file issues:
     
-    1. Archives existing build artifacts (optional, with -Archive flag)
-    2. Cleans ALL bin/obj/publish directories
-    3. Restores packages
-    4. Publishes to the correct location for MSI source files
-    5. Regenerates PublishFiles.wxs from fresh publish
-    6. Builds the MSI installer
-    7. Publishes the single-file self-contained executable
-    8. Verifies version numbers match across all outputs
+    1. Auto-increments version number (unless -NoVersionBump is specified)
+    2. Updates version in csproj and Product.wxs
+    3. Archives existing build artifacts (optional, with -Archive flag)
+    4. Cleans ALL bin/obj/publish directories
+    5. Restores packages
+    6. Publishes to the correct location for MSI source files
+    7. Regenerates PublishFiles.wxs from fresh publish
+    8. Builds the MSI installer
+    9. Publishes the single-file self-contained executable
+    10. Verifies version numbers match across all outputs
     
 .PARAMETER Archive
     If specified, archives existing build artifacts before cleaning.
@@ -22,20 +24,27 @@
 .PARAMETER SkipClean
     If specified, skips the clean step (NOT RECOMMENDED for releases)
     
+.PARAMETER NoVersionBump
+    If specified, does not auto-increment the version number.
+    
 .PARAMETER Version
-    Expected version number to verify in outputs. If not specified, reads from csproj.
+    Specific version number to set. Overrides auto-increment.
     
 .EXAMPLE
     .\Build-Release.ps1
-    Performs a complete clean build.
+    Auto-bumps version and performs a complete clean build.
+    
+.EXAMPLE
+    .\Build-Release.ps1 -NoVersionBump
+    Builds without changing the version number.
+    
+.EXAMPLE
+    .\Build-Release.ps1 -Version "3.3.0.7"
+    Sets version to 3.3.0.7 and performs a clean build.
     
 .EXAMPLE
     .\Build-Release.ps1 -Archive
-    Archives existing artifacts, then performs a complete clean build.
-    
-.EXAMPLE
-    .\Build-Release.ps1 -Version "3.2.3.0"
-    Performs a clean build and verifies all outputs are version 3.2.3.0
+    Archives existing artifacts, auto-bumps version, then performs build.
     
 .NOTES
     CRITICAL: Always use this script for release builds to avoid stale file issues.
@@ -56,6 +65,7 @@
 param(
     [switch]$Archive,
     [switch]$SkipClean,
+    [switch]$NoVersionBump,
     [string]$Version
 )
 
@@ -75,18 +85,62 @@ Write-Host "|        PlatypusTools Release Build Script                     |" -
 Write-Host "|        Clean Build → MSI + Self-Contained EXE                 |" -ForegroundColor Magenta
 Write-Host "+===============================================================+" -ForegroundColor Magenta
 
-# Get version from csproj if not specified
-if (-not $Version) {
-    $csprojPath = Join-Path $ProjectRoot "PlatypusTools.UI\PlatypusTools.UI.csproj"
-    $csproj = [xml](Get-Content $csprojPath)
-    $Version = $csproj.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
-    Write-Host "Detected version from csproj: $Version" -ForegroundColor Gray
+# Get version from csproj
+$csprojPath = Join-Path $ProjectRoot "PlatypusTools.UI\PlatypusTools.UI.csproj"
+$productWxsPath = Join-Path $ProjectRoot "PlatypusTools.Installer\Product.wxs"
+$csproj = [xml](Get-Content $csprojPath)
+$currentVersion = $csproj.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+Write-Host "Current version in csproj: $currentVersion" -ForegroundColor Gray
+
+# Auto-bump version if not specified and not disabled
+if (-not $Version -and -not $NoVersionBump) {
+    # Parse current version and increment patch
+    $versionParts = $currentVersion.Split('.')
+    if ($versionParts.Count -ge 4) {
+        $versionParts[3] = [int]$versionParts[3] + 1
+    } elseif ($versionParts.Count -eq 3) {
+        $versionParts += "1"
+    }
+    $Version = $versionParts -join '.'
+    Write-Host "Auto-incremented version: $currentVersion -> $Version" -ForegroundColor Cyan
+    
+    # Update csproj
+    $csprojContent = Get-Content $csprojPath -Raw
+    $csprojContent = $csprojContent -replace "<Version>$currentVersion</Version>", "<Version>$Version</Version>"
+    Set-Content -Path $csprojPath -Value $csprojContent -NoNewline
+    Write-Success "Updated csproj version to $Version"
+    
+    # Update Product.wxs
+    $wxsContent = Get-Content $productWxsPath -Raw
+    $wxsContent = $wxsContent -replace 'Version="[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?"', "Version=`"$Version`""
+    Set-Content -Path $productWxsPath -Value $wxsContent -NoNewline
+    Write-Success "Updated Product.wxs version to $Version"
+} elseif ($Version) {
+    Write-Host "Using specified version: $Version" -ForegroundColor Cyan
+    
+    # Update csproj if different
+    if ($currentVersion -ne $Version) {
+        $csprojContent = Get-Content $csprojPath -Raw
+        $csprojContent = $csprojContent -replace "<Version>$currentVersion</Version>", "<Version>$Version</Version>"
+        Set-Content -Path $csprojPath -Value $csprojContent -NoNewline
+        Write-Success "Updated csproj version to $Version"
+        
+        # Update Product.wxs
+        $wxsContent = Get-Content $productWxsPath -Raw
+        $wxsContent = $wxsContent -replace 'Version="[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?"', "Version=`"$Version`""
+        Set-Content -Path $productWxsPath -Value $wxsContent -NoNewline
+        Write-Success "Updated Product.wxs version to $Version"
+    }
+} else {
+    $Version = $currentVersion
+    Write-Host "Using existing version (NoVersionBump): $Version" -ForegroundColor Gray
 }
 
 Write-Host "`nBuild Configuration:" -ForegroundColor White
 Write-Host "  Version: $Version" -ForegroundColor Gray
 Write-Host "  Archive: $Archive" -ForegroundColor Gray
 Write-Host "  SkipClean: $SkipClean" -ForegroundColor Gray
+Write-Host "  NoVersionBump: $NoVersionBump" -ForegroundColor Gray
 
 # === STEP 1: Archive existing artifacts ===
 if ($Archive) {

@@ -37,7 +37,8 @@ cd C:\Projects\PlatypusToolsNew
 ```powershell
 .\Build-Release.ps1                    # Auto-bump version and build
 .\Build-Release.ps1 -NoVersionBump     # Rebuild without changing version
-.\Build-Release.ps1 -Version "3.3.0"   # Set specific version
+.\Build-Release.ps1 -Version "3.3.0.7" # Set specific version
+.\Build-Release.ps1 -Archive           # Archive old builds before building
 ```
 
 ### Release Location

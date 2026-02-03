@@ -19,7 +19,7 @@
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>PlatypusTools.UI</RootNamespace>
-    <Version>3.3.0.5</Version>
+    <Version>3.3.1.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
@@ -35,11 +35,39 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\platypus.png" />
+    <Resource Include="Assets\PlatypusToolsLogo.png" />
     <Resource Include="Assets\file.png" />
     <Resource Include="Assets\folder.png" />
     <Resource Include="Assets\Klingon.png" />
     <Resource Include="Assets\Klingon_Transparent.png" />
     <Resource Include="Assets\Klingonrevised.png" />
+    <Resource Include="Assets\KlingonwithGold.png" />
+    <Resource Include="Assets\KlingonGlowLogo.png" />
+    <Resource Include="Assets\FederationGlowLogo.png" />
+    <Resource Include="Assets\FederationLogoTransparent.png" />
+    <Resource Include="Assets\lightsaber.png" />
+    <!-- Time Lord images -->
+    <Resource Include="Assets\TimeVortex.png" />
+    <Resource Include="Assets\Tardis.png" />
+    <!-- Stargate images -->
+    <Resource Include="Assets\STARGATE.png" />
+    <Resource Include="Assets\SGU1NB.png" />
+    <Resource Include="Assets\SGU2NB.png" />
+    <Resource Include="Assets\SGU3NB.png" />
+    <Resource Include="Assets\SGU4NB.png" />
+    <Resource Include="Assets\SGU5NB.png" />
+    <Resource Include="Assets\SGU6NB.png" />
+    <Resource Include="Assets\SGU7NB.png" />
+    <Resource Include="Assets\SGU8NB.png" />
+    <Resource Include="Assets\SGU9NB.png" />
+    <Resource Include="Assets\SGU10NB.png" />
+    <Resource Include="Assets\SGU11NB.png" />
+    <Resource Include="Assets\SGU12NB.png" />
+    <Resource Include="Assets\SGUDialing1.png" />
+    <!-- New logo for header -->
+    <Content Include="Assets\PlatypusToolsLogo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <!-- Theme Fonts - included for distribution -->
     <Content Include="Assets\KlingonFont.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

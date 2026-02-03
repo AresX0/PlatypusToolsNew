@@ -691,13 +691,149 @@ namespace PlatypusTools.UI.Views
         
         private void UpdateKlingonFontStatus(string status, bool success)
         {
-            if (FindName("KlingonFontStatus") is TextBlock statusText)
+            UpdateFontStatus(KlingonFontStatus, status, success);
+        }
+        
+        private void UpdateFontStatus(TextBlock? statusText, string status, bool success)
+        {
+            if (statusText != null)
             {
                 statusText.Text = status;
                 statusText.Foreground = success ? 
                     new SolidColorBrush(Colors.Green) : 
                     new SolidColorBrush(Colors.Orange);
             }
+        }
+        
+        /// <summary>
+        /// Generic font installation helper.
+        /// </summary>
+        private void InstallFont(string fontName, string[] searchFileNames, string registryFontName, TextBlock? statusTextBlock)
+        {
+            try
+            {
+                var appDir = AppDomain.CurrentDomain.BaseDirectory;
+                string? sourceFontPath = null;
+                
+                // Search for font file
+                foreach (var fileName in searchFileNames)
+                {
+                    var paths = new[]
+                    {
+                        System.IO.Path.Combine(appDir, "Assets", fileName),
+                        System.IO.Path.Combine(appDir, fileName)
+                    };
+                    
+                    foreach (var path in paths)
+                    {
+                        if (System.IO.File.Exists(path))
+                        {
+                            sourceFontPath = path;
+                            break;
+                        }
+                    }
+                    if (sourceFontPath != null) break;
+                }
+                
+                if (sourceFontPath == null)
+                {
+                    UpdateFontStatus(statusTextBlock, "Font file not found", false);
+                    MessageBox.Show($"{fontName} font file not found. Please ensure the font file is in the Assets folder.", 
+                        "Font Not Found", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                
+                var destFileName = System.IO.Path.GetFileName(sourceFontPath);
+                
+                // Check user's local fonts folder
+                var localFontsFolder = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "Microsoft", "Windows", "Fonts");
+                var localDestPath = System.IO.Path.Combine(localFontsFolder, destFileName);
+                
+                if (System.IO.File.Exists(localDestPath))
+                {
+                    UpdateFontStatus(statusTextBlock, "Already installed", true);
+                    MessageBox.Show($"{fontName} font is already installed.", 
+                        "Font Installed", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+                
+                try
+                {
+                    if (!System.IO.Directory.Exists(localFontsFolder))
+                    {
+                        System.IO.Directory.CreateDirectory(localFontsFolder);
+                    }
+                    
+                    System.IO.File.Copy(sourceFontPath, localDestPath, true);
+                    
+                    // Register the font in the user's registry
+                    using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                        @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts", true))
+                    {
+                        if (key != null)
+                        {
+                            key.SetValue($"{registryFontName} (TrueType)", localDestPath);
+                        }
+                    }
+                    
+                    NativeMethods.AddFontResource(localDestPath);
+                    NativeMethods.SendMessage(NativeMethods.HWND_BROADCAST, NativeMethods.WM_FONTCHANGE, IntPtr.Zero, IntPtr.Zero);
+                    
+                    UpdateFontStatus(statusTextBlock, "Installed (restart apps to use)", true);
+                    MessageBox.Show($"{fontName} font installed successfully!\n\nNote: You may need to restart applications to use the font.", 
+                        "Font Installed", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    var result = MessageBox.Show(
+                        $"Cannot install {fontName} font directly. Would you like to open the font file?\n\nClick 'Install' in the font viewer to install it.",
+                        "Install Font Manually", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = sourceFontPath,
+                            UseShellExecute = true
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateFontStatus(statusTextBlock, "Install failed", false);
+                MessageBox.Show($"Failed to install {fontName} font: {ex.Message}", 
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        
+        private void InstallOkudaFont_Click(object sender, RoutedEventArgs e)
+        {
+            InstallFont(
+                "Okuda",
+                new[] { "Okuda.otf", "Okuda Bold.otf", "Okuda.ttf" },
+                "Okuda",
+                OkudaFontStatus);
+        }
+        
+        private void InstallMonofontoFont_Click(object sender, RoutedEventArgs e)
+        {
+            InstallFont(
+                "Monofonto",
+                new[] { "monofonto rg.otf", "monofonto.otf", "Monofonto.ttf" },
+                "Monofonto",
+                MonofontoFontStatus);
+        }
+        
+        private void InstallOverseerFont_Click(object sender, RoutedEventArgs e)
+        {
+            InstallFont(
+                "Overseer",
+                new[] { "Overseer.otf", "Overseer Bold.otf", "Overseer.ttf" },
+                "Overseer",
+                OverseerFontStatus);
         }
         
         private void Apply_Click(object sender, RoutedEventArgs e)

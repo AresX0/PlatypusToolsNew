@@ -43,6 +43,9 @@ namespace PlatypusTools.UI.Views
                 AccentColor = "#0E639C",
                 BackgroundColor = "#FFFFFF",
                 SurfaceColor = "#F5F5F5",
+                CardBackgroundColor = "#FAFAFA",
+                ControlBackgroundColor = "#FFFFFF",
+                ControlBorderColor = "#CCCCCC",
                 TextColor = "#1E1E1E",
                 SecondaryTextColor = "#6E6E6E"
             });
@@ -55,8 +58,91 @@ namespace PlatypusTools.UI.Views
                 AccentColor = "#0E639C",
                 BackgroundColor = "#1E1E1E",
                 SurfaceColor = "#252526",
+                CardBackgroundColor = "#2D2D30",
+                ControlBackgroundColor = "#3C3C3C",
+                ControlBorderColor = "#555555",
                 TextColor = "#D4D4D4",
-                SecondaryTextColor = "#808080"
+                SecondaryTextColor = "#808080",
+                // Menu colors for Dark
+                MenuBackgroundColor = "#2D2D30",
+                MenuForegroundColor = "#D4D4D4",
+                MenuHoverBackgroundColor = "#3E3E42",
+                MenuBorderColor = "#555555"
+            });
+            
+            // Add LCARS theme (Star Trek inspired)
+            Themes.Add(new CustomTheme
+            {
+                Name = "LCARS",
+                IsBuiltIn = true,
+                PrimaryColor = "#FFCC00",      // LcarsGold
+                AccentColor = "#FF6600",        // LcarsOrange  
+                AccentHoverColor = "#CC5500",   // LcarsPaneOrange
+                BackgroundColor = "#000000",    // Black
+                SurfaceColor = "#1A1A2E",       // Dark blue-gray
+                CardBackgroundColor = "#0D0D1A",
+                ControlBackgroundColor = "#0D0D1A", // Dark blue-black
+                ControlBorderColor = "#CC99FF", // LcarsAfricanViolet
+                TextColor = "#FFCC00",          // Gold text
+                SecondaryTextColor = "#CC99FF", // Lavender
+                HeaderColor = "#CC5500",        // Orange header
+                HeaderForegroundColor = "#000000",
+                FontFamily = "Okuda",
+                // Menu colors for LCARS
+                MenuBackgroundColor = "#1A1A2E",
+                MenuForegroundColor = "#FFCC00",
+                MenuHoverBackgroundColor = "#FF6600",
+                MenuBorderColor = "#CC99FF"
+            });
+            
+            // Add PipBoy theme (Fallout inspired)
+            Themes.Add(new CustomTheme
+            {
+                Name = "PipBoy",
+                IsBuiltIn = true,
+                PrimaryColor = "#1BFF80",       // PipBoyGreen
+                AccentColor = "#0F8B4A",        // PipBoyGreenDark
+                AccentHoverColor = "#00FF41",   // PipBoyGreenBright
+                BackgroundColor = "#0A0E0D",    // PipBoyBlack
+                SurfaceColor = "#0D1210",       // PipBoyBlackLight
+                CardBackgroundColor = "#1A2420", // PipBoyGray
+                ControlBackgroundColor = "#0D1210", // PipBoyBlackLight
+                ControlBorderColor = "#0F8B4A", // Green border
+                TextColor = "#1BFF80",          // Green text
+                SecondaryTextColor = "#0F9955", // PipBoyTextDim
+                HeaderColor = "#0F8B4A",        // Dark green header
+                HeaderForegroundColor = "#1BFF80",
+                FontFamily = "Monofonto",
+                // Menu colors for PipBoy
+                MenuBackgroundColor = "#0D1210",
+                MenuForegroundColor = "#1BFF80",
+                MenuHoverBackgroundColor = "#0F8B4A",
+                MenuBorderColor = "#0F8B4A"
+            });
+            
+            // Add Klingon theme (Klingon Empire inspired)
+            Themes.Add(new CustomTheme
+            {
+                Name = "Klingon",
+                IsBuiltIn = true,
+                PrimaryColor = "#8B0000",       // KlingonBloodRed
+                AccentColor = "#D4A574",        // KlingonGold
+                AccentHoverColor = "#FFD700",   // KlingonGoldBright
+                BackgroundColor = "#1A0505",    // Deep black-red
+                SurfaceColor = "#2A0808",       // Dark red surface
+                CardBackgroundColor = "#3A0A0A",
+                ControlBackgroundColor = "#2A0808", // Dark red control bg
+                ControlBorderColor = "#8B0000", // Blood red border
+                TextColor = "#FFFFFF",          // White text
+                SecondaryTextColor = "#D4A574", // Gold secondary
+                HeaderColor = "#8B0000",        // Blood red header
+                HeaderForegroundColor = "#FFD700", // Gold header text
+                FontFamily = "Klingon",
+                // Menu colors for Klingon
+                MenuBackgroundColor = "#2A0808",
+                MenuForegroundColor = "#FFFFFF",
+                MenuHoverBackgroundColor = "#8B0000",
+                MenuBorderColor = "#8B0000"
             });
             
             // Load custom themes from file
@@ -137,11 +223,150 @@ namespace PlatypusTools.UI.Views
                 UpdateColorDisplay(HeaderColorPreview, HeaderColorText, theme.HeaderColor);
                 UpdateColorDisplay(HeaderForegroundColorPreview, HeaderForegroundColorText, theme.HeaderForegroundColor);
                 
+                // Menu colors
+                UpdateColorDisplay(MenuBackgroundColorPreview, MenuBackgroundColorText, theme.MenuBackgroundColor);
+                UpdateColorDisplay(MenuForegroundColorPreview, MenuForegroundColorText, theme.MenuForegroundColor);
+                UpdateColorDisplay(MenuHoverBackgroundColorPreview, MenuHoverBackgroundColorText, theme.MenuHoverBackgroundColor);
+                UpdateColorDisplay(MenuBorderColorPreview, MenuBorderColorText, theme.MenuBorderColor);
+                
+                // Update font settings
+                SelectFontFamily(theme.FontFamily);
+                FontSizeSlider.Value = theme.FontSize;
+                FontSizeDisplay.Text = $"{theme.FontSize} pt";
+                
+                // Update logo preview
+                UpdateLogoPreview();
+                
                 DeleteButton.IsEnabled = !theme.IsBuiltIn;
                 
                 _suppressEvents = false;
                 UpdatePreview();
             }
+        }
+        
+        private void SelectFontFamily(string fontFamily)
+        {
+            foreach (ComboBoxItem item in FontFamilyCombo.Items)
+            {
+                if (item.Tag?.ToString() == fontFamily)
+                {
+                    FontFamilyCombo.SelectedItem = item;
+                    return;
+                }
+            }
+            // Default to Segoe UI if not found
+            FontFamilyCombo.SelectedIndex = 0;
+        }
+        
+        private void FontFamily_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppressEvents || _selectedTheme == null) return;
+            if (FontFamilyCombo.SelectedItem is ComboBoxItem item && item.Tag is string fontName)
+            {
+                EnsureThemeEditable();
+                _selectedTheme.FontFamily = fontName;
+                UpdatePreview();
+                SaveCustomThemes();
+            }
+        }
+        
+        private void FontSize_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_suppressEvents || _selectedTheme == null) return;
+            if (FontSizeDisplay != null)
+            {
+                FontSizeDisplay.Text = $"{FontSizeSlider.Value:F0} pt";
+            }
+            EnsureThemeEditable();
+            _selectedTheme.FontSize = FontSizeSlider.Value;
+            UpdatePreview();
+            SaveCustomThemes();
+        }
+        
+        private void BrowseLogo_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedTheme == null) return;
+            
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Image files (*.png;*.jpg;*.jpeg;*.bmp;*.gif)|*.png;*.jpg;*.jpeg;*.bmp;*.gif|All files (*.*)|*.*",
+                Title = "Select Logo Image"
+            };
+            
+            if (dlg.ShowDialog() == true)
+            {
+                EnsureThemeEditable();
+                _selectedTheme.LogoPath = dlg.FileName;
+                UpdateLogoPreview();
+                SaveCustomThemes();
+            }
+        }
+        
+        private void ResetLogo_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedTheme == null) return;
+            
+            EnsureThemeEditable();
+            _selectedTheme.LogoPath = null;
+            UpdateLogoPreview();
+            SaveCustomThemes();
+        }
+        
+        private void UpdateLogoPreview()
+        {
+            if (_selectedTheme == null) return;
+            
+            try
+            {
+                if (!string.IsNullOrEmpty(_selectedTheme.LogoPath) && File.Exists(_selectedTheme.LogoPath))
+                {
+                    LogoPreview.Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(_selectedTheme.LogoPath));
+                    LogoPathText.Text = Path.GetFileName(_selectedTheme.LogoPath);
+                }
+                else
+                {
+                    // Show default logo
+                    var defaultPath = Path.Combine(AppContext.BaseDirectory, "Assets", "PlatypusToolsLogo.png");
+                    if (File.Exists(defaultPath))
+                    {
+                        LogoPreview.Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(defaultPath));
+                    }
+                    else
+                    {
+                        LogoPreview.Source = null;
+                    }
+                    LogoPathText.Text = "(Default Logo)";
+                }
+            }
+            catch
+            {
+                LogoPreview.Source = null;
+                LogoPathText.Text = "(Error loading)";
+            }
+        }
+        
+        /// <summary>
+        /// If a built-in theme is being edited, create a copy and switch to it.
+        /// </summary>
+        private void EnsureThemeEditable()
+        {
+            if (_selectedTheme == null || !_selectedTheme.IsBuiltIn) return;
+            
+            // Create a modifiable copy of the built-in theme
+            var copy = _selectedTheme.Clone();
+            copy.Name = $"{_selectedTheme.Name} (Modified)";
+            copy.IsBuiltIn = false;
+            
+            Themes.Add(copy);
+            _suppressEvents = true;
+            ThemeList.SelectedItem = copy;
+            _selectedTheme = copy;
+            ThemeNameBox.Text = copy.Name;
+            ThemeNameBox.IsEnabled = true;
+            DeleteButton.IsEnabled = true;
+            _suppressEvents = false;
+            
+            SaveCustomThemes();
         }
         
         private void ThemeName_Changed(object sender, TextChangedEventArgs e)
@@ -209,6 +434,10 @@ namespace PlatypusTools.UI.Views
                 "SecondaryText" => SecondaryTextColorText,
                 "Header" => HeaderColorText,
                 "HeaderForeground" => HeaderForegroundColorText,
+                "MenuBackground" => MenuBackgroundColorText,
+                "MenuForeground" => MenuForegroundColorText,
+                "MenuHoverBackground" => MenuHoverBackgroundColorText,
+                "MenuBorder" => MenuBorderColorText,
                 _ => null
             };
         }
@@ -219,7 +448,10 @@ namespace PlatypusTools.UI.Views
             if (sender is not TextBox textBox || textBox.Tag is not string colorName) return;
             
             var colorValue = textBox.Text.Trim();
-            if (!colorValue.StartsWith("#")) return;
+            if (!colorValue.StartsWith('#')) return;
+            
+            // If editing a built-in theme, create a copy
+            EnsureThemeEditable();
             
             try
             {
@@ -271,6 +503,22 @@ namespace PlatypusTools.UI.Views
                         _selectedTheme.HeaderForegroundColor = colorValue;
                         HeaderForegroundColorPreview.Background = new SolidColorBrush(color);
                         break;
+                    case "MenuBackground":
+                        _selectedTheme.MenuBackgroundColor = colorValue;
+                        MenuBackgroundColorPreview.Background = new SolidColorBrush(color);
+                        break;
+                    case "MenuForeground":
+                        _selectedTheme.MenuForegroundColor = colorValue;
+                        MenuForegroundColorPreview.Background = new SolidColorBrush(color);
+                        break;
+                    case "MenuHoverBackground":
+                        _selectedTheme.MenuHoverBackgroundColor = colorValue;
+                        MenuHoverBackgroundColorPreview.Background = new SolidColorBrush(color);
+                        break;
+                    case "MenuBorder":
+                        _selectedTheme.MenuBorderColor = colorValue;
+                        MenuBorderColorPreview.Background = new SolidColorBrush(color);
+                        break;
                 }
                 
                 UpdatePreview();
@@ -293,6 +541,14 @@ namespace PlatypusTools.UI.Views
                 PreviewButton.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_selectedTheme.PrimaryColor));
                 PreviewSecondaryButton.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_selectedTheme.PrimaryColor));
                 PreviewSecondaryButtonText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_selectedTheme.PrimaryColor));
+                
+                // Update font in preview
+                var fontFamily = new FontFamily(_selectedTheme.FontFamily);
+                PreviewHeaderText.FontFamily = fontFamily;
+                PreviewPrimaryText.FontFamily = fontFamily;
+                PreviewSecondaryText.FontFamily = fontFamily;
+                PreviewPrimaryText.FontSize = _selectedTheme.FontSize;
+                PreviewSecondaryText.FontSize = _selectedTheme.FontSize - 1;
             }
             catch { }
         }
@@ -346,6 +602,21 @@ namespace PlatypusTools.UI.Views
                 
             if (result == MessageBoxResult.Yes)
             {
+                // Delete the XAML file from CustomThemes folder
+                try
+                {
+                    var themesDir = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                        "PlatypusTools", "CustomThemes");
+                    var safeName = string.Join("_", _selectedTheme.Name.Split(Path.GetInvalidFileNameChars()));
+                    var themePath = Path.Combine(themesDir, $"{safeName}.xaml");
+                    if (File.Exists(themePath))
+                    {
+                        File.Delete(themePath);
+                    }
+                }
+                catch { }
+                
                 Themes.Remove(_selectedTheme);
                 if (Themes.Count > 0) ThemeList.SelectedIndex = 0;
                 SaveCustomThemes();
@@ -532,7 +803,17 @@ namespace PlatypusTools.UI.Views
         public string ErrorForegroundColor { get; set; } = "#721C24";
         
         // Menu colors
+        public string MenuBackgroundColor { get; set; } = "#F5F5F5";
         public string MenuForegroundColor { get; set; } = "#1E1E1E";
+        public string MenuHoverBackgroundColor { get; set; } = "#E0E0E0";
+        public string MenuBorderColor { get; set; } = "#D0D0D0";
+        
+        // Font settings
+        public string FontFamily { get; set; } = "Segoe UI";
+        public double FontSize { get; set; } = 12;
+        
+        // Custom logo path (null or empty means use default)
+        public string? LogoPath { get; set; }
         
         /// <summary>
         /// Determines if this is a dark theme (for title bar styling).
@@ -588,7 +869,13 @@ namespace PlatypusTools.UI.Views
                 ErrorBackgroundColor = ErrorBackgroundColor,
                 ErrorBorderColor = ErrorBorderColor,
                 ErrorForegroundColor = ErrorForegroundColor,
-                MenuForegroundColor = MenuForegroundColor
+                MenuBackgroundColor = MenuBackgroundColor,
+                MenuForegroundColor = MenuForegroundColor,
+                MenuHoverBackgroundColor = MenuHoverBackgroundColor,
+                MenuBorderColor = MenuBorderColor,
+                FontFamily = FontFamily,
+                FontSize = FontSize,
+                LogoPath = LogoPath
             };
         }
         
@@ -602,6 +889,10 @@ namespace PlatypusTools.UI.Views
     
     <!-- Custom Theme: {Name} -->
     <!-- Generated by PlatypusTools Theme Editor -->
+    
+    <!-- Font Settings -->
+    <FontFamily x:Key=""AppFontFamily"">{FontFamily}</FontFamily>
+    <sys:Double x:Key=""AppFontSize"" xmlns:sys=""clr-namespace:System;assembly=mscorlib"">{FontSize}</sys:Double>
     
     <!-- Core Brushes -->
     <SolidColorBrush x:Key=""WindowBackgroundBrush"" Color=""{BackgroundColor}"" />
@@ -656,6 +947,8 @@ namespace PlatypusTools.UI.Views
     <Style TargetType=""Window"">
         <Setter Property=""Background"" Value=""{{StaticResource WindowBackgroundBrush}}"" />
         <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
+        <Setter Property=""FontSize"" Value=""{{StaticResource AppFontSize}}"" />
     </Style>
 
     <!-- Grid, StackPanel, DockPanel inherit from parent -->
@@ -670,11 +963,13 @@ namespace PlatypusTools.UI.Views
     <!-- TextBlock -->
     <Style TargetType=""TextBlock"">
         <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
     </Style>
 
     <!-- Label -->
     <Style TargetType=""Label"">
         <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
     </Style>
 
     <!-- TextBox -->
@@ -686,6 +981,7 @@ namespace PlatypusTools.UI.Views
         <Setter Property=""SelectionBrush"" Value=""{{StaticResource SelectionBackgroundBrush}}"" />
         <Setter Property=""BorderThickness"" Value=""1"" />
         <Setter Property=""Padding"" Value=""4,2"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
         <Setter Property=""Template"">
             <Setter.Value>
                 <ControlTemplate TargetType=""TextBox"">
@@ -724,6 +1020,7 @@ namespace PlatypusTools.UI.Views
         <Setter Property=""BorderBrush"" Value=""{{StaticResource ControlBorderBrush}}"" />
         <Setter Property=""BorderThickness"" Value=""1"" />
         <Setter Property=""Padding"" Value=""10,5"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
         <Setter Property=""Template"">
             <Setter.Value>
                 <ControlTemplate TargetType=""Button"">
@@ -767,12 +1064,14 @@ namespace PlatypusTools.UI.Views
     <Style TargetType=""TabControl"">
         <Setter Property=""Background"" Value=""{{StaticResource WindowBackgroundBrush}}"" />
         <Setter Property=""BorderBrush"" Value=""{{StaticResource ControlBorderBrush}}"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
     </Style>
 
     <!-- TabItem -->
     <Style TargetType=""TabItem"">
         <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}"" />
         <Setter Property=""Background"" Value=""Transparent"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
         <Setter Property=""Padding"" Value=""12,6"" />
         <Setter Property=""Template"">
             <Setter.Value>
@@ -813,12 +1112,14 @@ namespace PlatypusTools.UI.Views
         <Setter Property=""Background"" Value=""{{StaticResource ControlBackgroundBrush}}"" />
         <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}"" />
         <Setter Property=""BorderBrush"" Value=""{{StaticResource ControlBorderBrush}}"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
     </Style>
 
     <!-- ListBoxItem -->
     <Style TargetType=""ListBoxItem"">
         <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}"" />
         <Setter Property=""Padding"" Value=""8,4"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
         <Style.Triggers>
             <Trigger Property=""IsSelected"" Value=""True"">
                 <Setter Property=""Background"" Value=""{{StaticResource SelectionBackgroundBrush}}"" />
@@ -830,43 +1131,410 @@ namespace PlatypusTools.UI.Views
         </Style.Triggers>
     </Style>
 
+    <!-- ListView -->
+    <Style TargetType=""ListView"">
+        <Setter Property=""Background"" Value=""{{StaticResource ControlBackgroundBrush}}"" />
+        <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}"" />
+        <Setter Property=""BorderBrush"" Value=""{{StaticResource ControlBorderBrush}}"" />
+        <Setter Property=""BorderThickness"" Value=""1""/>
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
+    </Style>
+
+    <!-- ListViewItem -->
+    <Style TargetType=""ListViewItem"">
+        <Setter Property=""Background"" Value=""Transparent""/>
+        <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}"" />
+        <Setter Property=""Padding"" Value=""8,4"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
+        <Style.Triggers>
+            <Trigger Property=""IsSelected"" Value=""True"">
+                <Setter Property=""Background"" Value=""{{StaticResource SelectionBackgroundBrush}}"" />
+            </Trigger>
+            <Trigger Property=""IsMouseOver"" Value=""True"">
+                <Setter Property=""Background"" Value=""{{StaticResource AccentHoverBrush}}"" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ComboBox Toggle Button Template -->
+    <ControlTemplate x:Key=""CustomComboBoxToggleButton"" TargetType=""ToggleButton"">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width=""20"" />
+            </Grid.ColumnDefinitions>
+            <Border x:Name=""Border"" 
+                    Grid.ColumnSpan=""2""
+                    Background=""{{StaticResource ControlBackgroundBrush}}""
+                    BorderBrush=""{{StaticResource ControlBorderBrush}}""
+                    BorderThickness=""1""
+                    CornerRadius=""2"" />
+            <Border Grid.Column=""0""
+                    Margin=""1""
+                    Background=""{{StaticResource ControlBackgroundBrush}}"" 
+                    BorderThickness=""0"" />
+            <Path x:Name=""Arrow""
+                  Grid.Column=""1""     
+                  Fill=""{{StaticResource WindowForegroundBrush}}""
+                  HorizontalAlignment=""Center""
+                  VerticalAlignment=""Center""
+                  Data=""M0,0 L4,4 L8,0 Z"" />
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property=""IsMouseOver"" Value=""True"">
+                <Setter TargetName=""Border"" Property=""BorderBrush"" Value=""{{StaticResource AccentBrush}}"" />
+            </Trigger>
+            <Trigger Property=""IsChecked"" Value=""True"">
+                <Setter TargetName=""Border"" Property=""BorderBrush"" Value=""{{StaticResource AccentBrush}}"" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key=""CustomComboBoxTextBox"" TargetType=""TextBox"">
+        <Border x:Name=""PART_ContentHost"" Focusable=""False"" Background=""{{TemplateBinding Background}}"" />
+    </ControlTemplate>
+
     <!-- ComboBox -->
     <Style TargetType=""ComboBox"">
         <Setter Property=""Background"" Value=""{{StaticResource ControlBackgroundBrush}}"" />
         <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}"" />
         <Setter Property=""BorderBrush"" Value=""{{StaticResource ControlBorderBrush}}"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
+        <Setter Property=""SnapsToDevicePixels"" Value=""True""/>
+        <Setter Property=""OverridesDefaultStyle"" Value=""True""/>
+        <Setter Property=""ScrollViewer.HorizontalScrollBarVisibility"" Value=""Auto""/>
+        <Setter Property=""ScrollViewer.VerticalScrollBarVisibility"" Value=""Auto""/>
+        <Setter Property=""ScrollViewer.CanContentScroll"" Value=""True""/>
+        <Setter Property=""Template"">
+            <Setter.Value>
+                <ControlTemplate TargetType=""ComboBox"">
+                    <Grid>
+                        <ToggleButton x:Name=""ToggleButton"" 
+                                      Template=""{{StaticResource CustomComboBoxToggleButton}}""
+                                      Focusable=""False""
+                                      IsChecked=""{{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={{RelativeSource TemplatedParent}}}}""
+                                      ClickMode=""Press"" />
+                        <ContentPresenter x:Name=""ContentSite""
+                                          IsHitTestVisible=""False"" 
+                                          Content=""{{TemplateBinding SelectionBoxItem}}""
+                                          ContentTemplate=""{{TemplateBinding SelectionBoxItemTemplate}}""
+                                          ContentTemplateSelector=""{{TemplateBinding ItemTemplateSelector}}""
+                                          Margin=""6,3,23,3""
+                                          VerticalAlignment=""Center""
+                                          HorizontalAlignment=""Left"">
+                            <ContentPresenter.Resources>
+                                <Style TargetType=""TextBlock"">
+                                    <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}"" />
+                                </Style>
+                            </ContentPresenter.Resources>
+                        </ContentPresenter>
+                        <TextBox x:Name=""PART_EditableTextBox""
+                                 Style=""{{x:Null}}"" 
+                                 Template=""{{StaticResource CustomComboBoxTextBox}}"" 
+                                 HorizontalAlignment=""Left"" 
+                                 VerticalAlignment=""Center"" 
+                                 Margin=""3,3,23,3""
+                                 Focusable=""True"" 
+                                 Background=""Transparent""
+                                 Foreground=""{{StaticResource WindowForegroundBrush}}""
+                                 CaretBrush=""{{StaticResource AccentBrush}}""
+                                 Visibility=""Hidden""
+                                 IsReadOnly=""{{TemplateBinding IsReadOnly}}"" />
+                        <Popup x:Name=""Popup""
+                               Placement=""Bottom""
+                               IsOpen=""{{TemplateBinding IsDropDownOpen}}""
+                               AllowsTransparency=""True"" 
+                               Focusable=""False""
+                               PopupAnimation=""Slide"">
+                            <Grid x:Name=""DropDown""
+                                  SnapsToDevicePixels=""True""                
+                                  MinWidth=""{{TemplateBinding ActualWidth}}""
+                                  MaxHeight=""{{TemplateBinding MaxDropDownHeight}}"">
+                                <Border x:Name=""DropDownBorder""
+                                        Background=""{{StaticResource ControlBackgroundBrush}}""
+                                        BorderThickness=""1""
+                                        BorderBrush=""{{StaticResource AccentBrush}}""/>
+                                <ScrollViewer Margin=""4,6,4,6"" SnapsToDevicePixels=""True"">
+                                    <StackPanel IsItemsHost=""True"" KeyboardNavigation.DirectionalNavigation=""Contained"" />
+                                </ScrollViewer>
+                            </Grid>
+                        </Popup>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property=""HasItems"" Value=""False"">
+                            <Setter TargetName=""DropDownBorder"" Property=""MinHeight"" Value=""95"" />
+                        </Trigger>
+                        <Trigger Property=""IsEditable"" Value=""True"">
+                            <Setter TargetName=""PART_EditableTextBox"" Property=""Visibility"" Value=""Visible"" />
+                            <Setter TargetName=""ContentSite"" Property=""Visibility"" Value=""Hidden"" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- ComboBoxItem -->
+    <Style TargetType=""ComboBoxItem"">
+        <Setter Property=""Background"" Value=""{{StaticResource ControlBackgroundBrush}}""/>
+        <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}""/>
+        <Setter Property=""Padding"" Value=""6,4""/>
+        <Setter Property=""SnapsToDevicePixels"" Value=""True""/>
+        <Setter Property=""Template"">
+            <Setter.Value>
+                <ControlTemplate TargetType=""ComboBoxItem"">
+                    <Border x:Name=""Border""
+                            Padding=""{{TemplateBinding Padding}}""
+                            Background=""{{TemplateBinding Background}}""
+                            SnapsToDevicePixels=""True"">
+                        <ContentPresenter>
+                            <ContentPresenter.Resources>
+                                <Style TargetType=""TextBlock"">
+                                    <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}"" />
+                                </Style>
+                            </ContentPresenter.Resources>
+                        </ContentPresenter>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property=""IsHighlighted"" Value=""True"">
+                            <Setter TargetName=""Border"" Property=""Background"" Value=""{{StaticResource AccentHoverBrush}}"" />
+                        </Trigger>
+                        <Trigger Property=""IsSelected"" Value=""True"">
+                            <Setter TargetName=""Border"" Property=""Background"" Value=""{{StaticResource SelectionBackgroundBrush}}"" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- CheckBox -->
     <Style TargetType=""CheckBox"">
         <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
+        <Setter Property=""Cursor"" Value=""Hand""/>
+        <Setter Property=""Template"">
+            <Setter.Value>
+                <ControlTemplate TargetType=""CheckBox"">
+                    <StackPanel Orientation=""Horizontal"">
+                        <Border x:Name=""checkBorder""
+                                Width=""18"" Height=""18""
+                                Background=""{{StaticResource ControlBackgroundBrush}}""
+                                BorderBrush=""{{StaticResource ControlBorderBrush}}""
+                                BorderThickness=""1""
+                                CornerRadius=""2""
+                                Margin=""0,0,8,0"">
+                            <TextBlock x:Name=""checkMark""
+                                       Text=""✓""
+                                       FontSize=""14""
+                                       FontWeight=""Bold""
+                                       Foreground=""{{StaticResource AccentBrush}}""
+                                       HorizontalAlignment=""Center""
+                                       VerticalAlignment=""Center""
+                                       Visibility=""Collapsed""/>
+                        </Border>
+                        <ContentPresenter VerticalAlignment=""Center""/>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property=""IsChecked"" Value=""True"">
+                            <Setter TargetName=""checkMark"" Property=""Visibility"" Value=""Visible""/>
+                            <Setter TargetName=""checkBorder"" Property=""Background"" Value=""{{StaticResource AccentHoverBrush}}""/>
+                            <Setter TargetName=""checkBorder"" Property=""BorderBrush"" Value=""{{StaticResource AccentBrush}}""/>
+                        </Trigger>
+                        <Trigger Property=""IsMouseOver"" Value=""True"">
+                            <Setter TargetName=""checkBorder"" Property=""BorderBrush"" Value=""{{StaticResource AccentBrush}}""/>
+                        </Trigger>
+                        <Trigger Property=""IsEnabled"" Value=""False"">
+                            <Setter Property=""Foreground"" Value=""{{StaticResource DisabledForegroundBrush}}""/>
+                            <Setter TargetName=""checkBorder"" Property=""BorderBrush"" Value=""{{StaticResource DisabledForegroundBrush}}""/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- RadioButton -->
     <Style TargetType=""RadioButton"">
         <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
+        <Setter Property=""Cursor"" Value=""Hand""/>
+        <Setter Property=""Template"">
+            <Setter.Value>
+                <ControlTemplate TargetType=""RadioButton"">
+                    <StackPanel Orientation=""Horizontal"">
+                        <Border x:Name=""radioBorder""
+                                Width=""18"" Height=""18""
+                                Background=""{{StaticResource ControlBackgroundBrush}}""
+                                BorderBrush=""{{StaticResource ControlBorderBrush}}""
+                                BorderThickness=""1""
+                                CornerRadius=""9""
+                                Margin=""0,0,8,0"">
+                            <Ellipse x:Name=""radioMark""
+                                     Width=""10"" Height=""10""
+                                     Fill=""{{StaticResource AccentBrush}}""
+                                     HorizontalAlignment=""Center""
+                                     VerticalAlignment=""Center""
+                                     Visibility=""Collapsed""/>
+                        </Border>
+                        <ContentPresenter VerticalAlignment=""Center""/>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property=""IsChecked"" Value=""True"">
+                            <Setter TargetName=""radioMark"" Property=""Visibility"" Value=""Visible""/>
+                            <Setter TargetName=""radioBorder"" Property=""BorderBrush"" Value=""{{StaticResource AccentBrush}}""/>
+                        </Trigger>
+                        <Trigger Property=""IsMouseOver"" Value=""True"">
+                            <Setter TargetName=""radioBorder"" Property=""BorderBrush"" Value=""{{StaticResource AccentBrush}}""/>
+                        </Trigger>
+                        <Trigger Property=""IsEnabled"" Value=""False"">
+                            <Setter Property=""Foreground"" Value=""{{StaticResource DisabledForegroundBrush}}""/>
+                            <Setter TargetName=""radioBorder"" Property=""BorderBrush"" Value=""{{StaticResource DisabledForegroundBrush}}""/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- GroupBox -->
     <Style TargetType=""GroupBox"">
         <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
         <Setter Property=""BorderBrush"" Value=""{{StaticResource ControlBorderBrush}}"" />
+        <Setter Property=""Background"" Value=""{{StaticResource ControlBackgroundBrush}}""/>
+        <Setter Property=""Padding"" Value=""8""/>
+        <Setter Property=""Template"">
+            <Setter.Value>
+                <ControlTemplate TargetType=""GroupBox"">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height=""Auto""/>
+                            <RowDefinition Height=""*""/>
+                        </Grid.RowDefinitions>
+                        <Border Background=""{{StaticResource SurfaceBrush}}"" 
+                                BorderBrush=""{{StaticResource ControlBorderBrush}}"" 
+                                BorderThickness=""1,1,1,0""
+                                Padding=""12,6"">
+                            <ContentPresenter ContentSource=""Header"" 
+                                              TextElement.Foreground=""{{StaticResource WindowForegroundBrush}}""
+                                              TextElement.FontWeight=""Bold""/>
+                        </Border>
+                        <Border Grid.Row=""1"" 
+                                Background=""{{TemplateBinding Background}}""
+                                BorderBrush=""{{StaticResource ControlBorderBrush}}""
+                                BorderThickness=""1,0,1,1""
+                                Padding=""{{TemplateBinding Padding}}"">
+                            <ContentPresenter/>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- Menu -->
     <Style TargetType=""Menu"">
-        <Setter Property=""Background"" Value=""{{StaticResource SurfaceBrush}}"" />
-        <Setter Property=""Foreground"" Value=""{{StaticResource MenuForegroundBrush}}"" />
+        <Setter Property=""Background"" Value=""{MenuBackgroundColor}"" />
+        <Setter Property=""Foreground"" Value=""{MenuForegroundColor}"" />
+        <Setter Property=""BorderBrush"" Value=""{MenuBorderColor}"" />
+        <Setter Property=""BorderThickness"" Value=""0"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
     </Style>
 
-    <!-- MenuItem -->
+    <!-- MenuItem - Full template for proper theming -->
     <Style TargetType=""MenuItem"">
-        <Setter Property=""Foreground"" Value=""{{StaticResource MenuForegroundBrush}}"" />
-        <Style.Triggers>
-            <Trigger Property=""IsHighlighted"" Value=""True"">
-                <Setter Property=""Background"" Value=""{{StaticResource AccentHoverBrush}}"" />
-            </Trigger>
-        </Style.Triggers>
+        <Setter Property=""Background"" Value=""Transparent"" />
+        <Setter Property=""Foreground"" Value=""{MenuForegroundColor}"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
+        <Setter Property=""Padding"" Value=""8,4""/>
+        <Setter Property=""Template"">
+            <Setter.Value>
+                <ControlTemplate TargetType=""MenuItem"">
+                    <Border x:Name=""Border"" 
+                            Background=""{{TemplateBinding Background}}"" 
+                            BorderBrush=""Transparent"" 
+                            BorderThickness=""0""
+                            Padding=""{{TemplateBinding Padding}}"">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width=""Auto"" SharedSizeGroup=""Icon""/>
+                                <ColumnDefinition Width=""*""/>
+                                <ColumnDefinition Width=""Auto"" SharedSizeGroup=""Shortcut""/>
+                                <ColumnDefinition Width=""Auto""/>
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter x:Name=""Icon"" Grid.Column=""0"" Margin=""0,0,6,0"" 
+                                              VerticalAlignment=""Center"" ContentSource=""Icon""/>
+                            <ContentPresenter x:Name=""HeaderHost"" Grid.Column=""1"" 
+                                              ContentSource=""Header""
+                                              RecognizesAccessKey=""True""
+                                              VerticalAlignment=""Center""/>
+                            <TextBlock x:Name=""InputGestureText"" Grid.Column=""2"" 
+                                       Text=""{{TemplateBinding InputGestureText}}"" 
+                                       Margin=""24,0,0,0"" VerticalAlignment=""Center""
+                                       Opacity=""0.7""/>
+                            <Path x:Name=""Arrow"" Grid.Column=""3"" 
+                                  Data=""M0,0 L4,4 L0,8 Z"" 
+                                  Fill=""{MenuForegroundColor}""
+                                  VerticalAlignment=""Center"" Margin=""6,0,0,0""
+                                  Visibility=""Collapsed""/>
+                            <Popup x:Name=""PART_Popup"" 
+                                   IsOpen=""{{Binding IsSubmenuOpen, RelativeSource={{RelativeSource TemplatedParent}}}}""
+                                   Placement=""Bottom"" 
+                                   AllowsTransparency=""True"" 
+                                   Focusable=""False""
+                                   PopupAnimation=""Fade"">
+                                <Border Background=""{MenuBackgroundColor}"" 
+                                        BorderBrush=""{MenuBorderColor}"" 
+                                        BorderThickness=""1"">
+                                    <StackPanel IsItemsHost=""True"" KeyboardNavigation.DirectionalNavigation=""Cycle""/>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property=""Role"" Value=""TopLevelHeader"">
+                            <Setter TargetName=""Arrow"" Property=""Visibility"" Value=""Collapsed""/>
+                            <Setter TargetName=""PART_Popup"" Property=""Placement"" Value=""Bottom""/>
+                        </Trigger>
+                        <Trigger Property=""Role"" Value=""TopLevelItem"">
+                            <Setter TargetName=""Arrow"" Property=""Visibility"" Value=""Collapsed""/>
+                        </Trigger>
+                        <Trigger Property=""Role"" Value=""SubmenuHeader"">
+                            <Setter TargetName=""Arrow"" Property=""Visibility"" Value=""Visible""/>
+                            <Setter TargetName=""PART_Popup"" Property=""Placement"" Value=""Right""/>
+                        </Trigger>
+                        <Trigger Property=""Role"" Value=""SubmenuItem"">
+                            <Setter TargetName=""Arrow"" Property=""Visibility"" Value=""Collapsed""/>
+                        </Trigger>
+                        <Trigger Property=""IsHighlighted"" Value=""True"">
+                            <Setter TargetName=""Border"" Property=""Background"" Value=""{MenuHoverBackgroundColor}""/>
+                        </Trigger>
+                        <Trigger Property=""IsEnabled"" Value=""False"">
+                            <Setter Property=""Foreground"" Value=""{{StaticResource DisabledForegroundBrush}}""/>
+                        </Trigger>
+                        <Trigger Property=""Icon"" Value=""{{x:Null}}"">
+                            <Setter TargetName=""Icon"" Property=""Visibility"" Value=""Collapsed""/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ContextMenu -->
+    <Style TargetType=""ContextMenu"">
+        <Setter Property=""Background"" Value=""{MenuBackgroundColor}"" />
+        <Setter Property=""Foreground"" Value=""{MenuForegroundColor}"" />
+        <Setter Property=""BorderBrush"" Value=""{MenuBorderColor}"" />
+        <Setter Property=""BorderThickness"" Value=""1"" />
+    </Style>
+
+    <!-- Separator -->
+    <Style TargetType=""Separator"">
+        <Setter Property=""Background"" Value=""{MenuBorderColor}""/>
+        <Setter Property=""Height"" Value=""1""/>
+        <Setter Property=""Margin"" Value=""4,2""/>
     </Style>
 
     <!-- ScrollViewer and ScrollBar -->
@@ -890,6 +1558,7 @@ namespace PlatypusTools.UI.Views
         <Setter Property=""Background"" Value=""{{StaticResource WindowBackgroundBrush}}"" />
         <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}"" />
         <Setter Property=""BorderBrush"" Value=""{{StaticResource ControlBorderBrush}}"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
         <Setter Property=""GridLinesVisibility"" Value=""None"" />
         <Setter Property=""RowBackground"" Value=""{{StaticResource WindowBackgroundBrush}}"" />
         <Setter Property=""AlternatingRowBackground"" Value=""{{StaticResource SurfaceBrush}}"" />
@@ -898,6 +1567,7 @@ namespace PlatypusTools.UI.Views
     <Style TargetType=""DataGridColumnHeader"">
         <Setter Property=""Background"" Value=""{{StaticResource SurfaceBrush}}"" />
         <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
         <Setter Property=""Padding"" Value=""8,4"" />
         <Setter Property=""BorderBrush"" Value=""{{StaticResource ControlBorderBrush}}"" />
         <Setter Property=""BorderThickness"" Value=""0,0,1,1"" />
@@ -928,6 +1598,7 @@ namespace PlatypusTools.UI.Views
         <Setter Property=""Background"" Value=""{{StaticResource WindowBackgroundBrush}}"" />
         <Setter Property=""Foreground"" Value=""{{StaticResource WindowForegroundBrush}}"" />
         <Setter Property=""BorderBrush"" Value=""{{StaticResource ControlBorderBrush}}"" />
+        <Setter Property=""FontFamily"" Value=""{{StaticResource AppFontFamily}}"" />
     </Style>
 
     <Style TargetType=""TreeViewItem"">
