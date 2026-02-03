@@ -143,3 +143,8 @@ Tools/*.zip
 # PLATYPUS module (external)
 # ===================
 PLATYPUS/
+
+# ===================
+# Copilot Instructions (contains sensitive naming)
+# ===================
+.github/copilot-instructions.md
