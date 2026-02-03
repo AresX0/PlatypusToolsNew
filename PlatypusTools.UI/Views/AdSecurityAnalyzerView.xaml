@@ -423,21 +423,88 @@
                             </GroupBox>
 
                             <!-- GPO Options -->
-                            <GroupBox Header="📜 Baseline GPO Deployment" Margin="0,0,0,10">
-                                <StackPanel Margin="10">
-                                    <TextBlock Text="GPOs to Deploy:" FontWeight="SemiBold" Margin="0,0,0,5" />
-                                    <CheckBox Content="Password Policy (14+ chars, complexity, 90-day expiry)" IsChecked="{Binding DeployPasswordPolicyGpo}" Margin="0,0,0,5" />
-                                    <CheckBox Content="Advanced Audit Policy (Logon, Object Access, etc.)" IsChecked="{Binding DeployAuditPolicyGpo}" Margin="0,0,0,5" />
-                                    <CheckBox Content="Security Baseline (Disable LM, SMB signing, LDAP signing)" IsChecked="{Binding DeploySecurityBaselineGpo}" Margin="0,0,0,5" />
-                                    <CheckBox Content="PAW Security Policy (Credential Guard, AppLocker)" IsChecked="{Binding DeployPawGpo}" Margin="0,0,0,5" />
+                            <GroupBox Header="📜 Tiered GPO Deployment (PLATYPUS/BILL)" Margin="0,0,0,10">
+                                <ScrollViewer MaxHeight="400" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel Margin="10">
+                                        <!-- Quick Deploy GPOs -->
+                                        <Expander Header="⚡ Quick Deploy GPOs (Basic Baseline)" IsExpanded="True" Margin="0,0,0,10">
+                                            <StackPanel Margin="20,10,0,0">
+                                                <CheckBox Content="Password Policy (14+ chars, complexity, 90-day expiry)" IsChecked="{Binding DeployPasswordPolicyGpo}" Margin="0,0,0,5" />
+                                                <CheckBox Content="Advanced Audit Policy (Logon, Object Access, etc.)" IsChecked="{Binding DeployAuditPolicyGpo}" Margin="0,0,0,5" />
+                                                <CheckBox Content="Security Baseline (Disable LM, SMB signing, LDAP signing)" IsChecked="{Binding DeploySecurityBaselineGpo}" Margin="0,0,0,5" />
+                                                <CheckBox Content="PAW Security Policy (Credential Guard, AppLocker)" IsChecked="{Binding DeployPawGpo}" Margin="0,0,0,5" />
+                                            </StackPanel>
+                                        </Expander>
 
-                                    <TextBlock Text="⚠️ GPOs are created as shells. Configure settings in Group Policy Management Console." 
-                                               Foreground="Orange" Margin="0,10,0,5" TextWrapping="Wrap" />
+                                        <!-- Tier 0 GPOs -->
+                                        <Expander Header="🔒 Tier 0 GPOs - Domain Controllers / Critical Servers" IsExpanded="False" Margin="0,0,0,10">
+                                            <StackPanel Margin="20,10,0,0">
+                                                <CheckBox Content="Baseline Audit Policies - Tier 0 Servers" IsChecked="{Binding DeployT0BaselineAudit}" Margin="0,0,0,5" 
+                                                          ToolTip="Enhanced audit policies for Tier 0 servers. Success/Failure auditing for security events." />
+                                                <CheckBox Content="Disallow DSRM Login - DC ONLY" IsChecked="{Binding DeployT0DisallowDsrm}" Margin="0,0,0,5"
+                                                          ToolTip="Prevents DSRM (Directory Services Restore Mode) network logon. Critical for DC security." />
+                                                <CheckBox Content="Domain Block - Top Level" IsChecked="{Binding DeployT0DomainBlock}" Margin="0,0,0,5"
+                                                          ToolTip="Blocks Tier 0 accounts from logging into non-Tier 0 systems. Essential for tiering." />
+                                                <CheckBox Content="Domain Controllers Hardening - DC Only" IsChecked="{Binding DeployT0DomainControllers}" Margin="0,0,0,5"
+                                                          ToolTip="Security hardening for Domain Controllers." />
+                                                <CheckBox Content="ESX Admins Restricted Group - DC Only" IsChecked="{Binding DeployT0EsxAdmins}" Margin="0,0,0,5"
+                                                          ToolTip="Empties ESX Admins group via Restricted Groups to prevent VMware privilege escalation (CVE-2024-37085)." />
+                                                <CheckBox Content="User Rights Assignments - Tier 0 Servers" IsChecked="{Binding DeployT0UserRights}" Margin="0,0,0,5"
+                                                          ToolTip="Restricts logon rights on Tier 0 to only Tier 0 operators. Allow log on locally, Remote Desktop, etc." />
+                                                <CheckBox Content="Restricted Groups - Tier 0 Servers" IsChecked="{Binding DeployT0RestrictedGroups}" Margin="0,0,0,5"
+                                                          ToolTip="Controls local admin membership on Tier 0 servers. Administrators, Remote Desktop Users groups." />
+                                            </StackPanel>
+                                        </Expander>
 
-                                    <Button Content="📜 Deploy Baseline GPOs" Command="{Binding DeployBaselineGposCommand}" 
-                                            MinWidth="200" Height="35" Margin="0,10,0,0" HorizontalAlignment="Left"
-                                            Background="#FF2196F3" Foreground="White" FontWeight="SemiBold" />
-                                </StackPanel>
+                                        <!-- Tier 1 GPOs -->
+                                        <Expander Header="🖥️ Tier 1 GPOs - Servers" IsExpanded="False" Margin="0,0,0,10">
+                                            <StackPanel Margin="20,10,0,0">
+                                                <CheckBox Content="Tier 1 Operators in Local Admin - Tier 1 Servers" IsChecked="{Binding DeployT1LocalAdmin}" Margin="0,0,0,5"
+                                                          ToolTip="Adds Tier 1 Operators group to local Administrators on Tier 1 servers." />
+                                                <CheckBox Content="User Rights Assignments - Tier 1 Servers" IsChecked="{Binding DeployT1UserRights}" Margin="0,0,0,5"
+                                                          ToolTip="Restricts logon rights on Tier 1 servers to Tier 1 operators. Blocks Tier 0 and Tier 2." />
+                                                <CheckBox Content="Restricted Groups - Tier 1 Servers" IsChecked="{Binding DeployT1RestrictedGroups}" Margin="0,0,0,5"
+                                                          ToolTip="Controls local admin membership on Tier 1 servers." />
+                                            </StackPanel>
+                                        </Expander>
+
+                                        <!-- Tier 2 GPOs -->
+                                        <Expander Header="💻 Tier 2 GPOs - Workstations" IsExpanded="False" Margin="0,0,0,10">
+                                            <StackPanel Margin="20,10,0,0">
+                                                <CheckBox Content="Tier 2 Operators in Local Admin - Tier 2 Devices" IsChecked="{Binding DeployT2LocalAdmin}" Margin="0,0,0,5"
+                                                          ToolTip="Adds Tier 2 Operators group to local Administrators on workstations." />
+                                                <CheckBox Content="User Rights Assignments - Tier 2 Devices" IsChecked="{Binding DeployT2UserRights}" Margin="0,0,0,5"
+                                                          ToolTip="Restricts logon rights on workstations to Tier 2 operators. Blocks Tier 0 and Tier 1." />
+                                                <CheckBox Content="Restricted Groups - Tier 2 Devices" IsChecked="{Binding DeployT2RestrictedGroups}" Margin="0,0,0,5"
+                                                          ToolTip="Controls local admin membership on workstations." />
+                                            </StackPanel>
+                                        </Expander>
+
+                                        <!-- Cross-Tier GPOs -->
+                                        <Expander Header="🌐 Cross-Tier GPOs - All Devices" IsExpanded="False" Margin="0,0,0,10">
+                                            <StackPanel Margin="20,10,0,0">
+                                                <CheckBox Content="Disable SMBv1 - Top Level" IsChecked="{Binding DeployDisableSmb1}" Margin="0,0,0,5"
+                                                          ToolTip="Disables SMBv1 client and server across all systems. Link to domain root." />
+                                                <CheckBox Content="Disable WDigest - Top Level" IsChecked="{Binding DeployDisableWDigest}" Margin="0,0,0,5"
+                                                          ToolTip="Disables WDigest credential caching to prevent plaintext password storage in memory." />
+                                                <CheckBox Content="Reset Machine Account Password" IsChecked="{Binding DeployResetMachinePassword}" Margin="0,0,0,5"
+                                                          ToolTip="Configures automatic machine account password rotation (default: 30 days)." />
+                                            </StackPanel>
+                                        </Expander>
+
+                                        <Separator Margin="0,5" />
+
+                                        <CheckBox Content="Link GPOs to corresponding OUs after creation" IsChecked="{Binding LinkGposToOus}" Margin="0,5,0,5"
+                                                  ToolTip="Automatically link created GPOs to their target OUs. Requires tiered OU structure to exist." />
+
+                                        <TextBlock Text="⚠️ GPOs are created as shells. Configure settings in Group Policy Management Console or use PLATYPUS PowerShell module." 
+                                                   Foreground="Orange" Margin="0,10,0,5" TextWrapping="Wrap" />
+
+                                        <Button Content="📜 Deploy Selected GPOs" Command="{Binding DeployBaselineGposCommand}" 
+                                                MinWidth="200" Height="35" Margin="0,10,0,0" HorizontalAlignment="Left"
+                                                Background="#FF2196F3" Foreground="White" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </ScrollViewer>
                             </GroupBox>
 
                             <!-- Deployment Results -->

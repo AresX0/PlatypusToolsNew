@@ -295,6 +295,131 @@ namespace PlatypusTools.UI.ViewModels
             set => SetProperty(ref _deployPawGpo, value);
         }
 
+        // === PLATYPUS/BILL Tiered GPO Properties ===
+
+        // Tier 0 GPOs
+        private bool _deployT0BaselineAudit;
+        public bool DeployT0BaselineAudit
+        {
+            get => _deployT0BaselineAudit;
+            set => SetProperty(ref _deployT0BaselineAudit, value);
+        }
+
+        private bool _deployT0DisallowDsrm;
+        public bool DeployT0DisallowDsrm
+        {
+            get => _deployT0DisallowDsrm;
+            set => SetProperty(ref _deployT0DisallowDsrm, value);
+        }
+
+        private bool _deployT0DomainBlock;
+        public bool DeployT0DomainBlock
+        {
+            get => _deployT0DomainBlock;
+            set => SetProperty(ref _deployT0DomainBlock, value);
+        }
+
+        private bool _deployT0DomainControllers;
+        public bool DeployT0DomainControllers
+        {
+            get => _deployT0DomainControllers;
+            set => SetProperty(ref _deployT0DomainControllers, value);
+        }
+
+        private bool _deployT0EsxAdmins;
+        public bool DeployT0EsxAdmins
+        {
+            get => _deployT0EsxAdmins;
+            set => SetProperty(ref _deployT0EsxAdmins, value);
+        }
+
+        private bool _deployT0UserRights;
+        public bool DeployT0UserRights
+        {
+            get => _deployT0UserRights;
+            set => SetProperty(ref _deployT0UserRights, value);
+        }
+
+        private bool _deployT0RestrictedGroups;
+        public bool DeployT0RestrictedGroups
+        {
+            get => _deployT0RestrictedGroups;
+            set => SetProperty(ref _deployT0RestrictedGroups, value);
+        }
+
+        // Tier 1 GPOs
+        private bool _deployT1LocalAdmin;
+        public bool DeployT1LocalAdmin
+        {
+            get => _deployT1LocalAdmin;
+            set => SetProperty(ref _deployT1LocalAdmin, value);
+        }
+
+        private bool _deployT1UserRights;
+        public bool DeployT1UserRights
+        {
+            get => _deployT1UserRights;
+            set => SetProperty(ref _deployT1UserRights, value);
+        }
+
+        private bool _deployT1RestrictedGroups;
+        public bool DeployT1RestrictedGroups
+        {
+            get => _deployT1RestrictedGroups;
+            set => SetProperty(ref _deployT1RestrictedGroups, value);
+        }
+
+        // Tier 2 GPOs
+        private bool _deployT2LocalAdmin;
+        public bool DeployT2LocalAdmin
+        {
+            get => _deployT2LocalAdmin;
+            set => SetProperty(ref _deployT2LocalAdmin, value);
+        }
+
+        private bool _deployT2UserRights;
+        public bool DeployT2UserRights
+        {
+            get => _deployT2UserRights;
+            set => SetProperty(ref _deployT2UserRights, value);
+        }
+
+        private bool _deployT2RestrictedGroups;
+        public bool DeployT2RestrictedGroups
+        {
+            get => _deployT2RestrictedGroups;
+            set => SetProperty(ref _deployT2RestrictedGroups, value);
+        }
+
+        // Cross-Tier GPOs
+        private bool _deployDisableSmb1;
+        public bool DeployDisableSmb1
+        {
+            get => _deployDisableSmb1;
+            set => SetProperty(ref _deployDisableSmb1, value);
+        }
+
+        private bool _deployDisableWDigest;
+        public bool DeployDisableWDigest
+        {
+            get => _deployDisableWDigest;
+            set => SetProperty(ref _deployDisableWDigest, value);
+        }
+
+        private bool _deployResetMachinePassword;
+        public bool DeployResetMachinePassword
+        {
+            get => _deployResetMachinePassword;
+            set => SetProperty(ref _deployResetMachinePassword, value);
+        }
+
+        private bool _linkGposToOus;
+        public bool LinkGposToOus
+        {
+            get => _linkGposToOus;
+            set => SetProperty(ref _linkGposToOus, value);
+        }
+
         private string _deploymentPreview = string.Empty;
         public string DeploymentPreview
         {
@@ -1014,13 +1139,65 @@ namespace PlatypusTools.UI.ViewModels
             preview.AppendLine();
             preview.AppendLine("=== GPO Preview ===");
             preview.AppendLine();
-            if (DeployPasswordPolicyGpo) preview.AppendLine("• Password Policy GPO (linked to domain)");
-            if (DeployAuditPolicyGpo) preview.AppendLine("• Advanced Audit Policy GPO (linked to domain)");
-            if (DeploySecurityBaselineGpo) preview.AppendLine("• Security Baseline GPO (linked to each tier)");
-            if (DeployPawGpo) preview.AppendLine("• PAW Security GPO (linked to PAW OUs)");
 
-            preview.AppendLine();
+            // Quick Deploy GPOs
+            if (DeployPasswordPolicyGpo || DeployAuditPolicyGpo || DeploySecurityBaselineGpo || DeployPawGpo)
+            {
+                preview.AppendLine("[Quick Deploy GPOs]");
+                if (DeployPasswordPolicyGpo) preview.AppendLine("  • Password Policy GPO (linked to domain)");
+                if (DeployAuditPolicyGpo) preview.AppendLine("  • Advanced Audit Policy GPO (linked to domain)");
+                if (DeploySecurityBaselineGpo) preview.AppendLine("  • Security Baseline GPO (linked to each tier)");
+                if (DeployPawGpo) preview.AppendLine("  • PAW Security GPO (linked to PAW OUs)");
+                preview.AppendLine();
+            }
+
+            // Tier 0 GPOs
+            if (DeployT0BaselineAudit || DeployT0DisallowDsrm || DeployT0DomainBlock || 
+                DeployT0DomainControllers || DeployT0EsxAdmins || DeployT0UserRights || DeployT0RestrictedGroups)
+            {
+                preview.AppendLine("[Tier 0 GPOs - Domain Controllers / Critical Servers]");
+                if (DeployT0BaselineAudit) preview.AppendLine("  • Tier 0 - Baseline Audit Policies - Tier 0 Servers");
+                if (DeployT0DisallowDsrm) preview.AppendLine("  • Tier 0 - Disallow DSRM Login - DC ONLY");
+                if (DeployT0DomainBlock) preview.AppendLine("  • Tier 0 - Domain Block - Top Level");
+                if (DeployT0DomainControllers) preview.AppendLine("  • Tier 0 - Domain Controllers - DC Only");
+                if (DeployT0EsxAdmins) preview.AppendLine("  • Tier 0 - ESX Admins Restricted Group - DC Only");
+                if (DeployT0UserRights) preview.AppendLine("  • Tier 0 - User Rights Assignments - Tier 0 Servers");
+                if (DeployT0RestrictedGroups) preview.AppendLine("  • Tier 0 - Restricted Groups - Tier 0 Servers");
+                preview.AppendLine();
+            }
+
+            // Tier 1 GPOs
+            if (DeployT1LocalAdmin || DeployT1UserRights || DeployT1RestrictedGroups)
+            {
+                preview.AppendLine("[Tier 1 GPOs - Servers]");
+                if (DeployT1LocalAdmin) preview.AppendLine("  • Tier 1 - Tier 1 Operators in Local Admin - Tier 1 Servers");
+                if (DeployT1UserRights) preview.AppendLine("  • Tier 1 - User Rights Assignments - Tier 1 Servers");
+                if (DeployT1RestrictedGroups) preview.AppendLine("  • Tier 1 - Restricted Groups - Tier 1 Servers");
+                preview.AppendLine();
+            }
+
+            // Tier 2 GPOs
+            if (DeployT2LocalAdmin || DeployT2UserRights || DeployT2RestrictedGroups)
+            {
+                preview.AppendLine("[Tier 2 GPOs - Workstations]");
+                if (DeployT2LocalAdmin) preview.AppendLine("  • Tier 2 - Tier 2 Operators in Local Admin - Tier 2 Devices");
+                if (DeployT2UserRights) preview.AppendLine("  • Tier 2 - User Rights Assignments - Tier 2 Devices");
+                if (DeployT2RestrictedGroups) preview.AppendLine("  • Tier 2 - Restricted Groups - Tier 2 Devices");
+                preview.AppendLine();
+            }
+
+            // Cross-Tier GPOs
+            if (DeployDisableSmb1 || DeployDisableWDigest || DeployResetMachinePassword)
+            {
+                preview.AppendLine("[Cross-Tier GPOs - All Devices]");
+                if (DeployDisableSmb1) preview.AppendLine("  • Tier ALL - Disable SMBv1 - Top Level");
+                if (DeployDisableWDigest) preview.AppendLine("  • Tier ALL - Disable WDigest - Top Level");
+                if (DeployResetMachinePassword) preview.AppendLine("  • PLATYPUS - Reset Machine Account Password");
+                preview.AppendLine();
+            }
+
             preview.AppendLine($"Protection from deletion: {(ProtectOusFromDeletion ? "Enabled" : "Disabled")}");
+            preview.AppendLine($"Link GPOs to OUs: {(LinkGposToOus ? "Enabled" : "Disabled")}");
 
             DeploymentPreview = preview.ToString();
         }
@@ -1132,11 +1309,38 @@ namespace PlatypusTools.UI.ViewModels
 
                 var gpoOptions = new GpoDeploymentOptions
                 {
+                    // Legacy/Quick Deploy GPOs
                     DeployPasswordPolicy = DeployPasswordPolicyGpo,
                     DeployAuditPolicy = DeployAuditPolicyGpo,
                     DeploySecurityBaseline = DeploySecurityBaselineGpo,
                     DeployPawPolicy = DeployPawGpo,
-                    TieredOuBaseName = DeploymentBaseName
+                    TieredOuBaseName = DeploymentBaseName,
+
+                    // Tier 0 GPOs
+                    DeployT0BaselineAudit = DeployT0BaselineAudit,
+                    DeployT0DisallowDsrm = DeployT0DisallowDsrm,
+                    DeployT0DomainBlock = DeployT0DomainBlock,
+                    DeployT0DomainControllers = DeployT0DomainControllers,
+                    DeployT0EsxAdmins = DeployT0EsxAdmins,
+                    DeployT0UserRights = DeployT0UserRights,
+                    DeployT0RestrictedGroups = DeployT0RestrictedGroups,
+
+                    // Tier 1 GPOs
+                    DeployT1LocalAdmin = DeployT1LocalAdmin,
+                    DeployT1UserRights = DeployT1UserRights,
+                    DeployT1RestrictedGroups = DeployT1RestrictedGroups,
+
+                    // Tier 2 GPOs
+                    DeployT2LocalAdmin = DeployT2LocalAdmin,
+                    DeployT2UserRights = DeployT2UserRights,
+                    DeployT2RestrictedGroups = DeployT2RestrictedGroups,
+
+                    // Cross-Tier GPOs
+                    DeployDisableSmb1 = DeployDisableSmb1,
+                    DeployDisableWDigest = DeployDisableWDigest,
+                    DeployResetMachinePassword = DeployResetMachinePassword,
+
+                    LinkGposToOus = LinkGposToOus
                 };
 
                 var results = await _analysisService.DeployBaselineGposAsync(gpoOptions, _cts.Token);

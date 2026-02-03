@@ -336,11 +336,41 @@ namespace PlatypusTools.Core.Models
     /// </summary>
     public class GpoDeploymentOptions
     {
+        // Legacy/Quick Deploy GPOs
         public bool DeployPasswordPolicy { get; set; } = true;
         public bool DeployAuditPolicy { get; set; } = true;
         public bool DeploySecurityBaseline { get; set; } = true;
         public bool DeployPawPolicy { get; set; } = true;
         public string TieredOuBaseName { get; set; } = "Admin";
+
+        // === PLATYPUS/BILL Tiered GPOs ===
+
+        // Tier 0 GPOs (Domain Controllers / Tier 0 Servers)
+        public bool DeployT0BaselineAudit { get; set; } = false;
+        public bool DeployT0DisallowDsrm { get; set; } = false;
+        public bool DeployT0DomainBlock { get; set; } = false;
+        public bool DeployT0DomainControllers { get; set; } = false;
+        public bool DeployT0EsxAdmins { get; set; } = false;
+        public bool DeployT0UserRights { get; set; } = false;
+        public bool DeployT0RestrictedGroups { get; set; } = false;
+
+        // Tier 1 GPOs (Tier 1 Servers)
+        public bool DeployT1LocalAdmin { get; set; } = false;
+        public bool DeployT1UserRights { get; set; } = false;
+        public bool DeployT1RestrictedGroups { get; set; } = false;
+
+        // Tier 2 GPOs (Tier 2 Devices / Workstations)
+        public bool DeployT2LocalAdmin { get; set; } = false;
+        public bool DeployT2UserRights { get; set; } = false;
+        public bool DeployT2RestrictedGroups { get; set; } = false;
+
+        // Cross-Tier GPOs (Top Level / All Tiers)
+        public bool DeployDisableSmb1 { get; set; } = false;
+        public bool DeployDisableWDigest { get; set; } = false;
+        public bool DeployResetMachinePassword { get; set; } = false;
+
+        // Linking option
+        public bool LinkGposToOus { get; set; } = false;
     }
 
     /// <summary>

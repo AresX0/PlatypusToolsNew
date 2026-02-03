@@ -138,3 +138,8 @@ archive/shotcutsource/
 Tools/ffmpeg/
 Tools/exiftool/
 Tools/*.zip
+
+# ===================
+# PLATYPUS module (external)
+# ===================
+PLATYPUS/

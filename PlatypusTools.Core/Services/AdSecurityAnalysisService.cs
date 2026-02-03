@@ -1474,6 +1474,7 @@ namespace PlatypusTools.Core.Services
                     var domainDn = _domainInfo.DomainDn;
                     var domainFqdn = _domainInfo.DomainFqdn;
 
+                    // === Quick Deploy GPOs ===
                     if (options.DeployPasswordPolicy)
                     {
                         ct.ThrowIfCancellationRequested();
@@ -1504,6 +1505,138 @@ namespace PlatypusTools.Core.Services
                         results.Add(CreateGpoPlaceholder(dc, domainFqdn,
                             "PAW-SecurityPolicy",
                             "PAW lockdown policy. Configure: Credential Guard, Device Guard, AppLocker, restricted network."));
+                    }
+
+                    // === Tier 0 GPOs (PLATYPUS/BILL) ===
+                    if (options.DeployT0BaselineAudit)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "Tier 0 - Baseline Audit Policies - Tier 0 Servers",
+                            "Enhanced audit policies for Tier 0 servers. Configure: Success/Failure auditing for security events."));
+                    }
+
+                    if (options.DeployT0DisallowDsrm)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "Tier 0 - Disallow DSRM Login - DC ONLY",
+                            "Prevents DSRM (Directory Services Restore Mode) network logon. Link to Domain Controllers OU."));
+                    }
+
+                    if (options.DeployT0DomainBlock)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "Tier 0 - Domain Block - Top Level",
+                            "Blocks Tier 0 accounts from logging into non-Tier 0 systems. Link to domain root."));
+                    }
+
+                    if (options.DeployT0DomainControllers)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "Tier 0 - Domain Controllers - DC Only",
+                            "Security hardening for Domain Controllers. Link to Domain Controllers OU."));
+                    }
+
+                    if (options.DeployT0EsxAdmins)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "Tier 0 - ESX Admins Restricted Group - DC Only",
+                            "Empties ESX Admins group via Restricted Groups to prevent VMware privilege escalation."));
+                    }
+
+                    if (options.DeployT0UserRights)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "Tier 0 - User Rights Assignments - Tier 0 Servers",
+                            "Restricts logon rights on Tier 0 to only Tier 0 operators. Configure: Allow log on locally, Remote Desktop, etc."));
+                    }
+
+                    if (options.DeployT0RestrictedGroups)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "Tier 0 - Restricted Groups - Tier 0 Servers",
+                            "Controls local admin membership on Tier 0 servers. Configure: Administrators, Remote Desktop Users groups."));
+                    }
+
+                    // === Tier 1 GPOs ===
+                    if (options.DeployT1LocalAdmin)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "Tier 1 - Tier 1 Operators in Local Admin - Tier 1 Servers",
+                            "Adds Tier 1 Operators group to local Administrators on Tier 1 servers."));
+                    }
+
+                    if (options.DeployT1UserRights)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "Tier 1 - User Rights Assignments - Tier 1 Servers",
+                            "Restricts logon rights on Tier 1 servers to Tier 1 operators. Blocks Tier 0 and Tier 2."));
+                    }
+
+                    if (options.DeployT1RestrictedGroups)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "Tier 1 - Restricted Groups - Tier 1 Servers",
+                            "Controls local admin membership on Tier 1 servers."));
+                    }
+
+                    // === Tier 2 GPOs ===
+                    if (options.DeployT2LocalAdmin)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "Tier 2 - Tier 2 Operators in Local Admin - Tier 2 Devices",
+                            "Adds Tier 2 Operators group to local Administrators on workstations."));
+                    }
+
+                    if (options.DeployT2UserRights)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "Tier 2 - User Rights Assignments - Tier 2 Devices",
+                            "Restricts logon rights on workstations to Tier 2 operators. Blocks Tier 0 and Tier 1."));
+                    }
+
+                    if (options.DeployT2RestrictedGroups)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "Tier 2 - Restricted Groups - Tier 2 Devices",
+                            "Controls local admin membership on workstations."));
+                    }
+
+                    // === Cross-Tier GPOs ===
+                    if (options.DeployDisableSmb1)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "Tier ALL - Disable SMBv1 - Top Level",
+                            "Disables SMBv1 client and server across all systems. Link to domain root."));
+                    }
+
+                    if (options.DeployDisableWDigest)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "Tier ALL - Disable WDigest - Top Level",
+                            "Disables WDigest credential caching to prevent plaintext password storage in memory."));
+                    }
+
+                    if (options.DeployResetMachinePassword)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "PLATYPUS - Reset Machine Account Password",
+                            "Configures automatic machine account password rotation (default: 30 days)."));
                     }
 
                     _progress?.Report($"GPO deployment complete: {results.Count(r => r.Success)} succeeded, {results.Count(r => !r.Success)} failed");
