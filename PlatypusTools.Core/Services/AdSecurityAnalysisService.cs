@@ -1275,5 +1275,334 @@ namespace PlatypusTools.Core.Services
         }
 
         #endregion
+
+        #region Deployment Methods
+
+        /// <summary>
+        /// Deploys the tiered admin OU structure (BILL model).
+        /// </summary>
+        public async Task<List<AdObjectCreationResult>> DeployTieredOuStructureAsync(
+            BillOuTemplate template,
+            bool protectFromDeletion,
+            bool createUsersOus,
+            bool createDevicesOus,
+            CancellationToken ct = default)
+        {
+            return await Task.Run(() =>
+            {
+                var results = new List<AdObjectCreationResult>();
+
+                if (_domainInfo == null || string.IsNullOrEmpty(_domainInfo.ChosenDc))
+                {
+                    results.Add(new AdObjectCreationResult
+                    {
+                        Success = false,
+                        ObjectType = "Prerequisite",
+                        ObjectName = "Domain Connection",
+                        Message = "Domain not discovered. Run DiscoverDomainAsync first."
+                    });
+                    return results;
+                }
+
+                try
+                {
+                    var domainDn = _domainInfo.DomainDn;
+                    var dc = _domainInfo.ChosenDc;
+
+                    // Create base OU
+                    var baseOuDn = $"OU={template.BaseName},{domainDn}";
+                    results.Add(CreateOrganizationalUnit(dc, domainDn, template.BaseName, $"Tiered Administration Root OU", protectFromDeletion));
+
+                    // Create tier OUs
+                    var tiers = new[] { template.Tier0Name, template.Tier1Name, template.Tier2Name };
+                    foreach (var tier in tiers)
+                    {
+                        ct.ThrowIfCancellationRequested();
+
+                        var tierOuDn = $"OU={tier},{baseOuDn}";
+                        results.Add(CreateOrganizationalUnit(dc, baseOuDn, tier, $"{tier} - Tiered Admin OU", protectFromDeletion));
+
+                        // Create sub-OUs for each tier
+                        if (template.CreatePawOus)
+                        {
+                            results.Add(CreateOrganizationalUnit(dc, tierOuDn, "PAW", $"Privileged Access Workstations for {tier}", protectFromDeletion));
+                        }
+
+                        if (template.CreateServiceAccountOus)
+                        {
+                            results.Add(CreateOrganizationalUnit(dc, tierOuDn, "ServiceAccounts", $"Service Accounts for {tier}", protectFromDeletion));
+                        }
+
+                        if (template.CreateGroupsOus)
+                        {
+                            results.Add(CreateOrganizationalUnit(dc, tierOuDn, "Groups", $"Security Groups for {tier}", protectFromDeletion));
+                        }
+
+                        if (createUsersOus)
+                        {
+                            results.Add(CreateOrganizationalUnit(dc, tierOuDn, "Users", $"Admin Users for {tier}", protectFromDeletion));
+                        }
+
+                        if (createDevicesOus && tier != template.Tier0Name)
+                        {
+                            var deviceOuName = tier == template.Tier1Name ? "Servers" : "Workstations";
+                            results.Add(CreateOrganizationalUnit(dc, tierOuDn, deviceOuName, $"{deviceOuName} for {tier}", protectFromDeletion));
+                        }
+                    }
+
+                    _progress?.Report($"OU deployment complete: {results.Count(r => r.Success)} succeeded, {results.Count(r => !r.Success)} failed");
+                }
+                catch (Exception ex)
+                {
+                    results.Add(new AdObjectCreationResult
+                    {
+                        Success = false,
+                        ObjectType = "Error",
+                        ObjectName = "Deployment",
+                        Message = ex.Message,
+                        Error = ex
+                    });
+                }
+
+                return results;
+            }, ct);
+        }
+
+        /// <summary>
+        /// Creates an organizational unit.
+        /// </summary>
+        private AdObjectCreationResult CreateOrganizationalUnit(string dc, string parentDn, string ouName, string description, bool protectFromDeletion)
+        {
+            var result = new AdObjectCreationResult
+            {
+                ObjectType = "OU",
+                ObjectName = ouName,
+                DistinguishedName = $"OU={ouName},{parentDn}"
+            };
+
+            try
+            {
+                _progress?.Report($"Creating OU: {ouName} in {parentDn}");
+
+                using var parentEntry = new DirectoryEntry($"LDAP://{dc}/{parentDn}");
+                
+                // Check if OU already exists
+                using var searcher = new DirectorySearcher(parentEntry)
+                {
+                    Filter = $"(&(objectClass=organizationalUnit)(ou={ouName}))",
+                    SearchScope = SearchScope.OneLevel
+                };
+
+                var existing = searcher.FindOne();
+                if (existing != null)
+                {
+                    result.Success = true;
+                    result.Message = "OU already exists";
+                    _progress?.Report($"OU already exists: {ouName}");
+                    return result;
+                }
+
+                // Create new OU
+                using var newOu = parentEntry.Children.Add($"OU={ouName}", "organizationalUnit");
+                newOu.Properties["description"].Value = description;
+                newOu.CommitChanges();
+
+                // Set protection from accidental deletion
+                if (protectFromDeletion)
+                {
+                    try
+                    {
+                        var security = newOu.ObjectSecurity;
+                        var everyoneSid = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
+                        var denyDeleteRule = new ActiveDirectoryAccessRule(
+                            everyoneSid,
+                            ActiveDirectoryRights.Delete | ActiveDirectoryRights.DeleteTree,
+                            System.Security.AccessControl.AccessControlType.Deny);
+                        security.AddAccessRule(denyDeleteRule);
+                        newOu.CommitChanges();
+                    }
+                    catch (Exception protectEx)
+                    {
+                        _progress?.Report($"Warning: Could not set deletion protection on {ouName}: {protectEx.Message}");
+                    }
+                }
+
+                result.Success = true;
+                result.Message = "Created successfully";
+                _progress?.Report($"Created OU: {ouName}");
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = ex.Message;
+                result.Error = ex;
+                _progress?.Report($"Failed to create OU {ouName}: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Deploys baseline GPOs for security hardening.
+        /// </summary>
+        public async Task<List<AdObjectCreationResult>> DeployBaselineGposAsync(
+            GpoDeploymentOptions options,
+            CancellationToken ct = default)
+        {
+            return await Task.Run(() =>
+            {
+                var results = new List<AdObjectCreationResult>();
+
+                if (_domainInfo == null || string.IsNullOrEmpty(_domainInfo.ChosenDc))
+                {
+                    results.Add(new AdObjectCreationResult
+                    {
+                        Success = false,
+                        ObjectType = "Prerequisite",
+                        ObjectName = "Domain Connection",
+                        Message = "Domain not discovered. Run DiscoverDomainAsync first."
+                    });
+                    return results;
+                }
+
+                _progress?.Report("Note: GPO deployment requires PowerShell GroupPolicy module.");
+                _progress?.Report("This feature creates GPO shells. Use Group Policy Management Console to configure settings.");
+
+                try
+                {
+                    var dc = _domainInfo.ChosenDc;
+                    var domainDn = _domainInfo.DomainDn;
+                    var domainFqdn = _domainInfo.DomainFqdn;
+
+                    if (options.DeployPasswordPolicy)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn, 
+                            "Baseline-PasswordPolicy", 
+                            "Fine-grained password policy. Configure in GPMC: Password must be 14+ chars, complexity enabled, 90-day max age."));
+                    }
+
+                    if (options.DeployAuditPolicy)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "Baseline-AuditPolicy",
+                            "Advanced audit policy. Configure: Logon/Logoff, Account Logon, Object Access, Policy Change, Privilege Use."));
+                    }
+
+                    if (options.DeploySecurityBaseline)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "Baseline-SecurityHardening",
+                            "Security hardening baseline. Configure: Disable LM hash, SMB signing, LDAP signing, restrict anonymous."));
+                    }
+
+                    if (options.DeployPawPolicy)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        results.Add(CreateGpoPlaceholder(dc, domainFqdn,
+                            "PAW-SecurityPolicy",
+                            "PAW lockdown policy. Configure: Credential Guard, Device Guard, AppLocker, restricted network."));
+                    }
+
+                    _progress?.Report($"GPO deployment complete: {results.Count(r => r.Success)} succeeded, {results.Count(r => !r.Success)} failed");
+                }
+                catch (Exception ex)
+                {
+                    results.Add(new AdObjectCreationResult
+                    {
+                        Success = false,
+                        ObjectType = "Error",
+                        ObjectName = "GPO Deployment",
+                        Message = ex.Message,
+                        Error = ex
+                    });
+                }
+
+                return results;
+            }, ct);
+        }
+
+        /// <summary>
+        /// Creates a GPO placeholder (shell GPO without configured settings).
+        /// Full GPO configuration requires the GroupPolicy PowerShell module or GPMC.
+        /// </summary>
+        private AdObjectCreationResult CreateGpoPlaceholder(string dc, string domainFqdn, string gpoName, string description)
+        {
+            var result = new AdObjectCreationResult
+            {
+                ObjectType = "GPO",
+                ObjectName = gpoName
+            };
+
+            try
+            {
+                _progress?.Report($"Creating GPO: {gpoName}");
+
+                // GPO creation via LDAP requires creating objects in CN=Policies,CN=System
+                // This is complex - for production use, recommend PowerShell GroupPolicy module
+                // Here we'll create a placeholder entry to track intent
+
+                var gpoContainerDn = $"CN=Policies,CN=System,{DomainToDn(domainFqdn)}";
+                
+                using var gpoContainer = new DirectoryEntry($"LDAP://{dc}/{gpoContainerDn}");
+                
+                // Check if GPO already exists (search by displayName in groupPolicyContainer objects)
+                using var searcher = new DirectorySearcher(gpoContainer)
+                {
+                    Filter = $"(&(objectClass=groupPolicyContainer)(displayName={gpoName}))",
+                    SearchScope = SearchScope.OneLevel
+                };
+
+                var existing = searcher.FindOne();
+                if (existing != null)
+                {
+                    result.Success = true;
+                    result.Message = "GPO already exists";
+                    result.DistinguishedName = existing.Properties["distinguishedName"]?[0]?.ToString() ?? "";
+                    _progress?.Report($"GPO already exists: {gpoName}");
+                    return result;
+                }
+
+                // Create new GPO container
+                // Generate a new GUID for the GPO
+                var gpoGuid = Guid.NewGuid().ToString("B").ToUpperInvariant();
+                var gpoCn = $"CN={gpoGuid}";
+
+                using var newGpo = gpoContainer.Children.Add(gpoCn, "groupPolicyContainer");
+                newGpo.Properties["displayName"].Value = gpoName;
+                newGpo.Properties["gPCFileSysPath"].Value = $"\\\\{domainFqdn}\\SysVol\\{domainFqdn}\\Policies\\{gpoGuid}";
+                newGpo.Properties["gPCFunctionalityVersion"].Value = 2;
+                newGpo.Properties["flags"].Value = 0; // GPO enabled
+                newGpo.Properties["versionNumber"].Value = 0;
+                newGpo.CommitChanges();
+
+                result.Success = true;
+                result.Message = $"Created. {description}";
+                result.DistinguishedName = $"{gpoCn},{gpoContainerDn}";
+                _progress?.Report($"Created GPO: {gpoName}");
+
+                // Note: SYSVOL folder structure and GPT.INI would need to be created separately
+                // For full GPO functionality, use PowerShell: New-GPO, Set-GPRegistryValue, etc.
+            }
+            catch (UnauthorizedAccessException)
+            {
+                result.Success = false;
+                result.Message = "Access denied. Requires Domain Admin or GPO Creator Owners rights.";
+                _progress?.Report($"Access denied creating GPO: {gpoName}");
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = ex.Message;
+                result.Error = ex;
+                _progress?.Report($"Failed to create GPO {gpoName}: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        #endregion
     }
 }

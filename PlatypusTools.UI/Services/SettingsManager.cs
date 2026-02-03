@@ -185,6 +185,30 @@ namespace PlatypusTools.UI.Services
             set { _autoInstallDependencies = value; OnPropertyChanged(); }
         }
 
+        // AD Security Analyzer license key protection
+        private string _adSecurityLicenseKey = string.Empty;
+        private bool _adSecurityHidden = true;
+
+        /// <summary>
+        /// Gets or sets the stored license key for the AD Security Analyzer tab.
+        /// Empty string means no license key is registered (tab is inaccessible).
+        /// </summary>
+        public string AdSecurityLicenseKey
+        {
+            get => _adSecurityLicenseKey;
+            set { _adSecurityLicenseKey = value ?? string.Empty; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets whether the AD Security Analyzer tab is hidden by default.
+        /// When true, users must unlock it with the password (if set) or keyboard shortcut.
+        /// </summary>
+        public bool AdSecurityHidden
+        {
+            get => _adSecurityHidden;
+            set { _adSecurityHidden = value; OnPropertyChanged(); }
+        }
+
         /// <summary>
         /// Dictionary mapping tab keys to their visibility state.
         /// Keys follow the pattern: "MainTab" or "MainTab.SubTab" for nested tabs.
@@ -203,6 +227,64 @@ namespace PlatypusTools.UI.Services
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        // Session-based unlock state (not persisted - resets on app restart)
+        private bool _isAdSecurityUnlocked = false;
+        
+        /// <summary>
+        /// Gets or sets whether the AD Security Analyzer has been unlocked for this session.
+        /// This is NOT persisted - resets to false on app restart.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        public bool IsAdSecurityUnlocked
+        {
+            get => _isAdSecurityUnlocked;
+            set 
+            { 
+                _isAdSecurityUnlocked = value; 
+                OnPropertyChanged();
+                // Trigger tab visibility refresh
+                TabVisibilityChanged?.Invoke(this, "Security.AdSecurityAnalyzer");
+            }
+        }
+
+        /// <summary>
+        /// Validates a license key for AD Security Analyzer using the LicenseKeyService.
+        /// </summary>
+        public bool ValidateLicenseKey(string licenseKey)
+        {
+            // Check if already licensed
+            if (!string.IsNullOrEmpty(AdSecurityLicenseKey))
+            {
+                // Already has a stored key - check if it's still valid
+                if (PlatypusTools.Core.Services.LicenseKeyService.ValidateKey(AdSecurityLicenseKey))
+                {
+                    IsAdSecurityUnlocked = true;
+                    return true;
+                }
+            }
+            
+            // Validate the provided key
+            if (PlatypusTools.Core.Services.LicenseKeyService.ValidateKey(licenseKey))
+            {
+                // Store the valid key
+                AdSecurityLicenseKey = PlatypusTools.Core.Services.LicenseKeyService.FormatKey(licenseKey);
+                IsAdSecurityUnlocked = true;
+                return true;
+            }
+            
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if the stored license key is valid (for auto-unlock on app start).
+        /// </summary>
+        public bool HasValidLicenseKey()
+        {
+            if (string.IsNullOrEmpty(AdSecurityLicenseKey))
+                return false;
+            return PlatypusTools.Core.Services.LicenseKeyService.ValidateKey(AdSecurityLicenseKey);
+        }
+
         /// <summary>
         /// Gets whether a tab should be visible. Returns true by default if not configured,
         /// except for deprecated tabs which default to hidden.
@@ -210,6 +292,19 @@ namespace PlatypusTools.UI.Services
         public bool IsTabVisible(string tabKey)
         {
             if (string.IsNullOrEmpty(tabKey)) return true;
+            
+            // Special handling for AD Security Analyzer - requires valid license + session unlock
+            if (tabKey == "Security.AdSecurityAnalyzer")
+            {
+                // Must have valid license AND be unlocked this session
+                if (!HasValidLicenseKey() || !IsAdSecurityUnlocked)
+                    return false;
+                    
+                // If unlocked and licensed, use saved visibility setting (defaults to true if not set)
+                if (VisibleTabs.TryGetValue(tabKey, out var adVisible))
+                    return adVisible;
+                return true; // Default to visible once licensed and unlocked
+            }
             
             // Explicitly check if user has set visibility
             if (VisibleTabs.TryGetValue(tabKey, out var visible))
@@ -365,6 +460,7 @@ namespace PlatypusTools.UI.Services
                 new("Security.AdvancedForensics.Registry", "Registry Diff", "Security.AdvancedForensics"),
                 new("Security.AdvancedForensics.PCAP", "PCAP Parser", "Security.AdvancedForensics"),
                 new("Security.AdvancedForensics.Results", "Results", "Security.AdvancedForensics"),
+                new("Security.AdSecurityAnalyzer", "AD Security Analyzer", "Security"),
 
                 new("Metadata", "📋 Metadata", null),
 

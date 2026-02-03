@@ -3376,11 +3376,11 @@ namespace PlatypusTools.UI.Views
                 canvas.Children.Add(battleCry);
             }
             
-            // === HONOR TEXT ===
+            // === HONOR TEXT (Bottom) ===
             var honorText = new TextBlock
             {
-                Text = "batlh",  // Honor
-                FontFamily = new FontFamily("klingon font, Impact, Arial"),
+                Text = "Honor - batlh",
+                FontFamily = new FontFamily("pIqaD, klingon font, Impact, Arial"),
                 FontSize = Math.Max(24, height * 0.055),
                 FontWeight = FontWeights.Bold,
                 Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 180, 100)),
@@ -3396,11 +3396,11 @@ namespace PlatypusTools.UI.Views
             Canvas.SetTop(honorText, height - 55);
             canvas.Children.Add(honorText);
             
-            // === Additional Klingon phrase ===
+            // === We Are Klingon (Top) ===
             var gloryText = new TextBlock
             {
-                Text = "tlhIngan maH!",  // We are Klingon!
-                FontFamily = new FontFamily("klingon font, Impact, Arial"),
+                Text = "We Are Klingon - tlhIngan maH",
+                FontFamily = new FontFamily("pIqaD, klingon font, Impact, Arial"),
                 FontSize = Math.Max(18, height * 0.04),
                 FontWeight = FontWeights.Bold,
                 Foreground = new SolidColorBrush(Color.FromArgb((byte)(120 + avgIntensity * 80), 220, 160, 100)),

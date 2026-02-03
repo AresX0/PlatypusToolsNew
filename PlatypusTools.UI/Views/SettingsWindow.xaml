@@ -311,7 +311,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.3.1.0"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.3.1.1"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="Gray" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" Width="160" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
@@ -416,6 +416,10 @@
                                 <CheckBox x:Name="TabSystemAudit" Content="    System Audit" IsChecked="True" Margin="16,4,0,4"/>
                                 <CheckBox x:Name="TabForensicsAnalyzer" Content="    Forensics Analyzer" IsChecked="True" Margin="16,4,0,4"/>
                                 <CheckBox x:Name="TabSecureWipe" Content="    Secure Wipe" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabHashScanner" Content="    Hash Scanner" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabRebootAnalyzer" Content="    Reboot Analyzer" IsChecked="True" Margin="16,4,0,4"/>
+                                <!-- AD Security Analyzer - shown only when licensed -->
+                                <CheckBox x:Name="TabAdSecurityAnalyzer" Content="    🔐 AD Security Analyzer (Licensed)" IsChecked="True" Margin="16,4,0,4" Visibility="Collapsed"/>
                                 <CheckBox x:Name="TabAdvancedForensics" Content="    🔬 Advanced Forensics" IsChecked="True" Margin="16,4,0,4"/>
                                 <!-- Advanced Forensics Sub-tabs -->
                                 <CheckBox x:Name="TabAdvForensicsMemory" Content="        Memory Analysis" IsChecked="True" Margin="32,4,0,4"/>

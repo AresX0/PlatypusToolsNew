@@ -37,6 +37,7 @@ namespace PlatypusTools.UI.ViewModels
             AdminCountAnomalies = new ObservableCollection<AdAdminCountAnomaly>();
             AnalysisHistory = new ObservableCollection<StoredAnalysisRun>();
             LogMessages = new ObservableCollection<string>();
+            DeploymentResults = new ObservableCollection<AdObjectCreationResult>();
 
             // Initialize commands
             DiscoverDomainCommand = new RelayCommand(async _ => await DiscoverDomainAsync(), _ => !IsAnalyzing);
@@ -55,6 +56,12 @@ namespace PlatypusTools.UI.ViewModels
             ClearHistoryCommand = new RelayCommand(async _ => await ClearHistoryAsync(), _ => AnalysisHistory.Count > 0);
             ClearLogCommand = new RelayCommand(_ => LogMessages.Clear());
             OpenDatabaseFolderCommand = new RelayCommand(_ => OpenDatabaseFolder());
+
+            // Deployment commands
+            DeployTieredOusCommand = new RelayCommand(async _ => await DeployTieredOusAsync(), _ => !IsAnalyzing && IsDomainDiscovered);
+            DeployBaselineGposCommand = new RelayCommand(async _ => await DeployBaselineGposAsync(), _ => !IsAnalyzing && IsDomainDiscovered);
+            PreviewDeploymentCommand = new RelayCommand(_ => PreviewDeployment(), _ => IsDomainDiscovered);
+            ClearDeploymentResultsCommand = new RelayCommand(_ => DeploymentResults.Clear(), _ => DeploymentResults.Count > 0);
 
             // Initialize
             _ = InitializeAsync();
@@ -189,6 +196,112 @@ namespace PlatypusTools.UI.ViewModels
             set => SetProperty(ref _includeForestMode, value);
         }
 
+        // Deployment Options (BILL Model)
+        private string _deploymentBaseName = "Admin";
+        public string DeploymentBaseName
+        {
+            get => _deploymentBaseName;
+            set => SetProperty(ref _deploymentBaseName, value);
+        }
+
+        private string _tier0Name = "Tier0";
+        public string Tier0Name
+        {
+            get => _tier0Name;
+            set => SetProperty(ref _tier0Name, value);
+        }
+
+        private string _tier1Name = "Tier1";
+        public string Tier1Name
+        {
+            get => _tier1Name;
+            set => SetProperty(ref _tier1Name, value);
+        }
+
+        private string _tier2Name = "Tier2";
+        public string Tier2Name
+        {
+            get => _tier2Name;
+            set => SetProperty(ref _tier2Name, value);
+        }
+
+        private bool _createPawOus = true;
+        public bool CreatePawOus
+        {
+            get => _createPawOus;
+            set => SetProperty(ref _createPawOus, value);
+        }
+
+        private bool _createServiceAccountOus = true;
+        public bool CreateServiceAccountOus
+        {
+            get => _createServiceAccountOus;
+            set => SetProperty(ref _createServiceAccountOus, value);
+        }
+
+        private bool _createGroupsOus = true;
+        public bool CreateGroupsOus
+        {
+            get => _createGroupsOus;
+            set => SetProperty(ref _createGroupsOus, value);
+        }
+
+        private bool _createUsersOus = true;
+        public bool CreateUsersOus
+        {
+            get => _createUsersOus;
+            set => SetProperty(ref _createUsersOus, value);
+        }
+
+        private bool _createDevicesOus = true;
+        public bool CreateDevicesOus
+        {
+            get => _createDevicesOus;
+            set => SetProperty(ref _createDevicesOus, value);
+        }
+
+        private bool _protectOusFromDeletion = true;
+        public bool ProtectOusFromDeletion
+        {
+            get => _protectOusFromDeletion;
+            set => SetProperty(ref _protectOusFromDeletion, value);
+        }
+
+        private bool _deployPasswordPolicyGpo = true;
+        public bool DeployPasswordPolicyGpo
+        {
+            get => _deployPasswordPolicyGpo;
+            set => SetProperty(ref _deployPasswordPolicyGpo, value);
+        }
+
+        private bool _deployAuditPolicyGpo = true;
+        public bool DeployAuditPolicyGpo
+        {
+            get => _deployAuditPolicyGpo;
+            set => SetProperty(ref _deployAuditPolicyGpo, value);
+        }
+
+        private bool _deploySecurityBaselineGpo = true;
+        public bool DeploySecurityBaselineGpo
+        {
+            get => _deploySecurityBaselineGpo;
+            set => SetProperty(ref _deploySecurityBaselineGpo, value);
+        }
+
+        private bool _deployPawGpo = true;
+        public bool DeployPawGpo
+        {
+            get => _deployPawGpo;
+            set => SetProperty(ref _deployPawGpo, value);
+        }
+
+        private string _deploymentPreview = string.Empty;
+        public string DeploymentPreview
+        {
+            get => _deploymentPreview;
+            set => SetProperty(ref _deploymentPreview, value);
+        }
+
         // Results
         private bool _hasResults;
         public bool HasResults
@@ -261,6 +374,7 @@ namespace PlatypusTools.UI.ViewModels
         public ObservableCollection<AdAdminCountAnomaly> AdminCountAnomalies { get; }
         public ObservableCollection<StoredAnalysisRun> AnalysisHistory { get; }
         public ObservableCollection<string> LogMessages { get; }
+        public ObservableCollection<AdObjectCreationResult> DeploymentResults { get; }
 
         private StoredAnalysisRun? _selectedHistoryRun;
         public StoredAnalysisRun? SelectedHistoryRun
@@ -316,6 +430,12 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand ClearHistoryCommand { get; }
         public ICommand ClearLogCommand { get; }
         public ICommand OpenDatabaseFolderCommand { get; }
+
+        // Deployment Commands
+        public ICommand DeployTieredOusCommand { get; }
+        public ICommand DeployBaselineGposCommand { get; }
+        public ICommand PreviewDeploymentCommand { get; }
+        public ICommand ClearDeploymentResultsCommand { get; }
 
         #endregion
 
@@ -851,6 +971,203 @@ namespace PlatypusTools.UI.ViewModels
                     LogMessages.RemoveAt(0);
                 }
             });
+        }
+
+        #endregion
+
+        #region Deployment Methods
+
+        private void PreviewDeployment()
+        {
+            var preview = new System.Text.StringBuilder();
+            preview.AppendLine("=== OU Structure Preview ===");
+            preview.AppendLine();
+            
+            if (DomainInfo != null)
+            {
+                preview.AppendLine($"Target Domain: {DomainInfo.DomainFqdn}");
+                preview.AppendLine($"Domain DN: {DomainInfo.DomainDn}");
+                preview.AppendLine();
+            }
+
+            preview.AppendLine($"OU={DeploymentBaseName},{DomainInfo?.DomainDn ?? "DC=domain,DC=local"}");
+            preview.AppendLine($"  ├── OU={Tier0Name}");
+            if (CreatePawOus) preview.AppendLine($"  │   ├── OU=PAW");
+            if (CreateServiceAccountOus) preview.AppendLine($"  │   ├── OU=ServiceAccounts");
+            if (CreateGroupsOus) preview.AppendLine($"  │   ├── OU=Groups");
+            if (CreateUsersOus) preview.AppendLine($"  │   └── OU=Users");
+            
+            preview.AppendLine($"  ├── OU={Tier1Name}");
+            if (CreatePawOus) preview.AppendLine($"  │   ├── OU=PAW");
+            if (CreateServiceAccountOus) preview.AppendLine($"  │   ├── OU=ServiceAccounts");
+            if (CreateGroupsOus) preview.AppendLine($"  │   ├── OU=Groups");
+            if (CreateUsersOus) preview.AppendLine($"  │   ├── OU=Users");
+            if (CreateDevicesOus) preview.AppendLine($"  │   └── OU=Servers");
+            
+            preview.AppendLine($"  └── OU={Tier2Name}");
+            if (CreatePawOus) preview.AppendLine($"      ├── OU=PAW");
+            if (CreateServiceAccountOus) preview.AppendLine($"      ├── OU=ServiceAccounts");
+            if (CreateGroupsOus) preview.AppendLine($"      ├── OU=Groups");
+            if (CreateUsersOus) preview.AppendLine($"      ├── OU=Users");
+            if (CreateDevicesOus) preview.AppendLine($"      └── OU=Workstations");
+
+            preview.AppendLine();
+            preview.AppendLine("=== GPO Preview ===");
+            preview.AppendLine();
+            if (DeployPasswordPolicyGpo) preview.AppendLine("• Password Policy GPO (linked to domain)");
+            if (DeployAuditPolicyGpo) preview.AppendLine("• Advanced Audit Policy GPO (linked to domain)");
+            if (DeploySecurityBaselineGpo) preview.AppendLine("• Security Baseline GPO (linked to each tier)");
+            if (DeployPawGpo) preview.AppendLine("• PAW Security GPO (linked to PAW OUs)");
+
+            preview.AppendLine();
+            preview.AppendLine($"Protection from deletion: {(ProtectOusFromDeletion ? "Enabled" : "Disabled")}");
+
+            DeploymentPreview = preview.ToString();
+        }
+
+        private async Task DeployTieredOusAsync()
+        {
+            if (DomainInfo == null)
+            {
+                MessageBox.Show("Please discover the domain first.", "Domain Required", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var confirm = MessageBox.Show(
+                $"Create tiered admin OU structure in {DomainInfo.DomainFqdn}?\n\n" +
+                "This will create:\n" +
+                $"• {DeploymentBaseName} (base OU)\n" +
+                $"• {Tier0Name}, {Tier1Name}, {Tier2Name} (tier OUs)\n" +
+                "• Sub-OUs for PAW, ServiceAccounts, Groups, Users, Devices\n\n" +
+                "Continue?",
+                "Confirm OU Deployment",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            IsAnalyzing = true;
+            Status = "Deploying tiered OU structure...";
+
+            try
+            {
+                _cts = new CancellationTokenSource();
+                DeploymentResults.Clear();
+
+                var template = new BillOuTemplate
+                {
+                    BaseName = DeploymentBaseName,
+                    Tier0Name = Tier0Name,
+                    Tier1Name = Tier1Name,
+                    Tier2Name = Tier2Name,
+                    CreatePawOus = CreatePawOus,
+                    CreateServiceAccountOus = CreateServiceAccountOus,
+                    CreateGroupsOus = CreateGroupsOus
+                };
+
+                var results = await _analysisService.DeployTieredOuStructureAsync(
+                    template, 
+                    ProtectOusFromDeletion,
+                    CreateUsersOus,
+                    CreateDevicesOus,
+                    _cts.Token);
+
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    foreach (var r in results)
+                    {
+                        DeploymentResults.Add(r);
+                        AppendLog($"{(r.Success ? "✓" : "✗")} {r.ObjectType}: {r.ObjectName} - {r.Message}");
+                    }
+                });
+
+                var successCount = results.Count(r => r.Success);
+                var failCount = results.Count(r => !r.Success);
+                Status = $"Deployment complete: {successCount} succeeded, {failCount} failed";
+            }
+            catch (OperationCanceledException)
+            {
+                Status = "Deployment cancelled.";
+            }
+            catch (Exception ex)
+            {
+                Status = $"Error: {ex.Message}";
+                AppendLog($"Deployment error: {ex.Message}");
+                MessageBox.Show($"Deployment failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        private async Task DeployBaselineGposAsync()
+        {
+            if (DomainInfo == null)
+            {
+                MessageBox.Show("Please discover the domain first.", "Domain Required", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var confirm = MessageBox.Show(
+                $"Deploy baseline GPOs to {DomainInfo.DomainFqdn}?\n\n" +
+                "This will create and link:\n" +
+                (DeployPasswordPolicyGpo ? "• Password Policy GPO\n" : "") +
+                (DeployAuditPolicyGpo ? "• Advanced Audit Policy GPO\n" : "") +
+                (DeploySecurityBaselineGpo ? "• Security Baseline GPO\n" : "") +
+                (DeployPawGpo ? "• PAW Security GPO\n" : "") +
+                "\nContinue?",
+                "Confirm GPO Deployment",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            IsAnalyzing = true;
+            Status = "Deploying baseline GPOs...";
+
+            try
+            {
+                _cts = new CancellationTokenSource();
+
+                var gpoOptions = new GpoDeploymentOptions
+                {
+                    DeployPasswordPolicy = DeployPasswordPolicyGpo,
+                    DeployAuditPolicy = DeployAuditPolicyGpo,
+                    DeploySecurityBaseline = DeploySecurityBaselineGpo,
+                    DeployPawPolicy = DeployPawGpo,
+                    TieredOuBaseName = DeploymentBaseName
+                };
+
+                var results = await _analysisService.DeployBaselineGposAsync(gpoOptions, _cts.Token);
+
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    foreach (var r in results)
+                    {
+                        DeploymentResults.Add(r);
+                        AppendLog($"{(r.Success ? "✓" : "✗")} {r.ObjectType}: {r.ObjectName} - {r.Message}");
+                    }
+                });
+
+                var successCount = results.Count(r => r.Success);
+                var failCount = results.Count(r => !r.Success);
+                Status = $"GPO deployment complete: {successCount} succeeded, {failCount} failed";
+            }
+            catch (OperationCanceledException)
+            {
+                Status = "GPO deployment cancelled.";
+            }
+            catch (Exception ex)
+            {
+                Status = $"Error: {ex.Message}";
+                AppendLog($"GPO deployment error: {ex.Message}");
+                MessageBox.Show($"GPO deployment failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
         }
 
         #endregion

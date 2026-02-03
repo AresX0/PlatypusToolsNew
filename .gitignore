@@ -111,6 +111,15 @@ CHANGES_MANIFEST_*.md
 COMPLETION_SUMMARY.md
 
 # ===================
+# Private/Secret Files - NEVER COMMIT
+# ===================
+scripts/Generate-LicenseKey.ps1
+**/Generate-LicenseKey.ps1
+**/LicenseKeyGenerator*
+*.licensekeys
+license-keys*.txt
+
+# ===================
 # NuGet
 # ===================
 *.nupkg

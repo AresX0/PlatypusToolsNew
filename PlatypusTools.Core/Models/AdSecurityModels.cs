@@ -332,6 +332,18 @@ namespace PlatypusTools.Core.Models
     }
 
     /// <summary>
+    /// Options for deploying baseline GPOs.
+    /// </summary>
+    public class GpoDeploymentOptions
+    {
+        public bool DeployPasswordPolicy { get; set; } = true;
+        public bool DeployAuditPolicy { get; set; } = true;
+        public bool DeploySecurityBaseline { get; set; } = true;
+        public bool DeployPawPolicy { get; set; } = true;
+        public string TieredOuBaseName { get; set; } = "Admin";
+    }
+
+    /// <summary>
     /// Result of GPO/OU creation operations.
     /// </summary>
     public class AdObjectCreationResult

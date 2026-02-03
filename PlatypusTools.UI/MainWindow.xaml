@@ -47,6 +47,8 @@
                 <MenuItem Header="Run Parity Tests..." Command="{Binding RunParityTestsCommand}" />
                 <MenuItem Header="Credential Manager..." Command="{Binding OpenCredentialManagerCommand}" />
                 <Separator />
+                <MenuItem Header="🔐 Unlock AD Security Analyzer..." Click="UnlockAdSecurity_Click" InputGestureText="Ctrl+Shift+A" />
+                <Separator />
                 <MenuItem Header="Validate DataContext" Click="ValidateDataContext_Click" />
                 <Separator />
                 <MenuItem Header="Settings..." Click="OpenSettings" InputGestureText="Ctrl+," />

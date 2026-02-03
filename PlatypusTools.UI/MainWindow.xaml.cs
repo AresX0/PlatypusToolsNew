@@ -224,6 +224,7 @@ namespace PlatypusTools.UI
         /// Ctrl+Shift+P - Command Palette
         /// F11 - Toggle fullscreen
         /// ESC - Exit fullscreen
+        /// Ctrl+Shift+A - Unlock AD Security Analyzer
         /// </summary>
         private void MainWindow_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
@@ -232,6 +233,13 @@ namespace PlatypusTools.UI
                 System.Windows.Input.Keyboard.Modifiers == (System.Windows.Input.ModifierKeys.Control | System.Windows.Input.ModifierKeys.Shift))
             {
                 Services.CommandService.Instance.ShowCommandPalette(this);
+                e.Handled = true;
+            }
+            // Ctrl+Shift+A - Unlock AD Security Analyzer
+            else if (e.Key == System.Windows.Input.Key.A && 
+                System.Windows.Input.Keyboard.Modifiers == (System.Windows.Input.ModifierKeys.Control | System.Windows.Input.ModifierKeys.Shift))
+            {
+                ShowAdSecurityUnlockDialog();
                 e.Handled = true;
             }
             else if (e.Key == System.Windows.Input.Key.F11)
@@ -243,6 +251,24 @@ namespace PlatypusTools.UI
             {
                 ExitFullScreen();
                 e.Handled = true;
+            }
+        }
+
+        /// <summary>
+        /// Shows the AD Security Analyzer unlock dialog.
+        /// </summary>
+        private void ShowAdSecurityUnlockDialog()
+        {
+            var dialog = new Views.AdSecurityUnlockDialog
+            {
+                Owner = this
+            };
+            
+            if (dialog.ShowDialog() == true && dialog.WasUnlocked)
+            {
+                // Tab visibility is refreshed by the dialog
+                // Optionally navigate to the tab
+                StatusBarViewModel.Instance.StatusMessage = "AD Security Analyzer unlocked";
             }
         }
         
@@ -407,6 +433,11 @@ namespace PlatypusTools.UI
         {
             var report = DataContextValidator.ValidateMainWindow(this);
             MessageBox.Show(report, "DataContext Validation", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void UnlockAdSecurity_Click(object sender, RoutedEventArgs e)
+        {
+            ShowAdSecurityUnlockDialog();
         }
 
         private void ShowFileCleanerHelp(object sender, RoutedEventArgs e)

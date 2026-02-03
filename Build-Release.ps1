@@ -297,6 +297,40 @@ Write-Success "EXE built: $exePath"
 Write-Host "  Size: $exeSizeMB MB" -ForegroundColor Gray
 Write-Host "  Created: $($exeInfo.LastWriteTime)" -ForegroundColor Gray
 
+# === STEP 7b: Copy Content folders to publish directory ===
+# Themes and Assets are Content files that need to be copied separately for single-file publish
+Write-Step "Copying Content folders (Themes, Assets) to publish directory"
+
+# Copy Themes
+$themesSource = Join-Path $ProjectRoot "PlatypusTools.UI\Themes"
+$themesDest = Join-Path $publishDir "Themes"
+
+if (Test-Path $themesSource) {
+    if (-not (Test-Path $themesDest)) {
+        New-Item -ItemType Directory -Path $themesDest -Force | Out-Null
+    }
+    Copy-Item -Path "$themesSource\*" -Destination $themesDest -Force
+    $themeCount = (Get-ChildItem -Path $themesDest -File).Count
+    Write-Success "Copied $themeCount theme files to publish\Themes"
+} else {
+    Write-Warning "Themes source folder not found: $themesSource"
+}
+
+# Copy Assets
+$assetsSource = Join-Path $ProjectRoot "PlatypusTools.UI\Assets"
+$assetsDest = Join-Path $publishDir "Assets"
+
+if (Test-Path $assetsSource) {
+    if (-not (Test-Path $assetsDest)) {
+        New-Item -ItemType Directory -Path $assetsDest -Force | Out-Null
+    }
+    Copy-Item -Path "$assetsSource\*" -Destination $assetsDest -Force -Recurse
+    $assetCount = (Get-ChildItem -Path $assetsDest -File -Recurse).Count
+    Write-Success "Copied $assetCount asset files to publish\Assets"
+} else {
+    Write-Warning "Assets source folder not found: $assetsSource"
+}
+
 # === STEP 8: Code Signing ===
 Write-Step "Code Signing EXE and MSI"
 

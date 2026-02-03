@@ -22,6 +22,8 @@ namespace PlatypusTools.UI.ViewModels
         private bool _recursiveCrawl = false;
         private int _maxDepth = 1;
         private string? _urlPattern;
+        private bool _followPagination = true;
+        private int _maxPaginationPages = 100;
         private bool _isScanning = false;
         private bool _isDownloading = false;
         private int _progress = 0;
@@ -95,6 +97,18 @@ namespace PlatypusTools.UI.ViewModels
             set => SetProperty(ref _urlPattern, value);
         }
 
+        public bool FollowPagination
+        {
+            get => _followPagination;
+            set => SetProperty(ref _followPagination, value);
+        }
+
+        public int MaxPaginationPages
+        {
+            get => _maxPaginationPages;
+            set => SetProperty(ref _maxPaginationPages, value);
+        }
+
         public bool IsScanning
         {
             get => _isScanning;
@@ -165,7 +179,9 @@ namespace PlatypusTools.UI.ViewModels
                     DownloadDocuments = DownloadDocuments,
                     RecursiveCrawl = RecursiveCrawl,
                     MaxDepth = MaxDepth,
-                    UrlPattern = UrlPattern
+                    UrlPattern = UrlPattern,
+                    FollowPagination = FollowPagination,
+                    MaxPaginationPages = MaxPaginationPages
                 };
 
                 var items = await _service.ScanUrlAsync(Url, options, _cancellationTokenSource.Token);

@@ -1082,6 +1082,9 @@ namespace PlatypusTools.UI.Views
             { "TabAdvForensicsRegistry", "Security.AdvancedForensics.Registry" },
             { "TabAdvForensicsPCAP", "Security.AdvancedForensics.PCAP" },
             { "TabAdvForensicsResults", "Security.AdvancedForensics.Results" },
+            { "TabHashScanner", "Security.HashScanner" },
+            { "TabRebootAnalyzer", "Security.RebootAnalyzer" },
+            { "TabAdSecurityAnalyzer", "Security.AdSecurityAnalyzer" },
             
             // Metadata
             { "TabMetadata", "Metadata" },
@@ -1114,6 +1117,22 @@ namespace PlatypusTools.UI.Views
                     if (checkbox != null)
                     {
                         checkbox.IsChecked = settings.IsTabVisible(kvp.Value);
+                    }
+                }
+                
+                // Show AD Security Analyzer checkbox only when licensed
+                if (TabAdSecurityAnalyzer != null)
+                {
+                    bool isLicensed = settings.HasValidLicenseKey();
+                    TabAdSecurityAnalyzer.Visibility = isLicensed ? Visibility.Visible : Visibility.Collapsed;
+                    
+                    // If licensed, check the saved visibility setting (or default to visible)
+                    if (isLicensed)
+                    {
+                        if (settings.VisibleTabs.TryGetValue("Security.AdSecurityAnalyzer", out var visible))
+                            TabAdSecurityAnalyzer.IsChecked = visible;
+                        else
+                            TabAdSecurityAnalyzer.IsChecked = true; // Default to visible once licensed
                     }
                 }
             }

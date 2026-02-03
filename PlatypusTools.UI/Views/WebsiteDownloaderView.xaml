@@ -43,11 +43,13 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <CheckBox Grid.Row="0" Grid.Column="0" Content="Download Images" IsChecked="{Binding DownloadImages}" Margin="0,4"/>
                 <CheckBox Grid.Row="1" Grid.Column="0" Content="Download Videos" IsChecked="{Binding DownloadVideos}" Margin="0,4"/>
                 <CheckBox Grid.Row="2" Grid.Column="0" Content="Download Documents" IsChecked="{Binding DownloadDocuments}" Margin="0,4"/>
+                <CheckBox Grid.Row="3" Grid.Column="0" Content="Follow Pagination" IsChecked="{Binding FollowPagination}" ToolTip="Automatically follow Next/page links to get all results" Margin="0,4"/>
                 
                 <CheckBox Grid.Row="0" Grid.Column="1" Content="Recursive Crawl" IsChecked="{Binding RecursiveCrawl}" Margin="0,4"/>
                 <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,4">
@@ -57,6 +59,10 @@
                 <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,4">
                     <TextBlock Text="URL Pattern:" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <TextBox Text="{Binding UrlPattern}" Width="150" VerticalContentAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,4">
+                    <TextBlock Text="Max Pages:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBox Text="{Binding MaxPaginationPages}" Width="50" VerticalContentAlignment="Center" ToolTip="Maximum number of pagination pages to follow"/>
                 </StackPanel>
             </Grid>
             </ScrollViewer>
