@@ -19,15 +19,15 @@
         </TextBlock>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
-            <Button Content="🔄 Refresh" Command="{Binding RefreshCommand}" MinWidth="100" Padding="8,4"/>
-            <Button Content="☑ Select All" Command="{Binding SelectAllCommand}" MinWidth="110" Margin="8,0,0,0" Padding="8,4"/>
-            <Button Content="☐ Select None" Command="{Binding SelectNoneCommand}" MinWidth="120" Margin="8,0,0,0" Padding="8,4"/>
+            <Button Content="🔄 Refresh" Command="{Binding RefreshCommand}" MinWidth="180"/>
+            <Button Content="☑ Select All" Command="{Binding SelectAllCommand}" MinWidth="180" Margin="8,0,0,0"/>
+            <Button Content="☐ Select None" Command="{Binding SelectNoneCommand}" MinWidth="180" Margin="8,0,0,0"/>
             <Separator Margin="8,0" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
-            <Button Content="🚫 Disable Selected" Command="{Binding DisableSelectedCommand}" MinWidth="150" Margin="8,0,0,0" Padding="8,4"
+            <Button Content="🚫 Disable Selected" Command="{Binding DisableSelectedCommand}" MinWidth="190" Margin="8,0,0,0"
                     Background="#FFFF9800" Foreground="White"/>
-            <Button Content="✓ Enable Selected" Command="{Binding EnableSelectedCommand}" MinWidth="145" Margin="8,0,0,0" Padding="8,4"
+            <Button Content="✓ Enable Selected" Command="{Binding EnableSelectedCommand}" MinWidth="180" Margin="8,0,0,0"
                     Background="#FF4CAF50" Foreground="White"/>
-            <Button Content="🗑️ Delete Selected" Command="{Binding DeleteSelectedCommand}" MinWidth="140" Margin="8,0,0,0" Padding="8,4"
+            <Button Content="🗑️ Delete Selected" Command="{Binding DeleteSelectedCommand}" MinWidth="180" Margin="8,0,0,0"
                     Background="#FFF44336" Foreground="White"/>
         </StackPanel>
         
@@ -76,7 +76,7 @@
                             <Button Content="Open Location" 
                                     Command="{Binding DataContext.OpenLocationCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding}"
-                                    Width="110" Height="28" />
+                                    MinWidth="180" Height="28" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

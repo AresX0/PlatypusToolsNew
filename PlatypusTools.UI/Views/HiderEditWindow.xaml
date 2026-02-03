@@ -14,7 +14,7 @@
         <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
             <TextBlock Width="120" VerticalAlignment="Center">Folder:</TextBlock>
             <TextBox Width="200" Text="{Binding FolderPath, UpdateSourceTrigger=PropertyChanged}" />
-            <Button Content="Browse..." Width="80" Margin="8,0,0,0" Click="Browse_Click" />
+            <Button Content="Browse..." MinWidth="180" Margin="8,0,0,0" Click="Browse_Click" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8">
@@ -31,8 +31,8 @@
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Grid.Row="4" HorizontalAlignment="Right">
-            <Button Content="OK" Width="80" Margin="0,0,8,0" Click="Ok_Click" />
-            <Button Content="Cancel" Width="80" Click="Cancel_Click" />
+            <Button Content="OK" MinWidth="180" Margin="0,0,8,0" Click="Ok_Click" />
+            <Button Content="Cancel" MinWidth="180" Click="Cancel_Click" />
         </StackPanel>
     </Grid>
 </Window>

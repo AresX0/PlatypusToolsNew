@@ -218,18 +218,18 @@
                                 <Button Content="🖼 Background" 
                                         Command="{Binding ImportBackgroundCommand}"
                                         Style="{StaticResource SmallButtonStyle}" 
-                                        FontSize="10" Padding="6,4" Margin="0,0,4,0"
+                                        FontSize="10" Margin="0,0,4,0"
                                         ToolTip="Import background image/video"/>
                                 <Button Content="🎭 Overlay" 
                                         Command="{Binding AddAsOverlayCommand}"
                                         Style="{StaticResource SmallButtonStyle}" 
-                                        FontSize="10" Padding="6,4" Margin="0,0,4,0"
+                                        FontSize="10" Margin="0,0,4,0"
                                         ToolTip="Add selected as overlay"/>
                                 <Button Content="➕ Track" 
                                         Command="{Binding AddTrackCommand}"
                                         CommandParameter="video"
                                         Style="{StaticResource SmallButtonStyle}" 
-                                        FontSize="10" Padding="6,4"
+                                        FontSize="10"
                                         ToolTip="Add new track"/>
                             </StackPanel>
                         </StackPanel>
@@ -430,13 +430,13 @@
                                                Foreground="#0EA5E9" FontFamily="Consolas" FontSize="13" Margin="0,0,0,6"/>
                                     <WrapPanel>
                                         <Button Content="−1s" Command="{Binding TrimClipCommand}" CommandParameter="1"
-                                                Style="{StaticResource SmallButtonStyle}" Padding="6,2" Margin="0,0,2,2"/>
+                                                Style="{StaticResource SmallButtonStyle}" Margin="0,0,2,2"/>
                                         <Button Content="−0.5s" Command="{Binding TrimClipCommand}" CommandParameter="0.5"
-                                                Style="{StaticResource SmallButtonStyle}" Padding="6,2" Margin="0,0,2,2"/>
+                                                Style="{StaticResource SmallButtonStyle}" Margin="0,0,2,2"/>
                                         <Button Content="+0.5s" Command="{Binding ExtendClipCommand}" CommandParameter="0.5"
-                                                Style="{StaticResource SmallButtonStyle}" Padding="6,2" Margin="0,0,2,2"/>
+                                                Style="{StaticResource SmallButtonStyle}" Margin="0,0,2,2"/>
                                         <Button Content="+1s" Command="{Binding ExtendClipCommand}" CommandParameter="1"
-                                                Style="{StaticResource SmallButtonStyle}" Padding="6,2"/>
+                                                Style="{StaticResource SmallButtonStyle}"/>
                                     </WrapPanel>
                                 </StackPanel>
                             </Expander>

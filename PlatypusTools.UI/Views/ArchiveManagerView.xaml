@@ -23,17 +23,17 @@
         
         <!-- Toolbar -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
-            <Button Content="📂 Open Archive" Click="OnOpenArchiveClick" Width="130" Margin="0,0,8,0" Padding="6,4"/>
-            <Button Content="📦 Create Archive" Click="OnCreateArchiveClick" Width="130" Margin="0,0,8,0" Padding="6,4"
+            <Button Content="📂 Open Archive" Click="OnOpenArchiveClick" MinWidth="180" Margin="0,0,8,0"/>
+            <Button Content="📦 Create Archive" Click="OnCreateArchiveClick" MinWidth="180" Margin="0,0,8,0"
                     Background="#FF2196F3" Foreground="White"/>
             <Separator Margin="8,0"/>
-            <Button Content="📤 Extract All" Click="OnExtractAllClick" Width="110" Margin="0,0,8,0" Padding="6,4"
+            <Button Content="📤 Extract All" Click="OnExtractAllClick" MinWidth="180" Margin="0,0,8,0"
                     Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
-            <Button Content="📤 Extract Selected" Click="OnExtractSelectedClick" Width="130" Margin="0,0,8,0" Padding="6,4"/>
+            <Button Content="📤 Extract Selected" Click="OnExtractSelectedClick" MinWidth="180" Margin="0,0,8,0"/>
             <Separator Margin="8,0"/>
-            <Button Content="➕ Add Files" Click="OnAddFilesClick" Width="100" Margin="0,0,8,0" Padding="6,4"/>
-            <Button Content="🔍 Test" Click="OnTestClick" Width="80" Margin="0,0,8,0" Padding="6,2"/>
-            <Button Content="❌ Cancel" Click="OnCancelClick" Width="90" Padding="6,4"
+            <Button Content="➕ Add Files" Click="OnAddFilesClick" MinWidth="180" Margin="0,0,8,0"/>
+            <Button Content="🔍 Test" Click="OnTestClick" MinWidth="180" Margin="0,0,8,0"/>
+            <Button Content="❌ Cancel" Click="OnCancelClick" MinWidth="180"
                     Background="#FFF44336" Foreground="White"
                     Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>
         </StackPanel>
@@ -127,8 +127,8 @@
                 
                 <!-- Selection toolbar -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
-                    <Button Content="Select All" Click="OnSelectAllClick" Width="80" Margin="0,0,8,0"/>
-                    <Button Content="Select None" Click="OnSelectNoneClick" Width="80" Margin="0,0,16,0"/>
+                    <Button Content="Select All" Click="OnSelectAllClick" MinWidth="180" Margin="0,0,8,0"/>
+                    <Button Content="Select None" Click="OnSelectNoneClick" MinWidth="180" Margin="0,0,16,0"/>
                     <TextBlock x:Name="SelectionInfoText" VerticalAlignment="Center" Foreground="Gray">
                         <Run Text="Selected: "/><Run Text="{Binding SelectedEntries.Count, Mode=OneWay}" FontWeight="Bold"/>
                         <Run Text=" of "/><Run Text="{Binding Entries.Count, Mode=OneWay}"/>

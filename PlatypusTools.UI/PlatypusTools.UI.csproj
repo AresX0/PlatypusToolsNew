@@ -19,7 +19,7 @@
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>PlatypusTools.UI</RootNamespace>
-    <Version>3.3.1.2</Version>
+    <Version>3.3.1.4</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
@@ -29,6 +29,9 @@
     <PackageReference Include="LibVLCSharp.WPF" Version="3.9.5" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23" />
+    <!-- SkiaSharp for high-performance HD audio visualizer rendering -->
+    <PackageReference Include="SkiaSharp" Version="3.119.0" />
+    <PackageReference Include="SkiaSharp.Views.WPF" Version="3.119.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PlatypusTools.Core\PlatypusTools.Core.csproj" />

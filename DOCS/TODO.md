@@ -1,9 +1,37 @@
 # PlatypusTools v3.4.0 - Detailed TODO List
 
 **Branch**: `main`  
-**Last Updated**: January 27, 2026  
+**Last Updated**: February 3, 2026  
 **Current Version**: v3.2.12.1 (released)  
 **Legend**: ✅ Complete | 🔄 In Progress | ❌ Not Started
+
+---
+
+## In Progress / Planned
+
+### HD Visualizer Mode (Future Enhancement)
+**Status**: ❌ Not Started - Requires different approach
+
+The HD Visualizer feature was attempted twice and reverted:
+1. **WriteableBitmap approach** - Failed: CPU-based bitmap rendering produced significantly worse quality than WPF shapes
+2. **SkiaSharp.Views.WPF approach** - Failed: Build system issue where WPF partial class generation silently fails when SkiaSharp types are referenced, causing all code-behind methods to become invisible to other files
+
+The current WPF shape-based rendering works well. A proper HD implementation would require:
+
+- [ ] **HD-001**: Create a SEPARATE UserControl for SkiaSharp HD rendering (avoid partial class issues)
+- [ ] **HD-002**: The HD control would be a completely independent file, not modifying AudioVisualizerView
+- [ ] **HD-003**: Use SkiaSharp.Views.WPF with SKElement for GPU-accelerated anti-aliased rendering
+- [ ] **HD-004**: Implement the 8 main visualizers (Bars, Mirror, Waveform, Circular, Radial, Particles, Aurora, Starfield)
+- [ ] **HD-005**: Add HD toggle that swaps between WPF Canvas and SkiaSharp UserControl
+- [ ] **HD-006**: Benchmark performance vs. current WPF shapes implementation
+- [ ] **HD-007**: Add GPU acceleration detection to fall back to standard mode
+
+**Technical Notes**:
+- Current WPF shape-based rendering is performant and looks good
+- WriteableBitmap CPU rendering without proper anti-aliasing produces worse results
+- SkiaSharp works but must be in a separate .cs file to avoid WPF build system issues
+- The WPF XAML compiler generates partial classes, and if the code-behind fails to compile, methods become invisible
+- Must NOT degrade existing visualizer quality
 
 ---
 

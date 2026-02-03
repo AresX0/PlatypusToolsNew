@@ -25,11 +25,11 @@
         </DataGrid>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-            <Button Content="Open Staging Folder" Command="{Binding OpenFolderCommand}" Width="160" Margin="4" />
-            <Button Content="Restore Selected" Command="{Binding RestoreSelectedCommand}" Width="140" Margin="4" />
-            <Button Content="Remove Selected" Command="{Binding RemoveSelectedCommand}" Width="140" Margin="4" />
-            <Button Content="Commit (Delete Originals)" Command="{Binding CommitSelectedCommand}" Width="200" Margin="4" />
-            <Button Content="Close" Click="Close_Click" Width="90" Margin="4" />
+            <Button Content="Open Staging Folder" Command="{Binding OpenFolderCommand}" MinWidth="180" Margin="4" />
+            <Button Content="Restore Selected" Command="{Binding RestoreSelectedCommand}" MinWidth="180" Margin="4" />
+            <Button Content="Remove Selected" Command="{Binding RemoveSelectedCommand}" MinWidth="180" Margin="4" />
+            <Button Content="Commit (Delete Originals)" Command="{Binding CommitSelectedCommand}" MinWidth="200" Margin="4" />
+            <Button Content="Close" Click="Close_Click" MinWidth="180" Margin="4" />
         </StackPanel>
     </Grid>
 </Window>

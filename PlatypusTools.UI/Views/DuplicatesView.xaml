@@ -25,16 +25,16 @@
         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
             <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Folder:</TextBlock>
             <TextBox Width="250" Text="{Binding FolderPath, UpdateSourceTrigger=PropertyChanged}" />
-            <Button Content="📁 Browse..." Command="{Binding BrowseCommand}" Width="90" Margin="8,0,0,0" Padding="6,2"/>
-            <Button Content="🔍 Scan Duplicates" Command="{Binding ScanCommand}" Width="130" Margin="8,0,0,0" Padding="6,2"
+            <Button Content="📁 Browse..." Command="{Binding BrowseCommand}" MinWidth="180" Margin="8,0,0,0"/>
+            <Button Content="🔍 Scan Duplicates" Command="{Binding ScanCommand}" MinWidth="190" Margin="8,0,0,0"
                     Background="#FF4CAF50" Foreground="White"/>
-            <Button Content="🖼 Similar Images" Command="{Binding ScanSimilarCommand}" Width="120" Margin="4,0,0,0" Padding="6,2"
+            <Button Content="🖼 Similar Images" Command="{Binding ScanSimilarCommand}" MinWidth="180" Margin="4,0,0,0"
                     ToolTip="Find visually similar images using perceptual hashing" Background="#FF2196F3" Foreground="White"/>
-            <Button Content="🎬 Similar Videos" Command="{Binding ScanSimilarVideosCommand}" Width="120" Margin="4,0,0,0" Padding="6,2"
+            <Button Content="🎬 Similar Videos" Command="{Binding ScanSimilarVideosCommand}" MinWidth="180" Margin="4,0,0,0"
                     ToolTip="Find similar videos by comparing key frames (requires FFmpeg)" Background="#FF9C27B0" Foreground="White"/>
-            <Button Content="❌ Cancel" Command="{Binding CancelScanCommand}" Width="80" Margin="4,0,0,0" Padding="6,2"
+            <Button Content="❌ Cancel" Command="{Binding CancelScanCommand}" MinWidth="180" Margin="4,0,0,0"
                     Background="#FFF44336" Foreground="White"/>
-            <Button Content="📦 Staging" Command="{Binding ToggleStagingCommand}" Width="80" Margin="4,0,0,0" Padding="6,2"/>
+            <Button Content="📦 Staging" Command="{Binding ToggleStagingCommand}" MinWidth="180" Margin="4,0,0,0"/>
         </StackPanel>
         
         <!-- Similarity Threshold Slider for Images -->
@@ -70,13 +70,13 @@
         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
             <CheckBox Content="Dry Run" IsChecked="{Binding DryRun}" />
             <CheckBox Content="Use Recycle Bin" IsChecked="{Binding UseRecycleBin}" Margin="8,0,0,0" />
-            <Button Content="📅 Select Newest" Command="{Binding SelectNewestCommand}" Width="125" Margin="8,0,0,0" Padding="6,2"/>
-            <Button Content="📅 Select Oldest" Command="{Binding SelectOldestCommand}" Width="125" Margin="8,0,0,0" Padding="6,2"/>
-            <Button Content="📐 Select Largest" Command="{Binding SelectLargestCommand}" Width="130" Margin="8,0,0,0" Padding="6,2"/>
-            <Button Content="📐 Select Smallest" Command="{Binding SelectSmallestCommand}" Width="135" Margin="8,0,0,0" Padding="6,2"/>
-            <Button Content="✓ Keep One Per Group" Command="{Binding KeepOneCommand}" Width="150" Margin="8,0,0,0" Padding="6,2"
+            <Button Content="📅 Select Newest" Command="{Binding SelectNewestCommand}" MinWidth="180" Margin="8,0,0,0"/>
+            <Button Content="📅 Select Oldest" Command="{Binding SelectOldestCommand}" MinWidth="180" Margin="8,0,0,0"/>
+            <Button Content="📐 Select Largest" Command="{Binding SelectLargestCommand}" MinWidth="190" Margin="8,0,0,0"/>
+            <Button Content="📐 Select Smallest" Command="{Binding SelectSmallestCommand}" MinWidth="190" Margin="8,0,0,0"/>
+            <Button Content="✓ Keep One Per Group" Command="{Binding KeepOneCommand}" MinWidth="190" Margin="8,0,0,0"
                     Background="#FF2196F3" Foreground="White"/>
-            <Button Content="🗑️ Delete Selected" Command="{Binding DeleteSelectedCommand}" Width="130" Margin="8,0,0,0" Padding="6,2"
+            <Button Content="🗑️ Delete Selected" Command="{Binding DeleteSelectedCommand}" MinWidth="190" Margin="8,0,0,0"
                     Background="#FFF44336" Foreground="White"/>
         </StackPanel>
         </StackPanel>
@@ -123,11 +123,11 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                                <Button Content="Preview" Command="{Binding DataContext.PreviewFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="65" Padding="6,2"/>
-                                                <Button Content="Open" Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="55" Margin="4,0,0,0" Padding="6,2"/>
-                                                <Button Content="Folder" Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="60" Margin="4,0,0,0" Padding="6,2"/>
-                                                <Button Content="Rename" Command="{Binding DataContext.RenameFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="65" Margin="4,0,0,0" Padding="6,2"/>
-                                                <Button Content="Stage" Command="{Binding DataContext.StageFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="55" Margin="4,0,0,0" Padding="6,2"/>
+                                                <Button Content="Preview" Command="{Binding DataContext.PreviewFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="180"/>
+                                                <Button Content="Open" Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="55" Margin="4,0,0,0"/>
+                                                <Button Content="Folder" Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="180" Margin="4,0,0,0"/>
+                                                <Button Content="Rename" Command="{Binding DataContext.RenameFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="180" Margin="4,0,0,0"/>
+                                                <Button Content="Stage" Command="{Binding DataContext.StageFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="55" Margin="4,0,0,0"/>
                                             </StackPanel>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>

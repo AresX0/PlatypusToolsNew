@@ -179,9 +179,9 @@
                             </Grid.ColumnDefinitions>
                             <TextBox Text="{Binding PlexAppDataDir, UpdateSourceTrigger=PropertyChanged}" 
                                      IsEnabled="{Binding IsNotRunning}" VerticalContentAlignment="Center"/>
-                            <Button Grid.Column="1" Content="📂" MinWidth="36" Padding="6,4" Margin="5,0,0,0"
+                            <Button Grid.Column="1" Content="📂" MinWidth="36" Margin="5,0,0,0"
                                     Command="{Binding BrowsePlexAppDataCommand}" ToolTip="Browse"/>
-                            <Button Grid.Column="2" Content="📁" MinWidth="36" Padding="6,4" Margin="5,0,0,0"
+                            <Button Grid.Column="2" Content="📁" MinWidth="36" Margin="5,0,0,0"
                                     Command="{Binding OpenPlexFolderCommand}" ToolTip="Open in Explorer"/>
                         </Grid>
                         
@@ -195,9 +195,9 @@
                             </Grid.ColumnDefinitions>
                             <TextBox Text="{Binding BackupRootDir, UpdateSourceTrigger=PropertyChanged}" 
                                      IsEnabled="{Binding IsNotRunning}" VerticalContentAlignment="Center"/>
-                            <Button Grid.Column="1" Content="📂" MinWidth="36" Padding="6,4" Margin="5,0,0,0"
+                            <Button Grid.Column="1" Content="📂" MinWidth="36" Margin="5,0,0,0"
                                     Command="{Binding BrowseBackupRootCommand}" ToolTip="Browse"/>
-                            <Button Grid.Column="2" Content="📁" MinWidth="36" Padding="6,4" Margin="5,0,0,0"
+                            <Button Grid.Column="2" Content="📁" MinWidth="36" Margin="5,0,0,0"
                                     Command="{Binding OpenBackupFolderCommand}" ToolTip="Open in Explorer"/>
                         </Grid>
                         
@@ -221,7 +221,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox Text="{Binding BackupDir, UpdateSourceTrigger=PropertyChanged}" 
                                          IsEnabled="{Binding IsNotRunning}" VerticalContentAlignment="Center"/>
-                                <Button Grid.Column="1" Content="📂" MinWidth="36" Padding="6,4" Margin="5,0,0,0"
+                                <Button Grid.Column="1" Content="📂" MinWidth="36" Margin="5,0,0,0"
                                         Command="{Binding BrowseBackupDirCommand}" ToolTip="Browse"/>
                             </Grid>
                         </StackPanel>
@@ -235,7 +235,7 @@
                             </Grid.ColumnDefinitions>
                             <TextBox Text="{Binding TempDir, UpdateSourceTrigger=PropertyChanged}" 
                                      IsEnabled="{Binding IsNotRunning}" VerticalContentAlignment="Center"/>
-                            <Button Grid.Column="1" Content="📂" MinWidth="36" Padding="6,4" Margin="5,0,0,0"
+                            <Button Grid.Column="1" Content="📂" MinWidth="36" Margin="5,0,0,0"
                                     Command="{Binding BrowseTempDirCommand}" ToolTip="Browse"/>
                         </Grid>
                         
@@ -250,7 +250,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox Text="{Binding SevenZipPath, UpdateSourceTrigger=PropertyChanged}" 
                                          IsEnabled="{Binding IsNotRunning}" VerticalContentAlignment="Center"/>
-                                <Button Grid.Column="1" Content="📂" MinWidth="36" Padding="6,4" Margin="5,0,0,0"
+                                <Button Grid.Column="1" Content="📂" MinWidth="36" Margin="5,0,0,0"
                                         Command="{Binding Browse7ZipCommand}" ToolTip="Browse"/>
                                 <Ellipse Grid.Column="2" Width="12" Height="12" Margin="8,0,0,0" VerticalAlignment="Center">
                                     <Ellipse.Style>
@@ -448,7 +448,7 @@
                 
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                     <TextBlock Text="📦 Available Backups" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
-                    <Button Content="↻" MinWidth="36" Height="30" Padding="8,4" Margin="10,0,0,0"
+                    <Button Content="↻" MinWidth="36" Height="30" Margin="10,0,0,0"
                             Command="{Binding RefreshBackupsCommand}" ToolTip="Refresh Backups"/>
                 </StackPanel>
                 
@@ -489,7 +489,7 @@
                                         </TextBlock>
                                     </StackPanel>
                                     
-                                    <Button Grid.Column="1" Content="🗑" MinWidth="36" Height="30" Padding="6,4"
+                                    <Button Grid.Column="1" Content="🗑" MinWidth="36" Height="30"
                                             Command="{Binding DataContext.DeleteBackupCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                             CommandParameter="{Binding}"
                                             ToolTip="Delete Backup" VerticalAlignment="Center"

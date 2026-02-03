@@ -20,8 +20,8 @@
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                     <TextBlock VerticalAlignment="Center" Width="100">Folder Path:</TextBlock>
                     <TextBox Width="600" Text="{Binding FolderPath, UpdateSourceTrigger=PropertyChanged}" />
-                    <Button Content="📁 Browse..." Command="{Binding BrowseFolderCommand}" Width="100" Margin="8,0,0,0" Padding="6,4"/>
-                    <Button Content="🔍 Scan" Command="{Binding ScanCommand}" Width="90" Margin="8,0,0,0" FontWeight="Bold" Padding="6,4"
+                    <Button Content="📁 Browse..." Command="{Binding BrowseFolderCommand}" MinWidth="180" Margin="8,0,0,0"/>
+                    <Button Content="🔍 Scan" Command="{Binding ScanCommand}" MinWidth="180" Margin="8,0,0,0" FontWeight="Bold"
                             Background="#FF4CAF50" Foreground="White"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
@@ -73,7 +73,7 @@
                             <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center">Detected Prefix:</TextBlock>
                             <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,4">
                                 <TextBox Text="{Binding DetectedPrefix, UpdateSourceTrigger=PropertyChanged}" Width="300" IsReadOnly="True" Background="#F0F0F0" />
-                                <Button Content="Detect Prefix" Command="{Binding DetectPrefixCommand}" Width="110" Margin="8,0,0,0" />
+                                <Button Content="Detect Prefix" Command="{Binding DetectPrefixCommand}" MinWidth="180" Margin="8,0,0,0" />
                             </StackPanel>
 
                             <TextBlock Grid.Row="3" Grid.Column="0" VerticalAlignment="Center">Ignore Prefix:</TextBlock>
@@ -227,9 +227,9 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,4">
-                    <Button Content="Apply Preview" Command="{Binding ApplyPreviewCommand}" Width="110" Margin="0,0,8,0" FontWeight="Bold" />
-                    <Button Content="Select All" Command="{Binding SelectAllCommand}" Width="90" Margin="0,0,8,0" />
-                    <Button Content="Select None" Command="{Binding SelectNoneCommand}" Width="90" Margin="0,0,16,0" />
+                    <Button Content="Apply Preview" Command="{Binding ApplyPreviewCommand}" MinWidth="180" Margin="0,0,8,0" FontWeight="Bold" />
+                    <Button Content="Select All" Command="{Binding SelectAllCommand}" MinWidth="180" Margin="0,0,8,0" />
+                    <Button Content="Select None" Command="{Binding SelectNoneCommand}" MinWidth="180" Margin="0,0,16,0" />
                     <TextBlock VerticalAlignment="Center" Margin="0,0,4,0">Files:</TextBlock>
                     <TextBlock VerticalAlignment="Center" FontWeight="Bold" Text="{Binding TotalCount}" Margin="0,0,16,0" />
                     <TextBlock VerticalAlignment="Center" Margin="0,0,4,0">Selected:</TextBlock>
@@ -305,14 +305,14 @@
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="✅ Apply Changes" Command="{Binding ApplyChangesCommand}" Width="135" Margin="0,0,8,0" 
-                        FontWeight="Bold" Height="32" Padding="8,4"
+                <Button Content="✅ Apply Changes" Command="{Binding ApplyChangesCommand}" MinWidth="180" Margin="0,0,8,0" 
+                        FontWeight="Bold" Height="32"
                         Background="#FF4CAF50" Foreground="White"/>
-                <Button Content="↩ Undo Last" Command="{Binding UndoLastCommand}" Width="110" Margin="0,0,8,0" Height="32" Padding="8,4"
+                <Button Content="↩ Undo Last" Command="{Binding UndoLastCommand}" MinWidth="180" Margin="0,0,8,0" Height="32"
                         Background="#FFFF9800" Foreground="White"/>
-                <Button Content="📊 Export CSV" Command="{Binding ExportCsvCommand}" Width="115" Margin="0,0,8,0" Height="32" Padding="8,4"
+                <Button Content="📊 Export CSV" Command="{Binding ExportCsvCommand}" MinWidth="180" Margin="0,0,8,0" Height="32"
                         Background="#FF2196F3" Foreground="White"/>
-                <Button Content="🔄 Reset All" Command="{Binding ResetAllCommand}" Width="105" Height="32" Padding="8,4"
+                <Button Content="🔄 Reset All" Command="{Binding ResetAllCommand}" MinWidth="180" Height="32"
                         Background="#FFF44336" Foreground="White"/>
             </StackPanel>
         </Grid>

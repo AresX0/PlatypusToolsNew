@@ -511,11 +511,11 @@ namespace PlatypusTools.UI.Views
                 
                 // Buttons row
                 var buttonRow = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 5, 0, 0) };
-                var backBtn = new Button { Content = "⏪", Width = 45, Height = 35, Margin = new Thickness(3), FontSize = 16, Background = System.Windows.Media.Brushes.DimGray, Foreground = System.Windows.Media.Brushes.White };
-                var playBtn = new Button { Content = "▶", Width = 50, Height = 40, Margin = new Thickness(3), FontSize = 18, Background = System.Windows.Media.Brushes.DimGray, Foreground = System.Windows.Media.Brushes.White };
-                var pauseBtn = new Button { Content = "⏸", Width = 50, Height = 40, Margin = new Thickness(3), FontSize = 18, Background = System.Windows.Media.Brushes.DimGray, Foreground = System.Windows.Media.Brushes.White };
-                var fwdBtn = new Button { Content = "⏩", Width = 45, Height = 35, Margin = new Thickness(3), FontSize = 16, Background = System.Windows.Media.Brushes.DimGray, Foreground = System.Windows.Media.Brushes.White };
-                var exitBtn = new Button { Content = "✕ Exit", Width = 60, Height = 35, Margin = new Thickness(15, 0, 0, 0), FontSize = 14, Background = System.Windows.Media.Brushes.DarkRed, Foreground = System.Windows.Media.Brushes.White };
+                var backBtn = new Button { Content = "⏪", MinWidth = 45, Height = 35, Margin = new Thickness(3), Padding = new Thickness(8, 4, 8, 4), FontSize = 16, Background = System.Windows.Media.Brushes.DimGray, Foreground = System.Windows.Media.Brushes.White };
+                var playBtn = new Button { Content = "▶", MinWidth = 50, Height = 40, Margin = new Thickness(3), Padding = new Thickness(10, 6, 10, 6), FontSize = 18, Background = System.Windows.Media.Brushes.DimGray, Foreground = System.Windows.Media.Brushes.White };
+                var pauseBtn = new Button { Content = "⏸", MinWidth = 50, Height = 40, Margin = new Thickness(3), Padding = new Thickness(10, 6, 10, 6), FontSize = 18, Background = System.Windows.Media.Brushes.DimGray, Foreground = System.Windows.Media.Brushes.White };
+                var fwdBtn = new Button { Content = "⏩", MinWidth = 45, Height = 35, Margin = new Thickness(3), Padding = new Thickness(8, 4, 8, 4), FontSize = 16, Background = System.Windows.Media.Brushes.DimGray, Foreground = System.Windows.Media.Brushes.White };
+                var exitBtn = new Button { Content = "✕ Exit", MinWidth = 60, Height = 35, Margin = new Thickness(15, 0, 0, 0), Padding = new Thickness(8, 4, 8, 4), FontSize = 14, Background = System.Windows.Media.Brushes.DarkRed, Foreground = System.Windows.Media.Brushes.White };
                 
                 playBtn.Click += (s2, a2) => fsMediaPlayer?.Play();
                 pauseBtn.Click += (s2, a2) => fsMediaPlayer?.Pause();
@@ -556,11 +556,30 @@ namespace PlatypusTools.UI.Views
                     controlsPanel.Visibility = Visibility.Visible;
                 };
                 
+                // Seeking - handle user drag on slider
+                bool isUserSeeking = false;
+                fsSeekSlider.PreviewMouseDown += (s2, a2) => { isUserSeeking = true; };
+                fsSeekSlider.PreviewMouseUp += (s2, a2) => 
+                { 
+                    if (fsMediaPlayer != null && isUserSeeking)
+                    {
+                        fsMediaPlayer.Time = (long)(fsSeekSlider.Value * 1000);
+                    }
+                    isUserSeeking = false; 
+                };
+                fsSeekSlider.ValueChanged += (s2, a2) =>
+                {
+                    if (isUserSeeking && fsMediaPlayer != null)
+                    {
+                        fsMediaPlayer.Time = (long)(fsSeekSlider.Value * 1000);
+                    }
+                };
+                
                 // Timer to update position
                 var updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
                 updateTimer.Tick += (s2, a2) =>
                 {
-                    if (fsMediaPlayer != null && fsMediaPlayer.Length > 0)
+                    if (fsMediaPlayer != null && fsMediaPlayer.Length > 0 && !isUserSeeking)
                     {
                         fsSeekSlider.Maximum = fsMediaPlayer.Length / 1000.0;
                         fsSeekSlider.Value = fsMediaPlayer.Time / 1000.0;

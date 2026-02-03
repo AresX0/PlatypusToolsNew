@@ -31,8 +31,8 @@
                 
                 <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding TargetDirs, UpdateSourceTrigger=PropertyChanged}" 
                          ToolTip="Semicolon-separated directories to match shortcuts against"/>
-                <Button Grid.Row="0" Grid.Column="1" Content="Browse..." Command="{Binding BrowseCommand}" Width="80" Margin="8,0,0,0"/>
-                <Button Grid.Row="0" Grid.Column="2" Content="Clear" Command="{Binding ClearTargetDirsCommand}" Width="60" Margin="5,0,0,0"/>
+                <Button Grid.Row="0" Grid.Column="1" Content="Browse..." Command="{Binding BrowseCommand}" MinWidth="180" Margin="8,0,0,0"/>
+                <Button Grid.Row="0" Grid.Column="2" Content="Clear" Command="{Binding ClearTargetDirsCommand}" MinWidth="180" Margin="5,0,0,0"/>
                 
                 <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Text="Enter directories whose shortcuts should be found and removed from Recent, Favorites, and Start Menu" 
                            Foreground="Gray" FontStyle="Italic" Margin="0,5,0,0"/>
@@ -54,8 +54,8 @@
                 <ListBox Grid.Column="0" ItemsSource="{Binding ExclusionDirs}" SelectedItem="{Binding SelectedExclusionDir}" 
                          Height="80" SelectionMode="Single"/>
                 <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
-                    <Button Content="Add..." Command="{Binding AddExclusionCommand}" Width="80" Margin="0,0,0,5"/>
-                    <Button Content="Remove" Command="{Binding RemoveExclusionCommand}" Width="80"/>
+                    <Button Content="Add..." Command="{Binding AddExclusionCommand}" MinWidth="180" Margin="0,0,0,5"/>
+                    <Button Content="Remove" Command="{Binding RemoveExclusionCommand}" MinWidth="180"/>
                 </StackPanel>
             </Grid>
             </ScrollViewer>
@@ -67,15 +67,15 @@
                       FontWeight="SemiBold"/>
             <CheckBox IsChecked="{Binding IncludeSubDirs}" Content="Include Subdirectories" VerticalAlignment="Center" Margin="0,0,16,0" 
                       ToolTip="When checked, matches files in subdirectories of target directories. When unchecked, only matches files directly in the target directory."/>
-            <Button Content="🔍 Scan Recent" Command="{Binding ScanAllRecentCommand}" Width="120" Margin="0,0,8,0" Padding="8,4"
+            <Button Content="🔍 Scan Recent" Command="{Binding ScanAllRecentCommand}" MinWidth="180" Margin="0,0,8,0"
                     ToolTip="Scan all recent items. If target directories are specified, filters to only show items from those directories." 
                     Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
-            <Button Content="🗑️ Remove Selected" Command="{Binding RemoveSelectedCommand}" Width="140" Margin="0,0,8,0" Padding="8,4"
+            <Button Content="🗑️ Remove Selected" Command="{Binding RemoveSelectedCommand}" MinWidth="180" Margin="0,0,8,0"
                     Background="#FFF44336" Foreground="White" FontWeight="Bold"/>
-            <Button Content="💥 Clear ALL Recent" Command="{Binding ClearAllRecentCommand}" Width="140" Margin="0,0,8,0" Padding="8,4"
+            <Button Content="💥 Clear ALL Recent" Command="{Binding ClearAllRecentCommand}" MinWidth="180" Margin="0,0,8,0"
                     ToolTip="Delete all recent shortcuts, jump lists, and history. Nuclear option!" 
                     Background="#FF9C27B0" Foreground="White" FontWeight="Bold"/>
-            <Button Content="🔄 Refresh Explorer" Command="{Binding RefreshExplorerCommand}" Width="130" Margin="0,0,8,0" Padding="8,4"
+            <Button Content="🔄 Refresh Explorer" Command="{Binding RefreshExplorerCommand}" MinWidth="190" Margin="0,0,8,0"
                     ToolTip="Restart Explorer to refresh the Recent view" 
                     Background="#FF2196F3" Foreground="White" FontWeight="Bold"/>
         </StackPanel>
@@ -94,8 +94,8 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,4">
-                    <Button Content="Select All" Command="{Binding SelectAllCommand}" Width="80" Margin="0,0,8,0" Padding="4,2"/>
-                    <Button Content="Select None" Command="{Binding SelectNoneCommand}" Width="80" Padding="4,2"/>
+                    <Button Content="Select All" Command="{Binding SelectAllCommand}" MinWidth="180" Margin="0,0,8,0" Padding="4,2"/>
+                    <Button Content="Select None" Command="{Binding SelectNoneCommand}" MinWidth="180" Padding="4,2"/>
                 </StackPanel>
                 <DataGrid x:Name="ResultsGrid" Grid.Row="1" ItemsSource="{Binding Results}" AutoGenerateColumns="False"
                           CanUserAddRows="False" CanUserDeleteRows="False"

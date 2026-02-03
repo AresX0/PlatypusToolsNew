@@ -20,12 +20,12 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" Grid.Column="0">
-                    <Button Content="Scan for Issues" Click="OnScanClick" Width="120" FontWeight="Bold" Margin="0,0,8,0" />
-                    <Button Content="Fix Selected" Click="OnFixSelectedClick" Width="100" Background="DarkGreen" Foreground="White" Margin="0,0,8,0" />
-                    <Button Content="Fix All" Click="OnFixAllClick" Width="100" Background="DarkOrange" Foreground="White" Margin="0,0,16,0" />
-                    <Button Content="Create Backup" Click="OnBackupClick" Width="120" Margin="0,0,8,0" />
-                    <Button Content="Select All" Click="OnSelectAllClick" Width="90" Margin="0,0,4,0" />
-                    <Button Content="Deselect All" Click="OnDeselectAllClick" Width="90" />
+                    <Button Content="Scan for Issues" Click="OnScanClick" MinWidth="180" FontWeight="Bold" Margin="0,0,8,0" />
+                    <Button Content="Fix Selected" Click="OnFixSelectedClick" MinWidth="180" Background="DarkGreen" Foreground="White" Margin="0,0,8,0" />
+                    <Button Content="Fix All" Click="OnFixAllClick" MinWidth="180" Background="DarkOrange" Foreground="White" Margin="0,0,16,0" />
+                    <Button Content="Create Backup" Click="OnBackupClick" MinWidth="180" Margin="0,0,8,0" />
+                    <Button Content="Select All" Click="OnSelectAllClick" MinWidth="180" Margin="0,0,4,0" />
+                    <Button Content="Deselect All" Click="OnDeselectAllClick" MinWidth="180" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <TextBlock x:Name="TotalIssuesText" VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,16,0">

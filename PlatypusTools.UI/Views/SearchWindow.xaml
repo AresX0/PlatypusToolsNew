@@ -44,7 +44,7 @@
                 <TextBox x:Name="SearchPath" Grid.Row="1" Grid.Column="1" 
                          Margin="0,0,0,5"/>
                 <Button x:Name="BrowseButton" Grid.Row="1" Grid.Column="2" 
-                        Content="Browse..." Width="80" Margin="10,0,0,5"
+                        Content="Browse..." MinWidth="180" Margin="10,0,0,5"
                         Click="Browse_Click"/>
                 
                 <!-- Content Search -->
@@ -146,13 +146,13 @@
         <!-- Buttons -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" 
                     HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button x:Name="SearchButton" Content="Search" Width="100" 
+            <Button x:Name="SearchButton" Content="Search" MinWidth="180" 
                     Margin="0,0,10,0" Click="Search_Click"/>
-            <Button x:Name="StopButton" Content="Stop" Width="80" 
+            <Button x:Name="StopButton" Content="Stop" MinWidth="180" 
                     Margin="0,0,10,0" IsEnabled="False" Click="Stop_Click"/>
-            <Button x:Name="OpenSelectedButton" Content="Open Selected" Width="100" 
+            <Button x:Name="OpenSelectedButton" Content="Open Selected" MinWidth="180" 
                     Margin="0,0,10,0" Click="OpenSelected_Click"/>
-            <Button Content="Close" Width="80" Click="Close_Click"/>
+            <Button Content="Close" MinWidth="180" Click="Close_Click"/>
         </StackPanel>
     </Grid>
 </Window>

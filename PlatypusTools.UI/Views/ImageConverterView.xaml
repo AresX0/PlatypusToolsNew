@@ -18,13 +18,13 @@
         <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
             <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Output folder:</TextBlock>
             <TextBox Width="400" Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}" />
-            <Button Content="Browse..." Command="{Binding BrowseOutputCommand}" Width="90" Margin="8,0,0,0" />
+            <Button Content="Browse..." Command="{Binding BrowseOutputCommand}" MinWidth="180" Margin="8,0,0,0" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8">
-            <Button Content="Add Files..." Command="{Binding AddFilesCommand}" Width="120" />
-            <Button Content="Convert" Command="{Binding ConvertCommand}" Width="120" Margin="8,0,0,0" />
-            <Button Content="Cancel" Command="{Binding CancelCommand}" Width="90" Margin="8,0,0,0" />
-            <Button Content="Clear" Command="{Binding ClearFilesCommand}" Width="70" Margin="8,0,0,0" />
+            <Button Content="Add Files..." Command="{Binding AddFilesCommand}" MinWidth="180" />
+            <Button Content="Convert" Command="{Binding ConvertCommand}" MinWidth="180" Margin="8,0,0,0" />
+            <Button Content="Cancel" Command="{Binding CancelCommand}" MinWidth="180" Margin="8,0,0,0" />
+            <Button Content="Clear" Command="{Binding ClearFilesCommand}" MinWidth="180" Margin="8,0,0,0" />
             <Separator Margin="8,0"/>
             <TextBlock VerticalAlignment="Center" Margin="0,0,4,0">Format:</TextBlock>
             <ComboBox Width="70" ItemsSource="{Binding OutputFormats}" SelectedItem="{Binding SelectedOutputFormat}" Margin="0,0,8,0"/>

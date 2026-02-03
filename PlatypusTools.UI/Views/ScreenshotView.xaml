@@ -40,16 +40,16 @@
                     <TextBlock Text="Capture:" VerticalAlignment="Center" Margin="0,0,10,0"
                                Foreground="{DynamicResource TextPrimary}" FontWeight="SemiBold"/>
                     <Button Content="🖥️ Full Screen" Command="{Binding CaptureFullScreenCommand}"
-                            Style="{DynamicResource PrimaryButton}" MinWidth="120" Margin="0,0,5,0"/>
+                            Style="{DynamicResource PrimaryButton}" MinWidth="180" Margin="0,0,5,0"/>
                     <Button Content="📺 Primary" Command="{Binding CapturePrimaryScreenCommand}"
-                            Style="{DynamicResource SecondaryButton}" MinWidth="100" Margin="0,0,5,0"/>
+                            Style="{DynamicResource SecondaryButton}" MinWidth="180" Margin="0,0,5,0"/>
                     <Button Content="🪟 Window" Command="{Binding CaptureActiveWindowCommand}"
-                            Style="{DynamicResource SecondaryButton}" MinWidth="100" Margin="0,0,5,0"/>
+                            Style="{DynamicResource SecondaryButton}" MinWidth="180" Margin="0,0,5,0"/>
                     <Button Content="✂️ Region" Command="{Binding CaptureRegionCommand}"
-                            Style="{DynamicResource SecondaryButton}" MinWidth="100" Margin="0,0,5,0"/>
+                            Style="{DynamicResource SecondaryButton}" MinWidth="180" Margin="0,0,5,0"/>
                     <Button Content="📜 Scroll" Command="{Binding CaptureScrollingCommand}"
                             ToolTip="Capture scrolling content (webpage, document)"
-                            Style="{DynamicResource SecondaryButton}" MinWidth="95"/>
+                            Style="{DynamicResource SecondaryButton}" MinWidth="180"/>
                 </StackPanel>
                 
                 <Separator Grid.Column="1" Width="20" Background="Transparent"/>
@@ -77,9 +77,9 @@
                 <!-- Output Buttons -->
                 <StackPanel Grid.Column="4" Orientation="Horizontal">
                     <Button Content="💾 Save" Command="{Binding SaveCommand}"
-                            Style="{DynamicResource PrimaryButton}" Width="80" Margin="0,0,5,0"/>
+                            Style="{DynamicResource PrimaryButton}" MinWidth="180" Margin="0,0,5,0"/>
                     <Button Content="📋 Copy" Command="{Binding CopyCommand}"
-                            Style="{DynamicResource SecondaryButton}" Width="80"/>
+                            Style="{DynamicResource SecondaryButton}" MinWidth="180"/>
                 </StackPanel>
             </Grid>
             </ScrollViewer>

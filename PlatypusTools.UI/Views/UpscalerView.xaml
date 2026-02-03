@@ -17,12 +17,12 @@
         <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
             <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Output folder:</TextBlock>
             <TextBox Width="400" Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}" />
-            <Button Content="Browse..." Command="{Binding BrowseOutputCommand}" Width="90" Margin="8,0,0,0" />
+            <Button Content="Browse..." Command="{Binding BrowseOutputCommand}" MinWidth="180" Margin="8,0,0,0" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8">
-            <Button Content="Add Files..." Command="{Binding AddFilesCommand}" Width="120" />
-            <Button Content="Upscale" Command="{Binding UpscaleCommand}" Width="120" Margin="8,0,0,0" />
-            <Button Content="Cancel" Command="{Binding CancelCommand}" Width="90" Margin="8,0,0,0" />
+            <Button Content="Add Files..." Command="{Binding AddFilesCommand}" MinWidth="180" />
+            <Button Content="Upscale" Command="{Binding UpscaleCommand}" MinWidth="180" Margin="8,0,0,0" />
+            <Button Content="Cancel" Command="{Binding CancelCommand}" MinWidth="180" Margin="8,0,0,0" />
             <TextBlock VerticalAlignment="Center" Margin="8,0,0,0">Scale:</TextBlock>
             <ComboBox ItemsSource="{Binding ScaleOptions}" SelectedItem="{Binding SelectedScale}" Width="60" Margin="4,0,0,0" />
         </StackPanel>

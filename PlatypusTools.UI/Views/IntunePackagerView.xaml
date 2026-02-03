@@ -30,9 +30,9 @@
                     <TextBox Grid.Column="1" Text="{Binding ToolPath, UpdateSourceTrigger=PropertyChanged}" 
                              IsReadOnly="True" Margin="0,0,10,0" VerticalAlignment="Center"/>
                     <Button Grid.Column="2" Content="Browse..." Command="{Binding BrowseToolPathCommand}" 
-                            Width="80" Margin="0,0,5,0" Padding="5,3"/>
+                            MinWidth="180" Margin="0,0,5,0"/>
                     <Button Grid.Column="3" Content="📂 Folder" Command="{Binding OpenToolFolderCommand}" 
-                            Width="75" Padding="5,3" ToolTip="Open folder containing the tool"/>
+                            MinWidth="180" ToolTip="Open folder containing the tool"/>
                 </Grid>
 
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
@@ -50,12 +50,12 @@
                     </Ellipse>
                     <TextBlock Text="{Binding ToolVersion, FallbackValue='Not found'}" VerticalAlignment="Center" Margin="0,0,20,0"/>
                     <Button Content="⬇ Download Tool" Command="{Binding DownloadToolCommand}" 
-                            Width="120" Background="#FF2196F3" Foreground="White" Padding="5,3" Margin="0,0,10,0" FontSize="12"
+                            MinWidth="180" Background="#FF2196F3" Foreground="White" Margin="0,0,10,0" FontSize="12"
                             ToolTip="Download IntuneWinAppUtil.exe from Microsoft GitHub"/>
                     <Button Content="🔄 Check Version" Command="{Binding CheckToolVersionCommand}" 
-                            Width="120" Padding="5,3" Margin="0,0,10,0" FontSize="12"/>
+                            MinWidth="180" Margin="0,0,10,0" FontSize="12"/>
                     <Button Content="🌐 GitHub" Command="{Binding OpenGitHubCommand}" 
-                            Width="80" Padding="5,3" FontSize="12"
+                            MinWidth="180" FontSize="12"
                             ToolTip="Open Microsoft Win32 Content Prep Tool GitHub page"/>
                 </StackPanel>
             </StackPanel>
@@ -83,7 +83,7 @@
                 <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SourceFolder, UpdateSourceTrigger=PropertyChanged}" 
                          Margin="0,0,10,8"/>
                 <Button Grid.Row="0" Grid.Column="2" Content="Browse..." Command="{Binding BrowseSourceFolderCommand}" 
-                        Width="80" Margin="0,0,0,8" Padding="5,3"/>
+                        MinWidth="180" Margin="0,0,0,8"/>
 
                 <!-- Setup File -->
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Setup File:" VerticalAlignment="Center" Margin="0,0,10,8"
@@ -91,7 +91,7 @@
                 <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SetupFile, UpdateSourceTrigger=PropertyChanged}" 
                          Margin="0,0,10,8"/>
                 <Button Grid.Row="1" Grid.Column="2" Content="Browse..." Command="{Binding BrowseSetupFileCommand}" 
-                        Width="80" Margin="0,0,0,8" Padding="5,3"/>
+                        MinWidth="180" Margin="0,0,0,8"/>
 
                 <!-- Output Folder -->
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Output Folder:" VerticalAlignment="Center" Margin="0,0,10,8"
@@ -99,7 +99,7 @@
                 <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}" 
                          Margin="0,0,10,8"/>
                 <Button Grid.Row="2" Grid.Column="2" Content="Browse..." Command="{Binding BrowseOutputFolderCommand}" 
-                        Width="80" Margin="0,0,0,8" Padding="5,3"/>
+                        MinWidth="180" Margin="0,0,0,8"/>
 
                 <!-- Catalog Folder (optional) -->
                 <TextBlock Grid.Row="3" Grid.Column="0" Text="Catalog Folder:" VerticalAlignment="Center" Margin="0,0,10,8"
@@ -107,7 +107,7 @@
                 <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding CatalogFolder, UpdateSourceTrigger=PropertyChanged}" 
                          IsEnabled="{Binding IncludeCatalog}" Margin="0,0,10,8"/>
                 <Button Grid.Row="3" Grid.Column="2" Content="Browse..." Command="{Binding BrowseCatalogFolderCommand}" 
-                        Width="80" Margin="0,0,0,8" Padding="5,3"/>
+                        MinWidth="180" Margin="0,0,0,8"/>
 
                 <!-- Options -->
                 <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,5,0,0">
@@ -152,7 +152,7 @@
 
             <StackPanel Grid.Column="1" Orientation="Horizontal">
                 <Button Content="📦 Create Package" Command="{Binding CreatePackageCommand}" 
-                        Width="140" Height="36" Margin="0,0,10,0"
+                        MinWidth="180" Height="36" Margin="0,0,10,0"
                         Background="#FF4CAF50" Foreground="White" FontWeight="Bold"
                         IsEnabled="{Binding CanCreatePackage}">
                     <Button.Style>
@@ -166,7 +166,7 @@
                     </Button.Style>
                 </Button>
                 <Button Content="Cancel" Command="{Binding CancelCommand}" 
-                        Width="80" Height="36"
+                        MinWidth="180" Height="36"
                         Background="#FFF44336" Foreground="White"
                         IsEnabled="{Binding IsPackaging}"/>
             </StackPanel>

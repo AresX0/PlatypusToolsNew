@@ -25,14 +25,14 @@
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
                     <TextBlock VerticalAlignment="Center" Width="120">New Point Name:</TextBlock>
                     <TextBox x:Name="NewPointNameTextBox" Width="350" Text="{Binding NewPointDescription, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
-                    <Button Content="Create Restore Point" Click="OnCreatePointClick" Width="150" FontWeight="Bold" Margin="0,0,16,0" />
-                    <Button Content="Refresh" Click="OnRefreshClick" Width="90" />
+                    <Button Content="Create Restore Point" Click="OnCreatePointClick" MinWidth="190" FontWeight="Bold" Margin="0,0,16,0" />
+                    <Button Content="Refresh" Click="OnRefreshClick" MinWidth="180" />
                 </StackPanel>
 
                 <!-- Manage Restore Points -->
                 <StackPanel Grid.Row="1" Orientation="Horizontal">
-                    <Button Content="Restore System" Click="OnRestoreClick" Width="120" Background="DarkBlue" Foreground="White" FontWeight="Bold" Margin="0,0,8,0" />
-                    <Button Content="Delete Point" Click="OnDeleteClick" Width="100" Background="DarkRed" Foreground="White" />
+                    <Button Content="Restore System" Click="OnRestoreClick" MinWidth="180" Background="DarkBlue" Foreground="White" FontWeight="Bold" Margin="0,0,8,0" />
+                    <Button Content="Delete Point" Click="OnDeleteClick" MinWidth="180" Background="DarkRed" Foreground="White" />
                     <TextBlock VerticalAlignment="Center" FontWeight="Bold" Margin="24,0,0,0">
                         Total Points: <Run x:Name="TotalPointsText" Text="{Binding TotalPoints, Mode=OneWay}" />
                     </TextBlock>

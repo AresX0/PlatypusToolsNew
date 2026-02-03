@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.2.18.0 - 2026-02-03
+
+### Fixed
+- **Button Cutoff Issues Across All Themes** - Comprehensive fix for button text being cut off, especially visible in Klingon theme with wider fonts
+  - Converted 100+ buttons from fixed `Width` to `MinWidth` across all XAML views
+  - Buttons now expand to fit content while maintaining minimum size for visual consistency
+  - Affects all themes: Light, Dark, Klingon, LCARS, Glass, PipBoy
+
+- **Enhanced Audio Player Controls** - Fixed playback control buttons being too small
+  - Shuffle, Previous, Play, Stop, Next, and Repeat buttons now properly sized
+  - Changed from fixed width to MinWidth with proper padding
+
+- **Fullscreen Video Player Seek Bar** - Fixed progress bar not responding to user interaction
+  - Added click-and-drag seeking functionality to fullscreen video player
+  - Seek slider now properly updates video position when dragged
+  - Works in both NativeVideoPlayer and MultimediaEditor fullscreen modes
+
+- **Fullscreen Video Player Buttons** - Fixed button sizing in fullscreen mode
+  - Play, Pause, Stop, Back, Forward, Exit buttons now use MinWidth for proper font accommodation
+  - Added proper padding for better text display
+
+- **Visualizer Control Bar** - Fixed oversized buttons in audio visualizer controls
+  - Fullscreen, Screensaver, and Install buttons restored to compact size
+  - Removed excessive MinWidth values that were pushing controls off-screen
+
+---
+
 ## v3.2.17.0 - 2026-01-31
 
 ### Added

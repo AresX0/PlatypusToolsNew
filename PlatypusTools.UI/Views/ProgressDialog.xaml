@@ -59,7 +59,7 @@
         <StackPanel Grid.Row="4" Orientation="Horizontal" 
                     HorizontalAlignment="Right" Margin="0,15,0,0">
             <Button x:Name="CancelButton" Content="Cancel" 
-                    Width="80" Padding="10,5"
+                    MinWidth="180" Padding="10,5"
                     Click="Cancel_Click"/>
         </StackPanel>
     </Grid>

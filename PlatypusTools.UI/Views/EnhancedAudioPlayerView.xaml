@@ -218,11 +218,11 @@
                         
                         <!-- Lyrics Overlay Toggle -->
                         <ToggleButton Content="📝 Lyrics" IsChecked="{Binding ShowLyricsOverlay}" 
-                                      Padding="8,4" FontSize="11" Margin="0,0,10,0"
+                                      Padding="6,4" FontSize="11" MinWidth="75" Margin="0,0,10,0"
                                       ToolTip="Show Lyrics on Visualizer"/>
                         
                         <!-- Fullscreen Button -->
-                        <Button Padding="8,4" FontSize="11"
+                        <Button FontSize="11" Padding="6,4"
                                 ToolTip="Toggle Fullscreen Visualizer (Esc to exit)"
                                 Click="OnToggleFullscreenVisualizerClick">
                             <StackPanel Orientation="Horizontal">
@@ -232,7 +232,7 @@
                         </Button>
                         
                         <!-- Screensaver Button -->
-                        <Button Padding="8,4" FontSize="11" Margin="5,0,0,0"
+                        <Button FontSize="11" Margin="5,0,0,0" Padding="6,4"
                                 Command="{Binding LaunchScreensaverCommand}"
                                 ToolTip="Launch as Screensaver (fullscreen, exits on mouse/key)">
                             <StackPanel Orientation="Horizontal">
@@ -242,7 +242,7 @@
                         </Button>
                         
                         <!-- Install as Windows Screensaver -->
-                        <Button Padding="8,4" FontSize="11" Margin="5,0,0,0"
+                        <Button FontSize="11" Margin="5,0,0,0" Padding="6,4"
                                 Command="{Binding InstallScreensaverCommand}"
                                 Background="#9C27B0" Foreground="White" BorderThickness="0"
                                 ToolTip="Install as Windows Screensaver (requires admin)">
@@ -343,19 +343,19 @@
                             <!-- Playback Controls -->
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
                                 <Button Content="🔀" Command="{Binding ToggleShuffleCommand}" ToolTip="Shuffle"
-                                        Width="32" Height="32" Margin="2"
+                                        MinWidth="36" Height="36" Margin="2" Padding="6,4"
                                         Opacity="{Binding IsShuffle, Converter={StaticResource BoolToOpacityConverter}, FallbackValue=0.5}"/>
                                 <Button Content="⏮" Command="{Binding PreviousCommand}" ToolTip="Previous"
-                                        Width="36" Height="36" Margin="2"/>
+                                        MinWidth="40" Height="40" Margin="2" Padding="6,4"/>
                                 <Button Content="{Binding PlayPauseIcon}" Command="{Binding PlayPauseCommand}" 
                                         ToolTip="Play/Pause" FontSize="18"
-                                        Width="44" Height="44" Margin="2"/>
+                                        MinWidth="48" Height="48" Margin="2" Padding="8,6"/>
                                 <Button Content="⏹" Command="{Binding StopCommand}" ToolTip="Stop"
-                                        Width="36" Height="36" Margin="2"/>
+                                        MinWidth="40" Height="40" Margin="2" Padding="6,4"/>
                                 <Button Content="⏭" Command="{Binding NextCommand}" ToolTip="Next"
-                                        Width="36" Height="36" Margin="2"/>
+                                        MinWidth="40" Height="40" Margin="2" Padding="6,4"/>
                                 <Button Content="{Binding RepeatIcon}" Command="{Binding CycleRepeatCommand}" ToolTip="Repeat Mode"
-                                        Width="32" Height="32" Margin="2"/>
+                                        MinWidth="36" Height="36" Margin="2" Padding="6,4"/>
                             </StackPanel>
                             
                             <!-- Volume -->
@@ -430,9 +430,9 @@
                                 </Grid.RowDefinitions>
                                 
                                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
-                                    <Button Content="➕ Files" Command="{Binding OpenFileCommand}" Padding="6,4" Margin="0,0,4,0"/>
-                                    <Button Content="📂 Folder" Command="{Binding OpenFolderCommand}" Padding="6,4" Margin="0,0,4,0"/>
-                                    <Button Content="🗑️ Clear" Command="{Binding ClearQueueCommand}" Padding="6,4"/>
+                                    <Button Content="➕ Files" Command="{Binding OpenFileCommand}" Margin="0,0,4,0"/>
+                                    <Button Content="📂 Folder" Command="{Binding OpenFolderCommand}" Margin="0,0,4,0"/>
+                                    <Button Content="🗑️ Clear" Command="{Binding ClearQueueCommand}"/>
                                 </StackPanel>
                                 
                                 <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
@@ -537,13 +537,13 @@
                                                 </ListBox>
                                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
                                                     <Button Content="📁 Add Folder" Command="{Binding AddLibraryFolderCommand}" 
-                                                            Padding="6,4" Margin="0,0,5,0" FontSize="11"/>
+                                                            Margin="0,0,5,0" FontSize="11"/>
                                                     <Button Content="✕ Remove" Command="{Binding RemoveLibraryFolderCommand}" 
-                                                            Padding="6,4" FontSize="11"/>
+                                                            FontSize="11"/>
                                                 </StackPanel>
                                                 <StackPanel Orientation="Horizontal">
                                                     <Button Content="🔄 Scan All Folders" Command="{Binding ScanAllLibraryFoldersCommand}" 
-                                                            Padding="8,4" Margin="0,0,5,0" FontWeight="Bold" FontSize="11"/>
+                                                            Margin="0,0,5,0" FontWeight="Bold" FontSize="11"/>
                                                     <CheckBox Content="Include Subfolders" IsChecked="{Binding IncludeSubfolders}" 
                                                               VerticalAlignment="Center" FontSize="11"/>
                                                 </StackPanel>
@@ -565,13 +565,13 @@
                                             <StackPanel Margin="5">
                                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
                                                     <Button Content="📚 Show All" Command="{Binding ShowLibraryFromPlaylistCommand}" 
-                                                            Padding="6,4" Margin="0,0,5,0" FontSize="11" ToolTip="Return to full library view"/>
+                                                            Margin="0,0,5,0" FontSize="11" ToolTip="Return to full library view"/>
                                                     <Button Content="➕ New Playlist" Command="{Binding CreatePlaylistCommand}" 
-                                                            Padding="6,4" Margin="0,0,5,0" FontSize="11"/>
+                                                            Margin="0,0,5,0" FontSize="11"/>
                                                     <Button Content="✏️ Rename" Command="{Binding RenamePlaylistCommand}" 
-                                                            Padding="6,4" Margin="0,0,5,0" FontSize="11"/>
+                                                            Margin="0,0,5,0" FontSize="11"/>
                                                     <Button Content="🗑️ Delete" Command="{Binding DeletePlaylistCommand}" 
-                                                            Padding="6,4" FontSize="11"/>
+                                                            FontSize="11"/>
                                                 </StackPanel>
                                                 <ItemsControl ItemsSource="{Binding SmartPlaylists}">
                                                     <ItemsControl.ItemsPanel>
@@ -608,19 +608,19 @@
                                     <TextBox Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" 
                                              Padding="6,4" FontSize="11" ToolTip="Search by title, artist, or album"/>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="5,0,0,0">
-                                        <Button Content="▶ Play" Command="{Binding PlaySelectedCommand}" Padding="6,4" FontSize="11"/>
+                                        <Button Content="▶ Play" Command="{Binding PlaySelectedCommand}" FontSize="11"/>
                                         <Button Content="➕ Add to Queue" Command="{Binding AddToQueueCommand}" 
-                                                CommandParameter="{Binding SelectedLibraryTrack}" Margin="3,0,0,0" Padding="6,4" FontSize="11"/>
+                                                CommandParameter="{Binding SelectedLibraryTrack}" Margin="3,0,0,0" FontSize="11"/>
                                         <Button Content="➕ All" Command="{Binding AddAllToQueueCommand}" 
-                                                Margin="3,0,0,0" Padding="6,4" FontSize="11" ToolTip="Add all displayed tracks to queue"/>
+                                                Margin="3,0,0,0" FontSize="11" ToolTip="Add all displayed tracks to queue"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="10,0,0,0">
                                         <Button Content="🗑️" Command="{Binding RemoveSelectedTracksFromLibraryCommand}" 
-                                                Padding="6,4" FontSize="11" ToolTip="Remove selected track from library" Foreground="#FF9800"/>
+                                                FontSize="11" ToolTip="Remove selected track from library" Foreground="#FF9800"/>
                                         <Button Content="🧹" Command="{Binding RemoveMissingTracksCommand}" 
-                                                Margin="3,0,0,0" Padding="6,4" FontSize="11" ToolTip="Remove tracks with missing files"/>
+                                                Margin="3,0,0,0" FontSize="11" ToolTip="Remove tracks with missing files"/>
                                         <Button Content="🗑️ Clear" Command="{Binding ClearLibraryCommand}" 
-                                                Margin="3,0,0,0" Padding="6,4" FontSize="11" ToolTip="Clear entire library" Foreground="#F44336"/>
+                                                Margin="3,0,0,0" FontSize="11" ToolTip="Clear entire library" Foreground="#F44336"/>
                                     </StackPanel>
                                 </Grid>
                                 

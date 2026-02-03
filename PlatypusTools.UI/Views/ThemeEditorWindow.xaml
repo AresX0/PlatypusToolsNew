@@ -61,8 +61,8 @@
                     </ListBox>
                     
                     <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="8">
-                        <Button Content="➕ New" Width="60" Margin="0,0,4,0" Click="NewTheme_Click" ToolTip="Create a new theme"/>
-                        <Button Content="📋 Copy" Width="60" Margin="0,0,4,0" Click="DuplicateTheme_Click" ToolTip="Duplicate selected theme"/>
+                        <Button Content="➕ New" MinWidth="180" Margin="0,0,4,0" Click="NewTheme_Click" ToolTip="Create a new theme"/>
+                        <Button Content="📋 Copy" MinWidth="180" Margin="0,0,4,0" Click="DuplicateTheme_Click" ToolTip="Duplicate selected theme"/>
                         <Button x:Name="DeleteButton" Content="🗑️" Width="40" Click="DeleteTheme_Click" ToolTip="Delete selected theme"/>
                     </StackPanel>
                     

@@ -30,7 +30,7 @@
 
                 <TextBox x:Name="DirectoryPathTextBox" Grid.Row="0" Grid.Column="0" Text="{Binding DirectoryPath, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
                          Height="25" VerticalContentAlignment="Center" Margin="0,0,5,0"/>
-                <Button Grid.Row="0" Grid.Column="1" Content="Browse..." Width="80" Height="25"
+                <Button Grid.Row="0" Grid.Column="1" Content="Browse..." MinWidth="180" Height="25"
                         Click="OnBrowseClick"
                         Command="{Binding BrowseDirectoryCommand}"/>
 
@@ -42,15 +42,15 @@
 
         <!-- Action Buttons -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
-            <Button Content="Analyze" Width="100" Height="30" Margin="0,0,5,0"
+            <Button Content="Analyze" MinWidth="180" Height="30" Margin="0,0,5,0"
                     Click="OnAnalyzeClick" Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
-            <Button Content="Find Duplicates" Width="120" Height="30" Margin="0,0,5,0"
+            <Button Content="Find Duplicates" MinWidth="180" Height="30" Margin="0,0,5,0"
                     Click="OnFindDuplicatesClick" Background="#FF2196F3" Foreground="White"/>
-            <Button Content="Build Tree" Width="100" Height="30" Margin="0,0,5,0"
+            <Button Content="Build Tree" MinWidth="180" Height="30" Margin="0,0,5,0"
                     Click="OnBuildTreeClick" Background="#FF2196F3" Foreground="White"/>
-            <Button Content="Export" Width="80" Height="30" Margin="0,0,5,0"
+            <Button Content="Export" MinWidth="180" Height="30" Margin="0,0,5,0"
                     Click="OnExportClick" Background="#FF2196F3" Foreground="White"/>
-            <Button Content="Clear" Width="80" Height="30" Margin="0,0,5,0"
+            <Button Content="Clear" MinWidth="180" Height="30" Margin="0,0,5,0"
                     Click="OnClearClick" Background="#FFF44336" Foreground="White"/>
         </StackPanel>
 

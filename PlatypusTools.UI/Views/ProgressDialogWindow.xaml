@@ -66,7 +66,7 @@
         <Button x:Name="CancelButton" 
                 Grid.Row="5" 
                 Content="Cancel" 
-                Width="100" 
+                MinWidth="180" 
                 HorizontalAlignment="Center"
                 Click="CancelButton_Click"
                 IsEnabled="True"/>

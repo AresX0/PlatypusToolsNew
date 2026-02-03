@@ -28,8 +28,8 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding SourceFolderPath}" IsReadOnly="True" Width="600" HorizontalAlignment="Left"/>
-                <Button Grid.Row="0" Grid.Column="1" Content="Browse..." Command="{Binding BrowseSourceFolderCommand}" Width="80" Margin="5,0,0,0"/>
-                <Button Grid.Row="0" Grid.Column="2" Content="Scan" Command="{Binding ScanCommand}" Width="80" Margin="5,0,0,0" FontWeight="Bold"/>
+                <Button Grid.Row="0" Grid.Column="1" Content="Browse..." Command="{Binding BrowseSourceFolderCommand}" MinWidth="180" Margin="5,0,0,0"/>
+                <Button Grid.Row="0" Grid.Column="2" Content="Scan" Command="{Binding ScanCommand}" MinWidth="180" Margin="5,0,0,0" FontWeight="Bold"/>
                 
                 <CheckBox Grid.Row="1" Grid.Column="0" Content="Include Subfolders" IsChecked="{Binding IncludeSubfolders}" Margin="0,5,0,0"/>
             </Grid>
@@ -84,7 +84,7 @@
                 
                 <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding OutputFolderPath}" IsReadOnly="True" Width="400" HorizontalAlignment="Left" 
                          Visibility="{Binding UseSourceFolder, Converter={StaticResource InverseBoolToVisibilityConverter}}" Margin="0,10,0,0"/>
-                <Button Grid.Row="2" Grid.Column="2" Content="Browse..." Command="{Binding BrowseOutputFolderCommand}" Width="80" 
+                <Button Grid.Row="2" Grid.Column="2" Content="Browse..." Command="{Binding BrowseOutputFolderCommand}" MinWidth="180" 
                         Visibility="{Binding UseSourceFolder, Converter={StaticResource InverseBoolToVisibilityConverter}}" Margin="5,10,0,0"/>
             </Grid>
             </ScrollViewer>
@@ -92,9 +92,9 @@
 
         <!-- Action Bar -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,10">
-            <Button Content="Select All" Command="{Binding SelectAllCommand}" Width="80" Margin="0,0,5,0"/>
-            <Button Content="Select None" Command="{Binding SelectNoneCommand}" Width="80" Margin="0,0,5,0"/>
-            <Button Content="Clear Completed" Command="{Binding ClearCompletedCommand}" Width="120" Margin="0,0,5,0"/>
+            <Button Content="Select All" Command="{Binding SelectAllCommand}" MinWidth="180" Margin="0,0,5,0"/>
+            <Button Content="Select None" Command="{Binding SelectNoneCommand}" MinWidth="180" Margin="0,0,5,0"/>
+            <Button Content="Clear Completed" Command="{Binding ClearCompletedCommand}" MinWidth="180" Margin="0,0,5,0"/>
             <TextBlock Text="{Binding TotalCount, StringFormat='Total: {0}'}" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold"/>
         </StackPanel>
 
@@ -162,9 +162,9 @@
             <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <ProgressBar Grid.Column="1" Value="{Binding OverallProgress}" Height="25" Minimum="0" Maximum="100" 
                          Visibility="{Binding IsConverting, Converter={StaticResource BoolToVisibilityConverter}}"/>
-            <Button Grid.Column="2" Content="▶ Start Conversion" Command="{Binding StartConversionCommand}" Width="145" Height="32" 
+            <Button Grid.Column="2" Content="▶ Start Conversion" Command="{Binding StartConversionCommand}" MinWidth="180" Height="32" 
                     Margin="10,0,5,0" Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
-            <Button Grid.Column="3" Content="❌ Cancel" Command="{Binding CancelConversionCommand}" Width="90" Height="32" 
+            <Button Grid.Column="3" Content="❌ Cancel" Command="{Binding CancelConversionCommand}" MinWidth="180" Height="32" 
                     Background="#FFF44336" Foreground="White"/>
         </Grid>
     </Grid>

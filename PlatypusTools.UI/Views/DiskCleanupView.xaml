@@ -34,10 +34,10 @@
 
                 <StackPanel Orientation="Horizontal">
                     <Button Content="🔍 Analyze" Command="{Binding AnalyzeCommand}" 
-                            Width="110" Margin="0,0,10,0" Padding="8" FontWeight="Bold"
+                            MinWidth="180" Margin="0,0,10,0" Padding="8" FontWeight="Bold"
                             Background="#FF2196F3" Foreground="White"/>
                     <Button Content="🧹 Clean Now" Command="{Binding CleanNowCommand}" 
-                            Width="120" Padding="8" FontWeight="Bold"
+                            MinWidth="180" Padding="8" FontWeight="Bold"
                             Background="#FF4CAF50" Foreground="White"/>
                     <CheckBox Content="Dry Run" IsChecked="{Binding DryRun}" 
                               VerticalAlignment="Center" Margin="20,0,0,0" 
@@ -79,7 +79,7 @@
 
                 <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" FontWeight="SemiBold"/>
                 <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelCommand}" 
-                        Width="80" Padding="5" 
+                        MinWidth="180" Padding="5" 
                         Visibility="{Binding IsAnalyzing, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             </Grid>
         </Border>

@@ -46,9 +46,9 @@
                 <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding TargetPath, UpdateSourceTrigger=PropertyChanged}" 
                          VerticalAlignment="Center" Margin="0,0,8,0"/>
                 <Button Grid.Row="0" Grid.Column="2" Content="📄 File..." Command="{Binding BrowseFileCommand}" 
-                        Width="80" Margin="0,0,4,0"/>
+                        MinWidth="180" Margin="0,0,4,0"/>
                 <Button Grid.Row="0" Grid.Column="3" Content="📁 Folder..." Command="{Binding BrowseFolderCommand}" 
-                        Width="80"/>
+                        MinWidth="180"/>
 
                 <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding TargetInfo}" 
                            Margin="0,8,0,0" FontStyle="Italic" Foreground="Gray"/>
@@ -135,7 +135,7 @@
                 </ListBox>
 
                 <Button Grid.Row="1" Content="Clear Log" Command="{Binding ClearLogCommand}" 
-                        HorizontalAlignment="Right" Margin="0,8,0,0" Width="80"/>
+                        HorizontalAlignment="Right" Margin="0,8,0,0" MinWidth="180"/>
             </Grid>
         </GroupBox>
 
@@ -160,14 +160,14 @@
                 <ComboBox ItemsSource="{Binding AvailableDrives}" SelectedItem="{Binding SelectedDrive}"
                           DisplayMemberPath="Name" Width="60" Margin="0,0,4,0"/>
                 <Button Content="🧹 Wipe Free Space" Command="{Binding WipeFreeSpaceCommand}" 
-                        MinWidth="155" Margin="0,0,8,0" Padding="8,4"
+                        MinWidth="190" Margin="0,0,8,0"
                         Background="#FFFF9800" Foreground="White"/>
                 <Button Content="❌ Cancel" Command="{Binding CancelCommand}" 
-                        MinWidth="90" Margin="0,0,8,0" Padding="8,4"
+                        MinWidth="180" Margin="0,0,8,0"
                         Background="#FF9E9E9E" Foreground="White"
                         Visibility="{Binding IsWiping, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                 <Button Content="🔥 WIPE NOW" Command="{Binding WipeCommand}" 
-                        MinWidth="130" FontWeight="Bold" Padding="8,4"
+                        MinWidth="190" FontWeight="Bold"
                         Background="#FFF44336" Foreground="White">
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">

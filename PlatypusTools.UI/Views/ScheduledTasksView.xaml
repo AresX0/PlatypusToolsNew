@@ -21,12 +21,12 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" Grid.Column="0">
-                    <Button Content="Refresh" Click="OnRefreshClick" Width="90" Margin="0,0,8,0" />
-                    <Button Content="Enable" Click="OnEnableClick" Width="90" Background="DarkGreen" Foreground="White" Margin="0,0,8,0" />
-                    <Button Content="Disable" Click="OnDisableClick" Width="90" Background="DarkOrange" Foreground="White" Margin="0,0,8,0" />
-                    <Button Content="Run Now" Click="OnRunClick" Width="90" Margin="0,0,8,0" />
-                    <Button Content="Delete" Click="OnDeleteClick" Width="90" Background="DarkRed" Foreground="White" Margin="0,0,8,0" />
-                    <Button Content="Create Task" Click="OnCreateClick" Width="100" FontWeight="Bold" />
+                    <Button Content="Refresh" Click="OnRefreshClick" MinWidth="180" Margin="0,0,8,0" />
+                    <Button Content="Enable" Click="OnEnableClick" MinWidth="180" Background="DarkGreen" Foreground="White" Margin="0,0,8,0" />
+                    <Button Content="Disable" Click="OnDisableClick" MinWidth="180" Background="DarkOrange" Foreground="White" Margin="0,0,8,0" />
+                    <Button Content="Run Now" Click="OnRunClick" MinWidth="180" Margin="0,0,8,0" />
+                    <Button Content="Delete" Click="OnDeleteClick" MinWidth="180" Background="DarkRed" Foreground="White" Margin="0,0,8,0" />
+                    <Button Content="Create Task" Click="OnCreateClick" MinWidth="180" FontWeight="Bold" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <TextBlock VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,16,0">

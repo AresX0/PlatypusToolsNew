@@ -19,8 +19,8 @@
         </StackPanel>
         <TextBox x:Name="OutputBox" Grid.Row="2" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" IsReadOnly="True" />
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-            <Button Width="120" Margin="4" Click="Run_Click">Run</Button>
-            <Button Width="120" Margin="4" Click="Close_Click">Close</Button>
+            <Button MinWidth="180" Margin="4" Click="Run_Click">Run</Button>
+            <Button MinWidth="180" Margin="4" Click="Close_Click">Close</Button>
         </StackPanel>
     </Grid>
 </Window>

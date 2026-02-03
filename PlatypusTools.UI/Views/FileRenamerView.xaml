@@ -20,8 +20,8 @@
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                     <TextBlock VerticalAlignment="Center" Width="100">Folder Path:</TextBlock>
                     <TextBox Width="500" Text="{Binding FolderPath, UpdateSourceTrigger=PropertyChanged}" />
-                    <Button Content="Browse..." Command="{Binding BrowseFolderCommand}" Width="90" Margin="8,0,0,0" />
-                    <Button Content="Scan" Command="{Binding ScanCommand}" Width="90" Margin="8,0,0,0" />
+                    <Button Content="Browse..." Command="{Binding BrowseFolderCommand}" MinWidth="180" Margin="8,0,0,0" />
+                    <Button Content="Scan" Command="{Binding ScanCommand}" MinWidth="180" Margin="8,0,0,0" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <CheckBox IsChecked="{Binding IncludeSubfolders}" Margin="100,0,16,0">Include Subfolders</CheckBox>
@@ -178,12 +178,12 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,4">
-                    <Button Content="Select All" Command="{Binding SelectAllCommand}" Width="90" Margin="0,0,4,0" />
-                    <Button Content="Select None" Command="{Binding SelectNoneCommand}" Width="90" Margin="0,0,8,0" />
-                    <Button Content="Preview Changes" Command="{Binding PreviewChangesCommand}" Width="120" Margin="0,0,8,0" />
-                    <Button Content="Apply Changes" Command="{Binding ApplyChangesCommand}" Width="120" Margin="0,0,8,0" />
-                    <Button Content="Undo Last" Command="{Binding UndoLastChangesCommand}" Width="90" Margin="0,0,8,0" />
-                    <Button Content="Reset Options" Command="{Binding ResetOptionsCommand}" Width="100" />
+                    <Button Content="Select All" Command="{Binding SelectAllCommand}" MinWidth="180" Margin="0,0,4,0" />
+                    <Button Content="Select None" Command="{Binding SelectNoneCommand}" MinWidth="180" Margin="0,0,8,0" />
+                    <Button Content="Preview Changes" Command="{Binding PreviewChangesCommand}" MinWidth="190" Margin="0,0,8,0" />
+                    <Button Content="Apply Changes" Command="{Binding ApplyChangesCommand}" MinWidth="190" Margin="0,0,8,0" />
+                    <Button Content="Undo Last" Command="{Binding UndoLastChangesCommand}" MinWidth="180" Margin="0,0,8,0" />
+                    <Button Content="Reset Options" Command="{Binding ResetOptionsCommand}" MinWidth="180" />
                 </StackPanel>
 
                 <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">

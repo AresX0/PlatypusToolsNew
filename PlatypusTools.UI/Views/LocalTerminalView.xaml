@@ -43,17 +43,17 @@
                     <TextBox x:Name="WorkingDirBox" Width="250" 
                              Text="{Binding WorkingDirectory, UpdateSourceTrigger=PropertyChanged}"
                              VerticalAlignment="Center"/>
-                    <Button Content="📁" MinWidth="36" Padding="6,4" Margin="4,0,0,0" Click="BrowseDirectory_Click"
+                    <Button Content="📁" MinWidth="36" Margin="4,0,0,0" Click="BrowseDirectory_Click"
                             ToolTip="Browse for directory"/>
                 </StackPanel>
                 
                 <!-- Actions -->
                 <StackPanel Grid.Column="3" Orientation="Horizontal">
-                    <Button Content="🔄 New Session" Click="NewSession_Click" MinWidth="100" Margin="0,0,8,0"
+                    <Button Content="🔄 New Session" Click="NewSession_Click" MinWidth="180" Margin="0,0,8,0"
                             ToolTip="Start a new terminal session"/>
-                    <Button Content="🗑️ Clear" Click="Clear_Click" MinWidth="80" Margin="0,0,8,0"
+                    <Button Content="🗑️ Clear" Click="Clear_Click" MinWidth="180" Margin="0,0,8,0"
                             ToolTip="Clear terminal output"/>
-                    <Button Content="📋 Copy All" Click="CopyAll_Click" MinWidth="90"
+                    <Button Content="📋 Copy All" Click="CopyAll_Click" MinWidth="180"
                             ToolTip="Copy all terminal output to clipboard"/>
                 </StackPanel>
                 
@@ -75,7 +75,7 @@
                         </ComboBox.Items>
                     </ComboBox>
                     <Button Content="▶" MinWidth="32" Margin="4,0,0,0" Click="RunQuickCommand_Click"
-                            ToolTip="Run selected quick command" Padding="6,2"/>
+                            ToolTip="Run selected quick command"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -150,7 +150,7 @@
                      PreviewKeyDown="CommandInput_PreviewKeyDown"/>
             
             <!-- Execute Button -->
-            <Button Grid.Column="2" Content="Execute" Width="90" Click="Execute_Click"
+            <Button Grid.Column="2" Content="Execute" MinWidth="180" Click="Execute_Click"
                     Background="#FF0078D4" Foreground="White" FontWeight="SemiBold">
                 <Button.Style>
                     <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">

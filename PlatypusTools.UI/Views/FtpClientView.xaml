@@ -113,9 +113,9 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Grid.Row="4" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="🔌 Connect" Command="{Binding ConnectCommand}" Width="85" Margin="0,0,4,0"
+                        <Button Content="🔌 Connect" Command="{Binding ConnectCommand}" MinWidth="180" Margin="0,0,4,0"
                                 Background="#FF4CAF50" Foreground="White"/>
-                        <Button Content="❌ Disconnect" Command="{Binding DisconnectCommand}" Width="85"
+                        <Button Content="❌ Disconnect" Command="{Binding DisconnectCommand}" MinWidth="180"
                                 Background="#FFF44336" Foreground="White"/>
                     </StackPanel>
                 </Grid>
@@ -123,12 +123,12 @@
 
             <!-- Toolbar -->
             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
-                <Button Content="📁 Up" Command="{Binding NavigateUpCommand}" MinWidth="65" Margin="0,0,4,0" Padding="6,2"/>
-                <Button Content="🔄 Refresh" Command="{Binding RefreshCommand}" MinWidth="95" Margin="0,0,4,0" Padding="6,2"/>
-                <Button Content="📥 Download" Command="{Binding DownloadCommand}" MinWidth="105" Margin="0,0,4,0"/>
-                <Button Content="📤 Upload" Command="{Binding UploadCommand}" MinWidth="95" Margin="0,0,4,0" Padding="6,2"/>
-                <Button Content="📁 New Folder" Command="{Binding CreateFolderCommand}" MinWidth="115" Margin="0,0,4,0"/>
-                <Button Content="🗑️ Delete" Command="{Binding DeleteCommand}" MinWidth="90" Margin="0,0,4,0" Padding="6,2"
+                <Button Content="📁 Up" Command="{Binding NavigateUpCommand}" MinWidth="180" Margin="0,0,4,0"/>
+                <Button Content="🔄 Refresh" Command="{Binding RefreshCommand}" MinWidth="180" Margin="0,0,4,0"/>
+                <Button Content="📥 Download" Command="{Binding DownloadCommand}" MinWidth="180" Margin="0,0,4,0"/>
+                <Button Content="📤 Upload" Command="{Binding UploadCommand}" MinWidth="180" Margin="0,0,4,0"/>
+                <Button Content="📁 New Folder" Command="{Binding CreateFolderCommand}" MinWidth="180" Margin="0,0,4,0"/>
+                <Button Content="🗑️ Delete" Command="{Binding DeleteCommand}" MinWidth="180" Margin="0,0,4,0"
                         Background="#FFF44336" Foreground="White"/>
                 <TextBlock Text="Path:" VerticalAlignment="Center" Margin="16,0,8,0"/>
                 <TextBox Text="{Binding CurrentPath, Mode=OneWay}" Width="200" IsReadOnly="True" 

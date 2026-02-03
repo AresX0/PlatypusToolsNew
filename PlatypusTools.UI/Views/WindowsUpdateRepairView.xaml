@@ -183,7 +183,7 @@
                         <Button x:Name="ClearLogButton" Content="Clear"
                                 Click="ClearLogButton_Click"
                                 HorizontalAlignment="Right"
-                                Padding="8,4"/>
+                               />
                     </Grid>
 
                     <Border Grid.Row="1" 

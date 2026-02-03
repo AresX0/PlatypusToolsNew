@@ -8,6 +8,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using PlatypusTools.UI.ViewModels;
+using SkiaSharp;
+using SkiaSharp.Views.Desktop;
+using SkiaSharp.Views.WPF;
 
 namespace PlatypusTools.UI.Views
 {
@@ -59,6 +62,9 @@ namespace PlatypusTools.UI.Views
         private double _riseSpeed = 0.5; // Attack speed for smooth animation - faster
         private double _fallSpeed = 0.1; // Decay speed for smooth animation - faster
         private const bool USE_LOGARITHMIC_FREQ = true; // Logarithmic frequency mapping
+        
+        // HD Mode: SkiaSharp GPU-accelerated rendering
+        private bool _isHdMode = false;
         
         // Color scheme
         private VisualizerColorScheme _colorScheme = VisualizerColorScheme.BlueGreen;
@@ -353,6 +359,9 @@ namespace PlatypusTools.UI.Views
             Unloaded += OnUnloaded;
             SizeChanged += OnSizeChanged;
             IsVisibleChanged += OnIsVisibleChanged;
+            
+            // Wire up SkiaSharp canvas for HD mode (disabled - SkiaCanvas not implemented yet)
+            // SkiaCanvas.PaintSurface += OnSkiaPaintSurface;
             
             // Subscribe immediately in constructor as backup
             SubscribeToService();
@@ -865,10 +874,29 @@ namespace PlatypusTools.UI.Views
         /// <summary>
         /// Updates spectrum data with all parameters including crawl speed.
         /// </summary>
-        public void UpdateSpectrumData(double[] spectrumData, string mode, int density, int colorSchemeIndex, double sensitivity, int fps, double crawlSpeed)
+        public void UpdateSpectrumData(double[] spectrumData, string mode, int density, int colorSchemeIndex, double sensitivity, int fps, double crawlSpeed, bool isHdMode = false)
         {
             _crawlSpeed = crawlSpeed;
+            _isHdMode = isHdMode;
+            UpdateHdModeVisibility();
             UpdateSpectrumData(spectrumData, mode, density, colorSchemeIndex, sensitivity, fps);
+        }
+        
+        /// <summary>
+        /// Updates the visibility of WPF Canvas vs SkiaSharp element based on HD mode.
+        /// </summary>
+        private void UpdateHdModeVisibility()
+        {
+            if (_isHdMode)
+            {
+                VisualizerCanvas.Visibility = Visibility.Collapsed;
+                // SkiaCanvas.Visibility = Visibility.Visible; // Disabled - SkiaCanvas not implemented yet
+            }
+            else
+            {
+                VisualizerCanvas.Visibility = Visibility.Visible;
+                // SkiaCanvas.Visibility = Visibility.Collapsed; // Disabled - SkiaCanvas not implemented yet
+            }
         }
         
         /// <summary>
@@ -1002,6 +1030,15 @@ namespace PlatypusTools.UI.Views
 
         private void RenderVisualization()
         {
+            // HD mode uses SkiaSharp - just invalidate the SKElement (disabled - SkiaCanvas not implemented yet)
+            if (_isHdMode)
+            {
+                ApplySmoothing();
+                _animationPhase += 0.05;
+                // SkiaCanvas.InvalidateVisual(); // Disabled - SkiaCanvas not implemented yet
+                return;
+            }
+            
             var canvas = VisualizerCanvas;
             if (canvas == null || canvas.ActualWidth < 1 || canvas.ActualHeight < 1) return;
 
@@ -4555,6 +4592,1494 @@ namespace PlatypusTools.UI.Views
                 (byte)(b * 255)
             );
         }
+        
+#if false // HD Visualization Methods - disabled until WriteableBitmap HD rendering is fully implemented
+        #region HD Visualization Methods
+        
+        /// <summary>
+        /// HD Bar Chart - Classic vertical bars with peak indicators.
+        /// </summary>
+        private void RenderBarChartHD()
+        {
+            if (_hdBitmap == null || _smoothedData == null) return;
+            
+            int width = _hdWidth;
+            int height = _hdHeight;
+            int barCount = Math.Min(_barCount, _smoothedData.Length);
+            if (barCount <= 0) return;
+            
+            double barWidth = (double)width / barCount;
+            double gap = Math.Max(1, barWidth * 0.1);
+            double effectiveBarWidth = barWidth - gap;
+            
+            for (int i = 0; i < barCount && i < _smoothedData.Length; i++)
+            {
+                double value = Math.Clamp(_smoothedData[i], 0, 1);
+                int barHeight = (int)(value * height * 0.9);
+                if (barHeight < 1) continue;
+                
+                int x = (int)(i * barWidth + gap / 2);
+                int y = height - barHeight;
+                int w = (int)effectiveBarWidth;
+                
+                // Get gradient colors for this bar
+                Color bottomColor = GetSchemeColorForValue(0);
+                Color topColor = GetSchemeColorForValue(value);
+                
+                FillRectGradient(x, y, w, barHeight, topColor, bottomColor);
+                
+                // Draw peak indicator
+                if (i < _peakHeights.Length && _peakHeights[i] > 0.01)
+                {
+                    int peakY = height - (int)(_peakHeights[i] * height * 0.9);
+                    Color peakColor = Colors.White;
+                    FillRect(x, peakY, w, 2, peakColor.R, peakColor.G, peakColor.B);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// HD Mirror Bars - Spectrum mirrored vertically.
+        /// </summary>
+        private void RenderMirrorBarsHD()
+        {
+            if (_hdBitmap == null || _smoothedData == null) return;
+            
+            int width = _hdWidth;
+            int height = _hdHeight;
+            int barCount = Math.Min(_barCount, _smoothedData.Length);
+            if (barCount <= 0) return;
+            
+            double barWidth = (double)width / barCount;
+            double gap = Math.Max(1, barWidth * 0.1);
+            double effectiveBarWidth = barWidth - gap;
+            int centerY = height / 2;
+            
+            for (int i = 0; i < barCount && i < _smoothedData.Length; i++)
+            {
+                double value = Math.Clamp(_smoothedData[i], 0, 1);
+                int barHeight = (int)(value * centerY * 0.9);
+                if (barHeight < 1) continue;
+                
+                int x = (int)(i * barWidth + gap / 2);
+                int w = (int)effectiveBarWidth;
+                
+                Color bottomColor = GetSchemeColorForValue(0);
+                Color topColor = GetSchemeColorForValue(value);
+                
+                // Top half (upward from center)
+                FillRectGradient(x, centerY - barHeight, w, barHeight, topColor, bottomColor);
+                // Bottom half (downward from center, mirrored)
+                FillRectGradient(x, centerY, w, barHeight, bottomColor, topColor);
+            }
+        }
+        
+        /// <summary>
+        /// HD Waveform - Smooth anti-aliased waveform line.
+        /// </summary>
+        private void RenderWaveformHD()
+        {
+            if (_hdBitmap == null || _smoothedData == null || _smoothedData.Length < 2) return;
+            
+            int width = _hdWidth;
+            int height = _hdHeight;
+            int centerY = height / 2;
+            
+            Color waveColor = GetSchemeColorForValue(0.7);
+            
+            for (int i = 0; i < _smoothedData.Length - 1; i++)
+            {
+                double x0Ratio = (double)i / _smoothedData.Length;
+                double x1Ratio = (double)(i + 1) / _smoothedData.Length;
+                
+                int x0 = (int)(x0Ratio * width);
+                int x1 = (int)(x1Ratio * width);
+                
+                double val0 = _smoothedData[i] - 0.5;
+                double val1 = _smoothedData[i + 1] - 0.5;
+                
+                int y0 = centerY - (int)(val0 * height * 0.8);
+                int y1 = centerY - (int)(val1 * height * 0.8);
+                
+                DrawLine(x0, y0, x1, y1, waveColor.R, waveColor.G, waveColor.B);
+                // Draw thicker line
+                DrawLine(x0, y0 + 1, x1, y1 + 1, waveColor.R, waveColor.G, waveColor.B);
+            }
+        }
+        
+        /// <summary>
+        /// HD Circular - Circular spectrum visualization.
+        /// </summary>
+        private void RenderCircularHD()
+        {
+            if (_hdBitmap == null || _smoothedData == null) return;
+            
+            int width = _hdWidth;
+            int height = _hdHeight;
+            int cx = width / 2;
+            int cy = height / 2;
+            int baseRadius = Math.Min(cx, cy) / 3;
+            int maxRadius = Math.Min(cx, cy) - 10;
+            
+            int barCount = Math.Min(_barCount, _smoothedData.Length);
+            if (barCount <= 0) return;
+            
+            double angleStep = 2 * Math.PI / barCount;
+            
+            for (int i = 0; i < barCount && i < _smoothedData.Length; i++)
+            {
+                double angle = i * angleStep - Math.PI / 2;
+                double value = Math.Clamp(_smoothedData[i], 0, 1);
+                int barLength = (int)(value * (maxRadius - baseRadius));
+                
+                Color color = GetSchemeColorForValue(value);
+                
+                int x0 = cx + (int)(Math.Cos(angle) * baseRadius);
+                int y0 = cy + (int)(Math.Sin(angle) * baseRadius);
+                int x1 = cx + (int)(Math.Cos(angle) * (baseRadius + barLength));
+                int y1 = cy + (int)(Math.Sin(angle) * (baseRadius + barLength));
+                
+                DrawLine(x0, y0, x1, y1, color.R, color.G, color.B);
+                // Draw adjacent angles for thickness
+                double angleOffset = angleStep * 0.3;
+                int x0b = cx + (int)(Math.Cos(angle + angleOffset) * baseRadius);
+                int y0b = cy + (int)(Math.Sin(angle + angleOffset) * baseRadius);
+                int x1b = cx + (int)(Math.Cos(angle + angleOffset) * (baseRadius + barLength));
+                int y1b = cy + (int)(Math.Sin(angle + angleOffset) * (baseRadius + barLength));
+                DrawLine(x0b, y0b, x1b, y1b, color.R, color.G, color.B);
+            }
+            
+            // Draw center circle
+            Color centerColor = GetSchemeColorForValue(0.5);
+            DrawCircle(cx, cy, baseRadius, centerColor.R, centerColor.G, centerColor.B, 255, 2);
+        }
+        
+        /// <summary>
+        /// HD Radial - Radial spectrum with concentric rings.
+        /// </summary>
+        private void RenderRadialHD()
+        {
+            if (_hdBitmap == null || _smoothedData == null) return;
+            
+            int width = _hdWidth;
+            int height = _hdHeight;
+            int cx = width / 2;
+            int cy = height / 2;
+            int maxRadius = Math.Min(cx, cy) - 5;
+            
+            // Calculate average intensity
+            double avgIntensity = 0;
+            for (int i = 0; i < _smoothedData.Length; i++)
+                avgIntensity += _smoothedData[i];
+            avgIntensity /= _smoothedData.Length;
+            
+            // Draw concentric rings based on frequency bands
+            int rings = Math.Min(8, _smoothedData.Length);
+            for (int r = 0; r < rings; r++)
+            {
+                int dataIndex = r * _smoothedData.Length / rings;
+                double value = _smoothedData[dataIndex];
+                int radius = maxRadius * (r + 1) / rings;
+                int thickness = (int)(2 + value * 6);
+                
+                Color color = GetSchemeColorForValue(value);
+                byte alpha = (byte)(100 + value * 155);
+                
+                DrawCircle(cx, cy, radius, color.R, color.G, color.B, alpha, thickness);
+            }
+            
+            // Pulsing center
+            int centerRadius = (int)(10 + avgIntensity * 30);
+            Color centerColor = GetSchemeColorForValue(avgIntensity);
+            FillCircle(cx, cy, centerRadius, centerColor.R, centerColor.G, centerColor.B);
+        }
+        
+        /// <summary>
+        /// HD Particles - Particle field visualization.
+        /// </summary>
+        private void RenderParticlesHD()
+        {
+            if (_hdBitmap == null) return;
+            
+            int width = _hdWidth;
+            int height = _hdHeight;
+            
+            // Get average intensity for particle behavior
+            double avgIntensity = 0;
+            if (_smoothedData != null && _smoothedData.Length > 0)
+            {
+                for (int i = 0; i < _smoothedData.Length; i++)
+                    avgIntensity += _smoothedData[i];
+                avgIntensity /= _smoothedData.Length;
+            }
+            
+            // Update and render particles
+            while (_particles.Count < _maxParticles)
+            {
+                _particles.Add(new Particle
+                {
+                    X = _random.NextDouble(),
+                    Y = _random.NextDouble(),
+                    VelocityX = (_random.NextDouble() - 0.5) * 0.02,
+                    VelocityY = (_random.NextDouble() - 0.5) * 0.02,
+                    Size = 2 + _random.NextDouble() * 4,
+                    Hue = _random.NextDouble()
+                });
+            }
+            
+            foreach (var p in _particles)
+            {
+                // Update position with intensity-based speed
+                double speed = 0.5 + avgIntensity * 2;
+                p.X += p.VelocityX * speed;
+                p.Y += p.VelocityY * speed;
+                
+                // Wrap around
+                if (p.X < 0) p.X = 1;
+                if (p.X > 1) p.X = 0;
+                if (p.Y < 0) p.Y = 1;
+                if (p.Y > 1) p.Y = 0;
+                
+                // Render particle
+                int px = (int)(p.X * width);
+                int py = (int)(p.Y * height);
+                int size = (int)(p.Size * (0.5 + avgIntensity));
+                
+                Color color = GetSchemeColorForValue(p.Hue);
+                byte alpha = (byte)(150 + avgIntensity * 105);
+                
+                FillCircle(px, py, size, color.R, color.G, color.B, alpha);
+            }
+        }
+        
+        /// <summary>
+        /// HD Aurora - Aurora borealis effect.
+        /// </summary>
+        private void RenderAuroraHD()
+        {
+            if (_hdBitmap == null) return;
+            
+            int width = _hdWidth;
+            int height = _hdHeight;
+            
+            double phase = _animationPhase;
+            
+            // Get bass and treble intensity
+            double bassIntensity = 0;
+            double trebleIntensity = 0;
+            if (_smoothedData != null && _smoothedData.Length > 0)
+            {
+                int mid = _smoothedData.Length / 2;
+                for (int i = 0; i < mid; i++)
+                    bassIntensity += _smoothedData[i];
+                for (int i = mid; i < _smoothedData.Length; i++)
+                    trebleIntensity += _smoothedData[i];
+                bassIntensity /= mid;
+                trebleIntensity /= (_smoothedData.Length - mid);
+            }
+            
+            // Draw aurora waves
+            for (int wave = 0; wave < 5; wave++)
+            {
+                double waveOffset = wave * 0.7;
+                double waveIntensity = wave % 2 == 0 ? bassIntensity : trebleIntensity;
+                
+                for (int x = 0; x < width; x += 2)
+                {
+                    double t = (double)x / width;
+                    double waveY = 0.3 + wave * 0.1;
+                    waveY += Math.Sin(t * 6 + phase + waveOffset) * 0.1 * (1 + waveIntensity);
+                    waveY += Math.Sin(t * 3 + phase * 0.5 + waveOffset) * 0.05;
+                    
+                    int y = (int)(waveY * height);
+                    int waveHeight = (int)(20 + waveIntensity * 60);
+                    
+                    Color color = GetSchemeColorForValue(t + wave * 0.15);
+                    byte alpha = (byte)(40 + waveIntensity * 80);
+                    
+                    for (int dy = 0; dy < waveHeight; dy++)
+                    {
+                        int py = y + dy;
+                        if (py >= 0 && py < height)
+                        {
+                            byte fadeAlpha = (byte)(alpha * (1 - (double)dy / waveHeight));
+                            BlendPixel(x, py, color.R, color.G, color.B, fadeAlpha);
+                            if (x + 1 < width)
+                                BlendPixel(x + 1, py, color.R, color.G, color.B, fadeAlpha);
+                        }
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
+        /// HD Wave Grid - 3D perspective wave grid.
+        /// </summary>
+        private void RenderWaveGridHD()
+        {
+            if (_hdBitmap == null) return;
+            
+            int width = _hdWidth;
+            int height = _hdHeight;
+            
+            double phase = _animationPhase;
+            int gridSize = 20;
+            
+            // Get intensity
+            double avgIntensity = 0;
+            if (_smoothedData != null && _smoothedData.Length > 0)
+            {
+                foreach (double d in _smoothedData)
+                    avgIntensity += d;
+                avgIntensity /= _smoothedData.Length;
+            }
+            
+            // Draw grid lines
+            for (int gz = 0; gz < gridSize; gz++)
+            {
+                double zRatio = (double)gz / gridSize;
+                double perspective = 1 - zRatio * 0.7;
+                int rowY = (int)(height * 0.3 + zRatio * height * 0.6);
+                
+                for (int gx = 0; gx < gridSize - 1; gx++)
+                {
+                    double xRatio = (double)gx / gridSize;
+                    double xRatioNext = (double)(gx + 1) / gridSize;
+                    
+                    // Wave height based on position and audio
+                    int dataIdx = (int)(xRatio * (_smoothedData?.Length ?? 1));
+                    double waveVal = _smoothedData != null && dataIdx < _smoothedData.Length ? _smoothedData[dataIdx] : 0;
+                    double wave = Math.Sin(xRatio * 8 + phase + zRatio * 4) * (20 + waveVal * 40);
+                    double waveNext = Math.Sin(xRatioNext * 8 + phase + zRatio * 4) * (20 + waveVal * 40);
+                    
+                    int x0 = (int)(width * 0.1 + xRatio * width * 0.8 * perspective);
+                    int x1 = (int)(width * 0.1 + xRatioNext * width * 0.8 * perspective);
+                    int y0 = rowY - (int)(wave * perspective);
+                    int y1 = rowY - (int)(waveNext * perspective);
+                    
+                    Color color = GetSchemeColorForValue(xRatio);
+                    byte alpha = (byte)(100 + perspective * 155);
+                    
+                    DrawLine(x0, y0, x1, y1, color.R, color.G, color.B, alpha);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// HD Starfield - Classic After Dark starfield with motion blur.
+        /// </summary>
+        private void RenderStarfieldHD()
+        {
+            if (_hdBitmap == null) return;
+            
+            int width = _hdWidth;
+            int height = _hdHeight;
+            int cx = width / 2;
+            int cy = height / 2;
+            
+            // Get intensity for speed boost
+            double avgIntensity = 0;
+            if (_smoothedData != null && _smoothedData.Length > 0)
+            {
+                foreach (double d in _smoothedData)
+                    avgIntensity += d;
+                avgIntensity /= _smoothedData.Length;
+            }
+            double speedMultiplier = 1 + avgIntensity * 3;
+            
+            // Update and render stars
+            foreach (var star in _stars)
+            {
+                // Move star toward viewer
+                star.Z -= star.Speed * speedMultiplier;
+                if (star.Z <= 0.1)
+                {
+                    star.X = _random.NextDouble() - 0.5;
+                    star.Y = _random.NextDouble() - 0.5;
+                    star.Z = 4;
+                }
+                
+                // Project to screen
+                double scale = 200 / star.Z;
+                int sx = cx + (int)(star.X * scale);
+                int sy = cy + (int)(star.Y * scale);
+                
+                if (sx < 0 || sx >= width || sy < 0 || sy >= height) continue;
+                
+                // Star brightness based on depth
+                byte brightness = (byte)(255 * (1 - star.Z / 4));
+                int size = (int)(3 * (1 - star.Z / 4)) + 1;
+                
+                // Star color
+                Color color = star.ColorType switch
+                {
+                    1 => Color.FromRgb(255, 255, 200), // Yellow
+                    2 => Color.FromRgb(255, 180, 180), // Red
+                    3 => Color.FromRgb(180, 200, 255), // Blue
+                    _ => Color.FromRgb(255, 255, 255)  // White
+                };
+                
+                byte r = (byte)(color.R * brightness / 255);
+                byte g = (byte)(color.G * brightness / 255);
+                byte b = (byte)(color.B * brightness / 255);
+                
+                // Draw star with motion blur streak
+                double prevScale = 200 / (star.Z + star.Speed * speedMultiplier);
+                int prevX = cx + (int)(star.X * prevScale);
+                int prevY = cy + (int)(star.Y * prevScale);
+                
+                if (size > 1)
+                    FillCircle(sx, sy, size, r, g, b);
+                else
+                    SetPixel(sx, sy, r, g, b);
+                    
+                // Motion trail
+                DrawLine(prevX, prevY, sx, sy, r, g, b, (byte)(brightness / 2));
+            }
+        }
+        
+        /// <summary>
+        /// HD Toasters - Flying toasters (simplified geometric version).
+        /// </summary>
+        private void RenderToastersHD()
+        {
+            if (_hdBitmap == null) return;
+            
+            int width = _hdWidth;
+            int height = _hdHeight;
+            
+            // Get intensity
+            double avgIntensity = 0;
+            if (_smoothedData != null && _smoothedData.Length > 0)
+            {
+                foreach (double d in _smoothedData)
+                    avgIntensity += d;
+                avgIntensity /= _smoothedData.Length;
+            }
+            
+            // Ensure we have toasters
+            while (_toasters.Count < 8)
+            {
+                _toasters.Add(new Toaster
+                {
+                    X = 1 + _random.NextDouble() * 0.3,
+                    Y = _random.NextDouble() * 0.8,
+                    Speed = 0.005 + _random.NextDouble() * 0.01,
+                    WingPhase = _random.NextDouble() * Math.PI * 2,
+                    Size = 30 + _random.NextDouble() * 20
+                });
+            }
+            
+            foreach (var toaster in _toasters)
+            {
+                // Update position
+                double speed = toaster.Speed * (1 + avgIntensity);
+                toaster.X -= speed;
+                toaster.Y += speed * 0.5;
+                toaster.WingPhase += 0.3 * (1 + avgIntensity * 2);
+                
+                // Reset if off screen
+                if (toaster.X < -0.15 || toaster.Y > 1.15)
+                {
+                    toaster.X = 1 + _random.NextDouble() * 0.2;
+                    toaster.Y = _random.NextDouble() * 0.6;
+                }
+                
+                int tx = (int)(toaster.X * width);
+                int ty = (int)(toaster.Y * height);
+                int size = (int)toaster.Size;
+                
+                // Draw simplified toaster body (silver rectangle)
+                FillRect(tx, ty, size, (int)(size * 0.7), 180, 180, 190);
+                
+                // Toast slots (dark)
+                int slotWidth = size / 4;
+                int slotHeight = size / 6;
+                FillRect(tx + slotWidth / 2, ty + 4, slotWidth, slotHeight, 40, 30, 20);
+                FillRect(tx + size / 2, ty + 4, slotWidth, slotHeight, 40, 30, 20);
+                
+                // Wings (animated)
+                double wingAngle = Math.Sin(toaster.WingPhase) * 0.5;
+                int wingLength = size / 2;
+                int wingY = ty + size / 3;
+                int wingEndY = wingY - (int)(wingLength * wingAngle);
+                
+                // Left wing
+                DrawLine(tx, wingY, tx - wingLength / 2, wingEndY, 220, 220, 230);
+                DrawLine(tx, wingY + 2, tx - wingLength / 2, wingEndY + 2, 220, 220, 230);
+                
+                // Toast (brown, popping out)
+                int toastY = ty - (int)(Math.Abs(Math.Sin(toaster.WingPhase)) * 10);
+                FillRect(tx + 2, toastY, size - 4, size / 4, 180, 140, 80);
+            }
+        }
+        
+        /// <summary>
+        /// HD Matrix - Digital rain effect.
+        /// </summary>
+        private void RenderMatrixHD()
+        {
+            if (_hdBitmap == null) return;
+            
+            int width = _hdWidth;
+            int height = _hdHeight;
+            
+            // Get intensity
+            double avgIntensity = 0;
+            if (_smoothedData != null && _smoothedData.Length > 0)
+            {
+                foreach (double d in _smoothedData)
+                    avgIntensity += d;
+                avgIntensity /= _smoothedData.Length;
+            }
+            
+            int columnCount = width / 14;
+            
+            // Ensure columns
+            while (_matrixColumns.Count < columnCount)
+            {
+                var col = new MatrixColumn
+                {
+                    X = (double)_matrixColumns.Count / columnCount,
+                    Y = -_random.NextDouble(),
+                    Speed = 0.02 + _random.NextDouble() * 0.03,
+                    Length = 8 + _random.Next(12)
+                };
+                for (int i = 0; i < col.Characters.Length; i++)
+                    col.Characters[i] = MatrixChars[_random.Next(MatrixChars.Length)];
+                _matrixColumns.Add(col);
+            }
+            
+            foreach (var col in _matrixColumns)
+            {
+                // Update position
+                col.Y += col.Speed * (1 + avgIntensity);
+                if (col.Y > 1.5)
+                {
+                    col.Y = -_random.NextDouble() * 0.5;
+                    col.Speed = 0.02 + _random.NextDouble() * 0.03;
+                    // Randomize some characters
+                    for (int i = 0; i < col.Characters.Length; i++)
+                    {
+                        if (_random.NextDouble() < 0.3)
+                            col.Characters[i] = MatrixChars[_random.Next(MatrixChars.Length)];
+                    }
+                }
+                
+                int px = (int)(col.X * width);
+                int charHeight = 14;
+                
+                // Draw trail
+                for (int i = 0; i < col.Length; i++)
+                {
+                    int cy = (int)((col.Y - i * 0.05) * height);
+                    if (cy < 0 || cy >= height - charHeight) continue;
+                    
+                    // Brightness fades for trail
+                    double fade = 1.0 - (double)i / col.Length;
+                    byte brightness = (byte)(255 * fade);
+                    
+                    // Head character is white, rest are green
+                    byte r = i == 0 ? (byte)255 : (byte)0;
+                    byte g = brightness;
+                    byte b = i == 0 ? (byte)255 : (byte)0;
+                    
+                    // Simple character representation (filled rect for performance)
+                    FillRect(px, cy, 10, 12, r, g, b, brightness);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// HD Star Wars Crawl - Perspective text crawl.
+        /// </summary>
+        private void RenderStarWarsCrawlHD()
+        {
+            if (_hdBitmap == null) return;
+            
+            // Update crawl position
+            _crawlPosition += _crawlSpeed * 0.5;
+            if (_crawlPosition > StarWarsCrawlText.Length * 30 + _hdHeight)
+                _crawlPosition = 0;
+            
+            int width = _hdWidth;
+            int height = _hdHeight;
+            
+            // Draw starfield background
+            for (int i = 0; i < 100; i++)
+            {
+                int sx = (int)((_random.NextDouble() * 12345 + i * 7) % width);
+                int sy = (int)((_random.NextDouble() * 54321 + i * 13) % height);
+                byte brightness = (byte)(100 + (i % 156));
+                SetPixel(sx, sy, brightness, brightness, brightness);
+            }
+            
+            // Draw text lines with perspective
+            int centerX = width / 2;
+            int lineHeight = 25;
+            
+            for (int i = 0; i < StarWarsCrawlText.Length; i++)
+            {
+                double y = height - (i * lineHeight - _crawlPosition);
+                if (y < 0 || y > height * 1.2) continue;
+                
+                // Perspective scaling
+                double perspective = y / height;
+                double scale = 0.3 + perspective * 0.7;
+                int textWidth = StarWarsCrawlText[i].Length * 8;
+                int scaledWidth = (int)(textWidth * scale);
+                
+                int tx = centerX - scaledWidth / 2;
+                int ty = (int)(y * 0.5 + height * 0.1);
+                
+                if (ty < 0 || ty >= height) continue;
+                
+                // Fade based on position
+                byte alpha = (byte)(255 * Math.Min(1, perspective * 2));
+                
+                // Draw simplified text representation
+                int charWidth = (int)(8 * scale);
+                for (int c = 0; c < StarWarsCrawlText[i].Length && tx + c * charWidth < width; c++)
+                {
+                    if (StarWarsCrawlText[i][c] == ' ') continue;
+                    int cx = tx + c * charWidth;
+                    if (cx < 0) continue;
+                    FillRect(cx, ty, Math.Max(1, charWidth - 1), (int)(12 * scale), 255, 232, 31, alpha);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// HD Stargate - Animated event horizon with kawoosh effect.
+        /// </summary>
+        private void RenderStargateHD()
+        {
+            if (_hdBitmap == null) return;
+            
+            int width = _hdWidth;
+            int height = _hdHeight;
+            int cx = width / 2;
+            int cy = height / 2;
+            int radius = Math.Min(cx, cy) - 20;
+            
+            double phase = _animationPhase;
+            
+            // Get intensity
+            double avgIntensity = 0;
+            if (_smoothedData != null && _smoothedData.Length > 0)
+            {
+                foreach (double d in _smoothedData)
+                    avgIntensity += d;
+                avgIntensity /= _smoothedData.Length;
+            }
+            
+            // Draw outer ring (dark metal)
+            DrawCircle(cx, cy, radius + 8, 60, 60, 70, 255, 10);
+            DrawCircle(cx, cy, radius, 80, 80, 90, 255, 5);
+            
+            // Draw event horizon (rippling water-like effect)
+            for (int r = radius - 5; r > 0; r -= 2)
+            {
+                double rRatio = (double)r / radius;
+                double ripple = Math.Sin(rRatio * 10 + phase * 3) * 0.3 + 0.7;
+                
+                // Blue-white gradient
+                byte blue = (byte)(150 + rRatio * 100);
+                byte green = (byte)(100 + rRatio * 50 + ripple * 50);
+                byte red = (byte)(50 + ripple * 50);
+                byte alpha = (byte)(200 + avgIntensity * 55);
+                
+                DrawCircle(cx, cy, r, red, green, blue, alpha, 2);
+            }
+            
+            // Bright center
+            FillCircle(cx, cy, radius / 6, 200, 220, 255);
+            
+            // Chevrons (simplified as dots around the ring)
+            for (int i = 0; i < 9; i++)
+            {
+                double angle = i * Math.PI * 2 / 9 - Math.PI / 2;
+                int chevronX = cx + (int)(Math.Cos(angle) * (radius + 3));
+                int chevronY = cy + (int)(Math.Sin(angle) * (radius + 3));
+                
+                // Lit chevrons are orange, unlit are gray
+                bool lit = i < 7;
+                if (lit)
+                    FillCircle(chevronX, chevronY, 6, 255, 150, 50);
+                else
+                    FillCircle(chevronX, chevronY, 6, 80, 80, 80);
+            }
+        }
+        
+        /// <summary>
+        /// HD Klingon - Trefoil emblem with blood red theme.
+        /// </summary>
+        private void RenderKlingonHD()
+        {
+            if (_hdBitmap == null) return;
+            
+            int width = _hdWidth;
+            int height = _hdHeight;
+            int cx = width / 2;
+            int cy = height / 2;
+            int size = Math.Min(cx, cy) - 20;
+            
+            double phase = _animationPhase;
+            
+            // Get intensity
+            double avgIntensity = 0;
+            if (_smoothedData != null && _smoothedData.Length > 0)
+            {
+                foreach (double d in _smoothedData)
+                    avgIntensity += d;
+                avgIntensity /= _smoothedData.Length;
+            }
+            
+            // Draw pulsing background glow
+            int glowSize = (int)(size * (1.2 + avgIntensity * 0.3));
+            for (int r = glowSize; r > size; r -= 3)
+            {
+                byte alpha = (byte)(50 * (1 - (double)(r - size) / (glowSize - size)));
+                DrawCircle(cx, cy, r, 180, 0, 0, alpha, 3);
+            }
+            
+            // Draw trefoil shape (simplified with three overlapping circles)
+            double[] angles = { -Math.PI / 2, Math.PI / 6, 5 * Math.PI / 6 };
+            int leafRadius = size / 2;
+            int leafOffset = size / 3;
+            
+            foreach (double angle in angles)
+            {
+                int lx = cx + (int)(Math.Cos(angle) * leafOffset);
+                int ly = cy + (int)(Math.Sin(angle) * leafOffset);
+                
+                // Gradient from dark to blood red
+                for (int r = leafRadius; r > 0; r -= 2)
+                {
+                    double rRatio = (double)r / leafRadius;
+                    byte red = (byte)(80 + rRatio * 120 + avgIntensity * 55);
+                    byte gb = (byte)(rRatio * 20);
+                    DrawCircle(lx, ly, r, red, gb, gb, 255, 2);
+                }
+            }
+            
+            // Center connector
+            FillCircle(cx, cy, leafOffset / 2, 60, 10, 10);
+            
+            // Metal trim
+            DrawCircle(cx, cy, size, 120, 100, 80, 255, 3);
+        }
+        
+        /// <summary>
+        /// HD Federation - Starfleet delta with transporter effect.
+        /// </summary>
+        private void RenderFederationHD()
+        {
+            if (_hdBitmap == null) return;
+            
+            int width = _hdWidth;
+            int height = _hdHeight;
+            int cx = width / 2;
+            int cy = height / 2;
+            int size = Math.Min(cx, cy) - 20;
+            
+            double phase = _animationPhase;
+            
+            // Get intensity
+            double avgIntensity = 0;
+            if (_smoothedData != null && _smoothedData.Length > 0)
+            {
+                foreach (double d in _smoothedData)
+                    avgIntensity += d;
+                avgIntensity /= _smoothedData.Length;
+            }
+            
+            // Draw starfield background dots
+            for (int i = 0; i < 50; i++)
+            {
+                int sx = (int)((_random.NextDouble() * 9999 + i * 17) % width);
+                int sy = (int)((_random.NextDouble() * 7777 + i * 23) % height);
+                byte brightness = (byte)(80 + (i % 176));
+                SetPixel(sx, sy, brightness, brightness, brightness);
+            }
+            
+            // Draw transporter sparkles
+            int sparkleCount = (int)(30 + avgIntensity * 50);
+            for (int i = 0; i < sparkleCount; i++)
+            {
+                double sparklePhase = phase + i * 0.3;
+                int sx = cx + (int)(Math.Sin(sparklePhase * 3 + i) * size * 0.8);
+                int sy = cy + (int)(Math.Cos(sparklePhase * 2 + i * 1.5) * size * 0.8);
+                
+                sx = Math.Clamp(sx, 0, width - 1);
+                sy = Math.Clamp(sy, 0, height - 1);
+                
+                byte brightness = (byte)(150 + Math.Sin(sparklePhase * 5) * 100);
+                FillCircle(sx, sy, 2, brightness, brightness, 255, brightness);
+            }
+            
+            // Draw delta shield (triangle outline)
+            int[] deltaX = { cx, cx - size / 2, cx + size / 2 };
+            int[] deltaY = { cy - size / 2, cy + size / 2, cy + size / 2 };
+            
+            DrawLine(deltaX[0], deltaY[0], deltaX[1], deltaY[1], 80, 100, 180);
+            DrawLine(deltaX[1], deltaY[1], deltaX[2], deltaY[2], 80, 100, 180);
+            DrawLine(deltaX[2], deltaY[2], deltaX[0], deltaY[0], 80, 100, 180);
+            
+            // Center star
+            FillCircle(cx, cy, 8, 255, 215, 0);
+        }
+        
+        /// <summary>
+        /// HD Jedi - Lightsaber spectrum bars.
+        /// </summary>
+        private void RenderJediHD()
+        {
+            if (_hdBitmap == null || _smoothedData == null) return;
+            
+            int width = _hdWidth;
+            int height = _hdHeight;
+            int barCount = Math.Min(_barCount, _smoothedData.Length);
+            if (barCount <= 0) return;
+            
+            double barWidth = (double)width / barCount;
+            
+            // Lightsaber colors
+            Color[] saberColors = { 
+                Color.FromRgb(100, 150, 255),  // Blue
+                Color.FromRgb(100, 255, 100),  // Green  
+                Color.FromRgb(200, 100, 255),  // Purple
+                Color.FromRgb(255, 100, 100)   // Red
+            };
+            
+            for (int i = 0; i < barCount && i < _smoothedData.Length; i++)
+            {
+                double value = Math.Clamp(_smoothedData[i], 0, 1);
+                int barHeight = (int)(value * height * 0.8);
+                if (barHeight < 5) barHeight = 5;
+                
+                int x = (int)(i * barWidth);
+                int y = height - barHeight;
+                int w = (int)(barWidth * 0.8);
+                
+                Color saberColor = saberColors[i % saberColors.Length];
+                
+                // Draw glow
+                for (int g = 3; g >= 0; g--)
+                {
+                    byte alpha = (byte)(60 - g * 15);
+                    FillRect(x - g, y - g, w + g * 2, barHeight + g, 
+                        saberColor.R, saberColor.G, saberColor.B, alpha);
+                }
+                
+                // Draw core (white center)
+                int coreWidth = Math.Max(1, w / 3);
+                int coreX = x + (w - coreWidth) / 2;
+                FillRect(coreX, y, coreWidth, barHeight, 255, 255, 255);
+                
+                // Handle
+                int handleHeight = 15;
+                FillRect(x, height - handleHeight, w, handleHeight, 80, 80, 90);
+            }
+        }
+        
+        /// <summary>
+        /// HD TimeLord - Gallifreyan circular patterns.
+        /// </summary>
+        private void RenderTimeLordHD()
+        {
+            if (_hdBitmap == null) return;
+            
+            int width = _hdWidth;
+            int height = _hdHeight;
+            int cx = width / 2;
+            int cy = height / 2;
+            int maxRadius = Math.Min(cx, cy) - 10;
+            
+            double phase = _animationPhase;
+            
+            // Get intensity
+            double avgIntensity = 0;
+            if (_smoothedData != null && _smoothedData.Length > 0)
+            {
+                foreach (double d in _smoothedData)
+                    avgIntensity += d;
+                avgIntensity /= _smoothedData.Length;
+            }
+            
+            // Draw concentric rings (Gallifreyan style)
+            int rings = 7;
+            for (int r = 0; r < rings; r++)
+            {
+                int radius = maxRadius * (r + 1) / rings;
+                double rotation = phase * (r % 2 == 0 ? 1 : -1) * 0.5;
+                
+                // Main ring
+                byte brightness = (byte)(120 + avgIntensity * 80);
+                DrawCircle(cx, cy, radius, brightness, brightness, 100, 200, 2);
+                
+                // Decorative dots along ring
+                int dotCount = 6 + r * 2;
+                for (int d = 0; d < dotCount; d++)
+                {
+                    double angle = d * Math.PI * 2 / dotCount + rotation;
+                    int dx = cx + (int)(Math.Cos(angle) * radius);
+                    int dy = cy + (int)(Math.Sin(angle) * radius);
+                    
+                    int dotSize = 3 + (int)(avgIntensity * 3);
+                    FillCircle(dx, dy, dotSize, 255, 200, 100);
+                }
+            }
+            
+            // Center symbol (simplified)
+            FillCircle(cx, cy, 15, 255, 215, 0);
+            DrawCircle(cx, cy, 20, 200, 180, 100, 255, 2);
+        }
+        
+        #endregion
+        
+        #region SkiaSharp HD Rendering
+        
+        /// <summary>
+        /// SkiaSharp paint event handler for HD mode rendering.
+        /// Uses GPU-accelerated anti-aliased rendering for high-quality visuals.
+        /// </summary>
+        private void OnSkiaPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
+        {
+            var canvas = e.Surface.Canvas;
+            var info = e.Info;
+            
+            // Clear with background color
+            var bgColor = TryFindResource("WindowBackgroundBrush") as SolidColorBrush;
+            byte bgR = bgColor?.Color.R ?? 10;
+            byte bgG = bgColor?.Color.G ?? 14;
+            byte bgB = bgColor?.Color.B ?? 39;
+            canvas.Clear(new SKColor(bgR, bgG, bgB));
+            
+            // Dispatch to appropriate HD renderer based on mode
+            switch (_visualizationMode)
+            {
+                case "Circular":
+                    RenderCircularHdSkia(canvas, info);
+                    break;
+                case "Bars":
+                    RenderBarsHdSkia(canvas, info);
+                    break;
+                case "Mirror":
+                    RenderMirrorHdSkia(canvas, info);
+                    break;
+                case "Waveform":
+                    RenderWaveformHdSkia(canvas, info);
+                    break;
+                case "Radial":
+                    RenderRadialHdSkia(canvas, info);
+                    break;
+                case "Particles":
+                    RenderParticlesHdSkia(canvas, info);
+                    break;
+                case "Aurora":
+                    RenderAuroraHdSkia(canvas, info);
+                    break;
+                case "Starfield":
+                    RenderStarfieldHdSkia(canvas, info);
+                    break;
+                default:
+                    // For modes not yet implemented in HD, show a simple bars fallback
+                    RenderBarsHdSkia(canvas, info);
+                    break;
+            }
+        }
+        
+        /// <summary>
+        /// Converts WPF color scheme color to SkiaSharp color.
+        /// </summary>
+        private SKColor GetSkiaColorFromScheme(double value)
+        {
+            var wpfColor = GetColorFromScheme(value);
+            return new SKColor(wpfColor.R, wpfColor.G, wpfColor.B, 255);
+        }
+        
+        /// <summary>
+        /// Creates a gradient shader for the current color scheme.
+        /// </summary>
+        private SKShader CreateGradientShader(float x0, float y0, float x1, float y1)
+        {
+            var colors = _colorScheme switch
+            {
+                VisualizerColorScheme.Rainbow => new SKColor[] { 
+                    SKColors.Red, SKColors.Orange, SKColors.Yellow, 
+                    SKColors.Lime, SKColors.Cyan, SKColors.Blue, SKColors.Magenta 
+                },
+                VisualizerColorScheme.Fire => new SKColor[] { 
+                    new SKColor(255, 50, 0), new SKColor(255, 150, 0), new SKColor(255, 255, 50) 
+                },
+                VisualizerColorScheme.Purple => new SKColor[] { 
+                    new SKColor(75, 0, 130), new SKColor(180, 50, 180), new SKColor(255, 105, 210) 
+                },
+                VisualizerColorScheme.Neon => new SKColor[] { 
+                    new SKColor(0, 255, 255), new SKColor(0, 255, 128), new SKColor(128, 255, 0) 
+                },
+                VisualizerColorScheme.Ocean => new SKColor[] { 
+                    new SKColor(0, 30, 60), new SKColor(0, 100, 150), new SKColor(0, 200, 200) 
+                },
+                VisualizerColorScheme.PipBoy => new SKColor[] {
+                    new SKColor(10, 85, 48), new SKColor(50, 180, 90), new SKColor(77, 255, 163)
+                },
+                VisualizerColorScheme.LCARS => new SKColor[] {
+                    new SKColor(255, 153, 0), new SKColor(204, 153, 255), new SKColor(153, 153, 255)
+                },
+                _ => new SKColor[] { 
+                    new SKColor(30, 144, 255), new SKColor(0, 255, 127), new SKColor(127, 255, 0) 
+                }
+            };
+            
+            return SKShader.CreateLinearGradient(
+                new SKPoint(x0, y0), new SKPoint(x1, y1),
+                colors, null, SKShaderTileMode.Clamp);
+        }
+        
+        /// <summary>
+        /// HD Circular visualizer using SkiaSharp with anti-aliased lines and glow effects.
+        /// </summary>
+        private void RenderCircularHdSkia(SKCanvas canvas, SKImageInfo info)
+        {
+            float centerX = info.Width / 2f;
+            float centerY = info.Height / 2f;
+            float radius = Math.Min(centerX, centerY) - 30;
+            
+            if (_smoothedData.Length == 0) return;
+            
+            // Create paints for rendering
+            using var barPaint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Stroke,
+                StrokeCap = SKStrokeCap.Round,
+                StrokeWidth = Math.Max(3, info.Width / _smoothedData.Length * 0.8f)
+            };
+            
+            using var glowPaint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Stroke,
+                StrokeCap = SKStrokeCap.Round,
+                StrokeWidth = barPaint.StrokeWidth + 4,
+                MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 4)
+            };
+            
+            // Draw outer ring guide
+            using var ringPaint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = 1,
+                Color = new SKColor(60, 60, 80, 100)
+            };
+            canvas.DrawCircle(centerX, centerY, radius * 0.3f, ringPaint);
+            canvas.DrawCircle(centerX, centerY, radius * 0.9f, ringPaint);
+            
+            // Draw bars with glow
+            for (int i = 0; i < _smoothedData.Length; i++)
+            {
+                double angle = (i / (double)_smoothedData.Length) * Math.PI * 2 - Math.PI / 2;
+                double value = Math.Min(1.0, _smoothedData[i] * 2.5);
+                double barRadius = radius * value * 0.6;
+                
+                float startX = centerX + (float)(Math.Cos(angle) * (radius * 0.3));
+                float startY = centerY + (float)(Math.Sin(angle) * (radius * 0.3));
+                float endX = centerX + (float)(Math.Cos(angle) * (radius * 0.3 + barRadius));
+                float endY = centerY + (float)(Math.Sin(angle) * (radius * 0.3 + barRadius));
+                
+                var color = GetSkiaColorFromScheme(value);
+                var glowColor = new SKColor(color.Red, color.Green, color.Blue, 80);
+                
+                // Draw glow first
+                glowPaint.Color = glowColor;
+                canvas.DrawLine(startX, startY, endX, endY, glowPaint);
+                
+                // Draw main bar
+                barPaint.Color = color;
+                canvas.DrawLine(startX, startY, endX, endY, barPaint);
+            }
+            
+            // Center decoration
+            using var centerPaint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Fill,
+                Color = new SKColor(40, 50, 80, 200)
+            };
+            canvas.DrawCircle(centerX, centerY, radius * 0.25f, centerPaint);
+        }
+        
+        /// <summary>
+        /// HD Bars visualizer with gradient fills and glow effects.
+        /// </summary>
+        private void RenderBarsHdSkia(SKCanvas canvas, SKImageInfo info)
+        {
+            if (_smoothedData.Length == 0) return;
+            
+            float barWidth = (float)info.Width / _smoothedData.Length;
+            float gap = barWidth * 0.15f;
+            float actualBarWidth = barWidth - gap;
+            
+            using var barPaint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Fill
+            };
+            
+            using var glowPaint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Fill,
+                MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 8)
+            };
+            
+            using var peakPaint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Fill,
+                Color = SKColors.White
+            };
+            
+            for (int i = 0; i < _smoothedData.Length; i++)
+            {
+                double value = Math.Min(1.0, _smoothedData[i] * 2.5);
+                float barHeight = (float)(info.Height * value * 0.9);
+                float x = i * barWidth + gap / 2;
+                float y = info.Height - barHeight;
+                
+                var color = GetSkiaColorFromScheme(value);
+                
+                // Create vertical gradient for bar
+                var shader = SKShader.CreateLinearGradient(
+                    new SKPoint(x, info.Height),
+                    new SKPoint(x, y),
+                    new SKColor[] { color.WithAlpha(200), color },
+                    null, SKShaderTileMode.Clamp);
+                barPaint.Shader = shader;
+                
+                // Draw glow
+                glowPaint.Color = color.WithAlpha(60);
+                canvas.DrawRoundRect(x - 2, y - 2, actualBarWidth + 4, barHeight + 4, 3, 3, glowPaint);
+                
+                // Draw bar with rounded corners
+                canvas.DrawRoundRect(x, y, actualBarWidth, barHeight, 2, 2, barPaint);
+                
+                // Draw peak indicator
+                if (_peakHeights.Length > i && _peakHeights[i] > 0.01)
+                {
+                    float peakY = info.Height - (float)(_peakHeights[i] * info.Height * 0.9);
+                    canvas.DrawRect(x, peakY, actualBarWidth, 3, peakPaint);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// HD Mirror bars visualizer (bars from center going up and down).
+        /// </summary>
+        private void RenderMirrorHdSkia(SKCanvas canvas, SKImageInfo info)
+        {
+            if (_smoothedData.Length == 0) return;
+            
+            float barWidth = (float)info.Width / _smoothedData.Length;
+            float gap = barWidth * 0.15f;
+            float actualBarWidth = barWidth - gap;
+            float centerY = info.Height / 2f;
+            
+            using var barPaint = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill };
+            using var glowPaint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Fill,
+                MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 6)
+            };
+            
+            for (int i = 0; i < _smoothedData.Length; i++)
+            {
+                double value = Math.Min(1.0, _smoothedData[i] * 2.5);
+                float barHeight = (float)(info.Height * 0.45 * value);
+                float x = i * barWidth + gap / 2;
+                
+                var color = GetSkiaColorFromScheme(value);
+                barPaint.Color = color;
+                glowPaint.Color = color.WithAlpha(60);
+                
+                // Top half
+                canvas.DrawRoundRect(x, centerY - barHeight, actualBarWidth, barHeight, 2, 2, glowPaint);
+                canvas.DrawRoundRect(x, centerY - barHeight, actualBarWidth, barHeight, 2, 2, barPaint);
+                
+                // Bottom half (mirrored)
+                canvas.DrawRoundRect(x, centerY, actualBarWidth, barHeight, 2, 2, glowPaint);
+                canvas.DrawRoundRect(x, centerY, actualBarWidth, barHeight, 2, 2, barPaint);
+            }
+            
+            // Center line
+            using var linePaint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = 2,
+                Color = new SKColor(100, 100, 120, 150)
+            };
+            canvas.DrawLine(0, centerY, info.Width, centerY, linePaint);
+        }
+        
+        /// <summary>
+        /// HD Waveform visualizer with smooth bezier curves.
+        /// </summary>
+        private void RenderWaveformHdSkia(SKCanvas canvas, SKImageInfo info)
+        {
+            if (_smoothedData.Length == 0) return;
+            
+            float centerY = info.Height / 2f;
+            float stepX = (float)info.Width / (_smoothedData.Length - 1);
+            
+            using var path = new SKPath();
+            using var wavePaint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = 3,
+                StrokeCap = SKStrokeCap.Round,
+                StrokeJoin = SKStrokeJoin.Round
+            };
+            
+            using var glowPaint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = 8,
+                StrokeCap = SKStrokeCap.Round,
+                MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 6)
+            };
+            
+            // Build smooth path using quadratic beziers
+            path.MoveTo(0, centerY);
+            for (int i = 0; i < _smoothedData.Length; i++)
+            {
+                float x = i * stepX;
+                double value = (_smoothedData[i] - 0.5) * 2;
+                float y = centerY - (float)(value * info.Height * 0.4);
+                
+                if (i == 0)
+                {
+                    path.MoveTo(x, y);
+                }
+                else
+                {
+                    float prevX = (i - 1) * stepX;
+                    float midX = (prevX + x) / 2;
+                    path.QuadTo(prevX, path.LastPoint.Y, midX, (path.LastPoint.Y + y) / 2);
+                }
+            }
+            
+            // Draw glow
+            glowPaint.Shader = CreateGradientShader(0, 0, info.Width, 0);
+            glowPaint.Color = glowPaint.Color.WithAlpha(80);
+            canvas.DrawPath(path, glowPaint);
+            
+            // Draw main waveform
+            wavePaint.Shader = CreateGradientShader(0, 0, info.Width, 0);
+            canvas.DrawPath(path, wavePaint);
+        }
+        
+        /// <summary>
+        /// HD Radial spectrum with multiple concentric rings.
+        /// </summary>
+        private void RenderRadialHdSkia(SKCanvas canvas, SKImageInfo info)
+        {
+            float centerX = info.Width / 2f;
+            float centerY = info.Height / 2f;
+            float maxRadius = Math.Min(centerX, centerY) - 20;
+            
+            if (_smoothedData.Length == 0) return;
+            
+            using var paint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Fill
+            };
+            
+            int rings = 4;
+            for (int ring = 0; ring < rings; ring++)
+            {
+                float ringRadius = maxRadius * (0.25f + ring * 0.2f);
+                float opacity = 1f - ring * 0.15f;
+                
+                for (int i = 0; i < _smoothedData.Length; i++)
+                {
+                    double angle = (i / (double)_smoothedData.Length) * Math.PI * 2 - Math.PI / 2;
+                    double nextAngle = ((i + 1) / (double)_smoothedData.Length) * Math.PI * 2 - Math.PI / 2;
+                    
+                    int dataIndex = (i + ring * 5) % _smoothedData.Length;
+                    double value = Math.Min(1.0, _smoothedData[dataIndex] * 2.5);
+                    
+                    float innerR = ringRadius - 5;
+                    float outerR = ringRadius + (float)(value * 25);
+                    
+                    var color = GetSkiaColorFromScheme(value);
+                    paint.Color = color.WithAlpha((byte)(opacity * 200));
+                    
+                    using var path = new SKPath();
+                    path.MoveTo(centerX + (float)(Math.Cos(angle) * innerR), centerY + (float)(Math.Sin(angle) * innerR));
+                    path.LineTo(centerX + (float)(Math.Cos(angle) * outerR), centerY + (float)(Math.Sin(angle) * outerR));
+                    path.LineTo(centerX + (float)(Math.Cos(nextAngle) * outerR), centerY + (float)(Math.Sin(nextAngle) * outerR));
+                    path.LineTo(centerX + (float)(Math.Cos(nextAngle) * innerR), centerY + (float)(Math.Sin(nextAngle) * innerR));
+                    path.Close();
+                    
+                    canvas.DrawPath(path, paint);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// HD Particles visualization with smooth gradients.
+        /// </summary>
+        private void RenderParticlesHdSkia(SKCanvas canvas, SKImageInfo info)
+        {
+            // Calculate average intensity
+            double avgIntensity = 0;
+            if (_smoothedData.Length > 0)
+            {
+                foreach (var v in _smoothedData) avgIntensity += v;
+                avgIntensity /= _smoothedData.Length;
+            }
+            
+            using var paint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Fill
+            };
+            
+            foreach (var particle in _particles)
+            {
+                float x = (float)(particle.X * info.Width);
+                float y = (float)(particle.Y * info.Height);
+                float size = (float)(particle.Size * (1 + avgIntensity * 2));
+                
+                var color = GetSkiaColorFromScheme(particle.Hue);
+                
+                // Draw glow
+                using var glowShader = SKShader.CreateRadialGradient(
+                    new SKPoint(x, y), size * 2,
+                    new SKColor[] { color.WithAlpha(100), SKColors.Transparent },
+                    null, SKShaderTileMode.Clamp);
+                paint.Shader = glowShader;
+                canvas.DrawCircle(x, y, size * 2, paint);
+                
+                // Draw core
+                paint.Shader = null;
+                paint.Color = color;
+                canvas.DrawCircle(x, y, size, paint);
+            }
+        }
+        
+        /// <summary>
+        /// HD Aurora visualization with smooth flowing waves.
+        /// </summary>
+        private void RenderAuroraHdSkia(SKCanvas canvas, SKImageInfo info)
+        {
+            double avgIntensity = 0;
+            if (_smoothedData.Length > 0)
+            {
+                foreach (var v in _smoothedData) avgIntensity += v;
+                avgIntensity /= _smoothedData.Length;
+            }
+            
+            using var paint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Fill
+            };
+            
+            int layers = 5;
+            for (int layer = 0; layer < layers; layer++)
+            {
+                using var path = new SKPath();
+                float phase = (float)(_animationPhase + layer * 0.5);
+                
+                path.MoveTo(0, info.Height);
+                
+                for (int x = 0; x <= info.Width; x += 10)
+                {
+                    float normalizedX = x / (float)info.Width;
+                    int dataIdx = (int)(normalizedX * _smoothedData.Length) % Math.Max(1, _smoothedData.Length);
+                    double dataValue = _smoothedData.Length > 0 ? _smoothedData[dataIdx] : 0.5;
+                    
+                    float wave = (float)(Math.Sin(normalizedX * 4 + phase) * 30 +
+                                        Math.Sin(normalizedX * 7 + phase * 1.3) * 20);
+                    float baseY = info.Height * (0.3f + layer * 0.12f);
+                    float y = baseY + wave + (float)(dataValue * 60);
+                    
+                    path.LineTo(x, y);
+                }
+                
+                path.LineTo(info.Width, info.Height);
+                path.Close();
+                
+                var color = GetSkiaColorFromScheme((layer + 1) / (float)layers);
+                byte alpha = (byte)(120 - layer * 20);
+                paint.Color = color.WithAlpha(alpha);
+                
+                canvas.DrawPath(path, paint);
+            }
+        }
+        
+        /// <summary>
+        /// HD Starfield visualization with anti-aliased stars and glow.
+        /// </summary>
+        private void RenderStarfieldHdSkia(SKCanvas canvas, SKImageInfo info)
+        {
+            float centerX = info.Width / 2f;
+            float centerY = info.Height / 2f;
+            
+            using var starPaint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Fill
+            };
+            
+            foreach (var star in _stars)
+            {
+                float depthFactor = (float)(1.0 / star.Z);
+                float screenX = centerX + (float)(star.X * info.Width * depthFactor);
+                float screenY = centerY + (float)(star.Y * info.Height * depthFactor);
+                
+                if (screenX < 0 || screenX > info.Width || screenY < 0 || screenY > info.Height)
+                    continue;
+                
+                float size = Math.Max(0.5f, 3f * depthFactor);
+                byte brightness = (byte)Math.Min(255, 50 + 205 * depthFactor);
+                
+                SKColor color = star.ColorType switch
+                {
+                    1 => new SKColor(brightness, (byte)(brightness * 0.9), (byte)(brightness * 0.7)), // Yellow
+                    2 => new SKColor(brightness, (byte)(brightness * 0.7), (byte)(brightness * 0.7)), // Red
+                    3 => new SKColor((byte)(brightness * 0.8), (byte)(brightness * 0.9), brightness), // Blue
+                    _ => new SKColor(brightness, brightness, brightness) // White
+                };
+                
+                // Draw glow for larger stars
+                if (size > 1.5f)
+                {
+                    using var glowShader = SKShader.CreateRadialGradient(
+                        new SKPoint(screenX, screenY), size * 3,
+                        new SKColor[] { color.WithAlpha(80), SKColors.Transparent },
+                        null, SKShaderTileMode.Clamp);
+                    starPaint.Shader = glowShader;
+                    canvas.DrawCircle(screenX, screenY, size * 3, starPaint);
+                    starPaint.Shader = null;
+                }
+                
+                starPaint.Color = color;
+                canvas.DrawCircle(screenX, screenY, size, starPaint);
+            }
+        }
+        
+        #endregion
+#endif // HD Visualization Methods and SkiaSharp HD Rendering
     }
     
     /// <summary>

@@ -44,14 +44,14 @@
 
                                     <TextBlock Text="WinPmem Path:" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Column="1" Text="{Binding WinPmemPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseWinPmemCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseWinPmemCommand}" MinWidth="180" Margin="5"/>
                                     <Button Grid.Column="3" Content="⬇️ Download" Command="{Binding DownloadWinPmemCommand}" 
-                                            Width="90" Margin="5" ToolTip="Download WinPmem from GitHub"
+                                            MinWidth="180" Margin="5" ToolTip="Download WinPmem from GitHub"
                                             Background="#4CAF50" Foreground="White"/>
 
                                     <TextBlock Grid.Row="1" Text="Output Folder:" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DumpOutputPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                    <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseDumpOutputCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseDumpOutputCommand}" MinWidth="180" Margin="5"/>
 
                                     <TextBlock Grid.Row="2" Text="Format:" VerticalAlignment="Center" Margin="5"/>
                                     <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding DumpFormats}" 
@@ -86,9 +86,9 @@
                                     <TextBlock Text="MRC Path:" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Column="1" Text="{Binding MagnetRamCapturePath, UpdateSourceTrigger=PropertyChanged}" Margin="5"
                                              ToolTip="Path to MagnetRAMCapture.exe or MRC.exe"/>
-                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseMagnetRamCaptureCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseMagnetRamCaptureCommand}" MinWidth="180" Margin="5"/>
                                     <Button Grid.Column="3" Content="🔗 Get Free" Command="{Binding DownloadMagnetRamCaptureCommand}" 
-                                            Width="90" Margin="5" ToolTip="Opens Magnet Forensics website to download (free registration required)"
+                                            MinWidth="180" Margin="5" ToolTip="Opens Magnet Forensics website to download (free registration required)"
                                             Background="#2196F3" Foreground="White"/>
                                 </Grid>
                                 
@@ -122,9 +122,9 @@
                                     
                                     <TextBlock Text="ProcDump Path:" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Column="1" Text="{Binding ProcDumpPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseProcDumpCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseProcDumpCommand}" MinWidth="180" Margin="5"/>
                                     <Button Grid.Column="3" Content="⬇️ Download" Command="{Binding DownloadProcDumpCommand}" 
-                                            Width="90" Margin="5" ToolTip="Download ProcDump from Sysinternals"
+                                            MinWidth="180" Margin="5" ToolTip="Download ProcDump from Sysinternals"
                                             Background="#4CAF50" Foreground="White"/>
                                     
                                     <TextBlock Grid.Row="1" Text="Target Process:" VerticalAlignment="Center" Margin="5"/>
@@ -134,7 +134,7 @@
                                               IsEditable="True" Margin="5"
                                               ToolTip="Select a process or type a process name/PID"/>
                                     <Button Grid.Row="1" Grid.Column="2" Content="🔄 Refresh" Command="{Binding RefreshProcessListCommand}" 
-                                            Width="80" Margin="5" ToolTip="Refresh running process list"/>
+                                            MinWidth="180" Margin="5" ToolTip="Refresh running process list"/>
                                     
                                     <TextBlock Grid.Row="2" Text="Dump Type:" VerticalAlignment="Center" Margin="5"/>
                                     <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="5">
@@ -169,13 +169,13 @@
 
                                 <TextBlock Text="Memory Dump:" VerticalAlignment="Center" Margin="5"/>
                                 <TextBox Grid.Column="1" Text="{Binding MemoryDumpPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseMemoryDumpCommand}" Width="80" Margin="5"/>
+                                <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseMemoryDumpCommand}" MinWidth="180" Margin="5"/>
 
                                 <TextBlock Grid.Row="1" Text="Volatility Path:" VerticalAlignment="Center" Margin="5"/>
                                 <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding VolatilityPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseVolatilityCommand}" Width="80" Margin="5"/>
+                                <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseVolatilityCommand}" MinWidth="180" Margin="5"/>
                                 <Button Grid.Row="1" Grid.Column="3" Content="🔗 Get" Command="{Binding DownloadVolatilityCommand}" 
-                                        Width="60" Margin="5" ToolTip="Open Volatility 3 GitHub releases page"
+                                        MinWidth="180" Margin="5" ToolTip="Open Volatility 3 GitHub releases page"
                                         Background="#2196F3" Foreground="White"/>
 
                                 <TextBlock Grid.Row="2" Text="Output Path:" VerticalAlignment="Center" Margin="5"/>
@@ -239,14 +239,14 @@
 
                                     <TextBlock Text="KAPE Path:" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Column="1" Text="{Binding KapePath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseKapeCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseKapeCommand}" MinWidth="180" Margin="5"/>
                                     <Button Grid.Column="3" Content="🔗 Get KAPE" Command="{Binding GetKapeCommand}" 
-                                            Width="90" Margin="5" ToolTip="Register and download KAPE from Kroll (free for authorized use)"
+                                            MinWidth="180" Margin="5" ToolTip="Register and download KAPE from Kroll (free for authorized use)"
                                             Background="#FF9800" Foreground="White"/>
 
                                     <TextBlock Grid.Row="1" Text="Target Path:" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding KapeTargetPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                    <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseKapeTargetCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseKapeTargetCommand}" MinWidth="180" Margin="5"/>
 
                                     <TextBlock Grid.Row="2" Text="Output Path:" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding KapeOutputPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
@@ -311,11 +311,11 @@
 
                                     <TextBlock Text="Plaso Path:" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Column="1" Text="{Binding PlasoPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowsePlasoCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowsePlasoCommand}" MinWidth="180" Margin="5"/>
 
                                     <TextBlock Grid.Row="1" Text="Evidence Path:" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PlasoEvidencePath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                    <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseEvidenceCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseEvidenceCommand}" MinWidth="180" Margin="5"/>
 
                                     <TextBlock Grid.Row="2" Text="Storage File:" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding PlasoStorageFile, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
@@ -323,14 +323,14 @@
 
                                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                                     <Button Content="🕐 Create Timeline" Command="{Binding RunPlasoTimelineCommand}"
-                                            Height="35" Width="150" Margin="0,0,10,0"
+                                            Height="35" MinWidth="190" Margin="0,0,10,0"
                                             Background="#673AB7" Foreground="White"
                                             IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                                     <Button Content="📤 Export to OpenSearch" Command="{Binding ExportPlasoToOpenSearchCommand}"
-                                            Height="35" Width="180" Margin="0,0,10,0"
+                                            Height="35" MinWidth="180" Margin="0,0,10,0"
                                             IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                                     <Button Content="📥 Download Plaso" Command="{Binding DownloadPlasoCommand}"
-                                            Height="35" Width="150"
+                                            Height="35" MinWidth="190"
                                             Background="#FF5722" Foreground="White"
                                             ToolTip="Opens Plaso releases page on GitHub"/>
                                 </StackPanel>
@@ -353,7 +353,7 @@
 
                                     <TextBlock Text="Velociraptor:" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Column="1" Text="{Binding VelociraptorPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseVelociraptorCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseVelociraptorCommand}" MinWidth="180" Margin="5"/>
 
                                     <TextBlock Grid.Row="1" Text="Artifact:" VerticalAlignment="Center" Margin="5"/>
                                     <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding VelociraptorArtifacts}" 
@@ -362,11 +362,11 @@
 
                                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                                     <Button Content="🦖 Collect Artifact" Command="{Binding RunVelociraptorCollectCommand}"
-                                            Height="35" Width="150"
+                                            Height="35" MinWidth="190"
                                             Background="#795548" Foreground="White"
                                             IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                                     <Button Content="📥 Download Velociraptor" Command="{Binding DownloadVelociraptorCommand}"
-                                            Height="35" Width="170" Margin="10,0,0,0"
+                                            Height="35" MinWidth="190" Margin="10,0,0,0"
                                             Background="#FF5722" Foreground="White"
                                             ToolTip="Downloads Velociraptor from GitHub"
                                             IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
@@ -418,7 +418,7 @@
                                 <ComboBox ItemsSource="{Binding KustoTemplates}" SelectedItem="{Binding SelectedKustoTemplate}"
                                           DisplayMemberPath="Name" Margin="0,0,5,5"/>
                                 <Button Grid.Column="1" Content="📥 Load" Command="{Binding LoadKustoTemplateCommand}"
-                                        Width="70" ToolTip="Load template to query box"/>
+                                        MinWidth="180" ToolTip="Load template to query box"/>
                             </Grid>
                             <TextBlock Text="{Binding SelectedKustoTemplate.Description}" Foreground="Gray" 
                                        TextWrapping="Wrap" Margin="0,0,0,5"/>
@@ -433,7 +433,7 @@
 
                     <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,10,0,0">
                         <Button Content="▶️ Execute Query" Command="{Binding RunKustoQueryCommand}"
-                                Height="35" Width="150" Background="#00BCD4" Foreground="White"
+                                Height="35" MinWidth="190" Background="#00BCD4" Foreground="White"
                                 IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                         <TextBlock Text="💡 Copy query to Azure Data Explorer for execution" 
                                    VerticalAlignment="Center" Margin="15,0,0,0" Foreground="Gray"/>
@@ -487,12 +487,12 @@
                                 <TextBlock Text="{Binding TotalRecords, StringFormat='Total Records: {0:N0}'}" Margin="0,5,0,0"/>
                                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                                     <Button Content="🔌 Initialize" Command="{Binding InitializeLocalDbCommand}" 
-                                            Width="80" Height="28" Margin="0,0,5,0"
+                                            MinWidth="180" Height="28" Margin="0,0,5,0"
                                             IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                                     <Button Content="🔄 Refresh" Command="{Binding RefreshTablesCommand}" 
-                                            Width="70" Height="28" Margin="0,0,5,0"/>
+                                            MinWidth="180" Height="28" Margin="0,0,5,0"/>
                                     <Button Content="🗑️ Clear" Command="{Binding ClearLocalDbCommand}" 
-                                            Width="60" Height="28" Background="#F44336" Foreground="White"/>
+                                            MinWidth="180" Height="28" Background="#F44336" Foreground="White"/>
                                 </StackPanel>
                             </StackPanel>
                         </GroupBox>
@@ -564,10 +564,10 @@
                         <!-- Execution Buttons -->
                         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,10">
                             <Button Content="▶️ Execute KQL" Command="{Binding ExecuteLocalKqlCommand}"
-                                    Height="35" Width="130" Background="#4CAF50" Foreground="White" FontWeight="Bold"
+                                    Height="35" MinWidth="190" Background="#4CAF50" Foreground="White" FontWeight="Bold"
                                     IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                             <Button Content="📤 Export Results" Command="{Binding ExportLocalResultsCommand}"
-                                    Height="35" Width="120" Margin="10,0,0,0"/>
+                                    Height="35" MinWidth="180" Margin="10,0,0,0"/>
                         </StackPanel>
 
                         <!-- Translated SQL -->
@@ -610,11 +610,11 @@
 
                                     <TextBlock Text="oletools Path:" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Column="1" Text="{Binding OletoolsPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseOletoolsCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseOletoolsCommand}" MinWidth="180" Margin="5"/>
 
                                     <TextBlock Grid.Row="1" Text="Documents:" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DocumentPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                    <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseDocumentsCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseDocumentsCommand}" MinWidth="180" Margin="5"/>
                                 </Grid>
 
                                 <WrapPanel Margin="5,10,5,5">
@@ -635,7 +635,7 @@
 
                                     <TextBlock Text="pdf-parser.py:" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Column="1" Text="{Binding PdfParserPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowsePdfParserCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowsePdfParserCommand}" MinWidth="180" Margin="5"/>
                                 </Grid>
 
                                 <CheckBox Content="Analyze PDFs for JavaScript/embedded objects" IsChecked="{Binding RunPdfParser}" Margin="10,10,5,5"/>
@@ -648,12 +648,12 @@
                                     Background="#F44336" Foreground="White" Margin="0,0,10,0"
                                     IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                             <Button Content="📥 Download oletools" Command="{Binding DownloadOletoolsCommand}"
-                                    Height="40" Width="150"
+                                    Height="40" MinWidth="190"
                                     Background="#FF5722" Foreground="White"
                                     ToolTip="Installs oletools via pip"
                                     IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                             <Button Content="📥 Download PDF-parser" Command="{Binding DownloadPdfParserCommand}"
-                                    Height="40" Width="160" Margin="10,0,0,0"
+                                    Height="40" MinWidth="180" Margin="10,0,0,0"
                                     Background="#FF9800" Foreground="White"
                                     ToolTip="Downloads pdf-parser.py from Didier Stevens"
                                     IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
@@ -694,11 +694,11 @@
 
                                     <TextBlock Text="bulk_extractor Path:" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Column="1" Text="{Binding BulkExtractorPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseBulkExtractorCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseBulkExtractorCommand}" MinWidth="180" Margin="5"/>
 
                                     <TextBlock Grid.Row="1" Text="Input (folder/image):" VerticalAlignment="Center" Margin="5"/>
                                     <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding BulkExtractorInput, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                    <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseBulkInputCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseBulkInputCommand}" MinWidth="180" Margin="5"/>
                                 </Grid>
                             </StackPanel>
                         </GroupBox>
@@ -718,7 +718,7 @@
                                     Background="#607D8B" Foreground="White" Margin="0,0,10,0"
                                     IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                             <Button Content="📥 Download bulk_extractor" Command="{Binding DownloadBulkExtractorCommand}"
-                                    Height="40" Width="180"
+                                    Height="40" MinWidth="180"
                                     Background="#FF5722" Foreground="White"
                                     ToolTip="Downloads bulk_extractor from GitHub"
                                     IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
@@ -758,7 +758,7 @@
 
                                 <TextBlock Text="Server URL:" VerticalAlignment="Center" Margin="5"/>
                                 <TextBox Grid.Column="1" Text="{Binding OpenSearchUrl, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                <Button Grid.Column="2" Content="Test" Command="{Binding TestOpenSearchCommand}" Width="80" Margin="5"/>
+                                <Button Grid.Column="2" Content="Test" Command="{Binding TestOpenSearchCommand}" MinWidth="180" Margin="5"/>
 
                                 <TextBlock Grid.Row="1" Text="Index Name:" VerticalAlignment="Center" Margin="5"/>
                                 <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding IndexName, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
@@ -792,9 +792,9 @@
                                 </WrapPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                                     <Button Content="🔧 Create Pipelines" Command="{Binding CreatePipelinesCommand}"
-                                            Height="35" Width="150" Margin="0,0,10,0"/>
+                                            Height="35" MinWidth="190" Margin="0,0,10,0"/>
                                     <Button Content="📋 Create Index Templates" Command="{Binding CreateIndexTemplatesCommand}"
-                                            Height="35" Width="180"/>
+                                            Height="35" MinWidth="180"/>
                                 </StackPanel>
                             </StackPanel>
                         </GroupBox>
@@ -833,13 +833,13 @@
 
                                 <TextBlock Text="Documents Path:" VerticalAlignment="Center" Margin="5"/>
                                 <TextBox Grid.Column="1" Text="{Binding DocumentPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseDocumentsCommand}" Width="80" Margin="5"/>
+                                <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseDocumentsCommand}" MinWidth="180" Margin="5"/>
 
                                 <TextBlock Grid.Row="1" Text="ExifTool Path:" VerticalAlignment="Center" Margin="5"/>
                                 <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ExifToolPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseExifToolCommand}" Width="80" Margin="5"/>
+                                <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseExifToolCommand}" MinWidth="180" Margin="5"/>
                                 <Button Grid.Row="1" Grid.Column="3" Content="⬇️ Download" Command="{Binding DownloadExifToolCommand}" 
-                                        Width="90" Margin="5" ToolTip="Download ExifTool automatically"
+                                        MinWidth="180" Margin="5" ToolTip="Download ExifTool automatically"
                                         Background="#4CAF50" Foreground="White"/>
                             </Grid>
                         </GroupBox>
@@ -907,7 +907,7 @@
                         </GroupBox>
 
                         <Button Content="📤 Export Tasks" Command="{Binding ExportScheduledTasksCommand}"
-                                Height="30" Width="150" HorizontalAlignment="Right" Margin="0,10,0,0"/>
+                                Height="30" MinWidth="190" HorizontalAlignment="Right" Margin="0,10,0,0"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -931,7 +931,7 @@
                                     <TextBlock Text="Profile Path:" VerticalAlignment="Center"/>
                                     <TextBox Grid.Column="1" Text="{Binding BrowserForensicsProfile, UpdateSourceTrigger=PropertyChanged}" 
                                              ToolTip="Optional: Specific browser profile path (leave empty for default)" Margin="5"/>
-                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseBrowserProfileCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseBrowserProfileCommand}" MinWidth="180" Margin="5"/>
                                 </Grid>
                                 <WrapPanel Margin="0,10,0,0">
                                     <CheckBox Content="History" IsChecked="{Binding ExtractBrowserHistory}" Margin="10,5"/>
@@ -961,7 +961,7 @@
                         </GroupBox>
 
                         <Button Content="📤 Export Artifacts" Command="{Binding ExportBrowserArtifactsCommand}"
-                                Height="30" Width="150" HorizontalAlignment="Right" Margin="0,10,0,0"/>
+                                Height="30" MinWidth="190" HorizontalAlignment="Right" Margin="0,10,0,0"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -988,12 +988,12 @@
                                     </Grid.RowDefinitions>
                                     <TextBlock Text="Scan Path:" VerticalAlignment="Center"/>
                                     <TextBox Grid.Column="1" Text="{Binding IOCScanPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseIOCPathCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseIOCPathCommand}" MinWidth="180" Margin="5"/>
 
                                     <TextBlock Grid.Row="1" Text="IOC Feed:" VerticalAlignment="Center"/>
                                     <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding IOCFeedUrl, UpdateSourceTrigger=PropertyChanged}" 
                                              ToolTip="STIX/TAXII feed URL or IOC file URL" Margin="5"/>
-                                    <Button Grid.Row="1" Grid.Column="2" Content="Load Feed" Command="{Binding LoadIOCFeedCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Row="1" Grid.Column="2" Content="Load Feed" Command="{Binding LoadIOCFeedCommand}" MinWidth="180" Margin="5"/>
                                 </Grid>
                                 <WrapPanel Margin="0,10,0,0">
                                     <CheckBox Content="Scan Files" IsChecked="{Binding ScanIOCFiles}" Margin="10,5"/>
@@ -1021,7 +1021,7 @@
                         </GroupBox>
 
                         <Button Content="📤 Export IOC Results" Command="{Binding ExportIOCResultsCommand}"
-                                Height="30" Width="150" HorizontalAlignment="Right" Margin="0,10,0,0"/>
+                                Height="30" MinWidth="190" HorizontalAlignment="Right" Margin="0,10,0,0"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -1066,11 +1066,11 @@
                                     </Grid.RowDefinitions>
                                     <TextBlock Text="Snapshot 1:" VerticalAlignment="Center"/>
                                     <TextBox Grid.Column="1" Text="{Binding RegistrySnapshot1Path, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseSnapshot1Command}" Width="80" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseSnapshot1Command}" MinWidth="180" Margin="5"/>
 
                                     <TextBlock Grid.Row="1" Text="Snapshot 2:" VerticalAlignment="Center"/>
                                     <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding RegistrySnapshot2Path, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                    <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseSnapshot2Command}" Width="80" Margin="5"/>
+                                    <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseSnapshot2Command}" MinWidth="180" Margin="5"/>
                                 </Grid>
                                 <Button Content="🔍 Compare Snapshots" Command="{Binding CompareRegistrySnapshotsCommand}"
                                         Height="35" FontSize="12" FontWeight="Bold" 
@@ -1093,7 +1093,7 @@
                         </GroupBox>
 
                         <Button Content="📤 Export Diff" Command="{Binding ExportRegistryDiffCommand}"
-                                Height="30" Width="150" HorizontalAlignment="Right" Margin="0,10,0,0"/>
+                                Height="30" MinWidth="190" HorizontalAlignment="Right" Margin="0,10,0,0"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -1116,7 +1116,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="PCAP File:" VerticalAlignment="Center"/>
                                     <TextBox Grid.Column="1" Text="{Binding PcapFilePath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowsePcapFileCommand}" Width="80" Margin="5"/>
+                                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowsePcapFileCommand}" MinWidth="180" Margin="5"/>
                                 </Grid>
                                 <WrapPanel Margin="0,10,0,0">
                                     <CheckBox Content="Filter HTTP Traffic" IsChecked="{Binding FilterHttpTraffic}" Margin="10,5"/>
@@ -1160,7 +1160,7 @@
                         </GroupBox>
 
                         <Button Content="📤 Export PCAP Results" Command="{Binding ExportPcapResultsCommand}"
-                                Height="30" Width="150" HorizontalAlignment="Right" Margin="0,10,0,0"/>
+                                Height="30" MinWidth="190" HorizontalAlignment="Right" Margin="0,10,0,0"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -1217,9 +1217,9 @@
                              Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             </StackPanel>
 
-            <Button Grid.Column="1" Content="📤 Export" Command="{Binding ExportResultsCommand}" Width="90" Margin="5" Padding="6,2"/>
-            <Button Grid.Column="2" Content="🗑️ Clear" Command="{Binding ClearLogCommand}" Width="90" Margin="5" Padding="6,2"/>
-            <Button Grid.Column="3" Content="❌ Cancel" Command="{Binding CancelCommand}" Width="90" Margin="5" Padding="6,2"
+            <Button Grid.Column="1" Content="📤 Export" Command="{Binding ExportResultsCommand}" MinWidth="180" Margin="5"/>
+            <Button Grid.Column="2" Content="🗑️ Clear" Command="{Binding ClearLogCommand}" MinWidth="180" Margin="5"/>
+            <Button Grid.Column="3" Content="❌ Cancel" Command="{Binding CancelCommand}" MinWidth="180" Margin="5"
                     Background="#f44336" Foreground="White"
                     Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}"/>
         </Grid>

@@ -40,7 +40,7 @@
                          Margin="5" ToolTip="Leave blank for auto-detection" />
 
                 <Button Grid.Column="4" Content="🔍 Discover Domain" Command="{Binding DiscoverDomainCommand}" 
-                        Width="140" Margin="5" Background="#FF2196F3" Foreground="White" />
+                        MinWidth="180" Margin="5" Background="#FF2196F3" Foreground="White" />
 
                 <!-- Domain Info Display -->
                 <StackPanel Grid.Row="1" Grid.ColumnSpan="5" Orientation="Horizontal" Margin="5">
@@ -80,9 +80,9 @@
                 <!-- Action Buttons -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="5">
                     <Button Content="▶️ Run Full Analysis" Command="{Binding RunFullAnalysisCommand}" 
-                            Width="130" Margin="5" Background="#FF4CAF50" Foreground="White" FontWeight="SemiBold" />
+                            MinWidth="190" Margin="5" Background="#FF4CAF50" Foreground="White" FontWeight="SemiBold" />
                     <Button Content="❌ Cancel" Command="{Binding CancelAnalysisCommand}" 
-                            Width="80" Margin="5" Background="#FFF44336" Foreground="White" />
+                            MinWidth="180" Margin="5" Background="#FFF44336" Foreground="White" />
                 </StackPanel>
             </Grid>
         </GroupBox>
@@ -417,7 +417,7 @@
                                               Margin="0,10,0,5" FontWeight="SemiBold" />
 
                                     <Button Content="🏗️ Deploy Tiered OU Structure" Command="{Binding DeployTieredOusCommand}" 
-                                            Width="220" Height="35" Margin="0,10,0,0" HorizontalAlignment="Left"
+                                            MinWidth="220" Height="35" Margin="0,10,0,0" HorizontalAlignment="Left"
                                             Background="#FF4CAF50" Foreground="White" FontWeight="SemiBold" />
                                 </StackPanel>
                             </GroupBox>
@@ -435,7 +435,7 @@
                                                Foreground="Orange" Margin="0,10,0,5" TextWrapping="Wrap" />
 
                                     <Button Content="📜 Deploy Baseline GPOs" Command="{Binding DeployBaselineGposCommand}" 
-                                            Width="200" Height="35" Margin="0,10,0,0" HorizontalAlignment="Left"
+                                            MinWidth="200" Height="35" Margin="0,10,0,0" HorizontalAlignment="Left"
                                             Background="#FF2196F3" Foreground="White" FontWeight="SemiBold" />
                                 </StackPanel>
                             </GroupBox>
@@ -479,7 +479,7 @@
                                     </DataGrid>
 
                                     <Button Grid.Row="1" Content="Clear Results" Command="{Binding ClearDeploymentResultsCommand}" 
-                                            Width="100" Height="25" Margin="5" HorizontalAlignment="Right" />
+                                            MinWidth="180" Height="25" Margin="5" HorizontalAlignment="Right" />
                                 </Grid>
                             </GroupBox>
                         </StackPanel>
@@ -494,7 +494,7 @@
                             </Grid.RowDefinitions>
 
                             <Button Content="🔄 Generate Preview" Command="{Binding PreviewDeploymentCommand}" 
-                                    Width="150" Height="30" Margin="5" HorizontalAlignment="Left" />
+                                    MinWidth="190" Height="30" Margin="5" HorizontalAlignment="Left" />
 
                             <TextBox Grid.Row="1" Text="{Binding DeploymentPreview, Mode=OneWay}" 
                                      IsReadOnly="True" TextWrapping="Wrap" 
@@ -520,7 +520,7 @@
                              Background="#FF1E1E1E" Foreground="#FFDCDCDC" />
 
                     <Button Grid.Row="1" Content="Clear Log" Command="{Binding ClearLogCommand}" 
-                            HorizontalAlignment="Right" Margin="5" Width="100" />
+                            HorizontalAlignment="Right" Margin="5" MinWidth="180" />
                 </Grid>
             </TabItem>
         </TabControl>

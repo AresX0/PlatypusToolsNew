@@ -25,16 +25,16 @@
                             Margin="0,0,8,0" Padding="10,4" FontWeight="SemiBold"
                             Background="#FF4CAF50" Foreground="White"/>
                     <Button x:Name="RestartButton" Content="⟳ Restart" Click="RestartShotcut_Click"
-                            Margin="0,0,4,0" Padding="8,4" IsEnabled="False"
+                            Margin="0,0,4,0" IsEnabled="False"
                             Background="#FF2196F3" Foreground="White"/>
                     <Button x:Name="CloseButton" Content="✕ Close" Click="CloseShotcut_Click"
-                            Padding="8,4" IsEnabled="False"
+                            IsEnabled="False"
                             Background="#FFF44336" Foreground="White"/>
                     <Separator Margin="8,2"/>
                     <Button x:Name="DetachButton" Content="⬈ Detach" Click="DetachShotcut_Click"
-                            Padding="8,4" IsEnabled="False" ToolTip="Move to separate window"/>
+                            IsEnabled="False" ToolTip="Move to separate window"/>
                     <Button x:Name="ReattachButton" Content="⬊ Reattach" Click="ReattachShotcut_Click"
-                            Padding="8,4" Visibility="Collapsed" ToolTip="Bring back to embedded view"/>
+                            Visibility="Collapsed" ToolTip="Bring back to embedded view"/>
                 </StackPanel>
                 
                 <TextBlock x:Name="StatusText" DockPanel.Dock="Right" 

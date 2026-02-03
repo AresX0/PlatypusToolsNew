@@ -77,15 +77,15 @@
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
                         <TextBlock Text="Presets:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold" />
                         <Button Content="Mirror" Command="{Binding ApplyPresetCommand}" CommandParameter="Mirror" 
-                                Padding="8,4" Margin="0,0,4,0" ToolTip="Full mirror backup (/MIR)" />
+                                Margin="0,0,4,0" ToolTip="Full mirror backup (/MIR)" />
                         <Button Content="Copy" Command="{Binding ApplyPresetCommand}" CommandParameter="Copy" 
-                                Padding="8,4" Margin="0,0,4,0" ToolTip="Simple copy with subdirs (/E)" />
+                                Margin="0,0,4,0" ToolTip="Simple copy with subdirs (/E)" />
                         <Button Content="Move" Command="{Binding ApplyPresetCommand}" CommandParameter="Move" 
-                                Padding="8,4" Margin="0,0,4,0" ToolTip="Move files (delete source after copy)" />
+                                Margin="0,0,4,0" ToolTip="Move files (delete source after copy)" />
                         <Button Content="Sync" Command="{Binding ApplyPresetCommand}" CommandParameter="Sync" 
-                                Padding="8,4" Margin="0,0,4,0" ToolTip="Sync newer files only" />
+                                Margin="0,0,4,0" ToolTip="Sync newer files only" />
                         <Button Content="Backup" Command="{Binding ApplyPresetCommand}" CommandParameter="Backup" 
-                                Padding="8,4" Margin="0,0,4,0" ToolTip="Full backup with all attributes" />
+                                Margin="0,0,4,0" ToolTip="Full backup with all attributes" />
                     </StackPanel>
 
                     <!-- Filter and Select/Clear -->
@@ -103,9 +103,9 @@
                                  VerticalContentAlignment="Center" Margin="0,0,8,0"
                                  ToolTip="Search switches..." />
                         <Button Grid.Column="2" Content="Select All" Command="{Binding SelectAllInCategoryCommand}" 
-                                Padding="8,4" Margin="0,0,4,0" />
+                                Margin="0,0,4,0" />
                         <Button Grid.Column="3" Content="Clear All" Command="{Binding ClearAllInCategoryCommand}" 
-                                Padding="8,4" />
+                                />
                     </Grid>
 
                     <!-- Switches List -->
@@ -247,7 +247,7 @@
                          Padding="8" />
 
                 <Button Grid.Column="1" Content="Clear" Command="{Binding ClearOutputCommand}" 
-                        Padding="8,4" Margin="8,0,0,0" VerticalAlignment="Top" />
+                        Margin="8,0,0,0" VerticalAlignment="Top" />
             </Grid>
         </GroupBox>
 

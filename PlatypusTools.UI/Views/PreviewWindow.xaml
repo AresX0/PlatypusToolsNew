@@ -13,8 +13,8 @@
             </ScrollViewer>
         </Border>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
-            <Button Width="90" Margin="4" Click="Close_Click">Close</Button>
-            <Button Width="90" Margin="4" Click="OpenInExplorer_Click">Open in Explorer</Button>
+            <Button MinWidth="180" Margin="4" Click="Close_Click">Close</Button>
+            <Button MinWidth="180" Margin="4" Click="OpenInExplorer_Click">Open in Explorer</Button>
         </StackPanel>
     </Grid>
 </Window>

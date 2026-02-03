@@ -155,8 +155,8 @@
                         <KeyBinding Key="Enter" Command="{Binding SendCommand}"/>
                     </TextBox.InputBindings>
                 </TextBox>
-                <Button Grid.Column="1" Content="Send" Command="{Binding SendCommand}" Width="70" Margin="8,0,0,0"/>
-                <Button Grid.Column="2" Content="Clear" Command="{Binding ClearCommand}" Width="70" Margin="8,0,0,0"/>
+                <Button Grid.Column="1" Content="Send" Command="{Binding SendCommand}" MinWidth="180" Margin="8,0,0,0"/>
+                <Button Grid.Column="2" Content="Clear" Command="{Binding ClearCommand}" MinWidth="180" Margin="8,0,0,0"/>
             </Grid>
 
             <!-- Status -->

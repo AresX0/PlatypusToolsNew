@@ -43,7 +43,7 @@
                         </Grid.RowDefinitions>
                         
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Version:" FontWeight="Bold"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="VersionText" Text="3.3.1.1"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="VersionText" Text="3.3.1.4"/>
                         
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Build Date:" FontWeight="Bold"/>
                         <TextBlock Grid.Row="1" Grid.Column="1" x:Name="BuildDateText" Text="2026-01-19"/>
@@ -100,7 +100,7 @@
         <Border Grid.Row="2" Padding="20" Background="{DynamicResource SurfaceBrush}">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <TextBlock Text="© 2026 PlatypusTools Project" VerticalAlignment="Center" Margin="0,0,20,0"/>
-                <Button Content="Close" Width="80" Click="Close_Click"/>
+                <Button Content="Close" MinWidth="180" Click="Close_Click"/>
             </StackPanel>
         </Border>
     </Grid>

@@ -34,9 +34,9 @@
                              IsReadOnly="True" Margin="0,0,10,0" VerticalAlignment="Center"
                              ToolTip="Drag and drop a file here or click Browse"/>
                     <Button Grid.Column="2" Content="Browse..." Command="{Binding BrowseFileCommand}" 
-                            Width="80" Margin="0,0,5,0" Padding="5,3"/>
+                            MinWidth="180" Margin="0,0,5,0"/>
                     <Button Grid.Column="3" Content="📂 Open" Command="{Binding OpenInExplorerCommand}" 
-                            Width="70" Padding="5,3" ToolTip="Open file location in Explorer"/>
+                            MinWidth="180" ToolTip="Open file location in Explorer"/>
                 </Grid>
 
                 <!-- File Info -->
@@ -53,14 +53,14 @@
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                     <CheckBox Content="Uppercase hashes" IsChecked="{Binding UseUppercase}" Margin="0,0,20,0"/>
                     <Button Content="🔄 Calculate" Command="{Binding CalculateHashesCommand}" 
-                            Width="100" Background="#FF4CAF50" Foreground="White" Margin="0,0,10,0" FontSize="12" Padding="5,3"/>
+                            MinWidth="180" Background="#FF4CAF50" Foreground="White" Margin="0,0,10,0" FontSize="12"/>
                     <Button Content="Cancel" Command="{Binding CancelCommand}" 
-                            Width="70" Background="#FFF44336" Foreground="White" Margin="0,0,10,0" FontSize="12" Padding="5,3"
+                            MinWidth="180" Background="#FFF44336" Foreground="White" Margin="0,0,10,0" FontSize="12"
                             Visibility="{Binding IsCalculating, Converter={StaticResource BoolToVisibilityConverter}}"/>
                     <Button Content="✓ Verify" Command="{Binding VerifyHashCommand}" 
-                            Width="70" Background="#FF2196F3" Foreground="White" Margin="0,0,10,0" FontSize="12" Padding="5,3"
+                            MinWidth="180" Background="#FF2196F3" Foreground="White" Margin="0,0,10,0" FontSize="12"
                             ToolTip="Verify a hash against calculated values"/>
-                    <Button Content="Clear" Command="{Binding ClearCommand}" Width="60" FontSize="12" Padding="5,3"/>
+                    <Button Content="Clear" Command="{Binding ClearCommand}" MinWidth="180" FontSize="12"/>
                 </StackPanel>
 
                 <!-- Progress -->
@@ -124,7 +124,7 @@
 
                 <!-- Copy All -->
                 <Button Grid.Row="5" Grid.Column="1" Content="📋 Copy All Hashes" Command="{Binding CopyAllCommand}"
-                        HorizontalAlignment="Left" Width="140" Margin="0,5,0,0" Padding="5,3"/>
+                        HorizontalAlignment="Left" MinWidth="180" Margin="0,5,0,0"/>
             </Grid>
         </GroupBox>
 

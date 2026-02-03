@@ -31,13 +31,13 @@
                     <TextBox Grid.Column="1" Text="{Binding ImagesFolder, UpdateSourceTrigger=PropertyChanged}" 
                              IsReadOnly="True" Margin="0,0,10,0"/>
                     <Button Grid.Column="2" Content="Browse Folder" Command="{Binding BrowseFolderCommand}" 
-                            Width="120" Padding="5"/>
+                            MinWidth="180" Padding="5"/>
                 </Grid>
 
                 <StackPanel Orientation="Horizontal" Margin="5,5,5,10" HorizontalAlignment="Left">
-                    <Button Content="Add Files" Command="{Binding AddFilesCommand}" Width="100" Margin="0,0,10,0" Padding="5"/>
-                    <Button Content="Add Folder" Command="{Binding AddFolderCommand}" Width="100" Margin="0,0,10,0" Padding="5"/>
-                    <Button Content="Clear List" Command="{Binding ClearListCommand}" Width="100" Padding="5"/>
+                    <Button Content="Add Files" Command="{Binding AddFilesCommand}" MinWidth="180" Margin="0,0,10,0" Padding="5"/>
+                    <Button Content="Add Folder" Command="{Binding AddFolderCommand}" MinWidth="180" Margin="0,0,10,0" Padding="5"/>
+                    <Button Content="Clear List" Command="{Binding ClearListCommand}" MinWidth="180" Padding="5"/>
                 </StackPanel>
             </StackPanel>
             </ScrollViewer>
@@ -52,8 +52,8 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="5">
-                    <Button Content="Select All" Command="{Binding SelectAllCommand}" Width="80" Margin="0,0,5,0" Padding="3"/>
-                    <Button Content="Select None" Command="{Binding SelectNoneCommand}" Width="80" Padding="3"/>
+                    <Button Content="Select All" Command="{Binding SelectAllCommand}" MinWidth="180" Margin="0,0,5,0" Padding="3"/>
+                    <Button Content="Select None" Command="{Binding SelectNoneCommand}" MinWidth="180" Padding="3"/>
                 </StackPanel>
 
                 <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
@@ -92,7 +92,7 @@
                     <TextBox Grid.Column="1" Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}" 
                              Margin="0,0,10,0"/>
                     <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseFolderCommand}" 
-                            Width="80" Padding="5"/>
+                            MinWidth="180" Padding="5"/>
                 </Grid>
 
                 <Grid Margin="0,0,0,10">
@@ -124,7 +124,7 @@
 
                 <StackPanel Orientation="Horizontal">
                     <Button Content="Convert to ICO" Command="{Binding ConvertToIcoCommand}" 
-                            Width="120" Margin="0,0,10,0" Padding="5" FontWeight="Bold"/>
+                            MinWidth="180" Margin="0,0,10,0" Padding="5" FontWeight="Bold"/>
                     
                     <TextBlock Text="Format:" VerticalAlignment="Center" Margin="10,0,10,0"/>
                     <ComboBox SelectedItem="{Binding SelectedFormat, UpdateSourceTrigger=PropertyChanged}" Width="100" Margin="0,0,10,0">
@@ -136,7 +136,7 @@
                     </ComboBox>
                     
                     <Button Content="Convert Format" Command="{Binding ConvertFormatCommand}" 
-                            Width="120" Padding="5"/>
+                            MinWidth="180" Padding="5"/>
                 </StackPanel>
             </StackPanel>
             </ScrollViewer>
@@ -152,7 +152,7 @@
 
                 <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" FontWeight="SemiBold"/>
                 <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelCommand}" 
-                        Width="80" Padding="5" Visibility="{Binding IsConverting, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        MinWidth="180" Padding="5" Visibility="{Binding IsConverting, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             </Grid>
         </Border>
     </Grid>

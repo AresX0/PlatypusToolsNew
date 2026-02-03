@@ -49,8 +49,8 @@
                             <TextBlock x:Name="FFmpegPath" Text="" Foreground="Green" FontSize="11" Margin="24,4,0,0"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <Button x:Name="FFmpegInstallBtn" Content="Install" Width="100" Click="InstallFFmpeg_Click"/>
-                            <Button x:Name="FFmpegManualBtn" Content="Manual ↗" Width="100" Margin="0,4,0,0" Click="OpenFFmpegSite_Click"/>
+                            <Button x:Name="FFmpegInstallBtn" Content="Install" MinWidth="180" Click="InstallFFmpeg_Click"/>
+                            <Button x:Name="FFmpegManualBtn" Content="Manual ↗" MinWidth="180" Margin="0,4,0,0" Click="OpenFFmpegSite_Click"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -72,8 +72,8 @@
                             <TextBlock x:Name="ExifToolPath" Text="" Foreground="Green" FontSize="11" Margin="24,4,0,0"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <Button x:Name="ExifToolInstallBtn" Content="Install" Width="100" Click="InstallExifTool_Click"/>
-                            <Button x:Name="ExifToolManualBtn" Content="Manual ↗" Width="100" Margin="0,4,0,0" Click="OpenExifToolSite_Click"/>
+                            <Button x:Name="ExifToolInstallBtn" Content="Install" MinWidth="180" Click="InstallExifTool_Click"/>
+                            <Button x:Name="ExifToolManualBtn" Content="Manual ↗" MinWidth="180" Margin="0,4,0,0" Click="OpenExifToolSite_Click"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -95,8 +95,8 @@
                             <TextBlock x:Name="WebView2Path" Text="" Foreground="Green" FontSize="11" Margin="24,4,0,0"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <Button x:Name="WebView2InstallBtn" Content="Install" Width="100" Click="InstallWebView2_Click"/>
-                            <Button x:Name="WebView2ManualBtn" Content="Manual ↗" Width="100" Margin="0,4,0,0" Click="OpenWebView2Site_Click"/>
+                            <Button x:Name="WebView2InstallBtn" Content="Install" MinWidth="180" Click="InstallWebView2_Click"/>
+                            <Button x:Name="WebView2ManualBtn" Content="Manual ↗" MinWidth="180" Margin="0,4,0,0" Click="OpenWebView2Site_Click"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -116,7 +116,7 @@
                             <LineBreak/>
                             <Run Text="• WebView2: Run the installer from Microsoft"/>
                         </TextBlock>
-                        <Button Content="Open Tools Folder" Width="140" HorizontalAlignment="Left" Margin="0,12,0,0" Click="OpenToolsFolder_Click"/>
+                        <Button Content="Open Tools Folder" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="OpenToolsFolder_Click"/>
                     </StackPanel>
                 </Border>
             </StackPanel>
@@ -129,8 +129,8 @@
         
         <!-- Buttons -->
         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
-            <Button Content="Refresh Status" Width="120" Margin="0,0,8,0" Click="RefreshStatus_Click"/>
-            <Button Content="Continue" Width="100" Click="Continue_Click" IsDefault="True" 
+            <Button Content="Refresh Status" MinWidth="180" Margin="0,0,8,0" Click="RefreshStatus_Click"/>
+            <Button Content="Continue" MinWidth="180" Click="Continue_Click" IsDefault="True" 
                     Background="#FF4CAF50" Foreground="White"/>
         </StackPanel>
     </Grid>

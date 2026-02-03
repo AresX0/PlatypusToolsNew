@@ -27,23 +27,23 @@
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                    <Button Content="🔍 Full System Audit" Command="{Binding RunFullAuditCommand}" Width="160" Height="35" 
+                    <Button Content="🔍 Full System Audit" Command="{Binding RunFullAuditCommand}" MinWidth="180" Height="35" 
                             Margin="0,0,5,0" Background="#FF2196F3" Foreground="White" FontWeight="Bold"/>
-                    <Button Content="👤 Scan Elevated Users" Command="{Binding ScanElevatedUsersCommand}" Width="160" Height="35" 
+                    <Button Content="👤 Scan Elevated Users" Command="{Binding ScanElevatedUsersCommand}" MinWidth="180" Height="35" 
                             Margin="0,0,5,0" Background="#FFFF9800" Foreground="White"/>
-                    <Button Content="🔒 Scan Critical ACLs" Command="{Binding ScanCriticalAclsCommand}" Width="150" Height="35" 
+                    <Button Content="🔒 Scan Critical ACLs" Command="{Binding ScanCriticalAclsCommand}" MinWidth="190" Height="35" 
                             Margin="0,0,5,0" Background="#FFF44336" Foreground="White"/>
-                    <Button Content="⬆ Scan Outbound Traffic" Command="{Binding ScanOutboundTrafficCommand}" Width="180" Height="35" 
+                    <Button Content="⬆ Scan Outbound Traffic" Command="{Binding ScanOutboundTrafficCommand}" MinWidth="180" Height="35" 
                             Margin="0,0,5,0" Background="#FF4CAF50" Foreground="White"/>
-                    <Button Content="⬇ Scan Inbound Traffic" Command="{Binding ScanInboundTrafficCommand}" Width="170" Height="35" 
+                    <Button Content="⬇ Scan Inbound Traffic" Command="{Binding ScanInboundTrafficCommand}" MinWidth="190" Height="35" 
                             Margin="0,0,5,0" Background="#FF4CAF50" Foreground="White"/>
-                    <Button Content="👥 Open Users &amp; Groups" Command="{Binding OpenUsersAndGroupsCommand}" Width="170" Height="35" 
+                    <Button Content="👥 Open Users &amp; Groups" Command="{Binding OpenUsersAndGroupsCommand}" MinWidth="190" Height="35" 
                             Margin="0,0,5,0" Background="#FF9C27B0" Foreground="White"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <Button Content="Firewall" Command="{Binding RunFirewallAuditCommand}" Width="100" Height="35" Margin="0,0,5,0"/>
-                    <Button Content="Updates" Command="{Binding RunUpdatesAuditCommand}" Width="100" Height="35" Margin="0,0,5,0"/>
-                    <Button Content="Startup Items" Command="{Binding RunStartupAuditCommand}" Width="120" Height="35" Margin="0,0,5,0"/>
+                    <Button Content="Firewall" Command="{Binding RunFirewallAuditCommand}" MinWidth="180" Height="35" Margin="0,0,5,0"/>
+                    <Button Content="Updates" Command="{Binding RunUpdatesAuditCommand}" MinWidth="180" Height="35" Margin="0,0,5,0"/>
+                    <Button Content="Startup Items" Command="{Binding RunStartupAuditCommand}" MinWidth="180" Height="35" Margin="0,0,5,0"/>
                 </StackPanel>
             </StackPanel>
             </ScrollViewer>
@@ -58,9 +58,9 @@
                     <TextBox Text="{Binding SelectedUsername, UpdateSourceTrigger=PropertyChanged}" 
                              Width="200" Height="30" VerticalContentAlignment="Center" Margin="0,0,10,0"/>
                     
-                    <Button Content="Disable User" Command="{Binding DisableUserCommand}" Width="100" Height="30" 
+                    <Button Content="Disable User" Command="{Binding DisableUserCommand}" MinWidth="180" Height="30" 
                             Margin="0,0,5,0" Background="Orange"/>
-                    <Button Content="Delete User" Command="{Binding DeleteUserCommand}" Width="100" Height="30" 
+                    <Button Content="Delete User" Command="{Binding DeleteUserCommand}" MinWidth="180" Height="30" 
                             Margin="0,0,5,0" Background="Red" Foreground="White"/>
                 </StackPanel>
                 
@@ -69,7 +69,7 @@
                     <TextBox Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}" 
                              Width="200" Height="30" VerticalContentAlignment="Center" Margin="0,0,10,0"/>
                     
-                    <Button Content="Reset Password" Command="{Binding ResetPasswordCommand}" Width="120" Height="30" 
+                    <Button Content="Reset Password" Command="{Binding ResetPasswordCommand}" MinWidth="180" Height="30" 
                             Background="LightBlue"/>
                 </StackPanel>
             </StackPanel>
@@ -154,7 +154,7 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Button Content="Fix" Command="{Binding DataContext.FixIssueCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
-                                        CommandParameter="{Binding}" Width="60" Height="25"
+                                        CommandParameter="{Binding}" MinWidth="180" Height="25"
                                         IsEnabled="{Binding CanAutoFix}" Background="LightYellow"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
@@ -175,9 +175,9 @@
             <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <ProgressBar Grid.Column="1" IsIndeterminate="True" Height="20" 
                          Visibility="{Binding IsAuditing, Converter={StaticResource BoolToVisibilityConverter}}"/>
-            <Button Grid.Column="2" Content="Export Report" Command="{Binding ExportReportCommand}" Width="120" 
+            <Button Grid.Column="2" Content="Export Report" Command="{Binding ExportReportCommand}" MinWidth="180" 
                     Height="32" Margin="0,0,5,0"/>
-            <Button Grid.Column="3" Content="Clear" Command="{Binding ClearCommand}" Width="80" Height="32"/>
+            <Button Grid.Column="3" Content="Clear" Command="{Binding ClearCommand}" MinWidth="180" Height="32"/>
         </Grid>
     </Grid>
 </UserControl>

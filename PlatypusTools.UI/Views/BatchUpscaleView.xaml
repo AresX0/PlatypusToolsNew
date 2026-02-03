@@ -42,7 +42,7 @@
                 <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Settings.OutputDirectory, UpdateSourceTrigger=PropertyChanged}" 
                          VerticalAlignment="Center" Margin="0,0,8,0"/>
                 <Button Grid.Row="0" Grid.Column="2" Content="Browse..." Command="{Binding BrowseOutputCommand}" 
-                        Width="80" Margin="0,0,8,0"/>
+                        MinWidth="180" Margin="0,0,8,0"/>
                 
                 <!-- Scale Factor -->
                 <TextBlock Grid.Row="0" Grid.Column="3" Text="Scale:" VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -68,18 +68,18 @@
         
         <!-- Actions -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
-            <Button Content="📁 Add Files..." Command="{Binding AddFilesCommand}" Width="110" Margin="0,0,8,0" Padding="6,4"/>
-            <Button Content="📂 Add Folder..." Command="{Binding AddFolderCommand}" Width="120" Margin="0,0,8,0" Padding="6,4"/>
-            <Button Content="🗑️ Remove Selected" Command="{Binding RemoveSelectedCommand}" Width="140" Margin="0,0,8,0" Padding="6,4"
+            <Button Content="📁 Add Files..." Command="{Binding AddFilesCommand}" MinWidth="180" Margin="0,0,8,0"/>
+            <Button Content="📂 Add Folder..." Command="{Binding AddFolderCommand}" MinWidth="190" Margin="0,0,8,0"/>
+            <Button Content="🗑️ Remove Selected" Command="{Binding RemoveSelectedCommand}" MinWidth="190" Margin="0,0,8,0"
                     IsEnabled="{Binding CanModifyQueue}" Background="#FFF44336" Foreground="White"/>
-            <Button Content="🧹 Clear All" Command="{Binding ClearQueueCommand}" Width="100" Margin="0,0,24,0" Padding="6,4"
+            <Button Content="🧹 Clear All" Command="{Binding ClearQueueCommand}" MinWidth="180" Margin="0,0,24,0"
                     IsEnabled="{Binding CanModifyQueue}"/>
             
-            <Button Content="▶ Start" Command="{Binding StartProcessingCommand}" Width="85" Margin="0,0,8,0" Padding="6,4"
+            <Button Content="▶ Start" Command="{Binding StartProcessingCommand}" MinWidth="180" Margin="0,0,8,0"
                     Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
-            <Button Content="⏸ Pause" Command="{Binding PauseProcessingCommand}" Width="85" Margin="0,0,8,0" Padding="6,4"
+            <Button Content="⏸ Pause" Command="{Binding PauseProcessingCommand}" MinWidth="180" Margin="0,0,8,0"
                     Background="#FFFF9800" Foreground="White"/>
-            <Button Content="⏹ Cancel" Command="{Binding CancelProcessingCommand}" Width="90" Padding="6,4"
+            <Button Content="⏹ Cancel" Command="{Binding CancelProcessingCommand}" MinWidth="180"
                     Background="#FFF44336" Foreground="White"/>
         </StackPanel>
 

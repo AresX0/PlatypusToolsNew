@@ -160,7 +160,7 @@
                                 <RadioButton x:Name="KlingonThemeRadio" Content="Klingon (tlhIngan)" GroupName="Theme" Margin="0,4"/>
                                 <RadioButton x:Name="PipBoyThemeRadio" Content="Pip-Boy (Fallout)" GroupName="Theme" Margin="0,4"/>
                                 <RadioButton x:Name="SystemThemeRadio" Content="Use system setting" GroupName="Theme" Margin="0,4"/>
-                                <Button Content="Customize Theme..." Width="150" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CustomizeTheme_Click"/>
+                                <Button Content="Customize Theme..." MinWidth="190" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CustomizeTheme_Click"/>
                             </StackPanel>
                         </GroupBox>
                         
@@ -284,7 +284,7 @@
                                     </ComboBox>
                                 </Grid>
                                 
-                                <Button Content="Test Connection" Width="120" HorizontalAlignment="Left" Margin="0,12,0,0" Click="TestAI_Click"/>
+                                <Button Content="Test Connection" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="TestAI_Click"/>
                             </StackPanel>
                         </GroupBox>
                         
@@ -311,9 +311,9 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.3.1.1"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.3.1.4"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="Gray" Margin="0,4,0,0"/>
-                                <Button Content="Check for Updates Now" Width="160" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
+                                <Button Content="Check for Updates Now" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
                         </GroupBox>
                     </StackPanel>
@@ -324,8 +324,8 @@
                         
                         <GroupBox Header="Backup Settings" Margin="0,0,0,16">
                             <StackPanel Margin="8">
-                                <Button Content="Create Backup..." Width="150" HorizontalAlignment="Left" Margin="0,4" Click="CreateBackup_Click"/>
-                                <Button Content="Restore from Backup..." Width="150" HorizontalAlignment="Left" Margin="0,4" Click="RestoreBackup_Click"/>
+                                <Button Content="Create Backup..." MinWidth="190" HorizontalAlignment="Left" Margin="0,4" Click="CreateBackup_Click"/>
+                                <Button Content="Restore from Backup..." MinWidth="190" HorizontalAlignment="Left" Margin="0,4" Click="RestoreBackup_Click"/>
                             </StackPanel>
                         </GroupBox>
                         
@@ -467,8 +467,8 @@
                         </GroupBox>
                         
                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                            <Button Content="Show All Tabs" Width="120" Margin="0,0,8,0" Click="ShowAllTabs_Click"/>
-                            <Button Content="Hide All Tabs" Width="120" Click="HideAllTabs_Click"/>
+                            <Button Content="Show All Tabs" MinWidth="180" Margin="0,0,8,0" Click="ShowAllTabs_Click"/>
+                            <Button Content="Hide All Tabs" MinWidth="180" Click="HideAllTabs_Click"/>
                         </StackPanel>
                     </StackPanel>
                     
@@ -574,7 +574,7 @@
                                     <TextBlock x:Name="DepFFmpegStatus" Text="⏳" FontSize="14"/>
                                     <TextBlock Grid.Column="1" Text="FFmpeg" FontWeight="SemiBold"/>
                                     <TextBlock x:Name="DepFFmpegInfo" Grid.Column="2" Text="Checking..." Foreground="Gray"/>
-                                    <Button x:Name="DepFFmpegBtn" Grid.Column="3" Content="Install" Width="80" Click="DepInstallFFmpeg_Click"/>
+                                    <Button x:Name="DepFFmpegBtn" Grid.Column="3" Content="Install" MinWidth="180" Click="DepInstallFFmpeg_Click"/>
                                 </Grid>
                                 <Grid Margin="0,8">
                                     <Grid.ColumnDefinitions>
@@ -586,7 +586,7 @@
                                     <TextBlock x:Name="DepExifToolStatus" Text="⏳" FontSize="14"/>
                                     <TextBlock Grid.Column="1" Text="ExifTool" FontWeight="SemiBold"/>
                                     <TextBlock x:Name="DepExifToolInfo" Grid.Column="2" Text="Checking..." Foreground="Gray"/>
-                                    <Button x:Name="DepExifToolBtn" Grid.Column="3" Content="Install" Width="80" Click="DepInstallExifTool_Click"/>
+                                    <Button x:Name="DepExifToolBtn" Grid.Column="3" Content="Install" MinWidth="180" Click="DepInstallExifTool_Click"/>
                                 </Grid>
                                 <Grid Margin="0,8">
                                     <Grid.ColumnDefinitions>
@@ -598,9 +598,9 @@
                                     <TextBlock x:Name="DepWebView2Status" Text="⏳" FontSize="14"/>
                                     <TextBlock Grid.Column="1" Text="WebView2" FontWeight="SemiBold"/>
                                     <TextBlock x:Name="DepWebView2Info" Grid.Column="2" Text="Checking..." Foreground="Gray"/>
-                                    <Button x:Name="DepWebView2Btn" Grid.Column="3" Content="Install" Width="80" Click="DepInstallWebView2_Click"/>
+                                    <Button x:Name="DepWebView2Btn" Grid.Column="3" Content="Install" MinWidth="180" Click="DepInstallWebView2_Click"/>
                                 </Grid>
-                                <Button Content="🔄 Refresh Status" Width="140" HorizontalAlignment="Left" Margin="0,12,0,0" Click="DepRefresh_Click"/>
+                                <Button Content="🔄 Refresh Status" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="DepRefresh_Click"/>
                             </StackPanel>
                         </GroupBox>
                         
@@ -609,7 +609,7 @@
                                 <CheckBox x:Name="ShowDependencyPromptCheck" Content="Show dependency setup on startup if tools are missing" IsChecked="True" Margin="0,4"/>
                                 <TextBlock Text="When enabled, a setup window will appear on startup if any dependencies are missing." 
                                            Foreground="Gray" FontSize="11" Margin="20,2,0,8"/>
-                                <Button Content="Open Dependency Setup Window..." Width="220" HorizontalAlignment="Left" Margin="0,8,0,0" Click="OpenDependencySetup_Click"/>
+                                <Button Content="Open Dependency Setup Window..." MinWidth="220" HorizontalAlignment="Left" Margin="0,8,0,0" Click="OpenDependencySetup_Click"/>
                             </StackPanel>
                         </GroupBox>
                         
@@ -619,18 +619,18 @@
                                     If automatic installation fails, you can download and install the tools manually:
                                 </TextBlock>
                                 <StackPanel Orientation="Horizontal" Margin="0,4">
-                                    <Button Content="FFmpeg Website ↗" Width="140" Click="DepOpenFFmpegSite_Click"/>
+                                    <Button Content="FFmpeg Website ↗" MinWidth="180" Click="DepOpenFFmpegSite_Click"/>
                                     <TextBlock Text="Video editing, screen recording" VerticalAlignment="Center" Foreground="Gray" Margin="12,0,0,0"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,8">
-                                    <Button Content="ExifTool Website ↗" Width="140" Click="DepOpenExifToolSite_Click"/>
+                                    <Button Content="ExifTool Website ↗" MinWidth="180" Click="DepOpenExifToolSite_Click"/>
                                     <TextBlock Text="Metadata editing" VerticalAlignment="Center" Foreground="Gray" Margin="12,0,0,0"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,8">
-                                    <Button Content="WebView2 Runtime ↗" Width="140" Click="DepOpenWebView2Site_Click"/>
+                                    <Button Content="WebView2 Runtime ↗" MinWidth="180" Click="DepOpenWebView2Site_Click"/>
                                     <TextBlock Text="Help system, browser features" VerticalAlignment="Center" Foreground="Gray" Margin="12,0,0,0"/>
                                 </StackPanel>
-                                <Button Content="📁 Open Tools Folder" Width="160" HorizontalAlignment="Left" Margin="0,12,0,0" Click="DepOpenToolsFolder_Click"/>
+                                <Button Content="📁 Open Tools Folder" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="DepOpenToolsFolder_Click"/>
                             </StackPanel>
                         </GroupBox>
                     </StackPanel>
@@ -662,9 +662,9 @@
                         
                         <GroupBox Header="Data">
                             <StackPanel Margin="8">
-                                <Button Content="Clear Recent Files" Width="150" HorizontalAlignment="Left" Margin="0,4" Click="ClearRecent_Click"/>
-                                <Button Content="Clear Cache" Width="150" HorizontalAlignment="Left" Margin="0,4" Click="ClearCache_Click"/>
-                                <Button Content="Reset All Settings" Width="150" HorizontalAlignment="Left" Margin="0,8" Click="ResetAll_Click"/>
+                                <Button Content="Clear Recent Files" MinWidth="190" HorizontalAlignment="Left" Margin="0,4" Click="ClearRecent_Click"/>
+                                <Button Content="Clear Cache" MinWidth="190" HorizontalAlignment="Left" Margin="0,4" Click="ClearCache_Click"/>
+                                <Button Content="Reset All Settings" MinWidth="190" HorizontalAlignment="Left" Margin="0,8" Click="ResetAll_Click"/>
                             </StackPanel>
                         </GroupBox>
                         
@@ -676,7 +676,7 @@
                                 <!-- Okuda Font (LCARS) -->
                                 <StackPanel Orientation="Horizontal" Margin="0,4">
                                     <Button x:Name="InstallOkudaFontBtn" Content="📝 Install Okuda Font" 
-                                            Width="200" HorizontalAlignment="Left"
+                                            MinWidth="200" HorizontalAlignment="Left"
                                             Click="InstallOkudaFont_Click"
                                             ToolTip="LCARS theme font - Star Trek computer interface style"/>
                                     <TextBlock x:Name="OkudaFontStatus" Text="" FontSize="11" 
@@ -687,7 +687,7 @@
                                 <!-- Monofonto Font (PipBoy) -->
                                 <StackPanel Orientation="Horizontal" Margin="0,4">
                                     <Button x:Name="InstallMonofontoFontBtn" Content="📝 Install Monofonto Font" 
-                                            Width="200" HorizontalAlignment="Left"
+                                            MinWidth="200" HorizontalAlignment="Left"
                                             Click="InstallMonofontoFont_Click"
                                             ToolTip="PipBoy theme font - Fallout terminal style"/>
                                     <TextBlock x:Name="MonofontoFontStatus" Text="" FontSize="11" 
@@ -698,7 +698,7 @@
                                 <!-- Overseer Font -->
                                 <StackPanel Orientation="Horizontal" Margin="0,4">
                                     <Button x:Name="InstallOverseerFontBtn" Content="📝 Install Overseer Font" 
-                                            Width="200" HorizontalAlignment="Left"
+                                            MinWidth="200" HorizontalAlignment="Left"
                                             Click="InstallOverseerFont_Click"
                                             ToolTip="Vault-Tec Overseer style font"/>
                                     <TextBlock x:Name="OverseerFontStatus" Text="" FontSize="11" 
@@ -709,7 +709,7 @@
                                 <!-- Klingon Font -->
                                 <StackPanel Orientation="Horizontal" Margin="0,4">
                                     <Button x:Name="InstallKlingonFontBtn" Content="📝 Install Klingon Font" 
-                                            Width="200" HorizontalAlignment="Left"
+                                            MinWidth="200" HorizontalAlignment="Left"
                                             Click="InstallKlingonFont_Click"
                                             ToolTip="Klingon theme font for the tlhIngan wo' theme"/>
                                     <TextBlock x:Name="KlingonFontStatus" Text="" FontSize="11" 
@@ -726,9 +726,9 @@
         <!-- Footer -->
         <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" Padding="20,12">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Apply" Width="80" Margin="0,0,8,0" Click="Apply_Click"/>
-                <Button Content="OK" Width="80" Margin="0,0,8,0" Click="OK_Click"/>
-                <Button Content="Cancel" Width="80" Click="Cancel_Click"/>
+                <Button Content="Apply" MinWidth="180" Margin="0,0,8,0" Click="Apply_Click"/>
+                <Button Content="OK" MinWidth="180" Margin="0,0,8,0" Click="OK_Click"/>
+                <Button Content="Cancel" MinWidth="180" Click="Cancel_Click"/>
             </StackPanel>
         </Border>
     </Grid>

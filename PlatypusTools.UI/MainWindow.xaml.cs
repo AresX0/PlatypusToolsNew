@@ -165,9 +165,9 @@ namespace PlatypusTools.UI
             
             var buttonPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center };
             
-            var exitBtn = new Button { Content = "Exit Application", Width = 120, Height = 30, Margin = new Thickness(5) };
-            var minimizeBtn = new Button { Content = "Minimize", Width = 100, Height = 30, Margin = new Thickness(5) };
-            var cancelBtn = new Button { Content = "Cancel", Width = 80, Height = 30, Margin = new Thickness(5) };
+            var exitBtn = new Button { Content = "Exit Application", MinWidth = 120, Height = 30, Margin = new Thickness(5), Padding = new Thickness(10, 4, 10, 4) };
+            var minimizeBtn = new Button { Content = "Minimize", MinWidth = 100, Height = 30, Margin = new Thickness(5), Padding = new Thickness(10, 4, 10, 4) };
+            var cancelBtn = new Button { Content = "Cancel", MinWidth = 80, Height = 30, Margin = new Thickness(5), Padding = new Thickness(10, 4, 10, 4) };
             
             string? choice = null;
             exitBtn.Click += (s, args) => { choice = "exit"; dialog.Close(); };

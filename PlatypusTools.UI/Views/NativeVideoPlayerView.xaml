@@ -36,7 +36,7 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="File:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <TextBox x:Name="VideoFilePathBox" Grid.Column="1" IsReadOnly="True" Margin="0,0,10,0"/>
-                    <Button Grid.Column="2" Content="Browse..." Click="BrowseVideo_Click" Width="80" Padding="5"/>
+                    <Button Grid.Column="2" Content="Browse..." Click="BrowseVideo_Click" MinWidth="180" Padding="5"/>
                 </Grid>
             </GroupBox>
 
@@ -64,12 +64,12 @@
                     </Grid>
                     <WrapPanel HorizontalAlignment="Center" Margin="0,5">
                         <Button Content="⏮" Click="Previous_Click" Width="40" Height="35" Margin="3" ToolTip="Previous in Queue" FontSize="14"/>
-                        <Button Content="▶ Play" Click="Play_Click" Width="70" Height="35" Margin="3" FontWeight="Bold"/>
-                        <Button Content="⏸ Pause" Click="Pause_Click" Width="70" Height="35" Margin="3"/>
-                        <Button Content="⏹ Stop" Click="Stop_Click" Width="70" Height="35" Margin="3"/>
+                        <Button Content="▶ Play" Click="Play_Click" MinWidth="180" Height="35" Margin="3" FontWeight="Bold"/>
+                        <Button Content="⏸ Pause" Click="Pause_Click" MinWidth="180" Height="35" Margin="3"/>
+                        <Button Content="⏹ Stop" Click="Stop_Click" MinWidth="180" Height="35" Margin="3"/>
                         <Button Content="⏭" Click="Next_Click" Width="40" Height="35" Margin="3" ToolTip="Next in Queue" FontSize="14"/>
-                        <Button Content="⏪" Click="Back_Click" Width="40" Height="35" Margin="3" Padding="6,2" ToolTip="-10s"/>
-                        <Button Content="⏩" Click="Forward_Click" Width="40" Height="35" Margin="3" Padding="6,2" ToolTip="+10s"/>
+                        <Button Content="⏪" Click="Back_Click" Width="40" Height="35" Margin="3" ToolTip="-10s"/>
+                        <Button Content="⏩" Click="Forward_Click" Width="40" Height="35" Margin="3" ToolTip="+10s"/>
                         <Button Content="⛶" Click="Fullscreen_Click" Width="40" Height="35" Margin="3" ToolTip="Fullscreen (ESC to exit)"/>
                     </WrapPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5">
@@ -96,9 +96,9 @@
 
                 <!-- Queue Controls -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
-                    <Button Content="+ Add Files" Click="AddToQueue_Click" MinWidth="90" Height="28" Margin="0,0,5,0" Padding="8,2"
+                    <Button Content="+ Add Files" Click="AddToQueue_Click" MinWidth="180" Height="28" Margin="0,0,5,0" Padding="8,2"
                             Background="#FF4CAF50" Foreground="White"/>
-                    <Button Content="Clear" Click="ClearQueue_Click" MinWidth="60" Height="28" Margin="0,0,5,0" Padding="6,2"/>
+                    <Button Content="Clear" Click="ClearQueue_Click" MinWidth="180" Height="28" Margin="0,0,5,0"/>
                     <Button Content="🔀" Click="ShuffleQueue_Click" MinWidth="34" Height="28" ToolTip="Shuffle Queue" Padding="4,2"/>
                 </StackPanel>
 

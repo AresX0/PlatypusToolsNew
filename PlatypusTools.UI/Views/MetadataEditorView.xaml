@@ -34,8 +34,8 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding FilePath}" IsReadOnly="True" Width="600" HorizontalAlignment="Left"/>
-                            <Button Grid.Row="0" Grid.Column="1" Content="Browse..." Command="{Binding BrowseFileCommand}" Width="80" Margin="5,0,0,0"/>
-                            <Button Grid.Row="0" Grid.Column="2" Content="Load" Command="{Binding LoadMetadataCommand}" Width="80" Margin="5,0,0,0" FontWeight="Bold"/>
+                            <Button Grid.Row="0" Grid.Column="1" Content="Browse..." Command="{Binding BrowseFileCommand}" MinWidth="180" Margin="5,0,0,0"/>
+                            <Button Grid.Row="0" Grid.Column="2" Content="Load" Command="{Binding LoadMetadataCommand}" MinWidth="180" Margin="5,0,0,0" FontWeight="Bold"/>
                             
                             <!-- ExifTool warning panel -->
                             <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Background="Orange" Padding="10" Margin="0,10,0,0"
@@ -156,9 +156,9 @@
                             </Grid.RowDefinitions>
 
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
-                                <Button Content="Add Tag" Command="{Binding AddTagCommand}" Width="80" Margin="0,0,5,0"/>
+                                <Button Content="Add Tag" Command="{Binding AddTagCommand}" MinWidth="180" Margin="0,0,5,0"/>
                                 <Button Content="Remove Selected" Command="{Binding RemoveTagCommand}" 
-                                        CommandParameter="{Binding SelectedItem, ElementName=MetadataGrid}" Width="120"/>
+                                        CommandParameter="{Binding SelectedItem, ElementName=MetadataGrid}" MinWidth="180"/>
                             </StackPanel>
 
                             <DataGrid Grid.Row="1" x:Name="MetadataGrid" ItemsSource="{Binding Metadata}" AutoGenerateColumns="False" 
@@ -187,9 +187,9 @@
                         <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <ProgressBar Grid.Column="1" IsIndeterminate="True" Height="20" 
                                      Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                        <Button Grid.Column="2" Content="💾 Save Changes" Command="{Binding SaveMetadataCommand}" Width="135" Height="32" 
+                        <Button Grid.Column="2" Content="💾 Save Changes" Command="{Binding SaveMetadataCommand}" MinWidth="190" Height="32" 
                                 Margin="0,0,5,0" Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
-                        <Button Grid.Column="3" Content="🧹 Clear All" Command="{Binding ClearAllCommand}" Width="100" Height="32" 
+                        <Button Grid.Column="3" Content="🧹 Clear All" Command="{Binding ClearAllCommand}" MinWidth="180" Height="32" 
                                 Background="#FFF44336" Foreground="White"/>
                     </Grid>
                 </Grid>
@@ -216,8 +216,8 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBox Grid.Column="0" Text="{Binding FolderPath}" IsReadOnly="True"/>
-                            <Button Grid.Column="1" Content="Browse..." Command="{Binding BrowseFolderCommand}" Width="80" Margin="5,0,0,0"/>
-                            <Button Grid.Column="2" Content="Scan Folder" Command="{Binding ScanFolderCommand}" Width="100" Margin="5,0,0,0" FontWeight="Bold" Background="LightBlue"/>
+                            <Button Grid.Column="1" Content="Browse..." Command="{Binding BrowseFolderCommand}" MinWidth="180" Margin="5,0,0,0"/>
+                            <Button Grid.Column="2" Content="Scan Folder" Command="{Binding ScanFolderCommand}" MinWidth="180" Margin="5,0,0,0" FontWeight="Bold" Background="LightBlue"/>
                         </Grid>
                     </GroupBox>
 
@@ -274,9 +274,9 @@
                         <TextBlock Grid.Column="0" Text="{Binding FolderStatusMessage}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <ProgressBar Grid.Column="1" IsIndeterminate="True" Height="20" 
                                      Visibility="{Binding IsFolderScanning, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                        <Button Grid.Column="2" Content="📊 Export to CSV" Command="{Binding ExportToCsvCommand}" Width="135" Height="32" 
+                        <Button Grid.Column="2" Content="📊 Export to CSV" Command="{Binding ExportToCsvCommand}" MinWidth="190" Height="32" 
                                 Margin="0,0,5,0" Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
-                        <Button Grid.Column="3" Content="📂 Open Selected" Command="{Binding OpenSelectedFileCommand}" Width="120" Height="32"
+                        <Button Grid.Column="3" Content="📂 Open Selected" Command="{Binding OpenSelectedFileCommand}" MinWidth="180" Height="32"
                                 Background="#FF2196F3" Foreground="White"/>
                     </Grid>
                 </Grid>
@@ -300,9 +300,9 @@
                         
                         <!-- Template Actions -->
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                            <Button Content="➕ New" Command="{Binding CreateTemplateCommand}" Width="75" Margin="0,0,5,0" Padding="6,2"/>
-                            <Button Content="📥 Import" Command="{Binding ImportTemplateCommand}" Width="85" Margin="0,0,5,0" Padding="6,2"/>
-                            <Button Content="📤 Export" Command="{Binding ExportTemplateCommand}" Width="85" Padding="6,2"/>
+                            <Button Content="➕ New" Command="{Binding CreateTemplateCommand}" MinWidth="180" Margin="0,0,5,0"/>
+                            <Button Content="📥 Import" Command="{Binding ImportTemplateCommand}" MinWidth="180" Margin="0,0,5,0"/>
+                            <Button Content="📤 Export" Command="{Binding ExportTemplateCommand}" MinWidth="180"/>
                         </StackPanel>
                         
                         <!-- Templates List -->
@@ -348,9 +348,9 @@
                         
                         <!-- Selected Template Actions -->
                         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,0">
-                            <Button Content="✏️ Edit" Command="{Binding EditTemplateCommand}" Width="75" Margin="0,0,5,0" Padding="6,2"/>
-                            <Button Content="📋 Copy" Command="{Binding DuplicateTemplateCommand}" Width="80" Margin="0,0,5,0" Padding="6,2"/>
-                            <Button Content="🗑️ Delete" Command="{Binding DeleteTemplateCommand}" Width="85" Padding="6,2" Background="#FFF44336" Foreground="White"/>
+                            <Button Content="✏️ Edit" Command="{Binding EditTemplateCommand}" MinWidth="180" Margin="0,0,5,0"/>
+                            <Button Content="📋 Copy" Command="{Binding DuplicateTemplateCommand}" MinWidth="180" Margin="0,0,5,0"/>
+                            <Button Content="🗑️ Delete" Command="{Binding DeleteTemplateCommand}" MinWidth="180" Background="#FFF44336" Foreground="White"/>
                         </StackPanel>
                     </Grid>
                     
@@ -418,9 +418,9 @@
                                 </Grid.RowDefinitions>
                                 
                                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
-                                    <Button Content="➕ Add Files" Command="{Binding AddFilesCommand}" Width="95" Margin="0,0,5,0" Padding="6,2"/>
-                                    <Button Content="📁 Add Folder" Command="{Binding AddFolderCommand}" Width="110" Margin="0,0,5,0" Padding="6,2"/>
-                                    <Button Content="❌ Clear" Command="{Binding ClearFilesCommand}" Width="80" Padding="6,2"/>
+                                    <Button Content="➕ Add Files" Command="{Binding AddFilesCommand}" MinWidth="180" Margin="0,0,5,0"/>
+                                    <Button Content="📁 Add Folder" Command="{Binding AddFolderCommand}" MinWidth="180" Margin="0,0,5,0"/>
+                                    <Button Content="❌ Clear" Command="{Binding ClearFilesCommand}" MinWidth="180"/>
                                 </StackPanel>
                                 
                                 <ListBox Grid.Row="1" ItemsSource="{Binding SelectedFiles}" BorderThickness="1" BorderBrush="#CCC"/>
@@ -448,11 +448,11 @@
                             <ProgressBar Grid.Column="0" Value="{Binding Progress}" Maximum="100" Height="20" Margin="0,0,10,0"
                                          Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>
                             <Button Grid.Column="1" Content="👁️ Preview" Command="{Binding PreviewChangesCommand}" 
-                                    Width="90" Height="32" Margin="0,0,5,0"/>
+                                    MinWidth="180" Height="32" Margin="0,0,5,0"/>
                             <Button Grid.Column="2" Content="🚀 Apply Template" Command="{Binding ApplyTemplateCommand}" 
-                                    Width="130" Height="32" Background="#FF4CAF50" Foreground="White" FontWeight="Bold" Margin="0,0,5,0"/>
+                                    MinWidth="190" Height="32" Background="#FF4CAF50" Foreground="White" FontWeight="Bold" Margin="0,0,5,0"/>
                             <Button Grid.Column="3" Content="❌ Cancel" Command="{Binding CancelOperationCommand}" 
-                                    Width="80" Height="32" Background="#FFF44336" Foreground="White"
+                                    MinWidth="180" Height="32" Background="#FFF44336" Foreground="White"
                                     Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>
                         </Grid>
                         
@@ -522,7 +522,7 @@
                                 <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding SourceFile}" IsReadOnly="True"
                                          ToolTip="{Binding SourceFile}"/>
                                 <Button Grid.Row="0" Grid.Column="1" Content="Browse..." 
-                                        Command="{Binding SelectSourceFileCommand}" Width="80" Margin="5,0,0,0"/>
+                                        Command="{Binding SelectSourceFileCommand}" MinWidth="180" Margin="5,0,0,0"/>
                                 
                                 <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Margin="0,5,0,0" Foreground="Gray" FontSize="11"
                                            Text="Select a file to copy metadata from. Tags will be loaded automatically."/>
@@ -531,9 +531,9 @@
                         
                         <!-- Tag Selection Actions -->
                         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,5">
-                            <Button Content="✓ Select All" Command="{Binding SelectAllTagsCommand}" Width="90" Margin="0,0,5,0"/>
-                            <Button Content="✗ Deselect All" Command="{Binding DeselectAllTagsCommand}" Width="100" Margin="0,0,5,0"/>
-                            <Button Content="↻ Reload" Command="{Binding LoadSourceTagsCommand}" Width="70"/>
+                            <Button Content="✓ Select All" Command="{Binding SelectAllTagsCommand}" MinWidth="180" Margin="0,0,5,0"/>
+                            <Button Content="✗ Deselect All" Command="{Binding DeselectAllTagsCommand}" MinWidth="180" Margin="0,0,5,0"/>
+                            <Button Content="↻ Reload" Command="{Binding LoadSourceTagsCommand}" MinWidth="180"/>
                         </StackPanel>
                         
                         <!-- Tags List with Checkboxes -->
@@ -576,9 +576,9 @@
                                 </Grid.RowDefinitions>
                                 
                                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
-                                    <Button Content="➕ Add Files" Command="{Binding AddFilesCommand}" Width="95" Margin="0,0,5,0" Padding="6,2"/>
-                                    <Button Content="📁 Add Folder" Command="{Binding AddFolderCommand}" Width="110" Margin="0,0,5,0" Padding="6,2"/>
-                                    <Button Content="❌ Clear" Command="{Binding ClearFilesCommand}" Width="80" Padding="6,2"/>
+                                    <Button Content="➕ Add Files" Command="{Binding AddFilesCommand}" MinWidth="180" Margin="0,0,5,0"/>
+                                    <Button Content="📁 Add Folder" Command="{Binding AddFolderCommand}" MinWidth="180" Margin="0,0,5,0"/>
+                                    <Button Content="❌ Clear" Command="{Binding ClearFilesCommand}" MinWidth="180"/>
                                 </StackPanel>
                                 
                                 <ListBox Grid.Row="1" ItemsSource="{Binding SelectedFiles}" BorderThickness="1" BorderBrush="#CCC">
@@ -614,9 +614,9 @@
                             </StackPanel>
                             
                             <Button Grid.Column="1" Content="📋 Copy Selected Tags" Command="{Binding CopyMetadataCommand}" 
-                                    Width="165" Height="32" Background="#FF4CAF50" Foreground="White" FontWeight="Bold" Margin="0,0,5,0"/>
+                                    MinWidth="180" Height="32" Background="#FF4CAF50" Foreground="White" FontWeight="Bold" Margin="0,0,5,0"/>
                             <Button Grid.Column="2" Content="❌ Cancel" Command="{Binding CancelOperationCommand}" 
-                                    Width="90" Height="32" Background="#FFF44336" Foreground="White"
+                                    MinWidth="180" Height="32" Background="#FFF44336" Foreground="White"
                                     Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>
                         </Grid>
                     </Grid>

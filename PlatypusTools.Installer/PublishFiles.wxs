@@ -29,6 +29,12 @@
       <Component Id="CMP_DirectWriteForwarder_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_DirectWriteForwarder_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\DirectWriteForwarder.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_glfw3_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_glfw3_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\glfw3.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_GLWpfControl_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_GLWpfControl_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\GLWpfControl.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_hostfxr_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_hostfxr_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\hostfxr.dll" KeyPath="yes" />
       </Component>
@@ -40,6 +46,9 @@
       </Component>
       <Component Id="CMP_ICSharpCode_SharpZipLib_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_ICSharpCode_SharpZipLib_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ICSharpCode.SharpZipLib.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_libSkiaSharp_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_libSkiaSharp_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\libSkiaSharp.dll" KeyPath="yes" />
       </Component>
       <Component Id="CMP_LibVLCSharp_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_LibVLCSharp_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\LibVLCSharp.dll" KeyPath="yes" />
@@ -140,6 +149,33 @@
       <Component Id="CMP_netstandard_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_netstandard_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\netstandard.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_OpenTK_Compute_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_OpenTK_Compute_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\OpenTK.Compute.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_OpenTK_Core_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_OpenTK_Core_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\OpenTK.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_OpenTK_Graphics_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_OpenTK_Graphics_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\OpenTK.Graphics.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_OpenTK_Input_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_OpenTK_Input_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\OpenTK.Input.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_OpenTK_Mathematics_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_OpenTK_Mathematics_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\OpenTK.Mathematics.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_OpenTK_OpenAL_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_OpenTK_OpenAL_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\OpenTK.OpenAL.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_OpenTK_Windowing_Common_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_OpenTK_Windowing_Common_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\OpenTK.Windowing.Common.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_OpenTK_Windowing_Desktop_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_OpenTK_Windowing_Desktop_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\OpenTK.Windowing.Desktop.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_OpenTK_Windowing_GraphicsLibraryFramework_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_OpenTK_Windowing_GraphicsLibraryFramework_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\OpenTK.Windowing.GraphicsLibraryFramework.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_PdfSharpCore_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_PdfSharpCore_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PdfSharpCore.dll" KeyPath="yes" />
       </Component>
@@ -223,6 +259,15 @@
       </Component>
       <Component Id="CMP_SixLabors_ImageSharp_Drawing_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_SixLabors_ImageSharp_Drawing_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\SixLabors.ImageSharp.Drawing.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_SkiaSharp_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_SkiaSharp_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\SkiaSharp.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_SkiaSharp_Views_Desktop_Common_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_SkiaSharp_Views_Desktop_Common_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\SkiaSharp.Views.Desktop.Common.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_SkiaSharp_Views_WPF_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_SkiaSharp_Views_WPF_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\SkiaSharp.Views.WPF.dll" KeyPath="yes" />
       </Component>
       <Component Id="CMP_SQLite_Interop_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_SQLite_Interop_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\SQLite.Interop.dll" KeyPath="yes" />
@@ -4390,10 +4435,13 @@
       <ComponentRef Id="CMP_createdump_exe" />
       <ComponentRef Id="CMP_D3DCompiler_47_cor3_dll" />
       <ComponentRef Id="CMP_DirectWriteForwarder_dll" />
+      <ComponentRef Id="CMP_glfw3_dll" />
+      <ComponentRef Id="CMP_GLWpfControl_dll" />
       <ComponentRef Id="CMP_hostfxr_dll" />
       <ComponentRef Id="CMP_hostpolicy_dll" />
       <ComponentRef Id="CMP_HtmlAgilityPack_dll" />
       <ComponentRef Id="CMP_ICSharpCode_SharpZipLib_dll" />
+      <ComponentRef Id="CMP_libSkiaSharp_dll" />
       <ComponentRef Id="CMP_LibVLCSharp_dll" />
       <ComponentRef Id="CMP_LibVLCSharp_WPF_dll" />
       <ComponentRef Id="CMP_MetadataExtractor_dll" />
@@ -4427,6 +4475,15 @@
       <ComponentRef Id="CMP_NAudio_WinForms_dll" />
       <ComponentRef Id="CMP_NAudio_WinMM_dll" />
       <ComponentRef Id="CMP_netstandard_dll" />
+      <ComponentRef Id="CMP_OpenTK_Compute_dll" />
+      <ComponentRef Id="CMP_OpenTK_Core_dll" />
+      <ComponentRef Id="CMP_OpenTK_Graphics_dll" />
+      <ComponentRef Id="CMP_OpenTK_Input_dll" />
+      <ComponentRef Id="CMP_OpenTK_Mathematics_dll" />
+      <ComponentRef Id="CMP_OpenTK_OpenAL_dll" />
+      <ComponentRef Id="CMP_OpenTK_Windowing_Common_dll" />
+      <ComponentRef Id="CMP_OpenTK_Windowing_Desktop_dll" />
+      <ComponentRef Id="CMP_OpenTK_Windowing_GraphicsLibraryFramework_dll" />
       <ComponentRef Id="CMP_PdfSharpCore_dll" />
       <ComponentRef Id="CMP_PenImc_cor3_dll" />
       <ComponentRef Id="CMP_PlatypusTools_Core_dll" />
@@ -4455,6 +4512,9 @@
       <ComponentRef Id="CMP_SixLabors_Fonts_dll" />
       <ComponentRef Id="CMP_SixLabors_ImageSharp_dll" />
       <ComponentRef Id="CMP_SixLabors_ImageSharp_Drawing_dll" />
+      <ComponentRef Id="CMP_SkiaSharp_dll" />
+      <ComponentRef Id="CMP_SkiaSharp_Views_Desktop_Common_dll" />
+      <ComponentRef Id="CMP_SkiaSharp_Views_WPF_dll" />
       <ComponentRef Id="CMP_SQLite_Interop_dll" />
       <ComponentRef Id="CMP_System_AppContext_dll" />
       <ComponentRef Id="CMP_System_Buffers_dll" />

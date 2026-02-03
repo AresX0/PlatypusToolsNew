@@ -23,7 +23,7 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="File:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                 <TextBox x:Name="AudioFilePathBox" Grid.Column="1" IsReadOnly="True" Margin="0,0,10,0"/>
-                <Button Grid.Column="2" Content="Browse..." Click="BrowseAudio_Click" Width="80" Padding="5"/>
+                <Button Grid.Column="2" Content="Browse..." Click="BrowseAudio_Click" MinWidth="180" Padding="5"/>
             </Grid>
         </GroupBox>
 
@@ -60,13 +60,13 @@
         <!-- Actions -->
         <GroupBox Header="Actions" Grid.Row="2" Margin="0,0,0,10">
             <WrapPanel Margin="10">
-                <Button Content="✂️ Trim Audio" Click="TrimAudio_Click" Width="150" Height="40" Margin="0,0,10,5" FontWeight="Bold" 
+                <Button Content="✂️ Trim Audio" Click="TrimAudio_Click" MinWidth="190" Height="40" Margin="0,0,10,5" FontWeight="Bold" 
                         Background="#FF4CAF50" Foreground="White"/>
-                <Button Content="▶ Preview" Click="Preview_Click" Width="120" Height="40" Margin="0,0,10,5"
+                <Button Content="▶ Preview" Click="Preview_Click" MinWidth="180" Height="40" Margin="0,0,10,5"
                         Background="#FF2196F3" Foreground="White"/>
-                <Button Content="⏹ Stop Preview" Click="StopPreview_Click" Width="130" Height="40" Margin="0,0,10,5"
+                <Button Content="⏹ Stop Preview" Click="StopPreview_Click" MinWidth="190" Height="40" Margin="0,0,10,5"
                         Background="#FFF44336" Foreground="White"/>
-                <Button Content="📂 Open Output Folder" Click="OpenOutputFolder_Click" Width="170" Height="40" Margin="0,0,10,5"/>
+                <Button Content="📂 Open Output Folder" Click="OpenOutputFolder_Click" MinWidth="190" Height="40" Margin="0,0,10,5"/>
             </WrapPanel>
         </GroupBox>
         

@@ -9,7 +9,7 @@
             <TextBlock Text="Preview" FontWeight="Bold" Margin="0,0,0,8" />
             <TextBlock Text="Last previewed:" FontStyle="Italic" />
             <TextBlock Text="{Binding LastPreviewedFilePath}" TextWrapping="Wrap" />
-            <Button Content="Open In Window" Width="120" Margin="0,8,0,0" Click="Open_Click" />
+            <Button Content="Open In Window" MinWidth="180" Margin="0,8,0,0" Click="Open_Click" />
         </StackPanel>
     </Grid>
 </UserControl>

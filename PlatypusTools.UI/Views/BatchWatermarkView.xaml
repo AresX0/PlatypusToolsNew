@@ -42,13 +42,13 @@
                     <!-- File List Toolbar -->
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
                         <Button Content="📁 Add Files" Command="{Binding AddFilesCommand}" 
-                                Style="{DynamicResource PrimaryButton}" Width="100" Margin="0,0,5,0"/>
+                                Style="{DynamicResource PrimaryButton}" MinWidth="180" Margin="0,0,5,0"/>
                         <Button Content="📂 Add Folder" Command="{Binding AddFolderCommand}" 
-                                Style="{DynamicResource SecondaryButton}" Width="100" Margin="0,0,5,0"/>
+                                Style="{DynamicResource SecondaryButton}" MinWidth="180" Margin="0,0,5,0"/>
                         <Button Content="🗑️ Remove" Command="{Binding RemoveSelectedCommand}" 
-                                Style="{DynamicResource SecondaryButton}" Width="80" Margin="0,0,5,0"/>
+                                Style="{DynamicResource SecondaryButton}" MinWidth="180" Margin="0,0,5,0"/>
                         <Button Content="🧹 Clear" Command="{Binding ClearFilesCommand}" 
-                                Style="{DynamicResource SecondaryButton}" Width="70"/>
+                                Style="{DynamicResource SecondaryButton}" MinWidth="180"/>
                     </StackPanel>
                     
                     <!-- File List -->
@@ -216,7 +216,7 @@
                 <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" 
                            Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
                 <Button Grid.Column="1" Content="❌ Cancel" Command="{Binding CancelCommand}"
-                        Style="{DynamicResource DangerButton}" Width="80"
+                        Style="{DynamicResource DangerButton}" MinWidth="180"
                         Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>
             </Grid>
         </Border>

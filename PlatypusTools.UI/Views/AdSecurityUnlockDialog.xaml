@@ -58,11 +58,11 @@
 
         <!-- Buttons -->
         <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
-            <Button Content="🔓 Activate" Width="100" Height="32" Margin="5"
+            <Button Content="🔓 Activate" MinWidth="180" Height="32" Margin="5"
                     x:Name="ActivateButton"
                     Background="#FF4CAF50" Foreground="White" FontWeight="SemiBold"
                     Click="Activate_Click" IsDefault="True" />
-            <Button Content="Cancel" Width="80" Height="32" Margin="5"
+            <Button Content="Cancel" MinWidth="180" Height="32" Margin="5"
                     Click="Cancel_Click" IsCancel="True" />
         </StackPanel>
     </Grid>

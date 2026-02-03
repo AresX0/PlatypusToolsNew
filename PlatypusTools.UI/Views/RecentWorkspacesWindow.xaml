@@ -37,7 +37,7 @@
                         <TextBlock Text="🔍" VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <TextBox x:Name="WorkspaceSearchBox" Width="250" Padding="4" 
                                  TextChanged="OnWorkspaceSearchChanged"/>
-                        <Button Content="Clear" Margin="8,0,0,0" Padding="8,4" Click="OnClearWorkspaceSearch"/>
+                        <Button Content="Clear" Margin="8,0,0,0" Click="OnClearWorkspaceSearch"/>
                     </StackPanel>
                     
                     <!-- Workspaces List -->
@@ -104,7 +104,7 @@
                         <TextBlock Text="🔍" VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <TextBox x:Name="FileSearchBox" Width="250" Padding="4" 
                                  TextChanged="OnFileSearchChanged"/>
-                        <Button Content="Clear" Margin="8,0,0,0" Padding="8,4" Click="OnClearFileSearch"/>
+                        <Button Content="Clear" Margin="8,0,0,0" Click="OnClearFileSearch"/>
                     </StackPanel>
                     
                     <!-- Files List -->
@@ -173,15 +173,15 @@
             </Grid.ColumnDefinitions>
             
             <StackPanel Grid.Column="0" Orientation="Horizontal">
-                <Button Content="📌 Pin Selected" Width="110" Margin="0,0,8,0" Click="OnPinClick"/>
-                <Button Content="🗑️ Remove" Width="90" Margin="0,0,8,0" Click="OnRemoveClick" Background="#FFF44336" Foreground="White"/>
-                <Button Content="🧹 Clear All" Width="90" Click="OnClearAllClick" Background="#FFF44336" Foreground="White"/>
+                <Button Content="📌 Pin Selected" MinWidth="180" Margin="0,0,8,0" Click="OnPinClick"/>
+                <Button Content="🗑️ Remove" MinWidth="180" Margin="0,0,8,0" Click="OnRemoveClick" Background="#FFF44336" Foreground="White"/>
+                <Button Content="🧹 Clear All" MinWidth="180" Click="OnClearAllClick" Background="#FFF44336" Foreground="White"/>
             </StackPanel>
             
             <StackPanel Grid.Column="2" Orientation="Horizontal">
-                <Button Content="Open" Width="100" Margin="0,0,8,0" IsDefault="True" 
+                <Button Content="Open" MinWidth="180" Margin="0,0,8,0" IsDefault="True" 
                         Background="#FF4CAF50" Foreground="White" FontWeight="Bold" Click="OnOpenClick"/>
-                <Button Content="Cancel" Width="80" IsCancel="True" Click="OnCloseClick"/>
+                <Button Content="Cancel" MinWidth="180" IsCancel="True" Click="OnCloseClick"/>
             </StackPanel>
         </Grid>
     </Grid>

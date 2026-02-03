@@ -418,7 +418,7 @@
                                                     Command="{Binding DataContext.ApplyShotcutFilterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}"
                                                     Background="#3B82F6" Foreground="White"
-                                                    BorderThickness="0" Padding="6,2" 
+                                                    BorderThickness="0" 
                                                     FontWeight="Bold" Cursor="Hand"
                                                     ToolTip="Add filter to clip"/>
                                         </Grid>

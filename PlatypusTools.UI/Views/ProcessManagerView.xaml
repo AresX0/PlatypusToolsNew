@@ -22,8 +22,8 @@
                 <StackPanel Orientation="Horizontal" Grid.Column="0">
                     <TextBlock VerticalAlignment="Center" Width="80">Filter:</TextBlock>
                     <TextBox x:Name="FilterTextBox" Width="300" Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,16,0" />
-                    <Button Content="Refresh" Click="OnRefreshClick" Width="90" Margin="0,0,8,0" />
-                    <Button Content="Kill Process" Click="OnKillProcessClick" Width="100" Background="DarkRed" Foreground="White" FontWeight="Bold" />
+                    <Button Content="Refresh" Click="OnRefreshClick" MinWidth="180" Margin="0,0,8,0" />
+                    <Button Content="Kill Process" Click="OnKillProcessClick" MinWidth="180" Background="DarkRed" Foreground="White" FontWeight="Bold" />
                 </StackPanel>
                 <TextBlock Grid.Column="1" VerticalAlignment="Center" FontWeight="Bold">
                     Total Processes: <Run x:Name="TotalProcessesText" Text="{Binding TotalProcesses, Mode=OneWay}" />

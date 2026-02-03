@@ -63,9 +63,9 @@
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}"
                                      IsEnabled="{Binding IsNotRecording}" VerticalContentAlignment="Center"/>
-                            <Button Grid.Column="1" Content="📁" MinWidth="36" Padding="6,4" Margin="5,0,0,0"
+                            <Button Grid.Column="1" Content="📁" MinWidth="36" Margin="5,0,0,0"
                                     Command="{Binding BrowseOutputFolderCommand}" ToolTip="Browse for folder"/>
-                            <Button Grid.Column="2" Content="📂" MinWidth="36" Padding="6,4" Margin="5,0,0,0"
+                            <Button Grid.Column="2" Content="📂" MinWidth="36" Margin="5,0,0,0"
                                     Command="{Binding OpenOutputFolderCommand}" ToolTip="Open folder"/>
                         </Grid>
                         
@@ -127,7 +127,7 @@
                     <!-- Big Record Button -->
                     <Button Command="{Binding StartRecordingCommand}" 
                             Visibility="{Binding IsNotRecording, Converter={StaticResource BooleanToVisibilityConverter}}"
-                            Height="80" Width="180" FontSize="18" FontWeight="Bold">
+                            Height="80" MinWidth="180" FontSize="18" FontWeight="Bold">
                         <StackPanel>
                             <TextBlock Text="⏺" FontSize="32" HorizontalAlignment="Center"/>
                             <TextBlock Text="Start Recording" HorizontalAlignment="Center"/>

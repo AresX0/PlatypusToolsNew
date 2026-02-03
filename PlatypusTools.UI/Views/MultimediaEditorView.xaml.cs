@@ -305,15 +305,15 @@ namespace PlatypusTools.UI.Views
             controlStack.Children.Add(seekGrid);
 
             var buttonPanel = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Center };
-            var playBtn = new Button { Content = "▶ Play", Width = 80, Height = 35, Margin = new Thickness(5) };
-            var pauseBtn = new Button { Content = "⏸ Pause", Width = 80, Height = 35, Margin = new Thickness(5) };
-            var stopBtn = new Button { Content = "⏹ Stop", Width = 80, Height = 35, Margin = new Thickness(5) };
-            var backBtn = new Button { Content = "⏪ -10s", Width = 70, Height = 35, Margin = new Thickness(5) };
-            var fwdBtn = new Button { Content = "⏩ +10s", Width = 70, Height = 35, Margin = new Thickness(5) };
-            var exitBtn = new Button { Content = "✕ Exit", Width = 70, Height = 35, Margin = new Thickness(5), Background = System.Windows.Media.Brushes.IndianRed };
+            var playBtn = new Button { Content = "▶ Play", MinWidth = 80, Height = 35, Margin = new Thickness(5), Padding = new Thickness(8, 4, 8, 4) };
+            var pauseBtn = new Button { Content = "⏸ Pause", MinWidth = 80, Height = 35, Margin = new Thickness(5), Padding = new Thickness(8, 4, 8, 4) };
+            var stopBtn = new Button { Content = "⏹ Stop", MinWidth = 80, Height = 35, Margin = new Thickness(5), Padding = new Thickness(8, 4, 8, 4) };
+            var backBtn = new Button { Content = "⏪ -10s", MinWidth = 70, Height = 35, Margin = new Thickness(5), Padding = new Thickness(8, 4, 8, 4) };
+            var fwdBtn = new Button { Content = "⏩ +10s", MinWidth = 70, Height = 35, Margin = new Thickness(5), Padding = new Thickness(8, 4, 8, 4) };
+            var exitBtn = new Button { Content = "✕ Exit", MinWidth = 70, Height = 35, Margin = new Thickness(5), Padding = new Thickness(8, 4, 8, 4), Background = System.Windows.Media.Brushes.IndianRed };
             var volLabel = new TextBlock { Text = "Vol:", Foreground = System.Windows.Media.Brushes.White, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(15, 0, 5, 0) };
             var volSlider = new Slider { Minimum = 0, Maximum = 1, Value = VideoVolumeSlider.Value, Width = 100, VerticalAlignment = VerticalAlignment.Center };
-            var muteBtn = new Button { Content = "🔇", Width = 40, Height = 35, Margin = new Thickness(5) };
+            var muteBtn = new Button { Content = "🔇", MinWidth = 40, Height = 35, Margin = new Thickness(5), Padding = new Thickness(6, 4, 6, 4) };
 
             buttonPanel.Children.Add(playBtn);
             buttonPanel.Children.Add(pauseBtn);
@@ -330,10 +330,29 @@ namespace PlatypusTools.UI.Views
             mainGrid.Children.Add(controlPanel);
             fullscreenWindow.Content = mainGrid;
 
+            // Seeking - handle user drag on slider
+            bool isUserSeeking = false;
+            seekSlider.PreviewMouseDown += (s, args) => { isUserSeeking = true; };
+            seekSlider.PreviewMouseUp += (s, args) => 
+            { 
+                if (isUserSeeking)
+                {
+                    fullscreenPlayer.Position = TimeSpan.FromSeconds(seekSlider.Value);
+                }
+                isUserSeeking = false; 
+            };
+            seekSlider.ValueChanged += (s, args) =>
+            {
+                if (isUserSeeking)
+                {
+                    fullscreenPlayer.Position = TimeSpan.FromSeconds(seekSlider.Value);
+                }
+            };
+
             var fsTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
             fsTimer.Tick += (s, args) =>
             {
-                if (fullscreenPlayer.NaturalDuration.HasTimeSpan)
+                if (fullscreenPlayer.NaturalDuration.HasTimeSpan && !isUserSeeking)
                 {
                     var dur = fullscreenPlayer.NaturalDuration.TimeSpan;
                     var pos = fullscreenPlayer.Position;

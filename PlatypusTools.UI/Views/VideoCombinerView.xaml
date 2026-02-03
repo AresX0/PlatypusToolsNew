@@ -18,7 +18,7 @@
         <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
             <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Output file:</TextBlock>
             <TextBox Width="400" Text="{Binding OutputPath, UpdateSourceTrigger=PropertyChanged}" />
-            <Button Content="Browse..." Command="{Binding BrowseOutputCommand}" Width="90" Margin="8,0,0,0" />
+            <Button Content="Browse..." Command="{Binding BrowseOutputCommand}" MinWidth="180" Margin="8,0,0,0" />
         </StackPanel>
         
         <!-- Transition Settings -->
@@ -45,14 +45,14 @@
         </GroupBox>
         
         <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,0,8">
-            <Button Content="📁 Add Files..." Command="{Binding AddFilesCommand}" Width="120" Padding="6,2"/>
-            <Button Content="🗑️ Remove Selected" Command="{Binding RemoveSelectedCommand}" Width="140" Margin="8,0,0,0" Padding="6,2"
+            <Button Content="📁 Add Files..." Command="{Binding AddFilesCommand}" MinWidth="180"/>
+            <Button Content="🗑️ Remove Selected" Command="{Binding RemoveSelectedCommand}" MinWidth="180" Margin="8,0,0,0"
                     Background="#FFF44336" Foreground="White"/>
-            <Button Content="⬆ Move Up" Command="{Binding MoveUpCommand}" Width="90" Margin="8,0,0,0" Padding="6,2"/>
-            <Button Content="⬇ Move Down" Command="{Binding MoveDownCommand}" Width="100" Margin="8,0,0,0" Padding="6,2"/>
-            <Button Content="🎬 Combine" Command="{Binding CombineCommand}" Width="120" Margin="8,0,0,0" Padding="6,2"
+            <Button Content="⬆ Move Up" Command="{Binding MoveUpCommand}" MinWidth="180" Margin="8,0,0,0"/>
+            <Button Content="⬇ Move Down" Command="{Binding MoveDownCommand}" MinWidth="180" Margin="8,0,0,0"/>
+            <Button Content="🎬 Combine" Command="{Binding CombineCommand}" MinWidth="180" Margin="8,0,0,0"
                     Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
-            <Button Content="❌ Cancel" Command="{Binding CancelCommand}" Width="90" Margin="8,0,0,0" Padding="6,2"
+            <Button Content="❌ Cancel" Command="{Binding CancelCommand}" MinWidth="180" Margin="8,0,0,0"
                     Background="#FF9E9E9E" Foreground="White"/>
             <TextBlock VerticalAlignment="Center" Margin="8,0,0,0">FFmpeg: <TextBlock Text="{Binding FfmpegFoundText}" FontWeight="Bold" /></TextBlock>
             <TextBlock VerticalAlignment="Center" Margin="8,0,0,0">Progress: <TextBlock Text="{Binding LastProgress}" FontWeight="Bold" /></TextBlock>

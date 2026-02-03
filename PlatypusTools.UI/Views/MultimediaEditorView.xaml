@@ -26,7 +26,7 @@
 
                 <TextBlock Grid.Column="0" Text="File:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                 <TextBox Grid.Column="1" Text="{Binding FilePath}" IsReadOnly="True" Margin="0,0,10,0"/>
-                <Button Grid.Column="2" Content="Browse..." Command="{Binding BrowseFileCommand}" Width="80" Padding="5"/>
+                <Button Grid.Column="2" Content="Browse..." Command="{Binding BrowseFileCommand}" MinWidth="180" Padding="5"/>
             </Grid>
         </GroupBox>
 
@@ -64,17 +64,17 @@
                                 <TextBlock x:Name="VideoDurationText" Grid.Column="2" Text="00:00:00" VerticalAlignment="Center" FontFamily="Consolas"/>
                             </Grid>
                             <WrapPanel HorizontalAlignment="Center" Margin="0,5">
-                                <Button x:Name="VideoPlayButton" Content="▶ Play" Click="VideoPlay_Click" Width="80" Height="35" Margin="5" FontWeight="Bold"/>
-                                <Button x:Name="VideoPauseButton" Content="⏸ Pause" Click="VideoPause_Click" Width="80" Height="35" Margin="5"/>
-                                <Button x:Name="VideoStopButton" Content="⏹ Stop" Click="VideoStop_Click" Width="80" Height="35" Margin="5"/>
-                                <Button Content="⏪ -10s" Click="VideoBack_Click" Width="70" Height="35" Margin="5"/>
-                                <Button Content="⏩ +10s" Click="VideoForward_Click" Width="70" Height="35" Margin="5"/>
-                                <Button Content="⛶ Fullscreen" Click="VideoFullscreen_Click" Width="100" Height="35" Margin="5" ToolTip="Press Escape to exit fullscreen"/>
+                                <Button x:Name="VideoPlayButton" Content="▶ Play" Click="VideoPlay_Click" MinWidth="180" Height="35" Margin="5" FontWeight="Bold"/>
+                                <Button x:Name="VideoPauseButton" Content="⏸ Pause" Click="VideoPause_Click" MinWidth="180" Height="35" Margin="5"/>
+                                <Button x:Name="VideoStopButton" Content="⏹ Stop" Click="VideoStop_Click" MinWidth="180" Height="35" Margin="5"/>
+                                <Button Content="⏪ -10s" Click="VideoBack_Click" MinWidth="180" Height="35" Margin="5"/>
+                                <Button Content="⏩ +10s" Click="VideoForward_Click" MinWidth="180" Height="35" Margin="5"/>
+                                <Button Content="⛶ Fullscreen" Click="VideoFullscreen_Click" MinWidth="180" Height="35" Margin="5" ToolTip="Press Escape to exit fullscreen"/>
                             </WrapPanel>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5">
                                 <TextBlock Text="Volume:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <Slider x:Name="VideoVolumeSlider" Minimum="0" Maximum="1" Value="0.7" Width="150" ValueChanged="VideoVolume_ValueChanged"/>
-                                <Button Content="🔇 Mute" Click="VideoMute_Click" Width="70" Height="30" Margin="10,0,0,0"/>
+                                <Button Content="🔇 Mute" Click="VideoMute_Click" MinWidth="180" Height="30" Margin="10,0,0,0"/>
                             </StackPanel>
                             <TextBlock HorizontalAlignment="Center" Margin="0,10,0,0" FontStyle="Italic" Foreground="#666">
                                 Native WPF video player - No external software required
@@ -126,9 +126,9 @@
                     <!-- Actions -->
                     <GroupBox Header="Actions" Grid.Row="1" Margin="0,0,0,10">
                         <WrapPanel Margin="10">
-                            <Button x:Name="AudioTrimButton" Content="✂️ Trim Audio" Click="AudioTrim_Click" Width="150" Height="40" Margin="0,0,10,5" FontWeight="Bold" Background="#FF4CAF50" Foreground="White"/>
-                            <Button x:Name="AudioPreviewButton" Content="▶ Preview" Click="AudioPreview_Click" Width="120" Height="40" Margin="0,0,10,5"/>
-                            <Button Content="📂 Open Output Folder" Click="OpenOutputFolder_Click" Width="160" Height="40" Margin="0,0,10,5"/>
+                            <Button x:Name="AudioTrimButton" Content="✂️ Trim Audio" Click="AudioTrim_Click" MinWidth="190" Height="40" Margin="0,0,10,5" FontWeight="Bold" Background="#FF4CAF50" Foreground="White"/>
+                            <Button x:Name="AudioPreviewButton" Content="▶ Preview" Click="AudioPreview_Click" MinWidth="180" Height="40" Margin="0,0,10,5"/>
+                            <Button Content="📂 Open Output Folder" Click="OpenOutputFolder_Click" MinWidth="180" Height="40" Margin="0,0,10,5"/>
                         </WrapPanel>
                     </GroupBox>
                     
@@ -166,12 +166,12 @@
                     <!-- Quick Actions -->
                     <GroupBox Header="Quick Image Operations" Grid.Row="0" Margin="0,0,0,10">
                         <WrapPanel Margin="10">
-                            <Button x:Name="ImageRotateLeftButton" Content="↶ Rotate Left" Click="ImageRotateLeft_Click" Width="120" Height="35" Margin="0,0,5,5"/>
-                            <Button x:Name="ImageRotateRightButton" Content="↷ Rotate Right" Click="ImageRotateRight_Click" Width="120" Height="35" Margin="0,0,5,5"/>
-                            <Button x:Name="ImageFlipHButton" Content="↔ Flip Horizontal" Click="ImageFlipH_Click" Width="130" Height="35" Margin="0,0,5,5"/>
-                            <Button x:Name="ImageFlipVButton" Content="↕ Flip Vertical" Click="ImageFlipV_Click" Width="120" Height="35" Margin="0,0,5,5"/>
-                            <Button x:Name="ImageGrayscaleButton" Content="🎨 Grayscale" Click="ImageGrayscale_Click" Width="120" Height="35" Margin="0,0,5,5"/>
-                            <Button x:Name="ImageInvertButton" Content="🔄 Invert Colors" Click="ImageInvert_Click" Width="120" Height="35" Margin="0,0,5,5"/>
+                            <Button x:Name="ImageRotateLeftButton" Content="↶ Rotate Left" Click="ImageRotateLeft_Click" MinWidth="180" Height="35" Margin="0,0,5,5"/>
+                            <Button x:Name="ImageRotateRightButton" Content="↷ Rotate Right" Click="ImageRotateRight_Click" MinWidth="180" Height="35" Margin="0,0,5,5"/>
+                            <Button x:Name="ImageFlipHButton" Content="↔ Flip Horizontal" Click="ImageFlipH_Click" MinWidth="190" Height="35" Margin="0,0,5,5"/>
+                            <Button x:Name="ImageFlipVButton" Content="↕ Flip Vertical" Click="ImageFlipV_Click" MinWidth="180" Height="35" Margin="0,0,5,5"/>
+                            <Button x:Name="ImageGrayscaleButton" Content="🎨 Grayscale" Click="ImageGrayscale_Click" MinWidth="180" Height="35" Margin="0,0,5,5"/>
+                            <Button x:Name="ImageInvertButton" Content="🔄 Invert Colors" Click="ImageInvert_Click" MinWidth="180" Height="35" Margin="0,0,5,5"/>
                         </WrapPanel>
                     </GroupBox>
                     
@@ -203,8 +203,8 @@
                                 <ComboBoxItem Content="GIF"/>
                                 <ComboBoxItem Content="WEBP"/>
                             </ComboBox>
-                            <Button x:Name="ImageSaveButton" Grid.Column="2" Content="💾 Save As..." Click="ImageSave_Click" Width="120" Height="35" Margin="10,0,5,0" FontWeight="Bold" Background="#FF4CAF50" Foreground="White"/>
-                            <Button x:Name="ImageResetButton" Grid.Column="3" Content="↩ Reset" Click="ImageReset_Click" Width="80" Height="35"/>
+                            <Button x:Name="ImageSaveButton" Grid.Column="2" Content="💾 Save As..." Click="ImageSave_Click" MinWidth="180" Height="35" Margin="10,0,5,0" FontWeight="Bold" Background="#FF4CAF50" Foreground="White"/>
+                            <Button x:Name="ImageResetButton" Grid.Column="3" Content="↩ Reset" Click="ImageReset_Click" MinWidth="180" Height="35"/>
                         </Grid>
                     </GroupBox>
                 </Grid>
@@ -242,7 +242,7 @@
                             </Grid>
                             
                             <Button Content="📥 Download VLC Player" Command="{Binding DownloadVlcCommand}" 
-                                    Width="200" HorizontalAlignment="Left" Padding="5"
+                                    MinWidth="200" HorizontalAlignment="Left" Padding="5"
                                     Visibility="{Binding IsVlcAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
                         </StackPanel>
                     </GroupBox>
@@ -250,15 +250,15 @@
                     <!-- VLC Features -->
                     <GroupBox Header="Features" Grid.Row="1" Margin="0,0,0,10">
                         <WrapPanel Margin="5">
-                            <Button Content="Open in VLC" Command="{Binding OpenInVlcCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
+                            <Button Content="Open in VLC" Command="{Binding OpenInVlcCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
                                     ToolTip="Open selected file in VLC Media Player for playback and basic editing"/>
-                            <Button Content="Embed VLC Here" Command="{Binding EmbedVlcCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
+                            <Button Content="Embed VLC Here" Command="{Binding EmbedVlcCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
                                     ToolTip="Embed VLC player directly in this tab"/>
-                            <Button Content="Convert Format" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                            <Button Content="Convert Format" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
                                     ToolTip="Use VLC to convert video/audio format" IsEnabled="False"/>
-                            <Button Content="Extract Audio" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                            <Button Content="Extract Audio" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
                                     ToolTip="Extract audio track from video file" IsEnabled="False"/>
-                            <Button Content="Take Snapshot" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                            <Button Content="Take Snapshot" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
                                     ToolTip="Capture frame from video" IsEnabled="False"/>
                         </WrapPanel>
                     </GroupBox>
@@ -341,7 +341,7 @@
                             </Grid>
                             
                             <Button Content="📥 Download Audacity" Command="{Binding DownloadAudacityCommand}" 
-                                    Width="200" HorizontalAlignment="Left" Padding="5"
+                                    MinWidth="200" HorizontalAlignment="Left" Padding="5"
                                     Visibility="{Binding IsAudacityAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
                         </StackPanel>
                     </GroupBox>
@@ -349,15 +349,15 @@
                     <!-- Audacity Features -->
                     <GroupBox Header="Features" Grid.Row="1" Margin="0,0,0,10">
                         <WrapPanel Margin="5">
-                            <Button Content="Open in Audacity" Command="{Binding OpenInAudacityCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
+                            <Button Content="Open in Audacity" Command="{Binding OpenInAudacityCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
                                     ToolTip="Open selected audio file in Audacity for editing"/>
-                            <Button Content="Embed Audacity Here" Command="{Binding EmbedAudacityCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
+                            <Button Content="Embed Audacity Here" Command="{Binding EmbedAudacityCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
                                     ToolTip="Embed Audacity directly in this tab"/>
-                            <Button Content="Record Audio" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                            <Button Content="Record Audio" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
                                     ToolTip="Start audio recording in Audacity" IsEnabled="False"/>
-                            <Button Content="Apply Effects" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                            <Button Content="Apply Effects" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
                                     ToolTip="Apply audio effects and filters" IsEnabled="False"/>
-                            <Button Content="Noise Reduction" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                            <Button Content="Noise Reduction" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
                                     ToolTip="Remove background noise" IsEnabled="False"/>
                         </WrapPanel>
                     </GroupBox>
@@ -446,7 +446,7 @@
                             </Grid>
                             
                             <Button Content="📥 Download GIMP" Command="{Binding DownloadGimpCommand}" 
-                                    Width="200" HorizontalAlignment="Left" Padding="5"
+                                    MinWidth="200" HorizontalAlignment="Left" Padding="5"
                                     Visibility="{Binding IsGimpAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
                         </StackPanel>
                     </GroupBox>
@@ -454,15 +454,15 @@
                     <!-- GIMP Features -->
                     <GroupBox Header="Features" Grid.Row="1" Margin="0,0,0,10">
                         <WrapPanel Margin="5">
-                            <Button Content="Open in GIMP" Command="{Binding OpenInGimpCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
+                            <Button Content="Open in GIMP" Command="{Binding OpenInGimpCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
                                     ToolTip="Open selected image in GIMP for editing"/>
-                            <Button Content="Embed GIMP Here" Command="{Binding EmbedGimpCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
+                            <Button Content="Embed GIMP Here" Command="{Binding EmbedGimpCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
                                     ToolTip="Embed GIMP directly in this tab"/>
-                            <Button Content="Resize Image" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                            <Button Content="Resize Image" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
                                     ToolTip="Resize or scale image" IsEnabled="False"/>
-                            <Button Content="Color Adjustment" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                            <Button Content="Color Adjustment" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
                                     ToolTip="Adjust brightness, contrast, saturation" IsEnabled="False"/>
-                            <Button Content="Apply Filters" Width="150" Height="40" Margin="0,0,10,5" Padding="5"
+                            <Button Content="Apply Filters" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
                                     ToolTip="Apply artistic filters and effects" IsEnabled="False"/>
                         </WrapPanel>
                     </GroupBox>
@@ -559,7 +559,7 @@
                             </Grid>
                             
                             <Button Content="📥 Download Shotcut" Command="{Binding DownloadShotcutCommand}" 
-                                    Width="200" HorizontalAlignment="Left" Padding="5"
+                                    MinWidth="200" HorizontalAlignment="Left" Padding="5"
                                     Visibility="{Binding IsShotcutAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
                         </StackPanel>
                     </GroupBox>
@@ -567,11 +567,11 @@
                     <!-- Shotcut Features -->
                     <GroupBox Header="Features" Grid.Row="1" Margin="0,0,0,10">
                         <WrapPanel Margin="5">
-                            <Button Content="Open in Shotcut" Command="{Binding OpenInShotcutCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
+                            <Button Content="Open in Shotcut" Command="{Binding OpenInShotcutCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
                                     ToolTip="Open selected video file in Shotcut for editing"/>
-                            <Button Content="Launch Shotcut" Command="{Binding OpenInShotcutCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF4CAF50" Foreground="White"
+                            <Button Content="Launch Shotcut" Command="{Binding OpenInShotcutCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF4CAF50" Foreground="White"
                                     ToolTip="Launch Shotcut video editor"/>
-                            <Button Content="Embed Shotcut Here" Command="{Binding EmbedShotcutCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
+                            <Button Content="Embed Shotcut Here" Command="{Binding EmbedShotcutCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
                                     ToolTip="Embed Shotcut directly in this tab (experimental)"/>
                         </WrapPanel>
                     </GroupBox>
@@ -665,7 +665,7 @@
                             </Grid>
                             
                             <Button Content="📥 Download FreeCAD" Command="{Binding DownloadFreecadCommand}" 
-                                    Width="200" HorizontalAlignment="Left" Padding="5"
+                                    MinWidth="200" HorizontalAlignment="Left" Padding="5"
                                     Visibility="{Binding IsFreecadAvailable, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
                         </StackPanel>
                     </GroupBox>
@@ -673,11 +673,11 @@
                     <!-- FreeCAD Features -->
                     <GroupBox Header="Features" Grid.Row="1" Margin="0,0,0,10">
                         <WrapPanel Margin="5">
-                            <Button Content="Open in FreeCAD" Command="{Binding OpenInFreecadCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
+                            <Button Content="Open in FreeCAD" Command="{Binding OpenInFreecadCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold"
                                     ToolTip="Open selected 3D model file in FreeCAD"/>
-                            <Button Content="Launch FreeCAD" Command="{Binding OpenInFreecadCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF4CAF50" Foreground="White"
+                            <Button Content="Launch FreeCAD" Command="{Binding OpenInFreecadCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF4CAF50" Foreground="White"
                                     ToolTip="Launch FreeCAD 3D modeler"/>
-                            <Button Content="Embed FreeCAD Here" Command="{Binding EmbedFreecadCommand}" Width="150" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
+                            <Button Content="Embed FreeCAD Here" Command="{Binding EmbedFreecadCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
                                     ToolTip="Embed FreeCAD directly in this tab (experimental)"/>
                         </WrapPanel>
                     </GroupBox>
@@ -749,7 +749,7 @@
                         <GroupBox Header="Auto-Detection" Margin="0,0,0,15">
                             <StackPanel Margin="10">
                                 <Button Content="🔍 Auto-Detect All Applications" Command="{Binding AutoDetectApplicationsCommand}" 
-                                        Width="280" Height="45" Padding="5" FontWeight="Bold" FontSize="14" Margin="0,0,0,15"/>
+                                        MinWidth="280" Height="45" Padding="5" FontWeight="Bold" FontSize="14" Margin="0,0,0,15"/>
                                 
                                 <TextBlock Text="Detected Applications:" FontWeight="Bold" FontSize="14" Margin="0,5,0,10"/>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
