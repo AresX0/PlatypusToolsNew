@@ -30,7 +30,14 @@ namespace PlatypusTools.UI.ViewModels
                     System.Windows.MessageBoxImage.Error);
             }
         }
-        public event EventHandler? CanExecuteChanged;
-        public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+        
+        // Hook into CommandManager.RequerySuggested so that InvalidateRequerySuggested() works
+        public event EventHandler? CanExecuteChanged
+        {
+            add => CommandManager.RequerySuggested += value;
+            remove => CommandManager.RequerySuggested -= value;
+        }
+        
+        public void RaiseCanExecuteChanged() => CommandManager.InvalidateRequerySuggested();
     }
 }
