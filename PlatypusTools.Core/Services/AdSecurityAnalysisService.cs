@@ -2864,57 +2864,6 @@ namespace PlatypusTools.Core.Services
             }
         }
 
-        /// <summary>
-        /// Creates the SYSVOL folder structure and policy content files for a GPO.
-        /// Legacy version without SID resolution.
-        /// </summary>
-        private bool CreateGpoSysvolContent(string sysvolPath, GpoSettingsType settingsType, string gpoName)
-        {
-            try
-            {
-                // Create directory structure
-                var machinePath = Path.Combine(sysvolPath, "Machine");
-                var userPath = Path.Combine(sysvolPath, "User");
-                var secEditPath = Path.Combine(machinePath, "microsoft", "windows nt", "SecEdit");
-                var auditPath = Path.Combine(machinePath, "microsoft", "windows nt", "Audit");
-
-                Directory.CreateDirectory(machinePath);
-                Directory.CreateDirectory(userPath);
-                Directory.CreateDirectory(secEditPath);
-
-                // Create GPT.ini
-                var gptIniContent = "[General]\r\nVersion=1\r\n";
-                File.WriteAllText(Path.Combine(sysvolPath, "GPT.ini"), gptIniContent);
-
-                // Create policy content based on settings type
-                switch (settingsType)
-                {
-                    case GpoSettingsType.AuditPolicy:
-                        CreateAuditPolicyContent(secEditPath, auditPath);
-                        break;
-                    case GpoSettingsType.SecuritySettings:
-                        CreateSecuritySettingsContent(secEditPath, gpoName);
-                        break;
-                    case GpoSettingsType.RestrictedGroups:
-                        CreateRestrictedGroupsContent(secEditPath, gpoName);
-                        break;
-                    case GpoSettingsType.UserRights:
-                        CreateUserRightsContent(secEditPath, gpoName);
-                        break;
-                    case GpoSettingsType.Registry:
-                        CreateRegistryContent(machinePath, gpoName);
-                        break;
-                }
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _progress?.Report($"Failed to create SYSVOL content: {ex.Message}");
-                return false;
-            }
-        }
-
         private void CreateAuditPolicyContent(string secEditPath, string auditPath)
         {
             Directory.CreateDirectory(auditPath);
@@ -2999,71 +2948,6 @@ namespace PlatypusTools.Core.Services
                 // General security hardening
                 gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\LmCompatibilityLevel=4,5");
                 gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\NoLMHash=4,1");
-            }
-
-            File.WriteAllText(Path.Combine(secEditPath, "GptTmpl.inf"), gptTmpl.ToString(), Encoding.Unicode);
-        }
-
-        private void CreateRestrictedGroupsContent(string secEditPath, string gpoName)
-        {
-            var gptTmpl = new StringBuilder();
-            gptTmpl.AppendLine("[Unicode]");
-            gptTmpl.AppendLine("Unicode=yes");
-            gptTmpl.AppendLine("[Version]");
-            gptTmpl.AppendLine("signature=\"$CHICAGO$\"");
-            gptTmpl.AppendLine("Revision=1");
-            gptTmpl.AppendLine();
-            
-            // Restricted Groups section - example for ESX Admins
-            if (gpoName.Contains("ESX", StringComparison.OrdinalIgnoreCase))
-            {
-                gptTmpl.AppendLine("[Group Membership]");
-                gptTmpl.AppendLine("*S-1-5-32-544__Members =");  // Empty Administrators
-                gptTmpl.AppendLine("*S-1-5-32-544__Memberof =");
-            }
-            else
-            {
-                gptTmpl.AppendLine("[Group Membership]");
-                // Template for restricting local administrators - needs customization
-                gptTmpl.AppendLine("; Configure restricted groups as needed");
-            }
-
-            File.WriteAllText(Path.Combine(secEditPath, "GptTmpl.inf"), gptTmpl.ToString(), Encoding.Unicode);
-        }
-
-        private void CreateUserRightsContent(string secEditPath, string gpoName)
-        {
-            var gptTmpl = new StringBuilder();
-            gptTmpl.AppendLine("[Unicode]");
-            gptTmpl.AppendLine("Unicode=yes");
-            gptTmpl.AppendLine("[Version]");
-            gptTmpl.AppendLine("signature=\"$CHICAGO$\"");
-            gptTmpl.AppendLine("Revision=1");
-            gptTmpl.AppendLine();
-            gptTmpl.AppendLine("[Privilege Rights]");
-            
-            // Different user rights based on tier
-            if (gpoName.Contains("Tier 0", StringComparison.OrdinalIgnoreCase))
-            {
-                // Tier 0 restrictions - very locked down
-                gptTmpl.AppendLine("; Deny network access from non-Tier 0 accounts");
-                gptTmpl.AppendLine("SeDenyNetworkLogonRight = *S-1-5-32-546");  // Guests
-                gptTmpl.AppendLine("SeDenyRemoteInteractiveLogonRight = *S-1-5-32-546");
-            }
-            else if (gpoName.Contains("Tier 1", StringComparison.OrdinalIgnoreCase))
-            {
-                gptTmpl.AppendLine("; Deny Tier 0 and Tier 2 from Tier 1 systems");
-                gptTmpl.AppendLine("SeDenyNetworkLogonRight = *S-1-5-32-546");
-            }
-            else if (gpoName.Contains("Tier 2", StringComparison.OrdinalIgnoreCase))
-            {
-                gptTmpl.AppendLine("; Deny Tier 0 and Tier 1 from Tier 2 systems");
-                gptTmpl.AppendLine("SeDenyNetworkLogonRight = *S-1-5-32-546");
-            }
-            else
-            {
-                // General template
-                gptTmpl.AppendLine("; Configure user rights assignments as needed");
             }
 
             File.WriteAllText(Path.Combine(secEditPath, "GptTmpl.inf"), gptTmpl.ToString(), Encoding.Unicode);

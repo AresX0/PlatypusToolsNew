@@ -49,7 +49,7 @@
                      Key="Software\PlatypusTools" 
                      Name="Version" 
                      Type="string" 
-                     Value="3.3.2.4" />
+                     Value="3.3.2.5" />
     </Component>
   </Fragment>
 
