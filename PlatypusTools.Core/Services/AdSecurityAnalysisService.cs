@@ -155,6 +155,19 @@ namespace PlatypusTools.Core.Services
                     info.ForestFqdn = forest.Name;
                     info.ForestDn = DomainToDn(forest.Name);
 
+                    // Get domain/forest functional levels
+                    try
+                    {
+                        info.DomainFunctionalLevel = domain.DomainMode.ToString();
+                        info.ForestFunctionalLevel = forest.ForestMode.ToString();
+                    }
+                    catch (Exception ex)
+                    {
+                        _progress?.Report($"Warning: Could not retrieve functional levels: {ex.Message}");
+                        info.DomainFunctionalLevel = "Unknown";
+                        info.ForestFunctionalLevel = "Unknown";
+                    }
+
                     // Get FSMO roles
                     try
                     {
@@ -3300,6 +3313,1056 @@ namespace PlatypusTools.Core.Services
             }
 
             return result;
+        }
+
+        #endregion
+
+        #region PLATYPUS Extended Features
+
+        /// <summary>
+        /// Creates a Fine-Grained Password Policy for Tier 0 accounts.
+        /// Equivalent to New-BillFineGrainedPasswordPolicy from PLATYPUS.
+        /// Requires Windows Server 2008 R2 domain functional level or higher.
+        /// </summary>
+        public async Task<FineGrainedPasswordPolicyResult> CreateFineGrainedPasswordPolicyAsync(
+            int maxPasswordAge = 90,
+            int minPasswordLength = 25,
+            int passwordHistoryCount = 12,
+            bool complexityEnabled = true,
+            CancellationToken ct = default)
+        {
+            var result = new FineGrainedPasswordPolicyResult
+            {
+                PolicyName = "Tier 0 Password Policy"
+            };
+
+            if (_domainInfo == null)
+            {
+                result.Success = false;
+                result.Message = "Domain not discovered. Call DiscoverDomainAsync first.";
+                return result;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report("Creating Fine-Grained Password Policy for Tier 0...");
+
+                    // Check domain functional level (must be 2008 R2 or higher)
+                    var domainFunctionalLevel = _domainInfo.DomainFunctionalLevel ?? "";
+                    if (domainFunctionalLevel.Contains("2003") || domainFunctionalLevel.Contains("2000"))
+                    {
+                        result.Success = false;
+                        result.Message = $"Domain functional level {domainFunctionalLevel} does not support Fine-Grained Password Policies. Requires 2008 R2 or higher.";
+                        _progress?.Report($"[WARN] {result.Message}");
+                        return;
+                    }
+
+                    // Construct the Password Settings Container DN
+                    var pscDn = $"CN=Password Settings Container,CN=System,{_domainInfo.DomainDn}";
+                    var policyDn = $"CN=Tier 0 Password Policy,{pscDn}";
+
+                    using var pscEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{pscDn}");
+
+                    // Check if FGPP already exists
+                    using var searcher = new DirectorySearcher(pscEntry)
+                    {
+                        Filter = $"(&(objectClass=msDS-PasswordSettings)(cn=Tier 0 Password Policy))",
+                        SearchScope = SearchScope.OneLevel
+                    };
+
+                    var existing = searcher.FindOne();
+                    if (existing != null)
+                    {
+                        result.Success = true;
+                        result.Message = "Fine-Grained Password Policy 'Tier 0 Password Policy' already exists.";
+                        _progress?.Report(result.Message);
+                        return;
+                    }
+
+                    // Create new FGPP
+                    using var newPolicy = pscEntry.Children.Add("CN=Tier 0 Password Policy", "msDS-PasswordSettings");
+
+                    // Set policy attributes
+                    // msDS-PasswordSettingsPrecedence = 1 (highest priority)
+                    newPolicy.Properties["msDS-PasswordSettingsPrecedence"].Value = 1;
+
+                    // Password complexity
+                    newPolicy.Properties["msDS-PasswordComplexityEnabled"].Value = complexityEnabled;
+
+                    // Minimum password length
+                    newPolicy.Properties["msDS-MinimumPasswordLength"].Value = minPasswordLength;
+
+                    // Password history count
+                    newPolicy.Properties["msDS-PasswordHistoryLength"].Value = passwordHistoryCount;
+
+                    // Max password age (in -100ns intervals, negative value)
+                    // Formula: days * 24 * 60 * 60 * 10000000 * -1
+                    var maxPwdAgeInterval = (long)maxPasswordAge * 24L * 60L * 60L * 10000000L * -1L;
+                    newPolicy.Properties["msDS-MaximumPasswordAge"].Value = maxPwdAgeInterval;
+
+                    // Min password age (1 day)
+                    var minPwdAgeInterval = 1L * 24L * 60L * 60L * 10000000L * -1L;
+                    newPolicy.Properties["msDS-MinimumPasswordAge"].Value = minPwdAgeInterval;
+
+                    // Lockout settings
+                    // Lockout duration: 30 minutes (in -100ns intervals)
+                    var lockoutDuration = 30L * 60L * 10000000L * -1L;
+                    newPolicy.Properties["msDS-LockoutDuration"].Value = lockoutDuration;
+                    newPolicy.Properties["msDS-LockoutObservationWindow"].Value = lockoutDuration;
+                    newPolicy.Properties["msDS-LockoutThreshold"].Value = 0; // No lockout
+
+                    // Reversible encryption disabled
+                    newPolicy.Properties["msDS-PasswordReversibleEncryptionEnabled"].Value = false;
+
+                    newPolicy.CommitChanges();
+
+                    _progress?.Report("Created Fine-Grained Password Policy: Tier 0 Password Policy");
+
+                    // Apply to Domain Admins and Tier 0 Operators
+                    var subjectsApplied = new List<string>();
+
+                    try
+                    {
+                        // Find Domain Admins group
+                        var daGroup = GetGroupBySamAccountName(_domainInfo.ChosenDc, _domainInfo.DomainDn, "Domain Admins");
+                        if (daGroup != null)
+                        {
+                            var daDn = daGroup.Properties["distinguishedName"]?[0]?.ToString();
+                            if (!string.IsNullOrEmpty(daDn))
+                            {
+                                newPolicy.Properties["msDS-PSOAppliesTo"].Add(daDn);
+                                subjectsApplied.Add("Domain Admins");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _progress?.Report($"[WARN] Could not apply FGPP to Domain Admins: {ex.Message}");
+                    }
+
+                    try
+                    {
+                        // Find Tier 0 Operators group
+                        var t0Group = GetGroupBySamAccountName(_domainInfo.ChosenDc, _domainInfo.DomainDn, "Tier 0 - Operators");
+                        if (t0Group != null)
+                        {
+                            var t0Dn = t0Group.Properties["distinguishedName"]?[0]?.ToString();
+                            if (!string.IsNullOrEmpty(t0Dn))
+                            {
+                                newPolicy.Properties["msDS-PSOAppliesTo"].Add(t0Dn);
+                                subjectsApplied.Add("Tier 0 - Operators");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _progress?.Report($"[WARN] Could not apply FGPP to Tier 0 Operators: {ex.Message}");
+                    }
+
+                    if (subjectsApplied.Count > 0)
+                    {
+                        newPolicy.CommitChanges();
+                        _progress?.Report($"Applied FGPP to: {string.Join(", ", subjectsApplied)}");
+                    }
+
+                    result.Success = true;
+                    result.SubjectsApplied = subjectsApplied;
+                    result.Message = $"Created Tier 0 Password Policy (Min Length: {minPasswordLength}, Max Age: {maxPasswordAge} days, History: {passwordHistoryCount})";
+                }
+                catch (Exception ex)
+                {
+                    result.Success = false;
+                    result.Message = ex.Message;
+                    result.Error = ex;
+                    _progress?.Report($"[ERROR] Failed to create Fine-Grained Password Policy: {ex.Message}");
+                }
+            }, ct);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets a group by sAMAccountName.
+        /// </summary>
+        private SearchResult? GetGroupBySamAccountName(string dc, string domainDn, string samAccountName)
+        {
+            using var rootEntry = new DirectoryEntry($"LDAP://{dc}/{domainDn}");
+            using var searcher = new DirectorySearcher(rootEntry)
+            {
+                Filter = $"(&(objectClass=group)(sAMAccountName={EscapeLdapFilter(samAccountName)}))",
+                SearchScope = SearchScope.Subtree
+            };
+            return searcher.FindOne();
+        }
+
+        /// <summary>
+        /// Sets domain join delegation permissions on the Staging OU.
+        /// Equivalent to Set-BillDomainJoinDelegation from PLATYPUS.
+        /// </summary>
+        public async Task<AdObjectCreationResult> SetDomainJoinDelegationAsync(
+            string delegateToGroup = "BILL Domain Join",
+            string idOuName = "SITH",
+            CancellationToken ct = default)
+        {
+            var result = new AdObjectCreationResult
+            {
+                ObjectType = "Delegation",
+                ObjectName = "Domain Join Delegation"
+            };
+
+            if (_domainInfo == null)
+            {
+                result.Success = false;
+                result.Message = "Domain not discovered. Call DiscoverDomainAsync first.";
+                return result;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report($"Setting domain join delegation for group: {delegateToGroup}");
+
+                    var stagingOuDn = $"OU=Staging,OU={idOuName},OU=BILL,{_domainInfo.DomainDn}";
+                    result.DistinguishedName = stagingOuDn;
+
+                    // Find the delegate group
+                    var groupResult = GetGroupBySamAccountName(_domainInfo.ChosenDc, _domainInfo.DomainDn, delegateToGroup);
+                    if (groupResult == null)
+                    {
+                        result.Success = false;
+                        result.Message = $"Group '{delegateToGroup}' not found in domain.";
+                        return;
+                    }
+
+                    var groupSid = new SecurityIdentifier((byte[])groupResult.Properties["objectSid"][0]!, 0);
+
+                    // Open the OU and set ACLs
+                    using var ouEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{stagingOuDn}");
+                    var ouSecurity = ouEntry.ObjectSecurity;
+
+                    // GUIDs for computer object and specific attributes
+                    var computerGuid = new Guid("bf967a86-0de6-11d0-a285-00aa003049e2"); // Computer class
+                    var sAMAccountNameGuid = new Guid("bf96793f-0de6-11d0-a285-00aa003049e2"); // sAMAccountName
+                    var userAccountControlGuid = new Guid("3e0abfd0-126a-11d0-a060-00aa006c33ed"); // userAccountControl  
+                    var accountRestrictions = new Guid("4c164200-20c0-11d0-a768-00aa006e0529"); // Account Restrictions property set
+                    var dnsHostNameGuid = new Guid("5f0a24d9-dffa-4cd9-acbf-a0680c03731e"); // dNSHostName
+                    var servicePrincipalNameGuid = new Guid("fad5dcc1-2130-4c87-a118-75322cd67050"); // servicePrincipalName
+                    var msDS_AdditionalSamAccountName = new Guid("41bc7f04-be72-4930-bd10-1f3439412387"); // msDS-AdditionalSamAccountName
+                    var validatedDnsHostName = new Guid("72e39547-7b18-11d1-adef-00c04fd8d5cd"); // Validated write to DNS host name
+                    var validatedSpn = new Guid("f3a64788-5306-11d1-a9c5-0000f80367c1"); // Validated write to service principal name
+                    var resetPasswordGuid = new Guid("00299570-246d-11d0-a768-00aa006e0529"); // Reset Password extended right
+
+                    // Create/Delete Computer objects
+                    var rule1 = new ActiveDirectoryAccessRule(
+                        groupSid,
+                        ActiveDirectoryRights.CreateChild | ActiveDirectoryRights.DeleteChild,
+                        AccessControlType.Allow,
+                        computerGuid,
+                        ActiveDirectorySecurityInheritance.All);
+                    ouSecurity.AddAccessRule(rule1);
+
+                    // Read/Write all properties on computer objects (descendant computers)
+                    var rule2 = new ActiveDirectoryAccessRule(
+                        groupSid,
+                        ActiveDirectoryRights.ReadProperty | ActiveDirectoryRights.WriteProperty,
+                        AccessControlType.Allow,
+                        ActiveDirectorySecurityInheritance.Descendents,
+                        computerGuid);
+                    ouSecurity.AddAccessRule(rule2);
+
+                    // Reset password on computer objects
+                    var rule3 = new ActiveDirectoryAccessRule(
+                        groupSid,
+                        ActiveDirectoryRights.ExtendedRight,
+                        AccessControlType.Allow,
+                        resetPasswordGuid,
+                        ActiveDirectorySecurityInheritance.Descendents,
+                        computerGuid);
+                    ouSecurity.AddAccessRule(rule3);
+
+                    ouEntry.CommitChanges();
+
+                    result.Success = true;
+                    result.Message = $"Domain join delegation set for '{delegateToGroup}' on {stagingOuDn}";
+                    _progress?.Report(result.Message);
+                }
+                catch (Exception ex)
+                {
+                    result.Success = false;
+                    result.Message = ex.Message;
+                    result.Error = ex;
+                    _progress?.Report($"[ERROR] Failed to set domain join delegation: {ex.Message}");
+                }
+            }, ct);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Creates a WMI Filter for GPO targeting.
+        /// Equivalent to NewWmiFilter from PLATYPUS.
+        /// </summary>
+        public async Task<WmiFilter?> CreateWmiFilterAsync(
+            string filterName,
+            string description,
+            string wmiNamespace,
+            string wmiQuery,
+            CancellationToken ct = default)
+        {
+            if (_domainInfo == null)
+            {
+                _progress?.Report("[ERROR] Domain not discovered. Call DiscoverDomainAsync first.");
+                return null;
+            }
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report($"Creating WMI Filter: {filterName}");
+
+                    var wmiContainerDn = $"CN=SOM,CN=WMIPolicy,CN=System,{_domainInfo.DomainDn}";
+
+                    using var wmiContainer = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{wmiContainerDn}");
+
+                    // Check if filter already exists
+                    using var searcher = new DirectorySearcher(wmiContainer)
+                    {
+                        Filter = $"(&(objectClass=msWMI-Som)(msWMI-Name={EscapeLdapFilter(filterName)}))",
+                        SearchScope = SearchScope.OneLevel
+                    };
+
+                    var existing = searcher.FindOne();
+                    if (existing != null)
+                    {
+                        var existingId = existing.Properties["msWMI-ID"]?[0]?.ToString() ?? "";
+                        _progress?.Report($"WMI Filter '{filterName}' already exists with ID: {existingId}");
+                        return new WmiFilter
+                        {
+                            Id = existingId,
+                            Name = filterName,
+                            Description = description,
+                            Namespace = wmiNamespace,
+                            Query = wmiQuery
+                        };
+                    }
+
+                    // Generate new WMI Filter ID
+                    var filterId = "{" + Guid.NewGuid().ToString().ToUpperInvariant() + "}";
+                    var filterCn = $"CN={filterId}";
+
+                    // Build WMI Query string in proper format
+                    // Format: "1;3;10;query length;WQL;namespace;query;"
+                    var queryBlock = $"1;3;10;{wmiQuery.Length};WQL;{wmiNamespace};{wmiQuery};";
+
+                    // Create WMI Filter object
+                    using var newFilter = wmiContainer.Children.Add(filterCn, "msWMI-Som");
+                    newFilter.Properties["msWMI-Name"].Value = filterName;
+                    newFilter.Properties["msWMI-ID"].Value = filterId;
+                    newFilter.Properties["msWMI-Author"].Value = Environment.UserName;
+                    newFilter.Properties["msWMI-Parm1"].Value = description;
+                    newFilter.Properties["msWMI-Parm2"].Value = queryBlock;
+
+                    // Set creation date
+                    var now = DateTime.UtcNow;
+                    var creationDate = now.ToString("yyyyMMddHHmmss.ffffff") + "-000";
+                    newFilter.Properties["msWMI-CreationDate"].Value = creationDate;
+                    newFilter.Properties["msWMI-ChangeDate"].Value = creationDate;
+
+                    newFilter.CommitChanges();
+
+                    _progress?.Report($"Created WMI Filter: {filterName} with ID: {filterId}");
+
+                    return new WmiFilter
+                    {
+                        Id = filterId,
+                        Name = filterName,
+                        Description = description,
+                        Namespace = wmiNamespace,
+                        Query = wmiQuery,
+                        Created = now,
+                        Author = Environment.UserName
+                    };
+                }
+                catch (Exception ex)
+                {
+                    _progress?.Report($"[ERROR] Failed to create WMI Filter: {ex.Message}");
+                    return null;
+                }
+            }, ct);
+        }
+
+        /// <summary>
+        /// Links a WMI Filter to a GPO.
+        /// Equivalent to SetWmiFilter from PLATYPUS.
+        /// </summary>
+        public async Task<bool> SetWmiFilterOnGpoAsync(
+            string gpoGuid,
+            string wmiFilterId,
+            CancellationToken ct = default)
+        {
+            if (_domainInfo == null)
+            {
+                _progress?.Report("[ERROR] Domain not discovered. Call DiscoverDomainAsync first.");
+                return false;
+            }
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report($"Linking WMI Filter {wmiFilterId} to GPO {gpoGuid}");
+
+                    var gpoContainerDn = $"CN=Policies,CN=System,{_domainInfo.DomainDn}";
+                    var gpoDn = $"CN={gpoGuid},{gpoContainerDn}";
+
+                    using var gpoEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{gpoDn}");
+
+                    // Set the gPCWQLFilter attribute
+                    // Format: "[DOMAIN_FQDN;{WMI_FILTER_GUID};0]"
+                    var wmiFilterLink = $"[{_domainInfo.DomainFqdn};{wmiFilterId};0]";
+                    gpoEntry.Properties["gPCWQLFilter"].Value = wmiFilterLink;
+                    gpoEntry.CommitChanges();
+
+                    _progress?.Report($"Linked WMI Filter to GPO successfully");
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _progress?.Report($"[ERROR] Failed to link WMI Filter: {ex.Message}");
+                    return false;
+                }
+            }, ct);
+        }
+
+        /// <summary>
+        /// Adds an Apply/Deny GPO permission for a group.
+        /// Equivalent to AddGpoApplyAcl from PLATYPUS.
+        /// </summary>
+        public async Task<bool> AddGpoApplyAclAsync(
+            string gpoGuid,
+            string groupName,
+            bool denyApply = false,
+            CancellationToken ct = default)
+        {
+            if (_domainInfo == null)
+            {
+                _progress?.Report("[ERROR] Domain not discovered. Call DiscoverDomainAsync first.");
+                return false;
+            }
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report($"Setting GPO ACL for '{groupName}' on GPO {gpoGuid} ({(denyApply ? "Deny" : "Allow")})");
+
+                    // Find the group
+                    var groupResult = GetGroupBySamAccountName(_domainInfo.ChosenDc, _domainInfo.DomainDn, groupName);
+                    if (groupResult == null)
+                    {
+                        _progress?.Report($"[ERROR] Group '{groupName}' not found");
+                        return false;
+                    }
+
+                    var groupSid = new SecurityIdentifier((byte[])groupResult.Properties["objectSid"][0]!, 0);
+
+                    // Open the GPO
+                    var gpoContainerDn = $"CN=Policies,CN=System,{_domainInfo.DomainDn}";
+                    var gpoDn = $"CN={gpoGuid},{gpoContainerDn}";
+
+                    using var gpoEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{gpoDn}");
+                    var gpoSecurity = gpoEntry.ObjectSecurity;
+
+                    // Apply Group Policy extended right GUID
+                    var applyGpoGuid = new Guid("edacfd8f-ffb3-11d1-b41d-00a0c968f939");
+
+                    var accessControlType = denyApply ? AccessControlType.Deny : AccessControlType.Allow;
+
+                    // Add the ACL rule
+                    var rule = new ActiveDirectoryAccessRule(
+                        groupSid,
+                        ActiveDirectoryRights.ExtendedRight,
+                        accessControlType,
+                        applyGpoGuid,
+                        ActiveDirectorySecurityInheritance.None);
+
+                    if (denyApply)
+                    {
+                        // For Deny, we also need to deny Read
+                        var denyReadRule = new ActiveDirectoryAccessRule(
+                            groupSid,
+                            ActiveDirectoryRights.ReadProperty,
+                            AccessControlType.Deny,
+                            ActiveDirectorySecurityInheritance.None);
+                        gpoSecurity.AddAccessRule(denyReadRule);
+                    }
+
+                    gpoSecurity.AddAccessRule(rule);
+                    gpoEntry.CommitChanges();
+
+                    _progress?.Report($"Set {(denyApply ? "Deny" : "Allow")} Apply GPO permission for '{groupName}'");
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _progress?.Report($"[ERROR] Failed to set GPO ACL: {ex.Message}");
+                    return false;
+                }
+            }, ct);
+        }
+
+        /// <summary>
+        /// Sets GP Inheritance blocking on an OU.
+        /// Equivalent to SetGpInheritance from PLATYPUS.
+        /// </summary>
+        public async Task<bool> SetGpInheritanceBlockingAsync(
+            string ouDistinguishedName,
+            bool blockInheritance = true,
+            CancellationToken ct = default)
+        {
+            if (_domainInfo == null)
+            {
+                _progress?.Report("[ERROR] Domain not discovered. Call DiscoverDomainAsync first.");
+                return false;
+            }
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report($"Setting GP Inheritance on: {ouDistinguishedName} (Block: {blockInheritance})");
+
+                    using var ouEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{ouDistinguishedName}");
+
+                    // gPOptions attribute: 0 = inherit, 1 = block inheritance
+                    ouEntry.Properties["gPOptions"].Value = blockInheritance ? 1 : 0;
+                    ouEntry.CommitChanges();
+
+                    _progress?.Report($"Set GP Inheritance {(blockInheritance ? "blocked" : "enabled")} on: {ouDistinguishedName}");
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _progress?.Report($"[ERROR] Failed to set GP Inheritance: {ex.Message}");
+                    return false;
+                }
+            }, ct);
+        }
+
+        /// <summary>
+        /// Gets the full OU manifest for the tiered admin model.
+        /// Equivalent to Get-BillOuManifest from PLATYPUS.
+        /// </summary>
+        public List<string> GetOuManifest(string idOuName = "SITH")
+        {
+            if (_domainInfo == null)
+            {
+                return new List<string>();
+            }
+
+            var domainDn = _domainInfo.DomainDn;
+            var idOuPath = $"OU={idOuName},OU=BILL,{domainDn}";
+
+            return new List<string>
+            {
+                // Root BILL OU
+                $"OU=BILL,{domainDn}",
+                $"OU=Computer Quarantine,OU=BILL,{domainDn}",
+                
+                // Admin OU (ID OU)
+                idOuPath,
+                $"OU=Staging,{idOuPath}",
+                
+                // Tier 0
+                $"OU=Tier 0,{idOuPath}",
+                $"OU=T0-Accounts,OU=Tier 0,{idOuPath}",
+                $"OU=T0-Groups,OU=Tier 0,{idOuPath}",
+                $"OU=T0-Service Accounts,OU=Tier 0,{idOuPath}",
+                $"OU=T0-Admin Workstations,OU=Tier 0,{idOuPath}",
+                $"OU=T0-Servers,OU=Tier 0,{idOuPath}",
+                $"OU=T0-Operators,OU=T0-Groups,OU=Tier 0,{idOuPath}",
+                $"OU=T0-Database,OU=T0-Servers,OU=Tier 0,{idOuPath}",
+                $"OU=T0-Identity,OU=T0-Servers,OU=Tier 0,{idOuPath}",
+                $"OU=T0-Management,OU=T0-Servers,OU=Tier 0,{idOuPath}",
+                $"OU=T0-PKI,OU=T0-Servers,OU=Tier 0,{idOuPath}",
+                $"OU=T0-Backup,OU=T0-Servers,OU=Tier 0,{idOuPath}",
+                $"OU=T0-Virtualization,OU=T0-Servers,OU=Tier 0,{idOuPath}",
+                
+                // Tier 1
+                $"OU=Tier 1,{idOuPath}",
+                $"OU=T1-Accounts,OU=Tier 1,{idOuPath}",
+                $"OU=T1-Groups,OU=Tier 1,{idOuPath}",
+                $"OU=T1-Admin Workstations,OU=Tier 1,{idOuPath}",
+                $"OU=T1-Operators,OU=T1-Groups,OU=Tier 1,{idOuPath}",
+                
+                // Tier 2
+                $"OU=Tier 2,{idOuPath}",
+                $"OU=T2-Accounts,OU=Tier 2,{idOuPath}",
+                $"OU=T2-Groups,OU=Tier 2,{idOuPath}",
+                $"OU=T2-Service Accounts,OU=Tier 2,{idOuPath}",
+                $"OU=T2-Admin Workstations,OU=Tier 2,{idOuPath}",
+                $"OU=T2-Operators,OU=T2-Groups,OU=Tier 2,{idOuPath}",
+                
+                // Common OUs
+                $"OU=Groups,OU=BILL,{domainDn}",
+                $"OU=Security Groups,OU=Groups,OU=BILL,{domainDn}",
+                $"OU=Distribution Groups,OU=Groups,OU=BILL,{domainDn}",
+                $"OU=Contacts,OU=Groups,OU=BILL,{domainDn}",
+                
+                // Tier 1 Servers
+                $"OU=Tier 1 Servers,OU=BILL,{domainDn}",
+                $"OU=Application,OU=Tier 1 Servers,OU=BILL,{domainDn}",
+                $"OU=Event Forwarding,OU=Tier 1 Servers,OU=BILL,{domainDn}",
+                $"OU=Collaboration,OU=Tier 1 Servers,OU=BILL,{domainDn}",
+                $"OU=Database,OU=Tier 1 Servers,OU=BILL,{domainDn}",
+                $"OU=Messaging,OU=Tier 1 Servers,OU=BILL,{domainDn}",
+                $"OU=Staging,OU=Tier 1 Servers,OU=BILL,{domainDn}",
+                
+                // Tier 2 Devices
+                $"OU=T2-Devices,OU=BILL,{domainDn}",
+                $"OU=Desktops,OU=T2-Devices,OU=BILL,{domainDn}",
+                $"OU=Kiosks,OU=T2-Devices,OU=BILL,{domainDn}",
+                $"OU=Laptops,OU=T2-Devices,OU=BILL,{domainDn}",
+                $"OU=Staging,OU=T2-Devices,OU=BILL,{domainDn}",
+                
+                // User Accounts
+                $"OU=User Accounts,OU=BILL,{domainDn}",
+                $"OU=Enabled Users,OU=User Accounts,OU=BILL,{domainDn}",
+                $"OU=Disabled Users,OU=User Accounts,OU=BILL,{domainDn}"
+            };
+        }
+
+        /// <summary>
+        /// Creates the full OU structure for the tiered admin model.
+        /// Equivalent to New-BillOu from PLATYPUS.
+        /// </summary>
+        public async Task<List<AdObjectCreationResult>> CreateFullOuStructureAsync(
+            string idOuName = "SITH",
+            bool blockInheritanceOnStagingOus = true,
+            CancellationToken ct = default)
+        {
+            var results = new List<AdObjectCreationResult>();
+
+            if (_domainInfo == null)
+            {
+                results.Add(new AdObjectCreationResult
+                {
+                    Success = false,
+                    ObjectType = "Prerequisite",
+                    Message = "Domain not discovered. Call DiscoverDomainAsync first."
+                });
+                return results;
+            }
+
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    _progress?.Report("Creating full tiered admin OU structure...");
+
+                    var ouManifest = GetOuManifest(idOuName);
+                    var dc = _domainInfo.ChosenDc;
+
+                    foreach (var ouDn in ouManifest)
+                    {
+                        ct.ThrowIfCancellationRequested();
+
+                        if (OuExists(dc, ouDn))
+                        {
+                            _progress?.Report($"OU already exists: {ouDn}");
+                            results.Add(new AdObjectCreationResult
+                            {
+                                Success = true,
+                                ObjectType = "OU",
+                                ObjectName = ouDn,
+                                DistinguishedName = ouDn,
+                                Message = "Already exists"
+                            });
+                            continue;
+                        }
+
+                        // Parse parent DN and OU name
+                        var parts = ouDn.Split(',', 2);
+                        var ouName = parts[0].Replace("OU=", "");
+                        var parentDn = parts.Length > 1 ? parts[1] : _domainInfo.DomainDn;
+
+                        var result = CreateOrganizationalUnit(dc, parentDn, ouName, $"Tiered Admin Model - {ouName}", true);
+                        results.Add(result);
+
+                        // Small delay for replication
+                        await Task.Delay(100, ct);
+                    }
+
+                    // Block inheritance on staging OUs
+                    if (blockInheritanceOnStagingOus)
+                    {
+                        _progress?.Report("Setting GP inheritance blocking on staging OUs...");
+
+                        var stagingOus = new[]
+                        {
+                            $"OU=Computer Quarantine,OU=BILL,{_domainInfo.DomainDn}",
+                            $"OU={idOuName},OU=BILL,{_domainInfo.DomainDn}",
+                            $"OU=Staging,OU={idOuName},OU=BILL,{_domainInfo.DomainDn}",
+                            $"OU=Staging,OU=Tier 1 Servers,OU=BILL,{_domainInfo.DomainDn}",
+                            $"OU=Staging,OU=T2-Devices,OU=BILL,{_domainInfo.DomainDn}"
+                        };
+
+                        foreach (var ouDn in stagingOus)
+                        {
+                            ct.ThrowIfCancellationRequested();
+
+                            if (OuExists(dc, ouDn))
+                            {
+                                var blocked = await SetGpInheritanceBlockingAsync(ouDn, true, ct);
+                                results.Add(new AdObjectCreationResult
+                                {
+                                    Success = blocked,
+                                    ObjectType = "GPInheritance",
+                                    ObjectName = ouDn,
+                                    DistinguishedName = ouDn,
+                                    Message = blocked ? "Inheritance blocked" : "Failed to block inheritance"
+                                });
+                            }
+                        }
+                    }
+
+                    _progress?.Report($"Created {results.Count(r => r.Success && r.ObjectType == "OU")} OUs");
+                }
+                catch (Exception ex)
+                {
+                    _progress?.Report($"[ERROR] Failed to create OU structure: {ex.Message}");
+                    results.Add(new AdObjectCreationResult
+                    {
+                        Success = false,
+                        ObjectType = "Error",
+                        Message = ex.Message,
+                        Error = ex
+                    });
+                }
+            }, ct);
+
+            return results;
+        }
+
+        /// <summary>
+        /// Creates advanced audit policy CSV content with 28+ subcategories.
+        /// Equivalent to the audit policy content from Set-BillT0DomainControllersGpo.
+        /// </summary>
+        private string CreateAdvancedAuditPolicyCsv()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("Machine Name,Policy Target,Subcategory,Subcategory GUID,Inclusion Setting,Exclusion Setting,Setting Value");
+            
+            // Credential Validation
+            sb.AppendLine(",System,Audit Credential Validation,{0cce923f-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            // Account Management
+            sb.AppendLine(",System,Audit Computer Account Management,{0cce9236-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            sb.AppendLine(",System,Audit Distribution Group Management,{0cce9238-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            sb.AppendLine(",System,Audit Other Account Management Events,{0cce923a-69ae-11d9-bed3-505054503030},Success,,1");
+            sb.AppendLine(",System,Audit Security Group Management,{0cce9237-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            sb.AppendLine(",System,Audit User Account Management,{0cce9235-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            // Detailed Tracking
+            sb.AppendLine(",System,Audit PNP Activity,{0cce9248-69ae-11d9-bed3-505054503030},Success,,1");
+            sb.AppendLine(",System,Audit Process Creation,{0cce922b-69ae-11d9-bed3-505054503030},Success,,1");
+            // DS Access
+            sb.AppendLine(",System,Audit Directory Service Access,{0cce923b-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            sb.AppendLine(",System,Audit Directory Service Changes,{0cce923c-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            // Logon/Logoff
+            sb.AppendLine(",System,Audit Account Lockout,{0cce9217-69ae-11d9-bed3-505054503030},Failure,,2");
+            sb.AppendLine(",System,Audit Group Membership,{0cce9249-69ae-11d9-bed3-505054503030},Success,,1");
+            sb.AppendLine(",System,Audit Logon,{0cce9215-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            sb.AppendLine(",System,Audit Logoff,{0cce9216-69ae-11d9-bed3-505054503030},Success,,1");
+            sb.AppendLine(",System,Audit Other Logon/Logoff Events,{0cce921c-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            sb.AppendLine(",System,Audit Special Logon,{0cce921b-69ae-11d9-bed3-505054503030},Success,,1");
+            // Object Access
+            sb.AppendLine(",System,Audit Detailed File Share,{0cce9244-69ae-11d9-bed3-505054503030},Failure,,2");
+            sb.AppendLine(",System,Audit File Share,{0cce9224-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            sb.AppendLine(",System,Audit Other Object Access Events,{0cce9227-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            sb.AppendLine(",System,Audit Removable Storage,{0cce9245-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            // Policy Change
+            sb.AppendLine(",System,Audit Audit Policy Change,{0cce922f-69ae-11d9-bed3-505054503030},Success,,1");
+            sb.AppendLine(",System,Audit Authentication Policy Change,{0cce9230-69ae-11d9-bed3-505054503030},Success,,1");
+            sb.AppendLine(",System,Audit MPSSVC Rule-Level Policy Change,{0cce9232-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            sb.AppendLine(",System,Audit Other Policy Change Events,{0cce9234-69ae-11d9-bed3-505054503030},Failure,,2");
+            // Privilege Use
+            sb.AppendLine(",System,Audit Sensitive Privilege Use,{0cce9228-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            // System
+            sb.AppendLine(",System,Audit Other System Events,{0cce9214-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            sb.AppendLine(",System,Audit Security State Change,{0cce9210-69ae-11d9-bed3-505054503030},Success,,1");
+            sb.AppendLine(",System,Audit Security System Extension,{0cce9211-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            sb.AppendLine(",System,Audit System Integrity,{0cce9212-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            // Kerberos
+            sb.AppendLine(",System,Audit Kerberos Authentication Service,{0cce9242-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            sb.AppendLine(",System,Audit Kerberos Service Ticket Operations,{0cce9240-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Creates GPP Groups.xml content for Local Admin Splice GPO.
+        /// Adds a group to local administrators using GPP instead of Restricted Groups.
+        /// Equivalent to Set-BillT1LocalAdminSpliceGpo from PLATYPUS.
+        /// </summary>
+        private string CreateLocalAdminSpliceGroupsXml(string groupName, string groupSid, string domainNetbiosName)
+        {
+            var uid = "{" + Guid.NewGuid().ToString().ToUpperInvariant() + "}";
+            var changed = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+            var fullGroupName = $"{domainNetbiosName}\\{groupName}";
+            var cleanSid = groupSid.TrimStart('*');
+
+            var sb = new StringBuilder();
+            sb.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+            sb.Append($"<Groups clsid=\"{{3125E937-EB16-4b4c-9934-544FC6D24D26}}\">");
+            sb.Append($"<Group clsid=\"{{6D4A79E4-529C-4481-ABD0-F5BD7EA93BA7}}\" ");
+            sb.Append($"name=\"Administrators (built-in)\" image=\"2\" changed=\"{changed}\" uid=\"{uid}\">");
+            sb.Append($"<Properties action=\"U\" newName=\"\" description=\"\" deleteAllUsers=\"0\" deleteAllGroups=\"0\" ");
+            sb.Append($"removeAccounts=\"0\" groupSid=\"S-1-5-32-544\" groupName=\"Administrators (built-in)\">");
+            sb.Append($"<Members><Member name=\"{fullGroupName}\" action=\"ADD\" sid=\"{cleanSid}\"/></Members>");
+            sb.Append("</Properties></Group></Groups>");
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Creates GPP Registry.xml content for various registry settings.
+        /// Equivalent to the registry content from PLATYPUS GPO functions.
+        /// </summary>
+        private string CreateRegistryGppXml(string registryPath, string valueName, string valueType, string value, string description = "")
+        {
+            var uid = "{" + Guid.NewGuid().ToString().ToUpperInvariant() + "}";
+            var changed = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+
+            var sb = new StringBuilder();
+            sb.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+            sb.Append($"<RegistrySettings clsid=\"{{A3CCFC41-DFDB-43a5-8D26-0FE8B954DA51}}\">");
+            sb.Append($"<Registry clsid=\"{{9CD4B2F4-923D-47f5-A062-E897DD1DAD50}}\" ");
+            sb.Append($"name=\"{valueName}\" status=\"{valueName}\" image=\"12\" changed=\"{changed}\" uid=\"{uid}\">");
+            sb.Append($"<Properties action=\"U\" displayDecimal=\"0\" default=\"0\" hive=\"HKEY_LOCAL_MACHINE\" ");
+            sb.Append($"key=\"{registryPath}\" name=\"{valueName}\" type=\"{valueType}\" value=\"{value}\"/>");
+            sb.Append("</Registry></RegistrySettings>");
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Creates Scheduled Task GPP XML for machine account password reset.
+        /// Equivalent to Set-BillMachineAccountPasswordGpo from PLATYPUS.
+        /// </summary>
+        private string CreateMachinePasswordResetTaskXml(string domainNetbiosName)
+        {
+            var uid = "{" + Guid.NewGuid().ToString().ToUpperInvariant() + "}";
+            var changed = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+            var startBoundary = DateTime.Now.AddHours(25).ToString("yyyy-MM-ddTHH:mm:ss");
+            var endBoundary = DateTime.Now.AddDays(3).ToString("yyyy-MM-ddTHH:mm:ss");
+
+            var sb = new StringBuilder();
+            sb.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+            sb.Append("<ScheduledTasks clsid=\"{CC63F200-7309-4ba0-B154-A71CD118DBCC}\">");
+            sb.Append($"<TaskV2 clsid=\"{{D8896631-B747-47a7-84A6-C155337F3BC8}}\" ");
+            sb.Append($"name=\"Reset Machine Account Password\" image=\"0\" changed=\"{changed}\" ");
+            sb.Append($"uid=\"{uid}\" userContext=\"0\" removePolicy=\"0\">");
+            sb.Append("<Properties action=\"C\" name=\"Reset Machine Account Password\" runAs=\"NT AUTHORITY\\System\" logonType=\"S4U\">");
+            sb.Append("<Task version=\"1.2\">");
+            sb.Append("<RegistrationInfo>");
+            sb.Append($"<Author>{domainNetbiosName}\\administrator</Author>");
+            sb.Append("<Description>Resets the machine account password to mitigate golden GMSA attacks</Description>");
+            sb.Append("</RegistrationInfo>");
+            sb.Append("<Principals><Principal id=\"Author\">");
+            sb.Append("<UserId>NT AUTHORITY\\System</UserId>");
+            sb.Append("<LogonType>S4U</LogonType>");
+            sb.Append("<RunLevel>HighestAvailable</RunLevel>");
+            sb.Append("</Principal></Principals>");
+            sb.Append("<Settings>");
+            sb.Append("<IdleSettings><Duration>PT10M</Duration><WaitTimeout>PT1H</WaitTimeout>");
+            sb.Append("<StopOnIdleEnd>true</StopOnIdleEnd><RestartOnIdle>false</RestartOnIdle></IdleSettings>");
+            sb.Append("<MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>");
+            sb.Append("<DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>");
+            sb.Append("<StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>");
+            sb.Append("<AllowHardTerminate>true</AllowHardTerminate>");
+            sb.Append("<StartWhenAvailable>true</StartWhenAvailable>");
+            sb.Append("<AllowStartOnDemand>true</AllowStartOnDemand>");
+            sb.Append("<Enabled>true</Enabled>");
+            sb.Append("<Hidden>false</Hidden>");
+            sb.Append("<ExecutionTimeLimit>PT1H</ExecutionTimeLimit>");
+            sb.Append("<Priority>7</Priority>");
+            sb.Append("</Settings>");
+            sb.Append("<Triggers>");
+            sb.Append($"<TimeTrigger><StartBoundary>{startBoundary}</StartBoundary>");
+            sb.Append($"<EndBoundary>{endBoundary}</EndBoundary>");
+            sb.Append("<Enabled>true</Enabled></TimeTrigger>");
+            sb.Append("</Triggers>");
+            sb.Append("<Actions Context=\"Author\">");
+            sb.Append("<Exec><Command>netdom.exe</Command>");
+            sb.Append("<Arguments>resetpwd /s:%LOGONSERVER% /ud:%USERDOMAIN%\\%USERNAME% /pd:*</Arguments>");
+            sb.Append("</Exec></Actions>");
+            sb.Append("</Task></Properties></TaskV2></ScheduledTasks>");
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Creates the DC GPO content with service settings (AppIDSvc, Spooler).
+        /// Equivalent to the service settings from Set-BillT0DomainControllersGpo.
+        /// </summary>
+        private void CreateDcGpoServiceSettings(string secEditPath, StringBuilder gptTmpl)
+        {
+            gptTmpl.AppendLine("[Service General Setting]");
+            // AppIDSvc - Automatic (2)
+            gptTmpl.AppendLine("\"AppIDSvc\",2,\"\"");
+            // Spooler - Disabled (4)
+            gptTmpl.AppendLine("\"Spooler\",4,\"\"");
+        }
+
+        /// <summary>
+        /// Resolves tiered model group SIDs for multi-forest scenarios.
+        /// Equivalent to Get-BillGpoGroups from PLATYPUS.
+        /// </summary>
+        public async Task<TieredModelGroupSids> ResolveTieredModelGroupSidsAsync(CancellationToken ct = default)
+        {
+            var sids = new TieredModelGroupSids();
+
+            if (_domainInfo == null)
+            {
+                return sids;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report("Resolving tiered model group SIDs...");
+
+                    sids.DomainSid = _domainInfo.DomainSid ?? "";
+                    sids.ForestSid = _domainInfo.ForestSid ?? sids.DomainSid;
+
+                    // Set domain-specific well-known SIDs
+                    if (!string.IsNullOrEmpty(sids.DomainSid))
+                    {
+                        sids.DomainAdmins = $"*{sids.DomainSid}-512";
+                        sids.DomainControllers = $"*{sids.DomainSid}-516";
+                        sids.DomainUsers = $"*{sids.DomainSid}-513";
+                        sids.DomainGuests = $"*{sids.DomainSid}-514";
+                        sids.DomainAdministratorAccount = $"*{sids.DomainSid}-500";
+                        sids.DomainGuestAccount = $"*{sids.DomainSid}-501";
+                    }
+
+                    // Set forest-specific SIDs
+                    if (!string.IsNullOrEmpty(sids.ForestSid))
+                    {
+                        sids.EnterpriseAdmins = $"*{sids.ForestSid}-519";
+                        sids.SchemaAdmins = $"*{sids.ForestSid}-518";
+                        sids.RootDomainAdmins = $"*{sids.ForestSid}-512";
+                    }
+
+                    // Check if single forest/single domain
+                    sids.IsSingleForestSingleDomain = (_domainInfo.DomainFqdn == _domainInfo.ForestFqdn);
+
+                    // Resolve custom tier groups
+                    var groupsToResolve = new Dictionary<string, Action<string>>
+                    {
+                        { "Tier 0 - Operators", sid => sids.Tier0Operators = sid },
+                        { "Tier 0 - Service Accounts", sid => sids.Tier0ServiceAccounts = sid },
+                        { "Tier 0 - Computers", sid => sids.Tier0Computers = sid },
+                        { "Tier 1 - Operators", sid => sids.Tier1Operators = sid },
+                        { "Tier 1 - Service Accounts", sid => sids.Tier1ServiceAccounts = sid },
+                        { "Tier 1 - Server Local Admins", sid => sids.Tier1ServerLocalAdmins = sid },
+                        { "Tier 2 - Operators", sid => sids.Tier2Operators = sid },
+                        { "Tier 2 - Service Accounts", sid => sids.Tier2ServiceAccounts = sid },
+                        { "Tier 2 - Workstation Local Admins", sid => sids.Tier2WorkstationLocalAdmins = sid },
+                        { "DVRL - Deny Logon All Tiers", sid => sids.DenyLogonAllTiers = sid },
+                        { "BILL Domain Join", sid => sids.BillDomainJoin = sid },
+                        { "ESX Admins", sid => sids.EsxAdmins = sid }
+                    };
+
+                    foreach (var group in groupsToResolve)
+                    {
+                        try
+                        {
+                            var result = GetGroupBySamAccountName(_domainInfo.ChosenDc, _domainInfo.DomainDn, group.Key);
+                            if (result != null)
+                            {
+                                var sidBytes = (byte[])result.Properties["objectSid"][0]!;
+                                var securityId = new SecurityIdentifier(sidBytes, 0);
+                                group.Value($"*{securityId.Value}");
+                                _progress?.Report($"[DEBUG] Resolved {group.Key}: {securityId.Value}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _progress?.Report($"[DEBUG] Could not resolve {group.Key}: {ex.Message}");
+                        }
+                    }
+
+                    // Resolve forest groups if in child domain
+                    if (!sids.IsSingleForestSingleDomain)
+                    {
+                        _progress?.Report("[DEBUG] Multi-domain forest detected - resolving root domain groups...");
+
+                        var forestGroups = new Dictionary<string, Action<string>>
+                        {
+                            { "Tier 0 - Operators", sid => sids.RootTier0Operators = sid },
+                            { "Tier 0 - Service Accounts", sid => sids.RootTier0ServiceAccounts = sid },
+                            { "Tier 1 - Operators", sid => sids.RootTier1Operators = sid },
+                            { "Tier 2 - Operators", sid => sids.RootTier2Operators = sid }
+                        };
+
+                        // Would need forest root DC connection for full resolution
+                        // For now, log that this is needed
+                        _progress?.Report("[DEBUG] Forest root group resolution would require connection to forest root DC");
+                    }
+
+                    // Resolve Enterprise Read-Only DCs
+                    try
+                    {
+                        var erodcResult = GetGroupBySamAccountName(_domainInfo.ChosenDc, _domainInfo.DomainDn, "Enterprise Read-only Domain Controllers");
+                        if (erodcResult != null)
+                        {
+                            var sidBytes = (byte[])erodcResult.Properties["objectSid"][0]!;
+                            var securityId = new SecurityIdentifier(sidBytes, 0);
+                            sids.EnterpriseReadOnlyDCs = $"*{securityId.Value}";
+                        }
+                    }
+                    catch { /* Group may not exist */ }
+
+                    // Resolve Read-Only DCs
+                    try
+                    {
+                        var rodcResult = GetGroupBySamAccountName(_domainInfo.ChosenDc, _domainInfo.DomainDn, "Read-only Domain Controllers");
+                        if (rodcResult != null)
+                        {
+                            var sidBytes = (byte[])rodcResult.Properties["objectSid"][0]!;
+                            var securityId = new SecurityIdentifier(sidBytes, 0);
+                            sids.ReadOnlyDomainControllers = $"*{securityId.Value}";
+                        }
+                    }
+                    catch { /* Group may not exist */ }
+
+                    // Resolve Exchange Servers
+                    try
+                    {
+                        var exResult = GetGroupBySamAccountName(_domainInfo.ChosenDc, _domainInfo.DomainDn, "Exchange Servers");
+                        if (exResult != null)
+                        {
+                            var sidBytes = (byte[])exResult.Properties["objectSid"][0]!;
+                            var securityId = new SecurityIdentifier(sidBytes, 0);
+                            sids.ExchangeServers = $"*{securityId.Value}";
+                        }
+                    }
+                    catch { /* Group may not exist */ }
+
+                    _progress?.Report("Tiered model group SIDs resolved successfully");
+                }
+                catch (Exception ex)
+                {
+                    _progress?.Report($"[ERROR] Failed to resolve tiered model group SIDs: {ex.Message}");
+                }
+            }, ct);
+
+            return sids;
         }
 
         #endregion

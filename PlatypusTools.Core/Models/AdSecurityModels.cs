@@ -16,6 +16,8 @@ namespace PlatypusTools.Core.Models
         public string ForestFqdn { get; set; } = string.Empty;
         public string DomainSid { get; set; } = string.Empty;
         public string ForestSid { get; set; } = string.Empty;
+        public string DomainFunctionalLevel { get; set; } = string.Empty;
+        public string ForestFunctionalLevel { get; set; } = string.Empty;
         public string PdcEmulator { get; set; } = string.Empty;
         public string ChosenDc { get; set; } = string.Empty;
         public string SysvolReplicationInfo { get; set; } = string.Empty;
@@ -527,6 +529,141 @@ namespace PlatypusTools.Core.Models
 
         // Linking option
         public bool LinkGposToOus { get; set; } = false;
+
+        // === NEW: Fine-Grained Password Policy Options ===
+        public bool DeployFineGrainedPasswordPolicy { get; set; } = false;
+        public int FgppMaxPasswordAge { get; set; } = 90;
+        public int FgppMinPasswordLength { get; set; } = 25;
+        public int FgppPasswordHistoryCount { get; set; } = 12;
+        public bool FgppComplexityEnabled { get; set; } = true;
+
+        // === NEW: Domain Join Delegation Options ===
+        public bool SetDomainJoinDelegation { get; set; } = false;
+        public string DomainJoinDelegateGroup { get; set; } = "BILL Domain Join";
+
+        // === NEW: OU Creation Options ===
+        public bool CreateFullOuStructure { get; set; } = false;
+        public bool BlockInheritanceOnStagingOus { get; set; } = false;
+        public string IdOuName { get; set; } = "SITH";
+
+        // === NEW: WMI Filter Options ===
+        public bool CreateWmiFilters { get; set; } = false;
+
+        // === NEW: GPO ACL Options ===
+        public bool SetGpoAcls { get; set; } = false;
+    }
+
+    /// <summary>
+    /// Represents a WMI Filter for GPO targeting.
+    /// </summary>
+    public class WmiFilter
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Namespace { get; set; } = @"root\CIMv2";
+        public string Query { get; set; } = string.Empty;
+        public DateTime Created { get; set; }
+        public string Author { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Result of Fine-Grained Password Policy creation.
+    /// </summary>
+    public class FineGrainedPasswordPolicyResult
+    {
+        public bool Success { get; set; }
+        public string PolicyName { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+        public List<string> SubjectsApplied { get; set; } = new();
+        public Exception? Error { get; set; }
+    }
+
+    /// <summary>
+    /// Extended GPO groups dictionary for multi-forest scenarios.
+    /// Maps to the Get-BillGpoGroups function from PLATYPUS.
+    /// </summary>
+    public class TieredModelGroupSids
+    {
+        // Tier 0 Groups
+        public string? Tier0Operators { get; set; }
+        public string? Tier0ServiceAccounts { get; set; }
+        public string? Tier0Computers { get; set; }
+
+        // Tier 1 Groups
+        public string? Tier1Operators { get; set; }
+        public string? Tier1ServiceAccounts { get; set; }
+        public string? Tier1ServerLocalAdmins { get; set; }
+
+        // Tier 2 Groups
+        public string? Tier2Operators { get; set; }
+        public string? Tier2ServiceAccounts { get; set; }
+        public string? Tier2WorkstationLocalAdmins { get; set; }
+
+        // Domain Groups
+        public string? DomainAdmins { get; set; }
+        public string? EnterpriseAdmins { get; set; }
+        public string? SchemaAdmins { get; set; }
+        public string? DomainControllers { get; set; }
+        public string? DomainAdministratorAccount { get; set; }
+        public string? DomainGuestAccount { get; set; }
+        public string? DomainGuests { get; set; }
+        public string? DomainUsers { get; set; }
+        public string? DomainAuthUsers { get; set; }
+        public string? DomainAccountOperators { get; set; }
+        public string? DomainBackupOperators { get; set; }
+        public string? DomainPrintOperators { get; set; }
+        public string? DomainServerOperators { get; set; }
+
+        // Enterprise/Forest Groups
+        public string? EnterpriseReadOnlyDCs { get; set; }
+        public string? ReadOnlyDomainControllers { get; set; }
+        public string? ExchangeServers { get; set; }
+
+        // DVRL Group (Deny Logon All Tiers)
+        public string? DenyLogonAllTiers { get; set; }
+
+        // Special Groups
+        public string? EsxAdmins { get; set; }
+        public string? BillDomainJoin { get; set; }
+
+        // Root Domain Groups (for child domain scenarios)
+        public string? RootDomainAdmins { get; set; }
+        public string? RootTier0Operators { get; set; }
+        public string? RootTier0ServiceAccounts { get; set; }
+        public string? RootTier1Operators { get; set; }
+        public string? RootTier2Operators { get; set; }
+
+        // Well-known SIDs
+        public string LocalAdministrators { get; } = "*S-1-5-32-544";
+        public string LocalUsers { get; } = "*S-1-5-32-545";
+        public string LocalGuests { get; } = "*S-1-5-32-546";
+        public string PerformanceLogUsers { get; } = "*S-1-5-32-559";
+        public string LocalAccountAndAdmins { get; } = "*S-1-5-114";
+        public string NtAllServices { get; } = "*S-1-5-80-0";
+        public string NtAuthSystem { get; } = "*S-1-5-18";
+        public string NtLocalService { get; } = "*S-1-5-19";
+        public string NtNetworkService { get; } = "*S-1-5-20";
+        public string NtService { get; } = "*S-1-5-6";
+        public string EnterpriseDomainControllers { get; } = "*S-1-5-9";
+        public string AuthenticatedUsers { get; } = "*S-1-5-11";
+
+        // Domain-specific SIDs (set during discovery)
+        public string DomainSid { get; set; } = string.Empty;
+        public string ForestSid { get; set; } = string.Empty;
+
+        // Multi-forest flag
+        public bool IsSingleForestSingleDomain { get; set; } = true;
+
+        /// <summary>
+        /// Generates a well-known domain SID based on domain SID and RID.
+        /// </summary>
+        public string GetDomainSid(int rid) => $"*{DomainSid}-{rid}";
+
+        /// <summary>
+        /// Generates a well-known forest SID based on forest SID and RID.
+        /// </summary>
+        public string GetForestSid(int rid) => $"*{ForestSid}-{rid}";
     }
 
     /// <summary>
