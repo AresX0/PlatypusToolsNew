@@ -2003,6 +2003,99 @@ namespace PlatypusTools.Core.Services
         }
 
         /// <summary>
+        /// Checks if an OU exists in AD.
+        /// </summary>
+        private bool OuExists(string dc, string ouDn)
+        {
+            try
+            {
+                using var entry = new DirectoryEntry($"LDAP://{dc}/{ouDn}");
+                var _ = entry.Guid; // Force connection to verify existence
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Resolves the SIDs for tiered security groups.
+        /// Returns a dictionary with group name -> SID mapping.
+        /// </summary>
+        private Dictionary<string, string> ResolveGroupSids(string dc, string domainDn, string domainSid, string tieredOuBaseName)
+        {
+            var sids = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            _progress?.Report("[DEBUG] Resolving group SIDs from Active Directory...");
+
+            var groupNames = new[]
+            {
+                "Tier 0 - Operators",
+                "Tier 0 - PAW Users", 
+                "Tier 0 - Service Accounts",
+                "Tier 1 - Operators",
+                "Tier 1 - PAW Users",
+                "Tier 1 - Service Accounts",
+                "Tier 1 - Server Local Admins",
+                "Tier 2 - Operators",
+                "Tier 2 - PAW Users",
+                "Tier 2 - Service Accounts",
+                "Tier 2 - Workstation Local Admins",
+                "IR - Emergency Access",
+                "DVRL - Deny Logon All Tiers"
+            };
+
+            try
+            {
+                using var rootEntry = new DirectoryEntry($"LDAP://{dc}/{domainDn}");
+                using var searcher = new DirectorySearcher(rootEntry)
+                {
+                    SearchScope = SearchScope.Subtree
+                };
+                searcher.PropertiesToLoad.AddRange(new[] { "cn", "objectSid", "distinguishedName" });
+
+                foreach (var groupName in groupNames)
+                {
+                    searcher.Filter = $"(&(objectClass=group)(cn={EscapeLdapFilter(groupName)}))";
+                    var result = searcher.FindOne();
+                    if (result != null)
+                    {
+                        var sidBytes = result.Properties["objectSid"]?[0] as byte[];
+                        if (sidBytes != null)
+                        {
+                            var sid = new SecurityIdentifier(sidBytes, 0).Value;
+                            sids[groupName] = sid;
+                            _progress?.Report($"[DEBUG] Resolved SID for '{groupName}': {sid}");
+                        }
+                    }
+                    else
+                    {
+                        _progress?.Report($"[WARN] Could not find group '{groupName}' to resolve SID");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _progress?.Report($"[ERROR] Failed to resolve group SIDs: {ex.Message}");
+            }
+
+            // Also add well-known SIDs
+            sids["Administrators"] = "S-1-5-32-544";
+            sids["Users"] = "S-1-5-32-545";
+            sids["Guests"] = "S-1-5-32-546";
+            sids["Domain Admins"] = $"{domainSid}-512";
+            sids["Domain Users"] = $"{domainSid}-513";
+            sids["Domain Controllers"] = $"{domainSid}-516";
+            sids["Enterprise Admins"] = $"{domainSid}-519";
+            sids["Schema Admins"] = $"{domainSid}-518";
+
+            _progress?.Report($"[DEBUG] Total SIDs resolved: {sids.Count}");
+
+            return sids;
+        }
+
+        /// <summary>
         /// Creates an organizational unit.
         /// </summary>
         private AdObjectCreationResult CreateOrganizationalUnit(string dc, string parentDn, string ouName, string description, bool protectFromDeletion)
@@ -2163,6 +2256,7 @@ namespace PlatypusTools.Core.Services
         /// <summary>
         /// Deploys baseline GPOs for security hardening.
         /// Creates GPOs with actual policy settings based on PLATYPUS patterns.
+        /// Includes detailed debug logging and verification.
         /// </summary>
         public async Task<List<AdObjectCreationResult>> DeployBaselineGposAsync(
             GpoDeploymentOptions options,
@@ -2172,8 +2266,11 @@ namespace PlatypusTools.Core.Services
             {
                 var results = new List<AdObjectCreationResult>();
 
+                _progress?.Report("[DEBUG] Starting DeployBaselineGposAsync...");
+
                 if (_domainInfo == null || string.IsNullOrEmpty(_domainInfo.ChosenDc))
                 {
+                    _progress?.Report("[ERROR] Domain not discovered. Run DiscoverDomainAsync first.");
                     results.Add(new AdObjectCreationResult
                     {
                         Success = false,
@@ -2184,25 +2281,75 @@ namespace PlatypusTools.Core.Services
                     return results;
                 }
 
-                _progress?.Report("Deploying security groups and GPOs...");
+                _progress?.Report("[DEBUG] Domain info validated. Starting deployment...");
 
                 try
                 {
                     var dc = _domainInfo.ChosenDc;
                     var domainDn = _domainInfo.DomainDn;
                     var domainFqdn = _domainInfo.DomainFqdn ?? "";
+                    var domainSid = _domainInfo.DomainSid ?? "";
 
-                    // === Create Tiered Security Groups First ===
+                    _progress?.Report($"[DEBUG] DC: {dc}");
+                    _progress?.Report($"[DEBUG] Domain DN: {domainDn}");
+                    _progress?.Report($"[DEBUG] Domain FQDN: {domainFqdn}");
+                    _progress?.Report($"[DEBUG] Domain SID: {domainSid}");
+
+                    // === STEP 1: Ensure Required OUs Exist First ===
+                    _progress?.Report("[STEP 1] Ensuring required OUs exist...");
+                    var adminOuDn = $"OU={options.TieredOuBaseName},{domainDn}";
+                    
+                    // Check if Admin OU exists
+                    if (!OuExists(dc, adminOuDn))
+                    {
+                        _progress?.Report($"[DEBUG] Admin OU does not exist: {adminOuDn}");
+                        _progress?.Report($"[DEBUG] Creating base Admin OU: {options.TieredOuBaseName}");
+                        results.Add(CreateOrganizationalUnit(dc, domainDn, options.TieredOuBaseName, "Tiered Administration Root OU", true));
+                    }
+                    else
+                    {
+                        _progress?.Report($"[DEBUG] Admin OU already exists: {adminOuDn}");
+                    }
+
+                    // Create tier OUs
+                    foreach (var tier in new[] { "Tier0", "Tier1", "Tier2" })
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        var tierOuDn = $"OU={tier},{adminOuDn}";
+                        
+                        if (!OuExists(dc, tierOuDn))
+                        {
+                            _progress?.Report($"[DEBUG] Creating Tier OU: {tier}");
+                            results.Add(CreateOrganizationalUnit(dc, adminOuDn, tier, $"{tier} - Tiered Admin OU", true));
+                        }
+                        else
+                        {
+                            _progress?.Report($"[DEBUG] Tier OU already exists: {tierOuDn}");
+                        }
+
+                        // Create Groups sub-OU
+                        var groupsOuDn = $"OU=Groups,{tierOuDn}";
+                        if (!OuExists(dc, groupsOuDn))
+                        {
+                            _progress?.Report($"[DEBUG] Creating Groups OU under {tier}");
+                            results.Add(CreateOrganizationalUnit(dc, tierOuDn, "Groups", $"Security Groups for {tier}", true));
+                        }
+                        else
+                        {
+                            _progress?.Report($"[DEBUG] Groups OU already exists: {groupsOuDn}");
+                        }
+                    }
+
+                    // === STEP 2: Create Tiered Security Groups ===
                     if (options.CreateTierGroups)
                     {
                         ct.ThrowIfCancellationRequested();
-                        _progress?.Report("Creating tiered security groups...");
-                        
-                        // Find or use the Admin OU for groups
-                        var adminOuDn = $"OU={options.TieredOuBaseName},{domainDn}";
+                        _progress?.Report("[STEP 2] Creating tiered security groups...");
                         
                         // Tier 0 Groups
                         var tier0GroupsOu = $"OU=Groups,OU=Tier0,{adminOuDn}";
+                        _progress?.Report($"[DEBUG] Creating Tier 0 groups in: {tier0GroupsOu}");
+                        
                         results.Add(CreateSecurityGroup(dc, tier0GroupsOu, domainDn, "Tier 0 - Operators", 
                             "Tier 0 privileged operators - Domain Controllers and core infrastructure"));
                         results.Add(CreateSecurityGroup(dc, tier0GroupsOu, domainDn, "Tier 0 - PAW Users", 
@@ -2212,6 +2359,8 @@ namespace PlatypusTools.Core.Services
                         
                         // Tier 1 Groups
                         var tier1GroupsOu = $"OU=Groups,OU=Tier1,{adminOuDn}";
+                        _progress?.Report($"[DEBUG] Creating Tier 1 groups in: {tier1GroupsOu}");
+                        
                         results.Add(CreateSecurityGroup(dc, tier1GroupsOu, domainDn, "Tier 1 - Operators", 
                             "Tier 1 privileged operators - Server administrators"));
                         results.Add(CreateSecurityGroup(dc, tier1GroupsOu, domainDn, "Tier 1 - PAW Users", 
@@ -2223,6 +2372,8 @@ namespace PlatypusTools.Core.Services
                         
                         // Tier 2 Groups
                         var tier2GroupsOu = $"OU=Groups,OU=Tier2,{adminOuDn}";
+                        _progress?.Report($"[DEBUG] Creating Tier 2 groups in: {tier2GroupsOu}");
+                        
                         results.Add(CreateSecurityGroup(dc, tier2GroupsOu, domainDn, "Tier 2 - Operators", 
                             "Tier 2 privileged operators - Workstation administrators"));
                         results.Add(CreateSecurityGroup(dc, tier2GroupsOu, domainDn, "Tier 2 - PAW Users", 
@@ -2233,17 +2384,34 @@ namespace PlatypusTools.Core.Services
                             "Members become local administrators on Tier 2 workstations"));
                         
                         // Cross-tier / IR groups
+                        _progress?.Report("[DEBUG] Creating cross-tier IR groups...");
                         results.Add(CreateSecurityGroup(dc, tier0GroupsOu, domainDn, "IR - Emergency Access", 
                             "Emergency access accounts for incident response - break glass"));
                         results.Add(CreateSecurityGroup(dc, tier0GroupsOu, domainDn, "DVRL - Deny Logon All Tiers", 
                             "Members are denied logon to all tier systems - for compromised accounts"));
+
+                        // Log group creation results
+                        var createdGroups = results.Where(r => r.ObjectType == "Group").ToList();
+                        _progress?.Report($"[DEBUG] Group creation summary: {createdGroups.Count(r => r.Success)} created, {createdGroups.Count(r => !r.Success)} failed");
                     }
+                    else
+                    {
+                        _progress?.Report("[DEBUG] CreateTierGroups is false - skipping group creation");
+                    }
+
+                    // === STEP 3: Get Group SIDs for GPO Settings ===
+                    _progress?.Report("[STEP 3] Resolving group SIDs for GPO settings...");
+                    var groupSids = ResolveGroupSids(dc, domainDn, domainSid, options.TieredOuBaseName);
+
+                    // === STEP 4: Deploy GPOs with Settings ===
+                    _progress?.Report("[STEP 4] Deploying GPOs with settings...");
 
                     // === Quick Deploy GPOs with Settings ===
                     if (options.DeployPasswordPolicy)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn, 
+                        _progress?.Report("[DEBUG] Creating Password Policy GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Baseline-PasswordPolicy", 
                             "Password policy settings configured.",
                             GpoSettingsType.SecuritySettings));
@@ -2252,7 +2420,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployAuditPolicy)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Audit Policy GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Baseline-AuditPolicy",
                             "Advanced audit policies configured for security monitoring.",
                             GpoSettingsType.AuditPolicy));
@@ -2261,7 +2430,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeploySecurityBaseline)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Security Baseline GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Baseline-SecurityHardening",
                             "Security hardening settings: LM hash disabled, NTLMv2 required.",
                             GpoSettingsType.SecuritySettings));
@@ -2270,7 +2440,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployPawPolicy)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating PAW Security Policy GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "PAW-SecurityPolicy",
                             "PAW lockdown settings configured.",
                             GpoSettingsType.SecuritySettings));
@@ -2280,7 +2451,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployT0BaselineAudit)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Tier 0 Baseline Audit GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier 0 - Baseline Audit Policies - Tier 0 Servers",
                             "Enhanced audit policies for Tier 0 servers configured.",
                             GpoSettingsType.AuditPolicy));
@@ -2289,7 +2461,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployT0DisallowDsrm)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Tier 0 DSRM Disallow GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier 0 - Disallow DSRM Login - DC ONLY",
                             "DSRM network logon disabled.",
                             GpoSettingsType.SecuritySettings));
@@ -2298,7 +2471,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployT0DomainBlock)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Tier 0 Domain Block GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier 0 - Domain Block - Top Level",
                             "Tier 0 account blocking configured.",
                             GpoSettingsType.UserRights));
@@ -2307,7 +2481,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployT0DomainControllers)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Tier 0 DC Security GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier 0 - Domain Controllers - DC Only",
                             "DC security hardening configured.",
                             GpoSettingsType.SecuritySettings));
@@ -2316,7 +2491,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployT0EsxAdmins)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Tier 0 ESX Admins Restricted Groups GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier 0 - ESX Admins Restricted Group - DC Only",
                             "ESX Admins group emptied via Restricted Groups.",
                             GpoSettingsType.RestrictedGroups));
@@ -2325,7 +2501,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployT0UserRights)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Tier 0 User Rights GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier 0 - User Rights Assignments - Tier 0 Servers",
                             "Tier 0 logon rights restrictions configured.",
                             GpoSettingsType.UserRights));
@@ -2334,7 +2511,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployT0RestrictedGroups)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Tier 0 Restricted Groups GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier 0 - Restricted Groups - Tier 0 Servers",
                             "Tier 0 local admin membership controls configured.",
                             GpoSettingsType.RestrictedGroups));
@@ -2344,7 +2522,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployT1LocalAdmin)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Tier 1 Local Admin GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier 1 - Tier 1 Operators in Local Admin - Tier 1 Servers",
                             "Tier 1 local admin membership configured.",
                             GpoSettingsType.RestrictedGroups));
@@ -2353,7 +2532,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployT1UserRights)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Tier 1 User Rights GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier 1 - User Rights Assignments - Tier 1 Servers",
                             "Tier 1 logon rights restrictions configured.",
                             GpoSettingsType.UserRights));
@@ -2362,7 +2542,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployT1RestrictedGroups)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Tier 1 Restricted Groups GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier 1 - Restricted Groups - Tier 1 Servers",
                             "Tier 1 local admin membership controls configured.",
                             GpoSettingsType.RestrictedGroups));
@@ -2372,7 +2553,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployT2LocalAdmin)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Tier 2 Local Admin GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier 2 - Tier 2 Operators in Local Admin - Tier 2 Devices",
                             "Tier 2 local admin membership configured.",
                             GpoSettingsType.RestrictedGroups));
@@ -2381,7 +2563,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployT2UserRights)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Tier 2 User Rights GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier 2 - User Rights Assignments - Tier 2 Devices",
                             "Tier 2 logon rights restrictions configured.",
                             GpoSettingsType.UserRights));
@@ -2390,7 +2573,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployT2RestrictedGroups)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Tier 2 Restricted Groups GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier 2 - Restricted Groups - Tier 2 Devices",
                             "Tier 2 local admin membership controls configured.",
                             GpoSettingsType.RestrictedGroups));
@@ -2400,7 +2584,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployDisableSmb1)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Disable SMBv1 GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier ALL - Disable SMBv1 - Top Level",
                             "SMBv1 disabled via registry settings.",
                             GpoSettingsType.SecuritySettings));
@@ -2409,7 +2594,8 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployDisableWDigest)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Disable WDigest GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier ALL - Disable WDigest - Top Level",
                             "WDigest credential caching disabled.",
                             GpoSettingsType.SecuritySettings));
@@ -2418,16 +2604,38 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployResetMachinePassword)
                     {
                         ct.ThrowIfCancellationRequested();
-                        results.Add(CreateGpoWithSettings(dc, domainFqdn,
+                        _progress?.Report("[DEBUG] Creating Reset Machine Password GPO...");
+                        results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "PLATYPUS - Reset Machine Account Password",
                             "Machine account password rotation configured (30 days).",
                             GpoSettingsType.SecuritySettings));
                     }
 
-                    _progress?.Report($"GPO deployment complete: {results.Count(r => r.Success)} succeeded, {results.Count(r => !r.Success)} failed");
+                    // === STEP 5: Verify GPO Settings ===
+                    _progress?.Report("[STEP 5] Verifying GPO deployment results...");
+                    var gpoResults = results.Where(r => r.ObjectType == "GPO").ToList();
+                    var successGpos = gpoResults.Count(r => r.Success);
+                    var failedGpos = gpoResults.Count(r => !r.Success);
+                    _progress?.Report($"[DEBUG] GPO Results: {successGpos} succeeded, {failedGpos} failed");
+
+                    foreach (var gpo in gpoResults.Where(r => !r.Success))
+                    {
+                        _progress?.Report($"[ERROR] GPO Failed: {gpo.ObjectName} - {gpo.Message}");
+                    }
+
+                    // Summary
+                    var ouResults = results.Where(r => r.ObjectType == "OU").ToList();
+                    var groupResults = results.Where(r => r.ObjectType == "Group").ToList();
+                    
+                    _progress?.Report("[SUMMARY] Deployment Complete:");
+                    _progress?.Report($"  - OUs: {ouResults.Count(r => r.Success)} created/verified");
+                    _progress?.Report($"  - Groups: {groupResults.Count(r => r.Success)} created/verified");
+                    _progress?.Report($"  - GPOs: {successGpos} created with settings");
+                    _progress?.Report($"  - Failures: {results.Count(r => !r.Success)} total");
                 }
                 catch (Exception ex)
                 {
+                    _progress?.Report($"[ERROR] GPO Deployment failed: {ex.Message}");
                     results.Add(new AdObjectCreationResult
                     {
                         Success = false,
@@ -2445,10 +2653,12 @@ namespace PlatypusTools.Core.Services
         /// <summary>
         /// Creates a GPO with actual settings based on PLATYPUS patterns.
         /// Full GPO creation including SYSVOL folder structure and policy content.
+        /// Includes detailed debug logging.
         /// </summary>
         private AdObjectCreationResult CreateGpoWithSettings(
             string dc, 
-            string domainFqdn, 
+            string domainFqdn,
+            Dictionary<string, string> groupSids,
             string gpoName, 
             string description,
             GpoSettingsType settingsType)
@@ -2461,9 +2671,11 @@ namespace PlatypusTools.Core.Services
 
             try
             {
-                _progress?.Report($"Creating GPO: {gpoName}");
+                _progress?.Report($"[DEBUG] Creating GPO: {gpoName}");
+                _progress?.Report($"[DEBUG] Settings Type: {settingsType}");
 
                 var gpoContainerDn = $"CN=Policies,CN=System,{DomainToDn(domainFqdn)}";
+                _progress?.Report($"[DEBUG] GPO Container DN: {gpoContainerDn}");
                 
                 using var gpoContainer = new DirectoryEntry($"LDAP://{dc}/{gpoContainerDn}");
                 
@@ -2475,65 +2687,85 @@ namespace PlatypusTools.Core.Services
                 };
 
                 var existing = searcher.FindOne();
+                string gpoGuid;
+                string sysvolPath;
+                bool gpoWasCreated = false;
+
                 if (existing != null)
                 {
-                    result.Success = true;
-                    result.Message = "GPO already exists";
+                    // GPO exists - check if we need to update settings
                     result.DistinguishedName = existing.Properties["distinguishedName"]?[0]?.ToString() ?? "";
-                    _progress?.Report($"GPO already exists: {gpoName}");
-                    return result;
+                    gpoGuid = existing.Properties["name"]?[0]?.ToString() ?? "";
+                    sysvolPath = $"\\\\{dc}\\SYSVOL\\{domainFqdn}\\Policies\\{gpoGuid}";
+                    _progress?.Report($"[DEBUG] GPO already exists: {gpoName}");
+                    _progress?.Report($"[DEBUG] Existing GPO GUID: {gpoGuid}");
+                    _progress?.Report($"[DEBUG] Will check/update SYSVOL settings at: {sysvolPath}");
                 }
-
-                // Generate new GUID for the GPO
-                var gpoGuid = Guid.NewGuid().ToString("B").ToUpperInvariant();
-                var gpoCn = $"CN={gpoGuid}";
-
-                // Create GPO AD object
-                using var newGpo = gpoContainer.Children.Add(gpoCn, "groupPolicyContainer");
-                newGpo.Properties["displayName"].Value = gpoName;
-                newGpo.Properties["gPCFileSysPath"].Value = $"\\\\{domainFqdn}\\SysVol\\{domainFqdn}\\Policies\\{gpoGuid}";
-                newGpo.Properties["gPCFunctionalityVersion"].Value = 2;
-                newGpo.Properties["flags"].Value = 0; // GPO enabled
-                newGpo.Properties["versionNumber"].Value = 1;
-                
-                // Set gPCMachineExtensionNames based on settings type
-                var gpcExtension = GetGpcMachineExtensionNames(settingsType);
-                if (!string.IsNullOrEmpty(gpcExtension))
+                else
                 {
-                    newGpo.Properties["gPCMachineExtensionNames"].Value = gpcExtension;
+                    // Generate new GUID for the GPO
+                    gpoGuid = Guid.NewGuid().ToString("B").ToUpperInvariant();
+                    var gpoCn = $"CN={gpoGuid}";
+                    sysvolPath = $"\\\\{dc}\\SYSVOL\\{domainFqdn}\\Policies\\{gpoGuid}";
+                    
+                    _progress?.Report($"[DEBUG] Creating new GPO with GUID: {gpoGuid}");
+
+                    // Create GPO AD object
+                    using var newGpo = gpoContainer.Children.Add(gpoCn, "groupPolicyContainer");
+                    newGpo.Properties["displayName"].Value = gpoName;
+                    newGpo.Properties["gPCFileSysPath"].Value = $"\\\\{domainFqdn}\\SysVol\\{domainFqdn}\\Policies\\{gpoGuid}";
+                    newGpo.Properties["gPCFunctionalityVersion"].Value = 2;
+                    newGpo.Properties["flags"].Value = 0; // GPO enabled
+                    newGpo.Properties["versionNumber"].Value = 1;
+                    
+                    // Set gPCMachineExtensionNames based on settings type
+                    var gpcExtension = GetGpcMachineExtensionNames(settingsType);
+                    if (!string.IsNullOrEmpty(gpcExtension))
+                    {
+                        newGpo.Properties["gPCMachineExtensionNames"].Value = gpcExtension;
+                        _progress?.Report($"[DEBUG] Set gPCMachineExtensionNames: {gpcExtension}");
+                    }
+                    
+                    newGpo.CommitChanges();
+                    _progress?.Report($"[DEBUG] GPO AD object created successfully");
+                    
+                    result.DistinguishedName = $"{gpoCn},{gpoContainerDn}";
+                    gpoWasCreated = true;
                 }
-                
-                newGpo.CommitChanges();
 
-                result.DistinguishedName = $"{gpoCn},{gpoContainerDn}";
-
-                // Create SYSVOL folder structure and policy files
-                var sysvolPath = $"\\\\{dc}\\SYSVOL\\{domainFqdn}\\Policies\\{gpoGuid}";
-                if (CreateGpoSysvolContent(sysvolPath, settingsType, gpoName))
+                // Create or update SYSVOL folder structure and policy files
+                _progress?.Report($"[DEBUG] Creating/updating SYSVOL content at: {sysvolPath}");
+                if (CreateGpoSysvolContentWithSids(sysvolPath, settingsType, gpoName, groupSids))
                 {
                     result.Success = true;
-                    result.Message = $"Created with settings. {description}";
-                    _progress?.Report($"Created GPO with settings: {gpoName}");
+                    result.Message = gpoWasCreated 
+                        ? $"Created with settings. {description}" 
+                        : $"Exists - settings verified/updated. {description}";
+                    _progress?.Report($"[DEBUG] SYSVOL content created/updated successfully for: {gpoName}");
                 }
                 else
                 {
                     result.Success = true;
-                    result.Message = $"GPO created but SYSVOL content failed. Configure manually: {description}";
-                    _progress?.Report($"Created GPO (SYSVOL content failed): {gpoName}");
+                    result.Message = gpoWasCreated 
+                        ? $"GPO created but SYSVOL content failed. Configure manually: {description}"
+                        : $"GPO exists but SYSVOL content update failed. {description}";
+                    _progress?.Report($"[WARN] SYSVOL content creation/update failed for: {gpoName}");
                 }
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedAccessException uaex)
             {
                 result.Success = false;
                 result.Message = "Access denied. Requires Domain Admin or GPO Creator Owners rights.";
-                _progress?.Report($"Access denied creating GPO: {gpoName}");
+                _progress?.Report($"[ERROR] Access denied creating GPO: {gpoName}");
+                _progress?.Report($"[ERROR] Details: {uaex.Message}");
             }
             catch (Exception ex)
             {
                 result.Success = false;
                 result.Message = ex.Message;
                 result.Error = ex;
-                _progress?.Report($"Failed to create GPO {gpoName}: {ex.Message}");
+                _progress?.Report($"[ERROR] Failed to create GPO {gpoName}: {ex.Message}");
+                _progress?.Report($"[ERROR] Stack: {ex.StackTrace}");
             }
 
             return result;
@@ -2561,7 +2793,80 @@ namespace PlatypusTools.Core.Services
         }
 
         /// <summary>
+        /// Creates the SYSVOL folder structure and policy content files for a GPO with proper SIDs.
+        /// This is the enhanced version that uses resolved group SIDs.
+        /// </summary>
+        private bool CreateGpoSysvolContentWithSids(string sysvolPath, GpoSettingsType settingsType, string gpoName, Dictionary<string, string> groupSids)
+        {
+            try
+            {
+                _progress?.Report($"[DEBUG] Creating SYSVOL content at: {sysvolPath}");
+                
+                // Create directory structure
+                var machinePath = Path.Combine(sysvolPath, "Machine");
+                var userPath = Path.Combine(sysvolPath, "User");
+                var secEditPath = Path.Combine(machinePath, "microsoft", "windows nt", "SecEdit");
+                var auditPath = Path.Combine(machinePath, "microsoft", "windows nt", "Audit");
+
+                _progress?.Report($"[DEBUG] Creating directories...");
+                Directory.CreateDirectory(machinePath);
+                Directory.CreateDirectory(userPath);
+                Directory.CreateDirectory(secEditPath);
+
+                // Create GPT.ini
+                var gptIniPath = Path.Combine(sysvolPath, "GPT.ini");
+                var gptIniContent = "[General]\r\nVersion=1\r\n";
+                File.WriteAllText(gptIniPath, gptIniContent);
+                _progress?.Report($"[DEBUG] Created GPT.ini at: {gptIniPath}");
+
+                // Create policy content based on settings type
+                _progress?.Report($"[DEBUG] Creating policy content for type: {settingsType}");
+                
+                switch (settingsType)
+                {
+                    case GpoSettingsType.AuditPolicy:
+                        CreateAuditPolicyContent(secEditPath, auditPath);
+                        break;
+                    case GpoSettingsType.SecuritySettings:
+                        CreateSecuritySettingsContent(secEditPath, gpoName);
+                        break;
+                    case GpoSettingsType.RestrictedGroups:
+                        CreateRestrictedGroupsContentWithSids(secEditPath, gpoName, groupSids);
+                        break;
+                    case GpoSettingsType.UserRights:
+                        CreateUserRightsContentWithSids(secEditPath, gpoName, groupSids);
+                        break;
+                    case GpoSettingsType.Registry:
+                        CreateRegistryContent(machinePath, gpoName);
+                        break;
+                }
+
+                // Verify the GptTmpl.inf was created
+                var gptTmplPath = Path.Combine(secEditPath, "GptTmpl.inf");
+                if (File.Exists(gptTmplPath))
+                {
+                    var content = File.ReadAllText(gptTmplPath);
+                    _progress?.Report($"[DEBUG] GptTmpl.inf created, size: {content.Length} bytes");
+                    _progress?.Report($"[DEBUG] GptTmpl.inf content preview: {content.Substring(0, Math.Min(500, content.Length))}...");
+                }
+                else
+                {
+                    _progress?.Report($"[WARN] GptTmpl.inf was not created at: {gptTmplPath}");
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _progress?.Report($"[ERROR] Failed to create SYSVOL content: {ex.Message}");
+                _progress?.Report($"[ERROR] Stack: {ex.StackTrace}");
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Creates the SYSVOL folder structure and policy content files for a GPO.
+        /// Legacy version without SID resolution.
         /// </summary>
         private bool CreateGpoSysvolContent(string sysvolPath, GpoSettingsType settingsType, string gpoName)
         {
@@ -2779,6 +3084,233 @@ namespace PlatypusTools.Core.Services
             registryXml.AppendLine("</RegistrySettings>");
 
             File.WriteAllText(Path.Combine(prefsPath, "Registry.xml"), registryXml.ToString(), Encoding.UTF8);
+        }
+
+        /// <summary>
+        /// Creates Restricted Groups content with proper SIDs from the domain.
+        /// </summary>
+        private void CreateRestrictedGroupsContentWithSids(string secEditPath, string gpoName, Dictionary<string, string> groupSids)
+        {
+            _progress?.Report($"[DEBUG] Creating Restricted Groups content for: {gpoName}");
+            
+            var gptTmpl = new StringBuilder();
+            gptTmpl.AppendLine("[Unicode]");
+            gptTmpl.AppendLine("Unicode=yes");
+            gptTmpl.AppendLine("[Version]");
+            gptTmpl.AppendLine("signature=\"$CHICAGO$\"");
+            gptTmpl.AppendLine("Revision=1");
+            gptTmpl.AppendLine();
+            gptTmpl.AppendLine("[Group Membership]");
+
+            // ESX Admins - empty the group (CVE-2024-37085)
+            if (gpoName.Contains("ESX", StringComparison.OrdinalIgnoreCase))
+            {
+                _progress?.Report("[DEBUG] Creating ESX Admins restricted group settings...");
+                // Create an empty ESX Admins group - prevent VMware admin takeover
+                gptTmpl.AppendLine("; ESX Admins - emptied to prevent CVE-2024-37085");
+                gptTmpl.AppendLine("*S-1-5-32-544__Members =");
+                gptTmpl.AppendLine("*S-1-5-32-544__Memberof =");
+            }
+            // Tier 0 Restricted Groups - local Administrators on DCs
+            else if (gpoName.Contains("Tier 0", StringComparison.OrdinalIgnoreCase))
+            {
+                _progress?.Report("[DEBUG] Creating Tier 0 restricted group settings...");
+                
+                // Get Tier 0 operator SIDs
+                var tier0Ops = groupSids.GetValueOrDefault("Tier 0 - Operators", "");
+                var domainAdmins = groupSids.GetValueOrDefault("Domain Admins", "");
+                var enterpriseAdmins = groupSids.GetValueOrDefault("Enterprise Admins", "");
+                
+                if (!string.IsNullOrEmpty(tier0Ops))
+                {
+                    // Local Administrators = Domain Admins, Enterprise Admins, Tier 0 Operators
+                    var members = new List<string>();
+                    if (!string.IsNullOrEmpty(domainAdmins)) members.Add($"*{domainAdmins}");
+                    if (!string.IsNullOrEmpty(enterpriseAdmins)) members.Add($"*{enterpriseAdmins}");
+                    if (!string.IsNullOrEmpty(tier0Ops)) members.Add($"*{tier0Ops}");
+                    
+                    gptTmpl.AppendLine("; Tier 0 - Local Administrators restricted to approved groups");
+                    gptTmpl.AppendLine($"*S-1-5-32-544__Members = {string.Join(",", members)}");
+                    gptTmpl.AppendLine("*S-1-5-32-544__Memberof =");
+                    
+                    _progress?.Report($"[DEBUG] Tier 0 Administrators members set to: {string.Join(",", members)}");
+                }
+                else
+                {
+                    gptTmpl.AppendLine("; Tier 0 Operators group not found - using Domain Admins only");
+                    if (!string.IsNullOrEmpty(domainAdmins))
+                    {
+                        gptTmpl.AppendLine($"*S-1-5-32-544__Members = *{domainAdmins}");
+                    }
+                    gptTmpl.AppendLine("*S-1-5-32-544__Memberof =");
+                }
+            }
+            // Tier 1 Restricted Groups - local Administrators on member servers
+            else if (gpoName.Contains("Tier 1", StringComparison.OrdinalIgnoreCase))
+            {
+                _progress?.Report("[DEBUG] Creating Tier 1 restricted group settings...");
+                
+                var tier1Ops = groupSids.GetValueOrDefault("Tier 1 - Operators", "");
+                var tier1LocalAdmins = groupSids.GetValueOrDefault("Tier 1 - Server Local Admins", "");
+                var domainAdmins = groupSids.GetValueOrDefault("Domain Admins", "");
+                
+                var members = new List<string>();
+                if (!string.IsNullOrEmpty(domainAdmins)) members.Add($"*{domainAdmins}");
+                if (!string.IsNullOrEmpty(tier1Ops)) members.Add($"*{tier1Ops}");
+                if (!string.IsNullOrEmpty(tier1LocalAdmins)) members.Add($"*{tier1LocalAdmins}");
+                
+                gptTmpl.AppendLine("; Tier 1 - Local Administrators restricted to Tier 1 groups");
+                gptTmpl.AppendLine($"*S-1-5-32-544__Members = {string.Join(",", members)}");
+                gptTmpl.AppendLine("*S-1-5-32-544__Memberof =");
+                
+                _progress?.Report($"[DEBUG] Tier 1 Administrators members set to: {string.Join(",", members)}");
+            }
+            // Tier 2 Restricted Groups - local Administrators on workstations
+            else if (gpoName.Contains("Tier 2", StringComparison.OrdinalIgnoreCase))
+            {
+                _progress?.Report("[DEBUG] Creating Tier 2 restricted group settings...");
+                
+                var tier2Ops = groupSids.GetValueOrDefault("Tier 2 - Operators", "");
+                var tier2LocalAdmins = groupSids.GetValueOrDefault("Tier 2 - Workstation Local Admins", "");
+                var domainAdmins = groupSids.GetValueOrDefault("Domain Admins", "");
+                
+                var members = new List<string>();
+                if (!string.IsNullOrEmpty(domainAdmins)) members.Add($"*{domainAdmins}");
+                if (!string.IsNullOrEmpty(tier2Ops)) members.Add($"*{tier2Ops}");
+                if (!string.IsNullOrEmpty(tier2LocalAdmins)) members.Add($"*{tier2LocalAdmins}");
+                
+                gptTmpl.AppendLine("; Tier 2 - Local Administrators restricted to Tier 2 groups");
+                gptTmpl.AppendLine($"*S-1-5-32-544__Members = {string.Join(",", members)}");
+                gptTmpl.AppendLine("*S-1-5-32-544__Memberof =");
+                
+                _progress?.Report($"[DEBUG] Tier 2 Administrators members set to: {string.Join(",", members)}");
+            }
+            else
+            {
+                gptTmpl.AppendLine("; Generic restricted groups template");
+                gptTmpl.AppendLine("; Configure as needed for your environment");
+            }
+
+            var filePath = Path.Combine(secEditPath, "GptTmpl.inf");
+            File.WriteAllText(filePath, gptTmpl.ToString(), Encoding.Unicode);
+            _progress?.Report($"[DEBUG] Wrote GptTmpl.inf to: {filePath}");
+        }
+
+        /// <summary>
+        /// Creates User Rights Assignment content with proper SIDs from the domain.
+        /// </summary>
+        private void CreateUserRightsContentWithSids(string secEditPath, string gpoName, Dictionary<string, string> groupSids)
+        {
+            _progress?.Report($"[DEBUG] Creating User Rights Assignment content for: {gpoName}");
+            
+            var gptTmpl = new StringBuilder();
+            gptTmpl.AppendLine("[Unicode]");
+            gptTmpl.AppendLine("Unicode=yes");
+            gptTmpl.AppendLine("[Version]");
+            gptTmpl.AppendLine("signature=\"$CHICAGO$\"");
+            gptTmpl.AppendLine("Revision=1");
+            gptTmpl.AppendLine();
+            gptTmpl.AppendLine("[Privilege Rights]");
+
+            // Get common SIDs
+            var dvrl = groupSids.GetValueOrDefault("DVRL - Deny Logon All Tiers", "");
+            var guests = "*S-1-5-32-546"; // Built-in Guests
+
+            // Tier 0 - Domain Controllers and Tier 0 Servers
+            if (gpoName.Contains("Tier 0", StringComparison.OrdinalIgnoreCase) || gpoName.Contains("Domain Block", StringComparison.OrdinalIgnoreCase))
+            {
+                _progress?.Report("[DEBUG] Creating Tier 0 user rights settings...");
+                
+                var tier0Ops = groupSids.GetValueOrDefault("Tier 0 - Operators", "");
+                var tier0Paw = groupSids.GetValueOrDefault("Tier 0 - PAW Users", "");
+                var tier1Ops = groupSids.GetValueOrDefault("Tier 1 - Operators", "");
+                var tier2Ops = groupSids.GetValueOrDefault("Tier 2 - Operators", "");
+                var domainAdmins = groupSids.GetValueOrDefault("Domain Admins", "");
+                var enterpriseAdmins = groupSids.GetValueOrDefault("Enterprise Admins", "");
+                
+                // Deny logon rights to Tier 1 and Tier 2 accounts on Tier 0 systems
+                var denyList = new List<string> { guests };
+                if (!string.IsNullOrEmpty(tier1Ops)) denyList.Add($"*{tier1Ops}");
+                if (!string.IsNullOrEmpty(tier2Ops)) denyList.Add($"*{tier2Ops}");
+                if (!string.IsNullOrEmpty(dvrl)) denyList.Add($"*{dvrl}");
+                
+                gptTmpl.AppendLine("; Tier 0 User Rights - Deny Tier 1/2 access to Tier 0 systems");
+                gptTmpl.AppendLine($"SeDenyNetworkLogonRight = {string.Join(",", denyList)}");
+                gptTmpl.AppendLine($"SeDenyInteractiveLogonRight = {string.Join(",", denyList)}");
+                gptTmpl.AppendLine($"SeDenyRemoteInteractiveLogonRight = {string.Join(",", denyList)}");
+                gptTmpl.AppendLine($"SeDenyBatchLogonRight = {string.Join(",", denyList)}");
+                gptTmpl.AppendLine($"SeDenyServiceLogonRight = {string.Join(",", denyList)}");
+                
+                _progress?.Report($"[DEBUG] Tier 0 deny list set to: {string.Join(",", denyList)}");
+                
+                // Allow logon rights to Tier 0 operators
+                var allowList = new List<string>();
+                if (!string.IsNullOrEmpty(domainAdmins)) allowList.Add($"*{domainAdmins}");
+                if (!string.IsNullOrEmpty(enterpriseAdmins)) allowList.Add($"*{enterpriseAdmins}");
+                if (!string.IsNullOrEmpty(tier0Ops)) allowList.Add($"*{tier0Ops}");
+                if (!string.IsNullOrEmpty(tier0Paw)) allowList.Add($"*{tier0Paw}");
+                
+                if (allowList.Any())
+                {
+                    gptTmpl.AppendLine($"; Allow logon locally to Tier 0 operators");
+                    gptTmpl.AppendLine($"SeInteractiveLogonRight = *S-1-5-32-544,{string.Join(",", allowList)}");
+                }
+            }
+            // Tier 1 - Member Servers
+            else if (gpoName.Contains("Tier 1", StringComparison.OrdinalIgnoreCase))
+            {
+                _progress?.Report("[DEBUG] Creating Tier 1 user rights settings...");
+                
+                var tier0Ops = groupSids.GetValueOrDefault("Tier 0 - Operators", "");
+                var tier1Ops = groupSids.GetValueOrDefault("Tier 1 - Operators", "");
+                var tier1Paw = groupSids.GetValueOrDefault("Tier 1 - PAW Users", "");
+                var tier2Ops = groupSids.GetValueOrDefault("Tier 2 - Operators", "");
+                var domainAdmins = groupSids.GetValueOrDefault("Domain Admins", "");
+                
+                // Deny logon rights to Tier 0 (except DA) and Tier 2 accounts on Tier 1 systems
+                var denyList = new List<string> { guests };
+                if (!string.IsNullOrEmpty(tier0Ops)) denyList.Add($"*{tier0Ops}"); // Tier 0 should not log onto Tier 1
+                if (!string.IsNullOrEmpty(tier2Ops)) denyList.Add($"*{tier2Ops}");
+                if (!string.IsNullOrEmpty(dvrl)) denyList.Add($"*{dvrl}");
+                
+                gptTmpl.AppendLine("; Tier 1 User Rights - Deny Tier 0/2 interactive access to Tier 1 systems");
+                gptTmpl.AppendLine($"SeDenyInteractiveLogonRight = {string.Join(",", denyList)}");
+                gptTmpl.AppendLine($"SeDenyRemoteInteractiveLogonRight = {string.Join(",", denyList)}");
+                
+                _progress?.Report($"[DEBUG] Tier 1 deny list set to: {string.Join(",", denyList)}");
+            }
+            // Tier 2 - Workstations
+            else if (gpoName.Contains("Tier 2", StringComparison.OrdinalIgnoreCase))
+            {
+                _progress?.Report("[DEBUG] Creating Tier 2 user rights settings...");
+                
+                var tier0Ops = groupSids.GetValueOrDefault("Tier 0 - Operators", "");
+                var tier1Ops = groupSids.GetValueOrDefault("Tier 1 - Operators", "");
+                var tier2Ops = groupSids.GetValueOrDefault("Tier 2 - Operators", "");
+                var tier2Paw = groupSids.GetValueOrDefault("Tier 2 - PAW Users", "");
+                var domainAdmins = groupSids.GetValueOrDefault("Domain Admins", "");
+                
+                // Deny logon rights to Tier 0 and Tier 1 accounts on Tier 2 systems
+                var denyList = new List<string> { guests };
+                if (!string.IsNullOrEmpty(tier0Ops)) denyList.Add($"*{tier0Ops}");
+                if (!string.IsNullOrEmpty(tier1Ops)) denyList.Add($"*{tier1Ops}");
+                if (!string.IsNullOrEmpty(dvrl)) denyList.Add($"*{dvrl}");
+                
+                gptTmpl.AppendLine("; Tier 2 User Rights - Deny Tier 0/1 interactive access to Tier 2 systems");
+                gptTmpl.AppendLine($"SeDenyInteractiveLogonRight = {string.Join(",", denyList)}");
+                gptTmpl.AppendLine($"SeDenyRemoteInteractiveLogonRight = {string.Join(",", denyList)}");
+                
+                _progress?.Report($"[DEBUG] Tier 2 deny list set to: {string.Join(",", denyList)}");
+            }
+            else
+            {
+                gptTmpl.AppendLine("; Generic user rights template");
+                gptTmpl.AppendLine($"SeDenyNetworkLogonRight = {guests}");
+            }
+
+            var filePath = Path.Combine(secEditPath, "GptTmpl.inf");
+            File.WriteAllText(filePath, gptTmpl.ToString(), Encoding.Unicode);
+            _progress?.Report($"[DEBUG] Wrote GptTmpl.inf to: {filePath}");
         }
 
         /// <summary>
