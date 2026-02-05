@@ -1,0 +1,143 @@
+<Window x:Class="PlatypusTools.UI.Windows.SystemRequirementsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="System Requirements Check - PlatypusTools"
+        Height="550" Width="700"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="SingleBorderWindow"
+        ResizeMode="NoResize"
+        Background="#FF1E1E1E">
+    
+    <Window.Resources>
+        <!-- Status Colors -->
+        <SolidColorBrush x:Key="PassBrush" Color="#FF4CAF50"/>
+        <SolidColorBrush x:Key="WarningBrush" Color="#FFFFC107"/>
+        <SolidColorBrush x:Key="FailBrush" Color="#FFF44336"/>
+        <SolidColorBrush x:Key="InfoBrush" Color="#FF2196F3"/>
+        
+        <Style x:Key="StatusIcon" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+        </Style>
+        
+        <Style x:Key="CheckItemStyle" TargetType="Border">
+            <Setter Property="Background" Value="#FF2D2D2D"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Margin" Value="0,4"/>
+        </Style>
+    </Window.Resources>
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="⚙️ System Requirements Check" 
+                       FontSize="24" FontWeight="Bold" Foreground="White"/>
+            <TextBlock x:Name="HeaderStatus" 
+                       FontSize="14" Foreground="#FFAAAAAA" Margin="0,5,0,0"
+                       Text="Checking if your system meets the requirements..."/>
+        </StackPanel>
+        
+        <!-- System Info Summary -->
+        <Border Grid.Row="1" Background="#FF252525" CornerRadius="6" Padding="15" Margin="0,0,0,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="CPU: " FontWeight="SemiBold" Foreground="#FFAAAAAA" Margin="0,2"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" x:Name="CpuInfo" Text="Detecting..." Foreground="White" Margin="0,2" TextTrimming="CharacterEllipsis"/>
+                
+                <TextBlock Grid.Row="0" Grid.Column="3" Text="RAM: " FontWeight="SemiBold" Foreground="#FFAAAAAA" Margin="0,2"/>
+                <TextBlock Grid.Row="0" Grid.Column="4" x:Name="RamInfo" Text="Detecting..." Foreground="White" Margin="0,2"/>
+                
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="GPU: " FontWeight="SemiBold" Foreground="#FFAAAAAA" Margin="0,2"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" x:Name="GpuInfo" Text="Detecting..." Foreground="White" Margin="0,2" TextTrimming="CharacterEllipsis"/>
+                
+                <TextBlock Grid.Row="1" Grid.Column="3" Text="OS: " FontWeight="SemiBold" Foreground="#FFAAAAAA" Margin="0,2"/>
+                <TextBlock Grid.Row="1" Grid.Column="4" x:Name="OsInfo" Text="Detecting..." Foreground="White" Margin="0,2"/>
+                
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Screen: " FontWeight="SemiBold" Foreground="#FFAAAAAA" Margin="0,2"/>
+                <TextBlock Grid.Row="2" Grid.Column="1" x:Name="ScreenInfo" Text="Detecting..." Foreground="White" Margin="0,2"/>
+                
+                <TextBlock Grid.Row="2" Grid.Column="3" Text="Disk: " FontWeight="SemiBold" Foreground="#FFAAAAAA" Margin="0,2"/>
+                <TextBlock Grid.Row="2" Grid.Column="4" x:Name="DiskInfo" Text="Detecting..." Foreground="White" Margin="0,2"/>
+            </Grid>
+        </Border>
+        
+        <!-- Requirements List -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="RequirementsList">
+                <!-- Items added dynamically -->
+            </StackPanel>
+        </ScrollViewer>
+        
+        <!-- Summary -->
+        <Border x:Name="SummaryPanel" Grid.Row="3" CornerRadius="6" Padding="15" Margin="0,15,0,15"
+                Background="#FF2D2D2D">
+            <StackPanel>
+                <TextBlock x:Name="SummaryTitle" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                <TextBlock x:Name="SummaryMessage" FontSize="13" Foreground="#FFCCCCCC" 
+                           TextWrapping="Wrap" Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+        
+        <!-- Buttons -->
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <CheckBox x:Name="DontShowAgainCheckBox" 
+                      Grid.Column="0"
+                      Content="Don't show this again on startup" 
+                      Foreground="#FFAAAAAA" 
+                      VerticalAlignment="Center"
+                      Margin="0,0,10,0"/>
+            
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="CopyReportButton" Content="📋 Copy Report" 
+                        Width="120" Height="35" Margin="0,0,10,0"
+                        Background="#FF424242" Foreground="White" BorderThickness="0"
+                        Click="CopyReportButton_Click"/>
+                
+                <Button x:Name="ContinueAnywayButton" Content="Continue Anyway" 
+                        Width="130" Height="35" Margin="0,0,10,0"
+                        Background="#FFFF9800" Foreground="White" BorderThickness="0"
+                        Visibility="Collapsed"
+                        Click="ContinueAnywayButton_Click"/>
+                
+                <Button x:Name="ContinueButton" Content="✓ Continue" 
+                        Width="100" Height="35"
+                        Background="#FF4CAF50" Foreground="White" BorderThickness="0"
+                        Click="ContinueButton_Click"/>
+                
+                <Button x:Name="ExitButton" Content="Exit" 
+                        Width="80" Height="35" Margin="10,0,0,0"
+                        Background="#FFF44336" Foreground="White" BorderThickness="0"
+                        Visibility="Collapsed"
+                        Click="ExitButton_Click"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

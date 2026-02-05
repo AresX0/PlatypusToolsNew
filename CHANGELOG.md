@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.3.1.9 - 2026-02-04
+
+### Added
+- **System Requirements Check** - Pre-launch system requirements scanner
+  - Checks Windows version, architecture, RAM, CPU cores, GPU/DirectX 11, disk space
+  - Shows detailed system info before app launch on first run
+  - "Don't show again" option to skip on subsequent launches
+  - Copy report button for troubleshooting
+
+- **AD Security Analyzer - GPO Deployment** - Enhanced security hardening GPO templates
+  - Domain Controllers security policies
+  - Server security policies
+  - Workstation security policies
+  - Audit policies for critical systems
+  - User rights assignments
+  - Restricted groups management
+  - Admin OU structure deployment
+
+### Fixed
+- **System Requirements Window Layout** - Fixed RAM text being cut off in the system info display
+- **Settings Persistence** - Fixed "Don't show again" preference not saving correctly
+
+---
+
 ## v3.2.18.0 - 2026-02-03
 
 ### Fixed

@@ -3,6 +3,7 @@ using PlatypusTools.UI.Views;
 using PlatypusTools.UI.ViewModels;
 using PlatypusTools.UI.Utilities;
 using PlatypusTools.UI.Services;
+using PlatypusTools.UI.Windows;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -57,6 +58,49 @@ namespace PlatypusTools.UI
                 return;
             }
             
+            // PRE-GUI SYSTEM REQUIREMENTS CHECK
+            // Quick critical check first (fast - no WMI queries)
+            if (!SystemRequirementsService.QuickCheck(out string failureReason))
+            {
+                MessageBox.Show(
+                    $"PlatypusTools cannot run on this system.\n\n{failureReason}",
+                    "System Requirements Not Met",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                Shutdown();
+                return;
+            }
+            
+            // Full requirements check (shows window if issues found or first run)
+            if (ShouldShowRequirementsCheck())
+            {
+                var requirementsService = new SystemRequirementsService();
+                var result = requirementsService.CheckRequirements();
+                
+                // Only show window if there are issues OR it's a first run
+                if (!result.MeetsRecommendedRequirements || IsFirstRun())
+                {
+                    var requirementsWindow = new SystemRequirementsWindow(result);
+                    requirementsWindow.ShowDialog();
+                    
+                    if (!requirementsWindow.UserWantsToContinue)
+                    {
+                        Shutdown();
+                        return;
+                    }
+                    
+                    // Save "Don't show again" preference
+                    if (requirementsWindow.DontShowAgain)
+                    {
+                        SettingsManager.Current.SkipSystemRequirementsCheck = true;
+                        SettingsManager.SaveCurrent();
+                    }
+                    
+                    // Mark that we've shown the check
+                    MarkRequirementsCheckShown();
+                }
+            }
+            
             // IMMEDIATELY show splash screen with video - this is the first thing that happens
             // No async, no delays - get that video playing NOW
             _splashScreen = new SplashScreenWindow();
@@ -92,6 +136,67 @@ namespace PlatypusTools.UI
             configWindow.ShowDialog();
             Shutdown();
         }
+        
+        #region System Requirements Check Helpers
+        
+        /// <summary>
+        /// Determines if we should show the full requirements check window.
+        /// </summary>
+        private bool ShouldShowRequirementsCheck()
+        {
+            try
+            {
+                // Check if user has permanently dismissed the check
+                var settings = SettingsManager.Current;
+                return !settings.SkipSystemRequirementsCheck;
+            }
+            catch
+            {
+                return true; // On error, show the check
+            }
+        }
+        
+        /// <summary>
+        /// Checks if this is the first run of the application.
+        /// </summary>
+        private bool IsFirstRun()
+        {
+            try
+            {
+                var flagFile = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "PlatypusTools",
+                    ".requirements_checked");
+                return !File.Exists(flagFile);
+            }
+            catch
+            {
+                return true;
+            }
+        }
+        
+        /// <summary>
+        /// Marks that the requirements check has been shown.
+        /// </summary>
+        private void MarkRequirementsCheckShown()
+        {
+            try
+            {
+                var folder = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "PlatypusTools");
+                Directory.CreateDirectory(folder);
+                
+                var flagFile = Path.Combine(folder, ".requirements_checked");
+                File.WriteAllText(flagFile, DateTime.Now.ToString("o"));
+            }
+            catch
+            {
+                // Ignore - not critical
+            }
+        }
+        
+        #endregion
         
         /// <summary>
         /// Checks if the application should run elevated based on settings and current state.

@@ -166,6 +166,7 @@ namespace PlatypusTools.UI.Services
         // First-run and dependency settings
         private bool _hasSeenDependencyPrompt = false;
         private bool _autoInstallDependencies = false;
+        private bool _skipSystemRequirementsCheck = false;
 
         /// <summary>
         /// Gets or sets whether the user has seen the dependency setup prompt.
@@ -183,6 +184,15 @@ namespace PlatypusTools.UI.Services
         {
             get => _autoInstallDependencies;
             set { _autoInstallDependencies = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to skip the system requirements check on startup.
+        /// </summary>
+        public bool SkipSystemRequirementsCheck
+        {
+            get => _skipSystemRequirementsCheck;
+            set { _skipSystemRequirementsCheck = value; OnPropertyChanged(); }
         }
 
         // AD Security Analyzer license key protection
