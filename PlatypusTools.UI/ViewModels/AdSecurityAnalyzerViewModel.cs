@@ -21,12 +21,14 @@ namespace PlatypusTools.UI.ViewModels
     {
         private readonly AdSecurityAnalysisService _analysisService;
         private readonly AdSecurityDatabaseService _databaseService;
+        private readonly EntraIdSecurityService _entraIdService;
         private CancellationTokenSource? _cts;
 
         public AdSecurityAnalyzerViewModel()
         {
             _analysisService = new AdSecurityAnalysisService(new Progress<string>(msg => AppendLog(msg)));
             _databaseService = new AdSecurityDatabaseService();
+            _entraIdService = new EntraIdSecurityService(new Progress<string>(msg => AppendLog(msg)));
 
             // Initialize collections
             PrivilegedMembers = new ObservableCollection<AdPrivilegedMember>();
@@ -38,6 +40,11 @@ namespace PlatypusTools.UI.ViewModels
             AnalysisHistory = new ObservableCollection<StoredAnalysisRun>();
             LogMessages = new ObservableCollection<string>();
             DeploymentResults = new ObservableCollection<AdObjectCreationResult>();
+            
+            // Entra ID collections
+            EntraPrivilegedRoles = new ObservableCollection<EntraIdPrivilegedRole>();
+            EntraRiskyApps = new ObservableCollection<EntraIdRiskyApp>();
+            EntraConditionalAccessPolicies = new ObservableCollection<EntraIdConditionalAccessPolicy>();
 
             // Initialize commands
             DiscoverDomainCommand = new RelayCommand(async _ => await DiscoverDomainAsync(), _ => !IsAnalyzing);
@@ -62,6 +69,21 @@ namespace PlatypusTools.UI.ViewModels
             DeployBaselineGposCommand = new RelayCommand(async _ => await DeployBaselineGposAsync(), _ => !IsAnalyzing && IsDomainDiscovered);
             PreviewDeploymentCommand = new RelayCommand(_ => PreviewDeployment(), _ => IsDomainDiscovered);
             ClearDeploymentResultsCommand = new RelayCommand(_ => DeploymentResults.Clear(), _ => DeploymentResults.Count > 0);
+
+            // Entra ID commands
+            ConnectEntraIdCommand = new RelayCommand(async _ => await ConnectEntraIdAsync(), _ => !IsAnalyzing && !string.IsNullOrWhiteSpace(EntraTenantId));
+            DisconnectEntraIdCommand = new RelayCommand(_ => DisconnectEntraId(), _ => IsEntraConnected);
+            RunEntraAnalysisCommand = new RelayCommand(async _ => await RunEntraAnalysisAsync(), _ => !IsAnalyzing && IsEntraConnected);
+            GetEntraPrivilegedRolesCommand = new RelayCommand(async _ => await GetEntraPrivilegedRolesAsync(), _ => !IsAnalyzing && IsEntraConnected);
+            GetEntraRiskyAppsCommand = new RelayCommand(async _ => await GetEntraRiskyAppsAsync(), _ => !IsAnalyzing && IsEntraConnected);
+            GetEntraCaPoliciesCommand = new RelayCommand(async _ => await GetEntraCaPoliciesAsync(), _ => !IsAnalyzing && IsEntraConnected);
+
+            // Remediation commands - PLATYPUS IR Operations
+            TakebackTenantCommand = new RelayCommand(async _ => await TakebackTenantAsync(), _ => !IsAnalyzing && IsEntraConnected);
+            MassPasswordResetCommand = new RelayCommand(async _ => await MassPasswordResetAsync(), _ => !IsAnalyzing && IsEntraConnected);
+            RevokeAllTokensCommand = new RelayCommand(async _ => await RevokeAllTokensAsync(), _ => !IsAnalyzing && IsEntraConnected);
+            RemovePrivRoleMembersCommand = new RelayCommand(async _ => await RemovePrivRoleMembersAsync(), _ => !IsAnalyzing && IsEntraConnected);
+            RemoveAdminCountCommand = new RelayCommand(async _ => await RemoveAdminCountAsync(), _ => !IsAnalyzing && IsDomainDiscovered);
 
             // Initialize
             _ = InitializeAsync();
@@ -500,6 +522,73 @@ namespace PlatypusTools.UI.ViewModels
         public ObservableCollection<StoredAnalysisRun> AnalysisHistory { get; }
         public ObservableCollection<string> LogMessages { get; }
         public ObservableCollection<AdObjectCreationResult> DeploymentResults { get; }
+        
+        // Entra ID Collections
+        public ObservableCollection<EntraIdPrivilegedRole> EntraPrivilegedRoles { get; }
+        public ObservableCollection<EntraIdRiskyApp> EntraRiskyApps { get; }
+        public ObservableCollection<EntraIdConditionalAccessPolicy> EntraConditionalAccessPolicies { get; }
+
+        // Entra ID Properties
+        private string _entraTenantId = string.Empty;
+        public string EntraTenantId
+        {
+            get => _entraTenantId;
+            set
+            {
+                if (SetProperty(ref _entraTenantId, value))
+                {
+                    CommandManager.InvalidateRequerySuggested();
+                }
+            }
+        }
+
+        private bool _isEntraConnected;
+        public bool IsEntraConnected
+        {
+            get => _isEntraConnected;
+            set
+            {
+                if (SetProperty(ref _isEntraConnected, value))
+                {
+                    CommandManager.InvalidateRequerySuggested();
+                }
+            }
+        }
+
+        private EntraIdTenant? _entraTenant;
+        public EntraIdTenant? EntraTenant
+        {
+            get => _entraTenant;
+            set => SetProperty(ref _entraTenant, value);
+        }
+
+        private bool _entraUsersOnly = false;
+        public bool EntraUsersOnly
+        {
+            get => _entraUsersOnly;
+            set => SetProperty(ref _entraUsersOnly, value);
+        }
+
+        private int _entraPrivilegedUserCount;
+        public int EntraPrivilegedUserCount
+        {
+            get => _entraPrivilegedUserCount;
+            set => SetProperty(ref _entraPrivilegedUserCount, value);
+        }
+
+        private int _entraRiskyAppCount;
+        public int EntraRiskyAppCount
+        {
+            get => _entraRiskyAppCount;
+            set => SetProperty(ref _entraRiskyAppCount, value);
+        }
+
+        private int _entraCaPolicyCount;
+        public int EntraCaPolicyCount
+        {
+            get => _entraCaPolicyCount;
+            set => SetProperty(ref _entraCaPolicyCount, value);
+        }
 
         private StoredAnalysisRun? _selectedHistoryRun;
         public StoredAnalysisRun? SelectedHistoryRun
@@ -561,6 +650,21 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand DeployBaselineGposCommand { get; }
         public ICommand PreviewDeploymentCommand { get; }
         public ICommand ClearDeploymentResultsCommand { get; }
+
+        // Entra ID (Azure AD) Commands - PLATYPUS Azure Analysis
+        public ICommand ConnectEntraIdCommand { get; }
+        public ICommand DisconnectEntraIdCommand { get; }
+        public ICommand RunEntraAnalysisCommand { get; }
+        public ICommand GetEntraPrivilegedRolesCommand { get; }
+        public ICommand GetEntraRiskyAppsCommand { get; }
+        public ICommand GetEntraCaPoliciesCommand { get; }
+
+        // Remediation / Takeback Commands - PLATYPUS IR Operations
+        public ICommand TakebackTenantCommand { get; }
+        public ICommand MassPasswordResetCommand { get; }
+        public ICommand RevokeAllTokensCommand { get; }
+        public ICommand RemovePrivRoleMembersCommand { get; }
+        public ICommand RemoveAdminCountCommand { get; }
 
         #endregion
 
@@ -1367,6 +1471,566 @@ namespace PlatypusTools.UI.ViewModels
                 Status = $"Error: {ex.Message}";
                 AppendLog($"GPO deployment error: {ex.Message}");
                 MessageBox.Show($"GPO deployment failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        #endregion
+
+        #region Entra ID (Azure AD) Methods - PLATYPUS Azure Analysis
+
+        /// <summary>
+        /// Connect to Entra ID (Azure AD) using interactive browser authentication
+        /// </summary>
+        private async Task ConnectEntraIdAsync()
+        {
+            IsAnalyzing = true;
+            Status = "Connecting to Entra ID (Azure AD)...";
+
+            try
+            {
+                _cts = new CancellationTokenSource();
+                AppendLog($"Connecting to Entra ID tenant: {EntraTenantId}");
+
+                var success = await _entraIdService.ConnectAsync(EntraTenantId);
+
+                if (success)
+                {
+                    IsEntraConnected = true;
+                    EntraTenant = await _entraIdService.GetTenantInfoAsync();
+                    
+                    if (EntraTenant != null)
+                    {
+                        AppendLog($"Connected to tenant: {EntraTenant.DisplayName} ({EntraTenant.TenantId})");
+                        AppendLog($"Verified domains: {string.Join(", ", EntraTenant.VerifiedDomains)}");
+                    }
+                    
+                    Status = $"Connected to Entra ID: {EntraTenant?.DisplayName ?? EntraTenantId}";
+                }
+                else
+                {
+                    IsEntraConnected = false;
+                    Status = "Failed to connect to Entra ID";
+                    AppendLog("Authentication failed or was cancelled");
+                }
+            }
+            catch (Exception ex)
+            {
+                Status = $"Entra ID connection error: {ex.Message}";
+                AppendLog($"Error connecting to Entra ID: {ex.Message}");
+                IsEntraConnected = false;
+            }
+            finally
+            {
+                IsAnalyzing = false;
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
+
+        /// <summary>
+        /// Disconnect from Entra ID
+        /// </summary>
+        private void DisconnectEntraId()
+        {
+            _entraIdService.Disconnect();
+            IsEntraConnected = false;
+            EntraTenant = null;
+            EntraPrivilegedRoles.Clear();
+            EntraRiskyApps.Clear();
+            EntraConditionalAccessPolicies.Clear();
+            EntraPrivilegedUserCount = 0;
+            EntraRiskyAppCount = 0;
+            EntraCaPolicyCount = 0;
+            Status = "Disconnected from Entra ID";
+            AppendLog("Disconnected from Entra ID");
+            CommandManager.InvalidateRequerySuggested();
+        }
+
+        /// <summary>
+        /// Run full Entra ID security analysis (equivalent to PLATYPUS Azure checks)
+        /// </summary>
+        private async Task RunEntraAnalysisAsync()
+        {
+            if (!IsEntraConnected)
+            {
+                AppendLog("Not connected to Entra ID. Connect first.");
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = "Running Entra ID security analysis...";
+            EntraPrivilegedRoles.Clear();
+            EntraRiskyApps.Clear();
+            EntraConditionalAccessPolicies.Clear();
+
+            try
+            {
+                _cts = new CancellationTokenSource();
+                AppendLog("Starting full Entra ID security analysis...");
+
+                var result = await _entraIdService.RunFullAnalysisAsync(EntraTenantId, EntraUsersOnly);
+
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    // Privileged roles
+                    foreach (var role in result.PrivilegedRoles)
+                    {
+                        EntraPrivilegedRoles.Add(role);
+                    }
+                    EntraPrivilegedUserCount = result.PrivilegedRoles
+                        .SelectMany(r => r.Members)
+                        .Count(m => m.ObjectType == "User");
+
+                    // Risky apps
+                    foreach (var app in result.RiskyApps)
+                    {
+                        EntraRiskyApps.Add(app);
+                    }
+                    EntraRiskyAppCount = result.RiskyApps.Count;
+
+                    // Conditional Access policies
+                    foreach (var policy in result.ConditionalAccessPolicies)
+                    {
+                        EntraConditionalAccessPolicies.Add(policy);
+                    }
+                    EntraCaPolicyCount = result.ConditionalAccessPolicies.Count;
+                });
+
+                AppendLog($"Analysis complete: {EntraPrivilegedUserCount} privileged users, {EntraRiskyAppCount} risky apps, {EntraCaPolicyCount} CA policies");
+                Status = $"Entra ID analysis complete: {EntraPrivilegedUserCount} privileged users, {EntraRiskyAppCount} risky apps";
+            }
+            catch (Exception ex)
+            {
+                Status = $"Entra ID analysis error: {ex.Message}";
+                AppendLog($"Error during Entra ID analysis: {ex.Message}");
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        /// <summary>
+        /// Get privileged role assignments (equivalent to Get-AzureAdPrivObjects)
+        /// </summary>
+        private async Task GetEntraPrivilegedRolesAsync()
+        {
+            if (!IsEntraConnected)
+            {
+                AppendLog("Not connected to Entra ID. Connect first.");
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = "Retrieving Entra ID privileged roles...";
+            EntraPrivilegedRoles.Clear();
+
+            try
+            {
+                _cts = new CancellationTokenSource();
+                AppendLog("Retrieving privileged role assignments...");
+
+                var roles = await _entraIdService.GetPrivilegedRolesAsync(EntraUsersOnly);
+
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    foreach (var role in roles)
+                    {
+                        EntraPrivilegedRoles.Add(role);
+                    }
+                    EntraPrivilegedUserCount = roles
+                        .SelectMany(r => r.Members)
+                        .Count(m => m.ObjectType == "User");
+                });
+
+                AppendLog($"Found {roles.Count} privileged roles with {EntraPrivilegedUserCount} user assignments");
+                Status = $"Found {EntraPrivilegedUserCount} privileged user assignments across {roles.Count} roles";
+            }
+            catch (Exception ex)
+            {
+                Status = $"Error: {ex.Message}";
+                AppendLog($"Error retrieving privileged roles: {ex.Message}");
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        /// <summary>
+        /// Get risky applications (equivalent to Get-AzureAdRiskyApps)
+        /// </summary>
+        private async Task GetEntraRiskyAppsAsync()
+        {
+            if (!IsEntraConnected)
+            {
+                AppendLog("Not connected to Entra ID. Connect first.");
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = "Retrieving risky Entra ID applications...";
+            EntraRiskyApps.Clear();
+
+            try
+            {
+                _cts = new CancellationTokenSource();
+                AppendLog("Scanning for applications with risky API permissions...");
+
+                var apps = await _entraIdService.GetRiskyAppsAsync();
+
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    foreach (var app in apps)
+                    {
+                        EntraRiskyApps.Add(app);
+                    }
+                    EntraRiskyAppCount = apps.Count;
+                });
+
+                var criticalCount = apps.Count(a => a.Severity == "Critical");
+                var highCount = apps.Count(a => a.Severity == "High");
+                AppendLog($"Found {apps.Count} risky applications: {criticalCount} Critical, {highCount} High");
+                Status = $"Found {apps.Count} risky applications ({criticalCount} Critical, {highCount} High)";
+            }
+            catch (Exception ex)
+            {
+                Status = $"Error: {ex.Message}";
+                AppendLog($"Error retrieving risky apps: {ex.Message}");
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        /// <summary>
+        /// Get Conditional Access policies (equivalent to Get-AzureAdCAPolicies)
+        /// </summary>
+        private async Task GetEntraCaPoliciesAsync()
+        {
+            if (!IsEntraConnected)
+            {
+                AppendLog("Not connected to Entra ID. Connect first.");
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = "Retrieving Entra ID Conditional Access policies...";
+            EntraConditionalAccessPolicies.Clear();
+
+            try
+            {
+                _cts = new CancellationTokenSource();
+                AppendLog("Retrieving Conditional Access policies...");
+
+                var policies = await _entraIdService.GetConditionalAccessPoliciesAsync();
+
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    foreach (var policy in policies)
+                    {
+                        EntraConditionalAccessPolicies.Add(policy);
+                    }
+                    EntraCaPolicyCount = policies.Count;
+                });
+
+                var enabledCount = policies.Count(p => p.State == "enabled");
+                var reportOnlyCount = policies.Count(p => p.State == "enabledForReportingButNotEnforced");
+                AppendLog($"Found {policies.Count} CA policies: {enabledCount} Enabled, {reportOnlyCount} Report-only");
+                Status = $"Found {policies.Count} Conditional Access policies ({enabledCount} enabled)";
+            }
+            catch (Exception ex)
+            {
+                Status = $"Error: {ex.Message}";
+                AppendLog($"Error retrieving CA policies: {ex.Message}");
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        #endregion
+
+        #region Remediation / Takeback Methods (PLATYPUS IR Operations)
+
+        // Remediation properties
+        private string _exemptedUsers = string.Empty;
+        public string ExemptedUsers
+        {
+            get => _exemptedUsers;
+            set => SetProperty(ref _exemptedUsers, value);
+        }
+
+        private bool _remediationWhatIf = true;
+        public bool RemediationWhatIf
+        {
+            get => _remediationWhatIf;
+            set => SetProperty(ref _remediationWhatIf, value);
+        }
+
+        private bool _takebackResetPasswords = true;
+        public bool TakebackResetPasswords
+        {
+            get => _takebackResetPasswords;
+            set => SetProperty(ref _takebackResetPasswords, value);
+        }
+
+        private bool _takebackRevokeSessions = true;
+        public bool TakebackRevokeSessions
+        {
+            get => _takebackRevokeSessions;
+            set => SetProperty(ref _takebackRevokeSessions, value);
+        }
+
+        private bool _takebackRemoveRoles;
+        public bool TakebackRemoveRoles
+        {
+            get => _takebackRemoveRoles;
+            set => SetProperty(ref _takebackRemoveRoles, value);
+        }
+
+        /// <summary>
+        /// Performs tenant takeback operation
+        /// </summary>
+        private async Task TakebackTenantAsync()
+        {
+            if (!IsEntraConnected)
+            {
+                AppendLog("Not connected to Entra ID. Connect first.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(ExemptedUsers))
+            {
+                AppendLog("ERROR: You must specify exempted users to avoid locking yourself out!");
+                MessageBox.Show("You must specify exempted users (comma-separated) to avoid locking yourself out!", 
+                    "Exempted Users Required", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!RemediationWhatIf)
+            {
+                var confirm = MessageBox.Show(
+                    "WARNING: This will reset passwords and revoke sessions for ALL privileged users except those exempted.\n\n" +
+                    "This is a destructive operation. Are you ABSOLUTELY sure?",
+                    "Confirm Tenant Takeback",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+                if (confirm != MessageBoxResult.Yes)
+                {
+                    AppendLog("Tenant takeback cancelled by user");
+                    return;
+                }
+            }
+
+            IsAnalyzing = true;
+            Status = "Executing tenant takeback...";
+
+            try
+            {
+                var exemptedList = ExemptedUsers.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(u => u.Trim()).ToList();
+
+                AppendLog($"Starting tenant takeback with {exemptedList.Count} exempted users");
+                AppendLog($"WhatIf mode: {RemediationWhatIf}");
+
+                var options = new TenantTakebackOptions
+                {
+                    TenantId = EntraTenantId,
+                    ExemptedUserUpns = exemptedList,
+                    ResetPasswords = TakebackResetPasswords,
+                    RevokeSessions = TakebackRevokeSessions,
+                    RemoveFromRoles = TakebackRemoveRoles,
+                    WhatIf = RemediationWhatIf
+                };
+
+                var result = await _entraIdService.TakebackTenantAsync(options);
+
+                if (result.Success)
+                {
+                    AppendLog($"Takeback complete: {result.PasswordsReset} passwords reset, {result.SessionsRevoked} sessions revoked");
+                    Status = $"Takeback complete: Processed {result.TotalProcessed} users";
+                }
+                else
+                {
+                    AppendLog($"Takeback failed: {string.Join(", ", result.Errors)}");
+                    Status = "Takeback failed - check log";
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error during takeback: {ex.Message}");
+                Status = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        /// <summary>
+        /// Mass password reset for all users
+        /// </summary>
+        private async Task MassPasswordResetAsync()
+        {
+            if (!IsEntraConnected)
+            {
+                AppendLog("Not connected to Entra ID. Connect first.");
+                return;
+            }
+
+            if (!RemediationWhatIf)
+            {
+                var confirm = MessageBox.Show(
+                    "WARNING: This will reset passwords for ALL users in the tenant except external and exempted users.\n\n" +
+                    "This is a very destructive operation. Are you ABSOLUTELY sure?",
+                    "Confirm Mass Password Reset",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+                if (confirm != MessageBoxResult.Yes)
+                {
+                    AppendLog("Mass password reset cancelled by user");
+                    return;
+                }
+            }
+
+            IsAnalyzing = true;
+            Status = "Executing mass password reset...";
+
+            try
+            {
+                var exemptedList = ExemptedUsers.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(u => u.Trim()).ToList();
+
+                var result = await _entraIdService.MassPasswordResetAsync(exemptedList, false, RemediationWhatIf);
+
+                AppendLog($"Mass password reset complete: {result.ResetCount} reset, {result.SkippedCount} skipped, {result.FailedCount} failed");
+                Status = $"Password reset complete: {result.ResetCount} users processed";
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error during mass password reset: {ex.Message}");
+                Status = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        /// <summary>
+        /// Revoke all user tokens
+        /// </summary>
+        private async Task RevokeAllTokensAsync()
+        {
+            if (!IsEntraConnected)
+            {
+                AppendLog("Not connected to Entra ID. Connect first.");
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = "Revoking all user tokens...";
+
+            try
+            {
+                var exemptedList = ExemptedUsers.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(u => u.Trim()).ToList();
+
+                var count = await _entraIdService.RevokeAllUserTokensAsync(exemptedList, RemediationWhatIf);
+
+                AppendLog($"Revoked tokens for {count} users");
+                Status = $"Token revocation complete: {count} users";
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error revoking tokens: {ex.Message}");
+                Status = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        /// <summary>
+        /// Remove privileged role members
+        /// </summary>
+        private async Task RemovePrivRoleMembersAsync()
+        {
+            if (!IsEntraConnected)
+            {
+                AppendLog("Not connected to Entra ID. Connect first.");
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = "Removing privileged role members...";
+
+            try
+            {
+                var exemptedList = ExemptedUsers.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(u => u.Trim()).ToList();
+
+                var roleNames = new List<string> 
+                { 
+                    "Global Administrator", 
+                    "Privileged Role Administrator",
+                    "Privileged Authentication Administrator"
+                };
+
+                var count = await _entraIdService.RemovePrivilegedRoleMembersAsync(
+                    roleNames, exemptedList, RemediationWhatIf);
+
+                AppendLog($"Removed {count} role assignments");
+                Status = $"Role member removal complete: {count} removed";
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error removing role members: {ex.Message}");
+                Status = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        /// <summary>
+        /// Remove AdminCount from non-protected accounts
+        /// </summary>
+        private async Task RemoveAdminCountAsync()
+        {
+            if (!IsDomainDiscovered)
+            {
+                AppendLog("Domain not discovered. Discover domain first.");
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = "Removing AdminCount from orphaned accounts...";
+
+            try
+            {
+                var results = await _analysisService.RemoveAdminCountAsync(
+                    allUsers: true,
+                    whatIf: RemediationWhatIf);
+
+                var successCount = results.Count(r => r.Success);
+                AppendLog($"AdminCount removal complete: {successCount}/{results.Count} successful");
+                Status = $"AdminCount removal: {successCount} accounts fixed";
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error removing AdminCount: {ex.Message}");
+                Status = $"Error: {ex.Message}";
             }
             finally
             {

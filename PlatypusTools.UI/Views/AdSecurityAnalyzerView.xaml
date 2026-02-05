@@ -574,6 +574,311 @@
                 </Grid>
             </TabItem>
 
+            <!-- Entra ID (Azure AD) Tab - PLATYPUS Azure Analysis -->
+            <TabItem Header="☁️ Entra ID">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Connection Panel -->
+                    <GroupBox Grid.Row="0" Header="🔐 Entra ID Connection" Margin="0,0,0,8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="300" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Tenant ID:" VerticalAlignment="Center" Margin="5" />
+                            <TextBox Grid.Column="1" Text="{Binding EntraTenantId, UpdateSourceTrigger=PropertyChanged}" 
+                                     Margin="5" ToolTip="Enter your Azure AD / Entra ID tenant ID or domain (e.g., contoso.onmicrosoft.com)" />
+
+                            <Button Grid.Column="2" Content="🔗 Connect" Command="{Binding ConnectEntraIdCommand}" 
+                                    MinWidth="120" Margin="5" Background="#FF2196F3" Foreground="White" />
+                            <Button Grid.Column="3" Content="🔓 Disconnect" Command="{Binding DisconnectEntraIdCommand}" 
+                                    MinWidth="120" Margin="5" Background="#FFF44336" Foreground="White" />
+
+                            <CheckBox Grid.Column="4" Content="Users Only" IsChecked="{Binding EntraUsersOnly}" 
+                                      VerticalAlignment="Center" Margin="15,5,5,5" 
+                                      ToolTip="Filter privileged roles to show only user accounts (excludes service principals and groups)" />
+
+                            <!-- Connection Status -->
+                            <StackPanel Grid.Row="1" Grid.ColumnSpan="6" Orientation="Horizontal" Margin="5">
+                                <TextBlock Text="Status: " FontWeight="SemiBold" />
+                                <TextBlock>
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="Not connected" />
+                                            <Setter Property="Foreground" Value="#888" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsEntraConnected}" Value="True">
+                                                    <Setter Property="Text" Value="Connected" />
+                                                    <Setter Property="Foreground" Value="#4CAF50" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock Text=" | Tenant: " FontWeight="SemiBold" Margin="20,0,0,0" />
+                                <TextBlock Text="{Binding EntraTenant.DisplayName, FallbackValue='-'}" />
+                            </StackPanel>
+                        </Grid>
+                    </GroupBox>
+
+                    <!-- Analysis Buttons -->
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
+                        <Button Content="▶️ Run Full Analysis" Command="{Binding RunEntraAnalysisCommand}" 
+                                MinWidth="160" Margin="5" Background="#FF4CAF50" Foreground="White" FontWeight="SemiBold" />
+                        <Button Content="👥 Privileged Roles" Command="{Binding GetEntraPrivilegedRolesCommand}" 
+                                MinWidth="140" Margin="5" Background="#FF9C27B0" Foreground="White" />
+                        <Button Content="⚠️ Risky Apps" Command="{Binding GetEntraRiskyAppsCommand}" 
+                                MinWidth="120" Margin="5" Background="#FFFF9800" Foreground="White" />
+                        <Button Content="🛡️ CA Policies" Command="{Binding GetEntraCaPoliciesCommand}" 
+                                MinWidth="120" Margin="5" Background="#FF2196F3" Foreground="White" />
+
+                        <!-- Counts -->
+                        <Border Margin="20,5,5,5" Padding="10,2" Background="#333" CornerRadius="3">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Priv Users: " Foreground="White" />
+                                <TextBlock Text="{Binding EntraPrivilegedUserCount}" Foreground="#4CAF50" FontWeight="Bold" />
+                                <TextBlock Text=" | Risky Apps: " Foreground="White" Margin="15,0,0,0" />
+                                <TextBlock Text="{Binding EntraRiskyAppCount}" Foreground="#FF9800" FontWeight="Bold" />
+                                <TextBlock Text=" | CA Policies: " Foreground="White" Margin="15,0,0,0" />
+                                <TextBlock Text="{Binding EntraCaPolicyCount}" Foreground="#2196F3" FontWeight="Bold" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Results Tabs -->
+                    <TabControl Grid.Row="2">
+                        <!-- Privileged Roles -->
+                        <TabItem Header="👥 Privileged Roles">
+                            <DataGrid ItemsSource="{Binding EntraPrivilegedRoles}" AutoGenerateColumns="False" 
+                                      IsReadOnly="True" CanUserResizeRows="False" GridLinesVisibility="Horizontal"
+                                      AlternatingRowBackground="#FF2A2A2A" Background="#FF1E1E1E">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Role Name" Binding="{Binding RoleName}" Width="200" />
+                                    <DataGridTextColumn Header="Role ID" Binding="{Binding RoleId}" Width="280" />
+                                    <DataGridTextColumn Header="Members" Binding="{Binding Members.Count}" Width="80" />
+                                    <DataGridTemplateColumn Header="Member Details" Width="*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <ItemsControl ItemsSource="{Binding Members}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock>
+                                                                <Run Text="{Binding DisplayName, Mode=OneWay}" FontWeight="SemiBold" />
+                                                                <Run Text=" (" /><Run Text="{Binding ObjectType, Mode=OneWay}" /><Run Text=")" />
+                                                                <Run Text=" - " /><Run Text="{Binding AssignmentType, Mode=OneWay}" Foreground="#888" />
+                                                            </TextBlock>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </TabItem>
+
+                        <!-- Risky Apps -->
+                        <TabItem Header="⚠️ Risky Apps">
+                            <DataGrid ItemsSource="{Binding EntraRiskyApps}" AutoGenerateColumns="False" 
+                                      IsReadOnly="True" CanUserResizeRows="False" GridLinesVisibility="Horizontal"
+                                      AlternatingRowBackground="#FF2A2A2A" Background="#FF1E1E1E">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="80">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Severity}" Value="Critical">
+                                                        <Setter Property="Foreground" Value="#FF5252" />
+                                                        <Setter Property="FontWeight" Value="Bold" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Severity}" Value="High">
+                                                        <Setter Property="Foreground" Value="#FF9800" />
+                                                        <Setter Property="FontWeight" Value="SemiBold" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+                                    <DataGridTextColumn Header="App Name" Binding="{Binding DisplayName}" Width="200" />
+                                    <DataGridTextColumn Header="App ID" Binding="{Binding AppId}" Width="280" />
+                                    <DataGridTextColumn Header="Risky Permissions" Binding="{Binding RiskyPermissionCount}" Width="120" />
+                                    <DataGridTemplateColumn Header="Permission Details" Width="*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <ItemsControl ItemsSource="{Binding RiskyPermissions}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock TextWrapping="Wrap">
+                                                                <Run Text="{Binding PermissionName, Mode=OneWay}" FontWeight="SemiBold" Foreground="#FF9800" />
+                                                                <Run Text=" - " /><Run Text="{Binding PermissionDescription, Mode=OneWay}" Foreground="#888" />
+                                                            </TextBlock>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </TabItem>
+
+                        <!-- Conditional Access Policies -->
+                        <TabItem Header="🛡️ CA Policies">
+                            <DataGrid ItemsSource="{Binding EntraConditionalAccessPolicies}" AutoGenerateColumns="False" 
+                                      IsReadOnly="True" CanUserResizeRows="False" GridLinesVisibility="Horizontal"
+                                      AlternatingRowBackground="#FF2A2A2A" Background="#FF1E1E1E">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="State" Binding="{Binding State}" Width="100">
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="TextBlock">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding State}" Value="enabled">
+                                                        <Setter Property="Foreground" Value="#4CAF50" />
+                                                        <Setter Property="FontWeight" Value="Bold" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding State}" Value="disabled">
+                                                        <Setter Property="Foreground" Value="#888" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding State}" Value="enabledForReportingButNotEnforced">
+                                                        <Setter Property="Foreground" Value="#2196F3" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
+                                    <DataGridTextColumn Header="Policy Name" Binding="{Binding DisplayName}" Width="250" />
+                                    <DataGridTextColumn Header="Policy ID" Binding="{Binding PolicyId}" Width="280" />
+                                    <DataGridTextColumn Header="Targets Users" Binding="{Binding IncludesAllUsers}" Width="100" />
+                                    <DataGridTextColumn Header="Targets Apps" Binding="{Binding IncludesAllApps}" Width="100" />
+                                    <DataGridTextColumn Header="Grant Controls" Binding="{Binding GrantControlsSummary}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </TabItem>
+                    </TabControl>
+                </Grid>
+            </TabItem>
+
+            <!-- IR Remediation Tab (PLATYPUS Takeback Operations) -->
+            <TabItem Header="🚨 IR Remediation">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Warning Banner -->
+                    <Border Grid.Row="0" Background="#FFFF5252" Padding="10" Margin="0,0,0,10" CornerRadius="4">
+                        <StackPanel>
+                            <TextBlock Text="⚠️ WARNING: INCIDENT RESPONSE OPERATIONS" FontWeight="Bold" Foreground="White" FontSize="14" />
+                            <TextBlock Text="These operations are destructive and should ONLY be used during active incident response." 
+                                       Foreground="White" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Global Settings -->
+                    <GroupBox Grid.Row="1" Header="🔧 Settings" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Exempted Users (comma-separated):" VerticalAlignment="Center" Margin="5" />
+                            <TextBox Grid.Column="1" Text="{Binding ExemptedUsers, UpdateSourceTrigger=PropertyChanged}" 
+                                     Margin="5" ToolTip="UPNs of users to EXCLUDE from remediation (e.g., admin@domain.com, responder@domain.com)" />
+                            <CheckBox Grid.Column="2" Content="WhatIf (Dry Run)" IsChecked="{Binding RemediationWhatIf}" 
+                                      Margin="5" VerticalAlignment="Center" FontWeight="Bold" Foreground="#FF4CAF50"
+                                      ToolTip="When checked, no changes will be made - only simulation" />
+                        </Grid>
+                    </GroupBox>
+
+                    <!-- Entra ID Remediation -->
+                    <GroupBox Grid.Row="2" Header="☁️ Entra ID / Azure AD Remediation" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Takeback Options -->
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
+                                <CheckBox Content="Reset Passwords" IsChecked="{Binding TakebackResetPasswords}" Margin="5" />
+                                <CheckBox Content="Revoke Sessions" IsChecked="{Binding TakebackRevokeSessions}" Margin="5" />
+                                <CheckBox Content="Remove from Roles" IsChecked="{Binding TakebackRemoveRoles}" Margin="5" 
+                                          ToolTip="Remove users from privileged roles (Global Admin, etc.)" />
+                            </StackPanel>
+
+                            <!-- Takeback Button -->
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="5">
+                                <Button Content="🎯 Tenant Takeback" Command="{Binding TakebackTenantCommand}" 
+                                        MinWidth="220" Margin="5" Background="#FFE53935" Foreground="White" FontWeight="Bold"
+                                        ToolTip="Reset passwords, revoke sessions, and optionally remove role assignments for privileged users" />
+                                <TextBlock Text="Full takeback: resets passwords and revokes sessions for all privileged users except exempted" 
+                                           VerticalAlignment="Center" Foreground="Gray" Margin="10,0" FontStyle="Italic" />
+                            </StackPanel>
+
+                            <!-- Individual Operations -->
+                            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="5">
+                                <Button Content="🔑 Mass Password Reset" Command="{Binding MassPasswordResetCommand}" 
+                                        MinWidth="220" Margin="5" Background="#FFFF9800" Foreground="White"
+                                        ToolTip="Reset passwords for ALL users (except exempted)" />
+                                <Button Content="🔒 Revoke All Tokens" Command="{Binding RevokeAllTokensCommand}" 
+                                        MinWidth="220" Margin="5" Background="#FF9C27B0" Foreground="White"
+                                        ToolTip="Revoke refresh tokens for ALL users (forces re-authentication)" />
+                                <Button Content="👤 Remove Priv Role Members" Command="{Binding RemovePrivRoleMembersCommand}" 
+                                        MinWidth="220" Margin="5" Background="#FF673AB7" Foreground="White"
+                                        ToolTip="Remove all members from Global Admin and other privileged roles" />
+                            </StackPanel>
+                        </Grid>
+                    </GroupBox>
+
+                    <!-- Active Directory Remediation -->
+                    <GroupBox Grid.Row="3" Header="🏢 Active Directory Remediation" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal" Margin="5">
+                            <Button Content="🧹 Remove Orphan AdminCount" Command="{Binding RemoveAdminCountCommand}" 
+                                    MinWidth="220" Margin="5" Background="#FF2196F3" Foreground="White"
+                                    ToolTip="Remove AdminCount attribute from accounts no longer in protected groups" />
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Info/Status -->
+                    <Border Grid.Row="4" Background="#FF263238" Padding="10" CornerRadius="4">
+                        <StackPanel>
+                            <TextBlock Text="📌 Best Practices for IR:" FontWeight="Bold" Foreground="#FF81D4FA" Margin="0,0,0,5" />
+                            <TextBlock Foreground="#FFB0BEC5" TextWrapping="Wrap">
+                                <Run>1. ALWAYS add your own UPN and other IR team members to the exempted users list</Run><LineBreak/>
+                                <Run>2. Start with WhatIf mode enabled to preview changes</Run><LineBreak/>
+                                <Run>3. For tenant takeback, ensure you have break-glass accounts configured</Run><LineBreak/>
+                                <Run>4. Document all actions taken during incident response</Run><LineBreak/>
+                                <Run>5. Consider using PIM to re-establish legitimate access after takeback</Run>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
             <!-- Log Tab -->
             <TabItem Header="📝 Log">
                 <Grid>

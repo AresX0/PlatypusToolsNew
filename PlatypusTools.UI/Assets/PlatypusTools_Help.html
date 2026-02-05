@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlatypusTools v3.3.2.2.2.1.7.7.6.5.1.1.5.5.4.3.2 - Help Documentation</title>
+    <title>PlatypusTools v3.3.2.3.3 - Help Documentation</title>
     <style>
         :root {
             --primary: #2d5aa8;
@@ -148,7 +148,7 @@
 <header>
     <h1>🦆 PlatypusTools</h1>
     <p>Advanced File Management &amp; Media Tools Suite</p>
-    <div class="version">Version 3.2.20 | Built with .NET 10 / WPF</div>
+    <div class="version">Version 3.3.2.3.3 | Built with .NET 10 / WPF</div>
 </header>
 
 <div class="container">
@@ -173,7 +173,36 @@
     <h2>Overview</h2>
     <p>PlatypusTools is a powerful, all-in-one Windows system utility that combines file management, multimedia editing, system cleanup, security tools, digital forensics, and metadata editing into a single, modern WPF application.</p>
     
-    <h3>What's New in v3.2.15</h3>
+    <h3>What's New in v3.3.2.3</h3>
+    <ul>
+        <li><strong>Active Directory Security Analyzer</strong> <span class="new-badge">New</span> - Enterprise security analysis for AD environments
+            <ul>
+                <li>Privileged group and account enumeration</li>
+                <li>Kerberos delegation and SPN analysis</li>
+                <li>AdminSDHolder and AdminCount anomaly detection</li>
+                <li>GPO security policy deployment (Credential Guard, LAPS, SMB Signing, and more)</li>
+                <li>Password policy and fine-grained policy analysis</li>
+            </ul>
+        </li>
+        <li><strong>Cloud Identity Security</strong> <span class="new-badge">New</span> - Entra ID security posture analysis
+            <ul>
+                <li>Privileged role enumeration</li>
+                <li>PIM violation detection (permanent vs eligible assignments)</li>
+                <li>Risky application permission analysis</li>
+                <li>Conditional Access policy auditing and deployment</li>
+            </ul>
+        </li>
+        <li><strong>Incident Response Tools</strong> <span class="new-badge">New</span> - Emergency remediation capabilities
+            <ul>
+                <li>Mass password reset operations</li>
+                <li>Session revocation across tenant</li>
+                <li>Emergency privilege removal</li>
+                <li>AdminCount cleanup and RID pool invalidation</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>Previous Updates (v3.2.15)</h3>
     <ul>
         <li><strong>Screen Recorder</strong> <span class="new-badge">New</span> - Record your screen to video with FFmpeg backend
             <ul>
@@ -741,6 +770,76 @@
         <li>Reset user passwords</li>
         <li>Open Local Users and Groups MMC</li>
     </ul>
+    
+    <h3>🛡️ Active Directory Security Analyzer <span class="new-badge">New</span></h3>
+    <p>Enterprise-grade security analysis for Active Directory environments. Identifies misconfigurations, privilege escalation paths, and security risks in your directory infrastructure.</p>
+    
+    <h4>Domain Analysis</h4>
+    <table>
+        <tr><th>Feature</th><th>Description</th></tr>
+        <tr><td>Domain Info</td><td>Retrieve domain functional level, PDC emulator, and forest structure</td></tr>
+        <tr><td>Privileged Groups</td><td>Enumerate high-privilege group membership (Domain Admins, Enterprise Admins, etc.)</td></tr>
+        <tr><td>AdminSDHolder</td><td>Detect objects with AdminCount=1 that may have stale protected permissions</td></tr>
+        <tr><td>Kerberos Delegation</td><td>Find accounts with unconstrained or constrained delegation settings</td></tr>
+        <tr><td>SPN Analysis</td><td>Identify service accounts vulnerable to Kerberoasting attacks</td></tr>
+        <tr><td>Password Policy</td><td>Analyze domain password policies and fine-grained password policies</td></tr>
+    </table>
+    
+    <h4>GPO Security Policies</h4>
+    <p>Deploy pre-configured Group Policy Objects to harden your domain. Each policy addresses specific security concerns:</p>
+    <table>
+        <tr><th>Policy</th><th>Purpose</th></tr>
+        <tr><td>Credential Guard</td><td>Enables virtualization-based security to protect credential hashes from extraction. Prevents pass-the-hash and pass-the-ticket attacks.</td></tr>
+        <tr><td>LAPS</td><td>Configures Local Administrator Password Solution to randomize and rotate local admin passwords. Prevents lateral movement using shared credentials.</td></tr>
+        <tr><td>LDAP Signing</td><td>Requires LDAP channel binding and signing to prevent man-in-the-middle attacks on directory queries.</td></tr>
+        <tr><td>SMB Signing</td><td>Requires SMB packet signing to prevent relay attacks and tampering with file shares.</td></tr>
+        <tr><td>NTLMv2 Only</td><td>Disables legacy NTLM authentication, requiring NTLMv2 minimum. Reduces credential theft attack surface.</td></tr>
+        <tr><td>Admin Tiering</td><td>Implements administrative tier separation to prevent credential exposure across security boundaries.</td></tr>
+        <tr><td>PowerShell Logging</td><td>Enables script block logging, module logging, and transcription for security monitoring and forensics.</td></tr>
+        <tr><td>Audit Policy</td><td>Configures comprehensive Windows event auditing for logon events, privilege use, and object access.</td></tr>
+        <tr><td>AppLocker</td><td>Restricts application execution to approved software lists, preventing malware and unauthorized tools.</td></tr>
+        <tr><td>USB Restriction</td><td>Blocks unauthorized removable storage devices to prevent data exfiltration and malware introduction.</td></tr>
+    </table>
+    <div class="warning">
+        <strong>Warning:</strong> GPO deployment requires Domain Admin or delegated Group Policy Creator Owners permissions. Test policies in a non-production environment first.
+    </div>
+    
+    <h4>☁️ Cloud Identity Analysis</h4>
+    <p>Analyze Entra ID (formerly Azure AD) security posture for hybrid and cloud-only environments.</p>
+    <table>
+        <tr><th>Feature</th><th>Description</th></tr>
+        <tr><td>Privileged Roles</td><td>Enumerate users with Global Admin, Privileged Role Admin, and other high-risk role assignments</td></tr>
+        <tr><td>PIM Violations</td><td>Find permanent privileged role assignments that should be eligible (just-in-time)</td></tr>
+        <tr><td>Risky Applications</td><td>Identify apps with excessive Microsoft Graph permissions (Mail.ReadWrite, Directory.ReadWrite.All, etc.)</td></tr>
+        <tr><td>Conditional Access</td><td>Audit conditional access policies for MFA enforcement, trusted locations, and device compliance</td></tr>
+    </table>
+    
+    <h4>Conditional Access Policies</h4>
+    <p>Deploy recommended Conditional Access policies to enforce Zero Trust security:</p>
+    <table>
+        <tr><th>Policy</th><th>Purpose</th></tr>
+        <tr><td>Require MFA for Admins</td><td>Enforces multi-factor authentication for all administrative role assignments, blocking legacy authentication.</td></tr>
+        <tr><td>Require MFA for All Users</td><td>Enforces MFA for all users across all cloud applications with sign-in risk detection.</td></tr>
+        <tr><td>Block Legacy Auth</td><td>Blocks IMAP, POP3, SMTP, and other legacy protocols that don't support modern authentication.</td></tr>
+        <tr><td>Require Compliant Device</td><td>Requires devices to be Intune-compliant or Hybrid Azure AD joined before accessing resources.</td></tr>
+        <tr><td>Named Locations</td><td>Restricts access to resources from untrusted geographic locations or IP ranges.</td></tr>
+    </table>
+    <div class="tip">
+        <strong>Note:</strong> Cloud features require appropriate Microsoft Graph API permissions and authentication to your tenant.
+    </div>
+    
+    <h4>Incident Response Remediation</h4>
+    <p>Emergency actions for active security incidents:</p>
+    <ul>
+        <li><strong>Mass Password Reset</strong> - Force password change for all users or specific groups</li>
+        <li><strong>Revoke All Sessions</strong> - Invalidate all refresh tokens to force re-authentication</li>
+        <li><strong>Remove Privileged Roles</strong> - Emergency removal of administrative access</li>
+        <li><strong>AdminCount Cleanup</strong> - Reset adminCount attribute on objects no longer protected by AdminSDHolder</li>
+        <li><strong>RID Pool Invalidation</strong> - Prevent reuse of security identifiers after compromise</li>
+    </ul>
+    <div class="warning">
+        <strong>Caution:</strong> Incident response actions are disruptive. Ensure proper authorization and documentation before executing.
+    </div>
 </section>
 
 <section id="forensics" class="section">
@@ -1293,7 +1392,7 @@
 </div>
 
 <footer>
-    <p>PlatypusTools v3.3.2.2.2.1.7.7.6.5.1.1.5.5.4.3.2 | © 2026 PlatypusTools Project | Built with .NET 10 / WPF</p>
+    <p>PlatypusTools v3.3.2.3.3.2.1.7.7.6.5.1.1.5.5.4.3.2 | © 2026 PlatypusTools Project | Built with .NET 10 / WPF</p>
 </footer>
 
 </body>

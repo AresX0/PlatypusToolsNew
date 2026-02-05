@@ -83,6 +83,43 @@ namespace PlatypusTools.Core.Models
         public bool HasLocalUserMods { get; set; }
         public bool HasEnvironmentMods { get; set; }
         public string Severity { get; set; } = "Medium";
+        
+        /// <summary>
+        /// Detailed risk reasons for this GPO.
+        /// </summary>
+        public List<GpoRiskDetail> RiskDetails { get; set; } = new();
+        
+        /// <summary>
+        /// OU/site paths where this GPO is linked, with enabled status.
+        /// </summary>
+        public Dictionary<string, bool> LinkLocations { get; set; } = new();
+        
+        /// <summary>
+        /// Indicates if this GPO is considered risky overall.
+        /// </summary>
+        public bool IsRisky => HasScheduledTasks || HasRegistryMods || HasFileOperations || 
+                               HasSoftwareInstallation || HasLocalUserMods || HasEnvironmentMods;
+    }
+
+    /// <summary>
+    /// Represents detailed information about a specific risk in a GPO.
+    /// </summary>
+    public class GpoRiskDetail
+    {
+        public string RiskType { get; set; } = string.Empty;  // scheduledtask, filedeploy, registry, etc.
+        public string Name { get; set; } = string.Empty;
+        public string Details { get; set; } = string.Empty;
+
+        public GpoRiskDetail() { }
+
+        public GpoRiskDetail(string riskType, string name, string details)
+        {
+            RiskType = riskType;
+            Name = name;
+            Details = details;
+        }
+
+        public override string ToString() => $"{RiskType}: {Name} - {Details}";
     }
 
     /// <summary>
@@ -183,35 +220,151 @@ namespace PlatypusTools.Core.Models
 
     /// <summary>
     /// Well-known privileged group definitions.
+    /// Based on Microsoft Appendix B: Active Directory privileged accounts and groups reference guide
+    /// https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/appendix-b--privileged-accounts-and-groups-in-active-directory
     /// </summary>
     public static class WellKnownPrivilegedGroups
     {
+        /// <summary>
+        /// Highest privilege AD groups - Tier 0 equivalents
+        /// </summary>
+        public static readonly string[] Tier0Groups = new[]
+        {
+            "Enterprise Admins",
+            "Domain Admins",
+            "Schema Admins",
+            "Administrators"
+        };
+
+        /// <summary>
+        /// High-privilege domain-level groups that can compromise AD
+        /// </summary>
         public static readonly string[] DomainGroups = new[]
         {
+            // Tier 0 - Highest privilege
             "Domain Admins",
             "Enterprise Admins",
             "Schema Admins",
+            "Administrators",
+            
+            // DC/Server Operators - can take over domain controllers
             "Account Operators",
             "Backup Operators",
             "Server Operators",
             "Print Operators",
+            
+            // DNS/GPO - can compromise domain
             "Group Policy Creator Owners",
             "DNSAdmins",
-            "DnsAdmins"
+            "DnsAdmins",
+            
+            // Cryptographic/Certificate access
+            "Cryptographic Operators",
+            "Cert Publishers",
+            
+            // Remote access groups
+            "Remote Desktop Users",
+            "Remote Management Users",
+            "Hyper-V Administrators",
+            
+            // Replication and DC groups
+            "Domain Controllers",
+            "Read-only Domain Controllers",
+            "Cloneable Domain Controllers",
+            "Enterprise Read-only Domain Controllers",
+            
+            // Trust builders
+            "Incoming Forest Trust Builders",
+            
+            // RODC password replication
+            "Allowed RODC Password Replication Group",
+            "Denied RODC Password Replication Group",
+            
+            // Service-specific admin groups
+            "DHCP Administrators",
+            "RAS and IAS Servers",
+            "Terminal Server License Servers",
+            
+            // RDS management
+            "RDS Endpoint Servers",
+            "RDS Management Servers",
+            "RDS Remote Access Servers",
+            
+            // Event Log access  
+            "Event Log Readers",
+            
+            // Pre-2000 compatibility - often over-permissioned
+            "Pre-Windows 2000 Compatible Access"
+        };
+
+        /// <summary>
+        /// Groups that should NEVER have external members (protected groups)
+        /// </summary>
+        public static readonly string[] ProtectedGroups = new[]
+        {
+            "Enterprise Admins",
+            "Domain Admins",
+            "Schema Admins",
+            "Administrators",
+            "Domain Controllers",
+            "Account Operators",
+            "Backup Operators",
+            "Server Operators",
+            "Print Operators",
+            "Replicator"
         };
 
         public static readonly Dictionary<string, string> WellKnownSids = new()
         {
+            // Built-in container groups
             { "S-1-5-32-544", "Administrators" },
+            { "S-1-5-32-545", "Users" },
+            { "S-1-5-32-546", "Guests" },
             { "S-1-5-32-548", "Account Operators" },
             { "S-1-5-32-549", "Server Operators" },
             { "S-1-5-32-550", "Print Operators" },
             { "S-1-5-32-551", "Backup Operators" },
+            { "S-1-5-32-552", "Replicator" },
+            { "S-1-5-32-555", "Remote Desktop Users" },
+            { "S-1-5-32-556", "Network Configuration Operators" },
+            { "S-1-5-32-557", "Incoming Forest Trust Builders" },
+            { "S-1-5-32-558", "Performance Monitor Users" },
+            { "S-1-5-32-559", "Performance Log Users" },
+            { "S-1-5-32-560", "Windows Authorization Access Group" },
+            { "S-1-5-32-561", "Terminal Server License Servers" },
+            { "S-1-5-32-562", "Distributed COM Users" },
+            { "S-1-5-32-568", "IIS_IUSRS" },
+            { "S-1-5-32-569", "Cryptographic Operators" },
+            { "S-1-5-32-573", "Event Log Readers" },
+            { "S-1-5-32-574", "Certificate Service DCOM Access" },
+            { "S-1-5-32-575", "RDS Remote Access Servers" },
+            { "S-1-5-32-576", "RDS Endpoint Servers" },
+            { "S-1-5-32-577", "RDS Management Servers" },
+            { "S-1-5-32-578", "Hyper-V Administrators" },
+            { "S-1-5-32-579", "Access Control Assistance Operators" },
+            { "S-1-5-32-580", "Remote Management Users" },
+            
+            // Domain relative IDs (append to domain SID)
+            { "-500", "Administrator" },
+            { "-501", "Guest" },
+            { "-502", "KRBTGT" },
             { "-512", "Domain Admins" },
+            { "-513", "Domain Users" },
+            { "-514", "Domain Guests" },
+            { "-515", "Domain Computers" },
             { "-516", "Domain Controllers" },
+            { "-517", "Cert Publishers" },
             { "-518", "Schema Admins" },
             { "-519", "Enterprise Admins" },
-            { "-520", "Group Policy Creator Owners" }
+            { "-520", "Group Policy Creator Owners" },
+            { "-521", "Read-only Domain Controllers" },
+            { "-522", "Cloneable Domain Controllers" },
+            { "-525", "Protected Users" },
+            { "-526", "Key Admins" },
+            { "-527", "Enterprise Key Admins" },
+            { "-553", "RAS and IAS Servers" },
+            { "-571", "Allowed RODC Password Replication Group" },
+            { "-572", "Denied RODC Password Replication Group" }
         };
     }
 
@@ -431,6 +584,48 @@ namespace PlatypusTools.Core.Models
     }
 
     /// <summary>
+    /// Represents a PIM violation where a privileged role has permanent assignment instead of eligible.
+    /// </summary>
+    public class EntraIdPimViolation
+    {
+        /// <summary>Role template ID (GUID).</summary>
+        public string RoleId { get; set; } = string.Empty;
+
+        /// <summary>Display name of the role.</summary>
+        public string RoleName { get; set; } = string.Empty;
+
+        /// <summary>Description of the role.</summary>
+        public string RoleDescription { get; set; } = string.Empty;
+
+        /// <summary>Object ID of the principal with permanent assignment.</summary>
+        public string PrincipalId { get; set; } = string.Empty;
+
+        /// <summary>Type of principal: User, ServicePrincipal, Group.</summary>
+        public string PrincipalType { get; set; } = string.Empty;
+
+        /// <summary>Display name of the principal.</summary>
+        public string PrincipalDisplayName { get; set; } = string.Empty;
+
+        /// <summary>UPN of the principal (for users).</summary>
+        public string PrincipalUpn { get; set; } = string.Empty;
+
+        /// <summary>Type of assignment: Permanent, Eligible, Active.</summary>
+        public string AssignmentType { get; set; } = "Permanent";
+
+        /// <summary>Severity of the violation: Critical, Warning, Info.</summary>
+        public string ViolationType { get; set; } = "Warning";
+
+        /// <summary>Recommended remediation action.</summary>
+        public string Recommendation { get; set; } = string.Empty;
+
+        /// <summary>When the permanent assignment started.</summary>
+        public DateTime? AssignmentStart { get; set; }
+
+        /// <summary>Whether this role should NEVER have permanent assignments per security best practice.</summary>
+        public bool ShouldNeverBePermanent { get; set; }
+    }
+
+    /// <summary>
     /// Represents a risky application in Entra ID.
     /// </summary>
     public class EntraIdRiskyApp
@@ -443,6 +638,10 @@ namespace PlatypusTools.Core.Models
         public DateTime? CreatedDateTime { get; set; }
         public string Severity { get; set; } = "Medium";
         public string RiskReason { get; set; } = string.Empty;
+        
+        // Helper properties for UI binding
+        public int RiskyPermissionCount => Permissions.Count(p => p.IsHighRisk);
+        public List<EntraIdAppPermissionInfo> RiskyPermissions => Permissions.Where(p => p.IsHighRisk).ToList();
     }
 
     /// <summary>
@@ -452,6 +651,7 @@ namespace PlatypusTools.Core.Models
     {
         public string PermissionId { get; set; } = string.Empty;
         public string PermissionName { get; set; } = string.Empty;
+        public string PermissionDescription { get; set; } = string.Empty;
         public string ResourceAppId { get; set; } = string.Empty;
         public string ResourceDisplayName { get; set; } = string.Empty;
         public string PermissionType { get; set; } = string.Empty; // Delegated, Application
@@ -465,6 +665,7 @@ namespace PlatypusTools.Core.Models
     public class EntraIdConditionalAccessPolicy
     {
         public string Id { get; set; } = string.Empty;
+        public string PolicyId => Id; // Alias for UI binding
         public string DisplayName { get; set; } = string.Empty;
         public string State { get; set; } = string.Empty; // Enabled, Disabled, EnabledForReportingButNotEnforced
         public DateTime? CreatedDateTime { get; set; }
@@ -474,6 +675,11 @@ namespace PlatypusTools.Core.Models
         public List<string> IncludedApplications { get; set; } = new();
         public List<string> GrantControls { get; set; } = new();
         public string SessionControls { get; set; } = string.Empty;
+        
+        // Helper properties for UI
+        public bool IncludesAllUsers => IncludedUsers.Contains("All") || IncludedUsers.Contains("all");
+        public bool IncludesAllApps => IncludedApplications.Contains("All") || IncludedApplications.Contains("all");
+        public string GrantControlsSummary => GrantControls.Count > 0 ? string.Join(", ", GrantControls) : "None";
     }
 
     /// <summary>
@@ -525,6 +731,27 @@ namespace PlatypusTools.Core.Models
             "Mail.ReadWrite",
             "Mail.Send"
         };
+
+        private static readonly Dictionary<string, string> PermissionDescriptions = new()
+        {
+            { "Mail.Read", "Read user mailbox - can access all emails" },
+            { "Mail.ReadWrite", "Read and modify user mailbox - full mailbox access" },
+            { "Mail.Send", "Send mail as any user - can impersonate users" },
+            { "Contacts.ReadWrite", "Full access to user contacts" },
+            { "Files.Read.All", "Read all files in SharePoint/OneDrive" },
+            { "Files.ReadWrite.All", "Read and write all files in SharePoint/OneDrive" },
+            { "Directory.Read.All", "Read all directory data including users, groups, applications" },
+            { "Directory.ReadWrite.All", "Read and write all directory data - can modify tenant config" },
+            { "Group.ReadWrite.All", "Create and manage all groups including security groups" },
+            { "RoleManagement.ReadWrite.Directory", "Manage role assignments - can grant Global Admin" },
+            { "AppRoleAssignment.ReadWrite.All", "Manage app role assignments - can grant permissions" },
+            { "User.ReadWrite.All", "Create and modify all users - can reset passwords" }
+        };
+
+        public static string GetPermissionDescription(string permissionName)
+        {
+            return PermissionDescriptions.TryGetValue(permissionName, out var desc) ? desc : $"Risky permission: {permissionName}";
+        }
     }
 
     #endregion
@@ -549,6 +776,230 @@ namespace PlatypusTools.Core.Models
         public double DurationSeconds { get; set; }
         public bool IsComplete { get; set; }
         public string ResultJson { get; set; } = string.Empty;
+    }
+
+    #endregion
+
+    #region Tenant Takeback / IR Models (PLATYPUS)
+
+    /// <summary>
+    /// Options for tenant takeback operation.
+    /// </summary>
+    public class TenantTakebackOptions
+    {
+        public string TenantId { get; set; } = string.Empty;
+        public List<string> ExemptedUserUpns { get; set; } = new();
+        public bool ResetPasswords { get; set; } = true;
+        public bool RevokeSessions { get; set; } = true;
+        public bool RemoveFromRoles { get; set; } = false;
+        public bool SavePasswordsToResult { get; set; } = false;
+        public bool WhatIf { get; set; } = true;
+    }
+
+    /// <summary>
+    /// Result of tenant takeback operation.
+    /// </summary>
+    public class TenantTakebackResult
+    {
+        public string TenantId { get; set; } = string.Empty;
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+        public TimeSpan Duration => EndTime - StartTime;
+        public bool Success { get; set; }
+        public List<UserTakebackResult> ProcessedUsers { get; set; } = new();
+        public List<string> SkippedUsers { get; set; } = new();
+        public List<string> Errors { get; set; } = new();
+        
+        public int TotalProcessed => ProcessedUsers.Count;
+        public int PasswordsReset => ProcessedUsers.Count(u => u.PasswordReset);
+        public int SessionsRevoked => ProcessedUsers.Count(u => u.SessionsRevoked);
+        public int RolesRemoved => ProcessedUsers.Count(u => u.RolesRemoved);
+    }
+
+    /// <summary>
+    /// Result for a single user in takeback operation.
+    /// </summary>
+    public class UserTakebackResult
+    {
+        public string UserPrincipalName { get; set; } = string.Empty;
+        public string ObjectId { get; set; } = string.Empty;
+        public bool PasswordReset { get; set; }
+        public bool SessionsRevoked { get; set; }
+        public bool RolesRemoved { get; set; }
+        public bool WhatIfOnly { get; set; }
+        public string NewPassword { get; set; } = string.Empty;
+        public string? Error { get; set; }
+    }
+
+    /// <summary>
+    /// Result of mass password reset operation.
+    /// </summary>
+    public class MassPasswordResetResult
+    {
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+        public TimeSpan Duration => EndTime - StartTime;
+        public bool Success { get; set; }
+        public int ResetCount { get; set; }
+        public int SkippedCount { get; set; }
+        public int FailedCount { get; set; }
+        public Dictionary<string, string> ResetPasswords { get; set; } = new();
+        public List<string> Errors { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Result of an AD remediation operation.
+    /// </summary>
+    public class AdRemediationResult
+    {
+        public string ObjectDn { get; set; } = string.Empty;
+        public string ObjectName { get; set; } = string.Empty;
+        public string Action { get; set; } = string.Empty;
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
+    }
+
+    #endregion
+
+    #region Entra ID Privileged Roles Reference
+
+    /// <summary>
+    /// Entra ID privileged roles - based on Microsoft documentation
+    /// https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/permissions-reference
+    /// Roles marked with "Privileged label icon" in Microsoft documentation
+    /// </summary>
+    public static class EntraIdPrivilegedRoles
+    {
+        /// <summary>
+        /// Highest-privilege roles that can take over the entire tenant
+        /// These should have ZERO permanent assignments except break-glass accounts
+        /// </summary>
+        public static readonly Dictionary<string, string> Tier0Roles = new()
+        {
+            { "62e90394-69f5-4237-9190-012177145e10", "Global Administrator" },
+            { "e8611ab8-c189-46e8-94e1-60213ab1f814", "Privileged Role Administrator" },
+            { "7be44c8a-adaf-4e2a-84d6-ab2649e08a13", "Privileged Authentication Administrator" }
+        };
+
+        /// <summary>
+        /// All privileged roles as defined by Microsoft (marked with Privileged label)
+        /// Key = Role Template ID, Value = Role Display Name
+        /// </summary>
+        public static readonly Dictionary<string, string> AllPrivilegedRoles = new()
+        {
+            // Tier 0 - Tenant control
+            { "62e90394-69f5-4237-9190-012177145e10", "Global Administrator" },
+            { "e8611ab8-c189-46e8-94e1-60213ab1f814", "Privileged Role Administrator" },
+            { "7be44c8a-adaf-4e2a-84d6-ab2649e08a13", "Privileged Authentication Administrator" },
+            
+            // Global Reader - can see everything
+            { "f2ef992c-3afb-46b9-b7cf-a126ee74c451", "Global Reader" },
+            
+            // Identity/Auth management
+            { "c4e39bd9-1100-46d3-8c65-fb160da0071f", "Authentication Administrator" },
+            { "25a516ed-2fa0-40ea-a2d0-12923a21473a", "Authentication Extensibility Administrator" },
+            { "8ac3fc64-6eca-42ea-9e69-59f4c7b60eb2", "Hybrid Identity Administrator" },
+            { "59d46f88-662b-457b-bceb-5c3809e5908f", "Lifecycle Workflows Administrator" },
+            
+            // Application/Service Principal management
+            { "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3", "Application Administrator" },
+            { "cf1c38e5-3621-4004-a7cb-879624dced7c", "Application Developer" },
+            { "158c047a-c907-4556-b7ef-446551a6b5f7", "Cloud Application Administrator" },
+            
+            // Directory and domain management
+            { "9360feb5-f418-4baa-8175-e2a00bac4301", "Directory Writers" },
+            { "8329153b-31d0-4727-b945-745eb3bc5f31", "Domain Name Administrator" },
+            
+            // User management
+            { "fe930be7-5e62-47db-91af-98c3a49a38b1", "User Administrator" },
+            { "729827e3-9c14-49f7-bb1b-9608f156bbb8", "Helpdesk Administrator" },
+            { "966707d0-3269-4727-9be2-8c3a10f19b9d", "Password Administrator" },
+            
+            // Conditional Access
+            { "b1be1c3e-b65d-4f19-8427-f6fa0d97feb9", "Conditional Access Administrator" },
+            
+            // Security
+            { "194ae4cb-b126-40b2-bd5b-6091b380977d", "Security Administrator" },
+            { "5f2222b1-57c3-48ba-8ad5-d4759f1fde6f", "Security Operator" },
+            { "5d6b6bb7-de71-4623-b4af-96380a352509", "Security Reader" },
+            
+            // Intune/Device management
+            { "3a2c62db-5318-420d-8d74-23affee5d9d5", "Intune Administrator" },
+            { "7698a772-787b-4ac8-901f-60d6b08affd2", "Cloud Device Administrator" },
+            
+            // External identity
+            { "be2f45a1-457d-42af-a067-6ec1fa63bc45", "External Identity Provider Administrator" },
+            
+            // B2C specific
+            { "aaf43236-0c0d-4d5f-883a-6955382ac081", "B2C IEF Keyset Administrator" },
+            
+            // Partner support (deprecated but still privileged)
+            { "4ba39ca4-527c-499a-b93d-d9b492c50246", "Partner Tier1 Support" },
+            { "e00e864a-17c5-4a4b-9c06-f5b95a8d5bd8", "Partner Tier2 Support" },
+            
+            // Attribute provisioning
+            { "ecb2c6bf-0ab6-418e-bd87-7986f8d63bbe", "Attribute Provisioning Administrator" },
+            { "422218e4-db15-4ef9-bbe0-8afb41546d79", "Attribute Provisioning Reader" },
+            
+            // Agent ID (new)
+            { "db506228-d27e-4b7d-95e5-295956d6615f", "Agent ID Administrator" }
+        };
+
+        /// <summary>
+        /// Roles that should NEVER have permanent assignments in a secure tenant
+        /// Any permanent assignment here is a PIM policy violation
+        /// </summary>
+        public static readonly string[] NeverPermanent = new[]
+        {
+            "Global Administrator",
+            "Privileged Role Administrator",
+            "Privileged Authentication Administrator",
+            "Security Administrator",
+            "Conditional Access Administrator",
+            "Application Administrator",
+            "Cloud Application Administrator",
+            "User Administrator",
+            "Intune Administrator",
+            "Exchange Administrator",
+            "SharePoint Administrator",
+            "Hybrid Identity Administrator"
+        };
+
+        /// <summary>
+        /// Check if a role name is privileged
+        /// </summary>
+        public static bool IsPrivilegedRole(string? roleName)
+        {
+            if (string.IsNullOrEmpty(roleName))
+                return false;
+
+            return AllPrivilegedRoles.Values.Any(r => 
+                roleName.Equals(r, StringComparison.OrdinalIgnoreCase) ||
+                roleName.Contains(r, StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// Check if a role ID is privileged
+        /// </summary>
+        public static bool IsPrivilegedRoleId(string? roleId)
+        {
+            if (string.IsNullOrEmpty(roleId))
+                return false;
+
+            return AllPrivilegedRoles.ContainsKey(roleId);
+        }
+
+        /// <summary>
+        /// Check if a role should never have permanent assignments
+        /// </summary>
+        public static bool ShouldNeverBePermanent(string? roleName)
+        {
+            if (string.IsNullOrEmpty(roleName))
+                return false;
+
+            return NeverPermanent.Any(r => 
+                roleName.Equals(r, StringComparison.OrdinalIgnoreCase));
+        }
     }
 
     #endregion
