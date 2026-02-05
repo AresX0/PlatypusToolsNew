@@ -2077,6 +2077,90 @@ namespace PlatypusTools.Core.Services
         }
 
         /// <summary>
+        /// Creates a security group in the specified OU.
+        /// </summary>
+        private AdObjectCreationResult CreateSecurityGroup(string dc, string targetOuDn, string domainDn, string groupName, string description)
+        {
+            var result = new AdObjectCreationResult
+            {
+                ObjectType = "Group",
+                ObjectName = groupName,
+                DistinguishedName = $"CN={groupName},{targetOuDn}"
+            };
+
+            try
+            {
+                _progress?.Report($"Creating security group: {groupName}");
+
+                // First check if the target OU exists, if not try to use domain root
+                DirectoryEntry? parentEntry = null;
+                try
+                {
+                    parentEntry = new DirectoryEntry($"LDAP://{dc}/{targetOuDn}");
+                    // Force connection to verify OU exists
+                    var _ = parentEntry.Guid;
+                }
+                catch
+                {
+                    // OU doesn't exist, try to create group at domain level (Users container)
+                    parentEntry?.Dispose();
+                    var usersContainerDn = $"CN=Users,{domainDn}";
+                    parentEntry = new DirectoryEntry($"LDAP://{dc}/{usersContainerDn}");
+                    result.DistinguishedName = $"CN={groupName},{usersContainerDn}";
+                    _progress?.Report($"Target OU not found, using Users container for: {groupName}");
+                }
+
+                using (parentEntry)
+                {
+                    // Check if group already exists
+                    using var searcher = new DirectorySearcher(parentEntry)
+                    {
+                        Filter = $"(&(objectClass=group)(cn={EscapeLdapFilter(groupName)}))",
+                        SearchScope = SearchScope.OneLevel
+                    };
+
+                    var existing = searcher.FindOne();
+                    if (existing != null)
+                    {
+                        result.Success = true;
+                        result.Message = "Group already exists";
+                        result.DistinguishedName = existing.Properties["distinguishedName"]?[0]?.ToString() ?? result.DistinguishedName;
+                        _progress?.Report($"Group already exists: {groupName}");
+                        return result;
+                    }
+
+                    // Create new security group (Global Security Group = 0x80000002)
+                    using var newGroup = parentEntry.Children.Add($"CN={groupName}", "group");
+                    newGroup.Properties["sAMAccountName"].Value = groupName.Length > 20 
+                        ? groupName.Replace(" ", "").Replace("-", "")[..Math.Min(20, groupName.Replace(" ", "").Replace("-", "").Length)]
+                        : groupName.Replace(" ", "");
+                    newGroup.Properties["description"].Value = description;
+                    newGroup.Properties["groupType"].Value = unchecked((int)0x80000002); // Global Security Group
+                    newGroup.CommitChanges();
+
+                    result.Success = true;
+                    result.Message = "Created successfully";
+                    _progress?.Report($"Created group: {groupName}");
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                result.Success = false;
+                result.Message = "Access denied. Requires appropriate permissions to create groups.";
+                _progress?.Report($"Access denied creating group: {groupName}");
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Message = ex.Message;
+                result.Error = ex;
+                _progress?.Report($"Failed to create group {groupName}: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Deploys baseline GPOs for security hardening.
         /// Creates GPOs with actual policy settings based on PLATYPUS patterns.
         /// </summary>
@@ -2100,13 +2184,60 @@ namespace PlatypusTools.Core.Services
                     return results;
                 }
 
-                _progress?.Report("Deploying GPOs with security settings...");
+                _progress?.Report("Deploying security groups and GPOs...");
 
                 try
                 {
                     var dc = _domainInfo.ChosenDc;
                     var domainDn = _domainInfo.DomainDn;
                     var domainFqdn = _domainInfo.DomainFqdn ?? "";
+
+                    // === Create Tiered Security Groups First ===
+                    if (options.CreateTierGroups)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        _progress?.Report("Creating tiered security groups...");
+                        
+                        // Find or use the Admin OU for groups
+                        var adminOuDn = $"OU={options.TieredOuBaseName},{domainDn}";
+                        
+                        // Tier 0 Groups
+                        var tier0GroupsOu = $"OU=Groups,OU=Tier0,{adminOuDn}";
+                        results.Add(CreateSecurityGroup(dc, tier0GroupsOu, domainDn, "Tier 0 - Operators", 
+                            "Tier 0 privileged operators - Domain Controllers and core infrastructure"));
+                        results.Add(CreateSecurityGroup(dc, tier0GroupsOu, domainDn, "Tier 0 - PAW Users", 
+                            "Users authorized to log on to Tier 0 PAWs"));
+                        results.Add(CreateSecurityGroup(dc, tier0GroupsOu, domainDn, "Tier 0 - Service Accounts", 
+                            "Service accounts for Tier 0 systems"));
+                        
+                        // Tier 1 Groups
+                        var tier1GroupsOu = $"OU=Groups,OU=Tier1,{adminOuDn}";
+                        results.Add(CreateSecurityGroup(dc, tier1GroupsOu, domainDn, "Tier 1 - Operators", 
+                            "Tier 1 privileged operators - Server administrators"));
+                        results.Add(CreateSecurityGroup(dc, tier1GroupsOu, domainDn, "Tier 1 - PAW Users", 
+                            "Users authorized to log on to Tier 1 PAWs"));
+                        results.Add(CreateSecurityGroup(dc, tier1GroupsOu, domainDn, "Tier 1 - Service Accounts", 
+                            "Service accounts for Tier 1 systems"));
+                        results.Add(CreateSecurityGroup(dc, tier1GroupsOu, domainDn, "Tier 1 - Server Local Admins", 
+                            "Members become local administrators on Tier 1 servers"));
+                        
+                        // Tier 2 Groups
+                        var tier2GroupsOu = $"OU=Groups,OU=Tier2,{adminOuDn}";
+                        results.Add(CreateSecurityGroup(dc, tier2GroupsOu, domainDn, "Tier 2 - Operators", 
+                            "Tier 2 privileged operators - Workstation administrators"));
+                        results.Add(CreateSecurityGroup(dc, tier2GroupsOu, domainDn, "Tier 2 - PAW Users", 
+                            "Users authorized to log on to Tier 2 PAWs"));
+                        results.Add(CreateSecurityGroup(dc, tier2GroupsOu, domainDn, "Tier 2 - Service Accounts", 
+                            "Service accounts for Tier 2 systems"));
+                        results.Add(CreateSecurityGroup(dc, tier2GroupsOu, domainDn, "Tier 2 - Workstation Local Admins", 
+                            "Members become local administrators on Tier 2 workstations"));
+                        
+                        // Cross-tier / IR groups
+                        results.Add(CreateSecurityGroup(dc, tier0GroupsOu, domainDn, "IR - Emergency Access", 
+                            "Emergency access accounts for incident response - break glass"));
+                        results.Add(CreateSecurityGroup(dc, tier0GroupsOu, domainDn, "DVRL - Deny Logon All Tiers", 
+                            "Members are denied logon to all tier systems - for compromised accounts"));
+                    }
 
                     // === Quick Deploy GPOs with Settings ===
                     if (options.DeployPasswordPolicy)

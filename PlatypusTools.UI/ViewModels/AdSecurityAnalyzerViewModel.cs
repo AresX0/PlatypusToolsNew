@@ -435,6 +435,13 @@ namespace PlatypusTools.UI.ViewModels
             set => SetProperty(ref _deployResetMachinePassword, value);
         }
 
+        private bool _createTierGroups = true;
+        public bool CreateTierGroups
+        {
+            get => _createTierGroups;
+            set => SetProperty(ref _createTierGroups, value);
+        }
+
         private bool _linkGposToOus;
         public bool LinkGposToOus
         {
@@ -1300,6 +1307,29 @@ namespace PlatypusTools.UI.ViewModels
                 preview.AppendLine();
             }
 
+            // Security Groups
+            if (CreateTierGroups)
+            {
+                preview.AppendLine("[Security Groups]");
+                preview.AppendLine("  Tier 0:");
+                preview.AppendLine("    • Tier 0 - Operators");
+                preview.AppendLine("    • Tier 0 - PAW Users");
+                preview.AppendLine("    • Tier 0 - Service Accounts");
+                preview.AppendLine("    • IR - Emergency Access");
+                preview.AppendLine("    • DVRL - Deny Logon All Tiers");
+                preview.AppendLine("  Tier 1:");
+                preview.AppendLine("    • Tier 1 - Operators");
+                preview.AppendLine("    • Tier 1 - PAW Users");
+                preview.AppendLine("    • Tier 1 - Service Accounts");
+                preview.AppendLine("    • Tier 1 - Server Local Admins");
+                preview.AppendLine("  Tier 2:");
+                preview.AppendLine("    • Tier 2 - Operators");
+                preview.AppendLine("    • Tier 2 - PAW Users");
+                preview.AppendLine("    • Tier 2 - Service Accounts");
+                preview.AppendLine("    • Tier 2 - Workstation Local Admins");
+                preview.AppendLine();
+            }
+
             preview.AppendLine($"Protection from deletion: {(ProtectOusFromDeletion ? "Enabled" : "Disabled")}");
             preview.AppendLine($"Link GPOs to OUs: {(LinkGposToOus ? "Enabled" : "Disabled")}");
 
@@ -1443,6 +1473,9 @@ namespace PlatypusTools.UI.ViewModels
                     DeployDisableSmb1 = DeployDisableSmb1,
                     DeployDisableWDigest = DeployDisableWDigest,
                     DeployResetMachinePassword = DeployResetMachinePassword,
+
+                    // Security Groups
+                    CreateTierGroups = CreateTierGroups,
 
                     LinkGposToOus = LinkGposToOus
                 };

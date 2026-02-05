@@ -492,6 +492,16 @@
                                             </StackPanel>
                                         </Expander>
 
+                                        <!-- Security Groups -->
+                                        <Expander Header="👥 Security Groups" IsExpanded="True" Margin="0,0,0,10">
+                                            <StackPanel Margin="20,10,0,0">
+                                                <CheckBox Content="Create Tiered Security Groups" IsChecked="{Binding CreateTierGroups}" Margin="0,0,0,5"
+                                                          ToolTip="Creates security groups for each tier: Operators, PAW Users, Service Accounts, Local Admins, plus IR/DVRL groups." FontWeight="SemiBold" />
+                                                <TextBlock Text="Groups created: Tier X - Operators, PAW Users, Service Accounts, Local Admins, IR - Emergency Access, DVRL - Deny Logon All Tiers"
+                                                           Foreground="Gray" FontStyle="Italic" TextWrapping="Wrap" Margin="20,0,0,5" />
+                                            </StackPanel>
+                                        </Expander>
+
                                         <Separator Margin="0,5" />
 
                                         <CheckBox Content="Link GPOs to corresponding OUs after creation" IsChecked="{Binding LinkGposToOus}" Margin="0,5,0,5"
@@ -774,13 +784,14 @@
 
             <!-- IR Remediation Tab (PLATYPUS Takeback Operations) -->
             <TabItem Header="🚨 IR Remediation">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <Grid Margin="5">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <!-- Warning Banner -->
@@ -877,6 +888,7 @@
                         </StackPanel>
                     </Border>
                 </Grid>
+                </ScrollViewer>
             </TabItem>
 
             <!-- Log Tab -->
@@ -889,7 +901,18 @@
 
                     <ListBox ItemsSource="{Binding LogMessages}" 
                              FontFamily="Consolas" FontSize="11"
-                             Background="#FF1E1E1E" Foreground="#FFDCDCDC" />
+                             Background="#FF1E1E1E">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Foreground" Value="#FFDCDCDC" />
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" Foreground="#FFDCDCDC" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
 
                     <Button Grid.Row="1" Content="Clear Log" Command="{Binding ClearLogCommand}" 
                             HorizontalAlignment="Right" Margin="5" MinWidth="180" />

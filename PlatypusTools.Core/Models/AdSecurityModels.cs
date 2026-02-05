@@ -522,6 +522,9 @@ namespace PlatypusTools.Core.Models
         public bool DeployDisableWDigest { get; set; } = false;
         public bool DeployResetMachinePassword { get; set; } = false;
 
+        // Security Groups for Tiered Model
+        public bool CreateTierGroups { get; set; } = true;
+
         // Linking option
         public bool LinkGposToOus { get; set; } = false;
     }
