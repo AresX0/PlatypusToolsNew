@@ -149,8 +149,5 @@ PLATYPUS/
 # ===================
 .github/copilot-instructions.md
 
-# Private reference folder - never commit
-private-ref/
-
 # Archive files - never commit
 *.zip
