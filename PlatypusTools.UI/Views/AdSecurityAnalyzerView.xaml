@@ -325,46 +325,128 @@
                 </DataGrid>
             </TabItem>
 
-            <!-- Attack Path Detection Tab -->
-            <TabItem Header="🎯 Attack Paths">
-                <Grid>
+            <!-- Attack Path Detection & Remediation Tab (Combined) -->
+            <TabItem Header="🎯 Attack Paths &amp; Remediation">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <Grid Margin="5">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" MinHeight="150" />
                     </Grid.RowDefinitions>
 
-                    <!-- Action Buttons -->
-                    <WrapPanel Grid.Row="0" Margin="5">
-                        <Button Content="🔍 Full Attack Path Scan" Command="{Binding RunAttackPathScanCommand}"
-                                MinWidth="160" Margin="5" Background="#FF9C27B0" Foreground="White" FontWeight="SemiBold"
-                                ToolTip="Scan for unconstrained delegation, Kerberoasting, AS-REP roasting, DCSync, SID History, and more" />
-                        <Button Content="🔐 Audit LAPS" Command="{Binding AuditLapsCommand}"
-                                MinWidth="120" Margin="5" Background="#FF2196F3" Foreground="White"
-                                ToolTip="Check LAPS deployment coverage across domain computers" />
-                        <Button Content="🔑 Find GPP Passwords" Command="{Binding FindGppPasswordsCommand}"
-                                MinWidth="150" Margin="5" Background="#FFF44336" Foreground="White"
-                                ToolTip="Scan SYSVOL for Group Policy Preferences with embedded passwords" />
-                        <Button Content="👻 Find Stale Accounts" Command="{Binding FindStaleAccountsCommand}"
-                                MinWidth="160" Margin="5" Background="#FFFF9800" Foreground="White"
-                                ToolTip="Find inactive user and computer accounts (90+ days)" />
-                        <Separator Width="20" />
-                        <TextBlock Text="Security GPO Deployment:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="5,0" />
-                        <Button Content="🖨️ PrintNightmare" Command="{Binding DeployPrintNightmareGpoCommand}"
-                                MinWidth="130" Margin="5" Background="#FF4CAF50" Foreground="White"
-                                ToolTip="Deploy Point and Print restrictions GPO (CVE-2021-34527)" />
-                        <Button Content="📡 LLMNR/NBT-NS" Command="{Binding DeployLlmnrDisableGpoCommand}"
-                                MinWidth="130" Margin="5" Background="#FF4CAF50" Foreground="White"
-                                ToolTip="Disable LLMNR and NetBIOS name resolution" />
-                        <Button Content="📝 SMB Signing" Command="{Binding DeploySmbSigningGpoCommand}"
-                                MinWidth="120" Margin="5" Background="#FF4CAF50" Foreground="White"
-                                ToolTip="Enforce SMB signing to prevent relay attacks" />
-                        <Button Content="🛡️ Credential Guard" Command="{Binding DeployCredentialGuardGpoCommand}"
-                                MinWidth="140" Margin="5" Background="#FF4CAF50" Foreground="White"
-                                ToolTip="Enable Credential Guard for virtualization-based security" />
-                    </WrapPanel>
+                    <!-- WhatIf Toggle - Applies to GPO Deployment and IR Operations -->
+                    <Border Grid.Row="0" Background="#FF263238" Padding="8" Margin="0,0,0,10" CornerRadius="4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="⚠️ Mode:" VerticalAlignment="Center" Foreground="#FFFFAB40" FontWeight="Bold" Margin="0,0,10,0" />
+                            <CheckBox Grid.Column="1" Content="WhatIf (Dry Run) - Preview changes without making modifications" 
+                                      IsChecked="{Binding RemediationWhatIf}" 
+                                      VerticalAlignment="Center" FontWeight="Bold" Foreground="#FF4CAF50"
+                                      ToolTip="When checked, GPO deployments and IR operations will only simulate - no actual changes made" />
+                            <TextBlock Grid.Column="2" Text="Exempted Users:" VerticalAlignment="Center" Foreground="White" Margin="20,0,5,0" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Attack Path Detection Buttons -->
+                    <GroupBox Grid.Row="1" Header="🔍 Attack Path Detection" Margin="0,0,0,10">
+                        <WrapPanel Margin="5">
+                            <Button Content="🔍 Full Attack Path Scan" Command="{Binding RunAttackPathScanCommand}"
+                                    MinWidth="160" Margin="5" Background="#FF9C27B0" Foreground="White" FontWeight="SemiBold"
+                                    ToolTip="Scan for unconstrained delegation, Kerberoasting, AS-REP roasting, DCSync, SID History, and more" />
+                            <Button Content="🔐 Audit LAPS" Command="{Binding AuditLapsCommand}"
+                                    MinWidth="120" Margin="5" Background="#FF2196F3" Foreground="White"
+                                    ToolTip="Check LAPS deployment coverage across domain computers" />
+                            <Button Content="🔑 Find GPP Passwords" Command="{Binding FindGppPasswordsCommand}"
+                                    MinWidth="150" Margin="5" Background="#FFF44336" Foreground="White"
+                                    ToolTip="Scan SYSVOL for Group Policy Preferences with embedded passwords" />
+                            <Button Content="👻 Find Stale Accounts" Command="{Binding FindStaleAccountsCommand}"
+                                    MinWidth="160" Margin="5" Background="#FFFF9800" Foreground="White"
+                                    ToolTip="Find inactive user and computer accounts (90+ days)" />
+                            <Button Content="🧹 Remove Orphan AdminCount" Command="{Binding RemoveAdminCountCommand}" 
+                                    MinWidth="200" Margin="5" Background="#FF2196F3" Foreground="White"
+                                    ToolTip="Remove AdminCount attribute from accounts no longer in protected groups" />
+                        </WrapPanel>
+                    </GroupBox>
+
+                    <!-- Security GPO Deployment -->
+                    <GroupBox Grid.Row="2" Header="🛡️ Security GPO Deployment (uses WhatIf mode)" Margin="0,0,0,10">
+                        <WrapPanel Margin="5">
+                            <Button Content="🖨️ PrintNightmare" Command="{Binding DeployPrintNightmareGpoCommand}"
+                                    MinWidth="130" Margin="5" Background="#FF4CAF50" Foreground="White"
+                                    ToolTip="Deploy Point and Print restrictions GPO (CVE-2021-34527)" />
+                            <Button Content="📡 LLMNR/NBT-NS" Command="{Binding DeployLlmnrDisableGpoCommand}"
+                                    MinWidth="130" Margin="5" Background="#FF4CAF50" Foreground="White"
+                                    ToolTip="Disable LLMNR and NetBIOS name resolution" />
+                            <Button Content="📝 SMB Signing" Command="{Binding DeploySmbSigningGpoCommand}"
+                                    MinWidth="120" Margin="5" Background="#FF4CAF50" Foreground="White"
+                                    ToolTip="Enforce SMB signing to prevent relay attacks" />
+                            <Button Content="🛡️ Credential Guard" Command="{Binding DeployCredentialGuardGpoCommand}"
+                                    MinWidth="140" Margin="5" Background="#FF4CAF50" Foreground="White"
+                                    ToolTip="Enable Credential Guard for virtualization-based security" />
+                        </WrapPanel>
+                    </GroupBox>
+
+                    <!-- IR Remediation Section -->
+                    <GroupBox Grid.Row="3" Header="🚨 IR Remediation (uses WhatIf mode)" Margin="0,0,0,10">
+                        <Grid Margin="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Exempted Users and Settings -->
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+                                <TextBlock Text="Exempted Users (comma-separated):" VerticalAlignment="Center" Margin="0,0,5,0" />
+                                <TextBox Text="{Binding ExemptedUsers, UpdateSourceTrigger=PropertyChanged}" 
+                                         Width="400" Margin="0,0,10,0" 
+                                         ToolTip="UPNs of users to EXCLUDE from remediation (e.g., admin@domain.com)" />
+                                <CheckBox Content="Reset Passwords" IsChecked="{Binding TakebackResetPasswords}" Margin="5" />
+                                <CheckBox Content="Revoke Sessions" IsChecked="{Binding TakebackRevokeSessions}" Margin="5" />
+                                <CheckBox Content="Remove from Roles" IsChecked="{Binding TakebackRemoveRoles}" Margin="5" />
+                            </StackPanel>
+
+                            <!-- Entra ID Operations -->
+                            <WrapPanel Grid.Row="1" Margin="0,5,0,5">
+                                <TextBlock Text="☁️ Entra ID:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0" />
+                                <Button Content="🎯 Tenant Takeback" Command="{Binding TakebackTenantCommand}" 
+                                        MinWidth="150" Margin="5" Background="#FFE53935" Foreground="White" FontWeight="Bold"
+                                        ToolTip="Reset passwords, revoke sessions, remove roles for privileged users" />
+                                <Button Content="🔑 Mass Password Reset" Command="{Binding MassPasswordResetCommand}" 
+                                        MinWidth="160" Margin="5" Background="#FFFF9800" Foreground="White"
+                                        ToolTip="Reset passwords for ALL users (except exempted)" />
+                                <Button Content="🔒 Revoke All Tokens" Command="{Binding RevokeAllTokensCommand}" 
+                                        MinWidth="150" Margin="5" Background="#FF9C27B0" Foreground="White"
+                                        ToolTip="Revoke refresh tokens for ALL users" />
+                                <Button Content="👤 Remove Priv Roles" Command="{Binding RemovePrivRoleMembersCommand}" 
+                                        MinWidth="150" Margin="5" Background="#FF673AB7" Foreground="White"
+                                        ToolTip="Remove all members from privileged roles" />
+                            </WrapPanel>
+
+                            <!-- Warning -->
+                            <Border Grid.Row="2" Background="#FFFF5252" Padding="5" CornerRadius="4">
+                                <TextBlock Text="⚠️ IR Operations are DESTRUCTIVE! Always add your UPN to Exempted Users. Start with WhatIf enabled." 
+                                           Foreground="White" FontWeight="SemiBold" TextWrapping="Wrap" />
+                            </Border>
+                        </Grid>
+                    </GroupBox>
+
+                    <!-- Status Summary -->
+                    <Border Grid.Row="4" Background="#FF1E88E5" Padding="5" Margin="0,0,0,10" CornerRadius="4">
+                        <TextBlock Text="📊 Scan results and findings will appear in the grid below. Use WhatIf mode to preview GPO and IR operations before executing." 
+                                   Foreground="White" TextWrapping="Wrap" />
+                    </Border>
 
                     <!-- Results DataGrid -->
-                    <DataGrid Grid.Row="1" ItemsSource="{Binding SecurityFindings}" 
+                    <DataGrid Grid.Row="5" ItemsSource="{Binding SecurityFindings}" 
                               AutoGenerateColumns="False" IsReadOnly="True"
                               CanUserSortColumns="True" CanUserResizeColumns="True">
                         <DataGrid.Columns>
@@ -411,6 +493,7 @@
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
+                </ScrollViewer>
             </TabItem>
 
             <!-- History Tab -->
@@ -933,115 +1016,6 @@
                         </TabItem>
                     </TabControl>
                 </Grid>
-            </TabItem>
-
-            <!-- IR Remediation Tab (PLATYPUS Takeback Operations) -->
-            <TabItem Header="🚨 IR Remediation">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <Grid Margin="5">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <!-- Warning Banner -->
-                    <Border Grid.Row="0" Background="#FFFF5252" Padding="10" Margin="0,0,0,10" CornerRadius="4">
-                        <StackPanel>
-                            <TextBlock Text="⚠️ WARNING: INCIDENT RESPONSE OPERATIONS" FontWeight="Bold" Foreground="White" FontSize="14" />
-                            <TextBlock Text="These operations are destructive and should ONLY be used during active incident response." 
-                                       Foreground="White" TextWrapping="Wrap" />
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Global Settings -->
-                    <GroupBox Grid.Row="1" Header="🔧 Settings" Margin="0,0,0,10">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-
-                            <TextBlock Grid.Column="0" Text="Exempted Users (comma-separated):" VerticalAlignment="Center" Margin="5" />
-                            <TextBox Grid.Column="1" Text="{Binding ExemptedUsers, UpdateSourceTrigger=PropertyChanged}" 
-                                     Margin="5" ToolTip="UPNs of users to EXCLUDE from remediation (e.g., admin@domain.com, responder@domain.com)" />
-                            <CheckBox Grid.Column="2" Content="WhatIf (Dry Run)" IsChecked="{Binding RemediationWhatIf}" 
-                                      Margin="5" VerticalAlignment="Center" FontWeight="Bold" Foreground="#FF4CAF50"
-                                      ToolTip="When checked, no changes will be made - only simulation" />
-                        </Grid>
-                    </GroupBox>
-
-                    <!-- Entra ID Remediation -->
-                    <GroupBox Grid.Row="2" Header="☁️ Entra ID / Azure AD Remediation" Margin="0,0,0,10">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-
-                            <!-- Takeback Options -->
-                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
-                                <CheckBox Content="Reset Passwords" IsChecked="{Binding TakebackResetPasswords}" Margin="5" />
-                                <CheckBox Content="Revoke Sessions" IsChecked="{Binding TakebackRevokeSessions}" Margin="5" />
-                                <CheckBox Content="Remove from Roles" IsChecked="{Binding TakebackRemoveRoles}" Margin="5" 
-                                          ToolTip="Remove users from privileged roles (Global Admin, etc.)" />
-                            </StackPanel>
-
-                            <!-- Takeback Button -->
-                            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="5">
-                                <Button Content="🎯 Tenant Takeback" Command="{Binding TakebackTenantCommand}" 
-                                        MinWidth="220" Margin="5" Background="#FFE53935" Foreground="White" FontWeight="Bold"
-                                        ToolTip="Reset passwords, revoke sessions, and optionally remove role assignments for privileged users" />
-                                <TextBlock Text="Full takeback: resets passwords and revokes sessions for all privileged users except exempted" 
-                                           VerticalAlignment="Center" Foreground="Gray" Margin="10,0" FontStyle="Italic" />
-                            </StackPanel>
-
-                            <!-- Individual Operations -->
-                            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="5">
-                                <Button Content="🔑 Mass Password Reset" Command="{Binding MassPasswordResetCommand}" 
-                                        MinWidth="220" Margin="5" Background="#FFFF9800" Foreground="White"
-                                        ToolTip="Reset passwords for ALL users (except exempted)" />
-                                <Button Content="🔒 Revoke All Tokens" Command="{Binding RevokeAllTokensCommand}" 
-                                        MinWidth="220" Margin="5" Background="#FF9C27B0" Foreground="White"
-                                        ToolTip="Revoke refresh tokens for ALL users (forces re-authentication)" />
-                                <Button Content="👤 Remove Priv Role Members" Command="{Binding RemovePrivRoleMembersCommand}" 
-                                        MinWidth="220" Margin="5" Background="#FF673AB7" Foreground="White"
-                                        ToolTip="Remove all members from Global Admin and other privileged roles" />
-                            </StackPanel>
-                        </Grid>
-                    </GroupBox>
-
-                    <!-- Active Directory Remediation -->
-                    <GroupBox Grid.Row="3" Header="🏢 Active Directory Remediation" Margin="0,0,0,10">
-                        <StackPanel Orientation="Horizontal" Margin="5">
-                            <Button Content="🧹 Remove Orphan AdminCount" Command="{Binding RemoveAdminCountCommand}" 
-                                    MinWidth="220" Margin="5" Background="#FF2196F3" Foreground="White"
-                                    ToolTip="Remove AdminCount attribute from accounts no longer in protected groups" />
-                        </StackPanel>
-                    </GroupBox>
-
-                    <!-- Info/Status -->
-                    <Border Grid.Row="4" Background="#FF263238" Padding="10" CornerRadius="4">
-                        <StackPanel>
-                            <TextBlock Text="📌 Best Practices for IR:" FontWeight="Bold" Foreground="#FF81D4FA" Margin="0,0,0,5" />
-                            <TextBlock Foreground="#FFB0BEC5" TextWrapping="Wrap">
-                                <Run>1. ALWAYS add your own UPN and other IR team members to the exempted users list</Run><LineBreak/>
-                                <Run>2. Start with WhatIf mode enabled to preview changes</Run><LineBreak/>
-                                <Run>3. For tenant takeback, ensure you have break-glass accounts configured</Run><LineBreak/>
-                                <Run>4. Document all actions taken during incident response</Run><LineBreak/>
-                                <Run>5. Consider using PIM to re-establish legitimate access after takeback</Run>
-                            </TextBlock>
-                        </StackPanel>
-                    </Border>
-                </Grid>
-                </ScrollViewer>
             </TabItem>
 
             <!-- Log Tab -->

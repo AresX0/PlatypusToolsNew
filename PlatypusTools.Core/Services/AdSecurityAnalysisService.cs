@@ -3130,32 +3130,65 @@ namespace PlatypusTools.Core.Services
             gptTmpl.AppendLine("signature=\"$CHICAGO$\"");
             gptTmpl.AppendLine("Revision=1");
             gptTmpl.AppendLine();
-            gptTmpl.AppendLine("[Registry Values]");
 
-            if (gpoName.Contains("SMB", StringComparison.OrdinalIgnoreCase))
+            if (gpoName.Contains("PasswordPolicy", StringComparison.OrdinalIgnoreCase))
+            {
+                // Domain Password Policy - System Access section
+                gptTmpl.AppendLine("[System Access]");
+                gptTmpl.AppendLine("; PLATYPUS Baseline Password Policy");
+                gptTmpl.AppendLine("MinimumPasswordAge = 1");                    // 1 day
+                gptTmpl.AppendLine("MaximumPasswordAge = 60");                   // 60 days
+                gptTmpl.AppendLine("MinimumPasswordLength = 14");                // 14 characters
+                gptTmpl.AppendLine("PasswordComplexity = 1");                    // Enabled
+                gptTmpl.AppendLine("PasswordHistorySize = 24");                  // 24 passwords remembered
+                gptTmpl.AppendLine("ClearTextPassword = 0");                     // Don't store plaintext
+                gptTmpl.AppendLine("LockoutBadCount = 5");                       // 5 failed attempts
+                gptTmpl.AppendLine("ResetLockoutCount = 30");                    // Reset after 30 minutes
+                gptTmpl.AppendLine("LockoutDuration = 30");                      // Lockout 30 minutes
+            }
+            else if (gpoName.Contains("SMB", StringComparison.OrdinalIgnoreCase))
             {
                 // Disable SMBv1
+                gptTmpl.AppendLine("[Registry Values]");
                 gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\LanmanServer\\Parameters\\SMB1=4,0");
             }
             else if (gpoName.Contains("WDigest", StringComparison.OrdinalIgnoreCase))
             {
                 // Disable WDigest credential caching
+                gptTmpl.AppendLine("[Registry Values]");
                 gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\SecurityProviders\\WDigest\\UseLogonCredential=4,0");
             }
             else if (gpoName.Contains("DSRM", StringComparison.OrdinalIgnoreCase))
             {
                 // Disable DSRM network logon
+                gptTmpl.AppendLine("[Registry Values]");
                 gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\DSRMAdminLogonBehavior=4,1");
             }
             else if (gpoName.Contains("Machine", StringComparison.OrdinalIgnoreCase) && gpoName.Contains("Password", StringComparison.OrdinalIgnoreCase))
             {
                 // Machine account password settings
+                gptTmpl.AppendLine("[Registry Values]");
                 gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\MaximumPasswordAge=4,30");
                 gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\DisablePasswordChange=4,0");
             }
+            else if (gpoName.Contains("SecurityHardening", StringComparison.OrdinalIgnoreCase))
+            {
+                // Baseline Security Hardening - LM hash disabled, NTLMv2 required, No Anonymous
+                gptTmpl.AppendLine("[Registry Values]");
+                gptTmpl.AppendLine("; PLATYPUS Baseline Security Hardening");
+                gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\LmCompatibilityLevel=4,5");
+                gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\NoLMHash=4,1");
+                gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\RestrictAnonymous=4,1");
+                gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\RestrictAnonymousSAM=4,1");
+                gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\EveryoneIncludesAnonymous=4,0");
+                gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\LanManServer\\Parameters\\RestrictNullSessAccess=4,1");
+                gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\LanManServer\\Parameters\\NullSessionShares=7,");
+                gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\LanManServer\\Parameters\\NullSessionPipes=7,");
+            }
             else
             {
-                // General security hardening
+                // Generic security fallback
+                gptTmpl.AppendLine("[Registry Values]");
                 gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\LmCompatibilityLevel=4,5");
                 gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\NoLMHash=4,1");
             }
@@ -3703,51 +3736,25 @@ namespace PlatypusTools.Core.Services
         {
             try
             {
-                _progress?.Report("[DEBUG] Looking for Domain Controllers group by well-known SID...");
+                _progress?.Report("[DEBUG] Adding Domain Controllers to Tier 0 Computers group...");
                 
-                // Get domain SID first
-                using var domainEntry = new DirectoryEntry($"LDAP://{dc}/{domainDn}");
-                var domainSidBytes = (byte[])domainEntry.Properties["objectSid"][0]!;
-                var domainSid = new SecurityIdentifier(domainSidBytes, 0);
-                
-                // Domain Controllers group has RID 516
-                var dcSid = new SecurityIdentifier($"{domainSid}-516");
-                var dcSidBytes = new byte[dcSid.BinaryLength];
-                dcSid.GetBinaryForm(dcSidBytes, 0);
-                var dcSidString = BitConverter.ToString(dcSidBytes).Replace("-", "");
-                
-                // Search for Domain Controllers group by SID (works regardless of language/localization)
-                using var dcSearcher = new DirectorySearcher(new DirectoryEntry($"LDAP://{dc}/{domainDn}"))
+                // Find the Domain Controllers group by name (works in all locales after Windows 2000)
+                SearchResult? dcGroup = null;
+                using (var dcSearcher = new DirectorySearcher(new DirectoryEntry($"LDAP://{dc}/{domainDn}"))
                 {
-                    Filter = $"(&(objectClass=group)(objectSid=\\{string.Join("\\", Enumerable.Range(0, dcSidBytes.Length).Select(i => dcSidBytes[i].ToString("X2")))}))",
+                    Filter = "(&(objectClass=group)(samAccountName=Domain Controllers))",
                     SearchScope = SearchScope.Subtree
-                };
-                dcSearcher.PropertiesToLoad.Add("distinguishedName");
-                dcSearcher.PropertiesToLoad.Add("samAccountName");
-                
-                var dcGroup = dcSearcher.FindOne();
-                if (dcGroup == null)
+                })
                 {
-                    _progress?.Report("[WARN] Domain Controllers group not found by SID, trying by name...");
-                    
-                    // Fallback to name search
-                    using var dcNameSearcher = new DirectorySearcher(new DirectoryEntry($"LDAP://{dc}/{domainDn}"))
-                    {
-                        Filter = "(&(objectClass=group)(samAccountName=Domain Controllers))",
-                        SearchScope = SearchScope.Subtree
-                    };
-                    dcNameSearcher.PropertiesToLoad.Add("distinguishedName");
-                    dcGroup = dcNameSearcher.FindOne();
-                    
-                    if (dcGroup == null)
-                    {
-                        _progress?.Report("[WARN] Domain Controllers group not found");
-                        return;
-                    }
+                    dcSearcher.PropertiesToLoad.Add("distinguishedName");
+                    dcGroup = dcSearcher.FindOne();
                 }
                 
-                var dcGroupName = dcGroup.Properties["samAccountName"]?[0]?.ToString() ?? "Domain Controllers";
-                _progress?.Report($"[DEBUG] Found Domain Controllers group: {dcGroupName}");
+                if (dcGroup == null)
+                {
+                    _progress?.Report("[WARN] Domain Controllers group not found");
+                    return;
+                }
                 
                 var dcGroupDn = dcGroup.Properties["distinguishedName"]?[0]?.ToString();
                 if (string.IsNullOrEmpty(dcGroupDn))
@@ -3756,14 +3763,16 @@ namespace PlatypusTools.Core.Services
                     return;
                 }
                 
-                // Find the Tier 0 Computers group - search from domain root with retry since it was just created
-                // Search by name in the full domain with Subtree scope
+                _progress?.Report($"[DEBUG] Found Domain Controllers group: {dcGroupDn}");
+                
+                // Find the Tier 0 Computers group with retry for replication
+                // sAMAccountName has spaces removed: "Tier0Computers"
                 SearchResult? t0cGroup = null;
                 for (int attempt = 1; attempt <= 5; attempt++)
                 {
                     using var t0cSearcher = new DirectorySearcher(new DirectoryEntry($"LDAP://{dc}/{domainDn}"))
                     {
-                        Filter = "(&(objectClass=group)(samAccountName=Tier 0 Computers))",
+                        Filter = "(&(objectClass=group)(samAccountName=Tier0Computers))",
                         SearchScope = SearchScope.Subtree
                     };
                     t0cSearcher.PropertiesToLoad.Add("distinguishedName");
@@ -3850,7 +3859,8 @@ namespace PlatypusTools.Core.Services
                 }
 
                 // Step 3: Set DENY Apply ACL for Tier 0 Computers
-                SetGpoDenyApplyAcl(dc, domainDn, gpoGuid, "Tier 0 Computers");
+                // Note: sAMAccountName has spaces removed in CreateSecurityGroup, so use "Tier0Computers"
+                SetGpoDenyApplyAcl(dc, domainDn, gpoGuid, "Tier0Computers");
 
                 // Step 4: Set DENY Apply ACL for Domain Controllers (SID -516)
                 SetGpoDenyApplyAclBySid(dc, domainDn, gpoGuid, 516, "Domain Controllers");
@@ -6521,6 +6531,11 @@ namespace PlatypusTools.Core.Services
                     // Update GPT.ini
                     UpdateGptIni(policiesPath, true, false);
 
+                    // Set gPCMachineExtensionNames for Registry Policy Processing CSE
+                    // {35378EAC-683F-11D2-A89A-00C04FBBCFA2} = Registry extension
+                    // {D02B1F72-3407-48AE-BA88-E8213C6761F1} = Registry preference extension (for Registry.pol)
+                    SetGpoExtensions(dc, domainDn, result.GpoGuid!, "[{35378EAC-683F-11D2-A89A-00C04FBBCFA2}{D02B1F72-3407-48AE-BA88-E8213C6761F1}]", true);
+
                     result.Success = true;
                     result.Message = $"Created GPO '{gpoName}' with PrintNightmare mitigations";
                     _progress?.Report($"[OK] {result.Message}");
@@ -6583,14 +6598,21 @@ namespace PlatypusTools.Core.Services
 
                     var regValues = new Dictionary<string, (int type, object value)>
                     {
-                        // Disable LLMNR
+                        // Disable LLMNR (Link-Local Multicast Name Resolution)
                         [@"Software\Policies\Microsoft\Windows NT\DNSClient!EnableMulticast"] = (4, 0),
-                        // Disable NBT-NS via NetBT NodeType (P-node = 2)
+                        // Disable mDNS (Multicast DNS on port 5353)
+                        [@"SYSTEM\CurrentControlSet\Services\Dnscache\Parameters!EnableMDNS"] = (4, 0),
+                        // Disable NetBIOS over TCP/IP globally via NodeType (2 = P-node - point-to-point only, no broadcasts)
                         [@"SYSTEM\CurrentControlSet\Services\NetBT\Parameters!NodeType"] = (4, 2),
+                        // Additionally set NetbiosOptions to disable NetBIOS via DHCP (2 = disable)
+                        [@"SYSTEM\CurrentControlSet\Services\NetBT\Parameters!DhcpNodeType"] = (4, 2),
                     };
 
                     WriteRegistryPol(machineRegPath, regValues);
                     UpdateGptIni(policiesPath, true, false);
+
+                    // Set gPCMachineExtensionNames for Registry Policy Processing CSE
+                    SetGpoExtensions(dc, domainDn, result.GpoGuid!, "[{35378EAC-683F-11D2-A89A-00C04FBBCFA2}{D02B1F72-3407-48AE-BA88-E8213C6761F1}]", true);
 
                     result.Success = true;
                     result.Message = $"Created GPO '{gpoName}'";
@@ -6734,14 +6756,25 @@ namespace PlatypusTools.Core.Services
 
                     var regValues = new Dictionary<string, (int type, object value)>
                     {
-                        // Enable Credential Guard with UEFI lock
+                        // Enable Virtualization Based Security (VBS)
                         [@"SOFTWARE\Policies\Microsoft\Windows\DeviceGuard!EnableVirtualizationBasedSecurity"] = (4, 1),
-                        [@"SOFTWARE\Policies\Microsoft\Windows\DeviceGuard!RequirePlatformSecurityFeatures"] = (4, 3), // Secure Boot + DMA
-                        [@"SOFTWARE\Policies\Microsoft\Windows\DeviceGuard!LsaCfgFlags"] = (4, 1), // Enabled with UEFI lock
+                        // Require Secure Boot + DMA Protection (3 = both, 1 = Secure Boot only)
+                        [@"SOFTWARE\Policies\Microsoft\Windows\DeviceGuard!RequirePlatformSecurityFeatures"] = (4, 3),
+                        // Enable Credential Guard with UEFI lock (1 = Enabled with lock, 2 = Enabled without lock)
+                        [@"SOFTWARE\Policies\Microsoft\Windows\DeviceGuard!LsaCfgFlags"] = (4, 1),
+                        // Enable Hypervisor-enforced Code Integrity (HVCI)
+                        [@"SOFTWARE\Policies\Microsoft\Windows\DeviceGuard!HypervisorEnforcedCodeIntegrity"] = (4, 1),
+                        // Enable Configurable Code Integrity  
+                        [@"SOFTWARE\Policies\Microsoft\Windows\DeviceGuard!ConfigureSystemGuardLaunch"] = (4, 1),
+                        // Enable Secure Launch (System Guard)
+                        [@"SOFTWARE\Policies\Microsoft\Windows\DeviceGuard!HVCIMATRequired"] = (4, 0),
                     };
 
                     WriteRegistryPol(machineRegPath, regValues);
                     UpdateGptIni(policiesPath, true, false);
+
+                    // Set gPCMachineExtensionNames for Registry Policy Processing CSE
+                    SetGpoExtensions(dc, domainDn, result.GpoGuid!, "[{35378EAC-683F-11D2-A89A-00C04FBBCFA2}{D02B1F72-3407-48AE-BA88-E8213C6761F1}]", true);
 
                     result.Success = true;
                     result.Message = $"Created GPO '{gpoName}'";
