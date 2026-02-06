@@ -3757,7 +3757,7 @@ namespace PlatypusTools.Core.Services
                 }
                 
                 // Find the Tier 0 Computers group - search from domain root with retry since it was just created
-                // Per MIRCAT pattern: search by name in the full domain with Subtree scope
+                // Search by name in the full domain with Subtree scope
                 SearchResult? t0cGroup = null;
                 for (int attempt = 1; attempt <= 5; attempt++)
                 {
@@ -3775,7 +3775,7 @@ namespace PlatypusTools.Core.Services
                     if (attempt < 5)
                     {
                         _progress?.Report($"[DEBUG] Tier 0 Computers group not found yet, waiting... (attempt {attempt}/5)");
-                        Thread.Sleep(3000); // Wait 3 seconds between retries (matching MIRCAT's start-sleep 3)
+                        Thread.Sleep(3000); // Wait 3 seconds between retries for replication
                     }
                 }
                 
@@ -3980,7 +3980,7 @@ namespace PlatypusTools.Core.Services
 
         /// <summary>
         /// Sets DENY Apply GPO permission for a group by name.
-        /// Per MIRCAT pattern: includes retry logic for newly created groups.
+        /// Includes retry logic for newly created groups (replication lag).
         /// </summary>
         private void SetGpoDenyApplyAcl(string dc, string domainDn, string gpoGuid, string groupName)
         {
@@ -3988,7 +3988,7 @@ namespace PlatypusTools.Core.Services
             {
                 _progress?.Report($"[DEBUG] Setting DENY Apply ACL for group: {groupName}");
 
-                // Find the group with retry for replication lag (per MIRCAT pattern)
+                // Find the group with retry for replication lag
                 SearchResult? groupResult = null;
                 for (int attempt = 1; attempt <= 5; attempt++)
                 {
@@ -3998,7 +3998,7 @@ namespace PlatypusTools.Core.Services
                     if (attempt < 5)
                     {
                         _progress?.Report($"[DEBUG] Group '{groupName}' not found yet, waiting... (attempt {attempt}/5)");
-                        Thread.Sleep(4000); // Wait 4 seconds between retries (MIRCAT uses 20 seconds total)
+                        Thread.Sleep(4000); // Wait 4 seconds between retries for replication
                     }
                 }
                 
