@@ -2785,6 +2785,12 @@ namespace PlatypusTools.Core.Services
                         : $"GPO exists but SYSVOL content update failed. {description}";
                     _progress?.Report($"[WARN] SYSVOL content creation/update failed for: {gpoName}");
                 }
+
+                // For T0 Domain Block GPO: Create WMI filter and set DENY Apply ACLs
+                if (settingsType == GpoSettingsType.T0DomainBlock && result.Success)
+                {
+                    ConfigureT0DomainBlockGpo(dc, domainFqdn, gpoGuid);
+                }
             }
             catch (UnauthorizedAccessException uaex)
             {
@@ -3676,7 +3682,7 @@ namespace PlatypusTools.Core.Services
             var denyList = string.Join(",", denyGroups);
             
             gptTmpl.AppendLine("; Tier 0 Domain Block - Denies Tier 0 privileged accounts from logging on to non-Tier 0 machines");
-            gptTmpl.AppendLine("; Note: Tier 0 Computers group and Domain Controllers should have DENY Apply ACL on this GPO");
+            gptTmpl.AppendLine("; Note: WMI Filter and DENY Apply ACLs are configured automatically for Tier 0 Computers and Domain Controllers");
             gptTmpl.AppendLine($"SeDenyNetworkLogonRight = {denyList}");
             gptTmpl.AppendLine($"SeDenyRemoteInteractiveLogonRight = {denyList}");
             gptTmpl.AppendLine($"SeDenyBatchLogonRight = {denyList}");
@@ -3687,8 +3693,6 @@ namespace PlatypusTools.Core.Services
             File.WriteAllText(filePath, gptTmpl.ToString(), Encoding.Unicode);
             _progress?.Report($"[DEBUG] Wrote GptTmpl.inf to: {filePath}");
             _progress?.Report($"[DEBUG] T0 Domain Block deny list ({denyGroups.Count} groups): {denyList}");
-            _progress?.Report("[INFO] IMPORTANT: After GPO creation, manually add DENY Apply permission for 'Tier 0 Computers' and 'Domain Controllers' groups");
-            _progress?.Report("[INFO] IMPORTANT: Consider adding WMI Filter 'Tier 0 - No DC Apply' with query: Select * from Win32_ComputerSystem where DomainRole < 4");
         }
 
         /// <summary>
@@ -3699,20 +3703,51 @@ namespace PlatypusTools.Core.Services
         {
             try
             {
-                // Find the Domain Controllers group (well-known SID: S-1-5-<domain>-516)
+                _progress?.Report("[DEBUG] Looking for Domain Controllers group by well-known SID...");
+                
+                // Get domain SID first
+                using var domainEntry = new DirectoryEntry($"LDAP://{dc}/{domainDn}");
+                var domainSidBytes = (byte[])domainEntry.Properties["objectSid"][0]!;
+                var domainSid = new SecurityIdentifier(domainSidBytes, 0);
+                
+                // Domain Controllers group has RID 516
+                var dcSid = new SecurityIdentifier($"{domainSid}-516");
+                var dcSidBytes = new byte[dcSid.BinaryLength];
+                dcSid.GetBinaryForm(dcSidBytes, 0);
+                var dcSidString = BitConverter.ToString(dcSidBytes).Replace("-", "");
+                
+                // Search for Domain Controllers group by SID (works regardless of language/localization)
                 using var dcSearcher = new DirectorySearcher(new DirectoryEntry($"LDAP://{dc}/{domainDn}"))
                 {
-                    Filter = "(&(objectClass=group)(samAccountName=Domain Controllers))",
+                    Filter = $"(&(objectClass=group)(objectSid=\\{string.Join("\\", Enumerable.Range(0, dcSidBytes.Length).Select(i => dcSidBytes[i].ToString("X2")))}))",
                     SearchScope = SearchScope.Subtree
                 };
                 dcSearcher.PropertiesToLoad.Add("distinguishedName");
+                dcSearcher.PropertiesToLoad.Add("samAccountName");
                 
                 var dcGroup = dcSearcher.FindOne();
                 if (dcGroup == null)
                 {
-                    _progress?.Report("[WARN] Domain Controllers group not found");
-                    return;
+                    _progress?.Report("[WARN] Domain Controllers group not found by SID, trying by name...");
+                    
+                    // Fallback to name search
+                    using var dcNameSearcher = new DirectorySearcher(new DirectoryEntry($"LDAP://{dc}/{domainDn}"))
+                    {
+                        Filter = "(&(objectClass=group)(samAccountName=Domain Controllers))",
+                        SearchScope = SearchScope.Subtree
+                    };
+                    dcNameSearcher.PropertiesToLoad.Add("distinguishedName");
+                    dcGroup = dcNameSearcher.FindOne();
+                    
+                    if (dcGroup == null)
+                    {
+                        _progress?.Report("[WARN] Domain Controllers group not found");
+                        return;
+                    }
                 }
+                
+                var dcGroupName = dcGroup.Properties["samAccountName"]?[0]?.ToString() ?? "Domain Controllers";
+                _progress?.Report($"[DEBUG] Found Domain Controllers group: {dcGroupName}");
                 
                 var dcGroupDn = dcGroup.Properties["distinguishedName"]?[0]?.ToString();
                 if (string.IsNullOrEmpty(dcGroupDn))
@@ -3721,19 +3756,33 @@ namespace PlatypusTools.Core.Services
                     return;
                 }
                 
-                // Find the Tier 0 Computers group
-                using var t0cSearcher = new DirectorySearcher(new DirectoryEntry($"LDAP://{dc}/{tier0GroupsOu}"))
+                // Find the Tier 0 Computers group - with retry since it was just created
+                SearchResult? t0cGroup = null;
+                for (int attempt = 1; attempt <= 3; attempt++)
                 {
-                    Filter = "(&(objectClass=group)(samAccountName=Tier 0 Computers))",
-                    SearchScope = SearchScope.OneLevel
-                };
+                    using var t0cSearcher = new DirectorySearcher(new DirectoryEntry($"LDAP://{dc}/{tier0GroupsOu}"))
+                    {
+                        Filter = "(&(objectClass=group)(samAccountName=Tier 0 Computers))",
+                        SearchScope = SearchScope.OneLevel
+                    };
+                    
+                    t0cGroup = t0cSearcher.FindOne();
+                    if (t0cGroup != null) break;
+                    
+                    if (attempt < 3)
+                    {
+                        _progress?.Report($"[DEBUG] Tier 0 Computers group not found yet, waiting... (attempt {attempt}/3)");
+                        Thread.Sleep(2000); // Wait 2 seconds between retries
+                    }
+                }
                 
-                var t0cGroup = t0cSearcher.FindOne();
                 if (t0cGroup == null)
                 {
-                    _progress?.Report("[DEBUG] Tier 0 Computers group not found yet (may not have been created)");
+                    _progress?.Report("[WARN] Tier 0 Computers group not found after retries");
                     return;
                 }
+                
+                _progress?.Report("[DEBUG] Found Tier 0 Computers group, adding Domain Controllers as member...");
                 
                 // Add Domain Controllers to Tier 0 Computers
                 using var t0cEntry = t0cGroup.GetDirectoryEntry();
@@ -3764,6 +3813,292 @@ namespace PlatypusTools.Core.Services
             catch (Exception ex)
             {
                 _progress?.Report($"[WARN] Failed to add Domain Controllers to Tier 0 Computers: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Configures the T0 Domain Block GPO with WMI filter and DENY Apply ACLs.
+        /// This ensures the GPO only applies to non-Tier 0 computers.
+        /// Per PLATYPUS BILL model, this GPO should:
+        /// 1. Have a WMI filter to exclude Domain Controllers (DomainRole less than 4)
+        /// 2. Have DENY Apply ACL for "Tier 0 Computers" group
+        /// 3. Have DENY Apply ACL for "Domain Controllers" group
+        /// 4. Have DENY Apply ACL for "Read-Only Domain Controllers" group (if exists)
+        /// 5. Have DENY Apply ACL for "Enterprise Read-Only Domain Controllers" group (if exists)
+        /// </summary>
+        private void ConfigureT0DomainBlockGpo(string dc, string domainFqdn, string gpoGuid)
+        {
+            _progress?.Report($"[DEBUG] Configuring T0 Domain Block GPO with WMI filter and delegation...");
+            var domainDn = DomainToDn(domainFqdn);
+
+            try
+            {
+                // Step 1: Create or get the WMI Filter "Tier 0 - No DC Apply"
+                var wmiFilterId = CreateOrGetWmiFilter(dc, domainFqdn, domainDn);
+                
+                if (!string.IsNullOrEmpty(wmiFilterId))
+                {
+                    // Step 2: Link WMI filter to the GPO
+                    LinkWmiFilterToGpo(dc, domainDn, gpoGuid, wmiFilterId, domainFqdn);
+                }
+                else
+                {
+                    _progress?.Report("[WARN] Could not create WMI filter. GPO will apply to all computers including DCs.");
+                }
+
+                // Step 3: Set DENY Apply ACL for Tier 0 Computers
+                SetGpoDenyApplyAcl(dc, domainDn, gpoGuid, "Tier 0 Computers");
+
+                // Step 4: Set DENY Apply ACL for Domain Controllers (SID -516)
+                SetGpoDenyApplyAclBySid(dc, domainDn, gpoGuid, 516, "Domain Controllers");
+
+                // Step 5: Set DENY Apply ACL for Read-Only Domain Controllers (SID -521) if exists
+                try
+                {
+                    SetGpoDenyApplyAclBySid(dc, domainDn, gpoGuid, 521, "Read-Only Domain Controllers");
+                }
+                catch
+                {
+                    _progress?.Report("[DEBUG] Read-Only Domain Controllers group not found (may not exist in this domain)");
+                }
+
+                // Step 6: Set DENY Apply ACL for Enterprise Read-Only Domain Controllers if exists (forest root only)
+                try
+                {
+                    SetGpoDenyApplyAclByName(dc, domainDn, gpoGuid, "Enterprise Read-Only Domain Controllers");
+                }
+                catch
+                {
+                    _progress?.Report("[DEBUG] Enterprise Read-Only Domain Controllers group not found (may not exist or not forest root)");
+                }
+
+                _progress?.Report("[DEBUG] T0 Domain Block GPO configured with WMI filter and DENY ACLs");
+            }
+            catch (Exception ex)
+            {
+                _progress?.Report($"[WARN] Failed to fully configure T0 Domain Block GPO: {ex.Message}");
+                _progress?.Report("[INFO] You may need to manually set the WMI filter and DENY Apply permissions");
+            }
+        }
+
+        /// <summary>
+        /// Creates or retrieves the "Tier 0 - No DC Apply" WMI filter.
+        /// This filter ensures the GPO only applies to non-Domain Controller computers.
+        /// WQL query: Select * from Win32_ComputerSystem where DomainRole &lt; 4
+        /// DomainRole values: 0=Standalone Workstation, 1=Member Workstation, 2=Standalone Server, 3=Member Server, 4=Backup DC, 5=Primary DC
+        /// </summary>
+        private string? CreateOrGetWmiFilter(string dc, string domainFqdn, string domainDn)
+        {
+            const string wmiFilterName = "Tier 0 - No DC Apply";
+            const string wmiFilterDescription = "Tier 0 - Used to prevent policy from applying to a domain controller";
+            const string wmiFilterNamespace = "root\\CIMv2";
+            const string wmiFilterQuery = "Select * from Win32_ComputerSystem where DomainRole < 4";
+
+            try
+            {
+                var wmiContainerDn = $"CN=SOM,CN=WMIPolicy,CN=System,{domainDn}";
+                _progress?.Report($"[DEBUG] Looking for WMI filter in: {wmiContainerDn}");
+
+                using var wmiContainer = new DirectoryEntry($"LDAP://{dc}/{wmiContainerDn}");
+
+                // Check if filter already exists
+                using var searcher = new DirectorySearcher(wmiContainer)
+                {
+                    Filter = $"(&(objectClass=msWMI-Som)(msWMI-Name={EscapeLdapFilter(wmiFilterName)}))",
+                    SearchScope = SearchScope.OneLevel
+                };
+
+                var existing = searcher.FindOne();
+                if (existing != null)
+                {
+                    var existingId = existing.Properties["msWMI-ID"]?[0]?.ToString();
+                    if (!string.IsNullOrEmpty(existingId))
+                    {
+                        _progress?.Report($"[DEBUG] Found existing WMI filter: {wmiFilterName} with ID: {existingId}");
+                        return existingId.Trim('{', '}');
+                    }
+                }
+
+                // Create new WMI filter
+                _progress?.Report($"[DEBUG] Creating WMI filter: {wmiFilterName}");
+                var wmiGuid = Guid.NewGuid().ToString("B").ToUpperInvariant();
+                var wmiGuidClean = wmiGuid.Trim('{', '}');
+                var now = DateTime.UtcNow.ToString("yyyyMMddHHmmss.ffffff") + "+000";
+
+                // Build msWMI-Parm2 value (the WQL query specification)
+                var parm2 = $"1;3;{wmiFilterNamespace.Length};{wmiFilterQuery.Length};WQL;{wmiFilterNamespace};{wmiFilterQuery};";
+
+                using var newFilter = wmiContainer.Children.Add($"CN={wmiGuid}", "msWMI-Som");
+                newFilter.Properties["msWMI-Name"].Value = wmiFilterName;
+                newFilter.Properties["msWMI-ID"].Value = wmiGuid;
+                newFilter.Properties["msWMI-Parm1"].Value = wmiFilterDescription + " ";
+                newFilter.Properties["msWMI-Parm2"].Value = parm2;
+                newFilter.Properties["msWMI-Author"].Value = Environment.UserName;
+                newFilter.Properties["msWMI-ChangeDate"].Value = now;
+                newFilter.Properties["msWMI-CreationDate"].Value = now;
+                newFilter.CommitChanges();
+
+                _progress?.Report($"[DEBUG] Created WMI filter: {wmiFilterName} with ID: {wmiGuidClean}");
+                return wmiGuidClean;
+            }
+            catch (Exception ex)
+            {
+                _progress?.Report($"[WARN] Failed to create/get WMI filter: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Links a WMI filter to a GPO.
+        /// </summary>
+        private void LinkWmiFilterToGpo(string dc, string domainDn, string gpoGuid, string wmiFilterId, string domainFqdn)
+        {
+            try
+            {
+                var gpoContainerDn = $"CN=Policies,CN=System,{domainDn}";
+                var gpoDn = $"CN={gpoGuid},{gpoContainerDn}";
+
+                _progress?.Report($"[DEBUG] Linking WMI filter {wmiFilterId} to GPO {gpoGuid}");
+
+                using var gpoEntry = new DirectoryEntry($"LDAP://{dc}/{gpoDn}");
+                
+                // WMI filter link format: [domain;{GUID};0]
+                var wmiFilterLink = $"[{domainFqdn};{{{wmiFilterId}}};0]";
+                gpoEntry.Properties["gPCWQLFilter"].Value = wmiFilterLink;
+                gpoEntry.CommitChanges();
+
+                _progress?.Report($"[DEBUG] Linked WMI filter to GPO successfully");
+            }
+            catch (Exception ex)
+            {
+                _progress?.Report($"[WARN] Failed to link WMI filter: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Sets DENY Apply GPO permission for a group by name.
+        /// </summary>
+        private void SetGpoDenyApplyAcl(string dc, string domainDn, string gpoGuid, string groupName)
+        {
+            try
+            {
+                _progress?.Report($"[DEBUG] Setting DENY Apply ACL for group: {groupName}");
+
+                // Find the group
+                var groupResult = GetGroupBySamAccountName(dc, domainDn, groupName);
+                if (groupResult == null)
+                {
+                    _progress?.Report($"[WARN] Group '{groupName}' not found, cannot set DENY ACL");
+                    return;
+                }
+
+                var groupSid = new SecurityIdentifier((byte[])groupResult.Properties["objectSid"][0]!, 0);
+                SetGpoDenyApplyAclForSid(dc, domainDn, gpoGuid, groupSid, groupName);
+            }
+            catch (Exception ex)
+            {
+                _progress?.Report($"[WARN] Failed to set DENY ACL for {groupName}: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Sets DENY Apply GPO permission for a well-known group by RID.
+        /// </summary>
+        private void SetGpoDenyApplyAclBySid(string dc, string domainDn, string gpoGuid, int rid, string groupDescription)
+        {
+            try
+            {
+                _progress?.Report($"[DEBUG] Setting DENY Apply ACL for {groupDescription} (RID: {rid})");
+
+                // Get domain SID first
+                using var domainEntry = new DirectoryEntry($"LDAP://{dc}/{domainDn}");
+                var domainSidBytes = (byte[])domainEntry.Properties["objectSid"][0]!;
+                var domainSid = new SecurityIdentifier(domainSidBytes, 0);
+                
+                // Construct the group SID
+                var groupSid = new SecurityIdentifier($"{domainSid}-{rid}");
+                SetGpoDenyApplyAclForSid(dc, domainDn, gpoGuid, groupSid, groupDescription);
+            }
+            catch (Exception ex)
+            {
+                _progress?.Report($"[WARN] Failed to set DENY ACL for {groupDescription}: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Sets DENY Apply GPO permission for a group by name (for cross-domain groups like Enterprise RODCs).
+        /// </summary>
+        private void SetGpoDenyApplyAclByName(string dc, string domainDn, string gpoGuid, string groupName)
+        {
+            try
+            {
+                _progress?.Report($"[DEBUG] Setting DENY Apply ACL for group: {groupName}");
+
+                // Search for the group in the forest
+                using var searcher = new DirectorySearcher(new DirectoryEntry($"LDAP://{dc}/{domainDn}"))
+                {
+                    Filter = $"(&(objectClass=group)(samAccountName={EscapeLdapFilter(groupName)}))",
+                    SearchScope = SearchScope.Subtree
+                };
+                searcher.PropertiesToLoad.Add("objectSid");
+
+                var result = searcher.FindOne();
+                if (result == null)
+                {
+                    _progress?.Report($"[DEBUG] Group '{groupName}' not found");
+                    return;
+                }
+
+                var groupSid = new SecurityIdentifier((byte[])result.Properties["objectSid"][0]!, 0);
+                SetGpoDenyApplyAclForSid(dc, domainDn, gpoGuid, groupSid, groupName);
+            }
+            catch (Exception ex)
+            {
+                _progress?.Report($"[DEBUG] Could not set DENY ACL for {groupName}: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Sets DENY Apply GPO permission for a specific SID.
+        /// </summary>
+        private void SetGpoDenyApplyAclForSid(string dc, string domainDn, string gpoGuid, SecurityIdentifier groupSid, string groupDescription)
+        {
+            try
+            {
+                var gpoContainerDn = $"CN=Policies,CN=System,{domainDn}";
+                var gpoDn = $"CN={gpoGuid},{gpoContainerDn}";
+
+                using var gpoEntry = new DirectoryEntry($"LDAP://{dc}/{gpoDn}");
+                var gpoSecurity = gpoEntry.ObjectSecurity;
+
+                // Apply Group Policy extended right GUID
+                var applyGpoGuid = new Guid("edacfd8f-ffb3-11d1-b41d-00a0c968f939");
+
+                // Add DENY Apply GPO permission
+                var denyApplyRule = new ActiveDirectoryAccessRule(
+                    groupSid,
+                    ActiveDirectoryRights.ExtendedRight,
+                    AccessControlType.Deny,
+                    applyGpoGuid,
+                    ActiveDirectorySecurityInheritance.None);
+
+                gpoSecurity.AddAccessRule(denyApplyRule);
+
+                // Also add DENY Read permission to ensure the policy isn't processed
+                var denyReadRule = new ActiveDirectoryAccessRule(
+                    groupSid,
+                    ActiveDirectoryRights.ReadProperty,
+                    AccessControlType.Deny,
+                    ActiveDirectorySecurityInheritance.None);
+
+                gpoSecurity.AddAccessRule(denyReadRule);
+                gpoEntry.CommitChanges();
+
+                _progress?.Report($"[DEBUG] Set DENY Apply ACL for: {groupDescription}");
+            }
+            catch (Exception ex)
+            {
+                _progress?.Report($"[WARN] Failed to set DENY ACL for {groupDescription}: {ex.Message}");
             }
         }
 
