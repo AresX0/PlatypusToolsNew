@@ -149,5 +149,5 @@ PLATYPUS/
 # ===================
 .github/copilot-instructions.md
 
-# Confidential - Never commit
-MIRCAT/
+# Private reference folder - never commit
+private-ref/
