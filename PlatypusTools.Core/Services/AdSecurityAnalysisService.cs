@@ -3756,23 +3756,26 @@ namespace PlatypusTools.Core.Services
                     return;
                 }
                 
-                // Find the Tier 0 Computers group - with retry since it was just created
+                // Find the Tier 0 Computers group - search from domain root with retry since it was just created
+                // Per MIRCAT pattern: search by name in the full domain with Subtree scope
                 SearchResult? t0cGroup = null;
-                for (int attempt = 1; attempt <= 3; attempt++)
+                for (int attempt = 1; attempt <= 5; attempt++)
                 {
-                    using var t0cSearcher = new DirectorySearcher(new DirectoryEntry($"LDAP://{dc}/{tier0GroupsOu}"))
+                    using var t0cSearcher = new DirectorySearcher(new DirectoryEntry($"LDAP://{dc}/{domainDn}"))
                     {
                         Filter = "(&(objectClass=group)(samAccountName=Tier 0 Computers))",
-                        SearchScope = SearchScope.OneLevel
+                        SearchScope = SearchScope.Subtree
                     };
+                    t0cSearcher.PropertiesToLoad.Add("distinguishedName");
+                    t0cSearcher.PropertiesToLoad.Add("member");
                     
                     t0cGroup = t0cSearcher.FindOne();
                     if (t0cGroup != null) break;
                     
-                    if (attempt < 3)
+                    if (attempt < 5)
                     {
-                        _progress?.Report($"[DEBUG] Tier 0 Computers group not found yet, waiting... (attempt {attempt}/3)");
-                        Thread.Sleep(2000); // Wait 2 seconds between retries
+                        _progress?.Report($"[DEBUG] Tier 0 Computers group not found yet, waiting... (attempt {attempt}/5)");
+                        Thread.Sleep(3000); // Wait 3 seconds between retries (matching MIRCAT's start-sleep 3)
                     }
                 }
                 
@@ -3977,6 +3980,7 @@ namespace PlatypusTools.Core.Services
 
         /// <summary>
         /// Sets DENY Apply GPO permission for a group by name.
+        /// Per MIRCAT pattern: includes retry logic for newly created groups.
         /// </summary>
         private void SetGpoDenyApplyAcl(string dc, string domainDn, string gpoGuid, string groupName)
         {
@@ -3984,11 +3988,23 @@ namespace PlatypusTools.Core.Services
             {
                 _progress?.Report($"[DEBUG] Setting DENY Apply ACL for group: {groupName}");
 
-                // Find the group
-                var groupResult = GetGroupBySamAccountName(dc, domainDn, groupName);
+                // Find the group with retry for replication lag (per MIRCAT pattern)
+                SearchResult? groupResult = null;
+                for (int attempt = 1; attempt <= 5; attempt++)
+                {
+                    groupResult = GetGroupBySamAccountName(dc, domainDn, groupName);
+                    if (groupResult != null) break;
+                    
+                    if (attempt < 5)
+                    {
+                        _progress?.Report($"[DEBUG] Group '{groupName}' not found yet, waiting... (attempt {attempt}/5)");
+                        Thread.Sleep(4000); // Wait 4 seconds between retries (MIRCAT uses 20 seconds total)
+                    }
+                }
+                
                 if (groupResult == null)
                 {
-                    _progress?.Report($"[WARN] Group '{groupName}' not found, cannot set DENY ACL");
+                    _progress?.Report($"[WARN] Group '{groupName}' not found after retries, cannot set DENY ACL");
                     return;
                 }
 
@@ -4083,15 +4099,6 @@ namespace PlatypusTools.Core.Services
                     ActiveDirectorySecurityInheritance.None);
 
                 gpoSecurity.AddAccessRule(denyApplyRule);
-
-                // Also add DENY Read permission to ensure the policy isn't processed
-                var denyReadRule = new ActiveDirectoryAccessRule(
-                    groupSid,
-                    ActiveDirectoryRights.ReadProperty,
-                    AccessControlType.Deny,
-                    ActiveDirectorySecurityInheritance.None);
-
-                gpoSecurity.AddAccessRule(denyReadRule);
                 gpoEntry.CommitChanges();
 
                 _progress?.Report($"[DEBUG] Set DENY Apply ACL for: {groupDescription}");
