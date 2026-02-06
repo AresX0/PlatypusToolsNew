@@ -517,6 +517,71 @@
                                 </ScrollViewer>
                             </GroupBox>
 
+                            <!-- MDE/MDI Proxy in a Box -->
+                            <GroupBox Header="🌐 MDE/MDI Proxy in a Box" Margin="0,0,0,10">
+                                <StackPanel Margin="10">
+                                    <TextBlock Text="Generate a Squid proxy setup script for Microsoft Defender for Endpoint (MDE) and Microsoft Defender for Identity (MDI). Useful for air-gapped or restricted network environments." 
+                                               TextWrapping="Wrap" Margin="0,0,0,10" Foreground="Gray" />
+                                    
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="120" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Column="0" Text="Proxy Port:" VerticalAlignment="Center" Margin="0,0,10,5" />
+                                        <TextBox Grid.Column="1" Text="{Binding ProxyPort, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,20,5" 
+                                                 ToolTip="Port for Squid proxy (default: 3128)" />
+
+                                        <CheckBox Grid.Column="2" Grid.ColumnSpan="2" Content="Allow SSH (Port 22) through firewall" IsChecked="{Binding ProxyAllowSsh}" 
+                                                  VerticalAlignment="Center" Margin="0,0,0,5" ToolTip="Enable SSH access for remote management" />
+
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Endpoints:" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Orientation="Horizontal">
+                                            <CheckBox Content="MDE (Defender for Endpoint)" IsChecked="{Binding ProxyIncludeMde}" Margin="0,0,20,0" 
+                                                      ToolTip="Include Microsoft Defender for Endpoint URLs" FontWeight="SemiBold" />
+                                            <CheckBox Content="MDI (Defender for Identity)" IsChecked="{Binding ProxyIncludeMdi}" 
+                                                      ToolTip="Include Microsoft Defender for Identity URLs" FontWeight="SemiBold" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Separator Margin="0,10" />
+
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Content="⚙️ Generate Script" Command="{Binding GenerateProxyScriptCommand}" 
+                                                MinWidth="140" Height="30" Margin="0,0,10,0"
+                                                Background="#FF9C27B0" Foreground="White" FontWeight="SemiBold"
+                                                ToolTip="Generate the Squid proxy setup script" />
+                                        <Button Content="📋 Copy to Clipboard" Command="{Binding CopyProxyScriptCommand}" 
+                                                MinWidth="140" Height="30" Margin="0,0,10,0"
+                                                Background="#FF2196F3" Foreground="White"
+                                                ToolTip="Copy generated script to clipboard" />
+                                        <Button Content="💾 Save Script" Command="{Binding SaveProxyScriptCommand}" 
+                                                MinWidth="120" Height="30"
+                                                Background="#FF4CAF50" Foreground="White"
+                                                ToolTip="Save generated script to file" />
+                                    </StackPanel>
+
+                                    <TextBox Text="{Binding ProxyGeneratedScript, Mode=OneWay}" 
+                                             IsReadOnly="True" TextWrapping="NoWrap" 
+                                             MaxHeight="200"
+                                             VerticalScrollBarVisibility="Auto"
+                                             HorizontalScrollBarVisibility="Auto"
+                                             FontFamily="Consolas" FontSize="11"
+                                             Background="#FF1E1E1E" Foreground="#FFDCDCDC"
+                                             Margin="0,10,0,0" />
+
+                                    <TextBlock Text="💡 Run this script on an Ubuntu server with internet access. Clients will use this as a proxy for MDE/MDI traffic only." 
+                                               Foreground="CornflowerBlue" Margin="0,10,0,0" TextWrapping="Wrap" FontStyle="Italic" />
+                                </StackPanel>
+                            </GroupBox>
+
                             <!-- Deployment Results -->
                             <GroupBox Header="📋 Deployment Results">
                                 <Grid>

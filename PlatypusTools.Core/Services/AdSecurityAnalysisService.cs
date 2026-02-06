@@ -2047,6 +2047,7 @@ namespace PlatypusTools.Core.Services
                 "Tier 0 - Operators",
                 "Tier 0 - PAW Users", 
                 "Tier 0 - Service Accounts",
+                "Tier 0 Computers",  // For T0 Domain Block DENY ACL
                 "Tier 1 - Operators",
                 "Tier 1 - PAW Users",
                 "Tier 1 - Service Accounts",
@@ -2097,11 +2098,16 @@ namespace PlatypusTools.Core.Services
             sids["Administrators"] = "S-1-5-32-544";
             sids["Users"] = "S-1-5-32-545";
             sids["Guests"] = "S-1-5-32-546";
+            sids["Backup Operators"] = "S-1-5-32-551";
+            sids["Print Operators"] = "S-1-5-32-550";
+            sids["Server Operators"] = "S-1-5-32-549";
+            sids["Account Operators"] = "S-1-5-32-548";
             sids["Domain Admins"] = $"{domainSid}-512";
             sids["Domain Users"] = $"{domainSid}-513";
             sids["Domain Controllers"] = $"{domainSid}-516";
             sids["Enterprise Admins"] = $"{domainSid}-519";
             sids["Schema Admins"] = $"{domainSid}-518";
+            sids["Administrator"] = $"{domainSid}-500";  // Domain Administrator account
 
             _progress?.Report($"[DEBUG] Total SIDs resolved: {sids.Count}");
 
@@ -2369,6 +2375,19 @@ namespace PlatypusTools.Core.Services
                             "Users authorized to log on to Tier 0 PAWs"));
                         results.Add(CreateSecurityGroup(dc, tier0GroupsOu, domainDn, "Tier 0 - Service Accounts", 
                             "Service accounts for Tier 0 systems"));
+                        results.Add(CreateSecurityGroup(dc, tier0GroupsOu, domainDn, "Tier 0 Computers", 
+                            "Members of this group are Tier 0 computers and will be exempted from the Tier 0 Domain Block GPO"));
+                        
+                        // Add Domain Controllers to Tier 0 Computers group
+                        try
+                        {
+                            _progress?.Report("[DEBUG] Adding Domain Controllers to Tier 0 Computers group...");
+                            AddDomainControllersToTier0Computers(dc, domainDn, tier0GroupsOu);
+                        }
+                        catch (Exception ex)
+                        {
+                            _progress?.Report($"[WARN] Could not add Domain Controllers to Tier 0 Computers: {ex.Message}");
+                        }
                         
                         // Tier 1 Groups
                         var tier1GroupsOu = $"OU=Groups,OU=Tier1,{adminOuDn}";
@@ -2414,7 +2433,9 @@ namespace PlatypusTools.Core.Services
 
                     // === STEP 3: Get Group SIDs for GPO Settings ===
                     _progress?.Report("[STEP 3] Resolving group SIDs for GPO settings...");
+                    var domainNetBios = _domainInfo.DomainNetbiosName ?? domainFqdn.Split('.').FirstOrDefault() ?? "DOMAIN";
                     var groupSids = ResolveGroupSids(dc, domainDn, domainSid, options.TieredOuBaseName);
+                    groupSids["DomainNetBIOS"] = domainNetBios;  // Add for GPP content generation
 
                     // === STEP 4: Deploy GPOs with Settings ===
                     _progress?.Report("[STEP 4] Deploying GPOs with settings...");
@@ -2488,7 +2509,7 @@ namespace PlatypusTools.Core.Services
                         results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier 0 - Domain Block - Top Level",
                             "Tier 0 account blocking configured.",
-                            GpoSettingsType.UserRights));
+                            GpoSettingsType.T0DomainBlock));
                     }
 
                     if (options.DeployT0DomainControllers)
@@ -2498,7 +2519,7 @@ namespace PlatypusTools.Core.Services
                         results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier 0 - Domain Controllers - DC Only",
                             "DC security hardening configured.",
-                            GpoSettingsType.SecuritySettings));
+                            GpoSettingsType.DomainControllers));
                     }
 
                     if (options.DeployT0EsxAdmins)
@@ -2535,11 +2556,11 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployT1LocalAdmin)
                     {
                         ct.ThrowIfCancellationRequested();
-                        _progress?.Report("[DEBUG] Creating Tier 1 Local Admin GPO...");
+                        _progress?.Report("[DEBUG] Creating Tier 1 Local Admin GPO (GPP)...");
                         results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier 1 - Tier 1 Operators in Local Admin - Tier 1 Servers",
-                            "Tier 1 local admin membership configured.",
-                            GpoSettingsType.RestrictedGroups));
+                            "Tier 1 local admin membership configured via GPP.",
+                            GpoSettingsType.LocalUsersAndGroups));
                     }
 
                     if (options.DeployT1UserRights)
@@ -2566,11 +2587,11 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployT2LocalAdmin)
                     {
                         ct.ThrowIfCancellationRequested();
-                        _progress?.Report("[DEBUG] Creating Tier 2 Local Admin GPO...");
+                        _progress?.Report("[DEBUG] Creating Tier 2 Local Admin GPO (GPP)...");
                         results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier 2 - Tier 2 Operators in Local Admin - Tier 2 Devices",
-                            "Tier 2 local admin membership configured.",
-                            GpoSettingsType.RestrictedGroups));
+                            "Tier 2 local admin membership configured via GPP.",
+                            GpoSettingsType.LocalUsersAndGroups));
                     }
 
                     if (options.DeployT2UserRights)
@@ -2600,8 +2621,8 @@ namespace PlatypusTools.Core.Services
                         _progress?.Report("[DEBUG] Creating Disable SMBv1 GPO...");
                         results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier ALL - Disable SMBv1 - Top Level",
-                            "SMBv1 disabled via registry settings.",
-                            GpoSettingsType.SecuritySettings));
+                            "SMBv1 disabled via registry preferences.",
+                            GpoSettingsType.Registry));
                     }
 
                     if (options.DeployDisableWDigest)
@@ -2610,8 +2631,8 @@ namespace PlatypusTools.Core.Services
                         _progress?.Report("[DEBUG] Creating Disable WDigest GPO...");
                         results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
                             "Tier ALL - Disable WDigest - Top Level",
-                            "WDigest credential caching disabled.",
-                            GpoSettingsType.SecuritySettings));
+                            "WDigest credential caching disabled via registry preferences.",
+                            GpoSettingsType.Registry));
                     }
 
                     if (options.DeployResetMachinePassword)
@@ -2801,6 +2822,12 @@ namespace PlatypusTools.Core.Services
                 GpoSettingsType.UserRights => "[{827D319E-6EAC-11D2-A4EA-00C04F79F83A}{803E14A0-B4FB-11D0-A0D0-00A0C90F574B}]",
                 // Registry settings (Group Policy Preferences)
                 GpoSettingsType.Registry => "[{B087BE9D-ED37-454F-AF9C-04291E351182}{BEE07A6A-EC9F-4659-B8C9-0B1937907C83}]",
+                // GPP Local Users and Groups
+                GpoSettingsType.LocalUsersAndGroups => "[{17D89FEC-5C44-4972-B12D-241CAEF74509}{79F92669-4224-476C-9C5C-6EFB4D87DF4A}]",
+                // T0 Domain Block - same as UserRights (security settings)
+                GpoSettingsType.T0DomainBlock => "[{827D319E-6EAC-11D2-A4EA-00C04F79F83A}{803E14A0-B4FB-11D0-A0D0-00A0C90F574B}]",
+                // Domain Controllers GPO - security settings + audit + registry preferences
+                GpoSettingsType.DomainControllers => "[{827D319E-6EAC-11D2-A4EA-00C04F79F83A}{803E14A0-B4FB-11D0-A0D0-00A0C90F574B}][{B087BE9D-ED37-454F-AF9C-04291E351182}{BEE07A6A-EC9F-4659-B8C9-0B1937907C83}][{F3CCC681-B74C-4060-9F26-CD84525DCA2A}{0F3F3735-573D-9804-99E4-AB2A69BA5FD4}]",
                 _ => ""
             };
         }
@@ -2838,7 +2865,7 @@ namespace PlatypusTools.Core.Services
                 switch (settingsType)
                 {
                     case GpoSettingsType.AuditPolicy:
-                        CreateAuditPolicyContent(secEditPath, auditPath);
+                        CreateBaselineAuditPolicyContent(secEditPath, auditPath);
                         break;
                     case GpoSettingsType.SecuritySettings:
                         CreateSecuritySettingsContent(secEditPath, gpoName);
@@ -2851,6 +2878,15 @@ namespace PlatypusTools.Core.Services
                         break;
                     case GpoSettingsType.Registry:
                         CreateRegistryContent(machinePath, gpoName);
+                        break;
+                    case GpoSettingsType.LocalUsersAndGroups:
+                        CreateLocalUsersAndGroupsContent(machinePath, gpoName, groupSids);
+                        break;
+                    case GpoSettingsType.T0DomainBlock:
+                        CreateT0DomainBlockContent(secEditPath, gpoName, groupSids);
+                        break;
+                    case GpoSettingsType.DomainControllers:
+                        CreateDomainControllersContent(sysvolPath, machinePath, secEditPath, auditPath, groupSids);
                         break;
                 }
 
@@ -2877,7 +2913,12 @@ namespace PlatypusTools.Core.Services
             }
         }
 
-        private void CreateAuditPolicyContent(string secEditPath, string auditPath)
+        /// <summary>
+        /// Creates baseline audit policy content for Tier 0 servers (non-DC).
+        /// Matches Set-BillT0BaselineAuditGpo from PLATYPUS module.
+        /// Only 4 subcategories with Success auditing.
+        /// </summary>
+        private void CreateBaselineAuditPolicyContent(string secEditPath, string auditPath)
         {
             Directory.CreateDirectory(auditPath);
 
@@ -2894,34 +2935,184 @@ namespace PlatypusTools.Core.Services
 
             File.WriteAllText(Path.Combine(secEditPath, "GptTmpl.inf"), gptTmpl.ToString(), Encoding.Unicode);
 
-            // Create audit.csv for advanced audit policies
+            // Create audit.csv for baseline audit policies (4 subcategories, Success only)
+            // Matches Set-BillT0BaselineAuditGpo from PLATYPUS module
             var auditCsv = new StringBuilder();
             auditCsv.AppendLine("Machine Name,Policy Target,Subcategory,Subcategory GUID,Inclusion Setting,Exclusion Setting,Setting Value");
-            // Credential Validation
-            auditCsv.AppendLine(",System,Audit Credential Validation,{0cce923f-69ae-11d9-bed3-505054503030},Success and Failure,,3");
-            // Computer Account Management
-            auditCsv.AppendLine(",System,Audit Computer Account Management,{0cce9236-69ae-11d9-bed3-505054503030},Success and Failure,,3");
-            // Distribution Group Management
-            auditCsv.AppendLine(",System,Audit Distribution Group Management,{0cce9238-69ae-11d9-bed3-505054503030},Success and Failure,,3");
-            // Security Group Management
-            auditCsv.AppendLine(",System,Audit Security Group Management,{0cce9237-69ae-11d9-bed3-505054503030},Success and Failure,,3");
-            // User Account Management
-            auditCsv.AppendLine(",System,Audit User Account Management,{0cce9235-69ae-11d9-bed3-505054503030},Success and Failure,,3");
-            // Directory Service Access
-            auditCsv.AppendLine(",System,Audit Directory Service Access,{0cce923b-69ae-11d9-bed3-505054503030},Success and Failure,,3");
-            // Directory Service Changes
-            auditCsv.AppendLine(",System,Audit Directory Service Changes,{0cce923c-69ae-11d9-bed3-505054503030},Success and Failure,,3");
-            // Security System Extension
-            auditCsv.AppendLine(",System,Audit Security System Extension,{0cce9211-69ae-11d9-bed3-505054503030},Success and Failure,,3");
-            // Logon/Logoff events
-            auditCsv.AppendLine(",System,Audit Logon,{0cce9215-69ae-11d9-bed3-505054503030},Success and Failure,,3");
-            auditCsv.AppendLine(",System,Audit Logoff,{0cce9216-69ae-11d9-bed3-505054503030},Success,,1");
-            auditCsv.AppendLine(",System,Audit Special Logon,{0cce921b-69ae-11d9-bed3-505054503030},Success and Failure,,3");
-            // Kerberos events
-            auditCsv.AppendLine(",System,Audit Kerberos Authentication Service,{0cce9242-69ae-11d9-bed3-505054503030},Success and Failure,,3");
-            auditCsv.AppendLine(",System,Audit Kerberos Service Ticket Operations,{0cce9240-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            // Credential Validation - Success only
+            auditCsv.AppendLine(",System,Audit Credential Validation,{0cce923f-69ae-11d9-bed3-505054503030},Success,,1");
+            // Security Group Management - Success only
+            auditCsv.AppendLine(",System,Audit Security Group Management,{0cce9237-69ae-11d9-bed3-505054503030},Success,,1");
+            // Process Creation - Success only
+            auditCsv.AppendLine(",System,Audit Process Creation,{0cce922b-69ae-11d9-bed3-505054503030},Success,,1");
+            // Security System Extension - Success only (no trailing newline on last line)
+            auditCsv.Append(",System,Audit Security System Extension,{0cce9211-69ae-11d9-bed3-505054503030},Success,,1");
 
             File.WriteAllText(Path.Combine(auditPath, "audit.csv"), auditCsv.ToString(), Encoding.ASCII);
+        }
+
+        /// <summary>
+        /// Creates comprehensive Domain Controller GPO content.
+        /// Matches Set-BillT0DomainControllersGpo from PLATYPUS module.
+        /// Includes: 28 audit subcategories, security settings, registry preferences, and service settings.
+        /// </summary>
+        private void CreateDomainControllersContent(string sysvolPath, string machinePath, string secEditPath, string auditPath, Dictionary<string, string> groupSids)
+        {
+            Directory.CreateDirectory(auditPath);
+            var prefsRegistryPath = Path.Combine(machinePath, "Preferences", "Registry");
+            Directory.CreateDirectory(prefsRegistryPath);
+
+            // === PART 1: Comprehensive DC Audit Policies (28 subcategories) ===
+            var auditCsv = new StringBuilder();
+            auditCsv.AppendLine("Machine Name,Policy Target,Subcategory,Subcategory GUID,Inclusion Setting,Exclusion Setting,Setting Value");
+            // Account Logon
+            auditCsv.AppendLine(",System,Audit Credential Validation,{0cce923f-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            // Account Management
+            auditCsv.AppendLine(",System,Audit Computer Account Management,{0cce9236-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            auditCsv.AppendLine(",System,Audit Distribution Group Management,{0cce9238-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            auditCsv.AppendLine(",System,Audit Other Account Management Events,{0cce923a-69ae-11d9-bed3-505054503030},Success,,1");
+            auditCsv.AppendLine(",System,Audit Security Group Management,{0cce9237-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            auditCsv.AppendLine(",System,Audit User Account Management,{0cce9235-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            // Detailed Tracking
+            auditCsv.AppendLine(",System,Audit PNP Activity,{0cce9248-69ae-11d9-bed3-505054503030},Success,,1");
+            auditCsv.AppendLine(",System,Audit Process Creation,{0cce922b-69ae-11d9-bed3-505054503030},Success,,1");
+            // DS Access
+            auditCsv.AppendLine(",System,Audit Directory Service Access,{0cce923b-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            auditCsv.AppendLine(",System,Audit Directory Service Changes,{0cce923c-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            // Logon/Logoff
+            auditCsv.AppendLine(",System,Audit Account Lockout,{0cce9217-69ae-11d9-bed3-505054503030},Failure,,2");
+            auditCsv.AppendLine(",System,Audit Group Membership,{0cce9249-69ae-11d9-bed3-505054503030},Success,,1");
+            auditCsv.AppendLine(",System,Audit Logon,{0cce9215-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            auditCsv.AppendLine(",System,Audit Other Logon/Logoff Events,{0cce921c-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            auditCsv.AppendLine(",System,Audit Special Logon,{0cce921b-69ae-11d9-bed3-505054503030},Success,,1");
+            // Object Access
+            auditCsv.AppendLine(",System,Audit Detailed File Share,{0cce9244-69ae-11d9-bed3-505054503030},Failure,,2");
+            auditCsv.AppendLine(",System,Audit File Share,{0cce9224-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            auditCsv.AppendLine(",System,Audit Other Object Access Events,{0cce9227-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            auditCsv.AppendLine(",System,Audit Removable Storage,{0cce9245-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            // Policy Change
+            auditCsv.AppendLine(",System,Audit Audit Policy Change,{0cce922f-69ae-11d9-bed3-505054503030},Success,,1");
+            auditCsv.AppendLine(",System,Audit Authentication Policy Change,{0cce9230-69ae-11d9-bed3-505054503030},Success,,1");
+            auditCsv.AppendLine(",System,Audit MPSSVC Rule-Level Policy Change,{0cce9232-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            auditCsv.AppendLine(",System,Audit Other Policy Change Events,{0cce9234-69ae-11d9-bed3-505054503030},Failure,,2");
+            // Privilege Use
+            auditCsv.AppendLine(",System,Audit Sensitive Privilege Use,{0cce9228-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            // System
+            auditCsv.AppendLine(",System,Audit Other System Events,{0cce9214-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            auditCsv.AppendLine(",System,Audit Security State Change,{0cce9210-69ae-11d9-bed3-505054503030},Success,,1");
+            auditCsv.AppendLine(",System,Audit Security System Extension,{0cce9211-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            auditCsv.Append(",System,Audit System Integrity,{0cce9212-69ae-11d9-bed3-505054503030},Success and Failure,,3");
+            
+            File.WriteAllText(Path.Combine(auditPath, "audit.csv"), auditCsv.ToString(), Encoding.ASCII);
+
+            // === PART 2: Security Settings (GptTmpl.inf) ===
+            var gptTmpl = new StringBuilder();
+            gptTmpl.AppendLine("[Unicode]");
+            gptTmpl.AppendLine("Unicode=yes");
+            gptTmpl.AppendLine("[Version]");
+            gptTmpl.AppendLine("signature=\"$CHICAGO$\"");
+            gptTmpl.AppendLine("Revision=1");
+            gptTmpl.AppendLine();
+            gptTmpl.AppendLine("[System Access]");
+            gptTmpl.AppendLine("LSAAnonymousNameLookup = 0");
+            gptTmpl.AppendLine();
+            gptTmpl.AppendLine("[Registry Values]");
+            // NTLM and authentication settings
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\MSV1_0\\allownullsessionfallback=4,0");
+            gptTmpl.AppendLine("MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\InactivityTimeoutSecs=4,900");
+            gptTmpl.AppendLine("MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\ScRemoveOption=1,\"1\"");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\SCENoApplyLegacyAuditPolicy=4,1");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\LDAP\\LDAPClientIntegrity=4,1");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\LmCompatibilityLevel=4,5");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\MSV1_0\\NTLMMinClientSec=4,537395200");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\sealsecurechannel=4,1");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\MSV1_0\\NTLMMinServerSec=4,537395200");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\requiresignorseal=4,1");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\signsecurechannel=4,1");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\LanmanWorkstation\\Parameters\\RequireSecuritySignature=4,1");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\LanManServer\\Parameters\\requiresecuritysignature=4,1");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\requirestrongkey=4,1");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\RestrictAnonymousSAM=4,1");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\LanManServer\\Parameters\\RestrictNullSessAccess=4,1");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\RestrictAnonymous=4,1");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Session Manager\\ProtectionMode=4,1");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\LimitBlankPasswordUse=4,1");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\maximumpasswordage=4,30");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\disablepasswordchange=4,0");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\NoLMHash=4,1");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\LanmanWorkstation\\Parameters\\EnablePlainTextPassword=4,0");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\NTDS\\Parameters\\LDAPServerIntegrity=4,2");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\RefusePasswordChange=4,0");
+            // NTLM Auditing
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\MSV1_0\\AuditReceivingNTLMTraffic=4,2");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Control\\Lsa\\MSV1_0\\RestrictSendingNTLMTraffic=4,1");
+            gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\AuditNTLMInDomain=4,7");
+            gptTmpl.AppendLine();
+            gptTmpl.AppendLine("[Privilege Rights]");
+            
+            // Get SIDs for DC user rights
+            var localAdmins = "*S-1-5-32-544"; // BUILTIN\Administrators
+            var domainEntDcs = groupSids.GetValueOrDefault("DomainControllers", "*S-1-5-9"); // Enterprise Domain Controllers
+            var domainAuthUsers = "*S-1-5-11"; // Authenticated Users
+            var ntNetService = "*S-1-5-20"; // NETWORK SERVICE
+            var ntLocalService = "*S-1-5-19"; // LOCAL SERVICE
+            var ntService = "*S-1-5-80-0"; // NT SERVICE\ALL SERVICES
+            var builtinPerformanceLogUsers = "*S-1-5-32-559"; // Performance Log Users
+            var domainBackupOps = "*S-1-5-32-551"; // Backup Operators
+            var domainGuests = groupSids.GetValueOrDefault("Guests", "*S-1-5-32-546"); // Guests
+            var domainGuestAccount = groupSids.GetValueOrDefault("Guest", "*S-1-5-21-0-0-0-501"); // Domain Guest (placeholder)
+            var tier0ServiceAccounts = groupSids.GetValueOrDefault("Tier0ServiceAccounts", "");
+            var ntAllServices = "*S-1-5-80-0"; // ALL SERVICES
+            
+            gptTmpl.AppendLine($"SeSecurityPrivilege = {localAdmins}");
+            gptTmpl.AppendLine("SeCreateTokenPrivilege = ");
+            gptTmpl.AppendLine("SeTrustedCredManAccessPrivilege = ");
+            gptTmpl.AppendLine($"SeRemoteInteractiveLogonRight = {localAdmins}");
+            gptTmpl.AppendLine($"SeCreatePagefilePrivilege = {localAdmins}");
+            gptTmpl.AppendLine($"SeRemoteShutdownPrivilege = {localAdmins}");
+            gptTmpl.AppendLine($"SeLoadDriverPrivilege = {localAdmins}");
+            gptTmpl.AppendLine($"SeRestorePrivilege = {localAdmins}");
+            gptTmpl.AppendLine($"SeCreateGlobalPrivilege = {ntNetService},{ntLocalService},{localAdmins},{ntService}");
+            gptTmpl.AppendLine($"SeManageVolumePrivilege = {localAdmins}");
+            gptTmpl.AppendLine($"SeInteractiveLogonRight = {localAdmins}");
+            gptTmpl.AppendLine($"SeEnableDelegationPrivilege = {localAdmins}");
+            gptTmpl.AppendLine("SeCreatePermanentPrivilege = ");
+            gptTmpl.AppendLine($"SeDebugPrivilege = {localAdmins}");
+            gptTmpl.AppendLine($"SeProfileSingleProcessPrivilege = {localAdmins}");
+            gptTmpl.AppendLine($"SeBackupPrivilege = {localAdmins}");
+            gptTmpl.AppendLine($"SeNetworkLogonRight = {domainEntDcs},{domainAuthUsers},{localAdmins}");
+            gptTmpl.AppendLine($"SeImpersonatePrivilege = {ntNetService},{ntLocalService},{localAdmins},{ntService}");
+            gptTmpl.AppendLine($"SeSystemEnvironmentPrivilege = {localAdmins}");
+            gptTmpl.AppendLine("SeLockMemoryPrivilege = ");
+            gptTmpl.AppendLine("SeTcbPrivilege = ");
+            gptTmpl.AppendLine($"SeTakeOwnershipPrivilege = {localAdmins}");
+            gptTmpl.AppendLine($"SeDenyNetworkLogonRight = {domainGuests},{domainGuestAccount}");
+            gptTmpl.AppendLine($"SeDenyBatchLogonRight = {domainGuests},{domainGuestAccount}");
+            gptTmpl.AppendLine($"SeDenyRemoteInteractiveLogonRight = {domainGuests},{domainGuestAccount}");
+            gptTmpl.AppendLine($"SeDenyInteractiveLogonRight = {domainGuests},{domainGuestAccount}");
+            gptTmpl.AppendLine("SeDenyServiceLogonRight = ");
+            var serviceLogonRight = string.IsNullOrEmpty(tier0ServiceAccounts) ? ntAllServices : $"{ntAllServices},{tier0ServiceAccounts}";
+            gptTmpl.AppendLine($"SeServiceLogonRight = {serviceLogonRight}");
+            gptTmpl.AppendLine($"SeBatchLogonRight = {builtinPerformanceLogUsers},{domainBackupOps},{localAdmins}");
+            gptTmpl.AppendLine();
+            gptTmpl.AppendLine("[Service General Setting]");
+            gptTmpl.AppendLine("\"AppIDSvc\",2,\"\"");
+            gptTmpl.AppendLine("\"Spooler\",4,\"\"");
+
+            File.WriteAllText(Path.Combine(secEditPath, "GptTmpl.inf"), gptTmpl.ToString(), Encoding.Unicode);
+
+            // === PART 3: Registry Preferences (AllowInsecureGuestAuth) ===
+            var registryXml = new StringBuilder();
+            registryXml.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+            registryXml.Append("<RegistrySettings clsid=\"{A3CCFC41-DFDB-43a5-8D26-0FE8B954DA51}\">");
+            registryXml.Append("<Registry clsid=\"{9CD4B2F4-923D-47f5-A062-E897DD1DAD50}\" name=\"AllowInsecureGuestAuth\" status=\"AllowInsecureGuestAuth\" image=\"12\" ");
+            registryXml.Append($"changed=\"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}\" uid=\"{{7ECFC955-ED91-4510-96DC-0EAD748E1F97}}\">");
+            registryXml.Append("<Properties action=\"U\" displayDecimal=\"0\" default=\"0\" hive=\"HKEY_LOCAL_MACHINE\" ");
+            registryXml.Append("key=\"SYSTEM\\CurrentControlSet\\Services\\LanmanWorkstation\\Parameters\" name=\"AllowInsecureGuestAuth\" type=\"REG_DWORD\" value=\"00000000\"/>");
+            registryXml.Append("</Registry>");
+            registryXml.Append("</RegistrySettings>");
+            
+            File.WriteAllText(Path.Combine(prefsRegistryPath, "Registry.xml"), registryXml.ToString(), Encoding.UTF8);
         }
 
         private void CreateSecuritySettingsContent(string secEditPath, string gpoName)
@@ -2966,19 +3157,55 @@ namespace PlatypusTools.Core.Services
             File.WriteAllText(Path.Combine(secEditPath, "GptTmpl.inf"), gptTmpl.ToString(), Encoding.Unicode);
         }
 
+        /// <summary>
+        /// Creates Registry Preferences content for GPOs.
+        /// Matches Set-BillTAllDisableSMB1Gpo and Set-TAllDisableWdigestGpo from PLATYPUS module.
+        /// </summary>
         private void CreateRegistryContent(string machinePath, string gpoName)
         {
-            // For registry preferences, create Registry.pol or Preferences structure
-            // This is a simplified version - full implementation would use binary POL format
             var prefsPath = Path.Combine(machinePath, "Preferences", "Registry");
             Directory.CreateDirectory(prefsPath);
 
-            // Create a placeholder XML for registry preferences
             var registryXml = new StringBuilder();
             registryXml.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-            registryXml.AppendLine("<RegistrySettings clsid=\"{A3CCFC41-DFDB-43a5-8D26-0FE8B954DA51}\">");
-            registryXml.AppendLine("  <!-- Configure registry settings in Group Policy Management Console -->");
-            registryXml.AppendLine("</RegistrySettings>");
+
+            if (gpoName.Contains("SMB", StringComparison.OrdinalIgnoreCase))
+            {
+                // Disable SMBv1 via Registry Preferences - PLATYPUS tiered admin model
+                registryXml.Append("<RegistrySettings clsid=\"{A3CCFC41-DFDB-43a5-8D26-0FE8B954DA51}\">");
+                registryXml.Append("<Registry clsid=\"{9CD4B2F4-923D-47f5-A062-E897DD1DAD50}\" ");
+                registryXml.Append("name=\"SMB1\" status=\"SMB1\" image=\"12\" ");
+                registryXml.Append($"changed=\"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}\" ");
+                registryXml.Append("uid=\"{4C46EAE9-2CFC-41C0-8C2C-A34F76CAFCAF}\">");
+                registryXml.Append("<Properties action=\"U\" displayDecimal=\"0\" default=\"0\" ");
+                registryXml.Append("hive=\"HKEY_LOCAL_MACHINE\" ");
+                registryXml.Append("key=\"SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters\" ");
+                registryXml.Append("name=\"SMB1\" type=\"REG_DWORD\" value=\"00000000\"/>");
+                registryXml.Append("</Registry>");
+                registryXml.Append("</RegistrySettings>");
+            }
+            else if (gpoName.Contains("WDigest", StringComparison.OrdinalIgnoreCase))
+            {
+                // Disable WDigest via Registry Preferences - PLATYPUS tiered admin model
+                registryXml.Append("<RegistrySettings clsid=\"{A3CCFC41-DFDB-43a5-8D26-0FE8B954DA51}\">");
+                registryXml.Append("<Registry clsid=\"{9CD4B2F4-923D-47f5-A062-E897DD1DAD50}\" ");
+                registryXml.Append("name=\"UseLogonCredential\" status=\"UseLogonCredential\" image=\"12\" ");
+                registryXml.Append($"changed=\"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}\" ");
+                registryXml.Append("uid=\"{932DD2D1-CA47-48E7-AC0D-46738FC9CC54}\">");
+                registryXml.Append("<Properties action=\"U\" displayDecimal=\"0\" default=\"0\" ");
+                registryXml.Append("hive=\"HKEY_LOCAL_MACHINE\" ");
+                registryXml.Append("key=\"SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\WDigest\" ");
+                registryXml.Append("name=\"UseLogonCredential\" type=\"REG_DWORD\" value=\"00000000\"/>");
+                registryXml.Append("</Registry>");
+                registryXml.Append("</RegistrySettings>");
+            }
+            else
+            {
+                // Generic registry preferences placeholder
+                registryXml.Append("<RegistrySettings clsid=\"{A3CCFC41-DFDB-43a5-8D26-0FE8B954DA51}\">");
+                registryXml.Append("<!-- Configure registry settings in Group Policy Management Console -->");
+                registryXml.Append("</RegistrySettings>");
+            }
 
             File.WriteAllText(Path.Combine(prefsPath, "Registry.xml"), registryXml.ToString(), Encoding.UTF8);
         }
@@ -3043,44 +3270,50 @@ namespace PlatypusTools.Core.Services
                 }
             }
             // Tier 1 Restricted Groups - local Administrators on member servers
+            // Per PLATYPUS BILL model: Only Tier 1 Operators + Administrator (NOT Domain Admins)
             else if (gpoName.Contains("Tier 1", StringComparison.OrdinalIgnoreCase))
             {
                 _progress?.Report("[DEBUG] Creating Tier 1 restricted group settings...");
                 
                 var tier1Ops = groupSids.GetValueOrDefault("Tier 1 - Operators", "");
-                var tier1LocalAdmins = groupSids.GetValueOrDefault("Tier 1 - Server Local Admins", "");
-                var domainAdmins = groupSids.GetValueOrDefault("Domain Admins", "");
                 
-                var members = new List<string>();
-                if (!string.IsNullOrEmpty(domainAdmins)) members.Add($"*{domainAdmins}");
-                if (!string.IsNullOrEmpty(tier1Ops)) members.Add($"*{tier1Ops}");
-                if (!string.IsNullOrEmpty(tier1LocalAdmins)) members.Add($"*{tier1LocalAdmins}");
-                
-                gptTmpl.AppendLine("; Tier 1 - Local Administrators restricted to Tier 1 groups");
-                gptTmpl.AppendLine($"*S-1-5-32-544__Members = {string.Join(",", members)}");
+                // Per PLATYPUS BILL model: *S-1-5-32-544__Members = {tier1Operators},Administrator
+                // Only Tier 1 Operators + local Administrator, NOT Domain Admins
+                gptTmpl.AppendLine("; Tier 1 - Local Administrators set to Tier 1 Operators + Administrator");
                 gptTmpl.AppendLine("*S-1-5-32-544__Memberof =");
-                
-                _progress?.Report($"[DEBUG] Tier 1 Administrators members set to: {string.Join(",", members)}");
+                if (!string.IsNullOrEmpty(tier1Ops))
+                {
+                    gptTmpl.AppendLine($"*S-1-5-32-544__Members = *{tier1Ops},Administrator");
+                    _progress?.Report($"[DEBUG] Tier 1 Administrators members set to: *{tier1Ops},Administrator");
+                }
+                else
+                {
+                    gptTmpl.AppendLine("*S-1-5-32-544__Members = Administrator");
+                    _progress?.Report("[DEBUG] Tier 1 Operators not found, defaulting to Administrator only");
+                }
             }
             // Tier 2 Restricted Groups - local Administrators on workstations
+            // Per PLATYPUS BILL model: Only Tier 2 Operators + Administrator (NOT Domain Admins)
             else if (gpoName.Contains("Tier 2", StringComparison.OrdinalIgnoreCase))
             {
                 _progress?.Report("[DEBUG] Creating Tier 2 restricted group settings...");
                 
                 var tier2Ops = groupSids.GetValueOrDefault("Tier 2 - Operators", "");
-                var tier2LocalAdmins = groupSids.GetValueOrDefault("Tier 2 - Workstation Local Admins", "");
-                var domainAdmins = groupSids.GetValueOrDefault("Domain Admins", "");
                 
-                var members = new List<string>();
-                if (!string.IsNullOrEmpty(domainAdmins)) members.Add($"*{domainAdmins}");
-                if (!string.IsNullOrEmpty(tier2Ops)) members.Add($"*{tier2Ops}");
-                if (!string.IsNullOrEmpty(tier2LocalAdmins)) members.Add($"*{tier2LocalAdmins}");
-                
-                gptTmpl.AppendLine("; Tier 2 - Local Administrators restricted to Tier 2 groups");
-                gptTmpl.AppendLine($"*S-1-5-32-544__Members = {string.Join(",", members)}");
+                // Per PLATYPUS BILL model: *S-1-5-32-544__Members = {tier2Operators},Administrator
+                // Only Tier 2 Operators + local Administrator, NOT Domain Admins
+                gptTmpl.AppendLine("; Tier 2 - Local Administrators set to Tier 2 Operators + Administrator");
                 gptTmpl.AppendLine("*S-1-5-32-544__Memberof =");
-                
-                _progress?.Report($"[DEBUG] Tier 2 Administrators members set to: {string.Join(",", members)}");
+                if (!string.IsNullOrEmpty(tier2Ops))
+                {
+                    gptTmpl.AppendLine($"*S-1-5-32-544__Members = *{tier2Ops},Administrator");
+                    _progress?.Report($"[DEBUG] Tier 2 Administrators members set to: *{tier2Ops},Administrator");
+                }
+                else
+                {
+                    gptTmpl.AppendLine("*S-1-5-32-544__Members = Administrator");
+                    _progress?.Report("[DEBUG] Tier 2 Operators not found, defaulting to Administrator only");
+                }
             }
             else
             {
@@ -3154,50 +3387,129 @@ namespace PlatypusTools.Core.Services
                 }
             }
             // Tier 1 - Member Servers
+            // Per PLATYPUS BILL model: Deny ALL Tier 0 privileged accounts from Tier 1 systems
             else if (gpoName.Contains("Tier 1", StringComparison.OrdinalIgnoreCase))
             {
-                _progress?.Report("[DEBUG] Creating Tier 1 user rights settings...");
+                _progress?.Report("[DEBUG] Creating Tier 1 user rights settings (BILL pattern)...");
                 
-                var tier0Ops = groupSids.GetValueOrDefault("Tier 0 - Operators", "");
-                var tier1Ops = groupSids.GetValueOrDefault("Tier 1 - Operators", "");
-                var tier1Paw = groupSids.GetValueOrDefault("Tier 1 - PAW Users", "");
-                var tier2Ops = groupSids.GetValueOrDefault("Tier 2 - Operators", "");
+                // Build deny list with ALL Tier 0 privileged accounts (same as T0 Domain Block)
+                var denyList = new List<string>();
+                
+                // Schema Admins
+                var schemaAdmins = groupSids.GetValueOrDefault("Schema Admins", "");
+                if (!string.IsNullOrEmpty(schemaAdmins)) denyList.Add($"*{schemaAdmins.TrimStart('*')}");
+                
+                // Enterprise Admins
+                var enterpriseAdmins = groupSids.GetValueOrDefault("Enterprise Admins", "");
+                if (!string.IsNullOrEmpty(enterpriseAdmins)) denyList.Add($"*{enterpriseAdmins.TrimStart('*')}");
+                
+                // Account Operators
+                var accountOps = groupSids.GetValueOrDefault("Account Operators", "");
+                if (!string.IsNullOrEmpty(accountOps)) denyList.Add($"*{accountOps.TrimStart('*')}");
+                
+                // Domain Admins
                 var domainAdmins = groupSids.GetValueOrDefault("Domain Admins", "");
+                if (!string.IsNullOrEmpty(domainAdmins)) denyList.Add($"*{domainAdmins.TrimStart('*')}");
                 
-                // Deny logon rights to Tier 0 (except DA) and Tier 2 accounts on Tier 1 systems
-                var denyList = new List<string> { guests };
-                if (!string.IsNullOrEmpty(tier0Ops)) denyList.Add($"*{tier0Ops}"); // Tier 0 should not log onto Tier 1
-                if (!string.IsNullOrEmpty(tier2Ops)) denyList.Add($"*{tier2Ops}");
-                if (!string.IsNullOrEmpty(dvrl)) denyList.Add($"*{dvrl}");
+                // Administrator account
+                var adminAccount = groupSids.GetValueOrDefault("Administrator", "");
+                if (!string.IsNullOrEmpty(adminAccount)) denyList.Add($"*{adminAccount.TrimStart('*')}");
                 
-                gptTmpl.AppendLine("; Tier 1 User Rights - Deny Tier 0/2 interactive access to Tier 1 systems");
-                gptTmpl.AppendLine($"SeDenyInteractiveLogonRight = {string.Join(",", denyList)}");
-                gptTmpl.AppendLine($"SeDenyRemoteInteractiveLogonRight = {string.Join(",", denyList)}");
+                // Backup Operators
+                var backupOps = groupSids.GetValueOrDefault("Backup Operators", "");
+                if (!string.IsNullOrEmpty(backupOps)) denyList.Add($"*{backupOps.TrimStart('*')}");
                 
-                _progress?.Report($"[DEBUG] Tier 1 deny list set to: {string.Join(",", denyList)}");
+                // Print Operators
+                var printOps = groupSids.GetValueOrDefault("Print Operators", "");
+                if (!string.IsNullOrEmpty(printOps)) denyList.Add($"*{printOps.TrimStart('*')}");
+                
+                // Server Operators
+                var serverOps = groupSids.GetValueOrDefault("Server Operators", "");
+                if (!string.IsNullOrEmpty(serverOps)) denyList.Add($"*{serverOps.TrimStart('*')}");
+                
+                // Tier 0 - Operators
+                var tier0Ops = groupSids.GetValueOrDefault("Tier 0 - Operators", "");
+                if (!string.IsNullOrEmpty(tier0Ops)) denyList.Add($"*{tier0Ops.TrimStart('*')}");
+                
+                // Tier 0 - Service Accounts
+                var tier0Svc = groupSids.GetValueOrDefault("Tier 0 - Service Accounts", "");
+                if (!string.IsNullOrEmpty(tier0Svc)) denyList.Add($"*{tier0Svc.TrimStart('*')}");
+                
+                var denyString = string.Join(",", denyList);
+                var localAdmins = "*S-1-5-32-544";  // Built-in Administrators
+                
+                gptTmpl.AppendLine("; Tier 1 User Rights - Deny ALL Tier 0 privileged accounts from Tier 1 systems");
+                gptTmpl.AppendLine($"SeDenyNetworkLogonRight = {denyString}");
+                gptTmpl.AppendLine($"SeDenyRemoteInteractiveLogonRight = {denyString}");
+                gptTmpl.AppendLine($"SeDenyBatchLogonRight = {denyString}");
+                gptTmpl.AppendLine($"SeDenyServiceLogonRight = {denyString}");
+                gptTmpl.AppendLine($"SeDenyInteractiveLogonRight = {denyString}");
+                gptTmpl.AppendLine($"SeInteractiveLogonRight = {localAdmins}");
+                
+                _progress?.Report($"[DEBUG] Tier 1 deny list ({denyList.Count} groups): {denyString}");
             }
             // Tier 2 - Workstations
+            // Per PLATYPUS BILL model: Deny ALL Tier 0 privileged accounts from Tier 2 systems
             else if (gpoName.Contains("Tier 2", StringComparison.OrdinalIgnoreCase))
             {
-                _progress?.Report("[DEBUG] Creating Tier 2 user rights settings...");
+                _progress?.Report("[DEBUG] Creating Tier 2 user rights settings (BILL pattern)...");
                 
-                var tier0Ops = groupSids.GetValueOrDefault("Tier 0 - Operators", "");
-                var tier1Ops = groupSids.GetValueOrDefault("Tier 1 - Operators", "");
-                var tier2Ops = groupSids.GetValueOrDefault("Tier 2 - Operators", "");
-                var tier2Paw = groupSids.GetValueOrDefault("Tier 2 - PAW Users", "");
+                // Build deny list with ALL Tier 0 privileged accounts (same as T1)
+                var denyList = new List<string>();
+                
+                // Schema Admins
+                var schemaAdmins = groupSids.GetValueOrDefault("Schema Admins", "");
+                if (!string.IsNullOrEmpty(schemaAdmins)) denyList.Add($"*{schemaAdmins.TrimStart('*')}");
+                
+                // Enterprise Admins
+                var enterpriseAdmins = groupSids.GetValueOrDefault("Enterprise Admins", "");
+                if (!string.IsNullOrEmpty(enterpriseAdmins)) denyList.Add($"*{enterpriseAdmins.TrimStart('*')}");
+                
+                // Account Operators
+                var accountOps = groupSids.GetValueOrDefault("Account Operators", "");
+                if (!string.IsNullOrEmpty(accountOps)) denyList.Add($"*{accountOps.TrimStart('*')}");
+                
+                // Domain Admins
                 var domainAdmins = groupSids.GetValueOrDefault("Domain Admins", "");
+                if (!string.IsNullOrEmpty(domainAdmins)) denyList.Add($"*{domainAdmins.TrimStart('*')}");
                 
-                // Deny logon rights to Tier 0 and Tier 1 accounts on Tier 2 systems
-                var denyList = new List<string> { guests };
-                if (!string.IsNullOrEmpty(tier0Ops)) denyList.Add($"*{tier0Ops}");
-                if (!string.IsNullOrEmpty(tier1Ops)) denyList.Add($"*{tier1Ops}");
-                if (!string.IsNullOrEmpty(dvrl)) denyList.Add($"*{dvrl}");
+                // Administrator account
+                var adminAccount = groupSids.GetValueOrDefault("Administrator", "");
+                if (!string.IsNullOrEmpty(adminAccount)) denyList.Add($"*{adminAccount.TrimStart('*')}");
                 
-                gptTmpl.AppendLine("; Tier 2 User Rights - Deny Tier 0/1 interactive access to Tier 2 systems");
-                gptTmpl.AppendLine($"SeDenyInteractiveLogonRight = {string.Join(",", denyList)}");
-                gptTmpl.AppendLine($"SeDenyRemoteInteractiveLogonRight = {string.Join(",", denyList)}");
+                // Backup Operators
+                var backupOps = groupSids.GetValueOrDefault("Backup Operators", "");
+                if (!string.IsNullOrEmpty(backupOps)) denyList.Add($"*{backupOps.TrimStart('*')}");
                 
-                _progress?.Report($"[DEBUG] Tier 2 deny list set to: {string.Join(",", denyList)}");
+                // Print Operators
+                var printOps = groupSids.GetValueOrDefault("Print Operators", "");
+                if (!string.IsNullOrEmpty(printOps)) denyList.Add($"*{printOps.TrimStart('*')}");
+                
+                // Server Operators
+                var serverOps = groupSids.GetValueOrDefault("Server Operators", "");
+                if (!string.IsNullOrEmpty(serverOps)) denyList.Add($"*{serverOps.TrimStart('*')}");
+                
+                // Tier 0 - Operators
+                var tier0Ops = groupSids.GetValueOrDefault("Tier 0 - Operators", "");
+                if (!string.IsNullOrEmpty(tier0Ops)) denyList.Add($"*{tier0Ops.TrimStart('*')}");
+                
+                // Tier 0 - Service Accounts
+                var tier0Svc = groupSids.GetValueOrDefault("Tier 0 - Service Accounts", "");
+                if (!string.IsNullOrEmpty(tier0Svc)) denyList.Add($"*{tier0Svc.TrimStart('*')}");
+                
+                var denyString = string.Join(",", denyList);
+                var localAdmins = "*S-1-5-32-544";  // Built-in Administrators
+                var localUsers = "*S-1-5-32-545";   // Built-in Users
+                
+                gptTmpl.AppendLine("; Tier 2 User Rights - Deny ALL Tier 0 privileged accounts from Tier 2 systems");
+                gptTmpl.AppendLine($"SeDenyNetworkLogonRight = {denyString}");
+                gptTmpl.AppendLine($"SeDenyRemoteInteractiveLogonRight = {denyString}");
+                gptTmpl.AppendLine($"SeDenyBatchLogonRight = {denyString}");
+                gptTmpl.AppendLine($"SeDenyServiceLogonRight = {denyString}");
+                gptTmpl.AppendLine($"SeDenyInteractiveLogonRight = {denyString}");
+                gptTmpl.AppendLine($"SeInteractiveLogonRight = {localUsers},{localAdmins}");
+                
+                _progress?.Report($"[DEBUG] Tier 2 deny list ({denyList.Count} groups): {denyString}");
             }
             else
             {
@@ -3208,6 +3520,251 @@ namespace PlatypusTools.Core.Services
             var filePath = Path.Combine(secEditPath, "GptTmpl.inf");
             File.WriteAllText(filePath, gptTmpl.ToString(), Encoding.Unicode);
             _progress?.Report($"[DEBUG] Wrote GptTmpl.inf to: {filePath}");
+        }
+
+        /// <summary>
+        /// Creates GPP Local Users and Groups content (Groups.xml) for adding members to local groups.
+        /// This is the correct method for "splice" GPOs that ADD operators to local Administrators
+        /// without replacing existing members (unlike Restricted Groups which replaces all members).
+        /// Per PLATYPUS BILL model: Uses action="ADD" to append tier operators to Administrators (built-in).
+        /// </summary>
+        private void CreateLocalUsersAndGroupsContent(string machinePath, string gpoName, Dictionary<string, string> groupSids)
+        {
+            _progress?.Report($"[DEBUG] Creating GPP Local Users and Groups content for: {gpoName}");
+            
+            var prefsPath = Path.Combine(machinePath, "Preferences", "Groups");
+            Directory.CreateDirectory(prefsPath);
+
+            string operatorsSid = "";
+            string operatorsName = "";
+            string domainNetBios = "";
+
+            // Determine which tier this GPO is for
+            if (gpoName.Contains("Tier 1", StringComparison.OrdinalIgnoreCase))
+            {
+                operatorsSid = groupSids.GetValueOrDefault("Tier 1 - Operators", "");
+                operatorsName = "Tier 1 Operators";
+                _progress?.Report("[DEBUG] Creating Tier 1 LocalAdmin GPP content...");
+            }
+            else if (gpoName.Contains("Tier 2", StringComparison.OrdinalIgnoreCase))
+            {
+                operatorsSid = groupSids.GetValueOrDefault("Tier 2 - Operators", "");
+                operatorsName = "Tier 2 Operators";
+                _progress?.Report("[DEBUG] Creating Tier 2 LocalAdmin GPP content...");
+            }
+            else
+            {
+                _progress?.Report("[WARN] LocalUsersAndGroups called for non-tier GPO, creating template");
+                return;
+            }
+
+            // Get domain NetBIOS name from groupSids (format: DOMAIN\groupname pattern)
+            // We'll need to get this from the first group SID that has a valid entry
+            // For now, use a placeholder that will be replaced
+            domainNetBios = groupSids.GetValueOrDefault("DomainNetBIOS", "DOMAIN");
+
+            if (string.IsNullOrEmpty(operatorsSid))
+            {
+                _progress?.Report($"[WARN] {operatorsName} group SID not found, cannot create GPP content");
+                return;
+            }
+
+            // Remove leading * if present (SIDs in dictionary may have it)
+            operatorsSid = operatorsSid.TrimStart('*');
+
+            // Generate GUID for uid parameter (required by GPP format)
+            var gpoUid = "{" + Guid.NewGuid().ToString().ToUpperInvariant() + "}";
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+            // Create Groups.xml content per PLATYPUS BILL tiered admin model
+            // Format: <Groups><Group ... action="U"><Properties action="U"><Members><Member action="ADD" ...
+            var xml = new StringBuilder();
+            xml.Append("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+            xml.Append($"<Groups clsid=\"{{3125E937-EB16-4b4c-9934-544FC6D24D26}}\">");
+            xml.Append($"<Group clsid=\"{{6D4A79E4-529C-4481-ABD0-F5BD7EA93BA7}}\" ");
+            xml.Append($"name=\"Administrators (built-in)\" image=\"2\" changed=\"{timestamp}\" uid=\"{gpoUid}\">");
+            xml.Append($"<Properties action=\"U\" newName=\"\" description=\"\" deleteAllUsers=\"0\" deleteAllGroups=\"0\" removeAccounts=\"0\" ");
+            xml.Append($"groupSid=\"S-1-5-32-544\" groupName=\"Administrators (built-in)\">");
+            xml.Append($"<Members>");
+            xml.Append($"<Member name=\"{domainNetBios}\\{operatorsName}\" action=\"ADD\" sid=\"{operatorsSid}\"/>");
+            xml.Append($"</Members></Properties></Group>");
+            xml.Append("</Groups>");
+
+            var filePath = Path.Combine(prefsPath, "Groups.xml");
+            File.WriteAllText(filePath, xml.ToString(), Encoding.UTF8);
+            _progress?.Report($"[DEBUG] Wrote Groups.xml to: {filePath}");
+            _progress?.Report($"[DEBUG] Added {operatorsName} ({operatorsSid}) to Administrators via GPP ADD action");
+        }
+
+        /// <summary>
+        /// Creates T0 Domain Block GPO content - blocks Tier 0 privileged accounts from logging on to non-Tier 0 machines.
+        /// Per PLATYPUS BILL model: Applies 5 deny logon rights to all Tier 0 privileged groups.
+        /// This GPO should be linked at the domain root with DENY Apply ACL for "Tier 0 Computers" and Domain Controllers.
+        /// </summary>
+        private void CreateT0DomainBlockContent(string secEditPath, string gpoName, Dictionary<string, string> groupSids)
+        {
+            _progress?.Report($"[DEBUG] Creating T0 Domain Block content for: {gpoName}");
+            
+            var gptTmpl = new StringBuilder();
+            gptTmpl.AppendLine("[Unicode]");
+            gptTmpl.AppendLine("Unicode=yes");
+            gptTmpl.AppendLine("[Version]");
+            gptTmpl.AppendLine("signature=\"$CHICAGO$\"");
+            gptTmpl.AppendLine("Revision=1");
+            gptTmpl.AppendLine();
+            gptTmpl.AppendLine("[Privilege Rights]");
+
+            // Per PLATYPUS BILL model: The T0 Domain Block applies to ALL machines in the domain EXCEPT:
+            // - Domain Controllers (via DENY Apply ACL)
+            // - Tier 0 Computers group members (via DENY Apply ACL)
+            // - Systems filtered by WMI Filter "Tier 0 - No DC Apply" (DomainRole < 4)
+            //
+            // It DENIES the following logon rights to all Tier 0 privileged accounts:
+            // - SeDenyNetworkLogonRight
+            // - SeDenyRemoteInteractiveLogonRight
+            // - SeDenyBatchLogonRight
+            // - SeDenyServiceLogonRight
+            // - SeDenyInteractiveLogonRight
+
+            // Build the list of Tier 0 privileged groups to deny
+            var denyGroups = new List<string>();
+            
+            // Schema Admins
+            var schemaAdmins = groupSids.GetValueOrDefault("Schema Admins", "");
+            if (!string.IsNullOrEmpty(schemaAdmins)) denyGroups.Add($"*{schemaAdmins.TrimStart('*')}");
+            
+            // Enterprise Admins
+            var enterpriseAdmins = groupSids.GetValueOrDefault("Enterprise Admins", "");
+            if (!string.IsNullOrEmpty(enterpriseAdmins)) denyGroups.Add($"*{enterpriseAdmins.TrimStart('*')}");
+            
+            // Domain Account Operators
+            var accountOps = groupSids.GetValueOrDefault("Account Operators", "");
+            if (!string.IsNullOrEmpty(accountOps)) denyGroups.Add($"*{accountOps.TrimStart('*')}");
+            
+            // Domain Admins
+            var domainAdmins = groupSids.GetValueOrDefault("Domain Admins", "");
+            if (!string.IsNullOrEmpty(domainAdmins)) denyGroups.Add($"*{domainAdmins.TrimStart('*')}");
+            
+            // Built-in Administrator account (domain)
+            var adminAccount = groupSids.GetValueOrDefault("Administrator", "");
+            if (!string.IsNullOrEmpty(adminAccount)) denyGroups.Add($"*{adminAccount.TrimStart('*')}");
+            
+            // Backup Operators
+            var backupOps = groupSids.GetValueOrDefault("Backup Operators", "");
+            if (!string.IsNullOrEmpty(backupOps)) denyGroups.Add($"*{backupOps.TrimStart('*')}");
+            
+            // Print Operators
+            var printOps = groupSids.GetValueOrDefault("Print Operators", "");
+            if (!string.IsNullOrEmpty(printOps)) denyGroups.Add($"*{printOps.TrimStart('*')}");
+            
+            // Server Operators
+            var serverOps = groupSids.GetValueOrDefault("Server Operators", "");
+            if (!string.IsNullOrEmpty(serverOps)) denyGroups.Add($"*{serverOps.TrimStart('*')}");
+            
+            // Tier 0 - Operators
+            var tier0Ops = groupSids.GetValueOrDefault("Tier 0 - Operators", "");
+            if (!string.IsNullOrEmpty(tier0Ops)) denyGroups.Add($"*{tier0Ops.TrimStart('*')}");
+            
+            // Tier 0 - Service Accounts
+            var tier0Svc = groupSids.GetValueOrDefault("Tier 0 - Service Accounts", "");
+            if (!string.IsNullOrEmpty(tier0Svc)) denyGroups.Add($"*{tier0Svc.TrimStart('*')}");
+            
+            // Tier 0 - PAW Users (from user feedback)
+            var tier0Paw = groupSids.GetValueOrDefault("Tier 0 - PAW Users", "");
+            if (!string.IsNullOrEmpty(tier0Paw)) denyGroups.Add($"*{tier0Paw.TrimStart('*')}");
+
+            var denyList = string.Join(",", denyGroups);
+            
+            gptTmpl.AppendLine("; Tier 0 Domain Block - Denies Tier 0 privileged accounts from logging on to non-Tier 0 machines");
+            gptTmpl.AppendLine("; Note: Tier 0 Computers group and Domain Controllers should have DENY Apply ACL on this GPO");
+            gptTmpl.AppendLine($"SeDenyNetworkLogonRight = {denyList}");
+            gptTmpl.AppendLine($"SeDenyRemoteInteractiveLogonRight = {denyList}");
+            gptTmpl.AppendLine($"SeDenyBatchLogonRight = {denyList}");
+            gptTmpl.AppendLine($"SeDenyServiceLogonRight = {denyList}");
+            gptTmpl.AppendLine($"SeDenyInteractiveLogonRight = {denyList}");
+
+            var filePath = Path.Combine(secEditPath, "GptTmpl.inf");
+            File.WriteAllText(filePath, gptTmpl.ToString(), Encoding.Unicode);
+            _progress?.Report($"[DEBUG] Wrote GptTmpl.inf to: {filePath}");
+            _progress?.Report($"[DEBUG] T0 Domain Block deny list ({denyGroups.Count} groups): {denyList}");
+            _progress?.Report("[INFO] IMPORTANT: After GPO creation, manually add DENY Apply permission for 'Tier 0 Computers' and 'Domain Controllers' groups");
+            _progress?.Report("[INFO] IMPORTANT: Consider adding WMI Filter 'Tier 0 - No DC Apply' with query: Select * from Win32_ComputerSystem where DomainRole < 4");
+        }
+
+        /// <summary>
+        /// Adds Domain Controllers group as a member of the Tier 0 Computers group.
+        /// Per PLATYPUS BILL model: Domain Controllers should be exempted from the Tier 0 Domain Block GPO.
+        /// </summary>
+        private void AddDomainControllersToTier0Computers(string dc, string domainDn, string tier0GroupsOu)
+        {
+            try
+            {
+                // Find the Domain Controllers group (well-known SID: S-1-5-<domain>-516)
+                using var dcSearcher = new DirectorySearcher(new DirectoryEntry($"LDAP://{dc}/{domainDn}"))
+                {
+                    Filter = "(&(objectClass=group)(samAccountName=Domain Controllers))",
+                    SearchScope = SearchScope.Subtree
+                };
+                dcSearcher.PropertiesToLoad.Add("distinguishedName");
+                
+                var dcGroup = dcSearcher.FindOne();
+                if (dcGroup == null)
+                {
+                    _progress?.Report("[WARN] Domain Controllers group not found");
+                    return;
+                }
+                
+                var dcGroupDn = dcGroup.Properties["distinguishedName"]?[0]?.ToString();
+                if (string.IsNullOrEmpty(dcGroupDn))
+                {
+                    _progress?.Report("[WARN] Could not get Domain Controllers DN");
+                    return;
+                }
+                
+                // Find the Tier 0 Computers group
+                using var t0cSearcher = new DirectorySearcher(new DirectoryEntry($"LDAP://{dc}/{tier0GroupsOu}"))
+                {
+                    Filter = "(&(objectClass=group)(samAccountName=Tier 0 Computers))",
+                    SearchScope = SearchScope.OneLevel
+                };
+                
+                var t0cGroup = t0cSearcher.FindOne();
+                if (t0cGroup == null)
+                {
+                    _progress?.Report("[DEBUG] Tier 0 Computers group not found yet (may not have been created)");
+                    return;
+                }
+                
+                // Add Domain Controllers to Tier 0 Computers
+                using var t0cEntry = t0cGroup.GetDirectoryEntry();
+                var members = t0cEntry.Properties["member"];
+                
+                // Check if already a member
+                bool isMember = false;
+                foreach (var member in members)
+                {
+                    if (member?.ToString()?.Equals(dcGroupDn, StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        isMember = true;
+                        break;
+                    }
+                }
+                
+                if (!isMember)
+                {
+                    t0cEntry.Properties["member"].Add(dcGroupDn);
+                    t0cEntry.CommitChanges();
+                    _progress?.Report($"[DEBUG] Added Domain Controllers to Tier 0 Computers group");
+                }
+                else
+                {
+                    _progress?.Report("[DEBUG] Domain Controllers already member of Tier 0 Computers");
+                }
+            }
+            catch (Exception ex)
+            {
+                _progress?.Report($"[WARN] Failed to add Domain Controllers to Tier 0 Computers: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -3233,7 +3790,24 @@ namespace PlatypusTools.Core.Services
             SecuritySettings,
             RestrictedGroups,
             UserRights,
-            Registry
+            Registry,
+            /// <summary>
+            /// GPP Local Users and Groups - uses Groups.xml in Preferences folder.
+            /// This is different from Restricted Groups (GptTmpl.inf).
+            /// GPP allows ADD action to append members rather than replace.
+            /// </summary>
+            LocalUsersAndGroups,
+            /// <summary>
+            /// T0 Domain Block - specialized GPO that blocks Tier 0 accounts from non-Tier 0 machines.
+            /// Requires additional WMI filter and DENY ACL configuration.
+            /// </summary>
+            T0DomainBlock,
+            /// <summary>
+            /// T0 Domain Controllers GPO - comprehensive DC security with audit policies,
+            /// security settings, user rights, registry preferences, and service settings.
+            /// Based on Set-BillT0DomainControllersGpo from PLATYPUS module.
+            /// </summary>
+            DomainControllers
         }
 
         /// <summary>
