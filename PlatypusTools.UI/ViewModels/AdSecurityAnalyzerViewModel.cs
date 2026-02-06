@@ -40,6 +40,10 @@ namespace PlatypusTools.UI.ViewModels
             AnalysisHistory = new ObservableCollection<StoredAnalysisRun>();
             LogMessages = new ObservableCollection<string>();
             DeploymentResults = new ObservableCollection<AdObjectCreationResult>();
+            SecurityFindings = new ObservableCollection<SecurityFinding>();
+            StaleUsers = new ObservableCollection<StaleAccountInfo>();
+            StaleComputers = new ObservableCollection<StaleAccountInfo>();
+            ComputersWithoutLaps = new ObservableCollection<ComputerLapsStatus>();
             
             // Entra ID collections
             EntraPrivilegedRoles = new ObservableCollection<EntraIdPrivilegedRole>();
@@ -89,6 +93,18 @@ namespace PlatypusTools.UI.ViewModels
             RevokeAllTokensCommand = new RelayCommand(async _ => await RevokeAllTokensAsync(), _ => !IsAnalyzing && IsEntraConnected);
             RemovePrivRoleMembersCommand = new RelayCommand(async _ => await RemovePrivRoleMembersAsync(), _ => !IsAnalyzing && IsEntraConnected);
             RemoveAdminCountCommand = new RelayCommand(async _ => await RemoveAdminCountAsync(), _ => !IsAnalyzing && IsDomainDiscovered);
+
+            // Attack Path Detection commands
+            RunAttackPathScanCommand = new RelayCommand(async _ => await RunAttackPathScanAsync(), _ => !IsAnalyzing && IsDomainDiscovered);
+            AuditLapsCommand = new RelayCommand(async _ => await AuditLapsAsync(), _ => !IsAnalyzing && IsDomainDiscovered);
+            FindGppPasswordsCommand = new RelayCommand(async _ => await FindGppPasswordsAsync(), _ => !IsAnalyzing && IsDomainDiscovered);
+            FindStaleAccountsCommand = new RelayCommand(async _ => await FindStaleAccountsAsync(), _ => !IsAnalyzing && IsDomainDiscovered);
+
+            // Security GPO Deployment commands
+            DeployPrintNightmareGpoCommand = new RelayCommand(async _ => await DeploySecurityGpoAsync("PrintNightmare"), _ => !IsAnalyzing && IsDomainDiscovered);
+            DeployLlmnrDisableGpoCommand = new RelayCommand(async _ => await DeploySecurityGpoAsync("LlmnrNbtns"), _ => !IsAnalyzing && IsDomainDiscovered);
+            DeploySmbSigningGpoCommand = new RelayCommand(async _ => await DeploySecurityGpoAsync("SmbSigning"), _ => !IsAnalyzing && IsDomainDiscovered);
+            DeployCredentialGuardGpoCommand = new RelayCommand(async _ => await DeploySecurityGpoAsync("CredentialGuard"), _ => !IsAnalyzing && IsDomainDiscovered);
 
             // Initialize
             _ = InitializeAsync();
@@ -577,6 +593,12 @@ namespace PlatypusTools.UI.ViewModels
         public ObservableCollection<StoredAnalysisRun> AnalysisHistory { get; }
         public ObservableCollection<string> LogMessages { get; }
         public ObservableCollection<AdObjectCreationResult> DeploymentResults { get; }
+
+        // Attack Path / Security Findings Collections
+        public ObservableCollection<SecurityFinding> SecurityFindings { get; }
+        public ObservableCollection<StaleAccountInfo> StaleUsers { get; }
+        public ObservableCollection<StaleAccountInfo> StaleComputers { get; }
+        public ObservableCollection<ComputerLapsStatus> ComputersWithoutLaps { get; }
         
         // Entra ID Collections
         public ObservableCollection<EntraIdPrivilegedRole> EntraPrivilegedRoles { get; }
@@ -725,6 +747,18 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand RevokeAllTokensCommand { get; }
         public ICommand RemovePrivRoleMembersCommand { get; }
         public ICommand RemoveAdminCountCommand { get; }
+
+        // Attack Path Detection Commands
+        public ICommand RunAttackPathScanCommand { get; }
+        public ICommand AuditLapsCommand { get; }
+        public ICommand FindGppPasswordsCommand { get; }
+        public ICommand FindStaleAccountsCommand { get; }
+
+        // Security GPO Deployment Commands
+        public ICommand DeployPrintNightmareGpoCommand { get; }
+        public ICommand DeployLlmnrDisableGpoCommand { get; }
+        public ICommand DeploySmbSigningGpoCommand { get; }
+        public ICommand DeployCredentialGuardGpoCommand { get; }
 
         #endregion
 
@@ -2337,6 +2371,338 @@ namespace PlatypusTools.UI.ViewModels
             finally
             {
                 IsAnalyzing = false;
+            }
+        }
+
+        #endregion
+
+        #region Attack Path Detection
+
+        /// <summary>
+        /// Run complete attack path detection scan
+        /// </summary>
+        private async Task RunAttackPathScanAsync()
+        {
+            if (!IsDomainDiscovered)
+            {
+                AppendLog("Domain not discovered. Discover domain first.");
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = "Running attack path detection scan...";
+            SecurityFindings.Clear();
+
+            try
+            {
+                _cts = new CancellationTokenSource();
+                var result = await _analysisService.RunAttackPathScanAsync(_cts.Token);
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    foreach (var finding in result.AllFindings)
+                    {
+                        SecurityFindings.Add(finding);
+                    }
+                });
+
+                AppendLog($"Attack path scan complete: {result.TotalFindings} findings ({result.CriticalFindings} critical)");
+                Status = $"Attack path scan complete: {result.TotalFindings} findings";
+                HasResults = result.TotalFindings > 0;
+            }
+            catch (OperationCanceledException)
+            {
+                AppendLog("Attack path scan cancelled.");
+                Status = "Scan cancelled";
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error during attack path scan: {ex.Message}");
+                Status = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
+                _cts?.Dispose();
+                _cts = null;
+            }
+        }
+
+        /// <summary>
+        /// Audit LAPS deployment across the domain
+        /// </summary>
+        private async Task AuditLapsAsync()
+        {
+            if (!IsDomainDiscovered)
+            {
+                AppendLog("Domain not discovered. Discover domain first.");
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = "Auditing LAPS deployment...";
+            ComputersWithoutLaps.Clear();
+
+            try
+            {
+                _cts = new CancellationTokenSource();
+                var result = await _analysisService.AuditLapsDeploymentAsync(_cts.Token);
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    foreach (var computer in result.ComputersWithoutLaps)
+                    {
+                        ComputersWithoutLaps.Add(computer);
+                        // Also add as SecurityFinding for display in main grid
+                        SecurityFindings.Add(new SecurityFinding
+                        {
+                            Category = "Missing LAPS",
+                            Severity = "High",
+                            ObjectName = computer.ComputerName,
+                            ObjectDn = computer.DistinguishedName,
+                            ObjectType = "computer",
+                            Description = $"No LAPS password set. OS: {computer.OperatingSystem}",
+                            Recommendation = "Deploy LAPS to manage local admin passwords securely."
+                        });
+                    }
+                });
+
+                AppendLog($"LAPS Audit complete: {result.ComputersWithLaps}/{result.TotalComputers} computers have LAPS ({result.CoveragePercent:F1}%)");
+                AppendLog($"Legacy LAPS schema: {result.LapsSchemaExtended}, Windows LAPS schema: {result.WindowsLapsSchemaExtended}");
+                Status = $"LAPS Coverage: {result.CoveragePercent:F1}% ({result.ComputersWithoutLaps.Count} without LAPS)";
+                HasResults = result.ComputersWithoutLaps.Count > 0;
+            }
+            catch (OperationCanceledException)
+            {
+                AppendLog("LAPS audit cancelled.");
+                Status = "Audit cancelled";
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error during LAPS audit: {ex.Message}");
+                Status = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
+                _cts?.Dispose();
+                _cts = null;
+            }
+        }
+
+        /// <summary>
+        /// Find Group Policy Preferences with embedded passwords
+        /// </summary>
+        private async Task FindGppPasswordsAsync()
+        {
+            if (!IsDomainDiscovered)
+            {
+                AppendLog("Domain not discovered. Discover domain first.");
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = "Scanning SYSVOL for GPP passwords...";
+
+            try
+            {
+                _cts = new CancellationTokenSource();
+                var findings = await _analysisService.FindGppPasswordsAsync(_cts.Token);
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    foreach (var finding in findings)
+                    {
+                        SecurityFindings.Add(finding);
+                    }
+                });
+
+                if (findings.Count > 0)
+                {
+                    AppendLog($"[CRITICAL] Found {findings.Count} GPP passwords in SYSVOL!");
+                }
+                else
+                {
+                    AppendLog("No GPP passwords found in SYSVOL.");
+                }
+                
+                Status = findings.Count > 0 ? $"CRITICAL: {findings.Count} GPP passwords found!" : "No GPP passwords found";
+                HasResults = findings.Count > 0;
+            }
+            catch (OperationCanceledException)
+            {
+                AppendLog("GPP password scan cancelled.");
+                Status = "Scan cancelled";
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error scanning GPP passwords: {ex.Message}");
+                Status = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
+                _cts?.Dispose();
+                _cts = null;
+            }
+        }
+
+        /// <summary>
+        /// Find stale/inactive accounts
+        /// </summary>
+        private async Task FindStaleAccountsAsync()
+        {
+            if (!IsDomainDiscovered)
+            {
+                AppendLog("Domain not discovered. Discover domain first.");
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = "Finding stale accounts...";
+            StaleUsers.Clear();
+            StaleComputers.Clear();
+
+            try
+            {
+                _cts = new CancellationTokenSource();
+                var result = await _analysisService.FindStaleAccountsAsync(90, _cts.Token);
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    foreach (var user in result.StaleUsers)
+                    {
+                        StaleUsers.Add(user);
+                        // Also add as SecurityFinding for display in main grid
+                        var severity = user.IsPrivileged ? "Critical" : "Medium";
+                        SecurityFindings.Add(new SecurityFinding
+                        {
+                            Category = "Stale User Account",
+                            Severity = severity,
+                            ObjectName = user.SamAccountName,
+                            ObjectDn = user.DistinguishedName,
+                            ObjectType = "user",
+                            Description = $"Inactive for {user.DaysSinceLastLogon} days.{(user.IsPrivileged ? " PRIVILEGED ACCOUNT!" : "")}",
+                            Recommendation = "Disable or delete stale accounts to reduce attack surface."
+                        });
+                    }
+                    foreach (var computer in result.StaleComputers)
+                    {
+                        StaleComputers.Add(computer);
+                        SecurityFindings.Add(new SecurityFinding
+                        {
+                            Category = "Stale Computer Account",
+                            Severity = "Low",
+                            ObjectName = computer.SamAccountName,
+                            ObjectDn = computer.DistinguishedName,
+                            ObjectType = "computer",
+                            Description = $"Inactive for {computer.DaysSinceLastLogon} days. OS: {computer.OperatingSystem}",
+                            Recommendation = "Delete stale computer accounts."
+                        });
+                    }
+                });
+
+                AppendLog($"Stale account scan complete: {result.StaleUsers.Count} users, {result.StaleComputers.Count} computers inactive for 90+ days");
+                Status = $"Stale accounts: {result.StaleUsers.Count} users, {result.StaleComputers.Count} computers";
+                HasResults = result.StaleUsers.Count > 0 || result.StaleComputers.Count > 0;
+            }
+            catch (OperationCanceledException)
+            {
+                AppendLog("Stale account scan cancelled.");
+                Status = "Scan cancelled";
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error finding stale accounts: {ex.Message}");
+                Status = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
+                _cts?.Dispose();
+                _cts = null;
+            }
+        }
+
+        #endregion
+
+        #region Security GPO Deployment
+
+        /// <summary>
+        /// Deploy a security hardening GPO
+        /// </summary>
+        private async Task DeploySecurityGpoAsync(string gpoType)
+        {
+            if (!IsDomainDiscovered)
+            {
+                AppendLog("Domain not discovered. Discover domain first.");
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = $"Deploying {gpoType} GPO...";
+
+            try
+            {
+                _cts = new CancellationTokenSource();
+                AdGpoResult result;
+
+                switch (gpoType)
+                {
+                    case "PrintNightmare":
+                        result = await _analysisService.DeployPrintNightmareGpoAsync(RemediationWhatIf, _cts.Token);
+                        break;
+                    case "LlmnrNbtns":
+                        result = await _analysisService.DeployLlmnrDisableGpoAsync(RemediationWhatIf, _cts.Token);
+                        break;
+                    case "SmbSigning":
+                        result = await _analysisService.DeploySmbSigningGpoAsync(RemediationWhatIf, _cts.Token);
+                        break;
+                    case "CredentialGuard":
+                        result = await _analysisService.DeployCredentialGuardGpoAsync(RemediationWhatIf, _cts.Token);
+                        break;
+                    default:
+                        AppendLog($"Unknown GPO type: {gpoType}");
+                        return;
+                }
+
+                if (result.Success)
+                {
+                    AppendLog($"[OK] {result.Message}");
+                    if (result.GpoGuid != null)
+                    {
+                        DeploymentResults.Add(new AdObjectCreationResult
+                        {
+                            Success = true,
+                            ObjectType = "GPO",
+                            ObjectName = result.GpoName,
+                            DistinguishedName = result.GpoDn ?? "",
+                            Message = result.Message
+                        });
+                    }
+                    Status = result.Message;
+                }
+                else
+                {
+                    AppendLog($"[ERROR] {result.Message}");
+                    Status = $"Failed: {result.Message}";
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                AppendLog("GPO deployment cancelled.");
+                Status = "Deployment cancelled";
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error deploying GPO: {ex.Message}");
+                Status = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
+                _cts?.Dispose();
+                _cts = null;
             }
         }
 

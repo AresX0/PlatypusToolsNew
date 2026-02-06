@@ -679,6 +679,18 @@ namespace PlatypusTools.Core.Models
         public Exception? Error { get; set; }
     }
 
+    /// <summary>
+    /// Result of GPO-specific deployment operations.
+    /// </summary>
+    public class AdGpoResult
+    {
+        public bool Success { get; set; }
+        public string GpoName { get; set; } = string.Empty;
+        public string? GpoGuid { get; set; }
+        public string? GpoDn { get; set; }
+        public string Message { get; set; } = string.Empty;
+    }
+
     #endregion
 
     #region Entra ID (Azure AD) Models
@@ -1140,6 +1152,106 @@ namespace PlatypusTools.Core.Models
             return NeverPermanent.Any(r => 
                 roleName.Equals(r, StringComparison.OrdinalIgnoreCase));
         }
+    }
+
+    #endregion
+
+    #region Attack Path Detection Models
+
+    /// <summary>
+    /// Represents a security finding from attack path detection.
+    /// </summary>
+    public class SecurityFinding
+    {
+        public string Category { get; set; } = string.Empty;
+        public string Severity { get; set; } = "Medium";
+        public string ObjectName { get; set; } = string.Empty;
+        public string ObjectDn { get; set; } = string.Empty;
+        public string ObjectType { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Recommendation { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Results from a complete attack path detection scan.
+    /// </summary>
+    public class AttackPathScanResult
+    {
+        public List<SecurityFinding> UnconstrainedDelegation { get; set; } = new();
+        public List<SecurityFinding> ConstrainedDelegation { get; set; } = new();
+        public List<SecurityFinding> Rbcd { get; set; } = new();
+        public List<SecurityFinding> AsRepRoastable { get; set; } = new();
+        public List<SecurityFinding> Kerberoastable { get; set; } = new();
+        public List<SecurityFinding> DcSyncPrincipals { get; set; } = new();
+        public List<SecurityFinding> SidHistory { get; set; } = new();
+        public List<SecurityFinding> OrphanedAdminCount { get; set; } = new();
+        public int TotalFindings { get; set; }
+        public int CriticalFindings { get; set; }
+        
+        /// <summary>
+        /// Gets all findings flattened into a single list.
+        /// </summary>
+        public List<SecurityFinding> AllFindings => 
+            UnconstrainedDelegation.Concat(ConstrainedDelegation)
+            .Concat(Rbcd).Concat(AsRepRoastable).Concat(Kerberoastable)
+            .Concat(DcSyncPrincipals).Concat(SidHistory).Concat(OrphanedAdminCount).ToList();
+    }
+
+    #endregion
+
+    #region LAPS Audit Models
+
+    /// <summary>
+    /// Results from LAPS deployment audit.
+    /// </summary>
+    public class LapsAuditResult
+    {
+        public bool LapsSchemaExtended { get; set; }
+        public bool WindowsLapsSchemaExtended { get; set; }
+        public int TotalComputers { get; set; }
+        public int ComputersWithLaps { get; set; }
+        public double CoveragePercent { get; set; }
+        public List<ComputerLapsStatus> ComputersWithoutLaps { get; set; } = new();
+    }
+
+    /// <summary>
+    /// LAPS status for a specific computer.
+    /// </summary>
+    public class ComputerLapsStatus
+    {
+        public string ComputerName { get; set; } = string.Empty;
+        public string DistinguishedName { get; set; } = string.Empty;
+        public string OperatingSystem { get; set; } = string.Empty;
+        public bool HasLaps { get; set; }
+        public DateTime? LapsPasswordExpiration { get; set; }
+    }
+
+    #endregion
+
+    #region Stale Accounts Models
+
+    /// <summary>
+    /// Results from stale accounts scan.
+    /// </summary>
+    public class StaleAccountsResult
+    {
+        public int InactiveDaysThreshold { get; set; }
+        public List<StaleAccountInfo> StaleUsers { get; set; } = new();
+        public List<StaleAccountInfo> StaleComputers { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Information about a stale account.
+    /// </summary>
+    public class StaleAccountInfo
+    {
+        public string SamAccountName { get; set; } = string.Empty;
+        public string DistinguishedName { get; set; } = string.Empty;
+        public DateTime LastLogon { get; set; }
+        public DateTime PasswordLastSet { get; set; }
+        public string OperatingSystem { get; set; } = string.Empty;
+        public bool IsPrivileged { get; set; }
+        public int DaysSinceLastLogon { get; set; }
     }
 
     #endregion

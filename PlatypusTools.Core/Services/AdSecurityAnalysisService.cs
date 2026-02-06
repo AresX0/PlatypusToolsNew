@@ -5485,5 +5485,1500 @@ namespace PlatypusTools.Core.Services
         }
 
         #endregion
+
+        #region Attack Path Detection
+
+        /// <summary>
+        /// Finds accounts with Kerberos unconstrained delegation configured.
+        /// These are high-risk as they can impersonate any user to any service.
+        /// </summary>
+        public async Task<List<SecurityFinding>> FindUnconstrainedDelegationAsync(CancellationToken ct = default)
+        {
+            var findings = new List<SecurityFinding>();
+
+            if (_domainInfo == null)
+            {
+                _progress?.Report("Domain not discovered. Call DiscoverDomainAsync first.");
+                return findings;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report("Scanning for unconstrained delegation...");
+
+                    using var rootEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{_domainInfo.DomainDn}");
+                    using var searcher = new DirectorySearcher(rootEntry)
+                    {
+                        // TRUSTED_FOR_DELEGATION flag = 0x80000 = 524288
+                        Filter = "(&(|(objectClass=computer)(objectClass=user))(userAccountControl:1.2.840.113556.1.4.803:=524288))",
+                        SearchScope = SearchScope.Subtree,
+                        PageSize = 1000
+                    };
+
+                    searcher.PropertiesToLoad.Add("sAMAccountName");
+                    searcher.PropertiesToLoad.Add("distinguishedName");
+                    searcher.PropertiesToLoad.Add("objectClass");
+                    searcher.PropertiesToLoad.Add("servicePrincipalName");
+
+                    foreach (SearchResult result in searcher.FindAll())
+                    {
+                        ct.ThrowIfCancellationRequested();
+
+                        var samName = result.Properties["sAMAccountName"][0]?.ToString() ?? "";
+                        var dn = result.Properties["distinguishedName"][0]?.ToString() ?? "";
+                        var objectClass = result.Properties["objectClass"].Cast<string>().LastOrDefault() ?? "";
+
+                        // Skip domain controllers (they need unconstrained delegation)
+                        if (dn.Contains("OU=Domain Controllers", StringComparison.OrdinalIgnoreCase))
+                            continue;
+
+                        findings.Add(new SecurityFinding
+                        {
+                            Category = "Unconstrained Delegation",
+                            Severity = "Critical",
+                            ObjectName = samName,
+                            ObjectDn = dn,
+                            ObjectType = objectClass,
+                            Description = "Account has unconstrained delegation enabled. Can impersonate any user to any service.",
+                            Recommendation = "Disable unconstrained delegation or migrate to constrained delegation."
+                        });
+
+                        _progress?.Report($"[CRITICAL] Unconstrained delegation: {samName}");
+                    }
+
+                    _progress?.Report($"Found {findings.Count} non-DC accounts with unconstrained delegation");
+                }
+                catch (Exception ex)
+                {
+                    _progress?.Report($"Error scanning unconstrained delegation: {ex.Message}");
+                }
+            }, ct);
+
+            return findings;
+        }
+
+        /// <summary>
+        /// Finds accounts with constrained delegation configured.
+        /// </summary>
+        public async Task<List<SecurityFinding>> FindConstrainedDelegationAsync(CancellationToken ct = default)
+        {
+            var findings = new List<SecurityFinding>();
+
+            if (_domainInfo == null)
+            {
+                _progress?.Report("Domain not discovered. Call DiscoverDomainAsync first.");
+                return findings;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report("Scanning for constrained delegation...");
+
+                    using var rootEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{_domainInfo.DomainDn}");
+                    using var searcher = new DirectorySearcher(rootEntry)
+                    {
+                        Filter = "(&(|(objectClass=computer)(objectClass=user))(msDS-AllowedToDelegateTo=*))",
+                        SearchScope = SearchScope.Subtree,
+                        PageSize = 1000
+                    };
+
+                    searcher.PropertiesToLoad.Add("sAMAccountName");
+                    searcher.PropertiesToLoad.Add("distinguishedName");
+                    searcher.PropertiesToLoad.Add("objectClass");
+                    searcher.PropertiesToLoad.Add("msDS-AllowedToDelegateTo");
+                    searcher.PropertiesToLoad.Add("userAccountControl");
+
+                    foreach (SearchResult result in searcher.FindAll())
+                    {
+                        ct.ThrowIfCancellationRequested();
+
+                        var samName = result.Properties["sAMAccountName"][0]?.ToString() ?? "";
+                        var dn = result.Properties["distinguishedName"][0]?.ToString() ?? "";
+                        var objectClass = result.Properties["objectClass"].Cast<string>().LastOrDefault() ?? "";
+                        var delegateTo = result.Properties["msDS-AllowedToDelegateTo"].Cast<string>().ToList();
+                        var uac = result.Properties.Contains("userAccountControl") 
+                            ? Convert.ToInt32(result.Properties["userAccountControl"][0]) : 0;
+
+                        // Check if protocol transition is enabled (TRUSTED_TO_AUTH_FOR_DELEGATION = 0x1000000)
+                        var hasProtocolTransition = (uac & 16777216) != 0;
+                        var severity = hasProtocolTransition ? "High" : "Medium";
+
+                        findings.Add(new SecurityFinding
+                        {
+                            Category = "Constrained Delegation",
+                            Severity = severity,
+                            ObjectName = samName,
+                            ObjectDn = dn,
+                            ObjectType = objectClass,
+                            Description = $"Can delegate to: {string.Join(", ", delegateTo.Take(3))}{(delegateTo.Count > 3 ? $" (+{delegateTo.Count - 3} more)" : "")}. Protocol transition: {hasProtocolTransition}",
+                            Recommendation = hasProtocolTransition 
+                                ? "Review if protocol transition is required - it allows S4U2Self attacks."
+                                : "Verify delegation targets are appropriate."
+                        });
+
+                        _progress?.Report($"[{severity.ToUpperInvariant()}] Constrained delegation: {samName} → {delegateTo.Count} targets");
+                    }
+
+                    _progress?.Report($"Found {findings.Count} accounts with constrained delegation");
+                }
+                catch (Exception ex)
+                {
+                    _progress?.Report($"Error scanning constrained delegation: {ex.Message}");
+                }
+            }, ct);
+
+            return findings;
+        }
+
+        /// <summary>
+        /// Finds accounts with resource-based constrained delegation (RBCD).
+        /// </summary>
+        public async Task<List<SecurityFinding>> FindRbcdAsync(CancellationToken ct = default)
+        {
+            var findings = new List<SecurityFinding>();
+
+            if (_domainInfo == null)
+            {
+                _progress?.Report("Domain not discovered. Call DiscoverDomainAsync first.");
+                return findings;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report("Scanning for resource-based constrained delegation (RBCD)...");
+
+                    using var rootEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{_domainInfo.DomainDn}");
+                    using var searcher = new DirectorySearcher(rootEntry)
+                    {
+                        Filter = "(msDS-AllowedToActOnBehalfOfOtherIdentity=*)",
+                        SearchScope = SearchScope.Subtree,
+                        PageSize = 1000
+                    };
+
+                    searcher.PropertiesToLoad.Add("sAMAccountName");
+                    searcher.PropertiesToLoad.Add("distinguishedName");
+                    searcher.PropertiesToLoad.Add("objectClass");
+                    searcher.PropertiesToLoad.Add("msDS-AllowedToActOnBehalfOfOtherIdentity");
+
+                    foreach (SearchResult result in searcher.FindAll())
+                    {
+                        ct.ThrowIfCancellationRequested();
+
+                        var samName = result.Properties["sAMAccountName"][0]?.ToString() ?? "";
+                        var dn = result.Properties["distinguishedName"][0]?.ToString() ?? "";
+                        var objectClass = result.Properties["objectClass"].Cast<string>().LastOrDefault() ?? "";
+
+                        findings.Add(new SecurityFinding
+                        {
+                            Category = "Resource-Based Constrained Delegation",
+                            Severity = "High",
+                            ObjectName = samName,
+                            ObjectDn = dn,
+                            ObjectType = objectClass,
+                            Description = "Has RBCD configured - allows specific accounts to impersonate to this resource.",
+                            Recommendation = "Review msDS-AllowedToActOnBehalfOfOtherIdentity attribute for unauthorized entries."
+                        });
+
+                        _progress?.Report($"[HIGH] RBCD configured on: {samName}");
+                    }
+
+                    _progress?.Report($"Found {findings.Count} objects with RBCD");
+                }
+                catch (Exception ex)
+                {
+                    _progress?.Report($"Error scanning RBCD: {ex.Message}");
+                }
+            }, ct);
+
+            return findings;
+        }
+
+        /// <summary>
+        /// Finds accounts vulnerable to AS-REP Roasting (no pre-authentication required).
+        /// </summary>
+        public async Task<List<SecurityFinding>> FindAsRepRoastableAccountsAsync(CancellationToken ct = default)
+        {
+            var findings = new List<SecurityFinding>();
+
+            if (_domainInfo == null)
+            {
+                _progress?.Report("Domain not discovered. Call DiscoverDomainAsync first.");
+                return findings;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report("Scanning for AS-REP Roastable accounts...");
+
+                    using var rootEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{_domainInfo.DomainDn}");
+                    using var searcher = new DirectorySearcher(rootEntry)
+                    {
+                        // DONT_REQ_PREAUTH flag = 0x400000 = 4194304
+                        Filter = "(&(objectCategory=person)(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=4194304))",
+                        SearchScope = SearchScope.Subtree,
+                        PageSize = 1000
+                    };
+
+                    searcher.PropertiesToLoad.Add("sAMAccountName");
+                    searcher.PropertiesToLoad.Add("distinguishedName");
+                    searcher.PropertiesToLoad.Add("memberOf");
+                    searcher.PropertiesToLoad.Add("adminCount");
+
+                    foreach (SearchResult result in searcher.FindAll())
+                    {
+                        ct.ThrowIfCancellationRequested();
+
+                        var samName = result.Properties["sAMAccountName"][0]?.ToString() ?? "";
+                        var dn = result.Properties["distinguishedName"][0]?.ToString() ?? "";
+                        var adminCount = result.Properties.Contains("adminCount") && 
+                            Convert.ToInt32(result.Properties["adminCount"][0]) == 1;
+                        var memberOf = result.Properties.Contains("memberOf") 
+                            ? result.Properties["memberOf"].Cast<string>().ToList() : new List<string>();
+
+                        var severity = adminCount ? "Critical" : "High";
+
+                        findings.Add(new SecurityFinding
+                        {
+                            Category = "AS-REP Roastable",
+                            Severity = severity,
+                            ObjectName = samName,
+                            ObjectDn = dn,
+                            ObjectType = "user",
+                            Description = $"Pre-authentication disabled. {(adminCount ? "PRIVILEGED ACCOUNT - AdminCount=1!" : $"Member of {memberOf.Count} groups.")}",
+                            Recommendation = "Enable Kerberos pre-authentication unless there's a documented business requirement."
+                        });
+
+                        _progress?.Report($"[{severity.ToUpperInvariant()}] AS-REP Roastable: {samName}{(adminCount ? " (ADMIN)" : "")}");
+                    }
+
+                    _progress?.Report($"Found {findings.Count} AS-REP Roastable accounts");
+                }
+                catch (Exception ex)
+                {
+                    _progress?.Report($"Error scanning AS-REP Roastable accounts: {ex.Message}");
+                }
+            }, ct);
+
+            return findings;
+        }
+
+        /// <summary>
+        /// Finds accounts with SPNs that can be Kerberoasted.
+        /// </summary>
+        public async Task<List<SecurityFinding>> FindKerberoastableAccountsAsync(CancellationToken ct = default)
+        {
+            var findings = new List<SecurityFinding>();
+
+            if (_domainInfo == null)
+            {
+                _progress?.Report("Domain not discovered. Call DiscoverDomainAsync first.");
+                return findings;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report("Scanning for Kerberoastable accounts...");
+
+                    using var rootEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{_domainInfo.DomainDn}");
+                    using var searcher = new DirectorySearcher(rootEntry)
+                    {
+                        // User accounts with SPNs (not computers, not disabled)
+                        Filter = "(&(objectCategory=person)(objectClass=user)(servicePrincipalName=*)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))",
+                        SearchScope = SearchScope.Subtree,
+                        PageSize = 1000
+                    };
+
+                    searcher.PropertiesToLoad.Add("sAMAccountName");
+                    searcher.PropertiesToLoad.Add("distinguishedName");
+                    searcher.PropertiesToLoad.Add("servicePrincipalName");
+                    searcher.PropertiesToLoad.Add("adminCount");
+                    searcher.PropertiesToLoad.Add("memberOf");
+                    searcher.PropertiesToLoad.Add("pwdLastSet");
+
+                    foreach (SearchResult result in searcher.FindAll())
+                    {
+                        ct.ThrowIfCancellationRequested();
+
+                        var samName = result.Properties["sAMAccountName"][0]?.ToString() ?? "";
+                        var dn = result.Properties["distinguishedName"][0]?.ToString() ?? "";
+                        var spns = result.Properties["servicePrincipalName"].Cast<string>().ToList();
+                        var adminCount = result.Properties.Contains("adminCount") && 
+                            Convert.ToInt32(result.Properties["adminCount"][0]) == 1;
+                        var pwdLastSet = result.Properties.Contains("pwdLastSet") 
+                            ? DateTime.FromFileTime((long)result.Properties["pwdLastSet"][0]) 
+                            : DateTime.MinValue;
+                        var passwordAge = pwdLastSet > DateTime.MinValue 
+                            ? (DateTime.Now - pwdLastSet).TotalDays : -1;
+
+                        var severity = adminCount ? "Critical" : (passwordAge > 365 ? "High" : "Medium");
+
+                        findings.Add(new SecurityFinding
+                        {
+                            Category = "Kerberoastable",
+                            Severity = severity,
+                            ObjectName = samName,
+                            ObjectDn = dn,
+                            ObjectType = "user",
+                            Description = $"Has {spns.Count} SPN(s). {(adminCount ? "PRIVILEGED ACCOUNT! " : "")}Password age: {(passwordAge > 0 ? $"{(int)passwordAge} days" : "Unknown")}",
+                            Recommendation = adminCount 
+                                ? "CRITICAL: Remove SPNs from privileged accounts or use gMSA."
+                                : "Use strong passwords, consider gMSA, or remove unnecessary SPNs."
+                        });
+
+                        _progress?.Report($"[{severity.ToUpperInvariant()}] Kerberoastable: {samName} ({spns.Count} SPNs){(adminCount ? " (ADMIN)" : "")}");
+                    }
+
+                    _progress?.Report($"Found {findings.Count} Kerberoastable accounts");
+                }
+                catch (Exception ex)
+                {
+                    _progress?.Report($"Error scanning Kerberoastable accounts: {ex.Message}");
+                }
+            }, ct);
+
+            return findings;
+        }
+
+        /// <summary>
+        /// Finds principals with DCSync rights (Replicating Directory Changes).
+        /// </summary>
+        public async Task<List<SecurityFinding>> FindDcSyncPrincipalsAsync(CancellationToken ct = default)
+        {
+            var findings = new List<SecurityFinding>();
+
+            if (_domainInfo == null)
+            {
+                _progress?.Report("Domain not discovered. Call DiscoverDomainAsync first.");
+                return findings;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report("Scanning for DCSync permissions...");
+
+                    // DS-Replication-Get-Changes = 1131f6aa-9c07-11d1-f79f-00c04fc2dcd2
+                    // DS-Replication-Get-Changes-All = 1131f6ad-9c07-11d1-f79f-00c04fc2dcd2
+                    var getChangesGuid = new Guid("1131f6aa-9c07-11d1-f79f-00c04fc2dcd2");
+                    var getChangesAllGuid = new Guid("1131f6ad-9c07-11d1-f79f-00c04fc2dcd2");
+
+                    using var domainEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{_domainInfo.DomainDn}");
+                    var security = domainEntry.ObjectSecurity;
+                    var accessRules = security.GetAccessRules(true, true, typeof(SecurityIdentifier));
+
+                    var dcSyncPrincipals = new Dictionary<string, (bool hasGetChanges, bool hasGetChangesAll)>();
+
+                    foreach (ActiveDirectoryAccessRule rule in accessRules)
+                    {
+                        if (rule.AccessControlType != AccessControlType.Allow)
+                            continue;
+
+                        var sid = rule.IdentityReference.Value;
+                        if (!dcSyncPrincipals.ContainsKey(sid))
+                            dcSyncPrincipals[sid] = (false, false);
+
+                        var current = dcSyncPrincipals[sid];
+
+                        if (rule.ObjectType == getChangesGuid)
+                            dcSyncPrincipals[sid] = (true, current.hasGetChangesAll);
+                        else if (rule.ObjectType == getChangesAllGuid)
+                            dcSyncPrincipals[sid] = (current.hasGetChanges, true);
+                    }
+
+                    // Expected DCSync principals
+                    var expectedSids = new HashSet<string>
+                    {
+                        $"{_domainInfo.DomainSid}-516",  // Domain Controllers
+                        $"{_domainInfo.DomainSid}-498",  // Enterprise Read-only Domain Controllers
+                        $"{_domainInfo.DomainSid}-521",  // Read-only Domain Controllers
+                        "S-1-5-32-544",                   // Administrators
+                        $"{_domainInfo.DomainSid}-512",  // Domain Admins
+                        $"{_domainInfo.DomainSid}-519",  // Enterprise Admins
+                    };
+
+                    foreach (var kvp in dcSyncPrincipals.Where(x => x.Value.hasGetChanges && x.Value.hasGetChangesAll))
+                    {
+                        var sid = kvp.Key;
+                        var isExpected = expectedSids.Contains(sid);
+                        var principalName = ResolveSidToName(sid);
+
+                        if (!isExpected)
+                        {
+                            findings.Add(new SecurityFinding
+                            {
+                                Category = "DCSync Rights",
+                                Severity = "Critical",
+                                ObjectName = principalName,
+                                ObjectDn = sid,
+                                ObjectType = "principal",
+                                Description = "Has both Replicating Directory Changes and Replicating Directory Changes All - can perform DCSync attack!",
+                                Recommendation = "Remove DCSync permissions immediately unless this is a domain controller."
+                            });
+
+                            _progress?.Report($"[CRITICAL] Unexpected DCSync principal: {principalName}");
+                        }
+                        else
+                        {
+                            _progress?.Report($"[OK] Expected DCSync principal: {principalName}");
+                        }
+                    }
+
+                    _progress?.Report($"Found {findings.Count} unexpected DCSync principals");
+                }
+                catch (Exception ex)
+                {
+                    _progress?.Report($"Error scanning DCSync permissions: {ex.Message}");
+                }
+            }, ct);
+
+            return findings;
+        }
+
+        /// <summary>
+        /// Finds accounts with SID History set (potential privilege escalation).
+        /// </summary>
+        public async Task<List<SecurityFinding>> FindSidHistoryAsync(CancellationToken ct = default)
+        {
+            var findings = new List<SecurityFinding>();
+
+            if (_domainInfo == null)
+            {
+                _progress?.Report("Domain not discovered. Call DiscoverDomainAsync first.");
+                return findings;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report("Scanning for SID History...");
+
+                    using var rootEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{_domainInfo.DomainDn}");
+                    using var searcher = new DirectorySearcher(rootEntry)
+                    {
+                        Filter = "(sIDHistory=*)",
+                        SearchScope = SearchScope.Subtree,
+                        PageSize = 1000
+                    };
+
+                    searcher.PropertiesToLoad.Add("sAMAccountName");
+                    searcher.PropertiesToLoad.Add("distinguishedName");
+                    searcher.PropertiesToLoad.Add("objectClass");
+                    searcher.PropertiesToLoad.Add("sIDHistory");
+                    searcher.PropertiesToLoad.Add("adminCount");
+
+                    foreach (SearchResult result in searcher.FindAll())
+                    {
+                        ct.ThrowIfCancellationRequested();
+
+                        var samName = result.Properties["sAMAccountName"][0]?.ToString() ?? "";
+                        var dn = result.Properties["distinguishedName"][0]?.ToString() ?? "";
+                        var objectClass = result.Properties["objectClass"].Cast<string>().LastOrDefault() ?? "";
+                        var sidHistoryCount = result.Properties["sIDHistory"].Count;
+                        var adminCount = result.Properties.Contains("adminCount") && 
+                            Convert.ToInt32(result.Properties["adminCount"][0]) == 1;
+
+                        // Extract SID History SIDs
+                        var sidHistorySids = new List<string>();
+                        foreach (var sidBytes in result.Properties["sIDHistory"])
+                        {
+                            if (sidBytes is byte[] bytes)
+                            {
+                                var sid = new SecurityIdentifier(bytes, 0);
+                                sidHistorySids.Add(sid.Value);
+                            }
+                        }
+
+                        // Check for privileged foreign SIDs (500, 512, 518, 519, etc.)
+                        var hasPrivilegedSid = sidHistorySids.Any(s => 
+                            s.EndsWith("-500") || s.EndsWith("-512") || s.EndsWith("-518") || 
+                            s.EndsWith("-519") || s.EndsWith("-544"));
+
+                        var severity = hasPrivilegedSid ? "Critical" : (adminCount ? "High" : "Medium");
+
+                        findings.Add(new SecurityFinding
+                        {
+                            Category = "SID History",
+                            Severity = severity,
+                            ObjectName = samName,
+                            ObjectDn = dn,
+                            ObjectType = objectClass,
+                            Description = $"Has {sidHistoryCount} SID History entries.{(hasPrivilegedSid ? " CONTAINS PRIVILEGED SID!" : "")}{(adminCount ? " AdminCount=1." : "")}",
+                            Recommendation = hasPrivilegedSid 
+                                ? "CRITICAL: Review and remove SID History containing privileged SIDs (potential Golden Ticket persistence)."
+                                : "Review SID History - may be legitimate from migration or could be attacker persistence."
+                        });
+
+                        _progress?.Report($"[{severity.ToUpperInvariant()}] SID History: {samName} ({sidHistoryCount} SIDs){(hasPrivilegedSid ? " [PRIVILEGED!]" : "")}");
+                    }
+
+                    _progress?.Report($"Found {findings.Count} objects with SID History");
+                }
+                catch (Exception ex)
+                {
+                    _progress?.Report($"Error scanning SID History: {ex.Message}");
+                }
+            }, ct);
+
+            return findings;
+        }
+
+        /// <summary>
+        /// Finds accounts with AdminCount=1 that are not in protected groups (orphaned).
+        /// </summary>
+        public async Task<List<SecurityFinding>> FindOrphanedAdminCountAsync(CancellationToken ct = default)
+        {
+            var findings = new List<SecurityFinding>();
+
+            if (_domainInfo == null)
+            {
+                _progress?.Report("Domain not discovered. Call DiscoverDomainAsync first.");
+                return findings;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report("Scanning for orphaned AdminCount accounts...");
+
+                    // Get all protected group member DNs
+                    var protectedGroupDns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    var protectedGroups = new[] { "Domain Admins", "Enterprise Admins", "Schema Admins", 
+                        "Administrators", "Account Operators", "Backup Operators", "Print Operators",
+                        "Server Operators", "Replicator" };
+
+                    using var rootEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{_domainInfo.DomainDn}");
+
+                    foreach (var groupName in protectedGroups)
+                    {
+                        using var searcher = new DirectorySearcher(rootEntry)
+                        {
+                            Filter = $"(&(objectClass=group)(sAMAccountName={groupName}))",
+                            SearchScope = SearchScope.Subtree
+                        };
+                        searcher.PropertiesToLoad.Add("member");
+
+                        var groupResult = searcher.FindOne();
+                        if (groupResult?.Properties.Contains("member") == true)
+                        {
+                            foreach (var member in groupResult.Properties["member"])
+                            {
+                                protectedGroupDns.Add(member.ToString()!);
+                            }
+                        }
+                    }
+
+                    // Find AdminCount=1 accounts
+                    using var adminCountSearcher = new DirectorySearcher(rootEntry)
+                    {
+                        Filter = "(&(|(objectClass=user)(objectClass=group))(adminCount=1))",
+                        SearchScope = SearchScope.Subtree,
+                        PageSize = 1000
+                    };
+
+                    adminCountSearcher.PropertiesToLoad.Add("sAMAccountName");
+                    adminCountSearcher.PropertiesToLoad.Add("distinguishedName");
+                    adminCountSearcher.PropertiesToLoad.Add("objectClass");
+
+                    foreach (SearchResult result in adminCountSearcher.FindAll())
+                    {
+                        ct.ThrowIfCancellationRequested();
+
+                        var samName = result.Properties["sAMAccountName"][0]?.ToString() ?? "";
+                        var dn = result.Properties["distinguishedName"][0]?.ToString() ?? "";
+                        var objectClass = result.Properties["objectClass"].Cast<string>().LastOrDefault() ?? "";
+
+                        // Skip if in protected groups
+                        if (protectedGroupDns.Contains(dn))
+                            continue;
+
+                        // Skip well-known accounts
+                        if (samName.Equals("Administrator", StringComparison.OrdinalIgnoreCase) ||
+                            samName.Equals("krbtgt", StringComparison.OrdinalIgnoreCase))
+                            continue;
+
+                        findings.Add(new SecurityFinding
+                        {
+                            Category = "Orphaned AdminCount",
+                            Severity = "Medium",
+                            ObjectName = samName,
+                            ObjectDn = dn,
+                            ObjectType = objectClass,
+                            Description = "Has AdminCount=1 but is not a member of any protected group. AdminSDHolder will not apply.",
+                            Recommendation = "Clear AdminCount attribute if no longer privileged, or investigate why it's set."
+                        });
+
+                        _progress?.Report($"[MEDIUM] Orphaned AdminCount: {samName}");
+                    }
+
+                    _progress?.Report($"Found {findings.Count} orphaned AdminCount objects");
+                }
+                catch (Exception ex)
+                {
+                    _progress?.Report($"Error scanning AdminCount: {ex.Message}");
+                }
+            }, ct);
+
+            return findings;
+        }
+
+        #endregion
+
+        #region Credential Security
+
+        /// <summary>
+        /// Finds computers with LAPS deployed and checks coverage.
+        /// </summary>
+        public async Task<LapsAuditResult> AuditLapsDeploymentAsync(CancellationToken ct = default)
+        {
+            var result = new LapsAuditResult();
+
+            if (_domainInfo == null)
+            {
+                _progress?.Report("Domain not discovered. Call DiscoverDomainAsync first.");
+                return result;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report("Auditing LAPS deployment...");
+
+                    using var rootEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{_domainInfo.DomainDn}");
+
+                    // Check for LAPS schema extensions
+                    using var schemaSearcher = new DirectorySearcher(rootEntry)
+                    {
+                        Filter = "(lDAPDisplayName=ms-Mcs-AdmPwd)",
+                        SearchScope = SearchScope.Subtree
+                    };
+
+                    var schemaResult = schemaSearcher.FindOne();
+                    result.LapsSchemaExtended = schemaResult != null;
+
+                    if (!result.LapsSchemaExtended)
+                    {
+                        // Try Windows LAPS attribute
+                        schemaSearcher.Filter = "(lDAPDisplayName=msLAPS-Password)";
+                        schemaResult = schemaSearcher.FindOne();
+                        result.WindowsLapsSchemaExtended = schemaResult != null;
+                    }
+
+                    _progress?.Report($"Legacy LAPS schema: {result.LapsSchemaExtended}, Windows LAPS schema: {result.WindowsLapsSchemaExtended}");
+
+                    // Count computers with and without LAPS
+                    using var computerSearcher = new DirectorySearcher(rootEntry)
+                    {
+                        Filter = "(&(objectClass=computer)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))",
+                        SearchScope = SearchScope.Subtree,
+                        PageSize = 1000
+                    };
+
+                    computerSearcher.PropertiesToLoad.Add("sAMAccountName");
+                    computerSearcher.PropertiesToLoad.Add("distinguishedName");
+                    computerSearcher.PropertiesToLoad.Add("operatingSystem");
+                    computerSearcher.PropertiesToLoad.Add("ms-Mcs-AdmPwd");
+                    computerSearcher.PropertiesToLoad.Add("ms-Mcs-AdmPwdExpirationTime");
+                    computerSearcher.PropertiesToLoad.Add("msLAPS-Password");
+
+                    foreach (SearchResult computer in computerSearcher.FindAll())
+                    {
+                        ct.ThrowIfCancellationRequested();
+
+                        result.TotalComputers++;
+
+                        var hasLegacyLaps = computer.Properties.Contains("ms-Mcs-AdmPwd") && 
+                            computer.Properties["ms-Mcs-AdmPwd"].Count > 0;
+                        var hasWindowsLaps = computer.Properties.Contains("msLAPS-Password") && 
+                            computer.Properties["msLAPS-Password"].Count > 0;
+
+                        if (hasLegacyLaps || hasWindowsLaps)
+                        {
+                            result.ComputersWithLaps++;
+                        }
+                        else
+                        {
+                            var samName = computer.Properties["sAMAccountName"][0]?.ToString() ?? "";
+                            var dn = computer.Properties["distinguishedName"][0]?.ToString() ?? "";
+                            var os = computer.Properties.Contains("operatingSystem") 
+                                ? computer.Properties["operatingSystem"][0]?.ToString() ?? "" : "";
+
+                            // Skip domain controllers
+                            if (!dn.Contains("OU=Domain Controllers", StringComparison.OrdinalIgnoreCase))
+                            {
+                                result.ComputersWithoutLaps.Add(new ComputerLapsStatus
+                                {
+                                    ComputerName = samName,
+                                    DistinguishedName = dn,
+                                    OperatingSystem = os,
+                                    HasLaps = false
+                                });
+                            }
+                        }
+                    }
+
+                    result.CoveragePercent = result.TotalComputers > 0 
+                        ? (result.ComputersWithLaps * 100.0 / result.TotalComputers) : 0;
+
+                    _progress?.Report($"LAPS Coverage: {result.ComputersWithLaps}/{result.TotalComputers} ({result.CoveragePercent:F1}%)");
+                    _progress?.Report($"Computers without LAPS: {result.ComputersWithoutLaps.Count}");
+                }
+                catch (Exception ex)
+                {
+                    _progress?.Report($"Error auditing LAPS: {ex.Message}");
+                }
+            }, ct);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Finds Group Policy Preferences with embedded passwords (cpassword).
+        /// </summary>
+        public async Task<List<SecurityFinding>> FindGppPasswordsAsync(CancellationToken ct = default)
+        {
+            var findings = new List<SecurityFinding>();
+
+            if (_domainInfo == null)
+            {
+                _progress?.Report("Domain not discovered. Call DiscoverDomainAsync first.");
+                return findings;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report("Scanning SYSVOL for GPP passwords...");
+
+                    var sysvolPath = $"\\\\{_domainInfo.DomainFqdn}\\SYSVOL\\{_domainInfo.DomainFqdn}\\Policies";
+
+                    if (!Directory.Exists(sysvolPath))
+                    {
+                        _progress?.Report($"Cannot access SYSVOL: {sysvolPath}");
+                        return;
+                    }
+
+                    // Files that may contain cpassword
+                    var gppFiles = new[] { "Groups.xml", "Services.xml", "Scheduledtasks.xml", 
+                        "DataSources.xml", "Printers.xml", "Drives.xml" };
+
+                    foreach (var policyDir in Directory.GetDirectories(sysvolPath))
+                    {
+                        ct.ThrowIfCancellationRequested();
+
+                        var gpoGuid = Path.GetFileName(policyDir);
+
+                        foreach (var gppFile in gppFiles)
+                        {
+                            var machinePrefsPath = Path.Combine(policyDir, "Machine", "Preferences");
+                            var userPrefsPath = Path.Combine(policyDir, "User", "Preferences");
+
+                            SearchGppFile(machinePrefsPath, gppFile, gpoGuid, findings, _progress);
+                            SearchGppFile(userPrefsPath, gppFile, gpoGuid, findings, _progress);
+                        }
+                    }
+
+                    _progress?.Report($"Found {findings.Count} GPP password entries");
+                }
+                catch (Exception ex)
+                {
+                    _progress?.Report($"Error scanning GPP passwords: {ex.Message}");
+                }
+            }, ct);
+
+            return findings;
+        }
+
+        private static void SearchGppFile(string prefsPath, string fileName, string gpoGuid, 
+            List<SecurityFinding> findings, IProgress<string>? progress)
+        {
+            if (!Directory.Exists(prefsPath)) return;
+
+            var subDirs = new[] { "Groups", "Services", "ScheduledTasks", "DataSources", "Printers", "Drives" };
+            foreach (var subDir in subDirs)
+            {
+                var filePath = Path.Combine(prefsPath, subDir, fileName);
+                if (!File.Exists(filePath)) continue;
+
+                try
+                {
+                    var content = File.ReadAllText(filePath);
+                    if (content.Contains("cpassword=", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Extract cpassword value
+                        var match = System.Text.RegularExpressions.Regex.Match(content, @"cpassword=""([^""]+)""");
+                        if (match.Success && !string.IsNullOrEmpty(match.Groups[1].Value))
+                        {
+                            findings.Add(new SecurityFinding
+                            {
+                                Category = "GPP Password",
+                                Severity = "Critical",
+                                ObjectName = $"{gpoGuid}/{subDir}/{fileName}",
+                                ObjectDn = filePath,
+                                ObjectType = "GPO",
+                                Description = "Contains encrypted cpassword - can be decrypted with published AES key!",
+                                Recommendation = "Remove the GPP password immediately. Use LAPS instead for local admin passwords."
+                            });
+
+                            progress?.Report($"[CRITICAL] GPP Password found: {gpoGuid}/{subDir}");
+                        }
+                    }
+                }
+                catch { /* Ignore file access errors */ }
+            }
+        }
+
+        /// <summary>
+        /// Finds stale/inactive user and computer accounts.
+        /// </summary>
+        public async Task<StaleAccountsResult> FindStaleAccountsAsync(int inactiveDays = 90, CancellationToken ct = default)
+        {
+            var result = new StaleAccountsResult { InactiveDaysThreshold = inactiveDays };
+
+            if (_domainInfo == null)
+            {
+                _progress?.Report("Domain not discovered. Call DiscoverDomainAsync first.");
+                return result;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report($"Scanning for accounts inactive for {inactiveDays}+ days...");
+
+                    var cutoffDate = DateTime.Now.AddDays(-inactiveDays);
+                    var cutoffFileTime = cutoffDate.ToFileTime();
+
+                    using var rootEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{_domainInfo.DomainDn}");
+
+                    // Find stale users
+                    using var userSearcher = new DirectorySearcher(rootEntry)
+                    {
+                        Filter = $"(&(objectCategory=person)(objectClass=user)(lastLogonTimestamp<={cutoffFileTime})(!(userAccountControl:1.2.840.113556.1.4.803:=2)))",
+                        SearchScope = SearchScope.Subtree,
+                        PageSize = 1000
+                    };
+
+                    userSearcher.PropertiesToLoad.Add("sAMAccountName");
+                    userSearcher.PropertiesToLoad.Add("distinguishedName");
+                    userSearcher.PropertiesToLoad.Add("lastLogonTimestamp");
+                    userSearcher.PropertiesToLoad.Add("pwdLastSet");
+                    userSearcher.PropertiesToLoad.Add("adminCount");
+
+                    foreach (SearchResult user in userSearcher.FindAll())
+                    {
+                        ct.ThrowIfCancellationRequested();
+
+                        var samName = user.Properties["sAMAccountName"][0]?.ToString() ?? "";
+                        var dn = user.Properties["distinguishedName"][0]?.ToString() ?? "";
+                        var lastLogon = user.Properties.Contains("lastLogonTimestamp")
+                            ? DateTime.FromFileTime((long)user.Properties["lastLogonTimestamp"][0])
+                            : DateTime.MinValue;
+                        var pwdLastSet = user.Properties.Contains("pwdLastSet")
+                            ? DateTime.FromFileTime((long)user.Properties["pwdLastSet"][0])
+                            : DateTime.MinValue;
+                        var adminCount = user.Properties.Contains("adminCount") &&
+                            Convert.ToInt32(user.Properties["adminCount"][0]) == 1;
+
+                        result.StaleUsers.Add(new StaleAccountInfo
+                        {
+                            SamAccountName = samName,
+                            DistinguishedName = dn,
+                            LastLogon = lastLogon,
+                            PasswordLastSet = pwdLastSet,
+                            IsPrivileged = adminCount,
+                            DaysSinceLastLogon = (int)(DateTime.Now - lastLogon).TotalDays
+                        });
+                    }
+
+                    // Find stale computers
+                    using var computerSearcher = new DirectorySearcher(rootEntry)
+                    {
+                        Filter = $"(&(objectClass=computer)(lastLogonTimestamp<={cutoffFileTime})(!(userAccountControl:1.2.840.113556.1.4.803:=2)))",
+                        SearchScope = SearchScope.Subtree,
+                        PageSize = 1000
+                    };
+
+                    computerSearcher.PropertiesToLoad.Add("sAMAccountName");
+                    computerSearcher.PropertiesToLoad.Add("distinguishedName");
+                    computerSearcher.PropertiesToLoad.Add("lastLogonTimestamp");
+                    computerSearcher.PropertiesToLoad.Add("operatingSystem");
+
+                    foreach (SearchResult computer in computerSearcher.FindAll())
+                    {
+                        ct.ThrowIfCancellationRequested();
+
+                        var samName = computer.Properties["sAMAccountName"][0]?.ToString() ?? "";
+                        var dn = computer.Properties["distinguishedName"][0]?.ToString() ?? "";
+                        var lastLogon = computer.Properties.Contains("lastLogonTimestamp")
+                            ? DateTime.FromFileTime((long)computer.Properties["lastLogonTimestamp"][0])
+                            : DateTime.MinValue;
+                        var os = computer.Properties.Contains("operatingSystem")
+                            ? computer.Properties["operatingSystem"][0]?.ToString() ?? "" : "";
+
+                        // Skip DCs
+                        if (dn.Contains("OU=Domain Controllers", StringComparison.OrdinalIgnoreCase))
+                            continue;
+
+                        result.StaleComputers.Add(new StaleAccountInfo
+                        {
+                            SamAccountName = samName,
+                            DistinguishedName = dn,
+                            LastLogon = lastLogon,
+                            OperatingSystem = os,
+                            DaysSinceLastLogon = (int)(DateTime.Now - lastLogon).TotalDays
+                        });
+                    }
+
+                    _progress?.Report($"Found {result.StaleUsers.Count} stale users, {result.StaleComputers.Count} stale computers");
+                }
+                catch (Exception ex)
+                {
+                    _progress?.Report($"Error finding stale accounts: {ex.Message}");
+                }
+            }, ct);
+
+            return result;
+        }
+
+        #endregion
+
+        #region Security GPO Deployment
+
+        /// <summary>
+        /// Deploys Print Nightmare mitigation GPO (Point and Print restrictions).
+        /// </summary>
+        public async Task<AdGpoResult> DeployPrintNightmareGpoAsync(bool whatIf = true, CancellationToken ct = default)
+        {
+            var result = new AdGpoResult { GpoName = "PrintNightmare Mitigation", Success = false };
+
+            if (_domainInfo == null)
+            {
+                result.Message = "Domain not discovered";
+                return result;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report("Deploying Print Nightmare mitigation GPO...");
+
+                    var gpoName = "SEC - PrintNightmare Mitigation";
+                    var dc = _domainInfo.ChosenDc ?? "";
+                    var domainDn = _domainInfo.DomainDn ?? "";
+
+                    if (whatIf)
+                    {
+                        result.Success = true;
+                        result.Message = $"[WHATIF] Would create GPO '{gpoName}' with Point and Print restrictions";
+                        _progress?.Report(result.Message);
+                        return;
+                    }
+
+                    // Create the GPO
+                    var gpoResult = CreateGpo(dc, domainDn, gpoName, "Mitigates PrintNightmare (CVE-2021-34527) by restricting Point and Print driver installation.");
+                    if (!gpoResult.Success)
+                    {
+                        result.Message = gpoResult.Message;
+                        return;
+                    }
+
+                    result.GpoGuid = gpoResult.GpoGuid;
+                    result.GpoDn = gpoResult.GpoDn;
+
+                    // Create the registry.pol content for Point and Print restrictions
+                    var policiesPath = $"\\\\{dc}\\SYSVOL\\{_domainInfo.DomainFqdn}\\Policies\\{{{result.GpoGuid}}}";
+                    var machineRegPath = Path.Combine(policiesPath, "Machine", "Registry.pol");
+
+                    Directory.CreateDirectory(Path.GetDirectoryName(machineRegPath)!);
+
+                    // Registry values for PrintNightmare mitigation
+                    var regValues = new Dictionary<string, (int type, object value)>
+                    {
+                        [@"Software\Policies\Microsoft\Windows NT\Printers\PointAndPrint!RestrictDriverInstallationToAdministrators"] = (4, 1),
+                        [@"Software\Policies\Microsoft\Windows NT\Printers\PointAndPrint!NoWarningNoElevationOnInstall"] = (4, 0),
+                        [@"Software\Policies\Microsoft\Windows NT\Printers\PointAndPrint!UpdatePromptSettings"] = (4, 0),
+                    };
+
+                    WriteRegistryPol(machineRegPath, regValues);
+
+                    // Update GPT.ini
+                    UpdateGptIni(policiesPath, true, false);
+
+                    result.Success = true;
+                    result.Message = $"Created GPO '{gpoName}' with PrintNightmare mitigations";
+                    _progress?.Report($"[OK] {result.Message}");
+                }
+                catch (Exception ex)
+                {
+                    result.Message = ex.Message;
+                    _progress?.Report($"Error: {ex.Message}");
+                }
+            }, ct);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Deploys LLMNR and NBT-NS disable GPO.
+        /// </summary>
+        public async Task<AdGpoResult> DeployLlmnrDisableGpoAsync(bool whatIf = true, CancellationToken ct = default)
+        {
+            var result = new AdGpoResult { GpoName = "LLMNR/NBT-NS Disable", Success = false };
+
+            if (_domainInfo == null)
+            {
+                result.Message = "Domain not discovered";
+                return result;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report("Deploying LLMNR/NBT-NS disable GPO...");
+
+                    var gpoName = "SEC - Disable LLMNR NBT-NS";
+                    var dc = _domainInfo.ChosenDc ?? "";
+                    var domainDn = _domainInfo.DomainDn ?? "";
+
+                    if (whatIf)
+                    {
+                        result.Success = true;
+                        result.Message = $"[WHATIF] Would create GPO '{gpoName}' to disable LLMNR and NBT-NS";
+                        _progress?.Report(result.Message);
+                        return;
+                    }
+
+                    var gpoResult = CreateGpo(dc, domainDn, gpoName, "Disables LLMNR and NBT-NS to prevent network poisoning attacks.");
+                    if (!gpoResult.Success)
+                    {
+                        result.Message = gpoResult.Message;
+                        return;
+                    }
+
+                    result.GpoGuid = gpoResult.GpoGuid;
+                    result.GpoDn = gpoResult.GpoDn;
+
+                    var policiesPath = $"\\\\{dc}\\SYSVOL\\{_domainInfo.DomainFqdn}\\Policies\\{{{result.GpoGuid}}}";
+                    var machineRegPath = Path.Combine(policiesPath, "Machine", "Registry.pol");
+
+                    Directory.CreateDirectory(Path.GetDirectoryName(machineRegPath)!);
+
+                    var regValues = new Dictionary<string, (int type, object value)>
+                    {
+                        // Disable LLMNR
+                        [@"Software\Policies\Microsoft\Windows NT\DNSClient!EnableMulticast"] = (4, 0),
+                        // Disable NBT-NS via NetBT NodeType (P-node = 2)
+                        [@"SYSTEM\CurrentControlSet\Services\NetBT\Parameters!NodeType"] = (4, 2),
+                    };
+
+                    WriteRegistryPol(machineRegPath, regValues);
+                    UpdateGptIni(policiesPath, true, false);
+
+                    result.Success = true;
+                    result.Message = $"Created GPO '{gpoName}'";
+                    _progress?.Report($"[OK] {result.Message}");
+                }
+                catch (Exception ex)
+                {
+                    result.Message = ex.Message;
+                    _progress?.Report($"Error: {ex.Message}");
+                }
+            }, ct);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Deploys SMB Signing enforcement GPO.
+        /// </summary>
+        public async Task<AdGpoResult> DeploySmbSigningGpoAsync(bool whatIf = true, CancellationToken ct = default)
+        {
+            var result = new AdGpoResult { GpoName = "SMB Signing", Success = false };
+
+            if (_domainInfo == null)
+            {
+                result.Message = "Domain not discovered";
+                return result;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report("Deploying SMB Signing enforcement GPO...");
+
+                    var gpoName = "SEC - Enforce SMB Signing";
+                    var dc = _domainInfo.ChosenDc ?? "";
+                    var domainDn = _domainInfo.DomainDn ?? "";
+
+                    if (whatIf)
+                    {
+                        result.Success = true;
+                        result.Message = $"[WHATIF] Would create GPO '{gpoName}' to enforce SMB signing";
+                        _progress?.Report(result.Message);
+                        return;
+                    }
+
+                    var gpoResult = CreateGpo(dc, domainDn, gpoName, "Enforces SMB signing to prevent relay attacks.");
+                    if (!gpoResult.Success)
+                    {
+                        result.Message = gpoResult.Message;
+                        return;
+                    }
+
+                    result.GpoGuid = gpoResult.GpoGuid;
+                    result.GpoDn = gpoResult.GpoDn;
+
+                    var policiesPath = $"\\\\{dc}\\SYSVOL\\{_domainInfo.DomainFqdn}\\Policies\\{{{result.GpoGuid}}}";
+                    var secEditPath = Path.Combine(policiesPath, "Machine", "Microsoft", "Windows NT", "SecEdit");
+
+                    Directory.CreateDirectory(secEditPath);
+
+                    // Create GptTmpl.inf with SMB signing settings
+                    var gptTmplPath = Path.Combine(secEditPath, "GptTmpl.inf");
+                    var content = new StringBuilder();
+                    content.AppendLine("[Unicode]");
+                    content.AppendLine("Unicode=yes");
+                    content.AppendLine("[Version]");
+                    content.AppendLine("signature=\"$CHICAGO$\"");
+                    content.AppendLine("Revision=1");
+                    content.AppendLine("[Registry Values]");
+                    // Require SMB signing on servers
+                    content.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\LanManServer\\Parameters\\RequireSecuritySignature=4,1");
+                    // Require SMB signing on clients
+                    content.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\LanmanWorkstation\\Parameters\\RequireSecuritySignature=4,1");
+
+                    File.WriteAllText(gptTmplPath, content.ToString(), Encoding.Unicode);
+                    UpdateGptIni(policiesPath, true, false);
+
+                    // Set the gPCMachineExtensionNames
+                    SetGpoExtensions(dc, domainDn, result.GpoGuid!, "[{827D319E-6EAC-11D2-A4EA-00C04F79F83A}{803E14A0-B4FB-11D0-A0D0-00A0C90F574B}]", true);
+
+                    result.Success = true;
+                    result.Message = $"Created GPO '{gpoName}'";
+                    _progress?.Report($"[OK] {result.Message}");
+                }
+                catch (Exception ex)
+                {
+                    result.Message = ex.Message;
+                    _progress?.Report($"Error: {ex.Message}");
+                }
+            }, ct);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Deploys Credential Guard enablement GPO for Tier 0 systems.
+        /// </summary>
+        public async Task<AdGpoResult> DeployCredentialGuardGpoAsync(bool whatIf = true, CancellationToken ct = default)
+        {
+            var result = new AdGpoResult { GpoName = "Credential Guard", Success = false };
+
+            if (_domainInfo == null)
+            {
+                result.Message = "Domain not discovered";
+                return result;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report("Deploying Credential Guard GPO...");
+
+                    var gpoName = "SEC - Enable Credential Guard";
+                    var dc = _domainInfo.ChosenDc ?? "";
+                    var domainDn = _domainInfo.DomainDn ?? "";
+
+                    if (whatIf)
+                    {
+                        result.Success = true;
+                        result.Message = $"[WHATIF] Would create GPO '{gpoName}' to enable Credential Guard";
+                        _progress?.Report(result.Message);
+                        return;
+                    }
+
+                    var gpoResult = CreateGpo(dc, domainDn, gpoName, "Enables Windows Credential Guard on compatible systems.");
+                    if (!gpoResult.Success)
+                    {
+                        result.Message = gpoResult.Message;
+                        return;
+                    }
+
+                    result.GpoGuid = gpoResult.GpoGuid;
+                    result.GpoDn = gpoResult.GpoDn;
+
+                    var policiesPath = $"\\\\{dc}\\SYSVOL\\{_domainInfo.DomainFqdn}\\Policies\\{{{result.GpoGuid}}}";
+                    var machineRegPath = Path.Combine(policiesPath, "Machine", "Registry.pol");
+
+                    Directory.CreateDirectory(Path.GetDirectoryName(machineRegPath)!);
+
+                    var regValues = new Dictionary<string, (int type, object value)>
+                    {
+                        // Enable Credential Guard with UEFI lock
+                        [@"SOFTWARE\Policies\Microsoft\Windows\DeviceGuard!EnableVirtualizationBasedSecurity"] = (4, 1),
+                        [@"SOFTWARE\Policies\Microsoft\Windows\DeviceGuard!RequirePlatformSecurityFeatures"] = (4, 3), // Secure Boot + DMA
+                        [@"SOFTWARE\Policies\Microsoft\Windows\DeviceGuard!LsaCfgFlags"] = (4, 1), // Enabled with UEFI lock
+                    };
+
+                    WriteRegistryPol(machineRegPath, regValues);
+                    UpdateGptIni(policiesPath, true, false);
+
+                    result.Success = true;
+                    result.Message = $"Created GPO '{gpoName}'";
+                    _progress?.Report($"[OK] {result.Message}");
+                }
+                catch (Exception ex)
+                {
+                    result.Message = ex.Message;
+                    _progress?.Report($"Error: {ex.Message}");
+                }
+            }, ct);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Runs all attack path detection scans.
+        /// </summary>
+        public async Task<AttackPathScanResult> RunAttackPathScanAsync(CancellationToken ct = default)
+        {
+            var result = new AttackPathScanResult();
+
+            _progress?.Report("=== Starting Attack Path Detection Scan ===");
+
+            result.UnconstrainedDelegation = await FindUnconstrainedDelegationAsync(ct);
+            result.ConstrainedDelegation = await FindConstrainedDelegationAsync(ct);
+            result.Rbcd = await FindRbcdAsync(ct);
+            result.AsRepRoastable = await FindAsRepRoastableAccountsAsync(ct);
+            result.Kerberoastable = await FindKerberoastableAccountsAsync(ct);
+            result.DcSyncPrincipals = await FindDcSyncPrincipalsAsync(ct);
+            result.SidHistory = await FindSidHistoryAsync(ct);
+            result.OrphanedAdminCount = await FindOrphanedAdminCountAsync(ct);
+
+            result.TotalFindings = result.UnconstrainedDelegation.Count + result.ConstrainedDelegation.Count +
+                result.Rbcd.Count + result.AsRepRoastable.Count + result.Kerberoastable.Count +
+                result.DcSyncPrincipals.Count + result.SidHistory.Count + result.OrphanedAdminCount.Count;
+
+            result.CriticalFindings = result.UnconstrainedDelegation.Count(f => f.Severity == "Critical") +
+                result.AsRepRoastable.Count(f => f.Severity == "Critical") +
+                result.Kerberoastable.Count(f => f.Severity == "Critical") +
+                result.DcSyncPrincipals.Count + result.SidHistory.Count(f => f.Severity == "Critical");
+
+            _progress?.Report($"=== Attack Path Scan Complete: {result.TotalFindings} findings ({result.CriticalFindings} critical) ===");
+
+            return result;
+        }
+
+        /// <summary>
+        /// Helper to write Registry.pol file
+        /// </summary>
+        private static void WriteRegistryPol(string path, Dictionary<string, (int type, object value)> values)
+        {
+            using var ms = new MemoryStream();
+            using var bw = new BinaryWriter(ms);
+
+            // Registry.pol header
+            bw.Write(0x50526567); // PReg
+            bw.Write(0x00000001); // Version
+
+            foreach (var kvp in values)
+            {
+                var parts = kvp.Key.Split('!');
+                var keyPath = parts[0];
+                var valueName = parts[1];
+                var (type, value) = kvp.Value;
+
+                // Write entry
+                bw.Write('[');
+                WritePolString(bw, keyPath);
+                bw.Write(';');
+                WritePolString(bw, valueName);
+                bw.Write(';');
+                bw.Write(type);
+                bw.Write(';');
+
+                if (type == 4) // REG_DWORD
+                {
+                    bw.Write(4); // size
+                    bw.Write(';');
+                    bw.Write(Convert.ToInt32(value));
+                }
+                else if (type == 1) // REG_SZ
+                {
+                    var strValue = value.ToString() ?? "";
+                    var bytes = Encoding.Unicode.GetBytes(strValue + "\0");
+                    bw.Write(bytes.Length);
+                    bw.Write(';');
+                    bw.Write(bytes);
+                }
+
+                bw.Write(']');
+            }
+
+            File.WriteAllBytes(path, ms.ToArray());
+        }
+
+        private static void WritePolString(BinaryWriter bw, string value)
+        {
+            foreach (char c in value)
+            {
+                bw.Write(c);
+            }
+            bw.Write('\0');
+        }
+
+        /// <summary>
+        /// Creates a new GPO in Active Directory.
+        /// </summary>
+        private AdGpoResult CreateGpo(string dc, string domainDn, string gpoName, string description)
+        {
+            var result = new AdGpoResult { GpoName = gpoName, Success = false };
+
+            try
+            {
+                var domainFqdn = domainDn.Replace("DC=", "").Replace(",", ".");
+                var gpoContainerDn = $"CN=Policies,CN=System,{domainDn}";
+
+                using var gpoContainer = new DirectoryEntry($"LDAP://{dc}/{gpoContainerDn}");
+
+                // Check if GPO exists
+                using var searcher = new DirectorySearcher(gpoContainer)
+                {
+                    Filter = $"(&(objectClass=groupPolicyContainer)(displayName={EscapeLdapFilter(gpoName)}))",
+                    SearchScope = SearchScope.OneLevel
+                };
+
+                var existing = searcher.FindOne();
+                if (existing != null)
+                {
+                    result.GpoGuid = existing.Properties["name"]?[0]?.ToString()?.Trim('{', '}');
+                    result.GpoDn = existing.Properties["distinguishedName"]?[0]?.ToString();
+                    result.Success = true;
+                    result.Message = "GPO already exists";
+                    return result;
+                }
+
+                // Create new GPO
+                var gpoGuid = Guid.NewGuid().ToString().ToUpperInvariant();
+                var gpoCn = $"CN={{{gpoGuid}}}";
+                var sysvolPath = $"\\\\{dc}\\SYSVOL\\{domainFqdn}\\Policies\\{{{gpoGuid}}}";
+
+                using var newGpo = gpoContainer.Children.Add(gpoCn, "groupPolicyContainer");
+                newGpo.Properties["displayName"].Value = gpoName;
+                newGpo.Properties["gPCFileSysPath"].Value = sysvolPath;
+                newGpo.Properties["gPCFunctionalityVersion"].Value = 2;
+                newGpo.Properties["flags"].Value = 0;
+                newGpo.Properties["versionNumber"].Value = 1;
+                newGpo.CommitChanges();
+
+                // Create SYSVOL folders
+                Directory.CreateDirectory(Path.Combine(sysvolPath, "Machine"));
+                Directory.CreateDirectory(Path.Combine(sysvolPath, "User"));
+
+                // Create GPT.ini
+                var gptIniPath = Path.Combine(sysvolPath, "GPT.ini");
+                File.WriteAllText(gptIniPath, "[General]\r\nVersion=1\r\n");
+
+                result.GpoGuid = gpoGuid;
+                result.GpoDn = $"{gpoCn},{gpoContainerDn}";
+                result.Success = true;
+                result.Message = $"Created GPO: {gpoName}";
+            }
+            catch (Exception ex)
+            {
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Updates GPT.ini version number for a GPO.
+        /// </summary>
+        private void UpdateGptIni(string sysvolPath, bool machineChanged, bool userChanged)
+        {
+            var gptIniPath = Path.Combine(sysvolPath, "GPT.ini");
+
+            int currentMachine = 0;
+            int currentUser = 0;
+
+            if (File.Exists(gptIniPath))
+            {
+                var content = File.ReadAllText(gptIniPath);
+                var versionMatch = System.Text.RegularExpressions.Regex.Match(content, @"Version=(\d+)");
+                if (versionMatch.Success)
+                {
+                    var version = int.Parse(versionMatch.Groups[1].Value);
+                    currentMachine = version & 0xFFFF;
+                    currentUser = (version >> 16) & 0xFFFF;
+                }
+            }
+
+            if (machineChanged) currentMachine++;
+            if (userChanged) currentUser++;
+
+            var newVersion = (currentUser << 16) | currentMachine;
+            File.WriteAllText(gptIniPath, $"[General]\r\nVersion={newVersion}\r\n");
+        }
+
+        /// <summary>
+        /// Sets GPO extension GUIDs in AD.
+        /// </summary>
+        private void SetGpoExtensions(string dc, string domainDn, string gpoGuid, string extensionGuids, bool isMachine)
+        {
+            try
+            {
+                var gpoDn = $"CN={{{gpoGuid}}},CN=Policies,CN=System,{domainDn}";
+                using var gpoEntry = new DirectoryEntry($"LDAP://{dc}/{gpoDn}");
+
+                var propName = isMachine ? "gPCMachineExtensionNames" : "gPCUserExtensionNames";
+                gpoEntry.Properties[propName].Value = extensionGuids;
+                gpoEntry.CommitChanges();
+            }
+            catch (Exception ex)
+            {
+                _progress?.Report($"Warning: Could not set GPO extensions: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Resolves a SID to its account name.
+        /// </summary>
+        private string ResolveSidToName(string sidString)
+        {
+            try
+            {
+                var sid = new SecurityIdentifier(sidString);
+                var account = sid.Translate(typeof(NTAccount));
+                return account.Value;
+            }
+            catch
+            {
+                return sidString;
+            }
+        }
+
+        #endregion
     }
 }
+
