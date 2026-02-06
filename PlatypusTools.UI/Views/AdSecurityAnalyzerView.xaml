@@ -335,6 +335,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" MinHeight="150" />
                     </Grid.RowDefinitions>
 
@@ -439,14 +440,53 @@
                         </Grid>
                     </GroupBox>
 
+                    <!-- AD Operations Section - Krbtgt, Replication, LAPS, SYSVOL -->
+                    <GroupBox Grid.Row="4" Header="🔧 AD Operations (uses WhatIf mode)" Margin="0,0,0,10">
+                        <Grid Margin="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Critical AD Operations -->
+                            <WrapPanel Grid.Row="0" Margin="0,0,0,5">
+                                <Button Content="🔑 Reset Krbtgt" Command="{Binding ResetKrbtgtCommand}"
+                                        MinWidth="130" Margin="5" Background="#FFF44336" Foreground="White" FontWeight="Bold"
+                                        ToolTip="Reset the krbtgt account password (do twice with 10+ hours between)" />
+                                <Button Content="🔄 Force Replication" Command="{Binding ForceReplicationCommand}"
+                                        MinWidth="140" Margin="5" Background="#FF2196F3" Foreground="White"
+                                        ToolTip="Force AD replication between all domain controllers" />
+                                <Button Content="📁 SYSVOL Auth Restore" Command="{Binding AuthoritativeSysvolRestoreCommand}"
+                                        MinWidth="160" Margin="5" Background="#FFFF9800" Foreground="White" FontWeight="Bold"
+                                        ToolTip="Perform authoritative SYSVOL restore (makes this DC's SYSVOL the source)" />
+                            </WrapPanel>
+
+                            <!-- LAPS Configuration -->
+                            <StackPanel Grid.Row="1" Orientation="Horizontal">
+                                <TextBlock Text="🔐 LAPS:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0" />
+                                <TextBlock Text="Target OU:" VerticalAlignment="Center" Margin="0,0,5,0" />
+                                <TextBox Text="{Binding LapsTargetOu, UpdateSourceTrigger=PropertyChanged}" 
+                                         Width="300" Margin="0,0,10,0" 
+                                         ToolTip="OU path for LAPS implementation (e.g., OU=Workstations,DC=contoso,DC=com)" />
+                                <TextBlock Text="Admin Group:" VerticalAlignment="Center" Margin="0,0,5,0" />
+                                <TextBox Text="{Binding LapsAdminGroup, UpdateSourceTrigger=PropertyChanged}" 
+                                         Width="150" Margin="0,0,10,0" 
+                                         ToolTip="Group that can read LAPS passwords (default: Domain Admins)" />
+                                <Button Content="🔐 Implement LAPS" Command="{Binding ImplementLapsCommand}"
+                                        MinWidth="130" Margin="5" Background="#FF4CAF50" Foreground="White"
+                                        ToolTip="Configure LAPS permissions on the specified OU" />
+                            </StackPanel>
+                        </Grid>
+                    </GroupBox>
+
                     <!-- Status Summary -->
-                    <Border Grid.Row="4" Background="#FF1E88E5" Padding="5" Margin="0,0,0,10" CornerRadius="4">
+                    <Border Grid.Row="5" Background="#FF1E88E5" Padding="5" Margin="0,0,0,10" CornerRadius="4">
                         <TextBlock Text="📊 Scan results and findings will appear in the grid below. Use WhatIf mode to preview GPO and IR operations before executing." 
                                    Foreground="White" TextWrapping="Wrap" />
                     </Border>
 
                     <!-- Results DataGrid -->
-                    <DataGrid Grid.Row="5" ItemsSource="{Binding SecurityFindings}" 
+                    <DataGrid Grid.Row="6" ItemsSource="{Binding SecurityFindings}" 
                               AutoGenerateColumns="False" IsReadOnly="True"
                               CanUserSortColumns="True" CanUserResizeColumns="True">
                         <DataGrid.Columns>

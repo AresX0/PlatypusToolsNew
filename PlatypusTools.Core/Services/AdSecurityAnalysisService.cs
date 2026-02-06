@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.DirectoryServices;
 using System.DirectoryServices.AccountManagement;
 using System.DirectoryServices.ActiveDirectory;
@@ -7143,6 +7144,631 @@ namespace PlatypusTools.Core.Services
             {
                 return sidString;
             }
+        }
+
+        #endregion
+
+        #region AD Operations - Krbtgt, Replication, LAPS, SYSVOL
+
+        /// <summary>
+        /// Validates that an AD distinguished name or name doesn't contain command injection characters.
+        /// </summary>
+        private static bool IsValidAdName(string? value, out string sanitized)
+        {
+            sanitized = value ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(value))
+                return false;
+
+            // Block dangerous characters that could allow command injection
+            // Allow: alphanumeric, spaces, hyphens, underscores, equals, commas, periods, forward slashes, backslashes
+            // These are the characters typically found in AD distinguished names and group names
+            var dangerousChars = new[] { '"', '\'', '`', '$', ';', '|', '&', '<', '>', '(', ')', '{', '}', '[', ']', '\n', '\r' };
+            
+            foreach (var c in dangerousChars)
+            {
+                if (value.Contains(c))
+                    return false;
+            }
+
+            // Additional validation: DN should contain at least one = character (e.g., OU=, DC=, CN=)
+            // Group names should not start with special characters
+            sanitized = value.Trim();
+            return true;
+        }
+
+        /// <summary>
+        /// Creates a Base64-encoded PowerShell command for safe execution.
+        /// This prevents command injection by encoding the entire script.
+        /// </summary>
+        private static string CreateEncodedPowerShellCommand(string script)
+        {
+            var bytes = System.Text.Encoding.Unicode.GetBytes(script);
+            return Convert.ToBase64String(bytes);
+        }
+
+        /// <summary>
+        /// Resets the krbtgt account password. Should be done twice with 10+ hours between resets.
+        /// </summary>
+        public async Task<AdObjectCreationResult> ResetKrbtgtPasswordAsync(bool whatIf = true, CancellationToken ct = default)
+        {
+            var result = new AdObjectCreationResult
+            {
+                ObjectName = "krbtgt",
+                ObjectType = "Password Reset"
+            };
+
+            if (_domainInfo == null)
+            {
+                result.Message = "Domain not discovered. Call DiscoverDomainAsync first.";
+                return result;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report($"[{(whatIf ? "WHATIF" : "EXECUTE")}] Resetting krbtgt account password...");
+
+                    using var rootEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{_domainInfo.DomainDn}");
+                    using var searcher = new DirectorySearcher(rootEntry)
+                    {
+                        Filter = "(sAMAccountName=krbtgt)",
+                        SearchScope = SearchScope.Subtree
+                    };
+                    searcher.PropertiesToLoad.Add("distinguishedName");
+                    searcher.PropertiesToLoad.Add("pwdLastSet");
+
+                    var krbtgt = searcher.FindOne();
+                    if (krbtgt == null)
+                    {
+                        result.Message = "krbtgt account not found";
+                        return;
+                    }
+
+                    var dn = krbtgt.Properties["distinguishedName"][0]?.ToString() ?? "";
+                    var pwdLastSet = krbtgt.Properties.Contains("pwdLastSet") && krbtgt.Properties["pwdLastSet"].Count > 0
+                        ? DateTime.FromFileTime((long)krbtgt.Properties["pwdLastSet"][0]!)
+                        : DateTime.MinValue;
+
+                    _progress?.Report($"krbtgt DN: {dn}");
+                    _progress?.Report($"krbtgt password last set: {pwdLastSet:yyyy-MM-dd HH:mm:ss}");
+
+                    if (whatIf)
+                    {
+                        result.Success = true;
+                        result.Message = $"[WHATIF] Would reset krbtgt password (last set: {pwdLastSet:yyyy-MM-dd HH:mm:ss})";
+                        _progress?.Report(result.Message);
+                        return;
+                    }
+
+                    // Generate a new random password (128 characters for maximum security)
+                    var newPassword = GenerateSecurePassword(128);
+
+                    using var krbtgtEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{dn}");
+                    krbtgtEntry.Invoke("SetPassword", new object[] { newPassword });
+                    krbtgtEntry.CommitChanges();
+
+                    result.Success = true;
+                    result.Message = $"Successfully reset krbtgt password. Previous: {pwdLastSet:yyyy-MM-dd HH:mm:ss}";
+                    _progress?.Report(result.Message);
+                    _progress?.Report("⚠️ IMPORTANT: Wait at least 10 hours before resetting again to allow all DCs to replicate.");
+                    _progress?.Report("⚠️ IMPORTANT: After second reset, wait another 10+ hours before considering Kerberos tickets fully rotated.");
+                }
+                catch (Exception ex)
+                {
+                    result.Message = $"Error resetting krbtgt password: {ex.Message}";
+                    _progress?.Report(result.Message);
+                }
+            }, ct);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Forces AD replication between domain controllers.
+        /// </summary>
+        public async Task<AdObjectCreationResult> ForceReplicationAsync(string? targetDc = null, bool whatIf = true, CancellationToken ct = default)
+        {
+            var result = new AdObjectCreationResult
+            {
+                ObjectName = "AD Replication",
+                ObjectType = "Replication"
+            };
+
+            if (_domainInfo == null)
+            {
+                result.Message = "Domain not discovered. Call DiscoverDomainAsync first.";
+                return result;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    var dc = targetDc ?? _domainInfo.ChosenDc;
+                    _progress?.Report($"[{(whatIf ? "WHATIF" : "EXECUTE")}] Forcing AD replication from {dc}...");
+
+                    if (whatIf)
+                    {
+                        result.Success = true;
+                        result.Message = $"[WHATIF] Would force replication from {dc} to all partners";
+                        _progress?.Report(result.Message);
+                        _progress?.Report("[WHATIF] Command that would run: repadmin /syncall /AdeP");
+                        return;
+                    }
+
+                    // Validate DC name to prevent command injection
+                    if (!IsValidAdName(dc, out var safeDc))
+                    {
+                        result.Message = $"Invalid DC name: {dc}";
+                        _progress?.Report(result.Message);
+                        return;
+                    }
+
+                    // Use repadmin to force sync
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "repadmin.exe",
+                        Arguments = $"/syncall {safeDc} /AdeP",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+
+                    using var process = Process.Start(psi);
+                    if (process == null)
+                    {
+                        result.Message = "Failed to start repadmin process";
+                        return;
+                    }
+
+                    var output = process.StandardOutput.ReadToEnd();
+                    var error = process.StandardError.ReadToEnd();
+                    process.WaitForExit();
+
+                    if (process.ExitCode == 0)
+                    {
+                        result.Success = true;
+                        result.Message = $"Successfully forced replication from {dc}";
+                        _progress?.Report(result.Message);
+                        if (!string.IsNullOrWhiteSpace(output))
+                        {
+                            foreach (var line in output.Split('\n').Where(l => !string.IsNullOrWhiteSpace(l)))
+                            {
+                                _progress?.Report($"  {line.Trim()}");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        result.Message = $"Replication command failed: {error}";
+                        _progress?.Report(result.Message);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    result.Message = $"Error forcing replication: {ex.Message}";
+                    _progress?.Report(result.Message);
+                }
+            }, ct);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Implements LAPS by updating schema and configuring permissions.
+        /// This is for Windows LAPS (built-in to Windows Server 2019+ and Windows 10/11).
+        /// </summary>
+        public async Task<List<AdObjectCreationResult>> ImplementLapsAsync(
+            string targetOu,
+            bool setPermissions = true,
+            string? lapsAdminGroup = null,
+            bool whatIf = true,
+            CancellationToken ct = default)
+        {
+            var results = new List<AdObjectCreationResult>();
+
+            if (_domainInfo == null)
+            {
+                results.Add(new AdObjectCreationResult
+                {
+                    ObjectName = "LAPS Setup",
+                    ObjectType = "Configuration",
+                    Message = "Domain not discovered. Call DiscoverDomainAsync first."
+                });
+                return results;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _progress?.Report($"[{(whatIf ? "WHATIF" : "EXECUTE")}] Implementing LAPS...");
+
+                    // Step 1: Check if Windows LAPS schema is extended
+                    _progress?.Report("Checking LAPS schema extensions...");
+                    
+                    using var schemaEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/CN=Schema,CN=Configuration,{_domainInfo.ForestDn ?? _domainInfo.DomainDn}");
+                    using var schemaSearcher = new DirectorySearcher(schemaEntry)
+                    {
+                        Filter = "(lDAPDisplayName=msLAPS-Password)",
+                        SearchScope = SearchScope.OneLevel
+                    };
+
+                    var schemaResult = schemaSearcher.FindOne();
+                    var hasWindowsLaps = schemaResult != null;
+
+                    results.Add(new AdObjectCreationResult
+                    {
+                        ObjectName = "LAPS Schema Check",
+                        ObjectType = "Schema",
+                        Success = true,
+                        Message = hasWindowsLaps 
+                            ? "Windows LAPS schema is present" 
+                            : "Windows LAPS schema NOT found. Run 'Update-LapsADSchema' on a DC first."
+                    });
+                    _progress?.Report(results.Last().Message);
+
+                    if (!hasWindowsLaps)
+                    {
+                        _progress?.Report("To extend the schema for Windows LAPS, run on a Domain Controller:");
+                        _progress?.Report("  Import-Module LAPS");
+                        _progress?.Report("  Update-LapsADSchema");
+                        return;
+                    }
+
+                    // Step 2: Set self-write permissions for computers to update their own password
+                    if (setPermissions)
+                    {
+                        _progress?.Report($"Setting LAPS self-write permissions on OU: {targetOu}");
+
+                        if (whatIf)
+                        {
+                            results.Add(new AdObjectCreationResult
+                            {
+                                ObjectName = "LAPS Computer Self-Write",
+                                ObjectType = "ACL",
+                                Success = true,
+                                Message = $"[WHATIF] Would grant computers self-write on msLAPS-Password in {targetOu}"
+                            });
+                            _progress?.Report(results.Last().Message);
+                        }
+                        else
+                        {
+                            // Grant SELF the right to write msLAPS-Password attributes
+                            var selfWriteResult = SetLapsComputerSelfPermission(targetOu);
+                            results.Add(selfWriteResult);
+                            _progress?.Report(selfWriteResult.Message);
+                        }
+
+                        // Step 3: Set read permissions for the LAPS admin group
+                        var adminGroup = lapsAdminGroup ?? "Domain Admins";
+                        _progress?.Report($"Setting LAPS read permissions for group: {adminGroup}");
+
+                        if (whatIf)
+                        {
+                            results.Add(new AdObjectCreationResult
+                            {
+                                ObjectName = $"LAPS Read - {adminGroup}",
+                                ObjectType = "ACL",
+                                Success = true,
+                                Message = $"[WHATIF] Would grant {adminGroup} read on msLAPS-Password in {targetOu}"
+                            });
+                            _progress?.Report(results.Last().Message);
+                        }
+                        else
+                        {
+                            var readResult = SetLapsReadPermission(targetOu, adminGroup);
+                            results.Add(readResult);
+                            _progress?.Report(readResult.Message);
+                        }
+                    }
+
+                    // Step 4: Provide GPO guidance
+                    _progress?.Report("");
+                    _progress?.Report("=== LAPS GPO Configuration ===");
+                    _progress?.Report("Create a GPO linked to computer OUs with these settings:");
+                    _progress?.Report("  Computer Configuration > Policies > Administrative Templates > System > LAPS");
+                    _progress?.Report("  - Configure password backup directory: Active Directory");
+                    _progress?.Report("  - Password Settings: Enable, set complexity and length");
+                    _progress?.Report("  - Name of administrator account to manage: (blank for built-in admin, or specify name)");
+                }
+                catch (Exception ex)
+                {
+                    results.Add(new AdObjectCreationResult
+                    {
+                        ObjectName = "LAPS Setup",
+                        ObjectType = "Error",
+                        Message = $"Error implementing LAPS: {ex.Message}"
+                    });
+                    _progress?.Report(results.Last().Message);
+                }
+            }, ct);
+
+            return results;
+        }
+
+        /// <summary>
+        /// Sets computer self-write permission for LAPS password attribute.
+        /// </summary>
+        private AdObjectCreationResult SetLapsComputerSelfPermission(string targetOu)
+        {
+            var result = new AdObjectCreationResult
+            {
+                ObjectName = "LAPS Computer Self-Write",
+                ObjectType = "ACL"
+            };
+
+            try
+            {
+                // Validate input to prevent command injection
+                if (!IsValidAdName(targetOu, out var safeOu))
+                {
+                    result.Message = $"Invalid OU name - contains disallowed characters: {targetOu}";
+                    return result;
+                }
+
+                // Use Base64-encoded command to prevent injection
+                var script = $"Set-LapsADComputerSelfPermission -Identity '{safeOu}'";
+                var encodedCommand = CreateEncodedPowerShellCommand(script);
+
+                // Run PowerShell command to set permissions
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = $"-NoProfile -EncodedCommand {encodedCommand}",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using var process = Process.Start(psi);
+                if (process == null)
+                {
+                    result.Message = "Failed to start PowerShell process";
+                    return result;
+                }
+
+                var output = process.StandardOutput.ReadToEnd();
+                var error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                if (process.ExitCode == 0)
+                {
+                    result.Success = true;
+                    result.Message = $"Set LAPS self-write permissions on {targetOu}";
+                }
+                else
+                {
+                    result.Message = $"Failed to set LAPS permissions: {error}";
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Message = $"Error setting LAPS self-write: {ex.Message}";
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Sets read permission for LAPS password attribute to a specified group.
+        /// </summary>
+        private AdObjectCreationResult SetLapsReadPermission(string targetOu, string groupName)
+        {
+            var result = new AdObjectCreationResult
+            {
+                ObjectName = $"LAPS Read - {groupName}",
+                ObjectType = "ACL"
+            };
+
+            try
+            {
+                // Validate inputs to prevent command injection
+                if (!IsValidAdName(targetOu, out var safeOu))
+                {
+                    result.Message = $"Invalid OU name - contains disallowed characters: {targetOu}";
+                    return result;
+                }
+                if (!IsValidAdName(groupName, out var safeGroup))
+                {
+                    result.Message = $"Invalid group name - contains disallowed characters: {groupName}";
+                    return result;
+                }
+
+                // Use Base64-encoded command to prevent injection
+                var script = $"Set-LapsADReadPasswordPermission -Identity '{safeOu}' -AllowedPrincipals '{safeGroup}'";
+                var encodedCommand = CreateEncodedPowerShellCommand(script);
+
+                // Run PowerShell command to set read permissions
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = $"-NoProfile -EncodedCommand {encodedCommand}",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using var process = Process.Start(psi);
+                if (process == null)
+                {
+                    result.Message = "Failed to start PowerShell process";
+                    return result;
+                }
+
+                var output = process.StandardOutput.ReadToEnd();
+                var error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                if (process.ExitCode == 0)
+                {
+                    result.Success = true;
+                    result.Message = $"Granted {groupName} LAPS read permission on {targetOu}";
+                }
+                else
+                {
+                    result.Message = $"Failed to set LAPS read permission: {error}";
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Message = $"Error setting LAPS read permission: {ex.Message}";
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Performs an authoritative SYSVOL restore using DFS replication.
+        /// This makes the specified DC's SYSVOL the authoritative source.
+        /// </summary>
+        public async Task<AdObjectCreationResult> AuthoritativeSysvolRestoreAsync(
+            string? targetDc = null,
+            bool whatIf = true,
+            CancellationToken ct = default)
+        {
+            var result = new AdObjectCreationResult
+            {
+                ObjectName = "SYSVOL Authoritative Restore",
+                ObjectType = "DFSR Configuration"
+            };
+
+            if (_domainInfo == null)
+            {
+                result.Message = "Domain not discovered. Call DiscoverDomainAsync first.";
+                return result;
+            }
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    var dc = targetDc ?? _domainInfo.PdcEmulator ?? _domainInfo.ChosenDc;
+                    _progress?.Report($"[{(whatIf ? "WHATIF" : "EXECUTE")}] Initiating authoritative SYSVOL restore on {dc}...");
+                    _progress?.Report("⚠️ WARNING: This operation makes this DC's SYSVOL the authoritative copy!");
+                    _progress?.Report("⚠️ All other DCs will sync FROM this DC's SYSVOL!");
+
+                    // Find the DFSR member object for this DC
+                    var configDn = $"CN=Configuration,{_domainInfo.ForestDn ?? _domainInfo.DomainDn}";
+                    var dfsrPath = $"CN=DFSR-GlobalSettings,CN=System,{_domainInfo.DomainDn}";
+
+                    _progress?.Report($"Looking for DFSR configuration at: {dfsrPath}");
+
+                    if (whatIf)
+                    {
+                        result.Success = true;
+                        result.Message = $"[WHATIF] Would set authoritative restore on {dc}";
+                        _progress?.Report(result.Message);
+                        _progress?.Report("[WHATIF] Steps that would be performed:");
+                        _progress?.Report($"  1. Stop DFSR service on {dc}");
+                        _progress?.Report($"  2. Set msDFSR-Options attribute to 1 (authoritative) on {dc}'s SYSVOL subscription");
+                        _progress?.Report("  3. Start DFSR service");
+                        _progress?.Report("  4. Wait for replication to complete");
+                        _progress?.Report("  5. Reset msDFSR-Options to 0 on non-authoritative DCs");
+                        _progress?.Report("");
+                        _progress?.Report("Manual PowerShell commands:");
+                        _progress?.Report($"  # On {dc} (authoritative source):");
+                        _progress?.Report("  Stop-Service DFSR");
+                        _progress?.Report($"  $dfsrMember = Get-ADObject -Filter {{Name -eq '{dc}'}} -SearchBase 'CN=DFSR-LocalSettings,CN={dc},OU=Domain Controllers,{_domainInfo.DomainDn}'");
+                        _progress?.Report("  Set-ADObject $dfsrMember -Replace @{'msDFSR-Options'=1}");
+                        _progress?.Report("  Start-Service DFSR");
+                        return;
+                    }
+
+                    // Actual execution - use AD to find and modify DFSR settings
+                    using var rootEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{_domainInfo.DomainDn}");
+                    
+                    // Find the DC's computer object - strip the $ if present in dc name
+                    var dcClean = dc.EndsWith("$") ? dc : dc;
+                    var dcPattern = dcClean.Contains(".") ? dcClean.Split('.')[0] : dcClean;
+                    
+                    using var dcSearcher = new DirectorySearcher(rootEntry)
+                    {
+                        Filter = $"(&(objectClass=computer)(|(cn={dcPattern})(dNSHostName={dc})))",
+                        SearchScope = SearchScope.Subtree
+                    };
+                    dcSearcher.PropertiesToLoad.Add("distinguishedName");
+
+                    var dcResult = dcSearcher.FindOne();
+                    if (dcResult == null)
+                    {
+                        result.Message = $"Could not find computer object for DC: {dc}";
+                        _progress?.Report(result.Message);
+                        return;
+                    }
+
+                    var dcDn = dcResult.Properties["distinguishedName"][0]?.ToString() ?? "";
+                    _progress?.Report($"Found DC: {dcDn}");
+
+                    // Find DFSR-LocalSettings for this DC
+                    var dfsrLocalSettingsDn = $"CN=DFSR-LocalSettings,{dcDn}";
+                    _progress?.Report($"Looking for DFSR settings at: {dfsrLocalSettingsDn}");
+
+                    using var dfsrEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{dfsrLocalSettingsDn}");
+                    using var sysvolSearcher = new DirectorySearcher(dfsrEntry)
+                    {
+                        Filter = "(cn=SYSVOL Subscription)",
+                        SearchScope = SearchScope.Subtree
+                    };
+                    sysvolSearcher.PropertiesToLoad.Add("distinguishedName");
+                    sysvolSearcher.PropertiesToLoad.Add("msDFSR-Options");
+
+                    var sysvolResult = sysvolSearcher.FindOne();
+                    if (sysvolResult == null)
+                    {
+                        result.Message = "Could not find SYSVOL Subscription object. Is this DC using DFSR for SYSVOL?";
+                        _progress?.Report(result.Message);
+                        return;
+                    }
+
+                    var sysvolDn = sysvolResult.Properties["distinguishedName"][0]?.ToString() ?? "";
+                    _progress?.Report($"Found SYSVOL Subscription: {sysvolDn}");
+
+                    // Set msDFSR-Options to 1 for authoritative restore
+                    using var sysvolEntry = new DirectoryEntry($"LDAP://{_domainInfo.ChosenDc}/{sysvolDn}");
+                    sysvolEntry.Properties["msDFSR-Options"].Value = 1;
+                    sysvolEntry.CommitChanges();
+
+                    result.Success = true;
+                    result.Message = $"Set authoritative flag on {dc}'s SYSVOL. Restart DFSR service on {dc} to initiate sync.";
+                    _progress?.Report(result.Message);
+                    _progress?.Report($"Run on {dc}: Restart-Service DFSR");
+                    _progress?.Report("After replication completes, run on OTHER DCs:");
+                    _progress?.Report("  Stop-Service DFSR");
+                    _progress?.Report("  # Set msDFSR-Options to 0 (non-authoritative)");
+                    _progress?.Report("  Start-Service DFSR");
+                }
+                catch (Exception ex)
+                {
+                    result.Message = $"Error performing authoritative SYSVOL restore: {ex.Message}";
+                    _progress?.Report(result.Message);
+                }
+            }, ct);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Generates a cryptographically secure random password.
+        /// </summary>
+        private static string GenerateSecurePassword(int length)
+        {
+            const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()_+-=[]{}|;:',.<>?";
+            var password = new char[length];
+            using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+            var bytes = new byte[length];
+            rng.GetBytes(bytes);
+
+            for (int i = 0; i < length; i++)
+            {
+                password[i] = validChars[bytes[i] % validChars.Length];
+            }
+
+            return new string(password);
         }
 
         #endregion

@@ -106,6 +106,12 @@ namespace PlatypusTools.UI.ViewModels
             DeploySmbSigningGpoCommand = new RelayCommand(async _ => await DeploySecurityGpoAsync("SmbSigning"), _ => !IsAnalyzing && IsDomainDiscovered);
             DeployCredentialGuardGpoCommand = new RelayCommand(async _ => await DeploySecurityGpoAsync("CredentialGuard"), _ => !IsAnalyzing && IsDomainDiscovered);
 
+            // AD Operations commands - Krbtgt, Replication, LAPS, SYSVOL
+            ResetKrbtgtCommand = new RelayCommand(async _ => await ResetKrbtgtAsync(), _ => !IsAnalyzing && IsDomainDiscovered);
+            ForceReplicationCommand = new RelayCommand(async _ => await ForceReplicationAsync(), _ => !IsAnalyzing && IsDomainDiscovered);
+            ImplementLapsCommand = new RelayCommand(async _ => await ImplementLapsAsync(), _ => !IsAnalyzing && IsDomainDiscovered);
+            AuthoritativeSysvolRestoreCommand = new RelayCommand(async _ => await AuthoritativeSysvolRestoreAsync(), _ => !IsAnalyzing && IsDomainDiscovered);
+
             // Initialize
             _ = InitializeAsync();
         }
@@ -759,6 +765,12 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand DeployLlmnrDisableGpoCommand { get; }
         public ICommand DeploySmbSigningGpoCommand { get; }
         public ICommand DeployCredentialGuardGpoCommand { get; }
+
+        // AD Operations Commands - Krbtgt, Replication, LAPS, SYSVOL
+        public ICommand ResetKrbtgtCommand { get; }
+        public ICommand ForceReplicationCommand { get; }
+        public ICommand ImplementLapsCommand { get; }
+        public ICommand AuthoritativeSysvolRestoreCommand { get; }
 
         #endregion
 
@@ -2130,6 +2142,21 @@ namespace PlatypusTools.UI.ViewModels
             set => SetProperty(ref _takebackRemoveRoles, value);
         }
 
+        // LAPS Implementation properties
+        private string _lapsTargetOu = string.Empty;
+        public string LapsTargetOu
+        {
+            get => _lapsTargetOu;
+            set => SetProperty(ref _lapsTargetOu, value);
+        }
+
+        private string _lapsAdminGroup = "Domain Admins";
+        public string LapsAdminGroup
+        {
+            get => _lapsAdminGroup;
+            set => SetProperty(ref _lapsAdminGroup, value);
+        }
+
         /// <summary>
         /// Performs tenant takeback operation
         /// </summary>
@@ -2703,6 +2730,239 @@ namespace PlatypusTools.UI.ViewModels
                 IsAnalyzing = false;
                 _cts?.Dispose();
                 _cts = null;
+            }
+        }
+
+        #endregion
+
+        #region AD Operations - Krbtgt, Replication, LAPS, SYSVOL
+
+        /// <summary>
+        /// Resets the krbtgt account password.
+        /// </summary>
+        private async Task ResetKrbtgtAsync()
+        {
+            if (!IsDomainDiscovered)
+            {
+                AppendLog("Domain not discovered. Please discover domain first.");
+                return;
+            }
+
+            var confirm = MessageBox.Show(
+                "This will reset the krbtgt account password.\n\n" +
+                "⚠️ IMPORTANT:\n" +
+                "• This invalidates ALL Kerberos tickets in the domain\n" +
+                "• Reset TWICE with 10+ hours between resets for full rotation\n" +
+                "• Wait 10+ hours after second reset for all tickets to expire\n\n" +
+                $"WhatIf Mode: {(RemediationWhatIf ? "ON (safe preview)" : "OFF (will execute)")}\n\n" +
+                "Continue?",
+                "Reset Krbtgt Password",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            IsAnalyzing = true;
+            Status = "Resetting krbtgt password...";
+
+            try
+            {
+                _cts = new CancellationTokenSource();
+                var result = await _analysisService.ResetKrbtgtPasswordAsync(RemediationWhatIf, _cts.Token);
+
+                if (result.Success)
+                {
+                    AppendLog($"[OK] {result.Message}");
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        DeploymentResults.Add(result);
+                    });
+                }
+                else
+                {
+                    AppendLog($"[ERROR] {result.Message}");
+                }
+
+                Status = result.Message;
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error resetting krbtgt: {ex.Message}");
+                Status = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        /// <summary>
+        /// Forces AD replication between domain controllers.
+        /// </summary>
+        private async Task ForceReplicationAsync()
+        {
+            if (!IsDomainDiscovered)
+            {
+                AppendLog("Domain not discovered. Please discover domain first.");
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = "Forcing AD replication...";
+
+            try
+            {
+                _cts = new CancellationTokenSource();
+                var result = await _analysisService.ForceReplicationAsync(null, RemediationWhatIf, _cts.Token);
+
+                if (result.Success)
+                {
+                    AppendLog($"[OK] {result.Message}");
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        DeploymentResults.Add(result);
+                    });
+                }
+                else
+                {
+                    AppendLog($"[ERROR] {result.Message}");
+                }
+
+                Status = result.Message;
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error forcing replication: {ex.Message}");
+                Status = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        /// <summary>
+        /// Implements LAPS by setting up schema and permissions.
+        /// </summary>
+        private async Task ImplementLapsAsync()
+        {
+            if (!IsDomainDiscovered)
+            {
+                AppendLog("Domain not discovered. Please discover domain first.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(LapsTargetOu))
+            {
+                MessageBox.Show(
+                    "Please enter a Target OU for LAPS implementation.\n\nExample: OU=Workstations,DC=contoso,DC=com",
+                    "LAPS Target OU Required",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = "Implementing LAPS...";
+
+            try
+            {
+                _cts = new CancellationTokenSource();
+                var results = await _analysisService.ImplementLapsAsync(
+                    LapsTargetOu,
+                    true,
+                    string.IsNullOrWhiteSpace(LapsAdminGroup) ? null : LapsAdminGroup,
+                    RemediationWhatIf,
+                    _cts.Token);
+
+                foreach (var result in results)
+                {
+                    if (result.Success)
+                    {
+                        AppendLog($"[OK] {result.Message}");
+                    }
+                    else
+                    {
+                        AppendLog($"[ERROR] {result.Message}");
+                    }
+
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        DeploymentResults.Add(result);
+                    });
+                }
+
+                Status = $"LAPS implementation complete. {results.Count(r => r.Success)}/{results.Count} steps succeeded.";
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error implementing LAPS: {ex.Message}");
+                Status = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        /// <summary>
+        /// Performs authoritative SYSVOL restore.
+        /// </summary>
+        private async Task AuthoritativeSysvolRestoreAsync()
+        {
+            if (!IsDomainDiscovered)
+            {
+                AppendLog("Domain not discovered. Please discover domain first.");
+                return;
+            }
+
+            var confirm = MessageBox.Show(
+                "⚠️ AUTHORITATIVE SYSVOL RESTORE ⚠️\n\n" +
+                "This will make the current DC's SYSVOL the authoritative source.\n" +
+                "All other DCs will OVERWRITE their SYSVOL with this DC's copy!\n\n" +
+                "Use this ONLY when:\n" +
+                "• SYSVOL replication is broken\n" +
+                "• You have verified this DC has the correct SYSVOL content\n" +
+                "• You understand this will replace SYSVOL on ALL other DCs\n\n" +
+                $"WhatIf Mode: {(RemediationWhatIf ? "ON (safe preview)" : "OFF (will execute)")}\n\n" +
+                "Are you SURE you want to continue?",
+                "Authoritative SYSVOL Restore",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            IsAnalyzing = true;
+            Status = "Initiating authoritative SYSVOL restore...";
+
+            try
+            {
+                _cts = new CancellationTokenSource();
+                var result = await _analysisService.AuthoritativeSysvolRestoreAsync(null, RemediationWhatIf, _cts.Token);
+
+                if (result.Success)
+                {
+                    AppendLog($"[OK] {result.Message}");
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        DeploymentResults.Add(result);
+                    });
+                }
+                else
+                {
+                    AppendLog($"[ERROR] {result.Message}");
+                }
+
+                Status = result.Message;
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error during SYSVOL restore: {ex.Message}");
+                Status = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
             }
         }
 
