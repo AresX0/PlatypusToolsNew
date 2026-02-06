@@ -151,3 +151,6 @@ PLATYPUS/
 
 # Private reference folder - never commit
 private-ref/
+
+# Archive files - never commit
+*.zip
