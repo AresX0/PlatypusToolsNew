@@ -2033,6 +2033,58 @@ namespace PlatypusTools.Core.Services
         }
 
         /// <summary>
+        /// Ensures the ESX Admins group exists for CVE-2024-37085 mitigation.
+        /// Creates the group in CN=Users if it doesn't exist.
+        /// </summary>
+        private void EnsureEsxAdminsGroupExists(string dc, string domainDn)
+        {
+            const string groupName = "ESX Admins";
+            const string description = "ESX Admins group - emptied via GPO to mitigate CVE-2024-37085";
+            
+            try
+            {
+                _progress?.Report("[DEBUG] Checking if ESX Admins group exists...");
+                
+                using var rootEntry = new DirectoryEntry($"LDAP://{dc}/{domainDn}");
+                using var searcher = new DirectorySearcher(rootEntry)
+                {
+                    Filter = $"(&(objectClass=group)(cn={EscapeLdapFilter(groupName)}))",
+                    SearchScope = SearchScope.Subtree
+                };
+                searcher.PropertiesToLoad.Add("distinguishedName");
+                
+                var existing = searcher.FindOne();
+                if (existing != null)
+                {
+                    _progress?.Report($"[DEBUG] ESX Admins group already exists: {existing.Properties["distinguishedName"]?[0]}");
+                    return;
+                }
+                
+                // Group doesn't exist - create it in CN=Users container
+                _progress?.Report("[DEBUG] ESX Admins group not found - creating it...");
+                
+                var usersContainerDn = $"CN=Users,{domainDn}";
+                using var usersContainer = new DirectoryEntry($"LDAP://{dc}/{usersContainerDn}");
+                
+                using var newGroup = usersContainer.Children.Add($"CN={groupName}", "group");
+                newGroup.Properties["sAMAccountName"].Value = "ESXAdmins";
+                newGroup.Properties["description"].Value = description;
+                newGroup.Properties["groupType"].Value = unchecked((int)0x80000002); // Global Security Group
+                newGroup.CommitChanges();
+                
+                _progress?.Report($"[DEBUG] Created ESX Admins group at CN={groupName},{usersContainerDn}");
+            }
+            catch (UnauthorizedAccessException)
+            {
+                _progress?.Report("[WARN] Access denied creating ESX Admins group - may need manual creation");
+            }
+            catch (Exception ex)
+            {
+                _progress?.Report($"[WARN] Could not create ESX Admins group: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Resolves the SIDs for tiered security groups.
         /// Returns a dictionary with group name -> SID mapping.
         /// </summary>
@@ -2057,8 +2109,12 @@ namespace PlatypusTools.Core.Services
                 "Tier 2 - Service Accounts",
                 "Tier 2 - Workstation Local Admins",
                 "IR - Emergency Access",
-                "DVRL - Deny Logon All Tiers"
+                "DVRL - Deny Logon All Tiers",
+                "ESX Admins"  // CVE-2024-37085 mitigation
             };
+            
+            // Ensure ESX Admins group exists for CVE-2024-37085 mitigation
+            EnsureEsxAdminsGroupExists(dc, domainDn);
 
             try
             {
@@ -2104,10 +2160,12 @@ namespace PlatypusTools.Core.Services
             sids["Account Operators"] = "S-1-5-32-548";
             sids["Domain Admins"] = $"{domainSid}-512";
             sids["Domain Users"] = $"{domainSid}-513";
+            sids["Domain Guests"] = $"{domainSid}-514";      // Domain Guests group
             sids["Domain Controllers"] = $"{domainSid}-516";
             sids["Enterprise Admins"] = $"{domainSid}-519";
             sids["Schema Admins"] = $"{domainSid}-518";
-            sids["Administrator"] = $"{domainSid}-500";  // Domain Administrator account
+            sids["Administrator"] = $"{domainSid}-500";      // Domain Administrator account
+            sids["Guest"] = $"{domainSid}-501";              // Domain Guest account
 
             _progress?.Report($"[DEBUG] Total SIDs resolved: {sids.Count}");
 
@@ -2874,7 +2932,7 @@ namespace PlatypusTools.Core.Services
                         CreateBaselineAuditPolicyContent(secEditPath, auditPath);
                         break;
                     case GpoSettingsType.SecuritySettings:
-                        CreateSecuritySettingsContent(secEditPath, gpoName);
+                        CreateSecuritySettingsContent(secEditPath, gpoName, groupSids);
                         break;
                     case GpoSettingsType.RestrictedGroups:
                         CreateRestrictedGroupsContentWithSids(secEditPath, gpoName, groupSids);
@@ -3056,7 +3114,7 @@ namespace PlatypusTools.Core.Services
             gptTmpl.AppendLine();
             gptTmpl.AppendLine("[Privilege Rights]");
             
-            // Get SIDs for DC user rights
+            // Get SIDs for DC user rights - using domain-specific SIDs per PLATYPUS BILL model
             var localAdmins = "*S-1-5-32-544"; // BUILTIN\Administrators
             var domainEntDcs = groupSids.GetValueOrDefault("DomainControllers", "*S-1-5-9"); // Enterprise Domain Controllers
             var domainAuthUsers = "*S-1-5-11"; // Authenticated Users
@@ -3065,10 +3123,15 @@ namespace PlatypusTools.Core.Services
             var ntService = "*S-1-5-80-0"; // NT SERVICE\ALL SERVICES
             var builtinPerformanceLogUsers = "*S-1-5-32-559"; // Performance Log Users
             var domainBackupOps = "*S-1-5-32-551"; // Backup Operators
-            var domainGuests = groupSids.GetValueOrDefault("Guests", "*S-1-5-32-546"); // Guests
-            var domainGuestAccount = groupSids.GetValueOrDefault("Guest", "*S-1-5-21-0-0-0-501"); // Domain Guest (placeholder)
-            var tier0ServiceAccounts = groupSids.GetValueOrDefault("Tier0ServiceAccounts", "");
+            // Domain Guests and Guest account use domain-specific SIDs (not BUILTIN\Guests)
+            var domainGuests = groupSids.GetValueOrDefault("Domain Guests", "");
+            var domainGuestAccount = groupSids.GetValueOrDefault("Guest", "");
+            var tier0ServiceAccounts = groupSids.GetValueOrDefault("Tier 0 - Service Accounts", "");
             var ntAllServices = "*S-1-5-80-0"; // ALL SERVICES
+            
+            // Format Domain Guests and Guest account SIDs
+            var domainGuestsSid = !string.IsNullOrEmpty(domainGuests) ? $"*{domainGuests}" : "";
+            var domainGuestAccountSid = !string.IsNullOrEmpty(domainGuestAccount) ? $"*{domainGuestAccount}" : "";
             
             gptTmpl.AppendLine($"SeSecurityPrivilege = {localAdmins}");
             gptTmpl.AppendLine("SeCreateTokenPrivilege = ");
@@ -3092,12 +3155,20 @@ namespace PlatypusTools.Core.Services
             gptTmpl.AppendLine("SeLockMemoryPrivilege = ");
             gptTmpl.AppendLine("SeTcbPrivilege = ");
             gptTmpl.AppendLine($"SeTakeOwnershipPrivilege = {localAdmins}");
-            gptTmpl.AppendLine($"SeDenyNetworkLogonRight = {domainGuests},{domainGuestAccount}");
-            gptTmpl.AppendLine($"SeDenyBatchLogonRight = {domainGuests},{domainGuestAccount}");
-            gptTmpl.AppendLine($"SeDenyRemoteInteractiveLogonRight = {domainGuests},{domainGuestAccount}");
-            gptTmpl.AppendLine($"SeDenyInteractiveLogonRight = {domainGuests},{domainGuestAccount}");
+            
+            // Build deny logon rights with valid SIDs only
+            var denyLogonSids = new List<string>();
+            if (!string.IsNullOrEmpty(domainGuestsSid)) denyLogonSids.Add(domainGuestsSid);
+            if (!string.IsNullOrEmpty(domainGuestAccountSid)) denyLogonSids.Add(domainGuestAccountSid);
+            var denyLogonList = string.Join(",", denyLogonSids);
+            
+            gptTmpl.AppendLine($"SeDenyNetworkLogonRight = {denyLogonList}");
+            gptTmpl.AppendLine($"SeDenyBatchLogonRight = {denyLogonList}");
+            gptTmpl.AppendLine($"SeDenyRemoteInteractiveLogonRight = {denyLogonList}");
+            gptTmpl.AppendLine($"SeDenyInteractiveLogonRight = {denyLogonList}");
             gptTmpl.AppendLine("SeDenyServiceLogonRight = ");
-            var serviceLogonRight = string.IsNullOrEmpty(tier0ServiceAccounts) ? ntAllServices : $"{ntAllServices},{tier0ServiceAccounts}";
+            var tier0SvcSid = !string.IsNullOrEmpty(tier0ServiceAccounts) ? $"*{tier0ServiceAccounts}" : "";
+            var serviceLogonRight = string.IsNullOrEmpty(tier0SvcSid) ? ntAllServices : $"{ntAllServices},{tier0SvcSid}";
             gptTmpl.AppendLine($"SeServiceLogonRight = {serviceLogonRight}");
             gptTmpl.AppendLine($"SeBatchLogonRight = {builtinPerformanceLogUsers},{domainBackupOps},{localAdmins}");
             gptTmpl.AppendLine();
@@ -3121,7 +3192,7 @@ namespace PlatypusTools.Core.Services
             File.WriteAllText(Path.Combine(prefsRegistryPath, "Registry.xml"), registryXml.ToString(), Encoding.UTF8);
         }
 
-        private void CreateSecuritySettingsContent(string secEditPath, string gpoName)
+        private void CreateSecuritySettingsContent(string secEditPath, string gpoName, Dictionary<string, string> groupSids)
         {
             var gptTmpl = new StringBuilder();
             gptTmpl.AppendLine("[Unicode]");
@@ -3184,6 +3255,39 @@ namespace PlatypusTools.Core.Services
                 gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\LanManServer\\Parameters\\RestrictNullSessAccess=4,1");
                 gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\LanManServer\\Parameters\\NullSessionShares=7,");
                 gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\LanManServer\\Parameters\\NullSessionPipes=7,");
+            }
+            else if (gpoName.Contains("PAW", StringComparison.OrdinalIgnoreCase) && gpoName.Contains("Security", StringComparison.OrdinalIgnoreCase))
+            {
+                // PAW Security Policy - Per PLATYPUS BILL model: Deny logon rights to sensitive accounts
+                // This matches Set-BillT0UserRightsGpo from PLATYPUS module
+                _progress?.Report("[DEBUG] Creating PAW Security Policy with user rights assignments...");
+                
+                // Build list of SIDs to deny
+                var denySids = new List<string>();
+                var groups = new[] { "Schema Admins", "Enterprise Admins", "Account Operators", "Domain Admins", 
+                                     "Administrator", "Backup Operators", "Print Operators", "Server Operators",
+                                     "Tier 0 - Operators", "Tier 0 - Service Accounts" };
+                
+                foreach (var group in groups)
+                {
+                    var sid = groupSids.GetValueOrDefault(group, "");
+                    if (!string.IsNullOrEmpty(sid))
+                    {
+                        denySids.Add($"*{sid}");
+                    }
+                }
+                
+                var denyList = string.Join(",", denySids);
+                
+                gptTmpl.AppendLine("[Privilege Rights]");
+                gptTmpl.AppendLine("; PLATYPUS PAW Security Policy - Deny logon rights to Tier 0 accounts");
+                gptTmpl.AppendLine($"SeDenyNetworkLogonRight = {denyList}");
+                gptTmpl.AppendLine($"SeDenyRemoteInteractiveLogonRight = {denyList}");
+                gptTmpl.AppendLine($"SeDenyBatchLogonRight = {denyList}");
+                gptTmpl.AppendLine($"SeDenyServiceLogonRight = {denyList}");
+                gptTmpl.AppendLine($"SeDenyInteractiveLogonRight = {denyList}");
+                
+                _progress?.Report($"[DEBUG] PAW Security Policy deny list: {denyList}");
             }
             else
             {
@@ -3266,13 +3370,31 @@ namespace PlatypusTools.Core.Services
             gptTmpl.AppendLine("[Group Membership]");
 
             // ESX Admins - empty the group (CVE-2024-37085)
+            // Per PLATYPUS BILL model: ESX Admins group is restricted with no members
             if (gpoName.Contains("ESX", StringComparison.OrdinalIgnoreCase))
             {
                 _progress?.Report("[DEBUG] Creating ESX Admins restricted group settings...");
-                // Create an empty ESX Admins group - prevent VMware admin takeover
-                gptTmpl.AppendLine("; ESX Admins - emptied to prevent CVE-2024-37085");
-                gptTmpl.AppendLine("*S-1-5-32-544__Members =");
-                gptTmpl.AppendLine("*S-1-5-32-544__Memberof =");
+                
+                // Get ESX Admins SID from domain lookup
+                var esxAdminsSid = groupSids.GetValueOrDefault("ESX Admins", "");
+                
+                if (!string.IsNullOrEmpty(esxAdminsSid))
+                {
+                    // ESX Admins group is emptied to prevent VMware admin takeover (CVE-2024-37085)
+                    // The restricted group is ESX Admins itself, not BUILTIN\Administrators
+                    gptTmpl.AppendLine("; ESX Admins - emptied to prevent CVE-2024-37085");
+                    gptTmpl.AppendLine($"*{esxAdminsSid}__Members =");
+                    gptTmpl.AppendLine($"*{esxAdminsSid}__Memberof =");
+                    _progress?.Report($"[DEBUG] ESX Admins group SID: {esxAdminsSid} set to empty");
+                }
+                else
+                {
+                    _progress?.Report("[WARN] ESX Admins group not found in domain - creating placeholder");
+                    // Fallback: Create ESX Admins by name if SID not available
+                    gptTmpl.AppendLine("; ESX Admins - emptied to prevent CVE-2024-37085");
+                    gptTmpl.AppendLine("; WARNING: ESX Admins group SID not found in domain");
+                    gptTmpl.AppendLine("; Create an 'ESX Admins' group in AD before linking this GPO");
+                }
             }
             // Tier 0 Restricted Groups - local Administrators on DCs
             else if (gpoName.Contains("Tier 0", StringComparison.OrdinalIgnoreCase))
