@@ -6828,11 +6828,14 @@ namespace PlatypusTools.Core.Services
         private static void WriteRegistryPol(string path, Dictionary<string, (int type, object value)> values)
         {
             using var ms = new MemoryStream();
-            using var bw = new BinaryWriter(ms);
+            using var bw = new BinaryWriter(ms, Encoding.Unicode);
 
-            // Registry.pol header
-            bw.Write(0x50526567); // PReg
-            bw.Write(0x00000001); // Version
+            // Registry.pol header: PReg signature + version (little-endian)
+            bw.Write((byte)0x50); // P
+            bw.Write((byte)0x52); // R
+            bw.Write((byte)0x65); // e
+            bw.Write((byte)0x67); // g
+            bw.Write((int)1);     // Version
 
             foreach (var kvp in values)
             {
@@ -6841,43 +6844,52 @@ namespace PlatypusTools.Core.Services
                 var valueName = parts[1];
                 var (type, value) = kvp.Value;
 
-                // Write entry
-                bw.Write('[');
+                // Write entry - all delimiters must be Unicode (2 bytes each)
+                WritePolUnicodeChar(bw, '[');
                 WritePolString(bw, keyPath);
-                bw.Write(';');
+                WritePolUnicodeChar(bw, ';');
                 WritePolString(bw, valueName);
-                bw.Write(';');
-                bw.Write(type);
-                bw.Write(';');
+                WritePolUnicodeChar(bw, ';');
+                bw.Write((int)type);
+                WritePolUnicodeChar(bw, ';');
 
                 if (type == 4) // REG_DWORD
                 {
-                    bw.Write(4); // size
-                    bw.Write(';');
+                    bw.Write((int)4); // size
+                    WritePolUnicodeChar(bw, ';');
                     bw.Write(Convert.ToInt32(value));
                 }
                 else if (type == 1) // REG_SZ
                 {
                     var strValue = value.ToString() ?? "";
                     var bytes = Encoding.Unicode.GetBytes(strValue + "\0");
-                    bw.Write(bytes.Length);
-                    bw.Write(';');
+                    bw.Write((int)bytes.Length);
+                    WritePolUnicodeChar(bw, ';');
                     bw.Write(bytes);
                 }
 
-                bw.Write(']');
+                WritePolUnicodeChar(bw, ']');
             }
 
             File.WriteAllBytes(path, ms.ToArray());
+        }
+
+        private static void WritePolUnicodeChar(BinaryWriter bw, char c)
+        {
+            bw.Write((byte)c);
+            bw.Write((byte)0);
         }
 
         private static void WritePolString(BinaryWriter bw, string value)
         {
             foreach (char c in value)
             {
-                bw.Write(c);
+                bw.Write((byte)c);
+                bw.Write((byte)(c >> 8));
             }
-            bw.Write('\0');
+            // Null terminator (Unicode)
+            bw.Write((byte)0);
+            bw.Write((byte)0);
         }
 
         /// <summary>
