@@ -29,6 +29,13 @@
     
 .PARAMETER Version
     Specific version number to set. Overrides auto-increment.
+
+.PARAMETER Upload
+    If specified, automatically creates a GitHub release and uploads the MSI.
+    Requires gh CLI to be installed and authenticated.
+
+.PARAMETER ReleaseNotes
+    Release notes for the GitHub release. Only used with -Upload.
     
 .EXAMPLE
     .\Build-Release.ps1
@@ -66,7 +73,9 @@ param(
     [switch]$Archive,
     [switch]$SkipClean,
     [switch]$NoVersionBump,
-    [string]$Version
+    [string]$Version,
+    [switch]$Upload,
+    [string]$ReleaseNotes = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -417,6 +426,95 @@ Write-Host "`n[!] IMPORTANT: Before uploading to GitHub, verify:" -ForegroundCol
 Write-Host "  1. Test the MSI installer on a clean machine" -ForegroundColor Yellow
 Write-Host "  2. Verify installed version matches $Version" -ForegroundColor Yellow
 Write-Host "  3. Test the self-contained EXE runs correctly" -ForegroundColor Yellow
+
+# Copy MSI to releases folder with version name
+$releasesDir = Join-Path $ProjectRoot "releases"
+if (-not (Test-Path $releasesDir)) {
+    New-Item -ItemType Directory -Path $releasesDir -Force | Out-Null
+}
+$versionedMsiName = "PlatypusToolsSetup-v$Version.msi"
+$versionedMsiPath = Join-Path $releasesDir $versionedMsiName
+Copy-Item $msiPath $versionedMsiPath -Force
+Write-Success "MSI copied to: $versionedMsiPath"
+
+Write-Host "`n[GitHub Release]" -ForegroundColor Cyan
+Write-Host "  To create a GitHub release, run:" -ForegroundColor White
+Write-Host ""
+Write-Host "  # Step 1: Create release WITHOUT file (fast)" -ForegroundColor Gray
+Write-Host "  gh release create v$Version --title `"v$Version`" --notes `"Release notes here`"" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "  # Step 2: Upload MSI separately (wait for completion)" -ForegroundColor Gray  
+Write-Host "  gh release upload v$Version `"releases\$versionedMsiName`" --clobber" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "  # Step 3: Verify upload succeeded" -ForegroundColor Gray
+Write-Host "  gh release view v$Version" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "  [!] CRITICAL: Wait for Step 2 to fully complete before verifying!" -ForegroundColor Red
+Write-Host "      Large files (300+ MB) can take 1-2 minutes to upload." -ForegroundColor Red
+
+# Automatic GitHub upload if -Upload specified
+if ($Upload) {
+    Write-Step "Uploading to GitHub"
+    
+    # Check if gh CLI is available
+    if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+        Write-Error "GitHub CLI (gh) not found. Install from https://cli.github.com/"
+        exit 1
+    }
+    
+    # Check authentication
+    $authStatus = gh auth status 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Not authenticated with GitHub. Run: gh auth login"
+        exit 1
+    }
+    
+    $tagName = "v$Version"
+    $notesContent = if ($ReleaseNotes) { $ReleaseNotes } else { "Release v$Version" }
+    
+    # Step 1: Create release WITHOUT file
+    Write-Host "Creating release $tagName..." -ForegroundColor Cyan
+    gh release create $tagName --title $tagName --notes $notesContent 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        # Release might already exist, try to continue
+        Write-Warning "Release may already exist, attempting to upload asset..."
+    } else {
+        Write-Success "Release $tagName created"
+    }
+    
+    # Step 2: Upload MSI separately (this is the critical part)
+    Write-Host "Uploading MSI (this may take 1-2 minutes for 300+ MB files)..." -ForegroundColor Cyan
+    $uploadResult = gh release upload $tagName $versionedMsiPath --clobber 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Failed to upload MSI: $uploadResult"
+        exit 1
+    }
+    Write-Success "MSI uploaded successfully"
+    
+    # Step 3: Verify upload
+    Write-Host "Verifying upload..." -ForegroundColor Cyan
+    $releaseInfo = gh release view $tagName --json assets 2>&1 | ConvertFrom-Json
+    if ($releaseInfo.assets.Count -eq 0) {
+        Write-Error "Upload verification FAILED - no assets found on release!"
+        Write-Host "Check manually: gh release view $tagName" -ForegroundColor Yellow
+        exit 1
+    }
+    
+    $uploadedAsset = $releaseInfo.assets | Where-Object { $_.name -eq $versionedMsiName }
+    if (-not $uploadedAsset) {
+        Write-Error "Upload verification FAILED - MSI not found in release assets!"
+        exit 1
+    }
+    
+    $assetSizeMB = [math]::Round($uploadedAsset.size / 1MB, 2)
+    Write-Success "Verified: $($uploadedAsset.name) ($assetSizeMB MB)"
+    
+    Write-Host "`n" -NoNewline
+    Write-Host "+===============================================================+" -ForegroundColor Green
+    Write-Host "|              GITHUB RELEASE PUBLISHED                         |" -ForegroundColor Green
+    Write-Host "+===============================================================+" -ForegroundColor Green
+    Write-Host "`nRelease URL: https://github.com/AresX0/PlatypusToolsNew/releases/tag/$tagName" -ForegroundColor Cyan
+}
 
 Write-Host "`n"
 
