@@ -320,7 +320,6 @@ namespace PlatypusTools.UI.Views
         private SKBitmap? _skKlingonLogo;
         private SKBitmap? _skFederationLogo;
         private SKBitmap? _skTardisBitmap;
-        private SKBitmap? _skTimeVortexBitmap;
         private SKBitmap? _skLightsaberHilt;
         private SKTypeface? _skKlingonTypeface;
         
@@ -883,6 +882,9 @@ namespace PlatypusTools.UI.Views
             
             _skLightsaberHilt?.Dispose();
             _skLightsaberHilt = null;
+            
+            _skKlingonTypeface?.Dispose();
+            _skKlingonTypeface = null;
             
             _hdBloomBuffer?.Dispose();
             _hdBloomBuffer = null;
@@ -6619,13 +6621,14 @@ namespace PlatypusTools.UI.Views
                 StrokeWidth = Math.Max(3, info.Width / _smoothedData.Length * 0.8f)
             };
             
+            using var circularGlowBlur = _isLargeSurface ? null : SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 4);
             using var glowPaint = _isLargeSurface ? null : new SKPaint
             {
                 IsAntialias = true,
                 Style = SKPaintStyle.Stroke,
                 StrokeCap = SKStrokeCap.Round,
                 StrokeWidth = barPaint.StrokeWidth + 4,
-                MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 4)
+                MaskFilter = circularGlowBlur
             };
             
             // Draw outer ring guide
@@ -6693,11 +6696,12 @@ namespace PlatypusTools.UI.Views
                 Style = SKPaintStyle.Fill
             };
             
+            using var barsGlowBlur = _isLargeSurface ? null : SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 8);
             using var glowPaint = _isLargeSurface ? null : new SKPaint
             {
                 IsAntialias = true,
                 Style = SKPaintStyle.Fill,
-                MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 8)
+                MaskFilter = barsGlowBlur
             };
             
             using var peakPaint = new SKPaint
@@ -6756,11 +6760,12 @@ namespace PlatypusTools.UI.Views
             float centerY = info.Height / 2f;
             
             using var barPaint = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill };
+            using var mirrorGlowBlur = _isLargeSurface ? null : SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 6);
             using var glowPaint = _isLargeSurface ? null : new SKPaint
             {
                 IsAntialias = true,
                 Style = SKPaintStyle.Fill,
-                MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 6)
+                MaskFilter = mirrorGlowBlur
             };
             
             for (int i = 0; i < _smoothedData.Length; i++)
@@ -6816,13 +6821,14 @@ namespace PlatypusTools.UI.Views
                 StrokeJoin = SKStrokeJoin.Round
             };
             
+            using var waveformGlowBlur = _isLargeSurface ? null : SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 6);
             using var glowPaint = _isLargeSurface ? null : new SKPaint
             {
                 IsAntialias = true,
                 Style = SKPaintStyle.Stroke,
                 StrokeWidth = 8,
                 StrokeCap = SKStrokeCap.Round,
-                MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 6)
+                MaskFilter = waveformGlowBlur
             };
             
             // Build smooth path using quadratic beziers
@@ -6848,13 +6854,15 @@ namespace PlatypusTools.UI.Views
             // Draw glow
             if (glowPaint != null)
             {
-                glowPaint.Shader = CreateGradientShader(0, 0, info.Width, 0);
+                using var glowShader = CreateGradientShader(0, 0, info.Width, 0);
+                glowPaint.Shader = glowShader;
                 glowPaint.Color = glowPaint.Color.WithAlpha(80);
                 canvas.DrawPath(path, glowPaint);
             }
             
             // Draw main waveform
-            wavePaint.Shader = CreateGradientShader(0, 0, info.Width, 0);
+            using var waveShader = CreateGradientShader(0, 0, info.Width, 0);
+            wavePaint.Shader = waveShader;
             canvas.DrawPath(path, wavePaint);
         }
         
@@ -7134,7 +7142,8 @@ namespace PlatypusTools.UI.Views
             float cellHeight = h / gridY;
             
             using var paint = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill };
-            using var glowPaint = _isLargeSurface ? null : new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill, MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 3) };
+            using var waveGridGlowBlur = _isLargeSurface ? null : SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 3);
+            using var glowPaint = _isLargeSurface ? null : new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill, MaskFilter = waveGridGlowBlur };
             
             for (int y = 0; y < gridY; y++)
             {
@@ -7265,12 +7274,14 @@ namespace PlatypusTools.UI.Views
             
             using var textPaint = new SKPaint { IsAntialias = true, IsLinearText = true };
             // Use lighter glow on large surfaces (fullscreen) for performance -- but DON'T skip entirely
+            using var matrixGlowBlur = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, _isLargeSurface ? fontSize * 0.6f : fontSize * 1.5f);
             using var glowPaint = new SKPaint
             {
                 IsAntialias = true,
-                MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, _isLargeSurface ? fontSize * 0.6f : fontSize * 1.5f)
+                MaskFilter = matrixGlowBlur
             };
-            using var wideGlowPaint = _isLargeSurface ? null : new SKPaint { IsAntialias = true, MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, fontSize * 3.5f) };
+            using var matrixWideGlowBlur = _isLargeSurface ? null : SKMaskFilter.CreateBlur(SKBlurStyle.Normal, fontSize * 3.5f);
+            using var wideGlowPaint = _isLargeSurface ? null : new SKPaint { IsAntialias = true, MaskFilter = matrixWideGlowBlur };
             // Use cached Consolas typeface (prevents GDI handle leak)
             var matrixTypeface = _tfConsolas ?? _tfCourierNew;
             using var font = new SKFont { Size = fontSize, Typeface = matrixTypeface };
