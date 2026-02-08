@@ -1069,6 +1069,24 @@ namespace PlatypusTools.UI.Views
         
         #endregion
 
+        /// <summary>
+        /// Forces an immediate mode switch without waiting for the next spectrum data update.
+        /// Called from fullscreen keyboard handler to ensure mode changes propagate even when
+        /// heavy renderers (Matrix, TimeLord, Milkdrop, Jedi) are blocking the frame-skip guard.
+        /// </summary>
+        public void ForceVisualizationMode(string newMode)
+        {
+            if (_visualizationMode == newMode) return;
+            
+            try { CleanupModeResources(_visualizationMode, newMode); }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"ForceVisualizationMode cleanup error: {ex.Message}"); }
+            
+            _visualizationMode = newMode;
+            
+            // Force immediate repaint
+            try { SkiaCanvas?.InvalidateVisual(); } catch { }
+        }
+
         public void UpdateSpectrumData(double[] spectrumData, string mode = "Bars", int density = 128)
         {
             if (_visualizationMode != mode)
@@ -8343,8 +8361,8 @@ namespace PlatypusTools.UI.Views
                 }
                 
                 _timeLordVortexFrame++;
-                // Cycle hue in purple/orange/gold palette
-                _timeLordVortexHue += 0.25 + bassIntensity * 0.4;
+                // Slow phase drift for subtle color shimmer (NOT hue cycling)
+                _timeLordVortexHue += 0.08 + bassIntensity * 0.15;
                 if (_timeLordVortexHue >= 360) _timeLordVortexHue -= 360;
                 
                 // Create a working copy of the previous frame (null guard for mode-switch safety)
@@ -8356,10 +8374,10 @@ namespace PlatypusTools.UI.Views
                 vCanvas.Clear(SKColors.Black);
                 
                 // --- Step 1: Draw previous frame with zoom + spiral rotation (tunnel effect) ---
-                float zoom = 1.02f + (float)(bassIntensity * 0.03 + Math.Sin(_animationPhase * 0.5) * 0.005);
-                float spiralRot = (float)(1.2 + bassIntensity * 2.0 + Math.Sin(_animationPhase * 0.3) * 0.4);
-                float warpX = (float)(Math.Sin(_animationPhase * 0.6) * avgIntensity * 4);
-                float warpY = (float)(Math.Cos(_animationPhase * 0.5) * avgIntensity * 4);
+                float zoom = 1.015f + (float)(bassIntensity * 0.02 + Math.Sin(_animationPhase * 0.5) * 0.003);
+                float spiralRot = (float)(0.8 + bassIntensity * 1.5 + Math.Sin(_animationPhase * 0.3) * 0.3);
+                float warpX = (float)(Math.Sin(_animationPhase * 0.6) * avgIntensity * 3);
+                float warpY = (float)(Math.Cos(_animationPhase * 0.5) * avgIntensity * 3);
                 
                 vCanvas.Save();
                 vCanvas.Translate(bcx + warpX, bcy + warpY);
@@ -8372,50 +8390,82 @@ namespace PlatypusTools.UI.Views
                 }
                 vCanvas.Restore();
                 
-                // --- Step 2: Decay (dark purple/blue overlay for Time Vortex feel) ---
-                float decayAlpha = 10 + (float)(avgIntensity * 6);
+                // --- Step 2: Decay (deep blue-indigo overlay — keeps edges dark and colors rich) ---
+                float decayAlpha = 18 + (float)(avgIntensity * 8);
                 using (var decayPaint = new SKPaint())
                 {
-                    // Slight purple tint to the decay for a Time Vortex mood
-                    decayPaint.Color = new SKColor(5, 0, 10, (byte)Math.Clamp(decayAlpha, 5, 35));
+                    decayPaint.Color = new SKColor(10, 8, 38, (byte)Math.Clamp(decayAlpha, 14, 40));
                     decayPaint.Style = SKPaintStyle.Fill;
                     vCanvas.DrawRect(0, 0, bufW, bufH, decayPaint);
                 }
-                
-                // --- Step 3: Color tint wash — cycling purple/orange/gold ---
-                float hueRad = (float)(_timeLordVortexHue * Math.PI / 180);
-                // Bias toward purple/blue/orange Doctor Who palette
-                byte tintR = (byte)Math.Clamp((Math.Sin(hueRad) * 0.5 + 0.5) * avgIntensity * 20, 0, 15);
-                byte tintG = (byte)Math.Clamp((Math.Sin(hueRad + 2.5) * 0.3 + 0.2) * avgIntensity * 12, 0, 10);
-                byte tintB = (byte)Math.Clamp((Math.Sin(hueRad + 4.0) * 0.5 + 0.5) * avgIntensity * 25, 0, 20);
-                if (tintR > 0 || tintG > 0 || tintB > 0)
+                // Dark vignette — force outer edges to deep saturated dark blue
+                // Must be very opaque at edges to overpower accumulated feedback buffer colors
+                using (var vignetteShader = SKShader.CreateRadialGradient(
+                    new SKPoint(bcx, bcy), Math.Max(bufW, bufH) * 0.52f,
+                    new SKColor[] {
+                        SKColors.Transparent,
+                        new SKColor(8, 6, 35, 10),
+                        new SKColor(10, 8, 45, 100),
+                        new SKColor(8, 6, 38, 200),
+                        new SKColor(6, 4, 30, 245)
+                    },
+                    new float[] { 0f, 0.25f, 0.5f, 0.72f, 1f },
+                    SKShaderTileMode.Clamp))
+                using (var vignettePaint = new SKPaint { Shader = vignetteShader })
                 {
-                    using var tintPaint = new SKPaint();
-                    tintPaint.Color = new SKColor(tintR, tintG, tintB, 50);
-                    tintPaint.BlendMode = SKBlendMode.Plus;
-                    vCanvas.DrawRect(0, 0, bufW, bufH, tintPaint);
+                    vCanvas.DrawRect(0, 0, bufW, bufH, vignettePaint);
                 }
                 
-                // --- Step 4: Draw vortex energy tendrils (spiral arms) ---
+                // --- Step 3: Radial gradient background — deep indigo edges, subtle warm center ---
+                // Gentle warmth in center that fades quickly to dark purple
+                using (var bgGrad = SKShader.CreateRadialGradient(
+                    new SKPoint(bcx, bcy), Math.Max(bufW, bufH) * 0.5f,
+                    new SKColor[] {
+                        new SKColor(200, 160, 80, (byte)(6 + avgIntensity * 8)),      // Muted gold center
+                        new SKColor(120, 50, 100, (byte)(4 + avgIntensity * 5)),      // Muted purple-pink
+                        new SKColor(30, 40, 100, (byte)(3 + avgIntensity * 4)),       // Blue-purple mid
+                        new SKColor(40, 12, 80, (byte)(2 + avgIntensity * 3)),        // Dark purple
+                        new SKColor(10, 3, 25, 1)                                      // Near-black indigo
+                    },
+                    new float[] { 0f, 0.12f, 0.3f, 0.55f, 1f },
+                    SKShaderTileMode.Clamp))
+                using (var bgPaint = new SKPaint { Shader = bgGrad, BlendMode = SKBlendMode.Plus })
+                {
+                    vCanvas.DrawRect(0, 0, bufW, bufH, bgPaint);
+                }
+                
+                // --- Step 4: Draw thick nebulous vortex cloud bands (spiral arms) ---
                 using var vortexPaint = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Stroke };
                 
-                // Doctor Who vortex palette: purple, orange, gold, cyan, magenta
-                float baseHue = (float)_timeLordVortexHue;
-                SKColor c1 = SKColor.FromHsl((baseHue + 270) % 360, 90, 55);       // Purple
-                SKColor c2 = SKColor.FromHsl((baseHue + 30) % 360, 100, 55);       // Orange
-                SKColor c3 = SKColor.FromHsl((baseHue + 50) % 360, 100, 60);       // Gold
-                SKColor c4 = SKColor.FromHsl((baseHue + 190) % 360, 85, 50);       // Cyan
-                SKColor c5 = SKColor.FromHsl((baseHue + 310) % 360, 90, 55);       // Magenta
-                SKColor[] vortexColors = { c1, c2, c3, c4, c5 };
+                // FIXED color palette — NO hue cycling. Only purple/indigo/magenta/pink/violet.
+                // Small phase drift for subtle shimmer, but colors stay in the purple family.
+                float phase = (float)(_timeLordVortexHue * Math.PI / 180);
+                float shimmer = (float)(Math.Sin(phase) * 0.12); // ±12% brightness variation
                 
-                float vortexMaxR = Math.Min(bufW, bufH) * 0.45f;
-                int armCount = 5;
+                SKColor c1 = new SKColor((byte)(30 + shimmer * 20), (byte)(10 + shimmer * 5), (byte)(90 + shimmer * 30));   // Deep indigo
+                SKColor c2 = new SKColor((byte)(100 + shimmer * 25), (byte)(30 + shimmer * 10), (byte)(160 + shimmer * 20)); // Purple
+                SKColor c3 = new SKColor((byte)(180 + shimmer * 20), (byte)(60 + shimmer * 15), (byte)(160 + shimmer * 15)); // Magenta/pink
+                SKColor c4 = new SKColor((byte)(80 + shimmer * 15), (byte)(20 + shimmer * 8), (byte)(140 + shimmer * 25));   // Deep violet
+                SKColor c5 = new SKColor((byte)(255), (byte)(200 + shimmer * 20), (byte)(100 + shimmer * 30));               // Warm gold
+                SKColor c6 = new SKColor((byte)(30 + shimmer * 10), (byte)(120 + shimmer * 20), (byte)(230 + shimmer * 15)); // Electric blue
+                SKColor c7 = new SKColor((byte)(60 + shimmer * 15), (byte)(80 + shimmer * 12), (byte)(200 + shimmer * 20));  // Deep electric blue
+                // Arm colors: purple/magenta tones with electric blue accents
+                SKColor[] vortexColors = { c1, c2, c6, c3, c4, c7, c3 };
+                // Gold-tinted versions for inner portions of arms
+                SKColor cGoldTint = new SKColor((byte)(200 + shimmer * 15), (byte)(160 + shimmer * 15), (byte)(80 + shimmer * 20));
                 
+                float vortexMaxR = Math.Min(bufW, bufH) * 0.48f;
+                int armCount = 7;
+                
+                // --- Main spiral arms (3-layer cloud rendering) ---
                 for (int arm = 0; arm < armCount; arm++)
                 {
                     using var spiralPath = new SKPath();
                     float armOffset = arm * 360f / armCount + (float)_vortexRotation;
                     int sampleCount = Math.Min(128, _smoothedData.Length > 0 ? _smoothedData.Length : 64);
+                    
+                    // Store points for nebula puffs
+                    var armPoints = new List<(float x, float y, float t, float audio)>();
                     
                     for (int s = 0; s < sampleCount; s++)
                     {
@@ -8423,42 +8473,119 @@ namespace PlatypusTools.UI.Views
                         float angle = (armOffset + t * 720) * (float)Math.PI / 180f; // 2 full spiral turns
                         float r = t * vortexMaxR;
                         float audioVal = s < _smoothedData.Length ? (float)(_smoothedData[s] * _sensitivity) : 0;
-                        // Perturb radius with audio data
-                        r += audioVal * vortexMaxR * 0.4f;
-                        // Add sinusoidal wobble
-                        r += (float)(Math.Sin(t * 12 + _animationPhase * 3 + arm) * vortexMaxR * 0.05f);
+                        r += audioVal * vortexMaxR * 0.35f;
+                        // Turbulence — multiple sine waves for organic wobble
+                        r += (float)(Math.Sin(t * 12 + _animationPhase * 3 + arm) * vortexMaxR * 0.04f);
+                        r += (float)(Math.Sin(t * 7.3 + _animationPhase * 1.7 + arm * 2.1) * vortexMaxR * 0.025f);
                         
                         float px = bcx + (float)(Math.Cos(angle) * r);
                         float py = bcy + (float)(Math.Sin(angle) * r);
                         
                         if (s == 0) spiralPath.MoveTo(px, py);
                         else spiralPath.LineTo(px, py);
+                        
+                        armPoints.Add((px, py, t, audioVal));
                     }
                     
-                    // Glow layer
-                    vortexPaint.StrokeWidth = 5 + (float)(bassIntensity * 3);
-                    vortexPaint.Color = vortexColors[arm % vortexColors.Length].WithAlpha(50);
-                    using var spiralGlow = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 4);
-                    vortexPaint.MaskFilter = spiralGlow;
+                    SKColor armColor = vortexColors[arm % vortexColors.Length];
+                    
+                    // Wide outer nebula glow — thick and blurred for cloud-like appearance
+                    vortexPaint.StrokeWidth = 35 + (float)(bassIntensity * 18);
+                    vortexPaint.Color = armColor.WithAlpha(14);
+                    using var wideGlow = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 20);
+                    vortexPaint.MaskFilter = wideGlow;
                     vCanvas.DrawPath(spiralPath, vortexPaint);
                     vortexPaint.MaskFilter = null;
                     
-                    // Core stroke
-                    vortexPaint.StrokeWidth = 2 + (float)(bassIntensity * 1.5);
-                    vortexPaint.Color = vortexColors[arm % vortexColors.Length].WithAlpha((byte)(180 + avgIntensity * 60));
+                    // Mid glow layer — medium blur
+                    vortexPaint.StrokeWidth = 16 + (float)(bassIntensity * 10);
+                    vortexPaint.Color = armColor.WithAlpha(30);
+                    using var midGlow = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 10);
+                    vortexPaint.MaskFilter = midGlow;
                     vCanvas.DrawPath(spiralPath, vortexPaint);
+                    vortexPaint.MaskFilter = null;
+                    
+                    // Bright core stroke
+                    vortexPaint.StrokeWidth = 4 + (float)(bassIntensity * 3);
+                    vortexPaint.Color = armColor.WithAlpha((byte)(100 + avgIntensity * 60));
+                    vCanvas.DrawPath(spiralPath, vortexPaint);
+                    
+                    // --- Nebula puffs: soft filled circles along the arm for cloudy texture ---
+                    using var puffPaint = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill };
+                    for (int p = 0; p < armPoints.Count; p += 4) // Every 4th point
+                    {
+                        var (px, py, t, audioVal) = armPoints[p];
+                        // Puff size varies with audio + position
+                        float puffR = (6 + audioVal * 20 + (float)Math.Sin(p * 0.7 + _animationPhase * 2 + arm) * 4) * (1 - t * 0.3f);
+                        // Near center: blend toward gold; outer: use arm color
+                        float goldBlend = Math.Clamp(1f - t * 2.5f, 0f, 1f); // 1.0 at center, 0.0 past 40%
+                        byte pr = (byte)(armColor.Red + (cGoldTint.Red - armColor.Red) * goldBlend);
+                        byte pg = (byte)(armColor.Green + (cGoldTint.Green - armColor.Green) * goldBlend);
+                        byte pb = (byte)(armColor.Blue + (cGoldTint.Blue - armColor.Blue) * goldBlend);
+                        // Vary alpha per puff for organic look
+                        byte pa = (byte)Math.Clamp(12 + audioVal * 25 + Math.Sin(p * 1.3 + _animationPhase) * 6, 4, 40);
+                        puffPaint.Color = new SKColor(pr, pg, pb, pa);
+                        using var puffBlur = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, puffR * 0.6f);
+                        puffPaint.MaskFilter = puffBlur;
+                        vCanvas.DrawCircle(px, py, puffR, puffPaint);
+                        puffPaint.MaskFilter = null;
+                    }
                 }
                 
-                // --- Step 5: Circular energy ring at center (event horizon) ---
+                // --- Secondary wisps: thinner translucent spirals between main arms ---
+                for (int wisp = 0; wisp < armCount; wisp++)
+                {
+                    using var wispPath = new SKPath();
+                    float wispOffset = (wisp + 0.5f) * 360f / armCount + (float)_vortexRotation * 0.85f; // Offset + slightly different speed
+                    int wSamples = 80;
+                    for (int s = 0; s < wSamples; s++)
+                    {
+                        float t = (float)s / wSamples;
+                        float angle = (wispOffset + t * 680) * (float)Math.PI / 180f;
+                        float r = t * vortexMaxR * 0.9f;
+                        float audioVal = s < _smoothedData.Length ? (float)(_smoothedData[s] * _sensitivity * 0.5f) : 0;
+                        r += audioVal * vortexMaxR * 0.25f;
+                        r += (float)(Math.Sin(t * 9 + _animationPhase * 2.3 + wisp * 1.7) * vortexMaxR * 0.05f);
+                        float px = bcx + (float)(Math.Cos(angle) * r);
+                        float py = bcy + (float)(Math.Sin(angle) * r);
+                        if (s == 0) wispPath.MoveTo(px, py);
+                        else wispPath.LineTo(px, py);
+                    }
+                    // Soft wide wisp
+                    vortexPaint.StrokeWidth = 18 + (float)(bassIntensity * 8);
+                    vortexPaint.Color = vortexColors[wisp % vortexColors.Length].WithAlpha(8);
+                    using var wispBlur = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 14);
+                    vortexPaint.MaskFilter = wispBlur;
+                    vCanvas.DrawPath(wispPath, vortexPaint);
+                    vortexPaint.MaskFilter = null;
+                }
+                
+                // --- Step 5: Golden center glow (event horizon) — compact and warm ---
+                using (var innerGold = SKShader.CreateRadialGradient(
+                    new SKPoint(bcx, bcy), vortexMaxR * 0.2f,
+                    new SKColor[] {
+                        new SKColor(255, 220, 140, (byte)(40 + bassIntensity * 45)),   // Warm gold
+                        new SKColor(230, 170, 90, (byte)(20 + bassIntensity * 25)),    // Amber
+                        new SKColor(150, 80, 100, (byte)(8 + avgIntensity * 10)),      // Dim mauve fade
+                        SKColors.Transparent
+                    },
+                    new float[] { 0f, 0.3f, 0.65f, 1f },
+                    SKShaderTileMode.Clamp))
+                using (var innerPaint = new SKPaint { Shader = innerGold, BlendMode = SKBlendMode.Plus })
+                {
+                    vCanvas.DrawRect(0, 0, bufW, bufH, innerPaint);
+                }
+                
+                // Circular energy ring at center
                 using var ringPath = new SKPath();
-                float ringR = vortexMaxR * 0.2f + (float)(bassIntensity * vortexMaxR * 0.05f);
+                float ringR = vortexMaxR * 0.15f + (float)(bassIntensity * vortexMaxR * 0.04f);
                 int ringPts = 64;
                 for (int i = 0; i <= ringPts; i++)
                 {
                     float angle = (float)(i * Math.PI * 2 / ringPts);
                     int idx = i % Math.Max(1, _smoothedData.Length);
                     float audioVal = idx < _smoothedData.Length ? (float)(_smoothedData[idx] * _sensitivity) : 0;
-                    float r = ringR + audioVal * ringR * 1.2f;
+                    float r = ringR + audioVal * ringR * 0.8f;
                     float px = bcx + (float)(Math.Cos(angle) * r);
                     float py = bcy + (float)(Math.Sin(angle) * r);
                     if (i == 0) ringPath.MoveTo(px, py);
@@ -8466,25 +8593,25 @@ namespace PlatypusTools.UI.Views
                 }
                 ringPath.Close();
                 
-                // Ring glow
-                vortexPaint.StrokeWidth = 4;
-                vortexPaint.Color = c1.WithAlpha(60);
-                using var ringGlow = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 6);
+                // Ring glow — purple
+                vortexPaint.StrokeWidth = 6;
+                vortexPaint.Color = c2.WithAlpha(40);
+                using var ringGlow = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 8);
                 vortexPaint.MaskFilter = ringGlow;
                 vCanvas.DrawPath(ringPath, vortexPaint);
                 vortexPaint.MaskFilter = null;
                 
-                // Ring core
+                // Ring core — warm gold
                 vortexPaint.StrokeWidth = 2;
-                vortexPaint.Color = c3.WithAlpha(200);
+                vortexPaint.Color = c5.WithAlpha(160);
                 vCanvas.DrawPath(ringPath, vortexPaint);
                 
-                // --- Step 6: Beat flash ---
+                // --- Step 6: Beat flash — subtle purple/golden pulse ---
                 if (bassIntensity > 0.5)
                 {
                     using var flashPaint = new SKPaint();
-                    byte flashA = (byte)Math.Clamp(bassIntensity * 35, 0, 70);
-                    flashPaint.Color = c2.WithAlpha(flashA);
+                    byte flashA = (byte)Math.Clamp(bassIntensity * 25, 0, 50);
+                    flashPaint.Color = new SKColor(120, 60, 180, flashA); // Purple flash
                     flashPaint.BlendMode = SKBlendMode.Plus;
                     vCanvas.DrawRect(0, 0, bufW, bufH, flashPaint);
                 }
@@ -8570,16 +8697,16 @@ namespace PlatypusTools.UI.Views
             float tardisPosX = (float)(_tardisX * w);
             float tardisPosY = (float)(_tardisY * h);
             
-            // TARDIS glow ellipse — centered on TARDIS position
+            // TARDIS glow ellipse — warm golden center glow matching vortex image
             float glowRadius2 = tardisDisplaySize * 1.2f;
             paint.Style = SKPaintStyle.Fill;
             using var glowShader = SKShader.CreateRadialGradient(
                 new SKPoint(tardisPosX, tardisPosY),
                 glowRadius2,
                 new SKColor[] {
-                    new SKColor(100, 180, 255, (byte)(80 + avgIntensity * 80)),
-                    new SKColor(80, 120, 200, (byte)(40 + avgIntensity * 40)),
-                    new SKColor(50, 80, 150, 0)
+                    new SKColor(255, 220, 120, (byte)(90 + avgIntensity * 80)),
+                    new SKColor(200, 140, 180, (byte)(50 + avgIntensity * 40)),
+                    new SKColor(100, 50, 150, 0)
                 },
                 new float[] { 0, 0.5f, 1f },
                 SKShaderTileMode.Clamp);

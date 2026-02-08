@@ -324,6 +324,9 @@ public partial class EnhancedAudioPlayerView : UserControl
             fullscreenVisualizer.SetExternallyDriven(); // Prevent double subscription, use external mode/data only
             _fullscreenVisualizer = fullscreenVisualizer;
             
+            // Frame-skip guard for spectrum data updates — declared early so button handlers can reset it
+            int _fsUpdating = 0;
+            
             // Set initial mode and color before first render
             string initialMode = GetVisualizerModeName(vm?.VisualizerModeIndex ?? 0);
             fullscreenVisualizer.SetColorScheme(vm?.ColorSchemeIndex ?? 0);
@@ -479,8 +482,11 @@ public partial class EnhancedAudioPlayerView : UserControl
                 {
                     int maxMode = 21;
                     vm.VisualizerModeIndex = (vm.VisualizerModeIndex - 1 + maxMode + 1) % (maxMode + 1);
-                    modeLabel.Text = GetVisualizerModeName(vm.VisualizerModeIndex);
-                    ShowFullscreenModeToast(modeLabel.Text);
+                    var modeName = GetVisualizerModeName(vm.VisualizerModeIndex);
+                    modeLabel.Text = modeName;
+                    ShowFullscreenModeToast(modeName);
+                    System.Threading.Interlocked.Exchange(ref _fsUpdating, 0);
+                    fullscreenVisualizer.ForceVisualizationMode(modeName);
                 }
             };
             nextModeBtn.Click += (s, a) =>
@@ -489,8 +495,11 @@ public partial class EnhancedAudioPlayerView : UserControl
                 {
                     int maxMode = 21;
                     vm.VisualizerModeIndex = (vm.VisualizerModeIndex + 1) % (maxMode + 1);
-                    modeLabel.Text = GetVisualizerModeName(vm.VisualizerModeIndex);
-                    ShowFullscreenModeToast(modeLabel.Text);
+                    var modeName = GetVisualizerModeName(vm.VisualizerModeIndex);
+                    modeLabel.Text = modeName;
+                    ShowFullscreenModeToast(modeName);
+                    System.Threading.Interlocked.Exchange(ref _fsUpdating, 0);
+                    fullscreenVisualizer.ForceVisualizationMode(modeName);
                 }
             };
             
@@ -554,30 +563,47 @@ public partial class EnhancedAudioPlayerView : UserControl
             _fullscreenWindow.Content = container;
             
             // Subscribe to spectrum data for fullscreen visualizer
-            int _fsUpdating = 0; // Interlocked frame-skip guard (0=idle, 1=queued)
+            // Latest data fields — always updated by background thread, read by UI thread.
+            // This ensures the visualizer always gets the FRESHEST data even when
+            // the frame-skip guard drops intermediate dispatches (fixes sluggish
+            // responsiveness in heavy modes like Klingon, Federation, Jedi).
+            double[]? _latestData = null;
+            string _latestMode = initialMode;
+            int _latestDensity = vm?.Density ?? 32;
+            int _latestColor = vm?.ColorSchemeIndex ?? 0;
+            double _latestSensitivity = vm?.VisualizerSensitivity ?? 0.7;
+            int _latestFps = vm?.VisualizerFps ?? 22;
+            double _latestCrawlSpeed = vm?.CrawlScrollSpeed ?? 1.0;
+            
             void OnSpectrumData(object? s, float[] data)
             {
                 if (data == null || data.Length == 0) return;
-                // Atomic compare-exchange: only proceed if transitioning from 0 → 1
-                if (System.Threading.Interlocked.CompareExchange(ref _fsUpdating, 1, 0) != 0) return;
                 
+                // Always convert and store latest data (no guard) — background thread
                 var doubleData = new double[data.Length];
                 for (int i = 0; i < data.Length; i++)
                     doubleData[i] = data[i];
                 
-                string mode = GetVisualizerModeName(vm?.VisualizerModeIndex ?? 0);
-                int density = vm?.Density ?? 32;
-                int colorIndex = vm?.ColorSchemeIndex ?? 0;
-                double sensitivity = vm?.VisualizerSensitivity ?? 0.7;
-                int fps = vm?.VisualizerFps ?? 22;
-                double crawlSpeed = vm?.CrawlScrollSpeed ?? 1.0;
+                _latestData = doubleData;
+                _latestMode = GetVisualizerModeName(vm?.VisualizerModeIndex ?? 0);
+                _latestDensity = vm?.Density ?? 32;
+                _latestColor = vm?.ColorSchemeIndex ?? 0;
+                _latestSensitivity = vm?.VisualizerSensitivity ?? 0.7;
+                _latestFps = vm?.VisualizerFps ?? 22;
+                _latestCrawlSpeed = vm?.CrawlScrollSpeed ?? 1.0;
+                
+                // Only queue one dispatch at a time — but the lambda reads latest values
+                if (System.Threading.Interlocked.CompareExchange(ref _fsUpdating, 1, 0) != 0) return;
                 
                 // Use Input priority — same level as keyboard events, prevents priority inversion
                 fullscreenVisualizer.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, () =>
                 {
                     try
                     {
-                        fullscreenVisualizer.UpdateSpectrumData(doubleData, mode, density, colorIndex, sensitivity, fps, crawlSpeed);
+                        // Read the LATEST stored values (not stale captured ones from dispatch time)
+                        var freshData = _latestData;
+                        if (freshData != null)
+                            fullscreenVisualizer.UpdateSpectrumData(freshData, _latestMode, _latestDensity, _latestColor, _latestSensitivity, _latestFps, _latestCrawlSpeed);
                     
                         // Update lyrics if enabled
                         if (lyricsText != null && vm?.ShowLyricsOverlay == true)
@@ -746,6 +772,13 @@ public partial class EnhancedAudioPlayerView : UserControl
                         var modeName = GetVisualizerModeName(vm.VisualizerModeIndex);
                         modeLabel.Text = modeName;
                         ShowFullscreenModeToast(modeName);
+                        
+                        // Force mode change through immediately — reset frame-skip guard
+                        // so the next spectrum data event carries the new mode name.
+                        // Without this, heavy modes (Matrix, TimeLord, Milkdrop, Jedi)
+                        // block the guard and the mode change never propagates.
+                        System.Threading.Interlocked.Exchange(ref _fsUpdating, 0);
+                        fullscreenVisualizer.ForceVisualizationMode(modeName);
                     }
                     args.Handled = true;
                 }
@@ -758,6 +791,10 @@ public partial class EnhancedAudioPlayerView : UserControl
                         var modeName = GetVisualizerModeName(vm.VisualizerModeIndex);
                         modeLabel.Text = modeName;
                         ShowFullscreenModeToast(modeName);
+                        
+                        // Force mode change through immediately (see comment above)
+                        System.Threading.Interlocked.Exchange(ref _fsUpdating, 0);
+                        fullscreenVisualizer.ForceVisualizationMode(modeName);
                     }
                     args.Handled = true;
                 }
