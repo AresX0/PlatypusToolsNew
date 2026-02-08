@@ -1,7 +1,7 @@
 # PlatypusTools v3.4.0 - Detailed TODO List
 
 **Branch**: `main`  
-**Last Updated**: February 3, 2026  
+**Last Updated**: February 7, 2026  
 **Current Version**: v3.2.12.1 (released)  
 **Legend**: ✅ Complete | 🔄 In Progress | ❌ Not Started
 
@@ -362,166 +362,94 @@ The current WPF shape-based rendering works well. A proper HD implementation wou
 
 ---
 
-## Phase 5: Audio Player C++ Core
+## Phase 5: Audio Player Enhancements (NAudio-based)
 
-### 5.1 Project Setup
-- [ ] **TASK-179**: Create `CppAudioCore` C++ static library project
-- [ ] **TASK-180**: Configure vcpkg for dependencies
-- [ ] **TASK-181**: Add FFmpeg libraries
-- [ ] **TASK-182**: Add TagLib library
-- [ ] **TASK-183**: Add PortAudio library
-- [ ] **TASK-184**: Add KissFFT library
-- [ ] **TASK-185**: Add libebur128 library
-- [ ] **TASK-186**: Create common types header (`Types.h`)
-- [ ] **TASK-187**: Create callbacks header (`Callbacks.h`)
+> **Note**: The C++ native audio core (originally TASK-179 to TASK-290) has been **deprecated**.
+> The current C# implementation using NAudio already provides 10-band EQ, gapless playback, 
+> crossfade, ReplayGain, spectrum analysis, and media key support. This phase focuses on
+> enhancing the existing implementation rather than rewriting in C++.
 
-### 5.2 ConverterService
-- [ ] **TASK-188**: Create `ConverterService.h` interface
-- [ ] **TASK-189**: Implement `ConverterService.cpp`
-- [ ] **TASK-190**: Implement MP3 encoding (LAME)
-- [ ] **TASK-191**: Implement AAC encoding
-- [ ] **TASK-192**: Implement FLAC encoding
-- [ ] **TASK-193**: Implement OGG Vorbis encoding
-- [ ] **TASK-194**: Implement WAV/AIFF encoding
-- [ ] **TASK-195**: Implement Opus encoding
-- [ ] **TASK-196**: Implement bitrate/sample rate control
-- [ ] **TASK-197**: Implement loudness normalization (EBU R128)
-- [ ] **TASK-198**: Implement fade in/out
-- [ ] **TASK-199**: Implement trim/crop
-- [ ] **TASK-200**: Implement progress callbacks
+### 5.1 Streaming & Online Integration
+- [ ] **TASK-179**: Create `StreamingService.cs` base interface for online audio
+- [ ] **TASK-180**: Implement SoundCloud API integration (public tracks)
+- [ ] **TASK-181**: Implement YouTube Audio extraction via yt-dlp
+- [ ] **TASK-182**: Implement Internet Radio stream support (Shoutcast/Icecast URLs)
+- [ ] **TASK-183**: Create unified stream/local playback abstraction
+- [ ] **TASK-184**: Add stream buffering with progress indicator
+- [ ] **TASK-185**: Implement stream metadata extraction (ICY tags)
 
-### 5.3 PlayerService
-- [ ] **TASK-201**: Create `PlayerService.h` interface
-- [ ] **TASK-202**: Implement `PlayerService.cpp`
-- [ ] **TASK-203**: Implement audio decoding
-- [ ] **TASK-204**: Implement PortAudio output
-- [ ] **TASK-205**: Implement play/pause/stop
-- [ ] **TASK-206**: Implement seek
-- [ ] **TASK-207**: Implement volume control
-- [ ] **TASK-208**: Implement gapless playback
-- [x] **TASK-209**: Implement crossfade ✅ *(UI + managed implementation)*
-- [ ] **TASK-210**: Implement 10-band EQ
-- [ ] **TASK-211**: Implement preamp gain
-- [ ] **TASK-212**: Implement playback speed
-- [ ] **TASK-213**: Implement position callbacks
+### 5.2 Visualizer Enhancements
+- [ ] **TASK-186**: Add new visualizer mode: "3D Bars" (perspective depth effect)
+- [ ] **TASK-187**: Add new visualizer mode: "Oscilloscope" (true waveform display)
+- [ ] **TASK-188**: Add new visualizer mode: "Frequency Waterfall" (spectrogram)
+- [ ] **TASK-189**: Add new visualizer mode: "VU Meter" (analog-style meters)
+- [ ] **TASK-190**: Implement visualizer tempo sync (beat detection affects animation)
+- [ ] **TASK-191**: Add visualizer preset manager (save/load custom color schemes)
+- [ ] **TASK-192**: Implement fullscreen visualizer mode with overlay controls
 
-### 5.4 MetadataService
-- [ ] **TASK-214**: Create `MetadataService.h` interface
-- [ ] **TASK-215**: Implement `MetadataService.cpp`
-- [ ] **TASK-216**: Implement tag reading (TagLib)
-- [ ] **TASK-217**: Implement tag writing
-- [ ] **TASK-218**: Implement album art extraction
-- [ ] **TASK-219**: Implement album art embedding
-- [ ] **TASK-220**: Support ID3v1/v2, Vorbis, APE, MP4
+### 5.3 UI Polish & UX
+- [ ] **TASK-193**: Add album art background blur effect in Now Playing
+- [ ] **TASK-194**: Implement smooth seek bar preview (show waveform thumbnail on hover)
+- [ ] **TASK-195**: Add track transition animations (fade/slide between album art)
+- [ ] **TASK-196**: Implement keyboard-only navigation mode for accessibility
+- [ ] **TASK-197**: Add context menu quick actions (Add to Playlist, Love, Remove)
+- [ ] **TASK-198**: Implement "Now Playing" toast notification on track change
 
-### 5.5 LyricsService
-- [ ] **TASK-221**: Create `LyricsService.h` interface
-- [ ] **TASK-222**: Implement `LyricsService.cpp`
-- [ ] **TASK-223**: Implement LRC file parsing
-- [ ] **TASK-224**: Implement ID3 USLT extraction
-- [ ] **TASK-225**: Implement ID3 SYLT extraction
-- [ ] **TASK-226**: Implement Vorbis lyrics extraction
-- [ ] **TASK-227**: Implement timestamp parsing
+### 5.4 Library Improvements
+- [ ] **TASK-199**: Add folder watch service for auto-import new files
+- [ ] **TASK-200**: Implement library sync between multiple locations
+- [ ] **TASK-201**: Add "Recently Added" smart collection
+- [ ] **TASK-202**: Add "Most Played" smart collection
+- [ ] **TASK-203**: Implement duplicate track detection in library
+- [ ] **TASK-204**: Add batch tag editor for library tracks
 
-### 5.6 LibraryService
-- [ ] **TASK-228**: Create `LibraryService.h` interface
-- [ ] **TASK-229**: Implement `LibraryService.cpp`
-- [ ] **TASK-230**: Design SQLite schema
-- [ ] **TASK-231**: Implement directory scanning
-- \[ \] \*\*TASK-232\*\*: Implement file hashing \(for duplicate detection\)
-- [ ] **TASK-232a**: Add faster folder scanning option (background incremental scan with file watcher)
-  - **NOTE**: Audio library folder scanning should support a "quick scan" mode that:
-    - Uses parallel directory enumeration
-    - Caches folder modification timestamps
-    - Only rescans changed folders
-    - Provides real-time progress updates
-    - Can be cancelled without losing partial results
-- [ ] **TASK-233**: Implement CRUD operations
-- [ ] **TASK-234**: Implement search/filter
-- [ ] **TASK-235**: Implement playlist management
-
-### 5.7 VisualizerPluginHost
-- [ ] **TASK-236**: Create `VisualizerPluginHost.h` interface
-- [ ] **TASK-237**: Implement `VisualizerPluginHost.cpp`
-- [ ] **TASK-238**: Implement FFT (KissFFT)
-- [ ] **TASK-239**: Implement spectrum analyzer
-- [ ] **TASK-240**: Implement waveform display
-- [ ] **TASK-241**: Implement VU meter
-- [ ] **TASK-242**: Implement plugin loading interface
-- [ ] **TASK-243**: Implement audio sample callbacks
+### 5.5 Advanced Playback Features
+- [ ] **TASK-205**: Add A-B Loop feature (repeat section of track)
+- [ ] **TASK-206**: Implement audio bookmarks (save position in long tracks/podcasts)
+- [ ] **TASK-207**: Add normalization preamp gain control
+- [ ] **TASK-208**: Implement audio output device selection
+- [ ] **TASK-209**: Add "Fade on Pause" option
+- [ ] **TASK-210**: Implement queue history (show previously played tracks)
 
 ---
 
-## Phase 6: Audio Player C++/CLI Bridge
+## Phase 6: Architecture Improvements
 
-### 6.1 Wrapper Setup
-- [ ] **TASK-244**: Create `CppAudioBridge` C++/CLI project
-- [ ] **TASK-245**: Reference `CppAudioCore`
-- [ ] **TASK-246**: Create marshaling utilities
+### 6.1 Dependency Injection Migration
+- [ ] **TASK-211**: Create `IServiceProvider` bootstrapper in App.xaml.cs
+- [ ] **TASK-212**: Define service interfaces for all major services
+- [ ] **TASK-213**: Register singleton services (FFmpegService, AudioPlayerService, etc.)
+- [ ] **TASK-214**: Register transient services (ViewModels, dialogs)
+- [ ] **TASK-215**: Migrate MainWindow to constructor injection
+- [ ] **TASK-216**: Migrate all ViewModels to use injected services
+- [ ] **TASK-217**: Remove ServiceLocator static access pattern
+- [ ] **TASK-218**: Add service lifetime documentation
 
-### 6.2 Service Wrappers
-- [ ] **TASK-247**: Create `ConverterServiceWrapper.h/cpp`
-- [ ] **TASK-248**: Create `PlayerServiceWrapper.h/cpp`
-- [ ] **TASK-249**: Create `MetadataServiceWrapper.h/cpp`
-- [ ] **TASK-250**: Create `LyricsServiceWrapper.h/cpp`
-- [ ] **TASK-251**: Create `LibraryServiceWrapper.h/cpp`
-- [ ] **TASK-252**: Create `VisualizerServiceWrapper.h/cpp`
-
-### 6.3 Event Marshaling
-- [ ] **TASK-253**: Implement progress event marshaling
-- [ ] **TASK-254**: Implement position event marshaling
-- [ ] **TASK-255**: Implement audio sample event marshaling
-- [ ] **TASK-256**: Implement error event marshaling
-
-### 6.4 Async Patterns
-- [ ] **TASK-257**: Implement Task-based async wrappers
-- [ ] **TASK-258**: Implement CancellationToken support
-- [ ] **TASK-259**: Implement IProgress support
+### 6.2 Code Quality
+- [ ] **TASK-219**: Enable nullable reference types (`<Nullable>enable</Nullable>`)
+- [ ] **TASK-220**: Fix all nullable warnings in Core project
+- [ ] **TASK-221**: Fix all nullable warnings in UI project
+- [ ] **TASK-222**: Add `[CallerMemberName]` to all INotifyPropertyChanged implementations
+- [ ] **TASK-223**: Migrate remaining ViewModels to BindableBase
+- [ ] **TASK-224**: Audit and remove unused code/fields (CS0169 warnings)
 
 ---
 
-## Phase 7: Audio Player .NET UI
+## Phase 7: Testing & Quality
 
-### 7.1 ViewModels
-- [ ] **TASK-260**: Create `PlayerViewModel.cs`
-- [ ] **TASK-261**: Create `PlaylistViewModel.cs`
-- [ ] **TASK-262**: Create `LibraryViewModel.cs`
-- [ ] **TASK-263**: Create `LyricsViewModel.cs`
-- [ ] **TASK-264**: Create `EQViewModel.cs`
-- [ ] **TASK-265**: Create `VisualizerViewModel.cs`
-- [ ] **TASK-266**: Create `ConverterViewModel.cs`
+### 7.1 Unit Tests
+- [ ] **TASK-225**: Write tests for EnhancedAudioPlayerService
+- [ ] **TASK-226**: Write tests for LibraryIndexService
+- [ ] **TASK-227**: Write tests for MetadataExtractorService
+- [ ] **TASK-228**: Write tests for ForensicsAnalyzerService
+- [ ] **TASK-229**: Write tests for YaraService
+- [ ] **TASK-230**: Write tests for IOCScannerService
+- [ ] **TASK-231**: Write tests for PcapParserService
 
-### 7.2 Views
-- [ ] **TASK-267**: Create `PlayerView.xaml`
-- [ ] **TASK-268**: Create `PlaylistView.xaml`
-- [ ] **TASK-269**: Create `LibraryView.xaml`
-- [ ] **TASK-270**: Create `LyricsView.xaml`
-- [ ] **TASK-271**: Create `EQView.xaml`
-- [ ] **TASK-272**: Create `VisualizerView.xaml`
-- [ ] **TASK-273**: Create `ConverterView.xaml`
-
-### 7.3 Player Controls
-- [ ] **TASK-274**: Create playback controls (play, pause, stop, next, prev)
-- [ ] **TASK-275**: Create seek slider
-- [ ] **TASK-276**: Create volume slider
-- [ ] **TASK-277**: Create time display
-- [ ] **TASK-278**: Create album art display
-- [ ] **TASK-279**: Create now playing info
-- [ ] **TASK-280**: Create loop/shuffle toggles
-
-### 7.4 Library UI
-- [ ] **TASK-281**: Create artist list view
-- [ ] **TASK-282**: Create album grid view
-- [ ] **TASK-283**: Create track list view
-- [ ] **TASK-284**: Create folder tree view
-- [ ] **TASK-285**: Create search bar
-- [ ] **TASK-286**: Create filter panel
-
-### 7.5 Integration
-- [ ] **TASK-287**: Add Audio Player to main navigation
-- [ ] **TASK-288**: Create Audio Player landing page
-- [ ] **TASK-289**: Implement keyboard shortcuts for player
-- [ ] **TASK-290**: Implement system media transport controls
+### 7.2 Integration Tests
+- [ ] **TASK-232**: Write integration tests for audio playback pipeline
+- [ ] **TASK-233**: Write integration tests for library scanning
+- [ ] **TASK-234**: Write integration tests for plugin loading
 
 ---
 
@@ -579,17 +507,32 @@ The current WPF shape-based rendering works well. A proper HD implementation wou
 
 ## Truly Remaining Tasks (Actionable)
 
-### Phase 2 (3 tasks remaining)
+### Phase 2 (1 task remaining)
 - [ ] **TASK-053**: Per-item settings override for batch upscale
-- [ ] **TASK-072**: Tag selection checkboxes for batch metadata
-- [ ] **TASK-074**: Preview before apply for batch metadata
+- [x] **TASK-072**: Tag selection checkboxes for batch metadata ✅ *(SelectableMetadataTag implemented)*
+- [x] **TASK-074**: Preview before apply for batch metadata ✅ *(MetadataPreviewItem implemented)*
 
-### Phase 4 (2 tasks remaining)
-- [ ] **TASK-167**: Plugin sandboxing (security isolation)
-- [ ] **TASK-168**: Sample plugin with documentation
+### Phase 4 (0 tasks remaining - All Complete!)
+- [x] **TASK-167**: Plugin sandboxing ✅ *(PluginLoadContext isolation in PluginService.cs)*
+- [x] **TASK-168**: Sample plugin ✅ *(samples/SamplePlugin with HelloWorldPlugin.cs)*
 
-### Phase 8: Testing & Documentation (15 tasks)
-- [ ] **TASK-291-300**: Unit tests for services
+### Phase 5: Audio Player Enhancements (~32 tasks)
+- [ ] **TASK-179-185**: Streaming & Online Integration (SoundCloud, YouTube, Internet Radio)
+- [ ] **TASK-186-192**: Visualizer Enhancements (3D Bars, Oscilloscope, Waterfall, VU Meter)
+- [ ] **TASK-193-198**: UI Polish & UX (Album art effects, Seek preview, Accessibility)
+- [ ] **TASK-199-204**: Library Improvements (Folder watch, Sync, Smart collections)
+- [ ] **TASK-205-210**: Advanced Playback (A-B Loop, Bookmarks, Device selection)
+
+### Phase 6: Architecture Improvements (~14 tasks)
+- [ ] **TASK-211-218**: Dependency Injection Migration
+- [ ] **TASK-219-224**: Code Quality (Nullable, BindableBase, Cleanup)
+
+### Phase 7: Testing & Quality (~10 tasks)
+- [ ] **TASK-225-231**: Unit Tests for Audio/Forensics services
+- [ ] **TASK-232-234**: Integration Tests
+
+### Phase 8: Testing & Documentation (11 tasks remaining)
+- [ ] **TASK-291-300**: Unit tests for other services
 - [ ] **TASK-301-304**: Integration tests
 - [ ] **TASK-306**: XML doc comments
 - [ ] **TASK-308**: Plugin developer guide
@@ -598,14 +541,19 @@ The current WPF shape-based rendering works well. A proper HD implementation wou
 - [ ] **TASK-310-317**: Advanced image editing (text overlay, shapes, layers)
 - [ ] **TASK-318-324**: Image processing filters (blur, sharpen, contrast)
 
-### Audio Player (Not in C++ phases)
-- [ ] Gapless playback
-- [ ] LRC lyrics parsing and display
-- [ ] 10-band parametric EQ (currently 3-band)
+### Audio Player Already Complete ✅
+- ✅ Gapless playback (`EnhancedAudioPlayerService.PreloadNextTrackAsync`)
+- ✅ LRC lyrics parsing and display (`LyricsService.cs`)
+- ✅ 10-band parametric EQ (`EqualizerSampleProvider` with BiQuadFilter chains)
+- ✅ Crossfade between tracks (`AudioPlayerService.cs`)
+- ✅ ReplayGain normalization (`ApplyReplayGain()`)
+- ✅ Spectrum analyzer with FFT (`SpectrumAnalyzerSampleProvider`)
+- ✅ Media key support (`RegisterMediaKeys()`)
+- ✅ Playback speed control (0.25x-4x)
 
 ---
 
-## Priority Next Steps (v3.3.0 Candidates)
+## Priority Next Steps (v3.4.0 Candidates)
 
 Based on remaining work and user value, here are the **recommended next features**:
 
@@ -619,17 +567,20 @@ Based on remaining work and user value, here are the **recommended next features
 ### High Priority (Quick Wins - Remaining)
 
 1. **TASK-053: Per-item settings override for batch upscale** - More flexibility per file
-2. **TASK-072: Tag selection checkboxes for batch metadata** - Select which tags to copy
-3. **TASK-074: Preview before apply for batch metadata** - See changes before committing
+
+### ✅ Recently Completed (was listed as remaining)
+- ~~TASK-072: Tag selection checkboxes~~ - ✅ SelectableMetadataTag implemented
+- ~~TASK-074: Preview before apply~~ - ✅ MetadataPreviewItem implemented
+- ~~TASK-167: Plugin sandboxing~~ - ✅ PluginLoadContext isolation
+- ~~TASK-168: Sample plugin~~ - ✅ samples/SamplePlugin/HelloWorldPlugin.cs
 
 ### Medium Priority (New Functionality)
 
-4. **TASK-167: Plugin sandboxing** - Isolate plugins for security
-5. **TASK-168: Sample plugin** - Help developers create plugins
-6. **Advanced Image Editing (TASK-310-317)** - Text overlay, shape drawing, layers
-7. **Image Processing Filters (TASK-318-324)** - Blur, sharpen, contrast, crop tools
+1. **Advanced Image Editing (TASK-310-317)** - Text overlay, shape drawing, layers
+2. **Image Processing Filters (TASK-318-324)** - Blur, sharpen, contrast, crop tools
+3. **Streaming Integration (TASK-179-185)** - SoundCloud, YouTube Audio, Internet Radio
 
-### Audio Player Enhancements (Native .NET)
+### Audio Player Enhancements (All Core Features Complete ✅)
 
 **Already Implemented:**
 - ✅ **Playlist Management** - Create, edit, save playlists (`AudioLibraryViewModel.cs`, `Playlist` model)
@@ -651,10 +602,11 @@ Based on remaining work and user value, here are the **recommended next features
 
 ### System & Quality
 
-16. **TASK-306: XML doc comments** - Document all public APIs
-17. **TASK-308: Plugin developer guide** - Help third-party developers
-18. **Unit Tests (TASK-291-300)** - Increase test coverage
-19. **Integration Tests (TASK-301-304)** - End-to-end testing
+1. **TASK-306: XML doc comments** - Document all public APIs
+2. **TASK-308: Plugin developer guide** - Help third-party developers
+3. **Unit Tests (TASK-225-231)** - Audio/DFIR service tests
+4. **Integration Tests (TASK-232-234)** - End-to-end testing
+5. **DI Migration (TASK-211-218)** - Replace ServiceLocator with proper DI
 
 ---
 
@@ -678,16 +630,21 @@ Based on remaining work and user value, here are the **recommended next features
 3. ✅ **Transition Preview** - Preview video transitions before applying
 4. ✅ **Synchronized Comparison Zoom** - Side-by-side zoom/pan for image comparison
 
-### 🔧 Future Enhancements (v3.4.0 Candidates)
-5. **Batch Metadata Tag Selection** - Choose which tags to copy/apply (TASK-072)
-6. **Per-file Batch Upscale Settings** - Override settings per file (TASK-053)
-7. **Sample Plugin + Developer Guide** - Bootstrap plugin ecosystem (TASK-168)
-8. **Advanced Image Editing** - Text overlay, shape drawing, layers (TASK-310-317)
-9. **High-Resolution Visualizer Rendering** - Upgrade visualizers to GPU-shader-quality using Win2D/HLSL techniques
-   - Add per-pixel noise/swirl functions (from `Stargate_Wormhole_UWP_Win2D.md`)
-   - Consider WriteableBitmap for shader-like CPU rendering
-   - Potential Win2D integration for true GPU acceleration
-   - Reference: `Stargate_TimeVortex_FFmpeg_1080p_Export_Guide.md`
+### 🔧 v3.4.0 Candidates (Next Release)
+
+**High Value, Quick Implementation:**
+1. **TASK-053: Per-file Batch Upscale Settings** - Override settings per file (~4h)
+2. **Visualizer Enhancements (TASK-186-192)** - New modes: 3D Bars, Oscilloscope, VU Meter (~15h)
+3. **Fullscreen Visualizer (TASK-192)** - Visualizer with overlay controls (~4h)
+
+**Medium Effort, High Value:**
+4. **Streaming Integration (TASK-179-185)** - Internet Radio, SoundCloud (~20h)
+5. **DI Container Migration (TASK-211-218)** - Replace ServiceLocator (~10h)
+6. **A-B Loop Feature (TASK-205)** - Repeat section of track (~3h)
+
+**Long-term/Nice-to-Have:**
+7. **Advanced Image Editing (TASK-310-317)** - Text overlay, shape drawing, layers
+8. **High-Resolution Visualizer Rendering** - GPU-shader-quality using Win2D/HLSL
 
 ---
 

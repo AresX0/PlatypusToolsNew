@@ -622,6 +622,106 @@
                     </Grid>
                 </Grid>
             </TabItem>
+            
+            <!-- Batch Tag Editor Tab -->
+            <TabItem Header="🏷️ Batch Tags">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="5"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- File Selection -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                        <Button Content="➕ Add Files" Command="{Binding BatchAddFilesCommand}" MinWidth="120" Margin="0,0,5,0"/>
+                        <Button Content="📁 Add Folder" Command="{Binding BatchAddFolderCommand}" MinWidth="120" Margin="0,0,5,0"/>
+                        <Button Content="❌ Clear All" Command="{Binding BatchClearFilesCommand}" MinWidth="100" Margin="0,0,20,0"/>
+                        <Button Content="🔢 Auto-Number" Command="{Binding BatchAutoNumberCommand}" MinWidth="120" Margin="0,0,5,0"
+                                ToolTip="Set track numbers sequentially (1, 2, 3...)"/>
+                    </StackPanel>
+                    
+                    <!-- Bulk Apply Fields -->
+                    <GroupBox Grid.Row="1" Header="Apply to All Selected" Margin="0,0,0,5">
+                        <WrapPanel Margin="5">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,15,5">
+                                <TextBlock Text="Artist:" VerticalAlignment="Center" Width="50"/>
+                                <TextBox Text="{Binding BatchCommonArtist, UpdateSourceTrigger=PropertyChanged}" Width="140" Margin="0,0,4,0"/>
+                                <Button Content="Apply" MinWidth="50" Background="#FF4CAF50" Foreground="White"
+                                        Command="{Binding BatchSetCommonFieldCommand}" CommandParameter="Artist"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,15,5">
+                                <TextBlock Text="Album:" VerticalAlignment="Center" Width="50"/>
+                                <TextBox Text="{Binding BatchCommonAlbum, UpdateSourceTrigger=PropertyChanged}" Width="140" Margin="0,0,4,0"/>
+                                <Button Content="Apply" MinWidth="50" Background="#FF4CAF50" Foreground="White"
+                                        Command="{Binding BatchSetCommonFieldCommand}" CommandParameter="Album"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,15,5">
+                                <TextBlock Text="Genre:" VerticalAlignment="Center" Width="50"/>
+                                <TextBox Text="{Binding BatchCommonGenre, UpdateSourceTrigger=PropertyChanged}" Width="140" Margin="0,0,4,0"/>
+                                <Button Content="Apply" MinWidth="50" Background="#FF4CAF50" Foreground="White"
+                                        Command="{Binding BatchSetCommonFieldCommand}" CommandParameter="Genre"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,15,5">
+                                <TextBlock Text="Year:" VerticalAlignment="Center" Width="50"/>
+                                <TextBox Text="{Binding BatchCommonYear, UpdateSourceTrigger=PropertyChanged}" Width="70" Margin="0,0,4,0"/>
+                                <Button Content="Apply" MinWidth="50" Background="#FF4CAF50" Foreground="White"
+                                        Command="{Binding BatchSetCommonFieldCommand}" CommandParameter="Year"/>
+                            </StackPanel>
+                        </WrapPanel>
+                    </GroupBox>
+                    
+                    <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" Background="#444444" Cursor="SizeNS" ResizeDirection="Rows"/>
+                    
+                    <!-- Files DataGrid -->
+                    <DataGrid Grid.Row="3" ItemsSource="{Binding BatchFiles}" AutoGenerateColumns="False" 
+                              CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeColumns="True"
+                              HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header="✓" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="35"/>
+                            <DataGridTextColumn Header="File" Binding="{Binding FileName}" Width="180" IsReadOnly="True">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                        <Setter Property="ToolTip" Value="{Binding FilePath}"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Track#" Binding="{Binding TrackNumber, UpdateSourceTrigger=PropertyChanged}" Width="55"/>
+                            <DataGridTextColumn Header="Title" Binding="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Width="*" MinWidth="120">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                        <Setter Property="ToolTip" Value="{Binding Title}"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Artist" Binding="{Binding Artist, UpdateSourceTrigger=PropertyChanged}" Width="140"/>
+                            <DataGridTextColumn Header="Album" Binding="{Binding Album, UpdateSourceTrigger=PropertyChanged}" Width="140"/>
+                            <DataGridTextColumn Header="Genre" Binding="{Binding Genre, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
+                            <DataGridTextColumn Header="Year" Binding="{Binding Year, UpdateSourceTrigger=PropertyChanged}" Width="55"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    
+                    <!-- Status Bar -->
+                    <Grid Grid.Row="4" Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding BatchStatusMessage}" Margin="0,0,15,0"/>
+                            <ProgressBar Value="{Binding BatchProgress}" Maximum="100" Width="200" Height="18"
+                                         Visibility="{Binding IsBatchProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="💾 Save All Tags" Command="{Binding BatchSaveAllCommand}" 
+                                MinWidth="160" Height="32" Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
+                    </Grid>
+                </Grid>
+            </TabItem>
         </TabControl>
     </Grid>
 </UserControl>

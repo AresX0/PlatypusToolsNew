@@ -1,7 +1,7 @@
 # Audio Player Feature Manifest
-**Status**: Production Specification v1.0  
-**Target Platform**: Windows 10+ | WPF (.NET 8+)  
-**Last Updated**: January 14, 2026  
+**Status**: Production Specification v2.0  
+**Target Platform**: Windows 10+ | WPF (.NET 10)  
+**Last Updated**: February 8, 2026  
 
 ---
 
@@ -52,40 +52,66 @@ This manifest tracks all required features for a production-grade desktop Audio 
 
 ## 2. Visualizer System
 
-### 2.1 Visualizer Modes
-- 🔄 **Spectrum Mode** - FFT bars with log frequency scaling
-  - Status: Native bars mode implemented
-  - TODO: Log frequency scaling optimization
-- 🔄 **Waveform Mode** - Time-domain waveform display
-  - Status: Native waveform mode implemented
-  - TODO: Anti-aliasing, smoothing
-- 🔄 **Circular/Radial Mode** - Circular spectrum visualization
-  - Status: Native circular mode implemented
-  - TODO: Animation smoothness
-- ⚠️ **Mirror Mode** - Symmetric spectrum display
-  - Status: Implemented but needs optimization
-- ⚠️ **Oscilloscope Mode** - Traditional oscilloscope rendering
+### 2.1 Visualizer Modes — 22 GPU-Rendered Modes ✅
+- ✅ **Bars** (0) — Classic FFT spectrum bars with gradient fill
+- ✅ **Mirror** (1) — Symmetric spectrum reflected across center
+- ✅ **Waveform** (2) — Time-domain waveform line
+- ✅ **Circular** (3) — Radial bar ring around center
+- ✅ **Radial** (4) — Outward-expanding radial lines
+- ✅ **Particles** (5) — HSL-colored particle system driven by FFT
+- ✅ **Aurora** (6) — Multi-layer aurora borealis waves
+- ✅ **Wave Grid** (7) — 3D perspective wave grid
+- ✅ **Starfield** (8) — Forward-flying star field
+- ✅ **Toasters** (9) — Flying toasters animation
+- ✅ **Matrix** (10) — Matrix rain with glow (fullscreen-aware)
+- ✅ **Star Wars Crawl** (11) — Perspective text crawl
+- ✅ **Stargate** (12) — Wormhole/vortex tunnel
+- ✅ **Klingon** (13) — Klingon-themed spectrum with logo overlay
+- ✅ **Federation** (14) — Federation particle nebula with logo
+- ✅ **Jedi** (15) — Lightsaber array driven by FFT bands
+- ✅ **TimeLord** (16) — TARDIS vortex with feedback buffer
+- ✅ **VU Meter** (17) — Analog VU meter pair
+- ✅ **Oscilloscope** (18) — Traditional oscilloscope trace
+- ✅ **Milkdrop** (19) — Milkdrop-style feedback buffer with warping
+- ✅ **3D Bars** (20) — Perspective 3D bar graph
+- ✅ **Waterfall** (21) — Scrolling spectrogram heatmap
 
 ### 2.2 Visualizer Configuration
-- ✅ FFT Size Selection (1024/2048/4096)
+- ✅ FFT Size Selection (1024-point)
 - ✅ Bar Count Adjustment (8-128 bars)
-- ✅ Color Palette Customization
-- ⚠️ Smoothing Time Constant (0.1-1.0)
-- ⚠️ Min/Max Frequency Range
+- ✅ Color Palette Customization (8 color schemes)
+- ✅ Smoothing with rise/fall multipliers
+- ✅ Fullscreen responsiveness multipliers (1.5× rise / 1.3× fall)
 - ⚠️ Dynamic Quality Adaptation (<40 FPS → reduce complexity)
 
-### 2.3 Performance Targets
-- ✅ Target 60 FPS on mid-range hardware
-- ⚠️ Smooth degradation if <40 FPS sustained
-- ⚠️ GPU-accelerated SkiaSharp rendering
-- ⚠️ Memory reuse (avoid allocations in render loop)
-- ⚠️ Efficient buffer management
+### 2.3 Performance & Stability ✅
+- ✅ GPU-accelerated SkiaSharp rendering via `SKElement`
+- ✅ ~22 FPS DispatcherTimer render loop
+- ✅ All SKMaskFilter native leaks fixed (20 sites, `using var`)
+- ✅ All SKTypeface handles cached (8 static typefaces)
+- ✅ GPU bitmap disposal on unload (`DisposeGpuResources()`)
+- ✅ Feedback buffers capped at 640px width
+- ✅ Render crash recovery (try/catch in `OnPaintSurface`)
+- ✅ Thread-safe frame-skip guard (`Interlocked.CompareExchange`)
 
-### 2.4 Visualizer Integration
+### 2.4 Fullscreen Mode ✅
+- ✅ Enter via double-click or F11
+- ✅ Arrow-key mode switching (←/→/↑/↓)
+- ✅ OSD overlay with mode name, ◀/▶ buttons, track info
+- ✅ Music-responsive in fullscreen (DispatcherPriority.Input)
+- ✅ Exit via Escape or double-click
+
+### 2.5 Screensaver Integration ✅
+- ✅ All 22 modes available as Windows screensaver
+- ✅ Full app copy to `%ProgramData%\PlatypusTools\Screensaver\`
+- ✅ 45ms idle animation timer (evolving data without audio)
+- ✅ Configuration window for mode selection
+
+### 2.6 Visualizer Integration ✅
 - ✅ Real-time spectrum data feed from audio engine
-- ✅ Separate AudioVisualizerView component
-- ⚠️ Lock-free data synchronization
-- ⚠️ Non-blocking audio pipeline
+- ✅ Separate AudioVisualizerView component (~10 000 lines)
+- ✅ Thread-safe data synchronization (Interlocked guard)
+- ✅ Non-blocking audio pipeline
 
 ---
 

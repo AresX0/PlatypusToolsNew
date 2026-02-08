@@ -1007,6 +1007,119 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     
     #endregion
     
+    #region AP-020: A-B Loop Properties
+    
+    public bool IsABLoopEnabled => _playerService.IsABLoopEnabled;
+    
+    /// <summary>
+    /// Gets low-resolution waveform data for the current track (for seek preview).
+    /// </summary>
+    public float[]? GetWaveformData(int sampleCount = 140) => _playerService.GetWaveformData(sampleCount);
+    
+    public string LoopPointADisplay => _playerService.LoopPointA.HasValue 
+        ? _playerService.LoopPointA.Value.ToString(@"mm\:ss\.f") 
+        : "--:--.-";
+    
+    public string LoopPointBDisplay => _playerService.LoopPointB.HasValue 
+        ? _playerService.LoopPointB.Value.ToString(@"mm\:ss\.f") 
+        : "--:--.-";
+    
+    private void RefreshABLoopProperties()
+    {
+        RaisePropertyChanged(nameof(IsABLoopEnabled));
+        RaisePropertyChanged(nameof(LoopPointADisplay));
+        RaisePropertyChanged(nameof(LoopPointBDisplay));
+    }
+    
+    #endregion
+    
+    #region AP-021: Audio Bookmarks Properties
+    
+    public bool HasBookmark => CurrentTrack != null && 
+        _playerService.GetBookmark(CurrentTrack.FilePath).HasValue;
+    
+    public string BookmarkDisplay => CurrentTrack != null && 
+        _playerService.GetBookmark(CurrentTrack.FilePath) is TimeSpan ts
+        ? ts.ToString(@"mm\:ss\.f")
+        : "No bookmark";
+    
+    private void RefreshBookmarkProperties()
+    {
+        RaisePropertyChanged(nameof(HasBookmark));
+        RaisePropertyChanged(nameof(BookmarkDisplay));
+    }
+    
+    #endregion
+    
+    #region AP-022: Play History Properties
+    
+    public ObservableCollection<AudioTrack> PlayHistory { get; } = new();
+    
+    private void SyncPlayHistory()
+    {
+        PlayHistory.Clear();
+        foreach (var track in _playerService.PlayHistory.Take(50))
+        {
+            PlayHistory.Add(track);
+        }
+    }
+    
+    #endregion
+    
+    #region AP-023: Audio Output Device Properties
+    
+    private string _selectedAudioDeviceName = "Default";
+    public string SelectedAudioDeviceName
+    {
+        get => _selectedAudioDeviceName;
+        set => SetProperty(ref _selectedAudioDeviceName, value);
+    }
+    
+    public ObservableCollection<(int DeviceNumber, string Name)> AudioOutputDevices { get; } = new();
+    
+    private void RefreshAudioDevices()
+    {
+        AudioOutputDevices.Clear();
+        AudioOutputDevices.Add((-1, "Default"));
+        foreach (var device in EnhancedAudioPlayerService.GetAudioOutputDevices())
+        {
+            AudioOutputDevices.Add(device);
+        }
+        SelectedAudioDeviceName = "Default";
+    }
+    
+    #endregion
+    
+    #region AP-024: Fade on Pause Properties
+    
+    private bool _fadeOnPause = true;
+    public bool FadeOnPause
+    {
+        get => _fadeOnPause;
+        set
+        {
+            if (SetProperty(ref _fadeOnPause, value))
+            {
+                _playerService.FadeOnPause = value;
+            }
+        }
+    }
+    
+    private int _fadeOnPauseDurationMs = 500;
+    public int FadeOnPauseDurationMs
+    {
+        get => _fadeOnPauseDurationMs;
+        set
+        {
+            if (SetProperty(ref _fadeOnPauseDurationMs, value))
+            {
+                _playerService.FadeOnPauseDurationMs = value;
+            }
+        }
+    }
+    
+    #endregion
+    
     #region Queue & Library
     
     public ObservableCollection<AudioTrack> Queue { get; } = new();
@@ -1163,6 +1276,43 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         set => SetProperty(ref _spectrumData, value);
     }
     
+    // VU Meter properties
+    private float _vuPeakLeft;
+    public float VUPeakLeft
+    {
+        get => _vuPeakLeft;
+        set => SetProperty(ref _vuPeakLeft, value);
+    }
+    
+    private float _vuPeakRight;
+    public float VUPeakRight
+    {
+        get => _vuPeakRight;
+        set => SetProperty(ref _vuPeakRight, value);
+    }
+    
+    private float _vuRmsLeft;
+    public float VURmsLeft
+    {
+        get => _vuRmsLeft;
+        set => SetProperty(ref _vuRmsLeft, value);
+    }
+    
+    private float _vuRmsRight;
+    public float VURmsRight
+    {
+        get => _vuRmsRight;
+        set => SetProperty(ref _vuRmsRight, value);
+    }
+    
+    // Oscilloscope data
+    private float[] _oscilloscopeData = new float[512];
+    public float[] OscilloscopeData
+    {
+        get => _oscilloscopeData;
+        set => SetProperty(ref _oscilloscopeData, value);
+    }
+
     // Visualizer properties
     private int _visualizerModeIndex;
     public int VisualizerModeIndex
@@ -1194,6 +1344,8 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         14 => "Federation",
         15 => "Jedi",
         16 => "TimeLord",
+        17 => "VU Meter",
+        18 => "Oscilloscope",
         _ => "Bars"
     };
     
@@ -1220,7 +1372,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     // Dropdown collections for visualizer controls
     public List<string> VisualizerModes { get; } = new()
     {
-        "Bars", "Mirror", "Waveform", "Circular", "Radial", "Particles", "Aurora", "Wave Grid", "Starfield", "Toasters", "Matrix", "Star Wars Crawl", "Stargate", "Klingon", "Federation", "Jedi", "TimeLord"
+        "Bars", "Mirror", "Waveform", "Circular", "Radial", "Particles", "Aurora", "Wave Grid", "Starfield", "Toasters", "Matrix", "Star Wars Crawl", "Stargate", "Klingon", "Federation", "Jedi", "TimeLord", "VU Meter", "Oscilloscope", "Milkdrop", "3D Bars", "Waterfall"
     };
     
     public List<string> ColorSchemes { get; } = new()
@@ -1251,6 +1403,91 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     {
         get => _crawlScrollSpeed;
         set => SetProperty(ref _crawlScrollSpeed, Math.Clamp(value, 0.25, 3.0));
+    }
+    
+    // --- Streaming ---
+    private string _streamUrl = string.Empty;
+    public string StreamUrl
+    {
+        get => _streamUrl;
+        set => SetProperty(ref _streamUrl, value);
+    }
+    
+    private string _streamStatus = string.Empty;
+    public string StreamStatus
+    {
+        get => _streamStatus;
+        set => SetProperty(ref _streamStatus, value);
+    }
+    
+    private double _streamBufferProgress;
+    public double StreamBufferProgress
+    {
+        get => _streamBufferProgress;
+        set => SetProperty(ref _streamBufferProgress, value);
+    }
+    
+    private bool _isStreamBuffering;
+    public bool IsStreamBuffering
+    {
+        get => _isStreamBuffering;
+        set => SetProperty(ref _isStreamBuffering, value);
+    }
+    
+    private RadioStation? _selectedRadioStation;
+    public RadioStation? SelectedRadioStation
+    {
+        get => _selectedRadioStation;
+        set => SetProperty(ref _selectedRadioStation, value);
+    }
+    
+    public IReadOnlyList<RadioStation> RadioStations => Services.AudioStreamingService.Instance.Stations;
+    
+    public ICommand PlayStreamCommand => new RelayCommand(async _ =>
+    {
+        string url = StreamUrl?.Trim() ?? string.Empty;
+        if (string.IsNullOrEmpty(url) && SelectedRadioStation != null)
+            url = SelectedRadioStation.Url;
+        if (string.IsNullOrEmpty(url)) return;
+        
+        await PlayStreamFromUrlAsync(url);
+    });
+    
+    private async Task PlayStreamFromUrlAsync(string url)
+    {
+        try
+        {
+            IsStreamBuffering = true;
+            StreamStatus = "Connecting...";
+            
+            var streaming = Services.AudioStreamingService.Instance;
+            streaming.StreamStatusChanged += (s, status) =>
+            {
+                App.Current?.Dispatcher.BeginInvoke(() => StreamStatus = status);
+            };
+            streaming.BufferProgressChanged += (s, progress) =>
+            {
+                App.Current?.Dispatcher.BeginInvoke(() =>
+                {
+                    StreamBufferProgress = progress;
+                    IsStreamBuffering = progress < 100;
+                });
+            };
+            streaming.StreamError += (s, error) =>
+            {
+                App.Current?.Dispatcher.BeginInvoke(() => StreamStatus = error);
+            };
+            
+            await _playerService.PlayStreamAsync(url);
+        }
+        catch (Exception ex)
+        {
+            StreamStatus = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            IsStreamBuffering = false;
+        }
     }
     
     // FPS control for visualizer performance
@@ -1431,6 +1668,23 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     public ICommand ScrollToCurrentTrackCommand { get; }
     public ICommand ShowLibraryFromPlaylistCommand { get; }
     
+    // A-B Loop commands
+    public ICommand SetLoopPointACommand { get; }
+    public ICommand SetLoopPointBCommand { get; }
+    public ICommand ClearABLoopCommand { get; }
+    
+    // Bookmark commands
+    public ICommand SaveBookmarkCommand { get; }
+    public ICommand LoadBookmarkCommand { get; }
+    public ICommand ClearBookmarkCommand { get; }
+    
+    // History commands
+    public ICommand ClearHistoryCommand { get; }
+    public ICommand PlayFromHistoryCommand { get; }
+    
+    // Device selection command
+    public ICommand SelectAudioDeviceCommand { get; }
+    
     // Event for UI to scroll queue
     public event EventHandler? RequestScrollToCurrentTrack;
     
@@ -1456,6 +1710,8 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         _playerService.PositionChanged += OnPositionChanged;
         _playerService.PlaybackStateChanged += OnPlaybackStateChanged;
         _playerService.SpectrumDataUpdated += OnSpectrumDataUpdated;
+        _playerService.VULevelsUpdated += OnVULevelsUpdated;
+        _playerService.OscilloscopeDataUpdated += OnOscilloscopeDataUpdated;
         _playerService.DurationChanged += OnDurationChanged;
         _playerService.PlaybackError += OnPlaybackError;
         _playerService.TrackEnded += OnTrackEnded;
@@ -1697,8 +1953,100 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             await Task.CompletedTask;
         });
         
+        // A-B Loop commands
+        SetLoopPointACommand = new RelayCommand(_ =>
+        {
+            _playerService.SetLoopPointA();
+            RaisePropertyChanged(nameof(LoopPointADisplay));
+            RaisePropertyChanged(nameof(IsABLoopEnabled));
+            StatusMessage = $"Loop Point A set at {_playerService.LoopPointA:mm\\:ss\\.ff}";
+        });
+        
+        SetLoopPointBCommand = new RelayCommand(_ =>
+        {
+            _playerService.SetLoopPointB();
+            RaisePropertyChanged(nameof(LoopPointBDisplay));
+            RaisePropertyChanged(nameof(IsABLoopEnabled));
+            if (_playerService.IsABLoopEnabled)
+                StatusMessage = $"A-B Loop enabled: {LoopPointADisplay} → {LoopPointBDisplay}";
+            else
+                StatusMessage = $"Loop Point B set at {_playerService.LoopPointB:mm\\:ss\\.ff}";
+        });
+        
+        ClearABLoopCommand = new RelayCommand(_ =>
+        {
+            _playerService.ClearABLoop();
+            RaisePropertyChanged(nameof(LoopPointADisplay));
+            RaisePropertyChanged(nameof(LoopPointBDisplay));
+            RaisePropertyChanged(nameof(IsABLoopEnabled));
+            StatusMessage = "A-B Loop cleared";
+        });
+        
+        // Bookmark commands
+        SaveBookmarkCommand = new RelayCommand(_ =>
+        {
+            _playerService.SaveBookmark();
+            StatusMessage = $"Bookmark saved at {Position:mm\\:ss}";
+            RaisePropertyChanged(nameof(HasBookmark));
+        });
+        
+        LoadBookmarkCommand = new RelayCommand(_ =>
+        {
+            if (CurrentTrack != null)
+            {
+                var bookmark = _playerService.GetBookmark(CurrentTrack.FilePath);
+                if (bookmark.HasValue)
+                {
+                    _playerService.Seek(bookmark.Value);
+                    StatusMessage = $"Resumed from {bookmark.Value:mm\\:ss}";
+                }
+            }
+        }, _ => HasBookmark);
+        
+        ClearBookmarkCommand = new RelayCommand(_ =>
+        {
+            if (CurrentTrack != null)
+            {
+                _playerService.RemoveBookmark(CurrentTrack.FilePath);
+                StatusMessage = "Bookmark cleared";
+                RaisePropertyChanged(nameof(HasBookmark));
+            }
+        }, _ => HasBookmark);
+        
+        // History commands
+        ClearHistoryCommand = new RelayCommand(_ =>
+        {
+            _playerService.ClearHistory();
+            PlayHistory.Clear();
+            StatusMessage = "Play history cleared";
+        });
+        
+        PlayFromHistoryCommand = new AsyncRelayCommand<AudioTrack>(async track =>
+        {
+            if (track != null)
+            {
+                await _playerService.PlayTrackAsync(track);
+            }
+        });
+        
+        // Device selection command
+        SelectAudioDeviceCommand = new RelayCommand(param =>
+        {
+            if (param is int deviceNumber)
+            {
+                _playerService.SelectedDeviceNumber = deviceNumber;
+                var devices = EnhancedAudioPlayerService.GetAudioOutputDevices().ToList();
+                var device = devices.FirstOrDefault(d => d.DeviceNumber == deviceNumber);
+                StatusMessage = $"Audio device: {device.Name}";
+                RaisePropertyChanged(nameof(SelectedAudioDeviceName));
+            }
+        });
+        
         // Load library
         _ = LoadLibraryAsync();
+        
+        // Initialize audio devices list
+        RefreshAudioDevices();
     }
     
     #region Event Handlers
@@ -1707,8 +2055,22 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     {
         CurrentTrack = track;
         
+        // Sync play history and bookmark status
+        SyncPlayHistory();
+        RefreshBookmarkProperties();
+        RefreshABLoopProperties();
+        
         if (track != null)
         {
+            // Show "Now Playing" toast notification
+            try
+            {
+                Services.ToastNotificationService.Instance.ShowInfo(
+                    $"{track.DisplayArtist} — {track.DisplayAlbum}",
+                    title: $"🎵 {track.DisplayTitle}",
+                    durationMs: 3000);
+            }
+            catch { /* Toast display is non-critical */ }
             // Sync queue display
             if (!Queue.Any(t => t.Id == track.Id))
             {
@@ -1791,6 +2153,19 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     private void OnSpectrumDataUpdated(object? sender, float[] data)
     {
         SpectrumData = data;
+    }
+    
+    private void OnVULevelsUpdated(object? sender, (float PeakLeft, float PeakRight, float RmsLeft, float RmsRight) levels)
+    {
+        VUPeakLeft = levels.PeakLeft;
+        VUPeakRight = levels.PeakRight;
+        VURmsLeft = levels.RmsLeft;
+        VURmsRight = levels.RmsRight;
+    }
+    
+    private void OnOscilloscopeDataUpdated(object? sender, float[] data)
+    {
+        OscilloscopeData = data;
     }
     
     private void OnDurationChanged(object? sender, TimeSpan duration)
@@ -3148,6 +3523,8 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         _playerService.PositionChanged -= OnPositionChanged;
         _playerService.PlaybackStateChanged -= OnPlaybackStateChanged;
         _playerService.SpectrumDataUpdated -= OnSpectrumDataUpdated;
+        _playerService.VULevelsUpdated -= OnVULevelsUpdated;
+        _playerService.OscilloscopeDataUpdated -= OnOscilloscopeDataUpdated;
         _playerService.DurationChanged -= OnDurationChanged;
         _playerService.PlaybackError -= OnPlaybackError;
         _playerService.TrackEnded -= OnTrackEnded;

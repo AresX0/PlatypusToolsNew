@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using PlatypusTools.Core.Models.Audio;
 using PlatypusTools.UI.Services;
@@ -23,6 +24,11 @@ public partial class EnhancedAudioPlayerView : UserControl
     private Window? _fullscreenWindow;
     private DispatcherTimer? _osdHideTimer;
     private Border? _fullscreenOsd;
+    private bool _fullscreenVisualizerHidden;
+    private AudioVisualizerView? _fullscreenVisualizer;
+    private Grid? _fullscreenAlbumArtPanel;
+    private TextBlock? _fullscreenModeToast;
+    private DispatcherTimer? _modeToastTimer;
     
     public EnhancedAudioPlayerView()
     {
@@ -76,12 +82,48 @@ public partial class EnhancedAudioPlayerView : UserControl
     
     private void OnTrackChanged(object? sender, AudioTrack? track)
     {
-        // Reset the visualizer when track changes
+        // Reset the visualizer and animate album art crossfade when track changes
         Dispatcher.BeginInvoke(() =>
         {
             VisualizerControl?.Reset();
+            AnimateAlbumArtCrossfade();
             System.Diagnostics.Debug.WriteLine($"EnhancedAudioPlayerView: Track changed, visualizer reset. Track: {track?.Title ?? "null"}");
         });
+    }
+    
+    /// <summary>
+    /// Crossfade animation: old art fades out while new art fades in.
+    /// </summary>
+    private void AnimateAlbumArtCrossfade()
+    {
+        try
+        {
+            if (AlbumArtImageMain == null || AlbumArtImageOld == null) return;
+            
+            // Copy current image to the "old" layer
+            if (AlbumArtImageMain.Source != null)
+            {
+                AlbumArtImageOld.Source = AlbumArtImageMain.Source;
+                AlbumArtImageOld.Opacity = 1.0;
+            }
+            
+            // Fade out old image
+            var fadeOut = new DoubleAnimation(1.0, 0.0, TimeSpan.FromMilliseconds(400))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
+            };
+            AlbumArtImageOld.BeginAnimation(OpacityProperty, fadeOut);
+            
+            // Fade in new image (binding will update Source)
+            AlbumArtImageMain.Opacity = 0.0;
+            var fadeIn = new DoubleAnimation(0.0, 1.0, TimeSpan.FromMilliseconds(400))
+            {
+                BeginTime = TimeSpan.FromMilliseconds(100), // Slight delay for crossfade overlap
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+            AlbumArtImageMain.BeginAnimation(OpacityProperty, fadeIn);
+        }
+        catch { /* Animation is non-critical */ }
     }
     
     private void OnSpectrumDataUpdated(object? sender, float[] data)
@@ -129,6 +171,11 @@ public partial class EnhancedAudioPlayerView : UserControl
         14 => "Federation",
         15 => "Jedi",
         16 => "TimeLord",
+        17 => "VU Meter",
+        18 => "Oscilloscope",
+        19 => "Milkdrop",
+        20 => "3D Bars",
+        21 => "Waterfall",
         _ => "Bars"
     };
     
@@ -271,9 +318,19 @@ public partial class EnhancedAudioPlayerView : UserControl
                 Cursor = Cursors.None // Hide cursor
             };
             
-            // Create visualizer for fullscreen
+            // Create visualizer for fullscreen — mark as externally driven BEFORE OnLoaded fires
+            _fullscreenVisualizerHidden = false;
             var fullscreenVisualizer = new AudioVisualizerView();
+            fullscreenVisualizer.SetExternallyDriven(); // Prevent double subscription, use external mode/data only
+            _fullscreenVisualizer = fullscreenVisualizer;
+            
+            // Set initial mode and color before first render
+            string initialMode = GetVisualizerModeName(vm?.VisualizerModeIndex ?? 0);
             fullscreenVisualizer.SetColorScheme(vm?.ColorSchemeIndex ?? 0);
+            fullscreenVisualizer.UpdateSpectrumData(new double[128], initialMode, vm?.Density ?? 32, vm?.ColorSchemeIndex ?? 0, vm?.VisualizerSensitivity ?? 0.7, vm?.VisualizerFps ?? 22, vm?.CrawlScrollSpeed ?? 1.0);
+            
+            // Create album art + lyrics panel (hidden by default, shown when visualizer is toggled off with V)
+            _fullscreenAlbumArtPanel = CreateFullscreenAlbumArtPanel(vm);
             
             // Create controls overlay with track info and playback buttons
             _fullscreenOsd = new Border
@@ -363,6 +420,84 @@ public partial class EnhancedAudioPlayerView : UserControl
             nextBtn.Click += (s, a) => vm?.NextCommand?.Execute(null);
             controlsPanel.Children.Add(nextBtn);
             
+            // Separator between playback and mode controls
+            controlsPanel.Children.Add(new TextBlock
+            {
+                Text = "│",
+                FontSize = 24,
+                Foreground = new SolidColorBrush(Color.FromArgb(60, 255, 255, 255)),
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(12, 0, 12, 0)
+            });
+            
+            // Visualizer mode: Previous
+            var prevModeBtn = new Button
+            {
+                Content = "◀",
+                FontSize = 16,
+                Width = 36,
+                Height = 36,
+                Background = new SolidColorBrush(Color.FromArgb(80, 255, 255, 255)),
+                Foreground = Brushes.White,
+                BorderThickness = new Thickness(0),
+                Cursor = Cursors.Hand,
+                Margin = new Thickness(2, 0, 2, 0),
+                ToolTip = "Previous Visualizer (← arrow key)"
+            };
+            
+            // Visualizer mode label
+            var modeLabel = new TextBlock
+            {
+                Text = GetVisualizerModeName(vm?.VisualizerModeIndex ?? 0),
+                FontSize = 13,
+                Foreground = new SolidColorBrush(Color.FromRgb(233, 168, 32)),
+                VerticalAlignment = VerticalAlignment.Center,
+                TextAlignment = TextAlignment.Center,
+                MinWidth = 90,
+                Margin = new Thickness(4, 0, 4, 0),
+                Tag = "OsdModeLabel"
+            };
+            
+            // Visualizer mode: Next
+            var nextModeBtn = new Button
+            {
+                Content = "▶",
+                FontSize = 16,
+                Width = 36,
+                Height = 36,
+                Background = new SolidColorBrush(Color.FromArgb(80, 255, 255, 255)),
+                Foreground = Brushes.White,
+                BorderThickness = new Thickness(0),
+                Cursor = Cursors.Hand,
+                Margin = new Thickness(2, 0, 2, 0),
+                ToolTip = "Next Visualizer (→ arrow key)"
+            };
+            
+            prevModeBtn.Click += (s, a) =>
+            {
+                if (vm != null)
+                {
+                    int maxMode = 21;
+                    vm.VisualizerModeIndex = (vm.VisualizerModeIndex - 1 + maxMode + 1) % (maxMode + 1);
+                    modeLabel.Text = GetVisualizerModeName(vm.VisualizerModeIndex);
+                    ShowFullscreenModeToast(modeLabel.Text);
+                }
+            };
+            nextModeBtn.Click += (s, a) =>
+            {
+                if (vm != null)
+                {
+                    int maxMode = 21;
+                    vm.VisualizerModeIndex = (vm.VisualizerModeIndex + 1) % (maxMode + 1);
+                    modeLabel.Text = GetVisualizerModeName(vm.VisualizerModeIndex);
+                    ShowFullscreenModeToast(modeLabel.Text);
+                }
+            };
+            
+            controlsPanel.Children.Add(prevModeBtn);
+            controlsPanel.Children.Add(modeLabel);
+            controlsPanel.Children.Add(nextModeBtn);
+            
             Grid.SetColumn(controlsPanel, 1);
             osdGrid.Children.Add(controlsPanel);
             
@@ -410,6 +545,8 @@ public partial class EnhancedAudioPlayerView : UserControl
             // Container grid
             var container = new Grid();
             container.Children.Add(fullscreenVisualizer);
+            _fullscreenAlbumArtPanel.Visibility = Visibility.Collapsed;
+            container.Children.Add(_fullscreenAlbumArtPanel);
             if (lyricsOverlay != null)
                 container.Children.Add(lyricsOverlay);
             container.Children.Add(_fullscreenOsd);
@@ -417,9 +554,12 @@ public partial class EnhancedAudioPlayerView : UserControl
             _fullscreenWindow.Content = container;
             
             // Subscribe to spectrum data for fullscreen visualizer
+            int _fsUpdating = 0; // Interlocked frame-skip guard (0=idle, 1=queued)
             void OnSpectrumData(object? s, float[] data)
             {
                 if (data == null || data.Length == 0) return;
+                // Atomic compare-exchange: only proceed if transitioning from 0 → 1
+                if (System.Threading.Interlocked.CompareExchange(ref _fsUpdating, 1, 0) != 0) return;
                 
                 var doubleData = new double[data.Length];
                 for (int i = 0; i < data.Length; i++)
@@ -432,20 +572,42 @@ public partial class EnhancedAudioPlayerView : UserControl
                 int fps = vm?.VisualizerFps ?? 22;
                 double crawlSpeed = vm?.CrawlScrollSpeed ?? 1.0;
                 
-                fullscreenVisualizer.Dispatcher.InvokeAsync(() =>
+                // Use Input priority — same level as keyboard events, prevents priority inversion
+                fullscreenVisualizer.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, () =>
                 {
-                    fullscreenVisualizer.SetColorScheme(colorIndex);
-                    fullscreenVisualizer.UpdateSpectrumData(doubleData, mode, density, colorIndex, sensitivity, fps, crawlSpeed);
+                    try
+                    {
+                        fullscreenVisualizer.UpdateSpectrumData(doubleData, mode, density, colorIndex, sensitivity, fps, crawlSpeed);
                     
-                    // Update lyrics if enabled
-                    if (lyricsText != null && vm?.ShowLyricsOverlay == true)
-                    {
-                        lyricsText.Text = vm?.CurrentLyricLineText ?? "";
+                        // Update lyrics if enabled
+                        if (lyricsText != null && vm?.ShowLyricsOverlay == true)
+                        {
+                            lyricsText.Text = vm?.CurrentLyricLineText ?? "";
+                        }
+                        if (lyricsOverlay != null)
+                        {
+                            lyricsOverlay.Visibility = vm?.ShowLyricsOverlay == true && !string.IsNullOrWhiteSpace(vm?.CurrentLyricLineText)
+                                ? Visibility.Visible : Visibility.Collapsed;
+                        }
+                    
+                        // Update album art panel lyrics in real-time when visualizer is hidden
+                        if (_fullscreenVisualizerHidden)
+                        {
+                            UpdateTaggedElement(_fullscreenAlbumArtPanel!, "FullscreenLyricsBlock", 
+                                e => ((TextBlock)e).Text = vm?.CurrentLyricLineText ?? "");
+                            UpdateTaggedElement(_fullscreenAlbumArtPanel!, "FullscreenTrackTitle",
+                                e => ((TextBlock)e).Text = vm?.CurrentTrackTitle ?? "");
+                            UpdateTaggedElement(_fullscreenAlbumArtPanel!, "FullscreenTrackArtist",
+                                e => ((TextBlock)e).Text = $"{vm?.CurrentTrackArtist} — {vm?.CurrentTrackAlbum}");
+                        }
                     }
-                    if (lyricsOverlay != null)
+                    catch (Exception ex)
                     {
-                        lyricsOverlay.Visibility = vm?.ShowLyricsOverlay == true && !string.IsNullOrWhiteSpace(vm?.CurrentLyricLineText)
-                            ? Visibility.Visible : Visibility.Collapsed;
+                        System.Diagnostics.Debug.WriteLine($"Fullscreen spectrum data error: {ex.Message}");
+                    }
+                    finally
+                    {
+                        System.Threading.Interlocked.Exchange(ref _fsUpdating, 0);
                     }
                 });
             }
@@ -490,6 +652,15 @@ public partial class EnhancedAudioPlayerView : UserControl
                             {
                                 ppBtn.Content = vm?.IsPlaying == true ? "⏸" : "▶";
                             }
+                            // Update mode label in OSD
+                            foreach (var child in ctrlPanel.Children)
+                            {
+                                if (child is TextBlock tb && tb.Tag?.ToString() == "OsdModeLabel")
+                                {
+                                    tb.Text = GetVisualizerModeName(vm?.VisualizerModeIndex ?? 0);
+                                    break;
+                                }
+                            }
                         }
                         // Update progress
                         if (grid.Children[2] is StackPanel progPanel && progPanel.Children.Count > 0)
@@ -513,17 +684,82 @@ public partial class EnhancedAudioPlayerView : UserControl
                 cursorHideTimer.Start();
             };
             
-            // Close on Escape or double-click
-            _fullscreenWindow.KeyDown += (s, args) =>
+            // Show a brief hint about V key
+            var hintText = new TextBlock
+            {
+                Text = "◀ ▶  Switch Visualizer  ·  V  Album Art  ·  Space  Play/Pause  ·  Esc  Exit",
+                FontSize = 14,
+                Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255)),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(0, 20, 0, 0)
+            };
+            container.Children.Add(hintText);
+            
+            // Mode name toast (centered, large, fades out on mode switch)
+            _fullscreenModeToast = new TextBlock
+            {
+                Text = "",
+                FontSize = 36,
+                FontWeight = FontWeights.Bold,
+                Foreground = new SolidColorBrush(Color.FromArgb(220, 255, 255, 255)),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Visibility = Visibility.Collapsed,
+                Effect = new System.Windows.Media.Effects.DropShadowEffect
+                {
+                    Color = Colors.Black,
+                    BlurRadius = 20,
+                    ShadowDepth = 0,
+                    Opacity = 0.8
+                }
+            };
+            container.Children.Add(_fullscreenModeToast);
+            var hintFade = new DispatcherTimer { Interval = TimeSpan.FromSeconds(4) };
+            hintFade.Tick += (hs, ha) => { hintText.Visibility = Visibility.Collapsed; hintFade.Stop(); };
+            hintFade.Start();
+            
+            // Close on Escape, toggle visualizer on V, play/pause on Space
+            // Use PreviewKeyDown for higher priority — ensures Escape works even under heavy rendering load
+            _fullscreenWindow.PreviewKeyDown += (s, args) =>
             {
                 if (args.Key == Key.Escape)
                 {
+                    args.Handled = true;
                     EnhancedAudioPlayerService.Instance.SpectrumDataUpdated -= OnSpectrumData;
                     ExitFullscreenVisualizer();
                 }
                 else if (args.Key == Key.Space)
                 {
                     vm?.PlayPauseCommand?.Execute(null);
+                }
+                else if (args.Key == Key.V)
+                {
+                    ToggleFullscreenVisualizerVisibility(vm);
+                }
+                else if (args.Key == Key.Right || args.Key == Key.Down)
+                {
+                    if (vm != null)
+                    {
+                        int maxMode = 21; // 0-21 = 22 modes
+                        vm.VisualizerModeIndex = (vm.VisualizerModeIndex + 1) % (maxMode + 1);
+                        var modeName = GetVisualizerModeName(vm.VisualizerModeIndex);
+                        modeLabel.Text = modeName;
+                        ShowFullscreenModeToast(modeName);
+                    }
+                    args.Handled = true;
+                }
+                else if (args.Key == Key.Left || args.Key == Key.Up)
+                {
+                    if (vm != null)
+                    {
+                        int maxMode = 21;
+                        vm.VisualizerModeIndex = (vm.VisualizerModeIndex - 1 + maxMode + 1) % (maxMode + 1);
+                        var modeName = GetVisualizerModeName(vm.VisualizerModeIndex);
+                        modeLabel.Text = modeName;
+                        ShowFullscreenModeToast(modeName);
+                    }
+                    args.Handled = true;
                 }
             };
             
@@ -558,6 +794,12 @@ public partial class EnhancedAudioPlayerView : UserControl
             _fullscreenWindow?.Close();
             _fullscreenWindow = null;
             _isVisualizerFullscreen = false;
+            _fullscreenVisualizerHidden = false;
+            _fullscreenVisualizer = null;
+            _fullscreenAlbumArtPanel = null;
+            _fullscreenModeToast = null;
+            _modeToastTimer?.Stop();
+            _modeToastTimer = null;
             _osdHideTimer?.Stop();
         }
         catch (Exception ex)
@@ -565,4 +807,310 @@ public partial class EnhancedAudioPlayerView : UserControl
             System.Diagnostics.Debug.WriteLine($"Error exiting fullscreen: {ex.Message}");
         }
     }
+    
+    /// <summary>
+    /// Shows a brief centered toast with the visualizer mode name, then fades out.
+    /// </summary>
+    private void ShowFullscreenModeToast(string modeName)
+    {
+        if (_fullscreenModeToast == null) return;
+        
+        // Cancel any pending fade
+        _modeToastTimer?.Stop();
+        _fullscreenModeToast.BeginAnimation(OpacityProperty, null);
+        
+        _fullscreenModeToast.Text = modeName;
+        _fullscreenModeToast.Opacity = 1;
+        _fullscreenModeToast.Visibility = Visibility.Visible;
+        
+        // Fade out after 1.5 seconds
+        _modeToastTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.5) };
+        _modeToastTimer.Tick += (s, e) =>
+        {
+            _modeToastTimer.Stop();
+            if (_fullscreenModeToast != null)
+            {
+                var fadeOut = new DoubleAnimation(0, TimeSpan.FromMilliseconds(500));
+                fadeOut.Completed += (fs, fe) =>
+                {
+                    if (_fullscreenModeToast != null)
+                        _fullscreenModeToast.Visibility = Visibility.Collapsed;
+                };
+                _fullscreenModeToast.BeginAnimation(OpacityProperty, fadeOut);
+            }
+        };
+        _modeToastTimer.Start();
+    }
+    
+    /// <summary>
+    /// Creates the album art + lyrics panel shown in fullscreen when visualizer is hidden.
+    /// Large centered album art with blurred background, track info, and scrolling lyrics.
+    /// </summary>
+    private Grid CreateFullscreenAlbumArtPanel(EnhancedAudioPlayerViewModel? vm)
+    {
+        var panel = new Grid { Background = new SolidColorBrush(Color.FromRgb(10, 14, 39)) };
+        
+        // Blurred album art background
+        var bgImage = new Image
+        {
+            Stretch = Stretch.UniformToFill,
+            Opacity = 0.2,
+            RenderTransformOrigin = new Point(0.5, 0.5),
+            RenderTransform = new ScaleTransform(1.3, 1.3)
+        };
+        bgImage.Effect = new System.Windows.Media.Effects.BlurEffect { Radius = 60 };
+        if (vm?.AlbumArtImage != null)
+            bgImage.Source = vm.AlbumArtImage;
+        panel.Children.Add(bgImage);
+        
+        // Dark overlay for readability
+        panel.Children.Add(new Border { Background = new SolidColorBrush(Color.FromArgb(120, 0, 0, 0)) });
+        
+        // Content layout
+        var contentGrid = new Grid { Margin = new Thickness(40) };
+        contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        
+        // Left: Album art
+        var artBorder = new Border
+        {
+            Width = 400,
+            Height = 400,
+            CornerRadius = new CornerRadius(12),
+            ClipToBounds = true,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Effect = new System.Windows.Media.Effects.DropShadowEffect
+            {
+                BlurRadius = 30,
+                ShadowDepth = 0,
+                Opacity = 0.6,
+                Color = Colors.Black
+            }
+        };
+        var artImage = new Image
+        {
+            Stretch = Stretch.UniformToFill
+        };
+        if (vm?.AlbumArtImage != null)
+            artImage.Source = vm.AlbumArtImage;
+        // Tag images for later updates
+        artImage.Tag = "FullscreenAlbumArt";
+        bgImage.Tag = "FullscreenAlbumBg";
+        artBorder.Child = artImage;
+        
+        var leftPanel = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+        leftPanel.Children.Add(artBorder);
+        
+        // Track info below art
+        var trackTitle = new TextBlock
+        {
+            Text = vm?.CurrentTrackTitle ?? "",
+            FontSize = 26,
+            FontWeight = FontWeights.Bold,
+            Foreground = Brushes.White,
+            TextAlignment = TextAlignment.Center,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            Margin = new Thickness(0, 20, 0, 4),
+            Tag = "FullscreenTrackTitle"
+        };
+        leftPanel.Children.Add(trackTitle);
+        
+        var trackArtist = new TextBlock
+        {
+            Text = $"{vm?.CurrentTrackArtist} — {vm?.CurrentTrackAlbum}",
+            FontSize = 16,
+            Foreground = new SolidColorBrush(Color.FromRgb(200, 200, 200)),
+            TextAlignment = TextAlignment.Center,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            Tag = "FullscreenTrackArtist"
+        };
+        leftPanel.Children.Add(trackArtist);
+        
+        Grid.SetColumn(leftPanel, 0);
+        contentGrid.Children.Add(leftPanel);
+        
+        // Right: Lyrics scroll
+        var lyricsPanel = new StackPanel
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        
+        var lyricsTitle = new TextBlock
+        {
+            Text = "Lyrics",
+            FontSize = 14,
+            Foreground = new SolidColorBrush(Color.FromArgb(120, 255, 255, 255)),
+            TextAlignment = TextAlignment.Center,
+            Margin = new Thickness(0, 0, 0, 12)
+        };
+        lyricsPanel.Children.Add(lyricsTitle);
+        
+        var lyricsBlock = new TextBlock
+        {
+            Text = vm?.CurrentLyricLineText ?? "",
+            FontSize = 32,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = Brushes.White,
+            TextAlignment = TextAlignment.Center,
+            TextWrapping = TextWrapping.Wrap,
+            MaxWidth = 600,
+            Tag = "FullscreenLyricsBlock"
+        };
+        lyricsPanel.Children.Add(lyricsBlock);
+        
+        Grid.SetColumn(lyricsPanel, 1);
+        contentGrid.Children.Add(lyricsPanel);
+        
+        panel.Children.Add(contentGrid);
+        
+        return panel;
+    }
+    
+    /// <summary>
+    /// Toggles between visualizer and album art + lyrics display in fullscreen mode.
+    /// Triggered by pressing 'V' key.
+    /// </summary>
+    private void ToggleFullscreenVisualizerVisibility(EnhancedAudioPlayerViewModel? vm)
+    {
+        _fullscreenVisualizerHidden = !_fullscreenVisualizerHidden;
+        
+        if (_fullscreenVisualizer != null)
+            _fullscreenVisualizer.Visibility = _fullscreenVisualizerHidden ? Visibility.Collapsed : Visibility.Visible;
+        
+        if (_fullscreenAlbumArtPanel != null)
+        {
+            _fullscreenAlbumArtPanel.Visibility = _fullscreenVisualizerHidden ? Visibility.Visible : Visibility.Collapsed;
+            
+            // Update album art and track info when showing
+            if (_fullscreenVisualizerHidden)
+                UpdateFullscreenAlbumArtPanel(vm);
+        }
+    }
+    
+    /// <summary>
+    /// Updates the fullscreen album art panel with current track data.
+    /// </summary>
+    private void UpdateFullscreenAlbumArtPanel(EnhancedAudioPlayerViewModel? vm)
+    {
+        if (_fullscreenAlbumArtPanel == null || vm == null) return;
+        
+        // Walk the visual tree and update tagged elements
+        UpdateTaggedElement(_fullscreenAlbumArtPanel, "FullscreenAlbumArt", e => ((Image)e).Source = vm.AlbumArtImage);
+        UpdateTaggedElement(_fullscreenAlbumArtPanel, "FullscreenAlbumBg", e => ((Image)e).Source = vm.AlbumArtImage);
+        UpdateTaggedElement(_fullscreenAlbumArtPanel, "FullscreenTrackTitle", e => ((TextBlock)e).Text = vm.CurrentTrackTitle ?? "");
+        UpdateTaggedElement(_fullscreenAlbumArtPanel, "FullscreenTrackArtist", e => ((TextBlock)e).Text = $"{vm.CurrentTrackArtist} — {vm.CurrentTrackAlbum}");
+        UpdateTaggedElement(_fullscreenAlbumArtPanel, "FullscreenLyricsBlock", e => ((TextBlock)e).Text = vm.CurrentLyricLineText ?? "");
+    }
+    
+    private static void UpdateTaggedElement(DependencyObject parent, string tag, Action<FrameworkElement> update)
+    {
+        int count = VisualTreeHelper.GetChildrenCount(parent);
+        for (int i = 0; i < count; i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is FrameworkElement fe && fe.Tag is string t && t == tag)
+            {
+                try { update(fe); } catch { }
+                return;
+            }
+            UpdateTaggedElement(child, tag, update);
+        }
+    }
+    
+    /// <summary>
+    /// Double-click a radio station to play it.
+    /// </summary>
+    private void RadioStation_DoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (DataContext is EnhancedAudioPlayerViewModel vm && vm.SelectedRadioStation != null)
+        {
+            vm.StreamUrl = vm.SelectedRadioStation.Url;
+            vm.PlayStreamCommand.Execute(null);
+        }
+    }
+    
+    #region Seek Preview
+    
+    private float[]? _cachedWaveform;
+    private string? _cachedWaveformTrack;
+    
+    private void SeekSlider_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (DataContext is not EnhancedAudioPlayerViewModel vm) return;
+        if (vm.DurationSeconds <= 0) return;
+        
+        var slider = SeekSlider;
+        var pos = e.GetPosition(slider);
+        double fraction = Math.Clamp(pos.X / slider.ActualWidth, 0, 1);
+        double seekSeconds = fraction * vm.DurationSeconds;
+        
+        // Update time label
+        var ts = TimeSpan.FromSeconds(seekSeconds);
+        SeekPreviewTimeText.Text = ts.ToString(ts.TotalHours >= 1 ? @"h\:mm\:ss" : @"m\:ss");
+        
+        // Position the popup horizontally
+        SeekPreviewPopup.HorizontalOffset = pos.X - 76; // Center the 140px popup
+        
+        // Load waveform data (cache per track)
+        string? currentTrack = vm.CurrentTrackTitle;
+        if (_cachedWaveform == null || _cachedWaveformTrack != currentTrack)
+        {
+            _cachedWaveform = vm.GetWaveformData(140);
+            _cachedWaveformTrack = currentTrack;
+        }
+        
+        // Draw mini waveform
+        DrawSeekPreviewWaveform(fraction);
+        
+        SeekPreviewPopup.IsOpen = true;
+    }
+    
+    private void SeekSlider_MouseLeave(object sender, MouseEventArgs e)
+    {
+        SeekPreviewPopup.IsOpen = false;
+    }
+    
+    private void DrawSeekPreviewWaveform(double seekFraction)
+    {
+        var canvas = SeekPreviewWaveform;
+        canvas.Children.Clear();
+        
+        if (_cachedWaveform == null || _cachedWaveform.Length == 0) return;
+        
+        double w = canvas.Width;
+        double h = canvas.Height;
+        double barWidth = w / _cachedWaveform.Length;
+        int seekIndex = (int)(seekFraction * _cachedWaveform.Length);
+        
+        for (int i = 0; i < _cachedWaveform.Length; i++)
+        {
+            double barHeight = Math.Max(1, _cachedWaveform[i] * h * 0.9);
+            var rect = new System.Windows.Shapes.Rectangle
+            {
+                Width = Math.Max(0.5, barWidth - 0.3),
+                Height = barHeight,
+                Fill = i <= seekIndex 
+                    ? new SolidColorBrush(Color.FromArgb(200, 76, 175, 80))   // Green for played
+                    : new SolidColorBrush(Color.FromArgb(120, 150, 150, 150))  // Gray for unplayed
+            };
+            Canvas.SetLeft(rect, i * barWidth);
+            Canvas.SetTop(rect, h - barHeight);
+            canvas.Children.Add(rect);
+        }
+        
+        // Seek position indicator line
+        double lineX = seekFraction * w;
+        var line = new System.Windows.Shapes.Line
+        {
+            X1 = lineX, X2 = lineX,
+            Y1 = 0, Y2 = h,
+            Stroke = Brushes.White,
+            StrokeThickness = 1.5
+        };
+        canvas.Children.Add(line);
+    }
+    
+    #endregion
 }

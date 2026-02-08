@@ -70,6 +70,11 @@
                         <ComboBoxItem Content="Federation"/>
                         <ComboBoxItem Content="Jedi"/>
                         <ComboBoxItem Content="TimeLord"/>
+                        <ComboBoxItem Content="VU Meter"/>
+                        <ComboBoxItem Content="Oscilloscope"/>
+                        <ComboBoxItem Content="Milkdrop"/>
+                        <ComboBoxItem Content="3D Bars"/>
+                        <ComboBoxItem Content="Waterfall"/>
                     </ComboBox>
                 </StackPanel>
                 

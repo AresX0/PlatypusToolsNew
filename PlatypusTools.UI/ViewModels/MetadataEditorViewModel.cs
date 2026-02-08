@@ -67,6 +67,39 @@ namespace PlatypusTools.UI.ViewModels
         public DateTime DateModified { get; set; }
         public int TagCount { get; set; }
     }
+    
+    /// <summary>
+    /// Represents an audio file in the batch tag editor with editable tag fields.
+    /// </summary>
+    public class BatchTagFile : BindableBase
+    {
+        public string FilePath { get; set; } = string.Empty;
+        public string FileName => Path.GetFileName(FilePath);
+        
+        private bool _isSelected = true;
+        public bool IsSelected { get => _isSelected; set => SetProperty(ref _isSelected, value); }
+        
+        private string _title = string.Empty;
+        public string Title { get => _title; set => SetProperty(ref _title, value); }
+        
+        private string _artist = string.Empty;
+        public string Artist { get => _artist; set => SetProperty(ref _artist, value); }
+        
+        private string _album = string.Empty;
+        public string Album { get => _album; set => SetProperty(ref _album, value); }
+        
+        private string _genre = string.Empty;
+        public string Genre { get => _genre; set => SetProperty(ref _genre, value); }
+        
+        private uint _year;
+        public uint Year { get => _year; set => SetProperty(ref _year, value); }
+        
+        private uint _trackNumber;
+        public uint TrackNumber { get => _trackNumber; set => SetProperty(ref _trackNumber, value); }
+        
+        private string _status = string.Empty;
+        public string Status { get => _status; set => SetProperty(ref _status, value); }
+    }
 
     public class MetadataEditorViewModel : BindableBase
     {
@@ -286,6 +319,37 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand ExportToCsvCommand { get; }
         public ICommand OpenSelectedFileCommand { get; }
         
+        // Batch Tag Editor commands
+        public ICommand BatchAddFilesCommand { get; }
+        public ICommand BatchAddFolderCommand { get; }
+        public ICommand BatchClearFilesCommand { get; }
+        public ICommand BatchSaveAllCommand { get; }
+        public ICommand BatchSetCommonFieldCommand { get; }
+        public ICommand BatchAutoNumberCommand { get; }
+        
+        public ObservableCollection<BatchTagFile> BatchFiles { get; } = new();
+        
+        private string _batchCommonArtist = string.Empty;
+        public string BatchCommonArtist { get => _batchCommonArtist; set => SetProperty(ref _batchCommonArtist, value); }
+        
+        private string _batchCommonAlbum = string.Empty;
+        public string BatchCommonAlbum { get => _batchCommonAlbum; set => SetProperty(ref _batchCommonAlbum, value); }
+        
+        private string _batchCommonGenre = string.Empty;
+        public string BatchCommonGenre { get => _batchCommonGenre; set => SetProperty(ref _batchCommonGenre, value); }
+        
+        private uint _batchCommonYear;
+        public uint BatchCommonYear { get => _batchCommonYear; set => SetProperty(ref _batchCommonYear, value); }
+        
+        private string _batchStatusMessage = "Add audio files to edit tags in bulk";
+        public string BatchStatusMessage { get => _batchStatusMessage; set => SetProperty(ref _batchStatusMessage, value); }
+        
+        private bool _isBatchProcessing;
+        public bool IsBatchProcessing { get => _isBatchProcessing; set => SetProperty(ref _isBatchProcessing, value); }
+        
+        private int _batchProgress;
+        public int BatchProgress { get => _batchProgress; set => SetProperty(ref _batchProgress, value); }
+        
         /// <summary>
         /// ViewModel for metadata templates management.
         /// </summary>
@@ -319,6 +383,14 @@ namespace PlatypusTools.UI.ViewModels
             ScanFolderCommand = new RelayCommand(_ => ScanFolder(), _ => !string.IsNullOrEmpty(FolderPath));
             ExportToCsvCommand = new RelayCommand(_ => ExportToCsv(), _ => FolderFiles.Any());
             OpenSelectedFileCommand = new RelayCommand(_ => OpenSelectedFile(), _ => SelectedFolderFile != null);
+            
+            // Batch Tag Editor commands
+            BatchAddFilesCommand = new RelayCommand(_ => BatchAddFiles());
+            BatchAddFolderCommand = new RelayCommand(_ => BatchAddFolder());
+            BatchClearFilesCommand = new RelayCommand(_ => { BatchFiles.Clear(); BatchStatusMessage = "Cleared all files"; });
+            BatchSaveAllCommand = new RelayCommand(async _ => await BatchSaveAllAsync(), _ => BatchFiles.Any() && !IsBatchProcessing);
+            BatchSetCommonFieldCommand = new RelayCommand(param => BatchSetCommonField(param as string));
+            BatchAutoNumberCommand = new RelayCommand(_ => BatchAutoNumber(), _ => BatchFiles.Any());
 
             IsExifToolMissing = !_service.IsExifToolAvailable();
             if (IsExifToolMissing)
@@ -766,5 +838,156 @@ namespace PlatypusTools.UI.ViewModels
                 FolderStatusMessage = $"Failed to open file: {ex.Message}";
             }
         }
+        
+        #region Batch Tag Editor
+        
+        private static readonly string[] AudioExtensions = { ".mp3", ".flac", ".wav", ".aac", ".ogg", ".wma", ".m4a", ".opus" };
+        
+        private void BatchAddFiles()
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Audio Files (*.mp3;*.flac;*.wav;*.aac;*.ogg;*.wma;*.m4a;*.opus)|*.mp3;*.flac;*.wav;*.aac;*.ogg;*.wma;*.m4a;*.opus|All Files (*.*)|*.*",
+                Title = "Select audio files for batch tag editing",
+                Multiselect = true
+            };
+            
+            if (dialog.ShowDialog() == true)
+            {
+                foreach (var file in dialog.FileNames)
+                {
+                    if (BatchFiles.Any(f => f.FilePath == file)) continue;
+                    var btf = LoadBatchTagFile(file);
+                    if (btf != null) BatchFiles.Add(btf);
+                }
+                BatchStatusMessage = $"Loaded {BatchFiles.Count} files";
+            }
+        }
+        
+        private void BatchAddFolder()
+        {
+            using var dialog = new System.Windows.Forms.FolderBrowserDialog
+            {
+                Description = "Select folder containing audio files",
+                ShowNewFolderButton = false
+            };
+            
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                var files = Directory.EnumerateFiles(dialog.SelectedPath, "*.*", SearchOption.AllDirectories)
+                    .Where(f => AudioExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()));
+                    
+                int added = 0;
+                foreach (var file in files)
+                {
+                    if (BatchFiles.Any(f => f.FilePath == file)) continue;
+                    var btf = LoadBatchTagFile(file);
+                    if (btf != null) { BatchFiles.Add(btf); added++; }
+                }
+                BatchStatusMessage = $"Added {added} files from folder ({BatchFiles.Count} total)";
+            }
+        }
+        
+        private BatchTagFile? LoadBatchTagFile(string filePath)
+        {
+            try
+            {
+                using var tagFile = TagLib.File.Create(filePath);
+                return new BatchTagFile
+                {
+                    FilePath = filePath,
+                    Title = tagFile.Tag.Title ?? string.Empty,
+                    Artist = tagFile.Tag.FirstPerformer ?? string.Empty,
+                    Album = tagFile.Tag.Album ?? string.Empty,
+                    Genre = tagFile.Tag.FirstGenre ?? string.Empty,
+                    Year = tagFile.Tag.Year,
+                    TrackNumber = tagFile.Tag.Track,
+                    Status = "Loaded"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new BatchTagFile
+                {
+                    FilePath = filePath,
+                    Status = $"Error: {ex.Message}"
+                };
+            }
+        }
+        
+        private void BatchSetCommonField(string? field)
+        {
+            if (field == null) return;
+            
+            foreach (var f in BatchFiles.Where(b => b.IsSelected))
+            {
+                switch (field)
+                {
+                    case "Artist": f.Artist = BatchCommonArtist; break;
+                    case "Album": f.Album = BatchCommonAlbum; break;
+                    case "Genre": f.Genre = BatchCommonGenre; break;
+                    case "Year": f.Year = BatchCommonYear; break;
+                }
+            }
+            BatchStatusMessage = $"Applied {field} to {BatchFiles.Count(b => b.IsSelected)} selected files";
+        }
+        
+        private void BatchAutoNumber()
+        {
+            var selected = BatchFiles.Where(b => b.IsSelected).ToList();
+            for (int i = 0; i < selected.Count; i++)
+            {
+                selected[i].TrackNumber = (uint)(i + 1);
+            }
+            BatchStatusMessage = $"Auto-numbered {selected.Count} tracks";
+        }
+        
+        private async Task BatchSaveAllAsync()
+        {
+            IsBatchProcessing = true;
+            BatchProgress = 0;
+            int saved = 0, failed = 0;
+            
+            try
+            {
+                var selectedFiles = BatchFiles.Where(b => b.IsSelected).ToList();
+                
+                for (int i = 0; i < selectedFiles.Count; i++)
+                {
+                    var btf = selectedFiles[i];
+                    try
+                    {
+                        await Task.Run(() =>
+                        {
+                            using var tagFile = TagLib.File.Create(btf.FilePath);
+                            tagFile.Tag.Title = string.IsNullOrEmpty(btf.Title) ? null : btf.Title;
+                            tagFile.Tag.Performers = string.IsNullOrEmpty(btf.Artist) ? Array.Empty<string>() : new[] { btf.Artist };
+                            tagFile.Tag.Album = string.IsNullOrEmpty(btf.Album) ? null : btf.Album;
+                            tagFile.Tag.Genres = string.IsNullOrEmpty(btf.Genre) ? Array.Empty<string>() : new[] { btf.Genre };
+                            tagFile.Tag.Year = btf.Year;
+                            tagFile.Tag.Track = btf.TrackNumber;
+                            tagFile.Save();
+                        });
+                        btf.Status = "✓ Saved";
+                        saved++;
+                    }
+                    catch (Exception ex)
+                    {
+                        btf.Status = $"✗ {ex.Message}";
+                        failed++;
+                    }
+                    
+                    BatchProgress = (int)((i + 1) * 100.0 / selectedFiles.Count);
+                }
+                
+                BatchStatusMessage = $"Saved {saved} files" + (failed > 0 ? $", {failed} failed" : "");
+            }
+            finally
+            {
+                IsBatchProcessing = false;
+            }
+        }
+        
+        #endregion
     }
 }

@@ -2,6 +2,72 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.4.0 - 2026-02-08
+
+### 🎆 Major Release: Visualizer Performance & Stability Overhaul
+
+This release delivers a comprehensive overhaul of the audio visualizer's GPU rendering pipeline,
+fixing fullscreen freezes, memory leaks, and mode switching issues across all 22 visualizer modes.
+
+### Added
+- **22 GPU-Rendered Visualizer Modes** — All modes now render through SkiaSharp's hardware-accelerated pipeline:
+  Bars, Mirror, Waveform, Circular, Radial, Particles, Aurora, Wave Grid, Starfield, Toasters,
+  Matrix, Star Wars Crawl, Stargate, Klingon, Federation, Jedi, TimeLord, VU Meter, Oscilloscope,
+  Milkdrop, 3D Bars, Waterfall
+- **Fullscreen Mode Switching** — Arrow keys (←/→/↑/↓) cycle through all visualizer modes in fullscreen
+- **Fullscreen OSD Overlay** — On-screen display with mode name, ◀/▶ buttons, and track info
+- **Screensaver System** — Full-app screensaver installer that copies the complete application to
+  `%ProgramData%\PlatypusTools\Screensaver\` with proper registry integration
+- **Screensaver Config Window** — All 22 modes available in screensaver configuration
+- **Screensaver Animation Timer** — Continuous 45ms idle data pump for evolving animations without audio
+- **Audio Streaming Service** — New `AudioStreamingService.cs` for audio stream handling
+- **MilkdropEngine** — New `MilkdropEngine.cs` and `MilkdropPreset.cs` for Milkdrop visualization support
+- **Metadata Editor Enhancements** — Expanded metadata editing capabilities in `MetadataEditorView.xaml`
+
+### Fixed
+- **SKMaskFilter Native Memory Leak** — Fixed 20 locations where `SKMaskFilter.CreateBlur()` objects were
+  created but never disposed. In per-element loops (Klingon 64 bars, Jedi 16 sabers, Federation particles),
+  this leaked ~1400+ native objects per second. All 20 sites now use `using var` for automatic disposal
+- **SKTypeface Native Handle Leak** — Reduced from 16 per-frame GDI handle allocations to 8 cached static
+  typefaces (`_tfConsolas`, `_tfArial`, `_tfArialBold`, etc.)
+- **GPU Bitmap Leak on Unload** — Added `DisposeGpuResources()` method to properly dispose all 8 SKBitmap
+  fields (`_hdWaterfallBitmap`, `_milkdropGpuBuffer`, `_timeLordVortexBuffer`, `_skKlingonLogo`,
+  `_skFederationLogo`, `_skTardisBitmap`, `_skLightsaberHilt`, `_hdBloomBuffer`) on control unload
+- **Fullscreen Freeze (Dispatcher Priority)** — Changed spectrum data dispatch from `DispatcherPriority.Send`
+  (highest — blocks keyboard) to `DispatcherPriority.Input` so keyboard mode switching isn't starved
+- **Fullscreen Dispatch Pile-up** — Replaced `bool` frame-skip guard with thread-safe
+  `Interlocked.CompareExchange` to prevent race conditions; reset moved to `finally` block so it
+  can never get permanently stuck
+- **Milkdrop Exit Freeze** — Added null-guard with local `currentBuffer` reference before `.Copy()` call;
+  prevents crash when `CleanupModeResources` disposes buffer while render timer fires one more frame
+- **TimeLord Exit Freeze** — Same null-guard pattern with local `vortexBuf` reference for the vortex
+  feedback buffer
+- **Matrix Not Clearing on Mode Switch** — Created centralized `CleanupModeResources()` method that
+  properly resets column positions, speeds, and characters when switching away from Matrix mode
+- **Matrix Column List Growth** — Added trim loop to prevent unbounded growth of the column list in the
+  software renderer path
+- **Fragmented Mode Cleanup** — Consolidated 3 separate cleanup blocks (Waterfall, TimeLord, Milkdrop) into
+  the single `CleanupModeResources(oldMode, newMode)` method
+- **Render Exception Recovery** — Wrapped `OnSkiaPaintSurface` renderer dispatch in try/catch to prevent
+  WPF from stopping re-renders after an exception; shows "Render error" indicator instead of freezing
+- **Externally Driven Unload Guard** — `OnUnloaded` now skips timer stop and resource disposal for
+  fullscreen (externally driven) visualizers that are still in the visual tree
+- **Redundant SetColorScheme** — Removed duplicate `SetColorScheme(colorIndex)` call that was running
+  per frame unnecessarily
+- **Animation Phase Reset** — Removed global `_animationPhase = 0` from `CleanupModeResources` when
+  leaving TimeLord — this is a shared field that caused visual stuttering in subsequent modes
+
+### Improved
+- **Fullscreen Music Responsiveness** — Applied 1.5× rise / 1.3× fall smoothing multipliers for
+  externally driven (fullscreen) mode to overcome the dispatched data latency
+- **Milkdrop/TimeLord Feedback Buffers** — Capped at 640px width to prevent excessive memory use
+  on large displays
+- **Particle Color Scheme** — Fixed HSL hue range (0–1, not 0–360)
+- **Matrix Fullscreen Glow** — Lighter blur instead of none for fullscreen matrix rain
+- **Screensaver Installer** — Complete rewrite: copies full app directory instead of single EXE to System32
+
+---
+
 ## v3.3.1.9 - 2026-02-04
 
 ### Added

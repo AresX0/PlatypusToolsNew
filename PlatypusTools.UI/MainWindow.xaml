@@ -12,7 +12,8 @@
     <Window.DataContext>
         <vm:MainWindowViewModel />
     </Window.DataContext>
-    <DockPanel Background="{DynamicResource WindowBackgroundBrush}">
+    <Grid>
+        <DockPanel Background="{DynamicResource WindowBackgroundBrush}">
         <Menu DockPanel.Dock="Top" Background="{DynamicResource ControlBackgroundBrush}">
             <MenuItem Header="File">
                 <MenuItem Header="Open Folder..." Command="{Binding BrowseCommand}" InputGestureText="Ctrl+O" />
@@ -376,6 +377,10 @@
             </TabItem>
         </TabControl>
     </DockPanel>
+        <!-- Toast Notification Overlay -->
+        <controls:ToastNotificationControl VerticalAlignment="Top" HorizontalAlignment="Right" 
+                                           Margin="0,40,16,0" Panel.ZIndex="1000"/>
+    </Grid>
 </Window>
 
 

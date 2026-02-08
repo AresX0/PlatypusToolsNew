@@ -48,6 +48,29 @@ public class EnhancedAudioPlayerService : IDisposable
     private bool _isShuffled;
     private readonly Random _random = new();
     
+    // Queue History - previously played tracks
+    private readonly List<AudioTrack> _playHistory = new();
+    private const int MAX_HISTORY_SIZE = 100;
+    
+    // A-B Loop
+    private bool _isABLoopEnabled;
+    private TimeSpan? _loopPointA;
+    private TimeSpan? _loopPointB;
+    
+    // Fade on Pause
+    private bool _fadeOnPause = true;
+    private int _fadeOnPauseDurationMs = 500;
+    private DispatcherTimer? _fadeTimer;
+    
+    // Audio Bookmarks - track position persistence  
+    private readonly Dictionary<string, TimeSpan> _bookmarks = new();
+    private static readonly string BookmarksFilePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "PlatypusTools", "audio_bookmarks.json");
+    
+    // Audio Output Device
+    private int _selectedDeviceNumber = -1; // -1 = default device
+    
     // Playback state
     private bool _isPlaying;
     private bool _isPaused;
@@ -91,6 +114,8 @@ public class EnhancedAudioPlayerService : IDisposable
     public event EventHandler<TimeSpan>? PositionChanged;
     public event EventHandler<bool>? PlaybackStateChanged;
     public event EventHandler<float[]>? SpectrumDataUpdated;
+    public event EventHandler<(float PeakLeft, float PeakRight, float RmsLeft, float RmsRight)>? VULevelsUpdated;
+    public event EventHandler<float[]>? OscilloscopeDataUpdated;
     public event EventHandler<TimeSpan>? DurationChanged;
     public event EventHandler? TrackEnded;
     public event EventHandler<string>? PlaybackError;
@@ -160,14 +185,241 @@ public class EnhancedAudioPlayerService : IDisposable
         set => _replayGainMode = value;
     }
     
+    #region A-B Loop Properties
+    
+    /// <summary>
+    /// Gets or sets whether A-B loop is enabled.
+    /// </summary>
+    public bool IsABLoopEnabled
+    {
+        get => _isABLoopEnabled;
+        set => _isABLoopEnabled = value;
+    }
+    
+    /// <summary>
+    /// Gets or sets the loop start point (A).
+    /// </summary>
+    public TimeSpan? LoopPointA
+    {
+        get => _loopPointA;
+        set => _loopPointA = value;
+    }
+    
+    /// <summary>
+    /// Gets or sets the loop end point (B).
+    /// </summary>
+    public TimeSpan? LoopPointB
+    {
+        get => _loopPointB;
+        set => _loopPointB = value;
+    }
+    
+    /// <summary>
+    /// Sets point A to current position.
+    /// </summary>
+    public void SetLoopPointA()
+    {
+        _loopPointA = Position;
+        _isABLoopEnabled = _loopPointA.HasValue && _loopPointB.HasValue && _loopPointB > _loopPointA;
+    }
+    
+    /// <summary>
+    /// Sets point B to current position and enables loop.
+    /// </summary>
+    public void SetLoopPointB()
+    {
+        _loopPointB = Position;
+        _isABLoopEnabled = _loopPointA.HasValue && _loopPointB.HasValue && _loopPointB > _loopPointA;
+    }
+    
+    /// <summary>
+    /// Clears A-B loop points.
+    /// </summary>
+    public void ClearABLoop()
+    {
+        _loopPointA = null;
+        _loopPointB = null;
+        _isABLoopEnabled = false;
+    }
+    
+    #endregion
+    
+    #region Fade on Pause Properties
+    
+    /// <summary>
+    /// Gets or sets whether to fade volume when pausing.
+    /// </summary>
+    public bool FadeOnPause
+    {
+        get => _fadeOnPause;
+        set => _fadeOnPause = value;
+    }
+    
+    /// <summary>
+    /// Gets or sets the fade duration in milliseconds.
+    /// </summary>
+    public int FadeOnPauseDurationMs
+    {
+        get => _fadeOnPauseDurationMs;
+        set => _fadeOnPauseDurationMs = Math.Clamp(value, 100, 2000);
+    }
+    
+    #endregion
+    
+    #region Queue History Properties
+    
+    /// <summary>
+    /// Gets the list of previously played tracks.
+    /// </summary>
+    public IReadOnlyList<AudioTrack> PlayHistory => _playHistory.AsReadOnly();
+    
+    /// <summary>
+    /// Clears the play history.
+    /// </summary>
+    public void ClearHistory()
+    {
+        _playHistory.Clear();
+    }
+    
+    #endregion
+    
+    #region Audio Bookmarks Properties
+    
+    /// <summary>
+    /// Gets all saved bookmarks.
+    /// </summary>
+    public IReadOnlyDictionary<string, TimeSpan> Bookmarks => _bookmarks;
+    
+    /// <summary>
+    /// Saves a bookmark for the current track at current position.
+    /// </summary>
+    public void SaveBookmark()
+    {
+        if (CurrentTrack == null) return;
+        _bookmarks[CurrentTrack.FilePath] = Position;
+        SaveBookmarksAsync();
+    }
+    
+    /// <summary>
+    /// Saves a bookmark for a specific track.
+    /// </summary>
+    public void SaveBookmark(string filePath, TimeSpan position)
+    {
+        _bookmarks[filePath] = position;
+        SaveBookmarksAsync();
+    }
+    
+    /// <summary>
+    /// Gets a saved bookmark for the specified file, or null if none.
+    /// </summary>
+    public TimeSpan? GetBookmark(string filePath)
+    {
+        return _bookmarks.TryGetValue(filePath, out var pos) ? pos : null;
+    }
+    
+    /// <summary>
+    /// Removes a bookmark for the specified file.
+    /// </summary>
+    public void RemoveBookmark(string filePath)
+    {
+        _bookmarks.Remove(filePath);
+        SaveBookmarksAsync();
+    }
+    
+    /// <summary>
+    /// Loads bookmarks from disk.
+    /// </summary>
+    private void LoadBookmarks()
+    {
+        try
+        {
+            if (File.Exists(BookmarksFilePath))
+            {
+                var json = File.ReadAllText(BookmarksFilePath);
+                var data = JsonSerializer.Deserialize<Dictionary<string, long>>(json);
+                if (data != null)
+                {
+                    foreach (var kvp in data)
+                    {
+                        _bookmarks[kvp.Key] = TimeSpan.FromTicks(kvp.Value);
+                    }
+                }
+            }
+        }
+        catch { }
+    }
+    
+    /// <summary>
+    /// Saves bookmarks to disk asynchronously.
+    /// </summary>
+    private async void SaveBookmarksAsync()
+    {
+        try
+        {
+            var data = _bookmarks.ToDictionary(k => k.Key, v => v.Value.Ticks);
+            var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+            var dir = Path.GetDirectoryName(BookmarksFilePath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            await File.WriteAllTextAsync(BookmarksFilePath, json);
+        }
+        catch { }
+    }
+    
+    #endregion
+    
+    #region Audio Output Device
+    
+    /// <summary>
+    /// Gets available audio output devices.
+    /// </summary>
+    public static IEnumerable<(int DeviceNumber, string Name)> GetAudioOutputDevices()
+    {
+        for (int i = -1; i < WaveOut.DeviceCount; i++)
+        {
+            var caps = WaveOut.GetCapabilities(i);
+            yield return (i, i == -1 ? "Default Device" : caps.ProductName);
+        }
+    }
+    
+    /// <summary>
+    /// Gets or sets the selected audio output device number (-1 = default).
+    /// </summary>
+    public int SelectedDeviceNumber
+    {
+        get => _selectedDeviceNumber;
+        set
+        {
+            _selectedDeviceNumber = value;
+            // Note: Changing device requires restarting playback
+        }
+    }
+    
+    #endregion
+    
     private EnhancedAudioPlayerService()
     {
         _positionTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
-        _positionTimer.Tick += (s, e) => PositionChanged?.Invoke(this, Position);
+        _positionTimer.Tick += (s, e) => 
+        {
+            PositionChanged?.Invoke(this, Position);
+            
+            // A-B Loop: check if we've passed point B
+            if (_isABLoopEnabled && _loopPointA.HasValue && _loopPointB.HasValue)
+            {
+                if (Position >= _loopPointB.Value)
+                {
+                    Seek(_loopPointA.Value);
+                }
+            }
+        };
         
         _spectrumTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(45) }; // ~22 FPS
         _spectrumTimer.Tick += (s, e) => GenerateSpectrum();
         _spectrumTimer.Start();
+        
+        // Load saved bookmarks
+        LoadBookmarks();
         
         // Register for media keys
         RegisterMediaKeys();
@@ -210,6 +462,80 @@ public class EnhancedAudioPlayerService : IDisposable
     
     #region Playback Control
     
+    // Stream playback state
+    private bool _isStreaming;
+    private string _streamUrl = string.Empty;
+    public bool IsStreaming => _isStreaming;
+    public string StreamUrl => _streamUrl;
+    
+    /// <summary>
+    /// Play an audio stream from a URL (internet radio, YouTube, SoundCloud, direct HTTP audio).
+    /// Uses MediaFoundationReader for HTTP streams and yt-dlp for YouTube/SoundCloud.
+    /// </summary>
+    public async Task PlayStreamAsync(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return;
+        
+        try
+        {
+            Stop();
+            
+            var streamResult = await AudioStreamingService.Instance.OpenStreamAsync(url);
+            if (streamResult == null) return;
+            
+            _isStreaming = true;
+            _streamUrl = url;
+            
+            // Build pipeline from stream: WaveProvider -> SampleProvider -> Speed -> EQ -> Spectrum -> Volume
+            var sampleProvider = streamResult.WaveProvider.ToSampleProvider();
+            
+            _speedController = new SpeedControlSampleProvider(sampleProvider);
+            _speedController.SetSpeed((float)_playbackSpeed);
+            
+            _equalizer = new EqualizerSampleProvider(_speedController);
+            for (int i = 0; i < 10; i++)
+            {
+                _equalizer.UpdateBand(i, _eqBands[i]);
+            }
+            
+            _spectrumAnalyzer = new SpectrumAnalyzerSampleProvider(_equalizer, FFT_SIZE);
+            
+            _volumeController = new VolumeSampleProvider(_spectrumAnalyzer);
+            ApplyVolume();
+            
+            var waveOut = new WaveOutEvent();
+            if (_selectedDeviceNumber >= 0 && _selectedDeviceNumber < WaveOut.DeviceCount)
+            {
+                waveOut.DeviceNumber = _selectedDeviceNumber;
+            }
+            _wavePlayer = waveOut;
+            _wavePlayer.PlaybackStopped += OnPlaybackStopped;
+            _wavePlayer.Init(_volumeController);
+            _wavePlayer.Play();
+            
+            _isPlaying = true;
+            _isPaused = false;
+            _positionTimer.Start();
+            
+            // Create a virtual track for display
+            var streamTrack = new AudioTrack
+            {
+                Title = streamResult.Title,
+                Artist = streamResult.IsLiveStream ? "Live Stream" : "Stream",
+                Album = streamResult.Url,
+                FilePath = url
+            };
+            
+            TrackChanged?.Invoke(this, streamTrack);
+            PlaybackStateChanged?.Invoke(this, true);
+        }
+        catch (Exception ex)
+        {
+            PlaybackError?.Invoke(this, $"Stream error: {ex.Message}");
+            _isStreaming = false;
+        }
+    }
+    
     public async Task PlayTrackAsync(AudioTrack track)
     {
         if (track == null) return;
@@ -235,6 +561,18 @@ public class EnhancedAudioPlayerService : IDisposable
         
         try
         {
+            // Add current track to history before switching
+            if (_currentIndex >= 0 && _currentIndex < _queue.Count)
+            {
+                var previousTrack = _queue[_currentIndex];
+                if (!_playHistory.Contains(previousTrack))
+                {
+                    _playHistory.Insert(0, previousTrack);
+                    if (_playHistory.Count > MAX_HISTORY_SIZE)
+                        _playHistory.RemoveAt(_playHistory.Count - 1);
+                }
+            }
+            
             // Check if we have a preloaded track ready (gapless transition)
             bool usingPreload = _preloadedReader != null && _preloadedFilePath == CurrentTrack.FilePath;
             
@@ -250,6 +588,14 @@ public class EnhancedAudioPlayerService : IDisposable
             else
             {
                 _audioFileReader = new AudioFileReader(CurrentTrack.FilePath);
+            }
+            
+            // Check for saved bookmark and resume from it if available
+            var bookmark = GetBookmark(CurrentTrack.FilePath);
+            if (bookmark.HasValue && bookmark.Value.TotalSeconds > 5 && _audioFileReader != null)
+            {
+                // Resume from bookmark (only if more than 5 seconds in)
+                _audioFileReader.CurrentTime = bookmark.Value;
             }
             
             // Apply ReplayGain if enabled
@@ -271,7 +617,13 @@ public class EnhancedAudioPlayerService : IDisposable
             _volumeController = new VolumeSampleProvider(_spectrumAnalyzer);
             ApplyVolume();
             
-            _wavePlayer = new WaveOutEvent();
+            // Create WaveOut with selected device
+            var waveOut = new WaveOutEvent();
+            if (_selectedDeviceNumber >= 0 && _selectedDeviceNumber < WaveOut.DeviceCount)
+            {
+                waveOut.DeviceNumber = _selectedDeviceNumber;
+            }
+            _wavePlayer = waveOut;
             _wavePlayer.PlaybackStopped += OnPlaybackStopped;
             _wavePlayer.Init(_volumeController);
             _wavePlayer.Play();
@@ -311,11 +663,58 @@ public class EnhancedAudioPlayerService : IDisposable
     {
         if (_wavePlayer != null && _isPlaying)
         {
-            _wavePlayer.Pause();
-            _isPaused = true;
-            _positionTimer.Stop();
-            PlaybackStateChanged?.Invoke(this, false);
+            if (_fadeOnPause && _volumeController != null)
+            {
+                // Fade out before pausing
+                PauseWithFade();
+            }
+            else
+            {
+                // Immediate pause
+                _wavePlayer.Pause();
+                _isPaused = true;
+                _positionTimer.Stop();
+                PlaybackStateChanged?.Invoke(this, false);
+            }
         }
+    }
+    
+    /// <summary>
+    /// Pauses playback with a smooth volume fade.
+    /// </summary>
+    private void PauseWithFade()
+    {
+        if (_volumeController == null || _wavePlayer == null) return;
+        
+        var originalVolume = _volumeController.Volume;
+        var fadeSteps = 20;
+        var stepDuration = _fadeOnPauseDurationMs / fadeSteps;
+        var volumeStep = originalVolume / fadeSteps;
+        var currentStep = 0;
+        
+        _fadeTimer?.Stop();
+        _fadeTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(stepDuration) };
+        _fadeTimer.Tick += (s, e) =>
+        {
+            currentStep++;
+            if (currentStep >= fadeSteps)
+            {
+                _fadeTimer.Stop();
+                _wavePlayer?.Pause();
+                _isPaused = true;
+                _positionTimer.Stop();
+                // Restore volume for next play
+                if (_volumeController != null)
+                    _volumeController.Volume = originalVolume;
+                PlaybackStateChanged?.Invoke(this, false);
+            }
+            else
+            {
+                if (_volumeController != null)
+                    _volumeController.Volume = originalVolume - (volumeStep * currentStep);
+            }
+        };
+        _fadeTimer.Start();
     }
     
     public void PlayPause()
@@ -363,6 +762,47 @@ public class EnhancedAudioPlayerService : IDisposable
         if (_audioFileReader != null)
         {
             _audioFileReader.CurrentTime = position;
+        }
+    }
+    
+    /// <summary>
+    /// Generates low-resolution waveform data for seek preview display.
+    /// Returns an array of peak values (0-1) for the given number of samples.
+    /// </summary>
+    public float[]? GetWaveformData(int sampleCount = 140)
+    {
+        var track = CurrentTrack;
+        if (track?.FilePath == null || !System.IO.File.Exists(track.FilePath))
+            return null;
+            
+        try
+        {
+            using var reader = new AudioFileReader(track.FilePath);
+            long totalSamples = reader.Length / (reader.WaveFormat.BitsPerSample / 8);
+            long samplesPerBucket = totalSamples / sampleCount;
+            if (samplesPerBucket <= 0) return null;
+            
+            var waveform = new float[sampleCount];
+            var buffer = new float[Math.Min(4096, samplesPerBucket)];
+            
+            for (int i = 0; i < sampleCount; i++)
+            {
+                long targetPos = i * samplesPerBucket * (reader.WaveFormat.BitsPerSample / 8);
+                if (targetPos >= reader.Length) break;
+                reader.Position = targetPos;
+                
+                int read = reader.Read(buffer, 0, buffer.Length);
+                float peak = 0;
+                for (int j = 0; j < read; j++)
+                    peak = Math.Max(peak, Math.Abs(buffer[j]));
+                waveform[i] = peak;
+            }
+            
+            return waveform;
+        }
+        catch
+        {
+            return null;
         }
     }
     
@@ -725,8 +1165,17 @@ public class EnhancedAudioPlayerService : IDisposable
                 {
                     ComputeSpectrumFromFFT(fftData);
                     SpectrumDataUpdated?.Invoke(this, _spectrumData);
-                    return;
                 }
+                
+                // Fire VU levels event
+                var vuLevels = _spectrumAnalyzer.GetVULevels();
+                VULevelsUpdated?.Invoke(this, vuLevels);
+                
+                // Fire oscilloscope event
+                var oscilloscopeData = _spectrumAnalyzer.GetOscilloscopeData();
+                OscilloscopeDataUpdated?.Invoke(this, oscilloscopeData);
+                
+                return;
             }
             finally
             {
@@ -1428,11 +1877,13 @@ public class SpeedControlSampleProvider : ISampleProvider
             return _source.Read(buffer, offset, count);
         }
         
-        // Simple speed change by resampling
-        int sourceSamplesNeeded = (int)(count * _speed);
+        // Simple speed change by resampling with cubic interpolation for smoother sound
+        int sourceSamplesNeeded = (int)(count * _speed) + 4; // Extra samples for cubic interpolation
         int samplesRead = _source.Read(_sourceBuffer, 0, Math.Min(sourceSamplesNeeded, _sourceBuffer.Length));
         
-        int outputSamples = (int)(samplesRead / _speed);
+        if (samplesRead == 0) return 0;
+        
+        int outputSamples = (int)((samplesRead - 3) / _speed); // Leave room for cubic lookahead
         outputSamples = Math.Min(outputSamples, count);
         
         for (int i = 0; i < outputSamples; i++)
@@ -1441,9 +1892,26 @@ public class SpeedControlSampleProvider : ISampleProvider
             int sourceIndex = (int)sourcePosition;
             float fraction = sourcePosition - sourceIndex;
             
-            if (sourceIndex + 1 < samplesRead)
+            if (sourceIndex >= 0 && sourceIndex + 3 < samplesRead)
             {
-                // Linear interpolation
+                // Cubic Hermite interpolation for smoother results
+                float p0 = sourceIndex > 0 ? _sourceBuffer[sourceIndex - 1] : _sourceBuffer[sourceIndex];
+                float p1 = _sourceBuffer[sourceIndex];
+                float p2 = _sourceBuffer[sourceIndex + 1];
+                float p3 = _sourceBuffer[sourceIndex + 2];
+                
+                float a = -0.5f * p0 + 1.5f * p1 - 1.5f * p2 + 0.5f * p3;
+                float b = p0 - 2.5f * p1 + 2.0f * p2 - 0.5f * p3;
+                float c = -0.5f * p0 + 0.5f * p2;
+                float d = p1;
+                
+                buffer[offset + i] = a * fraction * fraction * fraction + 
+                                      b * fraction * fraction + 
+                                      c * fraction + d;
+            }
+            else if (sourceIndex + 1 < samplesRead)
+            {
+                // Fall back to linear interpolation at edges
                 buffer[offset + i] = _sourceBuffer[sourceIndex] * (1 - fraction) + 
                                       _sourceBuffer[sourceIndex + 1] * fraction;
             }
@@ -1502,6 +1970,21 @@ public class SpectrumAnalyzerSampleProvider : ISampleProvider
     // Hanning window for FFT to reduce spectral leakage
     private readonly float[] _hanningWindow;
     
+    // VU Meter data
+    private float _peakLeft;
+    private float _peakRight;
+    private float _rmsLeft;
+    private float _rmsRight;
+    private float _leftSum;
+    private float _rightSum;
+    private int _sampleCount;
+    private const int VU_SAMPLE_COUNT = 2048;
+    
+    // Oscilloscope data
+    private readonly float[] _oscilloscopeBuffer;
+    private int _oscilloscopeIndex;
+    private const int OSCILLOSCOPE_SIZE = 512;
+    
     public WaveFormat WaveFormat => _source.WaveFormat;
     
     public SpectrumAnalyzerSampleProvider(ISampleProvider source, int fftSize = 4096)
@@ -1512,6 +1995,12 @@ public class SpectrumAnalyzerSampleProvider : ISampleProvider
         _fftMagnitudes = new float[fftSize / 2];
         _sampleBuffer = new float[fftSize];
         _sampleIndex = 0;
+        
+        // VU meter initialization
+        _peakLeft = 0;
+        _peakRight = 0;
+        _oscilloscopeBuffer = new float[OSCILLOSCOPE_SIZE];
+        _oscilloscopeIndex = 0;
         
         // Pre-compute Hanning window
         _hanningWindow = new float[fftSize];
@@ -1532,18 +2021,38 @@ public class SpectrumAnalyzerSampleProvider : ISampleProvider
         {
             for (int i = 0; i < samplesRead; i += channels)
             {
-                // Mix to mono
-                float sample = 0;
-                for (int ch = 0; ch < channels; ch++)
-                {
-                    if (offset + i + ch < buffer.Length)
-                        sample += buffer[offset + i + ch];
-                }
-                sample /= channels;
+                // Get left/right samples for VU meter
+                float left = (offset + i < buffer.Length) ? buffer[offset + i] : 0;
+                float right = (channels > 1 && offset + i + 1 < buffer.Length) ? buffer[offset + i + 1] : left;
                 
-                // Add to circular buffer
+                // Update peak levels
+                _peakLeft = Math.Max(_peakLeft * 0.9995f, Math.Abs(left));
+                _peakRight = Math.Max(_peakRight * 0.9995f, Math.Abs(right));
+                
+                // Accumulate for RMS calculation
+                _leftSum += left * left;
+                _rightSum += right * right;
+                _sampleCount++;
+                
+                if (_sampleCount >= VU_SAMPLE_COUNT)
+                {
+                    _rmsLeft = MathF.Sqrt(_leftSum / _sampleCount);
+                    _rmsRight = MathF.Sqrt(_rightSum / _sampleCount);
+                    _leftSum = 0;
+                    _rightSum = 0;
+                    _sampleCount = 0;
+                }
+                
+                // Mix to mono for spectrum
+                float sample = (left + right) / 2f;
+                
+                // Add to FFT circular buffer
                 _sampleBuffer[_sampleIndex] = sample;
                 _sampleIndex = (_sampleIndex + 1) % _fftSize;
+                
+                // Add to oscilloscope buffer
+                _oscilloscopeBuffer[_oscilloscopeIndex] = sample;
+                _oscilloscopeIndex = (_oscilloscopeIndex + 1) % OSCILLOSCOPE_SIZE;
             }
         }
         
@@ -1579,6 +2088,35 @@ public class SpectrumAnalyzerSampleProvider : ISampleProvider
         }
         
         return _fftMagnitudes;
+    }
+    
+    /// <summary>
+    /// Gets VU meter levels (peak and RMS) for left and right channels.
+    /// </summary>
+    public (float PeakLeft, float PeakRight, float RmsLeft, float RmsRight) GetVULevels()
+    {
+        lock (_lock)
+        {
+            return (_peakLeft, _peakRight, _rmsLeft, _rmsRight);
+        }
+    }
+    
+    /// <summary>
+    /// Gets oscilloscope waveform data for visualization.
+    /// </summary>
+    public float[] GetOscilloscopeData()
+    {
+        lock (_lock)
+        {
+            var result = new float[OSCILLOSCOPE_SIZE];
+            int readIndex = _oscilloscopeIndex;
+            for (int i = 0; i < OSCILLOSCOPE_SIZE; i++)
+            {
+                result[i] = _oscilloscopeBuffer[readIndex];
+                readIndex = (readIndex + 1) % OSCILLOSCOPE_SIZE;
+            }
+            return result;
+        }
     }
 }
 

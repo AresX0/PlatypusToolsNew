@@ -27,8 +27,10 @@ namespace PlatypusTools.UI.Views
         private Point _lastMousePosition;
         private bool _mousePositionInitialized = false;
         private DispatcherTimer? _fadeTimer;
+        private DispatcherTimer? _animationTimer;
         private string _currentMode = "Starfield";
         private int _currentColorScheme = 0;
+        private readonly Random _animRandom = new();
         
         // Threshold for mouse movement to exit (prevents accidental exit from small movements)
         private const double MouseMoveThreshold = 50;
@@ -60,6 +62,11 @@ namespace PlatypusTools.UI.Views
             if (ColorSchemeComboBox.Items.Count > _currentColorScheme)
                 ColorSchemeComboBox.SelectedIndex = _currentColorScheme;
             
+            // Start continuous animation timer — pumps synthetic spectrum data every frame
+            _animationTimer = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(45) };
+            _animationTimer.Tick += (s, a) => ApplyVisualizerSettings();
+            _animationTimer.Start();
+            
             // Start fade timer for instruction text
             StartInstructionFadeTimer();
             
@@ -71,21 +78,25 @@ namespace PlatypusTools.UI.Views
         private void ScreensaverWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
             _fadeTimer?.Stop();
+            _animationTimer?.Stop();
         }
         
         private void ApplyVisualizerSettings()
         {
-            // Generate idle animation data since there's no audio playing
-            var idleData = new double[64];
-            var random = new Random();
+            // Generate evolving idle animation data — uses time for continuous motion
+            var idleData = new double[128];
             double phase = DateTime.Now.Ticks / 10000000.0;
             
-            for (int i = 0; i < 64; i++)
+            for (int i = 0; i < 128; i++)
             {
+                double freq = (double)i / 128;
                 double wave1 = Math.Sin(phase * 1.2 + i * 0.15) * 0.25;
                 double wave2 = Math.Sin(phase * 0.7 + i * 0.25) * 0.15;
                 double wave3 = Math.Sin(phase * 2.0 + i * 0.1) * 0.1;
-                idleData[i] = Math.Clamp(0.3 + wave1 + wave2 + wave3, 0.05, 0.95);
+                double wave4 = Math.Sin(phase * 0.3 + i * 0.4) * 0.12;
+                // Bass-heavy: more energy in lower frequencies
+                double bassBoost = (1.0 - freq) * 0.15;
+                idleData[i] = Math.Clamp(0.25 + wave1 + wave2 + wave3 + wave4 + bassBoost, 0.05, 0.95);
             }
             
             // Update visualizer with current settings
