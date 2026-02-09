@@ -34,11 +34,11 @@
                             MinWidth="180" Padding="5"/>
                 </Grid>
 
-                <StackPanel Orientation="Horizontal" Margin="5,5,5,10" HorizontalAlignment="Left">
-                    <Button Content="Add Files" Command="{Binding AddFilesCommand}" MinWidth="180" Margin="0,0,10,0" Padding="5"/>
-                    <Button Content="Add Folder" Command="{Binding AddFolderCommand}" MinWidth="180" Margin="0,0,10,0" Padding="5"/>
-                    <Button Content="Clear List" Command="{Binding ClearListCommand}" MinWidth="180" Padding="5"/>
-                </StackPanel>
+                <WrapPanel Margin="5,5,5,10" HorizontalAlignment="Left">
+                    <Button Content="Add Files" Command="{Binding AddFilesCommand}" MinWidth="90" Margin="0,2,10,2" Padding="5"/>
+                    <Button Content="Add Folder" Command="{Binding AddFolderCommand}" MinWidth="90" Margin="0,2,10,2" Padding="5"/>
+                    <Button Content="Clear List" Command="{Binding ClearListCommand}" MinWidth="90" Margin="0,2,0,2" Padding="5"/>
+                </WrapPanel>
             </StackPanel>
             </ScrollViewer>
         </GroupBox>

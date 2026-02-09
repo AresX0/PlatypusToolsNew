@@ -20,14 +20,14 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <StackPanel Orientation="Horizontal" Grid.Column="0">
-                    <Button Content="Refresh" Click="OnRefreshClick" MinWidth="180" Margin="0,0,8,0" />
-                    <Button Content="Enable" Click="OnEnableClick" MinWidth="180" Background="DarkGreen" Foreground="White" Margin="0,0,8,0" />
-                    <Button Content="Disable" Click="OnDisableClick" MinWidth="180" Background="DarkOrange" Foreground="White" Margin="0,0,8,0" />
-                    <Button Content="Run Now" Click="OnRunClick" MinWidth="180" Margin="0,0,8,0" />
-                    <Button Content="Delete" Click="OnDeleteClick" MinWidth="180" Background="DarkRed" Foreground="White" Margin="0,0,8,0" />
-                    <Button Content="Create Task" Click="OnCreateClick" MinWidth="180" FontWeight="Bold" />
-                </StackPanel>
+                <WrapPanel Grid.Column="0">
+                    <Button Content="Refresh" Click="OnRefreshClick" MinWidth="80" Margin="0,2,8,2" />
+                    <Button Content="Enable" Click="OnEnableClick" MinWidth="80" Background="DarkGreen" Foreground="White" Margin="0,2,8,2" />
+                    <Button Content="Disable" Click="OnDisableClick" MinWidth="80" Background="DarkOrange" Foreground="White" Margin="0,2,8,2" />
+                    <Button Content="Run Now" Click="OnRunClick" MinWidth="80" Margin="0,2,8,2" />
+                    <Button Content="Delete" Click="OnDeleteClick" MinWidth="80" Background="DarkRed" Foreground="White" Margin="0,2,8,2" />
+                    <Button Content="Create Task" Click="OnCreateClick" MinWidth="100" FontWeight="Bold" Margin="0,2,0,2" />
+                </WrapPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <TextBlock VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,16,0">
                         Total: <Run x:Name="TotalTasksText" Text="{Binding TotalTasks, Mode=OneWay}" />

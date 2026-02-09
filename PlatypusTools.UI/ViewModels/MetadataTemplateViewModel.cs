@@ -255,11 +255,21 @@ namespace PlatypusTools.UI.ViewModels
             NewTemplateName = string.Empty;
         }
         
-        private void EditTemplate()
+        private async void EditTemplate()
         {
-            // Would open a template editor dialog
-            // For now, just notify
-            StatusMessage = "Template editing UI not yet implemented";
+            if (SelectedTemplate == null || SelectedTemplate.IsBuiltIn) return;
+
+            var dialog = new Views.MetadataTemplateEditorDialog(SelectedTemplate);
+            var mainWindow = System.Windows.Application.Current?.MainWindow;
+            if (mainWindow != null && mainWindow.IsLoaded)
+                dialog.Owner = mainWindow;
+
+            if (dialog.ShowDialog() == true && dialog.Saved)
+            {
+                await _service.SaveTemplateAsync(SelectedTemplate);
+                RefreshTemplates();
+                StatusMessage = $"Template '{SelectedTemplate.Name}' updated";
+            }
         }
         
         private async Task DeleteTemplateAsync()

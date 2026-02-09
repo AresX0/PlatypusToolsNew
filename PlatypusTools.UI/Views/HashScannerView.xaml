@@ -50,18 +50,18 @@
                 </StackPanel>
 
                 <!-- Options -->
-                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                    <CheckBox Content="Uppercase hashes" IsChecked="{Binding UseUppercase}" Margin="0,0,20,0"/>
+                <WrapPanel Margin="0,8,0,0">
+                    <CheckBox Content="Uppercase hashes" IsChecked="{Binding UseUppercase}" VerticalAlignment="Center" Margin="0,2,20,2"/>
                     <Button Content="🔄 Calculate" Command="{Binding CalculateHashesCommand}" 
-                            MinWidth="180" Background="#FF4CAF50" Foreground="White" Margin="0,0,10,0" FontSize="12"/>
+                            MinWidth="100" Background="#FF4CAF50" Foreground="White" Margin="0,2,10,2" FontSize="12"/>
                     <Button Content="Cancel" Command="{Binding CancelCommand}" 
-                            MinWidth="180" Background="#FFF44336" Foreground="White" Margin="0,0,10,0" FontSize="12"
+                            MinWidth="80" Background="#FFF44336" Foreground="White" Margin="0,2,10,2" FontSize="12"
                             Visibility="{Binding IsCalculating, Converter={StaticResource BoolToVisibilityConverter}}"/>
                     <Button Content="✓ Verify" Command="{Binding VerifyHashCommand}" 
-                            MinWidth="180" Background="#FF2196F3" Foreground="White" Margin="0,0,10,0" FontSize="12"
+                            MinWidth="80" Background="#FF2196F3" Foreground="White" Margin="0,2,10,2" FontSize="12"
                             ToolTip="Verify a hash against calculated values"/>
-                    <Button Content="Clear" Command="{Binding ClearCommand}" MinWidth="180" FontSize="12"/>
-                </StackPanel>
+                    <Button Content="Clear" Command="{Binding ClearCommand}" MinWidth="70" Margin="0,2,0,2" FontSize="12"/>
+                </WrapPanel>
 
                 <!-- Progress -->
                 <ProgressBar Value="{Binding Progress}" Height="4" Margin="0,8,0,0"

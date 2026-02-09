@@ -1953,23 +1953,105 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         
         ConnectLastFmCommand = new AsyncRelayCommand(async () =>
         {
-            // Last.fm OAuth requires API key configuration
-            // To enable: add your Last.fm API key and secret in Settings
-            LastFmStatus = "Not Connected";
-            StatusMessage = "Last.fm requires API credentials. Get your API key at https://www.last.fm/api/account/create";
+            var settings = SettingsManager.Load();
             
-            // Open Last.fm API registration page
+            // Check if credentials are already configured
+            if (!string.IsNullOrEmpty(settings.LastFmApiKey) && 
+                !string.IsNullOrEmpty(settings.LastFmApiSecret) &&
+                !string.IsNullOrEmpty(settings.LastFmSessionKey))
+            {
+                // Already authenticated — enable scrobbling
+                _playerService.SetLastFmCredentials(settings.LastFmApiKey, settings.LastFmApiSecret, settings.LastFmSessionKey);
+                ScrobblingEnabled = true;
+                LastFmStatus = "Connected";
+                StatusMessage = "Last.fm scrobbling enabled";
+                return;
+            }
+            
+            if (string.IsNullOrEmpty(settings.LastFmApiKey) || string.IsNullOrEmpty(settings.LastFmApiSecret))
+            {
+                // No API key configured — prompt user
+                LastFmStatus = "Not Connected";
+                StatusMessage = "Last.fm requires API credentials. Enter your API Key and Secret in Settings, then click Connect again.";
+                
+                // Open Last.fm API registration page
+                try
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "https://www.last.fm/api/account/create",
+                        UseShellExecute = true
+                    });
+                }
+                catch { }
+                return;
+            }
+            
+            // Have API key but no session — start auth flow
+            LastFmStatus = "Authenticating...";
+            StatusMessage = "Opening Last.fm authorization page...";
+            
+            // Request a token
             try
             {
+                var httpClient = new System.Net.Http.HttpClient();
+                var tokenUrl = $"https://ws.audioscrobbler.com/2.0/?method=auth.getToken&api_key={settings.LastFmApiKey}&format=json";
+                var response = await httpClient.GetAsync(tokenUrl);
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    LastFmStatus = "Auth Failed";
+                    StatusMessage = "Failed to get Last.fm auth token. Check your API key.";
+                    return;
+                }
+                
+                var json = await response.Content.ReadAsStringAsync();
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var token = doc.RootElement.GetProperty("token").GetString();
+                
+                if (string.IsNullOrEmpty(token))
+                {
+                    LastFmStatus = "Auth Failed";
+                    StatusMessage = "Failed to get auth token from Last.fm";
+                    return;
+                }
+                
+                // Open browser for user to authorize
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                 {
-                    FileName = "https://www.last.fm/api/account/create",
+                    FileName = $"https://www.last.fm/api/auth/?api_key={settings.LastFmApiKey}&token={token}",
                     UseShellExecute = true
                 });
+                
+                StatusMessage = "Please authorize PlatypusTools in your browser, then wait...";
+                
+                // Wait a bit for user to authorize, then try to get session
+                await Task.Delay(15000); // 15 seconds
+                
+                _playerService.SetLastFmCredentials(settings.LastFmApiKey, settings.LastFmApiSecret, string.Empty);
+                var sessionKey = await _playerService.GetLastFmSessionAsync(token);
+                
+                if (!string.IsNullOrEmpty(sessionKey))
+                {
+                    settings.LastFmSessionKey = sessionKey;
+                    SettingsManager.Save(settings);
+                    
+                    _playerService.SetLastFmCredentials(settings.LastFmApiKey, settings.LastFmApiSecret, sessionKey);
+                    ScrobblingEnabled = true;
+                    LastFmStatus = "Connected";
+                    StatusMessage = "Last.fm connected successfully! Scrobbling is now active.";
+                }
+                else
+                {
+                    LastFmStatus = "Auth Failed";
+                    StatusMessage = "Failed to get session. Please try again after authorizing in browser.";
+                }
             }
-            catch { }
-            
-            await Task.CompletedTask;
+            catch (Exception ex)
+            {
+                LastFmStatus = "Error";
+                StatusMessage = $"Last.fm auth error: {ex.Message}";
+            }
         });
         
         // A-B Loop commands
@@ -2066,6 +2148,21 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         
         // Initialize audio devices list
         RefreshAudioDevices();
+        
+        // Auto-load Last.fm credentials if previously configured
+        try
+        {
+            var settings = SettingsManager.Load();
+            if (!string.IsNullOrEmpty(settings.LastFmApiKey) && 
+                !string.IsNullOrEmpty(settings.LastFmApiSecret) &&
+                !string.IsNullOrEmpty(settings.LastFmSessionKey))
+            {
+                _playerService.SetLastFmCredentials(settings.LastFmApiKey, settings.LastFmApiSecret, settings.LastFmSessionKey);
+                ScrobblingEnabled = true;
+                LastFmStatus = "Connected";
+            }
+        }
+        catch { /* Settings load failure is non-critical */ }
     }
     
     #region Event Handlers
@@ -2447,6 +2544,20 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         {
             await _playerService.PlayTrackAsync(Queue[0]);
         }
+    }
+    
+    /// <summary>
+    /// Play a file from an external source (e.g., Media Library).
+    /// Adds to queue and starts playback immediately.
+    /// </summary>
+    public async Task PlayFileAsync(string filePath)
+    {
+        var track = await LoadTrackAsync(filePath);
+        if (track == null) return;
+        
+        _playerService.AddToQueue(track);
+        Queue.Add(track);
+        await _playerService.PlayTrackAsync(track);
     }
     
     private async Task OpenFolderAsync()

@@ -22,21 +22,21 @@
         </Grid.RowDefinitions>
         
         <!-- Toolbar -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
-            <Button Content="📂 Open Archive" Click="OnOpenArchiveClick" MinWidth="180" Margin="0,0,8,0"/>
-            <Button Content="📦 Create Archive" Click="OnCreateArchiveClick" MinWidth="180" Margin="0,0,8,0"
+        <WrapPanel Grid.Row="0" Margin="0,0,0,8">
+            <Button Content="📂 Open Archive" Click="OnOpenArchiveClick" MinWidth="120" Margin="0,2,8,2"/>
+            <Button Content="📦 Create Archive" Click="OnCreateArchiveClick" MinWidth="120" Margin="0,2,8,2"
                     Background="#FF2196F3" Foreground="White"/>
             <Separator Margin="8,0"/>
-            <Button Content="📤 Extract All" Click="OnExtractAllClick" MinWidth="180" Margin="0,0,8,0"
+            <Button Content="📤 Extract All" Click="OnExtractAllClick" MinWidth="120" Margin="0,2,8,2"
                     Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
-            <Button Content="📤 Extract Selected" Click="OnExtractSelectedClick" MinWidth="180" Margin="0,0,8,0"/>
+            <Button Content="📤 Extract Selected" Click="OnExtractSelectedClick" MinWidth="120" Margin="0,2,8,2"/>
             <Separator Margin="8,0"/>
-            <Button Content="➕ Add Files" Click="OnAddFilesClick" MinWidth="180" Margin="0,0,8,0"/>
-            <Button Content="🔍 Test" Click="OnTestClick" MinWidth="180" Margin="0,0,8,0"/>
-            <Button Content="❌ Cancel" Click="OnCancelClick" MinWidth="180"
+            <Button Content="➕ Add Files" Click="OnAddFilesClick" MinWidth="100" Margin="0,2,8,2"/>
+            <Button Content="🔍 Test" Click="OnTestClick" MinWidth="80" Margin="0,2,8,2"/>
+            <Button Content="❌ Cancel" Click="OnCancelClick" MinWidth="80" Margin="0,2,0,2"
                     Background="#FFF44336" Foreground="White"
                     Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}"/>
-        </StackPanel>
+        </WrapPanel>
         
         <!-- Archive Info & Create Options -->
         <Grid Grid.Row="1" Margin="0,0,0,8">

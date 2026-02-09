@@ -122,18 +122,18 @@
             </GroupBox>
 
             <!-- Toolbar -->
-            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
-                <Button Content="📁 Up" Command="{Binding NavigateUpCommand}" MinWidth="180" Margin="0,0,4,0"/>
-                <Button Content="🔄 Refresh" Command="{Binding RefreshCommand}" MinWidth="180" Margin="0,0,4,0"/>
-                <Button Content="📥 Download" Command="{Binding DownloadCommand}" MinWidth="180" Margin="0,0,4,0"/>
-                <Button Content="📤 Upload" Command="{Binding UploadCommand}" MinWidth="180" Margin="0,0,4,0"/>
-                <Button Content="📁 New Folder" Command="{Binding CreateFolderCommand}" MinWidth="180" Margin="0,0,4,0"/>
-                <Button Content="🗑️ Delete" Command="{Binding DeleteCommand}" MinWidth="180" Margin="0,0,4,0"
+            <WrapPanel Grid.Row="1" Margin="0,0,0,8">
+                <Button Content="📁 Up" Command="{Binding NavigateUpCommand}" MinWidth="70" Margin="0,2,4,2"/>
+                <Button Content="🔄 Refresh" Command="{Binding RefreshCommand}" MinWidth="80" Margin="0,2,4,2"/>
+                <Button Content="📥 Download" Command="{Binding DownloadCommand}" MinWidth="90" Margin="0,2,4,2"/>
+                <Button Content="📤 Upload" Command="{Binding UploadCommand}" MinWidth="80" Margin="0,2,4,2"/>
+                <Button Content="📁 New Folder" Command="{Binding CreateFolderCommand}" MinWidth="100" Margin="0,2,4,2"/>
+                <Button Content="🗑️ Delete" Command="{Binding DeleteCommand}" MinWidth="80" Margin="0,2,4,2"
                         Background="#FFF44336" Foreground="White"/>
                 <TextBlock Text="Path:" VerticalAlignment="Center" Margin="16,0,8,0"/>
                 <TextBox Text="{Binding CurrentPath, Mode=OneWay}" Width="200" IsReadOnly="True" 
                          VerticalAlignment="Center" Background="{DynamicResource ControlBackgroundBrush}"/>
-            </StackPanel>
+            </WrapPanel>
 
             <!-- File List -->
             <DataGrid Grid.Row="2" ItemsSource="{Binding Files}" SelectedItem="{Binding SelectedItem}"

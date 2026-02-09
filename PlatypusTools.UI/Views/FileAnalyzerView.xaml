@@ -41,18 +41,18 @@
         </GroupBox>
 
         <!-- Action Buttons -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
-            <Button Content="Analyze" MinWidth="180" Height="30" Margin="0,0,5,0"
+        <WrapPanel Grid.Row="1" Margin="0,0,0,10">
+            <Button Content="Analyze" MinWidth="100" Height="30" Margin="0,2,5,2"
                     Click="OnAnalyzeClick" Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
-            <Button Content="Find Duplicates" MinWidth="180" Height="30" Margin="0,0,5,0"
+            <Button Content="Find Duplicates" MinWidth="120" Height="30" Margin="0,2,5,2"
                     Click="OnFindDuplicatesClick" Background="#FF2196F3" Foreground="White"/>
-            <Button Content="Build Tree" MinWidth="180" Height="30" Margin="0,0,5,0"
+            <Button Content="Build Tree" MinWidth="100" Height="30" Margin="0,2,5,2"
                     Click="OnBuildTreeClick" Background="#FF2196F3" Foreground="White"/>
-            <Button Content="Export" MinWidth="180" Height="30" Margin="0,0,5,0"
+            <Button Content="Export" MinWidth="80" Height="30" Margin="0,2,5,2"
                     Click="OnExportClick" Background="#FF2196F3" Foreground="White"/>
-            <Button Content="Clear" MinWidth="180" Height="30" Margin="0,0,5,0"
+            <Button Content="Clear" MinWidth="80" Height="30" Margin="0,2,5,2"
                     Click="OnClearClick" Background="#FFF44336" Foreground="White"/>
-        </StackPanel>
+        </WrapPanel>
 
         <!-- Summary Stats -->
         <GroupBox Header="Summary" Grid.Row="2" Margin="0,0,0,10">

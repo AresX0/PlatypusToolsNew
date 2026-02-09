@@ -38,7 +38,7 @@ namespace PlatypusTools.UI.Views
                 _panels = new[] 
                 { 
                     GeneralPanel, AppearancePanel, KeyboardPanel, 
-                    AIPanel, UpdatesPanel, BackupPanel, TabVisibilityPanel, VisualizerPanel, DependenciesPanel, AdvancedPanel 
+                    AIPanel, UpdatesPanel, BackupPanel, TabVisibilityPanel, VisualizerPanel, DependenciesPanel, AdvancedPanel, LastFmPanel 
                 };
             }
             catch (System.Exception ex)
@@ -100,6 +100,9 @@ namespace PlatypusTools.UI.Views
                 
                 // Load Font settings
                 LoadFontSettings(settings);
+                
+                // Load Last.fm settings
+                LoadLastFmSettings(settings);
             }
             catch (System.Exception ex)
             {
@@ -301,6 +304,7 @@ namespace PlatypusTools.UI.Views
                 "Backup" => BackupPanel,
                 "TabVisibility" => TabVisibilityPanel,
                 "Visualizer" => VisualizerPanel,
+                "LastFm" => LastFmPanel,
                 "Dependencies" => DependenciesPanel,
                 "Advanced" => AdvancedPanel,
                 _ => GeneralPanel
@@ -919,6 +923,8 @@ namespace PlatypusTools.UI.Views
             // Save font settings
             SaveFontSettings(settings);
             
+            // Last.fm settings are saved via their own button (SaveLastFmCredentials_Click)
+            
             SettingsManager.SaveCurrent();
             
             // Refresh tab visibility in the main UI immediately
@@ -987,6 +993,69 @@ namespace PlatypusTools.UI.Views
                 System.Diagnostics.Debug.WriteLine($"Error saving font settings: {ex.Message}");
             }
         }
+        
+        #region Last.fm Settings
+        
+        private void LoadLastFmSettings(AppSettings? settings)
+        {
+            if (settings == null) return;
+            try
+            {
+                if (LastFmApiKeyBox != null)
+                    LastFmApiKeyBox.Text = settings.LastFmApiKey;
+                if (LastFmApiSecretBox != null)
+                    LastFmApiSecretBox.Password = settings.LastFmApiSecret;
+                if (LastFmStatusText != null)
+                    LastFmStatusText.Text = string.IsNullOrEmpty(settings.LastFmSessionKey) ? "Not Connected" : "Connected (session key stored)";
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading Last.fm settings: {ex.Message}");
+            }
+        }
+        
+        private void SaveLastFmCredentials_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var settings = SettingsManager.Current;
+                settings.LastFmApiKey = LastFmApiKeyBox?.Text?.Trim() ?? string.Empty;
+                settings.LastFmApiSecret = LastFmApiSecretBox?.Password?.Trim() ?? string.Empty;
+                SettingsManager.SaveCurrent();
+                
+                if (LastFmStatusText != null)
+                    LastFmStatusText.Text = "Credentials saved. Click 'Connect Last.fm' in Audio Player to authenticate.";
+                    
+                MessageBox.Show("Last.fm API credentials saved.\n\nTo connect, go to Audio Player and click the 'Connect Last.fm' button.",
+                    "Last.fm", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Error saving credentials: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        
+        private void ClearLastFmSession_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var settings = SettingsManager.Current;
+                settings.LastFmSessionKey = string.Empty;
+                SettingsManager.SaveCurrent();
+                
+                if (LastFmStatusText != null)
+                    LastFmStatusText.Text = "Session cleared. Re-authenticate via Audio Player.";
+                    
+                MessageBox.Show("Last.fm session cleared. You will need to re-authenticate next time you click 'Connect Last.fm' in the Audio Player.",
+                    "Last.fm", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Error clearing session: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        
+        #endregion
         
         /// <summary>
         /// Updates the manifest file for the next application launch based on the admin rights setting.

@@ -20,11 +20,11 @@
             <TextBox Width="400" Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}" />
             <Button Content="Browse..." Command="{Binding BrowseOutputCommand}" MinWidth="180" Margin="8,0,0,0" />
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8">
-            <Button Content="Add Files..." Command="{Binding AddFilesCommand}" MinWidth="180" />
-            <Button Content="Convert" Command="{Binding ConvertCommand}" MinWidth="180" Margin="8,0,0,0" />
-            <Button Content="Cancel" Command="{Binding CancelCommand}" MinWidth="180" Margin="8,0,0,0" />
-            <Button Content="Clear" Command="{Binding ClearFilesCommand}" MinWidth="180" Margin="8,0,0,0" />
+        <WrapPanel Grid.Row="1" Margin="0,0,0,8">
+            <Button Content="Add Files..." Command="{Binding AddFilesCommand}" MinWidth="90" Margin="0,2,8,2" />
+            <Button Content="Convert" Command="{Binding ConvertCommand}" MinWidth="80" Margin="0,2,8,2" />
+            <Button Content="Cancel" Command="{Binding CancelCommand}" MinWidth="70" Margin="0,2,8,2" />
+            <Button Content="Clear" Command="{Binding ClearFilesCommand}" MinWidth="70" Margin="0,2,0,2" />
             <Separator Margin="8,0"/>
             <TextBlock VerticalAlignment="Center" Margin="0,0,4,0">Format:</TextBlock>
             <ComboBox Width="70" ItemsSource="{Binding OutputFormats}" SelectedItem="{Binding SelectedOutputFormat}" Margin="0,0,8,0"/>
@@ -36,7 +36,7 @@
             <TextBox Width="60" Text="{Binding MaxWidth, UpdateSourceTrigger=PropertyChanged}" Margin="4,0,0,0" />
             <TextBlock VerticalAlignment="Center" Margin="8,0,0,0">Max H:</TextBlock>
             <TextBox Width="60" Text="{Binding MaxHeight, UpdateSourceTrigger=PropertyChanged}" Margin="4,0,0,0" />
-        </StackPanel>
+        </WrapPanel>
         <ListBox Grid.Row="2" ItemsSource="{Binding Files}" />
         <ProgressBar Grid.Row="3" Height="16" Value="{Binding Progress}" Minimum="0" Maximum="100" Margin="0,8,0,0" />
         <TextBox Grid.Row="4" Text="{Binding Log}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" Margin="0,8,0,0" IsReadOnly="True" />

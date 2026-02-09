@@ -26,25 +26,25 @@
         <GroupBox Header="Audit Actions" Grid.Row="1" Margin="0,0,0,10">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                    <Button Content="🔍 Full System Audit" Command="{Binding RunFullAuditCommand}" MinWidth="180" Height="35" 
-                            Margin="0,0,5,0" Background="#FF2196F3" Foreground="White" FontWeight="Bold"/>
-                    <Button Content="👤 Scan Elevated Users" Command="{Binding ScanElevatedUsersCommand}" MinWidth="180" Height="35" 
-                            Margin="0,0,5,0" Background="#FFFF9800" Foreground="White"/>
-                    <Button Content="🔒 Scan Critical ACLs" Command="{Binding ScanCriticalAclsCommand}" MinWidth="190" Height="35" 
-                            Margin="0,0,5,0" Background="#FFF44336" Foreground="White"/>
-                    <Button Content="⬆ Scan Outbound Traffic" Command="{Binding ScanOutboundTrafficCommand}" MinWidth="180" Height="35" 
-                            Margin="0,0,5,0" Background="#FF4CAF50" Foreground="White"/>
-                    <Button Content="⬇ Scan Inbound Traffic" Command="{Binding ScanInboundTrafficCommand}" MinWidth="190" Height="35" 
-                            Margin="0,0,5,0" Background="#FF4CAF50" Foreground="White"/>
-                    <Button Content="👥 Open Users &amp; Groups" Command="{Binding OpenUsersAndGroupsCommand}" MinWidth="190" Height="35" 
-                            Margin="0,0,5,0" Background="#FF9C27B0" Foreground="White"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <Button Content="Firewall" Command="{Binding RunFirewallAuditCommand}" MinWidth="180" Height="35" Margin="0,0,5,0"/>
-                    <Button Content="Updates" Command="{Binding RunUpdatesAuditCommand}" MinWidth="180" Height="35" Margin="0,0,5,0"/>
-                    <Button Content="Startup Items" Command="{Binding RunStartupAuditCommand}" MinWidth="180" Height="35" Margin="0,0,5,0"/>
-                </StackPanel>
+                <WrapPanel Margin="0,0,0,5">
+                    <Button Content="🔍 Full System Audit" Command="{Binding RunFullAuditCommand}" MinWidth="140" Height="35" 
+                            Margin="0,2,5,2" Background="#FF2196F3" Foreground="White" FontWeight="Bold"/>
+                    <Button Content="👤 Scan Elevated Users" Command="{Binding ScanElevatedUsersCommand}" MinWidth="150" Height="35" 
+                            Margin="0,2,5,2" Background="#FFFF9800" Foreground="White"/>
+                    <Button Content="🔒 Scan Critical ACLs" Command="{Binding ScanCriticalAclsCommand}" MinWidth="140" Height="35" 
+                            Margin="0,2,5,2" Background="#FFF44336" Foreground="White"/>
+                    <Button Content="⬆ Scan Outbound Traffic" Command="{Binding ScanOutboundTrafficCommand}" MinWidth="150" Height="35" 
+                            Margin="0,2,5,2" Background="#FF4CAF50" Foreground="White"/>
+                    <Button Content="⬇ Scan Inbound Traffic" Command="{Binding ScanInboundTrafficCommand}" MinWidth="150" Height="35" 
+                            Margin="0,2,5,2" Background="#FF4CAF50" Foreground="White"/>
+                    <Button Content="👥 Open Users &amp; Groups" Command="{Binding OpenUsersAndGroupsCommand}" MinWidth="150" Height="35" 
+                            Margin="0,2,5,2" Background="#FF9C27B0" Foreground="White"/>
+                </WrapPanel>
+                <WrapPanel>
+                    <Button Content="Firewall" Command="{Binding RunFirewallAuditCommand}" MinWidth="90" Height="35" Margin="0,2,5,2"/>
+                    <Button Content="Updates" Command="{Binding RunUpdatesAuditCommand}" MinWidth="90" Height="35" Margin="0,2,5,2"/>
+                    <Button Content="Startup Items" Command="{Binding RunStartupAuditCommand}" MinWidth="100" Height="35" Margin="0,2,5,2"/>
+                </WrapPanel>
             </StackPanel>
             </ScrollViewer>
         </GroupBox>
@@ -53,25 +53,25 @@
         <GroupBox Header="User Management (Requires Admin)" Grid.Row="2" Margin="0,0,0,10">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                <WrapPanel Margin="0,0,0,5">
                     <TextBlock Text="Selected User:" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="Bold" Width="100"/>
                     <TextBox Text="{Binding SelectedUsername, UpdateSourceTrigger=PropertyChanged}" 
                              Width="200" Height="30" VerticalContentAlignment="Center" Margin="0,0,10,0"/>
                     
-                    <Button Content="Disable User" Command="{Binding DisableUserCommand}" MinWidth="180" Height="30" 
-                            Margin="0,0,5,0" Background="Orange"/>
-                    <Button Content="Delete User" Command="{Binding DeleteUserCommand}" MinWidth="180" Height="30" 
-                            Margin="0,0,5,0" Background="Red" Foreground="White"/>
-                </StackPanel>
+                    <Button Content="Disable User" Command="{Binding DisableUserCommand}" MinWidth="110" Height="30" 
+                            Margin="0,2,5,2" Background="Orange"/>
+                    <Button Content="Delete User" Command="{Binding DeleteUserCommand}" MinWidth="100" Height="30" 
+                            Margin="0,2,5,2" Background="Red" Foreground="White"/>
+                </WrapPanel>
                 
-                <StackPanel Orientation="Horizontal">
+                <WrapPanel>
                     <TextBlock Text="New password:" VerticalAlignment="Center" Margin="0,0,10,0" Width="100"/>
                     <TextBox Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}" 
                              Width="200" Height="30" VerticalContentAlignment="Center" Margin="0,0,10,0"/>
                     
-                    <Button Content="Reset Password" Command="{Binding ResetPasswordCommand}" MinWidth="180" Height="30" 
-                            Background="LightBlue"/>
-                </StackPanel>
+                    <Button Content="Reset Password" Command="{Binding ResetPasswordCommand}" MinWidth="120" Height="30" 
+                            Margin="0,2,0,2" Background="LightBlue"/>
+                </WrapPanel>
             </StackPanel>
             </ScrollViewer>
         </GroupBox>

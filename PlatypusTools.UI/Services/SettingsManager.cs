@@ -199,6 +199,39 @@ namespace PlatypusTools.UI.Services
         private string _adSecurityLicenseKey = string.Empty;
         private bool _adSecurityHidden = true;
 
+        // Last.fm Scrobbling Settings
+        private string _lastFmApiKey = string.Empty;
+        private string _lastFmApiSecret = string.Empty;
+        private string _lastFmSessionKey = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the Last.fm API key for scrobbling.
+        /// Get one at https://www.last.fm/api/account/create
+        /// </summary>
+        public string LastFmApiKey
+        {
+            get => _lastFmApiKey;
+            set { _lastFmApiKey = value ?? string.Empty; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets the Last.fm API shared secret.
+        /// </summary>
+        public string LastFmApiSecret
+        {
+            get => _lastFmApiSecret;
+            set { _lastFmApiSecret = value ?? string.Empty; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets the Last.fm session key obtained after OAuth authentication.
+        /// </summary>
+        public string LastFmSessionKey
+        {
+            get => _lastFmSessionKey;
+            set { _lastFmSessionKey = value ?? string.Empty; OnPropertyChanged(); }
+        }
+
         /// <summary>
         /// Gets or sets the stored license key for the AD Security Analyzer tab.
         /// Empty string means no license key is registered (tab is inaccessible).

@@ -20,15 +20,6 @@ namespace PlatypusTools.UI.Services
         
         private static readonly Lazy<VideoFFprobeService> _ffprobeService = 
             new(() => new VideoFFprobeService());
-        
-        private static readonly Lazy<BeatDetectionService> _beatDetectionService = 
-            new(() => new BeatDetectionService());
-        
-        private static readonly Lazy<TimelineOperationsService> _timelineOperationsService = 
-            new(() => new TimelineOperationsService());
-        
-        private static readonly Lazy<KeyframeInterpolator> _keyframeInterpolator = 
-            new(() => new KeyframeInterpolator());
 
         /// <summary>
         /// Gets the shared FFmpeg service instance for video operations.
@@ -39,21 +30,6 @@ namespace PlatypusTools.UI.Services
         /// Gets the shared FFprobe service instance for media probing.
         /// </summary>
         public static VideoFFprobeService FFprobe => _ffprobeService.Value;
-
-        /// <summary>
-        /// Gets the shared beat detection service instance.
-        /// </summary>
-        public static BeatDetectionService BeatDetection => _beatDetectionService.Value;
-
-        /// <summary>
-        /// Gets the shared timeline operations service instance.
-        /// </summary>
-        public static TimelineOperationsService TimelineOperations => _timelineOperationsService.Value;
-
-        /// <summary>
-        /// Gets the shared keyframe interpolator instance.
-        /// </summary>
-        public static KeyframeInterpolator KeyframeInterpolator => _keyframeInterpolator.Value;
 
         #endregion
 

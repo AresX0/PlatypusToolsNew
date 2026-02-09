@@ -1612,17 +1612,115 @@ public class EnhancedAudioPlayerService : IDisposable
     #region Last.fm Scrobbling
     
     private string? _lastFmApiKey;
+    private string? _lastFmApiSecret;
     private string? _lastFmSessionKey;
     private DateTime? _trackStartTime;
     private bool _scrobbled;
     
-    public void SetLastFmCredentials(string apiKey, string sessionKey)
+    private const string LastFmApiUrl = "https://ws.audioscrobbler.com/2.0/";
+    
+    public void SetLastFmCredentials(string apiKey, string apiSecret, string sessionKey)
     {
         _lastFmApiKey = apiKey;
+        _lastFmApiSecret = apiSecret;
         _lastFmSessionKey = sessionKey;
     }
     
     public bool IsLastFmConfigured => !string.IsNullOrEmpty(_lastFmApiKey) && !string.IsNullOrEmpty(_lastFmSessionKey);
+    
+    /// <summary>
+    /// Generate the Last.fm API method signature (md5 hash of sorted params + secret).
+    /// </summary>
+    private string GenerateLastFmSignature(SortedDictionary<string, string> parameters)
+    {
+        var sigString = string.Concat(parameters.Select(p => p.Key + p.Value)) + _lastFmApiSecret;
+        var hashBytes = System.Security.Cryptography.MD5.HashData(System.Text.Encoding.UTF8.GetBytes(sigString));
+        return Convert.ToHexString(hashBytes).ToLowerInvariant();
+    }
+    
+    /// <summary>
+    /// Make an authenticated POST to the Last.fm API.
+    /// </summary>
+    private async Task<bool> LastFmApiCallAsync(string method, Dictionary<string, string> extraParams)
+    {
+        if (string.IsNullOrEmpty(_lastFmApiKey) || string.IsNullOrEmpty(_lastFmSessionKey) || string.IsNullOrEmpty(_lastFmApiSecret))
+            return false;
+        
+        try
+        {
+            var parameters = new SortedDictionary<string, string>(extraParams)
+            {
+                ["method"] = method,
+                ["api_key"] = _lastFmApiKey,
+                ["sk"] = _lastFmSessionKey
+            };
+            
+            parameters["api_sig"] = GenerateLastFmSignature(parameters);
+            parameters["format"] = "json";
+            
+            using var content = new FormUrlEncodedContent(parameters);
+            var response = await _httpClient.PostAsync(LastFmApiUrl, content);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Last.fm] {method} succeeded");
+                return true;
+            }
+            
+            var body = await response.Content.ReadAsStringAsync();
+            System.Diagnostics.Debug.WriteLine($"[Last.fm] {method} failed ({response.StatusCode}): {body}");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Last.fm] {method} error: {ex.Message}");
+            return false;
+        }
+    }
+    
+    /// <summary>
+    /// Authenticate with Last.fm using an auth token to get a session key.
+    /// Call this after the user authorizes the app at https://www.last.fm/api/auth/?api_key=KEY&token=TOKEN
+    /// </summary>
+    public async Task<string?> GetLastFmSessionAsync(string token)
+    {
+        if (string.IsNullOrEmpty(_lastFmApiKey) || string.IsNullOrEmpty(_lastFmApiSecret))
+            return null;
+        
+        try
+        {
+            var parameters = new SortedDictionary<string, string>
+            {
+                ["method"] = "auth.getSession",
+                ["api_key"] = _lastFmApiKey,
+                ["token"] = token
+            };
+            
+            parameters["api_sig"] = GenerateLastFmSignature(parameters);
+            parameters["format"] = "json";
+            
+            var queryString = string.Join("&", parameters.Select(p => $"{p.Key}={Uri.EscapeDataString(p.Value)}"));
+            var response = await _httpClient.GetAsync($"{LastFmApiUrl}?{queryString}");
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("session", out var session) &&
+                    session.TryGetProperty("key", out var key))
+                {
+                    _lastFmSessionKey = key.GetString();
+                    return _lastFmSessionKey;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Last.fm] auth.getSession error: {ex.Message}");
+        }
+        
+        return null;
+    }
     
     public async Task ScrobbleCurrentTrackAsync()
     {
@@ -1634,20 +1732,48 @@ public class EnhancedAudioPlayerService : IDisposable
         
         _scrobbled = true;
         
-        // In a real implementation, make HTTP call to Last.fm API
-        // POST to https://ws.audioscrobbler.com/2.0/ with track.scrobble method
-        System.Diagnostics.Debug.WriteLine($"Scrobbled: {CurrentTrack.Artist} - {CurrentTrack.Title}");
+        var track = CurrentTrack;
+        var timestamp = (_trackStartTime ?? DateTime.UtcNow).Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+        
+        var parameters = new Dictionary<string, string>
+        {
+            ["artist"] = track.Artist,
+            ["track"] = string.IsNullOrWhiteSpace(track.Title) ? track.FileName : track.Title,
+            ["timestamp"] = ((long)timestamp).ToString()
+        };
+        
+        if (!string.IsNullOrWhiteSpace(track.Album))
+            parameters["album"] = track.Album;
+        if (track.Duration.TotalSeconds > 0)
+            parameters["duration"] = ((int)track.Duration.TotalSeconds).ToString();
+        if (track.TrackNumber > 0)
+            parameters["trackNumber"] = track.TrackNumber.ToString();
+        
+        var success = await LastFmApiCallAsync("track.scrobble", parameters);
+        System.Diagnostics.Debug.WriteLine($"Scrobbled ({(success ? "OK" : "FAIL")}): {track.Artist} - {track.Title}");
     }
     
     public async Task UpdateNowPlayingAsync()
     {
         if (!IsLastFmConfigured || CurrentTrack == null) return;
         
-        // In a real implementation, make HTTP call to Last.fm API
-        // POST to https://ws.audioscrobbler.com/2.0/ with track.updateNowPlaying method
-        _trackStartTime = DateTime.Now;
+        _trackStartTime = DateTime.UtcNow;
         _scrobbled = false;
-        System.Diagnostics.Debug.WriteLine($"Now Playing: {CurrentTrack.Artist} - {CurrentTrack.Title}");
+        
+        var track = CurrentTrack;
+        var parameters = new Dictionary<string, string>
+        {
+            ["artist"] = track.Artist,
+            ["track"] = string.IsNullOrWhiteSpace(track.Title) ? track.FileName : track.Title
+        };
+        
+        if (!string.IsNullOrWhiteSpace(track.Album))
+            parameters["album"] = track.Album;
+        if (track.Duration.TotalSeconds > 0)
+            parameters["duration"] = ((int)track.Duration.TotalSeconds).ToString();
+        
+        var success = await LastFmApiCallAsync("track.updateNowPlaying", parameters);
+        System.Diagnostics.Debug.WriteLine($"Now Playing ({(success ? "OK" : "FAIL")}): {track.Artist} - {track.Title}");
     }
     
     #endregion

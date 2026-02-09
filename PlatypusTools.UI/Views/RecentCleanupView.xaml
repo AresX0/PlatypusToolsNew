@@ -62,23 +62,23 @@
         </GroupBox>
         
         <!-- Options and Actions -->
-        <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,0,8">
-            <CheckBox IsChecked="{Binding DryRun}" Content="Dry Run (Preview Only)" VerticalAlignment="Center" Margin="0,0,16,0" 
+        <WrapPanel Grid.Row="2" Margin="0,0,0,8">
+            <CheckBox IsChecked="{Binding DryRun}" Content="Dry Run (Preview Only)" VerticalAlignment="Center" Margin="0,2,16,2" 
                       FontWeight="SemiBold"/>
-            <CheckBox IsChecked="{Binding IncludeSubDirs}" Content="Include Subdirectories" VerticalAlignment="Center" Margin="0,0,16,0" 
+            <CheckBox IsChecked="{Binding IncludeSubDirs}" Content="Include Subdirectories" VerticalAlignment="Center" Margin="0,2,16,2" 
                       ToolTip="When checked, matches files in subdirectories of target directories. When unchecked, only matches files directly in the target directory."/>
-            <Button Content="🔍 Scan Recent" Command="{Binding ScanAllRecentCommand}" MinWidth="180" Margin="0,0,8,0"
+            <Button Content="🔍 Scan Recent" Command="{Binding ScanAllRecentCommand}" MinWidth="110" Margin="0,2,8,2"
                     ToolTip="Scan all recent items. If target directories are specified, filters to only show items from those directories." 
                     Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
-            <Button Content="🗑️ Remove Selected" Command="{Binding RemoveSelectedCommand}" MinWidth="180" Margin="0,0,8,0"
+            <Button Content="🗑️ Remove Selected" Command="{Binding RemoveSelectedCommand}" MinWidth="120" Margin="0,2,8,2"
                     Background="#FFF44336" Foreground="White" FontWeight="Bold"/>
-            <Button Content="💥 Clear ALL Recent" Command="{Binding ClearAllRecentCommand}" MinWidth="180" Margin="0,0,8,0"
+            <Button Content="💥 Clear ALL Recent" Command="{Binding ClearAllRecentCommand}" MinWidth="120" Margin="0,2,8,2"
                     ToolTip="Delete all recent shortcuts, jump lists, and history. Nuclear option!" 
                     Background="#FF9C27B0" Foreground="White" FontWeight="Bold"/>
-            <Button Content="🔄 Refresh Explorer" Command="{Binding RefreshExplorerCommand}" MinWidth="190" Margin="0,0,8,0"
+            <Button Content="🔄 Refresh Explorer" Command="{Binding RefreshExplorerCommand}" MinWidth="130" Margin="0,2,8,2"
                     ToolTip="Restart Explorer to refresh the Recent view" 
                     Background="#FF2196F3" Foreground="White" FontWeight="Bold"/>
-        </StackPanel>
+        </WrapPanel>
         
         <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" VerticalAlignment="Bottom" Margin="0,30,0,0" FontWeight="SemiBold"/>
 

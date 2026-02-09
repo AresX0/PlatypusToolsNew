@@ -19,14 +19,14 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <StackPanel Orientation="Horizontal" Grid.Column="0">
-                    <Button Content="Scan for Issues" Click="OnScanClick" MinWidth="180" FontWeight="Bold" Margin="0,0,8,0" />
-                    <Button Content="Fix Selected" Click="OnFixSelectedClick" MinWidth="180" Background="DarkGreen" Foreground="White" Margin="0,0,8,0" />
-                    <Button Content="Fix All" Click="OnFixAllClick" MinWidth="180" Background="DarkOrange" Foreground="White" Margin="0,0,16,0" />
-                    <Button Content="Create Backup" Click="OnBackupClick" MinWidth="180" Margin="0,0,8,0" />
-                    <Button Content="Select All" Click="OnSelectAllClick" MinWidth="180" Margin="0,0,4,0" />
-                    <Button Content="Deselect All" Click="OnDeselectAllClick" MinWidth="180" />
-                </StackPanel>
+                <WrapPanel Grid.Column="0">
+                    <Button Content="Scan for Issues" Click="OnScanClick" MinWidth="120" FontWeight="Bold" Margin="0,2,8,2" />
+                    <Button Content="Fix Selected" Click="OnFixSelectedClick" MinWidth="100" Background="DarkGreen" Foreground="White" Margin="0,2,8,2" />
+                    <Button Content="Fix All" Click="OnFixAllClick" MinWidth="80" Background="DarkOrange" Foreground="White" Margin="0,2,16,2" />
+                    <Button Content="Create Backup" Click="OnBackupClick" MinWidth="110" Margin="0,2,8,2" />
+                    <Button Content="Select All" Click="OnSelectAllClick" MinWidth="90" Margin="0,2,4,2" />
+                    <Button Content="Deselect All" Click="OnDeselectAllClick" MinWidth="90" Margin="0,2,0,2" />
+                </WrapPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <TextBlock x:Name="TotalIssuesText" VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,16,0">
                         Issues: <Run Text="{Binding TotalIssues, Mode=OneWay}" />

@@ -671,6 +671,19 @@ namespace PlatypusTools.UI.Views
             fullscreenWindow.ShowDialog();
         }
 
+        /// <summary>
+        /// Play a video file from an external source (e.g., Media Library).
+        /// </summary>
+        public void PlayFromMediaLibrary(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) return;
+            
+            _currentFilePath = filePath;
+            VideoFilePathBox.Text = filePath;
+            Log($"PlayFromMediaLibrary: {filePath}");
+            LoadVideo(filePath);
+        }
+
         #region Queue Management
 
         private void UpdateQueueInfo()

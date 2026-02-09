@@ -1,0 +1,88 @@
+<Window x:Class="PlatypusTools.UI.Views.MetadataTemplateEditorDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:metadata="clr-namespace:PlatypusTools.Core.Models.Metadata;assembly=PlatypusTools.Core"
+        Title="Edit Metadata Template" Height="600" Width="700" 
+        WindowStartupLocation="CenterOwner" ResizeMode="CanResizeWithGrip"
+        MinHeight="400" MinWidth="500"
+        Background="{DynamicResource WindowBackgroundBrush}">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Template Info -->
+        <GroupBox Grid.Row="0" Header="Template Information" Margin="0,0,0,8">
+            <Grid Margin="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="90"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Name:" VerticalAlignment="Center" Margin="0,0,0,6"/>
+                <TextBox Grid.Row="0" Grid.Column="1" x:Name="TemplateNameBox" Margin="0,0,0,6"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Category:" VerticalAlignment="Center" Margin="0,0,0,6"/>
+                <TextBox Grid.Row="1" Grid.Column="1" x:Name="TemplateCategoryBox" Margin="0,0,0,6"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Description:" VerticalAlignment="Top" Margin="0,0,0,0"/>
+                <TextBox Grid.Row="2" Grid.Column="1" x:Name="TemplateDescriptionBox" 
+                         TextWrapping="Wrap" AcceptsReturn="True" Height="50"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Field Actions -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,6">
+            <TextBlock Text="Fields" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" Margin="0,0,12,0"/>
+            <Button Content="➕ Add Field" Click="AddField_Click" MinWidth="100" Margin="0,0,6,0"
+                    Background="#FF4CAF50" Foreground="White"/>
+            <Button Content="🗑️ Remove Selected" Click="RemoveField_Click" MinWidth="120" 
+                    Background="#FFF44336" Foreground="White"/>
+        </StackPanel>
+
+        <!-- Fields DataGrid -->
+        <DataGrid Grid.Row="2" x:Name="FieldsGrid" AutoGenerateColumns="False" 
+                  CanUserAddRows="False" CanUserDeleteRows="False"
+                  SelectionMode="Single" Margin="0,0,0,8"
+                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                  BorderThickness="1" BorderBrush="{DynamicResource ControlBorderBrush}">
+            <DataGrid.Columns>
+                <DataGridCheckBoxColumn Header="✓" Binding="{Binding IsEnabled, UpdateSourceTrigger=PropertyChanged}" Width="35"/>
+                <DataGridTextColumn Header="Tag Name" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="150"/>
+                <DataGridTextColumn Header="Display Name" Binding="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" Width="150"/>
+                <DataGridTextColumn Header="Value" Binding="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                <DataGridComboBoxColumn Header="Type" SelectedItemBinding="{Binding Type, UpdateSourceTrigger=PropertyChanged}" Width="110">
+                    <DataGridComboBoxColumn.ItemsSource>
+                        <x:Array Type="{x:Type metadata:MetadataFieldType}">
+                            <metadata:MetadataFieldType>Text</metadata:MetadataFieldType>
+                            <metadata:MetadataFieldType>MultilineText</metadata:MetadataFieldType>
+                            <metadata:MetadataFieldType>Number</metadata:MetadataFieldType>
+                            <metadata:MetadataFieldType>Date</metadata:MetadataFieldType>
+                            <metadata:MetadataFieldType>DateTime</metadata:MetadataFieldType>
+                            <metadata:MetadataFieldType>Keywords</metadata:MetadataFieldType>
+                            <metadata:MetadataFieldType>Rating</metadata:MetadataFieldType>
+                            <metadata:MetadataFieldType>Boolean</metadata:MetadataFieldType>
+                            <metadata:MetadataFieldType>Selection</metadata:MetadataFieldType>
+                            <metadata:MetadataFieldType>Coordinates</metadata:MetadataFieldType>
+                        </x:Array>
+                    </DataGridComboBoxColumn.ItemsSource>
+                </DataGridComboBoxColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Save" MinWidth="100" Margin="0,0,8,0" Click="Save_Click"
+                    Background="#FF4CAF50" Foreground="White"/>
+            <Button Content="Cancel" MinWidth="100" Click="Cancel_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

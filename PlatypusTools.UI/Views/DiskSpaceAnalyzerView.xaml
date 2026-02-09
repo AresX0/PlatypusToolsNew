@@ -21,13 +21,13 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
+                <WrapPanel Grid.Row="0" Margin="0,0,0,8">
                     <TextBlock VerticalAlignment="Center" Width="100">Root Path:</TextBlock>
-                    <TextBox x:Name="RootPathTextBox" Width="500" Text="{Binding RootPath, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="0,0,8,0" />
-                    <Button Content="Browse..." Click="OnBrowseClick" MinWidth="180" Margin="0,0,8,0" />
-                    <Button Content="Analyze" Click="OnAnalyzeClick" MinWidth="180" FontWeight="Bold" Margin="0,0,8,0" Background="#FF4CAF50" Foreground="White" />
-                    <Button Content="Export" Command="{Binding ExportCommand}" MinWidth="180" Background="#FF2196F3" Foreground="White" />
-                </StackPanel>
+                    <TextBox x:Name="RootPathTextBox" Width="400" Text="{Binding RootPath, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="0,0,8,0" />
+                    <Button Content="Browse..." Click="OnBrowseClick" MinWidth="90" Margin="0,2,8,2" />
+                    <Button Content="Analyze" Click="OnAnalyzeClick" MinWidth="90" FontWeight="Bold" Margin="0,2,8,2" Background="#FF4CAF50" Foreground="White" />
+                    <Button Content="Export" Command="{Binding ExportCommand}" MinWidth="80" Margin="0,2,0,2" Background="#FF2196F3" Foreground="White" />
+                </WrapPanel>
                 <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8">
                     <TextBlock VerticalAlignment="Center" Width="100">Total Size:</TextBlock>
                     <TextBlock x:Name="TotalSizeDisplayText" Text="{Binding TotalSizeDisplay}" FontWeight="Bold" FontSize="14" Foreground="DarkBlue" />

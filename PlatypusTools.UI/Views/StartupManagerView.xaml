@@ -18,18 +18,18 @@
             Startup Programs Manager
         </TextBlock>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
-            <Button Content="🔄 Refresh" Command="{Binding RefreshCommand}" MinWidth="180"/>
-            <Button Content="☑ Select All" Command="{Binding SelectAllCommand}" MinWidth="180" Margin="8,0,0,0"/>
-            <Button Content="☐ Select None" Command="{Binding SelectNoneCommand}" MinWidth="180" Margin="8,0,0,0"/>
+        <WrapPanel Grid.Row="1" Margin="0,0,0,8">
+            <Button Content="🔄 Refresh" Command="{Binding RefreshCommand}" MinWidth="90" Margin="0,2,0,2"/>
+            <Button Content="☑ Select All" Command="{Binding SelectAllCommand}" MinWidth="90" Margin="8,2,0,2"/>
+            <Button Content="☐ Select None" Command="{Binding SelectNoneCommand}" MinWidth="100" Margin="8,2,0,2"/>
             <Separator Margin="8,0" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
-            <Button Content="🚫 Disable Selected" Command="{Binding DisableSelectedCommand}" MinWidth="190" Margin="8,0,0,0"
+            <Button Content="🚫 Disable Selected" Command="{Binding DisableSelectedCommand}" MinWidth="120" Margin="8,2,0,2"
                     Background="#FFFF9800" Foreground="White"/>
-            <Button Content="✓ Enable Selected" Command="{Binding EnableSelectedCommand}" MinWidth="180" Margin="8,0,0,0"
+            <Button Content="✓ Enable Selected" Command="{Binding EnableSelectedCommand}" MinWidth="120" Margin="8,2,0,2"
                     Background="#FF4CAF50" Foreground="White"/>
-            <Button Content="🗑️ Delete Selected" Command="{Binding DeleteSelectedCommand}" MinWidth="180" Margin="8,0,0,0"
+            <Button Content="🗑️ Delete Selected" Command="{Binding DeleteSelectedCommand}" MinWidth="120" Margin="8,2,0,2"
                     Background="#FFF44336" Foreground="White"/>
-        </StackPanel>
+        </WrapPanel>
         
         <!-- GridSplitter for resizing -->
         <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 

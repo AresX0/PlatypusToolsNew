@@ -100,8 +100,10 @@
                         <ContextMenu>
                             <MenuItem Header="Load Metadata" Command="{Binding LoadMetadataCommand}" 
                                       CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                            <MenuItem Header="Open File Location"/>
-                            <MenuItem Header="Play"/>
+                            <MenuItem Header="Open File Location" Click="OpenFileLocation_Click"/>
+                            <Separator/>
+                            <MenuItem Header="▶ Play in Audio Player" Click="PlayInAudioPlayer_Click"/>
+                            <MenuItem Header="▶ Play in Video Player" Click="PlayInVideoPlayer_Click"/>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                 </DataGrid>

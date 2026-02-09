@@ -17,13 +17,13 @@
         <!-- Folder Selection -->
         <GroupBox Header="Folder &amp; Scope" Grid.Row="0" Margin="0,0,0,8">
             <StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <WrapPanel Margin="0,0,0,8">
                     <TextBlock VerticalAlignment="Center" Width="100">Folder Path:</TextBlock>
-                    <TextBox Width="600" Text="{Binding FolderPath, UpdateSourceTrigger=PropertyChanged}" />
-                    <Button Content="📁 Browse..." Command="{Binding BrowseFolderCommand}" MinWidth="180" Margin="8,0,0,0"/>
-                    <Button Content="🔍 Scan" Command="{Binding ScanCommand}" MinWidth="180" Margin="8,0,0,0" FontWeight="Bold"
+                    <TextBox Width="500" Text="{Binding FolderPath, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button Content="📁 Browse..." Command="{Binding BrowseFolderCommand}" MinWidth="100" Margin="8,2,0,2"/>
+                    <Button Content="🔍 Scan" Command="{Binding ScanCommand}" MinWidth="80" Margin="8,2,0,2" FontWeight="Bold"
                             Background="#FF4CAF50" Foreground="White"/>
-                </StackPanel>
+                </WrapPanel>
                 <StackPanel Orientation="Horizontal">
                     <CheckBox IsChecked="{Binding IncludeSubfolders}" Margin="100,0,24,0">Include Subfolders</CheckBox>
                     <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">File Type Filter:</TextBlock>
