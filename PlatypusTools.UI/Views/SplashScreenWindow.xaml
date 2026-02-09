@@ -25,6 +25,7 @@
                               Stretch="UniformToFill"
                               MediaOpened="VideoPlayer_MediaOpened"
                               MediaEnded="VideoPlayer_MediaEnded"
+                              MediaFailed="VideoPlayer_MediaFailed"
                               IsMuted="True" />
             </Border>
             

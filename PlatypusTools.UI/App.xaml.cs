@@ -328,6 +328,11 @@ namespace PlatypusTools.UI
                 StartupProfiler.BeginPhase("Configure logging");
                 ConfigureLogging();
 
+                // Install bundled fonts silently BEFORE theme loading
+                StartupProfiler.BeginPhase("Install fonts");
+                _splashScreen?.UpdateStatus("Installing fonts...");
+                EnsureFontsInstalled();
+
                 // Load theme BEFORE creating main window to ensure resources are available
                 StartupProfiler.BeginPhase("Load theme");
                 _splashScreen?.UpdateStatus("Loading theme...");
@@ -485,6 +490,118 @@ namespace PlatypusTools.UI
                 {
                     panel.SetResourceReference(System.Windows.Controls.Panel.BackgroundProperty, "WindowBackgroundBrush");
                 }
+            }
+        }
+
+        /// <summary>
+        /// Silently installs all bundled theme fonts (per-user) on first run.
+        /// Copies font files to %LOCALAPPDATA%\Microsoft\Windows\Fonts and registers in HKCU.
+        /// This prevents freezes when themes reference fonts that aren't installed.
+        /// </summary>
+        private void EnsureFontsInstalled()
+        {
+            try
+            {
+                var appDir = AppDomain.CurrentDomain.BaseDirectory;
+                var localFontsFolder = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "Microsoft", "Windows", "Fonts");
+
+                // Font definitions: (display name, search file names, registry name)
+                var fonts = new[]
+                {
+                    ("Okuda", new[] { "Okuda.otf" }, "Okuda"),
+                    ("Okuda Bold", new[] { "Okuda Bold.otf" }, "Okuda Bold"),
+                    ("Okuda Italic", new[] { "Okuda Italic.otf" }, "Okuda Italic"),
+                    ("Okuda Bold Italic", new[] { "Okuda Bold Italic.otf" }, "Okuda Bold Italic"),
+                    ("Monofonto", new[] { "monofonto.otf", "monofonto rg.otf" }, "Monofonto"),
+                    ("Overseer", new[] { "Overseer.otf" }, "Overseer"),
+                    ("Overseer Bold", new[] { "Overseer Bold.otf" }, "Overseer Bold"),
+                    ("Overseer Italic", new[] { "Overseer Italic.otf" }, "Overseer Italic"),
+                    ("Overseer Bold Italic", new[] { "Overseer Bold Italic.otf" }, "Overseer Bold Italic"),
+                    ("Klingon", new[] { "KlingonFont.ttf", "klingon font.ttf" }, "klingon font"),
+                };
+
+                // Search directories for font files
+                var searchDirs = new[]
+                {
+                    Path.Combine(appDir, "Assets"),
+                    Path.Combine(appDir, "Fonts"),
+                    appDir
+                };
+
+                bool anyInstalled = false;
+
+                foreach (var (displayName, fileNames, registryName) in fonts)
+                {
+                    try
+                    {
+                        // Find the font file
+                        string? sourcePath = null;
+                        foreach (var dir in searchDirs)
+                        {
+                            if (!Directory.Exists(dir)) continue;
+                            foreach (var fileName in fileNames)
+                            {
+                                var candidate = Path.Combine(dir, fileName);
+                                if (File.Exists(candidate))
+                                {
+                                    sourcePath = candidate;
+                                    break;
+                                }
+                            }
+                            if (sourcePath != null) break;
+                        }
+
+                        if (sourcePath == null) continue; // Font not bundled, skip
+
+                        var destFileName = Path.GetFileName(sourcePath);
+                        var destPath = Path.Combine(localFontsFolder, destFileName);
+
+                        // Skip if already installed
+                        if (File.Exists(destPath)) continue;
+
+                        // Ensure destination directory exists
+                        if (!Directory.Exists(localFontsFolder))
+                            Directory.CreateDirectory(localFontsFolder);
+
+                        // Copy font file
+                        File.Copy(sourcePath, destPath, true);
+
+                        // Register in user registry
+                        using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                            @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts", true))
+                        {
+                            key?.SetValue($"{registryName} (TrueType)", destPath);
+                        }
+
+                        // Make font available immediately in this session
+                        Views.NativeMethods.AddFontResource(destPath);
+                        anyInstalled = true;
+
+                        SimpleLogger.Debug($"App: Auto-installed font '{displayName}' from {sourcePath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        SimpleLogger.Warn($"App: Failed to auto-install font '{displayName}': {ex.Message}");
+                        // Continue with other fonts — don't let one failure stop the rest
+                    }
+                }
+
+                if (anyInstalled)
+                {
+                    // Broadcast font change so WPF picks up newly installed fonts
+                    Views.NativeMethods.SendMessage(
+                        Views.NativeMethods.HWND_BROADCAST,
+                        Views.NativeMethods.WM_FONTCHANGE,
+                        IntPtr.Zero, IntPtr.Zero);
+                    SimpleLogger.Info("App: Font installation complete, WM_FONTCHANGE broadcast sent");
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Warn($"App: Font auto-installation failed: {ex.Message}");
+                // Non-fatal — app continues with fallback fonts
             }
         }
 

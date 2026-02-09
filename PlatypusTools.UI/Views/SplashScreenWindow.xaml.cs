@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
@@ -42,13 +43,28 @@ namespace PlatypusTools.UI.Views
                 var baseDir = AppDomain.CurrentDomain.BaseDirectory;
                 
                 // Try multiple paths in priority order
-                string[] possiblePaths = 
+                // Include install directory structures (MSI puts Assets under install dir)
+                var possiblePaths = new List<string>
                 {
                     Path.Combine(baseDir, "Assets", "PlatypusToolsIntro.mp4"),
                     Path.Combine(baseDir, "Assets", "platypus_swimming.mp4"),
                     Path.Combine(baseDir, "PlatypusToolsIntro.mp4"),
                     Path.Combine(baseDir, "platypus_swimming.mp4")
                 };
+                
+                // Also check the EXE's actual directory (for single-file publish)
+                var exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+                if (!string.IsNullOrEmpty(exePath))
+                {
+                    var exeDir = Path.GetDirectoryName(exePath);
+                    if (!string.IsNullOrEmpty(exeDir) && exeDir != baseDir)
+                    {
+                        possiblePaths.Add(Path.Combine(exeDir, "Assets", "PlatypusToolsIntro.mp4"));
+                        possiblePaths.Add(Path.Combine(exeDir, "Assets", "platypus_swimming.mp4"));
+                        possiblePaths.Add(Path.Combine(exeDir, "PlatypusToolsIntro.mp4"));
+                        possiblePaths.Add(Path.Combine(exeDir, "platypus_swimming.mp4"));
+                    }
+                }
                 
                 foreach (var path in possiblePaths)
                 {
@@ -135,6 +151,13 @@ namespace PlatypusTools.UI.Views
             System.Diagnostics.Debug.WriteLine("Splash: MediaOpened fired");
             _retryTimer?.Stop(); // Video is working, stop retry timer
             VideoPlayer.Play();
+        }
+        
+        private void VideoPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
+        {
+            // Log failure for diagnostics
+            System.Diagnostics.Debug.WriteLine($"Splash: MediaFailed - {e.ErrorException?.Message}");
+            _retryTimer?.Stop();
         }
 
         public void UpdateStatus(string message)
