@@ -245,10 +245,25 @@ namespace PlatypusTools.UI.Views
             {
                 Log("MediaPlayer EndReached event fired");
                 
-                if (AutoPlayCheckBox.IsChecked == true && _queue.Count > 0 && _currentQueueIndex >= 0)
+                // Clear current playing indicator
+                if (_currentQueueIndex >= 0 && _currentQueueIndex < _queue.Count)
                 {
-                    Log("Auto-playing next in queue");
-                    PlayNextInQueue();
+                    _queue[_currentQueueIndex].IsPlaying = false;
+                }
+                
+                if (AutoPlayCheckBox.IsChecked == true && _queue.Count > 0)
+                {
+                    // If not currently in queue, start from the beginning
+                    if (_currentQueueIndex < 0)
+                    {
+                        Log("Auto-playing first item in queue");
+                        PlayFromQueue(0);
+                    }
+                    else
+                    {
+                        Log("Auto-playing next in queue");
+                        PlayNextInQueue();
+                    }
                 }
             });
         }
@@ -287,6 +302,7 @@ namespace PlatypusTools.UI.Views
             {
                 Log("MediaPlayer is null, creating new one...");
                 _mediaPlayer = new MediaPlayer(_libVLC);
+                _mediaPlayer.EndReached += MediaPlayer_EndReached;
             }
             
             Log($"MediaPlayer state: {_mediaPlayer?.State}");
@@ -348,6 +364,15 @@ namespace PlatypusTools.UI.Views
         private void Play_Click(object sender, RoutedEventArgs e)
         {
             Log($"Play_Click: _mediaPlayer={_mediaPlayer != null}, State={_mediaPlayer?.State}");
+            
+            // If no video is loaded but queue has items, start playing from queue
+            if ((_mediaPlayer == null || _mediaPlayer.State == VLCState.NothingSpecial || _mediaPlayer.State == VLCState.Stopped) 
+                && _queue.Count > 0 && _currentQueueIndex < 0)
+            {
+                PlayFromQueue(0);
+                return;
+            }
+            
             var result = _mediaPlayer?.Play();
             Log($"Play returned: {result}");
             _timer?.Start();
@@ -366,6 +391,12 @@ namespace PlatypusTools.UI.Views
             _timer?.Stop();
             SeekSlider.Value = 0;
             PositionText.Text = "00:00:00";
+            
+            // Clear queue playing indicator
+            if (_currentQueueIndex >= 0 && _currentQueueIndex < _queue.Count)
+            {
+                _queue[_currentQueueIndex].IsPlaying = false;
+            }
         }
 
         private void Back_Click(object sender, RoutedEventArgs e)

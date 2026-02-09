@@ -328,10 +328,10 @@ namespace PlatypusTools.UI
                 StartupProfiler.BeginPhase("Configure logging");
                 ConfigureLogging();
 
-                // Install bundled fonts silently BEFORE theme loading
+                // Install bundled fonts silently BEFORE theme loading (on background thread to avoid GUI freeze)
                 StartupProfiler.BeginPhase("Install fonts");
                 _splashScreen?.UpdateStatus("Installing fonts...");
-                EnsureFontsInstalled();
+                await Task.Run(() => EnsureFontsInstalled());
 
                 // Load theme BEFORE creating main window to ensure resources are available
                 StartupProfiler.BeginPhase("Load theme");

@@ -1490,6 +1490,25 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         }
     }
     
+    public ICommand StopStreamCommand => new RelayCommand(_ =>
+    {
+        _playerService.Stop();
+        StreamStatus = "Stopped";
+        IsStreamBuffering = false;
+    });
+    
+    public ICommand PauseStreamCommand => new RelayCommand(_ =>
+    {
+        _playerService.Pause();
+        StreamStatus = "Paused";
+    });
+    
+    public ICommand ResumeStreamCommand => new RelayCommand(_ =>
+    {
+        _playerService.Play();
+        StreamStatus = "Playing";
+    });
+    
     // FPS control for visualizer performance
     private int _visualizerFps = 22;
     public int VisualizerFps

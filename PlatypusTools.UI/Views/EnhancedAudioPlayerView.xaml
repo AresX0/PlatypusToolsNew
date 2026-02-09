@@ -552,6 +552,8 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBox x:Name="StreamUrlTextBox" FontSize="11" Padding="3" 
                                                  Text="{Binding StreamUrl, UpdateSourceTrigger=PropertyChanged}"
@@ -560,6 +562,14 @@
                                                 Background="#FF4CAF50" Foreground="White" FontSize="14"
                                                 Command="{Binding PlayStreamCommand}"
                                                 ToolTip="Play stream"/>
+                                        <Button Grid.Column="2" Content="⏸" Width="30" Margin="3,0,0,0"
+                                                Background="#FF2196F3" Foreground="White" FontSize="14"
+                                                Command="{Binding PauseStreamCommand}"
+                                                ToolTip="Pause stream"/>
+                                        <Button Grid.Column="3" Content="⏹" Width="30" Margin="3,0,0,0"
+                                                Background="#FFF44336" Foreground="White" FontSize="14"
+                                                Command="{Binding StopStreamCommand}"
+                                                ToolTip="Stop stream"/>
                                     </Grid>
                                     <TextBlock Text="{Binding StreamStatus}" FontSize="9" Margin="0,3,0,0"
                                                Foreground="{DynamicResource TextSecondaryBrush}"/>
