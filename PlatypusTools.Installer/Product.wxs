@@ -4,7 +4,7 @@
   
   <Package Name="PlatypusTools"
            Manufacturer="PlatypusTools"
-           Version="3.4.0.5"
+           Version="3.4.0.6"
            UpgradeCode="A1B2C3D4-E5F6-4A5B-9C8D-1E2F3A4B5C6D"
            InstallerVersion="500"
            Compressed="yes"

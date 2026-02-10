@@ -12,7 +12,7 @@
                                 Background="{DynamicResource ControlBackgroundBrush}"
                                 BorderBrush="{DynamicResource BorderBrush}"
                                 BorderThickness="1"
-                                Padding="8,4"
+                                Padding="4,3"
                                 Cursor="Hand">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
@@ -39,30 +39,30 @@
         </Grid.RowDefinitions>
         
         <!-- Mode Selector -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
+        <UniformGrid Grid.Row="0" Rows="1" Margin="0,0,0,4">
             <RadioButton x:Name="SliderMode" Content="Slider" Style="{StaticResource ModeButtonStyle}" 
-                         IsChecked="True" GroupName="CompareMode"/>
+                         IsChecked="True" GroupName="CompareMode" Margin="0,0,2,0"/>
             <RadioButton x:Name="SideBySideMode" Content="Side by Side" Style="{StaticResource ModeButtonStyle}"
-                         GroupName="CompareMode" Margin="4,0,0,0"/>
+                         GroupName="CompareMode" Margin="2,0,2,0"/>
             <RadioButton x:Name="OverlayMode" Content="Overlay" Style="{StaticResource ModeButtonStyle}"
-                         GroupName="CompareMode" Margin="4,0,0,0"/>
-        </StackPanel>
+                         GroupName="CompareMode" Margin="2,0,0,0"/>
+        </UniformGrid>
         
         <!-- Zoom Controls -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
-            <Button x:Name="ZoomOutBtn" Content="−" Width="28" Height="28" FontSize="16" FontWeight="Bold"
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" x:Name="ZoomOutBtn" Content="−" Width="24" Height="24" Padding="0" FontSize="14" FontWeight="Bold"
                     ToolTip="Zoom Out" Click="ZoomOut_Click"/>
-            <TextBlock x:Name="ZoomLevelText" Text="{Binding ZoomLevel, ElementName=Root, StringFormat={}{0:P0}}" 
-                       VerticalAlignment="Center" Margin="8,0" MinWidth="50" TextAlignment="Center"/>
-            <Button x:Name="ZoomInBtn" Content="+" Width="28" Height="28" FontSize="16" FontWeight="Bold"
-                    ToolTip="Zoom In" Click="ZoomIn_Click"/>
-            <Button x:Name="ZoomResetBtn" Content="↺" Width="28" Height="28" FontSize="14" Margin="8,0,0,0"
-                    ToolTip="Reset Zoom (100%)" Click="ZoomReset_Click"/>
-            <Button x:Name="ZoomFitBtn" Content="⊡" Width="28" Height="28" FontSize="14" Margin="4,0,0,0"
+            <Button DockPanel.Dock="Left" x:Name="ZoomInBtn" Content="+" Width="24" Height="24" Padding="0" FontSize="14" FontWeight="Bold"
+                    ToolTip="Zoom In" Click="ZoomIn_Click" Margin="2,0,0,0"/>
+            <CheckBox DockPanel.Dock="Right" x:Name="SyncPanCheckBox" Content="🔗" IsChecked="{Binding SyncPanEnabled, ElementName=Root, Mode=TwoWay}"
+                      VerticalAlignment="Center" Margin="4,0,0,0" ToolTip="Synchronize pan position between images" FontSize="11"/>
+            <Button DockPanel.Dock="Right" x:Name="ZoomFitBtn" Content="⊡" Width="24" Height="24" Padding="0" FontSize="12" Margin="2,0,0,0"
                     ToolTip="Fit to View" Click="ZoomFit_Click"/>
-            <CheckBox x:Name="SyncPanCheckBox" Content="Sync Pan" IsChecked="{Binding SyncPanEnabled, ElementName=Root, Mode=TwoWay}"
-                      VerticalAlignment="Center" Margin="12,0,0,0" ToolTip="Synchronize pan position between images"/>
-        </StackPanel>
+            <Button DockPanel.Dock="Right" x:Name="ZoomResetBtn" Content="↺" Width="24" Height="24" Padding="0" FontSize="12" Margin="2,0,0,0"
+                    ToolTip="Reset Zoom (100%)" Click="ZoomReset_Click"/>
+            <TextBlock x:Name="ZoomLevelText" Text="{Binding ZoomLevel, ElementName=Root, StringFormat={}{0:P0}}" 
+                       VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center"/>
+        </DockPanel>
         
         <!-- Comparison Area -->
         <Grid Grid.Row="2" ClipToBounds="True"

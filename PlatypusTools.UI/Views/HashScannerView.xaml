@@ -34,9 +34,9 @@
                              IsReadOnly="True" Margin="0,0,10,0" VerticalAlignment="Center"
                              ToolTip="Drag and drop a file here or click Browse"/>
                     <Button Grid.Column="2" Content="Browse..." Command="{Binding BrowseFileCommand}" 
-                            MinWidth="180" Margin="0,0,5,0"/>
+                            MinWidth="90" Margin="0,0,5,0"/>
                     <Button Grid.Column="3" Content="📂 Open" Command="{Binding OpenInExplorerCommand}" 
-                            MinWidth="180" ToolTip="Open file location in Explorer"/>
+                            MinWidth="80" ToolTip="Open file location in Explorer"/>
                 </Grid>
 
                 <!-- File Info -->
@@ -83,7 +83,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="70"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="40"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- MD5 -->
@@ -91,21 +91,21 @@
                 <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding MD5Hash, Mode=OneWay}" 
                          IsReadOnly="True" FontFamily="Consolas" Margin="0,0,5,5"/>
                 <Button Grid.Row="0" Grid.Column="2" Content="📋" Command="{Binding CopyMD5Command}" 
-                        Width="30" ToolTip="Copy MD5 hash" Margin="0,0,0,5"/>
+                        Width="36" ToolTip="Copy MD5 hash" Margin="0,0,4,5"/>
 
                 <!-- SHA1 -->
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="SHA1:" VerticalAlignment="Center" FontWeight="SemiBold"/>
                 <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SHA1Hash, Mode=OneWay}" 
                          IsReadOnly="True" FontFamily="Consolas" Margin="0,0,5,5"/>
                 <Button Grid.Row="1" Grid.Column="2" Content="📋" Command="{Binding CopySHA1Command}" 
-                        Width="30" ToolTip="Copy SHA1 hash" Margin="0,0,0,5"/>
+                        Width="36" ToolTip="Copy SHA1 hash" Margin="0,0,4,5"/>
 
                 <!-- SHA256 -->
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="SHA256:" VerticalAlignment="Center" FontWeight="SemiBold"/>
                 <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SHA256Hash, Mode=OneWay}" 
                          IsReadOnly="True" FontFamily="Consolas" Margin="0,0,5,5"/>
                 <Button Grid.Row="2" Grid.Column="2" Content="📋" Command="{Binding CopySHA256Command}" 
-                        Width="30" ToolTip="Copy SHA256 hash" Margin="0,0,0,5"/>
+                        Width="36" ToolTip="Copy SHA256 hash" Margin="0,0,4,5"/>
 
                 <!-- SHA512 -->
                 <TextBlock Grid.Row="3" Grid.Column="0" Text="SHA512:" VerticalAlignment="Center" FontWeight="SemiBold"/>
@@ -113,18 +113,18 @@
                          IsReadOnly="True" FontFamily="Consolas" FontSize="10" Margin="0,0,5,5"
                          TextWrapping="Wrap" MaxHeight="40"/>
                 <Button Grid.Row="3" Grid.Column="2" Content="📋" Command="{Binding CopySHA512Command}" 
-                        Width="30" ToolTip="Copy SHA512 hash" Margin="0,0,0,5"/>
+                        Width="36" ToolTip="Copy SHA512 hash" Margin="0,0,4,5"/>
 
                 <!-- CRC32 -->
                 <TextBlock Grid.Row="4" Grid.Column="0" Text="CRC32:" VerticalAlignment="Center" FontWeight="SemiBold"/>
                 <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding CRC32Hash, Mode=OneWay}" 
                          IsReadOnly="True" FontFamily="Consolas" Margin="0,0,5,5"/>
                 <Button Grid.Row="4" Grid.Column="2" Content="📋" Command="{Binding CopyCRC32Command}" 
-                        Width="30" ToolTip="Copy CRC32 hash" Margin="0,0,0,5"/>
+                        Width="36" ToolTip="Copy CRC32 hash" Margin="0,0,4,5"/>
 
                 <!-- Copy All -->
                 <Button Grid.Row="5" Grid.Column="1" Content="📋 Copy All Hashes" Command="{Binding CopyAllCommand}"
-                        HorizontalAlignment="Left" MinWidth="180" Margin="0,5,0,0"/>
+                        HorizontalAlignment="Left" MinWidth="120" Margin="0,5,0,0"/>
             </Grid>
         </GroupBox>
 

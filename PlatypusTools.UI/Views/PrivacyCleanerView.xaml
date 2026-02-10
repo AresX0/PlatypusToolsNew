@@ -26,16 +26,9 @@
                 </StackPanel>
             </GroupBox.Header>
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <Grid Margin="5">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
+            <WrapPanel Margin="5">
                 <!-- Browsers -->
-                <GroupBox Grid.Column="0" Header="Browsers" Margin="0,0,5,0">
+                <GroupBox Header="Browsers" Margin="0,0,8,8" MinWidth="130">
                     <StackPanel Margin="5">
                         <CheckBox Content="Chrome" IsChecked="{Binding BrowserChrome}" Margin="0,3,0,0"/>
                         <CheckBox Content="Edge" IsChecked="{Binding BrowserEdge}" Margin="0,3,0,0"/>
@@ -45,7 +38,7 @@
                 </GroupBox>
 
                 <!-- Cloud Services -->
-                <GroupBox Grid.Column="1" Header="Cloud Services" Margin="0,0,5,0">
+                <GroupBox Header="Cloud Services" Margin="0,0,8,8" MinWidth="130">
                     <StackPanel Margin="5">
                         <CheckBox Content="OneDrive" IsChecked="{Binding CloudOneDrive}" Margin="0,3,0,0"/>
                         <CheckBox Content="Google Drive" IsChecked="{Binding CloudGoogle}" Margin="0,3,0,0"/>
@@ -55,7 +48,7 @@
                 </GroupBox>
 
                 <!-- Windows Identity -->
-                <GroupBox Grid.Column="2" Header="Windows Identity" Margin="0,0,5,0">
+                <GroupBox Header="Windows Identity" Margin="0,0,8,8" MinWidth="150">
                     <StackPanel Margin="5">
                         <CheckBox Content="Recent Documents" IsChecked="{Binding WindowsRecentDocs}" Margin="0,3,0,0"/>
                         <CheckBox Content="Jump Lists" IsChecked="{Binding WindowsJumpLists}" Margin="0,3,0,0"/>
@@ -65,14 +58,14 @@
                 </GroupBox>
 
                 <!-- Application Data -->
-                <GroupBox Grid.Column="3" Header="Application Data">
+                <GroupBox Header="Application Data" Margin="0,0,0,8" MinWidth="140">
                     <StackPanel Margin="5">
                         <CheckBox Content="Office Recent" IsChecked="{Binding ApplicationOffice}" Margin="0,3,0,0"/>
                         <CheckBox Content="Adobe Recent" IsChecked="{Binding ApplicationAdobe}" Margin="0,3,0,0"/>
                         <CheckBox Content="Media Players" IsChecked="{Binding ApplicationMediaPlayers}" Margin="0,3,0,3"/>
                     </StackPanel>
                 </GroupBox>
-            </Grid>
+            </WrapPanel>
             </ScrollViewer>
         </GroupBox>
 
