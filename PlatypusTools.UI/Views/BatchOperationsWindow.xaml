@@ -125,13 +125,13 @@
         </Grid>
         
         <!-- Buttons -->
-        <StackPanel Grid.Row="3" Orientation="Horizontal" 
+        <WrapPanel Grid.Row="3" 
                     HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Button Content="Preview" MinWidth="180" Margin="0,0,10,0" 
+            <Button Content="Preview" MinWidth="90" Margin="0,2,10,2" 
                     Click="Preview_Click"/>
-            <Button x:Name="ExecuteButton" Content="Execute" MinWidth="180" 
-                    Margin="0,0,10,0" Click="Execute_Click"/>
-            <Button Content="Close" MinWidth="180" Click="Close_Click"/>
-        </StackPanel>
+            <Button x:Name="ExecuteButton" Content="Execute" MinWidth="90" 
+                    Margin="0,2,10,2" Click="Execute_Click"/>
+            <Button Content="Close" MinWidth="80" Margin="0,2,0,2" Click="Close_Click"/>
+        </WrapPanel>
     </Grid>
 </Window>

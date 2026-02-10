@@ -226,15 +226,15 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,4">
-                    <Button Content="Apply Preview" Command="{Binding ApplyPreviewCommand}" MinWidth="180" Margin="0,0,8,0" FontWeight="Bold" />
-                    <Button Content="Select All" Command="{Binding SelectAllCommand}" MinWidth="180" Margin="0,0,8,0" />
-                    <Button Content="Select None" Command="{Binding SelectNoneCommand}" MinWidth="180" Margin="0,0,16,0" />
+                <WrapPanel Grid.Row="0" Margin="0,0,0,4">
+                    <Button Content="Apply Preview" Command="{Binding ApplyPreviewCommand}" MinWidth="110" Margin="0,2,8,2" FontWeight="Bold" />
+                    <Button Content="Select All" Command="{Binding SelectAllCommand}" MinWidth="90" Margin="0,2,8,2" />
+                    <Button Content="Select None" Command="{Binding SelectNoneCommand}" MinWidth="90" Margin="0,2,16,2" />
                     <TextBlock VerticalAlignment="Center" Margin="0,0,4,0">Files:</TextBlock>
                     <TextBlock VerticalAlignment="Center" FontWeight="Bold" Text="{Binding TotalCount}" Margin="0,0,16,0" />
                     <TextBlock VerticalAlignment="Center" Margin="0,0,4,0">Selected:</TextBlock>
                     <TextBlock VerticalAlignment="Center" FontWeight="Bold" Text="{Binding SelectedCount}" />
-                </StackPanel>
+                </WrapPanel>
 
                 <DataGrid Grid.Row="1" x:Name="PreviewDataGrid" ItemsSource="{Binding PreviewItems}" AutoGenerateColumns="False" 
                               CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeColumns="True" 

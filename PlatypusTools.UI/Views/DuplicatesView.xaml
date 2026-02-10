@@ -125,13 +125,13 @@
                                 <ItemsControl ItemsSource="{Binding Files}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                                <Button Content="Preview" Command="{Binding DataContext.PreviewFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="180"/>
-                                                <Button Content="Open" Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="55" Margin="4,0,0,0"/>
-                                                <Button Content="Folder" Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="180" Margin="4,0,0,0"/>
-                                                <Button Content="Rename" Command="{Binding DataContext.RenameFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="180" Margin="4,0,0,0"/>
-                                                <Button Content="Stage" Command="{Binding DataContext.StageFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="55" Margin="4,0,0,0"/>
-                                            </StackPanel>
+                                            <WrapPanel Margin="0,0,0,4">
+                                                <Button Content="Preview" Command="{Binding DataContext.PreviewFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="60" Margin="0,1,4,1"/>
+                                                <Button Content="Open" Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="45" Margin="0,1,4,1"/>
+                                                <Button Content="Folder" Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="50" Margin="0,1,4,1"/>
+                                                <Button Content="Rename" Command="{Binding DataContext.RenameFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="55" Margin="0,1,4,1"/>
+                                                <Button Content="Stage" Command="{Binding DataContext.StageFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Path}" MinWidth="45" Margin="0,1,0,1"/>
+                                            </WrapPanel>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>

@@ -32,17 +32,17 @@
 
                 <Separator Margin="0,10,0,10"/>
 
-                <StackPanel Orientation="Horizontal">
+                <WrapPanel>
                     <Button Content="🔍 Analyze" Command="{Binding AnalyzeCommand}" 
-                            MinWidth="180" Margin="0,0,10,0" Padding="8" FontWeight="Bold"
+                            MinWidth="100" Margin="0,0,10,4" Padding="8" FontWeight="Bold"
                             Background="#FF2196F3" Foreground="White"/>
                     <Button Content="🧹 Clean Now" Command="{Binding CleanNowCommand}" 
-                            MinWidth="180" Padding="8" FontWeight="Bold"
+                            MinWidth="100" Padding="8" FontWeight="Bold" Margin="0,0,10,4"
                             Background="#FF4CAF50" Foreground="White"/>
                     <CheckBox Content="Dry Run" IsChecked="{Binding DryRun}" 
-                              VerticalAlignment="Center" Margin="20,0,0,0" 
+                              VerticalAlignment="Center" Margin="10,0,0,4" 
                               ToolTip="Preview what would be deleted without actually deleting"/>
-                </StackPanel>
+                </WrapPanel>
             </StackPanel>
             </ScrollViewer>
         </GroupBox>

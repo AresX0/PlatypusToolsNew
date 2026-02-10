@@ -321,19 +321,19 @@
                                     <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding PlasoStorageFile, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
                                 </Grid>
 
-                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <WrapPanel Margin="0,10,0,0">
                                     <Button Content="🕐 Create Timeline" Command="{Binding RunPlasoTimelineCommand}"
-                                            Height="35" MinWidth="190" Margin="0,0,10,0"
+                                            Height="35" MinWidth="130" Margin="0,2,10,2"
                                             Background="#673AB7" Foreground="White"
                                             IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                                     <Button Content="📤 Export to OpenSearch" Command="{Binding ExportPlasoToOpenSearchCommand}"
-                                            Height="35" MinWidth="180" Margin="0,0,10,0"
+                                            Height="35" MinWidth="150" Margin="0,2,10,2"
                                             IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                                     <Button Content="📥 Download Plaso" Command="{Binding DownloadPlasoCommand}"
-                                            Height="35" MinWidth="190"
+                                            Height="35" MinWidth="130" Margin="0,2,0,2"
                                             Background="#FF5722" Foreground="White"
                                             ToolTip="Opens Plaso releases page on GitHub"/>
-                                </StackPanel>
+                                </WrapPanel>
                             </StackPanel>
                         </GroupBox>
 
@@ -360,17 +360,17 @@
                                               SelectedItem="{Binding VelociraptorArtifact}" Margin="5"/>
                                 </Grid>
 
-                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <WrapPanel Margin="0,10,0,0">
                                     <Button Content="🦖 Collect Artifact" Command="{Binding RunVelociraptorCollectCommand}"
-                                            Height="35" MinWidth="190"
-                                            Background="#795548" Foreground="White"
+                                            Height="35" MinWidth="130"
+                                            Background="#795548" Foreground="White" Margin="0,2,10,2"
                                             IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                                     <Button Content="📥 Download Velociraptor" Command="{Binding DownloadVelociraptorCommand}"
-                                            Height="35" MinWidth="190" Margin="10,0,0,0"
+                                            Height="35" MinWidth="160" Margin="0,2,0,2"
                                             Background="#FF5722" Foreground="White"
                                             ToolTip="Downloads Velociraptor from GitHub"
                                             IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
-                                </StackPanel>
+                                </WrapPanel>
                             </StackPanel>
                         </GroupBox>
                     </StackPanel>
@@ -485,15 +485,15 @@
                                     </Border>
                                 </Grid>
                                 <TextBlock Text="{Binding TotalRecords, StringFormat='Total Records: {0:N0}'}" Margin="0,5,0,0"/>
-                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <WrapPanel Margin="0,10,0,0">
                                     <Button Content="🔌 Initialize" Command="{Binding InitializeLocalDbCommand}" 
-                                            MinWidth="180" Height="28" Margin="0,0,5,0"
+                                            MinWidth="100" Height="28" Margin="0,2,5,2"
                                             IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                                     <Button Content="🔄 Refresh" Command="{Binding RefreshTablesCommand}" 
-                                            MinWidth="180" Height="28" Margin="0,0,5,0"/>
+                                            MinWidth="90" Height="28" Margin="0,2,5,2"/>
                                     <Button Content="🗑️ Clear" Command="{Binding ClearLocalDbCommand}" 
-                                            MinWidth="180" Height="28" Background="#F44336" Foreground="White"/>
-                                </StackPanel>
+                                            MinWidth="80" Height="28" Margin="0,2,0,2" Background="#F44336" Foreground="White"/>
+                                </WrapPanel>
                             </StackPanel>
                         </GroupBox>
 
@@ -562,13 +562,13 @@
                                  FontFamily="Consolas" FontSize="12"/>
 
                         <!-- Execution Buttons -->
-                        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,10">
+                        <WrapPanel Grid.Row="2" Margin="0,10,0,10">
                             <Button Content="▶️ Execute KQL" Command="{Binding ExecuteLocalKqlCommand}"
-                                    Height="35" MinWidth="190" Background="#4CAF50" Foreground="White" FontWeight="Bold"
+                                    Height="35" MinWidth="120" Background="#4CAF50" Foreground="White" FontWeight="Bold" Margin="0,2,10,2"
                                     IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                             <Button Content="📤 Export Results" Command="{Binding ExportLocalResultsCommand}"
-                                    Height="35" MinWidth="180" Margin="10,0,0,0"/>
-                        </StackPanel>
+                                    Height="35" MinWidth="120" Margin="0,2,0,2"/>
+                        </WrapPanel>
 
                         <!-- Translated SQL -->
                         <TextBlock Grid.Row="3" Text="Translated SQL:" FontWeight="Bold" Margin="0,0,0,5"/>
@@ -642,22 +642,22 @@
                             </StackPanel>
                         </GroupBox>
 
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <WrapPanel Margin="0,0,0,10">
                             <Button Content="🦠 Analyze Documents for Malware" Command="{Binding RunMalwareAnalysisCommand}"
                                     Height="40" FontSize="14" FontWeight="Bold" 
-                                    Background="#F44336" Foreground="White" Margin="0,0,10,0"
+                                    Background="#F44336" Foreground="White" Margin="0,2,10,2"
                                     IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                             <Button Content="📥 Download oletools" Command="{Binding DownloadOletoolsCommand}"
-                                    Height="40" MinWidth="190"
-                                    Background="#FF5722" Foreground="White"
+                                    Height="40" MinWidth="150"
+                                    Background="#FF5722" Foreground="White" Margin="0,2,10,2"
                                     ToolTip="Installs oletools via pip"
                                     IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                             <Button Content="📥 Download PDF-parser" Command="{Binding DownloadPdfParserCommand}"
-                                    Height="40" MinWidth="180" Margin="10,0,0,0"
+                                    Height="40" MinWidth="160" Margin="0,2,0,2"
                                     Background="#FF9800" Foreground="White"
                                     ToolTip="Downloads pdf-parser.py from Didier Stevens"
                                     IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
-                        </StackPanel>
+                        </WrapPanel>
 
                         <GroupBox Header="Analysis Results" Margin="0,10,0,0">
                             <DataGrid ItemsSource="{Binding MalwareResults}" AutoGenerateColumns="False"
@@ -712,17 +712,17 @@
                             </WrapPanel>
                         </GroupBox>
 
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <WrapPanel Margin="0,0,0,10">
                             <Button Content="🔎 Run bulk_extractor" Command="{Binding RunBulkExtractorCommand}"
                                     Height="40" FontSize="14" FontWeight="Bold" 
-                                    Background="#607D8B" Foreground="White" Margin="0,0,10,0"
+                                    Background="#607D8B" Foreground="White" Margin="0,2,10,2"
                                     IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                             <Button Content="📥 Download bulk_extractor" Command="{Binding DownloadBulkExtractorCommand}"
-                                    Height="40" MinWidth="180"
-                                    Background="#FF5722" Foreground="White"
+                                    Height="40" MinWidth="170"
+                                    Background="#FF5722" Foreground="White" Margin="0,2,0,2"
                                     ToolTip="Downloads bulk_extractor from GitHub"
                                     IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
-                        </StackPanel>
+                        </WrapPanel>
 
                         <GroupBox Header="Extracted Features" Margin="0,10,0,0">
                             <DataGrid ItemsSource="{Binding BulkExtractorResults}" AutoGenerateColumns="False"
@@ -790,12 +790,12 @@
                                         <TextBlock Text="osint-docmeta"/>
                                     </Border>
                                 </WrapPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <WrapPanel Margin="0,10,0,0">
                                     <Button Content="🔧 Create Pipelines" Command="{Binding CreatePipelinesCommand}"
-                                            Height="35" MinWidth="190" Margin="0,0,10,0"/>
+                                            Height="35" MinWidth="130" Margin="0,2,10,2"/>
                                     <Button Content="📋 Create Index Templates" Command="{Binding CreateIndexTemplatesCommand}"
-                                            Height="35" MinWidth="180"/>
-                                </StackPanel>
+                                            Height="35" MinWidth="160" Margin="0,2,0,2"/>
+                                </WrapPanel>
                             </StackPanel>
                         </GroupBox>
 

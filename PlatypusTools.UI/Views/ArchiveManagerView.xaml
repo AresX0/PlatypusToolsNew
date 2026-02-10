@@ -126,14 +126,14 @@
                 </Grid.RowDefinitions>
                 
                 <!-- Selection toolbar -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
-                    <Button Content="Select All" Click="OnSelectAllClick" MinWidth="180" Margin="0,0,8,0"/>
-                    <Button Content="Select None" Click="OnSelectNoneClick" MinWidth="180" Margin="0,0,16,0"/>
+                <WrapPanel Grid.Row="0" Margin="0,0,0,5">
+                    <Button Content="Select All" Click="OnSelectAllClick" MinWidth="90" Margin="0,2,8,2"/>
+                    <Button Content="Select None" Click="OnSelectNoneClick" MinWidth="90" Margin="0,2,16,2"/>
                     <TextBlock x:Name="SelectionInfoText" VerticalAlignment="Center" Foreground="Gray">
                         <Run Text="Selected: "/><Run Text="{Binding SelectedEntries.Count, Mode=OneWay}" FontWeight="Bold"/>
                         <Run Text=" of "/><Run Text="{Binding Entries.Count, Mode=OneWay}"/>
                     </TextBlock>
-                </StackPanel>
+                </WrapPanel>
                 
                 <!-- Entries DataGrid -->
                 <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">

@@ -67,21 +67,21 @@
         </GroupBox>
         
         <!-- Actions -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
-            <Button Content="📁 Add Files..." Command="{Binding AddFilesCommand}" MinWidth="180" Margin="0,0,8,0"/>
-            <Button Content="📂 Add Folder..." Command="{Binding AddFolderCommand}" MinWidth="190" Margin="0,0,8,0"/>
-            <Button Content="🗑️ Remove Selected" Command="{Binding RemoveSelectedCommand}" MinWidth="190" Margin="0,0,8,0"
+        <WrapPanel Grid.Row="1" Margin="0,0,0,8">
+            <Button Content="📁 Add Files..." Command="{Binding AddFilesCommand}" MinWidth="100" Margin="0,2,8,2"/>
+            <Button Content="📂 Add Folder..." Command="{Binding AddFolderCommand}" MinWidth="110" Margin="0,2,8,2"/>
+            <Button Content="🗑️ Remove Selected" Command="{Binding RemoveSelectedCommand}" MinWidth="120" Margin="0,2,8,2"
                     IsEnabled="{Binding CanModifyQueue}" Background="#FFF44336" Foreground="White"/>
-            <Button Content="🧹 Clear All" Command="{Binding ClearQueueCommand}" MinWidth="180" Margin="0,0,24,0"
+            <Button Content="🧹 Clear All" Command="{Binding ClearQueueCommand}" MinWidth="90" Margin="0,2,24,2"
                     IsEnabled="{Binding CanModifyQueue}"/>
             
-            <Button Content="▶ Start" Command="{Binding StartProcessingCommand}" MinWidth="180" Margin="0,0,8,0"
+            <Button Content="▶ Start" Command="{Binding StartProcessingCommand}" MinWidth="80" Margin="0,2,8,2"
                     Background="#FF4CAF50" Foreground="White" FontWeight="Bold"/>
-            <Button Content="⏸ Pause" Command="{Binding PauseProcessingCommand}" MinWidth="180" Margin="0,0,8,0"
+            <Button Content="⏸ Pause" Command="{Binding PauseProcessingCommand}" MinWidth="80" Margin="0,2,8,2"
                     Background="#FFFF9800" Foreground="White"/>
-            <Button Content="⏹ Cancel" Command="{Binding CancelProcessingCommand}" MinWidth="180"
+            <Button Content="⏹ Cancel" Command="{Binding CancelProcessingCommand}" MinWidth="80" Margin="0,2,0,2"
                     Background="#FFF44336" Foreground="White"/>
-        </StackPanel>
+        </WrapPanel>
 
         <!-- GridSplitter -->
         <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 

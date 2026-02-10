@@ -472,10 +472,10 @@
                             </StackPanel>
                         </GroupBox>
                         
-                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                            <Button Content="Show All Tabs" MinWidth="180" Margin="0,0,8,0" Click="ShowAllTabs_Click"/>
-                            <Button Content="Hide All Tabs" MinWidth="180" Click="HideAllTabs_Click"/>
-                        </StackPanel>
+                        <WrapPanel Margin="0,8,0,0">
+                            <Button Content="Show All Tabs" MinWidth="100" Margin="0,0,8,4" Click="ShowAllTabs_Click"/>
+                            <Button Content="Hide All Tabs" MinWidth="100" Margin="0,0,0,4" Click="HideAllTabs_Click"/>
+                        </WrapPanel>
                     </StackPanel>
                     
                     <!-- Audio Visualizer Settings -->
@@ -773,11 +773,11 @@
         
         <!-- Footer -->
         <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" Padding="20,12">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Apply" MinWidth="180" Margin="0,0,8,0" Click="Apply_Click"/>
-                <Button Content="OK" MinWidth="180" Margin="0,0,8,0" Click="OK_Click"/>
-                <Button Content="Cancel" MinWidth="180" Click="Cancel_Click"/>
-            </StackPanel>
+            <WrapPanel HorizontalAlignment="Right">
+                <Button Content="Apply" MinWidth="90" Margin="0,2,8,2" Click="Apply_Click"/>
+                <Button Content="OK" MinWidth="80" Margin="0,2,8,2" Click="OK_Click"/>
+                <Button Content="Cancel" MinWidth="80" Margin="0,2,0,2" Click="Cancel_Click"/>
+            </WrapPanel>
         </Border>
     </Grid>
 </Window>

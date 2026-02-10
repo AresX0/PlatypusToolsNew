@@ -18,9 +18,9 @@
             <TextBox x:Name="CmdBox" Height="60" Text="Get-FastFileHash -Path 'C:\\Temp\\somefile'" />
         </StackPanel>
         <TextBox x:Name="OutputBox" Grid.Row="2" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" IsReadOnly="True" />
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-            <Button MinWidth="180" Margin="4" Click="Run_Click">Run</Button>
-            <Button MinWidth="180" Margin="4" Click="Close_Click">Close</Button>
-        </StackPanel>
+        <WrapPanel Grid.Row="3" HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button MinWidth="80" Margin="4" Click="Run_Click">Run</Button>
+            <Button MinWidth="80" Margin="4" Click="Close_Click">Close</Button>
+        </WrapPanel>
     </Grid>
 </Window>
