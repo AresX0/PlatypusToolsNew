@@ -133,13 +133,15 @@ public partial class EnhancedAudioPlayerView : UserControl
         {
             if (VisualizerControl != null && data != null && data.Length > 0)
             {
+                // Skip sending data when album art view is shown (save CPU/GPU)
+                var vm = DataContext as EnhancedAudioPlayerViewModel;
+                if (vm?.ShowAlbumArtView == true) return;
                 // Convert float[] to double[]
                 var doubleData = new double[data.Length];
                 for (int i = 0; i < data.Length; i++)
                     doubleData[i] = data[i];
                 
                 // Get mode and settings from ViewModel
-                var vm = DataContext as EnhancedAudioPlayerViewModel;
                 string mode = GetVisualizerModeName(vm?.VisualizerModeIndex ?? 0);
                 int density = vm?.Density ?? 32;
                 int colorIndex = vm?.ColorSchemeIndex ?? 0;
@@ -157,25 +159,25 @@ public partial class EnhancedAudioPlayerView : UserControl
         0 => "Bars",
         1 => "Mirror",
         2 => "Waveform",
-        3 => "Circular",
-        4 => "Radial",
-        5 => "Particles",
-        6 => "Aurora",
-        7 => "Wave Grid",
-        8 => "Starfield",
-        9 => "Toasters",
-        10 => "Matrix",
+        3 => "VU Meter",
+        4 => "Oscilloscope",
+        5 => "Circular",
+        6 => "Radial",
+        7 => "Aurora",
+        8 => "Wave Grid",
+        9 => "3D Bars",
+        10 => "Waterfall",
         11 => "Star Wars Crawl",
-        12 => "Stargate",
-        13 => "Klingon",
-        14 => "Federation",
-        15 => "Jedi",
-        16 => "TimeLord",
-        17 => "VU Meter",
-        18 => "Oscilloscope",
-        19 => "Milkdrop",
-        20 => "3D Bars",
-        21 => "Waterfall",
+        12 => "Particles",
+        13 => "Starfield",
+        14 => "Toasters",
+        15 => "Matrix",
+        16 => "Stargate",
+        17 => "Klingon",
+        18 => "Federation",
+        19 => "Jedi",
+        20 => "TimeLord",
+        21 => "Milkdrop",
         _ => "Bars"
     };
     
@@ -595,8 +597,10 @@ public partial class EnhancedAudioPlayerView : UserControl
                 // Only queue one dispatch at a time — but the lambda reads latest values
                 if (System.Threading.Interlocked.CompareExchange(ref _fsUpdating, 1, 0) != 0) return;
                 
-                // Use Input priority — same level as keyboard events, prevents priority inversion
-                fullscreenVisualizer.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, () =>
+                // Use Normal priority — higher than Render (7) so data delivery is never starved
+                // by the render timer. Previously used Input (5) which is LOWER than Render,
+                // causing fullscreen data pump to be starved when heavy modes consumed render time.
+                fullscreenVisualizer.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, () =>
                 {
                     try
                     {
@@ -616,11 +620,9 @@ public partial class EnhancedAudioPlayerView : UserControl
                                 ? Visibility.Visible : Visibility.Collapsed;
                         }
                     
-                        // Update album art panel lyrics in real-time when visualizer is hidden
+                        // Update album art panel track info in real-time when visualizer is hidden
                         if (_fullscreenVisualizerHidden)
                         {
-                            UpdateTaggedElement(_fullscreenAlbumArtPanel!, "FullscreenLyricsBlock", 
-                                e => ((TextBlock)e).Text = vm?.CurrentLyricLineText ?? "");
                             UpdateTaggedElement(_fullscreenAlbumArtPanel!, "FullscreenTrackTitle",
                                 e => ((TextBlock)e).Text = vm?.CurrentTrackTitle ?? "");
                             UpdateTaggedElement(_fullscreenAlbumArtPanel!, "FullscreenTrackArtist",
@@ -812,10 +814,15 @@ public partial class EnhancedAudioPlayerView : UserControl
                 _isVisualizerFullscreen = false;
                 _fullscreenWindow = null;
                 _osdHideTimer?.Stop();
+                // Resume the normal-view visualizer when fullscreen is closed
+                VisualizerControl?.ResumeRendering();
             };
             
             _fullscreenWindow.Show();
             _isVisualizerFullscreen = true;
+            
+            // Pause the normal-view visualizer to free up UI thread and GPU for fullscreen
+            VisualizerControl?.PauseRendering();
         }
         catch (Exception ex)
         {
@@ -838,6 +845,9 @@ public partial class EnhancedAudioPlayerView : UserControl
             _modeToastTimer?.Stop();
             _modeToastTimer = null;
             _osdHideTimer?.Stop();
+            
+            // Resume the normal-view visualizer now that fullscreen is closed
+            VisualizerControl?.ResumeRendering();
         }
         catch (Exception ex)
         {
@@ -905,10 +915,8 @@ public partial class EnhancedAudioPlayerView : UserControl
         
         // Content layout
         var contentGrid = new Grid { Margin = new Thickness(40) };
-        contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         
-        // Left: Album art
+        // Centered: Album art + track info
         var artBorder = new Border
         {
             Width = 400,
@@ -936,8 +944,8 @@ public partial class EnhancedAudioPlayerView : UserControl
         bgImage.Tag = "FullscreenAlbumBg";
         artBorder.Child = artImage;
         
-        var leftPanel = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-        leftPanel.Children.Add(artBorder);
+        var centerPanel = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
+        centerPanel.Children.Add(artBorder);
         
         // Track info below art
         var trackTitle = new TextBlock
@@ -951,7 +959,7 @@ public partial class EnhancedAudioPlayerView : UserControl
             Margin = new Thickness(0, 20, 0, 4),
             Tag = "FullscreenTrackTitle"
         };
-        leftPanel.Children.Add(trackTitle);
+        centerPanel.Children.Add(trackTitle);
         
         var trackArtist = new TextBlock
         {
@@ -962,43 +970,9 @@ public partial class EnhancedAudioPlayerView : UserControl
             TextTrimming = TextTrimming.CharacterEllipsis,
             Tag = "FullscreenTrackArtist"
         };
-        leftPanel.Children.Add(trackArtist);
+        centerPanel.Children.Add(trackArtist);
         
-        Grid.SetColumn(leftPanel, 0);
-        contentGrid.Children.Add(leftPanel);
-        
-        // Right: Lyrics scroll
-        var lyricsPanel = new StackPanel
-        {
-            VerticalAlignment = VerticalAlignment.Center,
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
-        
-        var lyricsTitle = new TextBlock
-        {
-            Text = "Lyrics",
-            FontSize = 14,
-            Foreground = new SolidColorBrush(Color.FromArgb(120, 255, 255, 255)),
-            TextAlignment = TextAlignment.Center,
-            Margin = new Thickness(0, 0, 0, 12)
-        };
-        lyricsPanel.Children.Add(lyricsTitle);
-        
-        var lyricsBlock = new TextBlock
-        {
-            Text = vm?.CurrentLyricLineText ?? "",
-            FontSize = 32,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = Brushes.White,
-            TextAlignment = TextAlignment.Center,
-            TextWrapping = TextWrapping.Wrap,
-            MaxWidth = 600,
-            Tag = "FullscreenLyricsBlock"
-        };
-        lyricsPanel.Children.Add(lyricsBlock);
-        
-        Grid.SetColumn(lyricsPanel, 1);
-        contentGrid.Children.Add(lyricsPanel);
+        contentGrid.Children.Add(centerPanel);
         
         panel.Children.Add(contentGrid);
         
@@ -1007,14 +981,16 @@ public partial class EnhancedAudioPlayerView : UserControl
     
     /// <summary>
     /// Toggles between visualizer and album art + lyrics display in fullscreen mode.
-    /// Triggered by pressing 'V' key.
+    /// Triggered by pressing 'V' key or clicking the Art toggle button.
     /// </summary>
     private void ToggleFullscreenVisualizerVisibility(EnhancedAudioPlayerViewModel? vm)
     {
         _fullscreenVisualizerHidden = !_fullscreenVisualizerHidden;
         
         if (_fullscreenVisualizer != null)
+        {
             _fullscreenVisualizer.Visibility = _fullscreenVisualizerHidden ? Visibility.Collapsed : Visibility.Visible;
+        }
         
         if (_fullscreenAlbumArtPanel != null)
         {
@@ -1038,7 +1014,6 @@ public partial class EnhancedAudioPlayerView : UserControl
         UpdateTaggedElement(_fullscreenAlbumArtPanel, "FullscreenAlbumBg", e => ((Image)e).Source = vm.AlbumArtImage);
         UpdateTaggedElement(_fullscreenAlbumArtPanel, "FullscreenTrackTitle", e => ((TextBlock)e).Text = vm.CurrentTrackTitle ?? "");
         UpdateTaggedElement(_fullscreenAlbumArtPanel, "FullscreenTrackArtist", e => ((TextBlock)e).Text = $"{vm.CurrentTrackArtist} — {vm.CurrentTrackAlbum}");
-        UpdateTaggedElement(_fullscreenAlbumArtPanel, "FullscreenLyricsBlock", e => ((TextBlock)e).Text = vm.CurrentLyricLineText ?? "");
     }
     
     private static void UpdateTaggedElement(DependencyObject parent, string tag, Action<FrameworkElement> update)

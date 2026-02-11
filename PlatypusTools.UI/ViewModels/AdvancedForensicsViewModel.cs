@@ -1224,10 +1224,22 @@ Amcache_CL
                 }
             }
 
-            // Auto-detect ExifTool
-            var exiftoolPath = Path.Combine(toolsBase, "exiftool.exe");
-            if (File.Exists(exiftoolPath))
-                ExifToolPath = exiftoolPath;
+            // Auto-detect ExifTool (check flat and subfolder locations)
+            var exiftoolPaths = new[]
+            {
+                Path.Combine(toolsBase, "exiftool.exe"),
+                Path.Combine(toolsBase, "exiftool", "exiftool.exe"),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "exiftool.exe"),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "exiftool", "exiftool.exe"),
+            };
+            foreach (var path in exiftoolPaths)
+            {
+                if (File.Exists(path))
+                {
+                    ExifToolPath = path;
+                    break;
+                }
+            }
 
             // Auto-detect KAPE
             var kapePaths = new[]

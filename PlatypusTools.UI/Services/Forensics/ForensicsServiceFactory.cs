@@ -113,11 +113,14 @@ namespace PlatypusTools.UI.Services.Forensics
         /// </summary>
         public static MetadataExtractionService CreateMetadataExtractionService()
         {
-            // ExifTool should be in the install directory, not tools directory
-            var installDir = AppDomain.CurrentDomain.BaseDirectory;
+            // ExifTool is in the Tools directory (flat or subfolder)
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var exifToolPath = Path.Combine(baseDir, "Tools", "exiftool.exe");
+            if (!System.IO.File.Exists(exifToolPath))
+                exifToolPath = Path.Combine(baseDir, "Tools", "exiftool", "exiftool.exe");
             return new MetadataExtractionService
             {
-                ExifToolPath = Path.Combine(installDir, "exiftool.exe")
+                ExifToolPath = exifToolPath
             };
         }
 

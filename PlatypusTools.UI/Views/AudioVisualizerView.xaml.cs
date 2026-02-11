@@ -254,8 +254,9 @@ namespace PlatypusTools.UI.Views
         private const int MILKDROP_RENDER_WIDTH = 320;  // Render at low res for performance
         private const int MILKDROP_RENDER_HEIGHT = 240;
         
-        // GPU Milkdrop state — persistent frame buffer for feedback loop
+        // GPU Milkdrop state — persistent frame buffer for feedback loop (double-buffered)
         private SKBitmap? _milkdropGpuBuffer;
+        private SKBitmap? _milkdropGpuBufferBack;
         private int _milkdropGpuW, _milkdropGpuH;
         private double _milkdropTime;
         private double _milkdropWaveHue;
@@ -310,8 +311,9 @@ namespace PlatypusTools.UI.Views
         private double _tardisTumble = 0;
         private double _tardisScale = 1.0;
         
-        // TimeLord GPU feedback vortex state
+        // TimeLord GPU feedback vortex state (double-buffered to avoid per-frame Copy allocations)
         private SKBitmap? _timeLordVortexBuffer;
+        private SKBitmap? _timeLordVortexBufferBack;
         private int _timeLordVortexW, _timeLordVortexH;
         private double _timeLordVortexHue;
         private int _timeLordVortexFrame;
@@ -567,17 +569,26 @@ namespace PlatypusTools.UI.Views
                     {
                         string mode = vm.VisualizerModeIndex switch
                         {
-                            0 => "Bars", 1 => "Mirror", 2 => "Waveform", 3 => "Circular",
-                            4 => "Radial", 5 => "Particles", 6 => "Aurora", 7 => "Wave Grid",
-                            8 => "Starfield", 9 => "Toasters", 10 => "Matrix", 11 => "Star Wars Crawl",
-                            12 => "Stargate", 13 => "Klingon", 14 => "Federation", 15 => "Jedi",
-                            16 => "TimeLord", 17 => "VU Meter", 18 => "Oscilloscope", 19 => "Milkdrop",
-                            20 => "3D Bars", 21 => "Waterfall", _ => "Bars"
+                            0 => "Bars", 1 => "Mirror", 2 => "Waveform", 3 => "VU Meter",
+                            4 => "Oscilloscope", 5 => "Circular", 6 => "Radial", 7 => "Aurora",
+                            8 => "Wave Grid", 9 => "3D Bars", 10 => "Waterfall", 11 => "Star Wars Crawl",
+                            12 => "Particles", 13 => "Starfield", 14 => "Toasters", 15 => "Matrix",
+                            16 => "Stargate", 17 => "Klingon", 18 => "Federation", 19 => "Jedi",
+                            20 => "TimeLord", 21 => "Milkdrop", _ => "Bars"
                         };
                         if (_visualizationMode != mode)
                         {
                             CleanupModeResources(_visualizationMode, mode);
                             _visualizationMode = mode;
+                            
+                            // Reset smoothing buffers for fresh start with new mode
+                            for (int i = 0; i < _barHeights.Length; i++)
+                            {
+                                _barHeights[i] = 0;
+                                _smoothedData[i] = 0;
+                                _peakHeights[i] = 0;
+                            }
+                            _isRendering = false;
                         }
                     }
                 }
@@ -705,6 +716,29 @@ namespace PlatypusTools.UI.Views
         }
         
         /// <summary>
+        /// Pauses the render timer to reduce CPU/GPU usage while this visualizer is not visible.
+        /// Called when the fullscreen visualizer opens to stop the hidden normal-view from
+        /// competing for UI thread time and GPU rendering resources.
+        /// </summary>
+        public void PauseRendering()
+        {
+            if (_renderTimer != null && _renderTimer.IsEnabled)
+            {
+                _renderTimer.Stop();
+                System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Render timer PAUSED (fullscreen open)");
+            }
+        }
+        
+        /// <summary>
+        /// Resumes the render timer after a pause. Called when fullscreen closes.
+        /// </summary>
+        public void ResumeRendering()
+        {
+            StartRenderTimer();
+            System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Render timer RESUMED (fullscreen closed)");
+        }
+        
+        /// <summary>
         /// Gets or sets the color scheme for the visualizer.
         /// </summary>
         public VisualizerColorScheme ColorScheme
@@ -788,9 +822,17 @@ namespace PlatypusTools.UI.Views
         /// <summary>
         /// Cleans up mode-specific resources when switching visualization modes.
         /// Prevents stale state from bleeding between modes and frees GPU buffers.
+        /// <summary>
+        /// Cleans up mode-specific resources when switching visualizer modes.
+        /// Performs a full stop of the old mode and prepares the new mode for a fresh start.
+        /// This prevents stale state from one mode interfering with another, which was
+        /// causing Federation/Klingon to "not move with music" after playing other modes first.
         /// </summary>
         private void CleanupModeResources(string oldMode, string newMode)
         {
+            // Reset common animation state for fresh start
+            _animationPhase = 0;
+            
             // Matrix: reset column positions for fresh rain on next visit
             if (oldMode == "Matrix" || newMode == "Matrix")
             {
@@ -816,20 +858,24 @@ namespace PlatypusTools.UI.Views
                 }
             }
             
-            // TimeLord: reset animation state and dispose feedback buffer
+            // TimeLord: reset animation state and dispose feedback buffers
             if (oldMode == "TimeLord" || newMode == "TimeLord")
             {
                 _tardisX = 0.5; _tardisY = 0.5; _tardisTumble = 0;
                 _tardisScale = 1.0; _vortexRotation = 0;
                 _timeLordVortexBuffer?.Dispose();
                 _timeLordVortexBuffer = null;
+                _timeLordVortexBufferBack?.Dispose();
+                _timeLordVortexBufferBack = null;
             }
             
-            // Milkdrop: dispose feedback buffer for fresh start
+            // Milkdrop: dispose feedback buffers for fresh start
             if (oldMode == "Milkdrop" || newMode == "Milkdrop")
             {
                 _milkdropGpuBuffer?.Dispose();
                 _milkdropGpuBuffer = null;
+                _milkdropGpuBufferBack?.Dispose();
+                _milkdropGpuBufferBack = null;
             }
             
             // Star Wars Crawl: reset scroll position
@@ -855,6 +901,26 @@ namespace PlatypusTools.UI.Views
                 for (int i = 0; i < _stargateTargetGlyphs.Length; i++)
                     _stargateTargetGlyphs[i] = _random.Next(0, 39);
             }
+            
+            // Federation: reset transporter phase for fresh start
+            if (oldMode == "Federation" || newMode == "Federation")
+            {
+                _transporterPhase = 0;
+            }
+            
+            // Klingon: no persistent state besides cached logo (intentionally kept)
+            
+            // Jedi: reset text scroll offset
+            if (oldMode == "Jedi" || newMode == "Jedi")
+            {
+                _jediTextScrollOffset = 0;
+            }
+            
+            // Aurora: reset phase
+            if (oldMode == "Aurora" || newMode == "Aurora")
+            {
+                _auroraPhase = 0;
+            }
         }
         
         /// <summary>
@@ -867,9 +933,13 @@ namespace PlatypusTools.UI.Views
             
             _milkdropGpuBuffer?.Dispose();
             _milkdropGpuBuffer = null;
+            _milkdropGpuBufferBack?.Dispose();
+            _milkdropGpuBufferBack = null;
             
             _timeLordVortexBuffer?.Dispose();
             _timeLordVortexBuffer = null;
+            _timeLordVortexBufferBack?.Dispose();
+            _timeLordVortexBufferBack = null;
             
             _skKlingonLogo?.Dispose();
             _skKlingonLogo = null;
@@ -1073,15 +1143,35 @@ namespace PlatypusTools.UI.Views
         /// Forces an immediate mode switch without waiting for the next spectrum data update.
         /// Called from fullscreen keyboard handler to ensure mode changes propagate even when
         /// heavy renderers (Matrix, TimeLord, Milkdrop, Jedi) are blocking the frame-skip guard.
+        /// Performs a full stop/start: cleans up old mode resources, resets smoothing buffers,
+        /// and initializes the new mode fresh so it renders with live audio data immediately.
         /// </summary>
         public void ForceVisualizationMode(string newMode)
         {
             if (_visualizationMode == newMode) return;
             
-            try { CleanupModeResources(_visualizationMode, newMode); }
+            var oldMode = _visualizationMode;
+            
+            try { CleanupModeResources(oldMode, newMode); }
             catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"ForceVisualizationMode cleanup error: {ex.Message}"); }
             
             _visualizationMode = newMode;
+            
+            // Reset smoothing buffers to force fresh data adoption — prevents stale
+            // smoothed values from the previous mode carrying over and causing the
+            // new mode to appear frozen (especially after switching from heavy modes
+            // like TimeLord/Milkdrop to lighter modes like Federation/Klingon).
+            for (int i = 0; i < _barHeights.Length; i++)
+            {
+                _barHeights[i] = _spectrumData.Length > i ? _spectrumData[i] * _sensitivity : 0;
+                _smoothedData[i] = _barHeights[i];
+                _peakHeights[i] = _barHeights[i];
+            }
+            
+            // Reset rendering flag to prevent stuck state
+            _isRendering = false;
+            
+            System.Diagnostics.Debug.WriteLine($"ForceVisualizationMode: {oldMode} → {newMode} (smoothing reset, ready for live data)");
             
             // Force immediate repaint
             try { SkiaCanvas?.InvalidateVisual(); } catch { }
@@ -1096,6 +1186,15 @@ namespace PlatypusTools.UI.Views
                 
                 // Always update mode even if cleanup throws
                 _visualizationMode = mode;
+                
+                // Reset smoothing buffers on mode switch for fresh start
+                for (int i = 0; i < _barHeights.Length; i++)
+                {
+                    _barHeights[i] = 0;
+                    _smoothedData[i] = 0;
+                    _peakHeights[i] = 0;
+                }
+                _isRendering = false;
                 
                 // Force immediate repaint so mode switch is visible without waiting for timer tick
                 try { SkiaCanvas?.InvalidateVisual(); } catch { }
@@ -8340,22 +8439,27 @@ namespace PlatypusTools.UI.Views
             _skTardisBitmap ??= LoadSkBitmapFromResource("pack://application:,,,/Assets/Tardis.png");
             
             // === MILKDROP-STYLE FEEDBACK VORTEX ===
-            // Use a persistent frame buffer with zoom/rotate/decay for trailing multicolored vortex
+            // Double-buffered: draw into front buffer reading from back buffer, then swap.
+            // Eliminates per-frame Copy() allocation that caused GC pressure / memory leaks.
             {
-                // Cap buffer resolution for performance (especially fullscreen)
-                int bufW = Math.Min((int)w > 1200 ? 640 : (int)w, 800);
+                // Cap buffer resolution for performance (smaller in fullscreen)
+                int bufW = _isLargeSurface ? 480 : Math.Min((int)w, 800);
                 int bufH = (int)(bufW * (h / w));
                 if (bufH <= 0) bufH = 1;
                 float bcx = bufW / 2f;
                 float bcy = bufH / 2f;
                 
-                // Allocate or resize the persistent buffer
+                // Allocate or resize both persistent buffers
                 if (_timeLordVortexBuffer == null || _timeLordVortexW != bufW || _timeLordVortexH != bufH)
                 {
                     _timeLordVortexBuffer?.Dispose();
+                    _timeLordVortexBufferBack?.Dispose();
                     _timeLordVortexBuffer = new SKBitmap(bufW, bufH, SKColorType.Rgba8888, SKAlphaType.Premul);
-                    using var initCanvas = new SKCanvas(_timeLordVortexBuffer);
-                    initCanvas.Clear(SKColors.Black);
+                    _timeLordVortexBufferBack = new SKBitmap(bufW, bufH, SKColorType.Rgba8888, SKAlphaType.Premul);
+                    using var initCanvas1 = new SKCanvas(_timeLordVortexBuffer);
+                    initCanvas1.Clear(SKColors.Black);
+                    using var initCanvas2 = new SKCanvas(_timeLordVortexBufferBack);
+                    initCanvas2.Clear(SKColors.Black);
                     _timeLordVortexW = bufW;
                     _timeLordVortexH = bufH;
                 }
@@ -8365,11 +8469,10 @@ namespace PlatypusTools.UI.Views
                 _timeLordVortexHue += 0.08 + bassIntensity * 0.15;
                 if (_timeLordVortexHue >= 360) _timeLordVortexHue -= 360;
                 
-                // Create a working copy of the previous frame (null guard for mode-switch safety)
+                // Double-buffer swap: read from back, draw into front
                 var vortexBuf = _timeLordVortexBuffer;
-                if (vortexBuf == null) return;
-                using var prevFrame = vortexBuf.Copy();
-                if (prevFrame == null) return;
+                var prevFrame = _timeLordVortexBufferBack;
+                if (vortexBuf == null || prevFrame == null) return;
                 using var vCanvas = new SKCanvas(vortexBuf);
                 vCanvas.Clear(SKColors.Black);
                 
@@ -8455,14 +8558,16 @@ namespace PlatypusTools.UI.Views
                 SKColor cGoldTint = new SKColor((byte)(200 + shimmer * 15), (byte)(160 + shimmer * 15), (byte)(80 + shimmer * 20));
                 
                 float vortexMaxR = Math.Min(bufW, bufH) * 0.48f;
-                int armCount = 7;
+                int armCount = _isLargeSurface ? 5 : 7; // Fewer arms in fullscreen for performance
                 
-                // --- Main spiral arms (3-layer cloud rendering) ---
+                // --- Main spiral arms (3-layer cloud rendering, reduced in fullscreen) ---
                 for (int arm = 0; arm < armCount; arm++)
                 {
                     using var spiralPath = new SKPath();
                     float armOffset = arm * 360f / armCount + (float)_vortexRotation;
-                    int sampleCount = Math.Min(128, _smoothedData.Length > 0 ? _smoothedData.Length : 64);
+                    int sampleCount = _isLargeSurface 
+                        ? Math.Min(64, _smoothedData.Length > 0 ? _smoothedData.Length : 64)
+                        : Math.Min(128, _smoothedData.Length > 0 ? _smoothedData.Length : 64);
                     
                     // Store points for nebula puffs
                     var armPoints = new List<(float x, float y, float t, float audio)>();
@@ -8489,13 +8594,16 @@ namespace PlatypusTools.UI.Views
                     
                     SKColor armColor = vortexColors[arm % vortexColors.Length];
                     
-                    // Wide outer nebula glow — thick and blurred for cloud-like appearance
-                    vortexPaint.StrokeWidth = 35 + (float)(bassIntensity * 18);
-                    vortexPaint.Color = armColor.WithAlpha(14);
-                    using var wideGlow = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 20);
-                    vortexPaint.MaskFilter = wideGlow;
-                    vCanvas.DrawPath(spiralPath, vortexPaint);
-                    vortexPaint.MaskFilter = null;
+                    // Wide outer nebula glow — skip in fullscreen for performance
+                    if (!_isLargeSurface)
+                    {
+                        vortexPaint.StrokeWidth = 35 + (float)(bassIntensity * 18);
+                        vortexPaint.Color = armColor.WithAlpha(14);
+                        using var wideGlow = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 20);
+                        vortexPaint.MaskFilter = wideGlow;
+                        vCanvas.DrawPath(spiralPath, vortexPaint);
+                        vortexPaint.MaskFilter = null;
+                    }
                     
                     // Mid glow layer — medium blur
                     vortexPaint.StrokeWidth = 16 + (float)(bassIntensity * 10);
@@ -8510,54 +8618,60 @@ namespace PlatypusTools.UI.Views
                     vortexPaint.Color = armColor.WithAlpha((byte)(100 + avgIntensity * 60));
                     vCanvas.DrawPath(spiralPath, vortexPaint);
                     
-                    // --- Nebula puffs: soft filled circles along the arm for cloudy texture ---
-                    using var puffPaint = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill };
-                    for (int p = 0; p < armPoints.Count; p += 4) // Every 4th point
+                    // --- Nebula puffs: skip in fullscreen for performance ---
+                    if (!_isLargeSurface)
                     {
-                        var (px, py, t, audioVal) = armPoints[p];
-                        // Puff size varies with audio + position
-                        float puffR = (6 + audioVal * 20 + (float)Math.Sin(p * 0.7 + _animationPhase * 2 + arm) * 4) * (1 - t * 0.3f);
-                        // Near center: blend toward gold; outer: use arm color
-                        float goldBlend = Math.Clamp(1f - t * 2.5f, 0f, 1f); // 1.0 at center, 0.0 past 40%
-                        byte pr = (byte)(armColor.Red + (cGoldTint.Red - armColor.Red) * goldBlend);
-                        byte pg = (byte)(armColor.Green + (cGoldTint.Green - armColor.Green) * goldBlend);
-                        byte pb = (byte)(armColor.Blue + (cGoldTint.Blue - armColor.Blue) * goldBlend);
-                        // Vary alpha per puff for organic look
-                        byte pa = (byte)Math.Clamp(12 + audioVal * 25 + Math.Sin(p * 1.3 + _animationPhase) * 6, 4, 40);
-                        puffPaint.Color = new SKColor(pr, pg, pb, pa);
-                        using var puffBlur = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, puffR * 0.6f);
-                        puffPaint.MaskFilter = puffBlur;
-                        vCanvas.DrawCircle(px, py, puffR, puffPaint);
-                        puffPaint.MaskFilter = null;
+                        using var puffPaint = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill };
+                        for (int p = 0; p < armPoints.Count; p += 4) // Every 4th point
+                        {
+                            var (px, py, t, audioVal) = armPoints[p];
+                            // Puff size varies with audio + position
+                            float puffR = (6 + audioVal * 20 + (float)Math.Sin(p * 0.7 + _animationPhase * 2 + arm) * 4) * (1 - t * 0.3f);
+                            // Near center: blend toward gold; outer: use arm color
+                            float goldBlend = Math.Clamp(1f - t * 2.5f, 0f, 1f); // 1.0 at center, 0.0 past 40%
+                            byte pr = (byte)(armColor.Red + (cGoldTint.Red - armColor.Red) * goldBlend);
+                            byte pg = (byte)(armColor.Green + (cGoldTint.Green - armColor.Green) * goldBlend);
+                            byte pb = (byte)(armColor.Blue + (cGoldTint.Blue - armColor.Blue) * goldBlend);
+                            // Vary alpha per puff for organic look
+                            byte pa = (byte)Math.Clamp(12 + audioVal * 25 + Math.Sin(p * 1.3 + _animationPhase) * 6, 4, 40);
+                            puffPaint.Color = new SKColor(pr, pg, pb, pa);
+                            using var puffBlur = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, puffR * 0.6f);
+                            puffPaint.MaskFilter = puffBlur;
+                            vCanvas.DrawCircle(px, py, puffR, puffPaint);
+                            puffPaint.MaskFilter = null;
+                        }
                     }
                 }
                 
-                // --- Secondary wisps: thinner translucent spirals between main arms ---
-                for (int wisp = 0; wisp < armCount; wisp++)
+                // --- Secondary wisps: skip in fullscreen for performance ---
+                if (!_isLargeSurface)
                 {
-                    using var wispPath = new SKPath();
-                    float wispOffset = (wisp + 0.5f) * 360f / armCount + (float)_vortexRotation * 0.85f; // Offset + slightly different speed
-                    int wSamples = 80;
-                    for (int s = 0; s < wSamples; s++)
+                    for (int wisp = 0; wisp < armCount; wisp++)
                     {
-                        float t = (float)s / wSamples;
-                        float angle = (wispOffset + t * 680) * (float)Math.PI / 180f;
-                        float r = t * vortexMaxR * 0.9f;
-                        float audioVal = s < _smoothedData.Length ? (float)(_smoothedData[s] * _sensitivity * 0.5f) : 0;
-                        r += audioVal * vortexMaxR * 0.25f;
-                        r += (float)(Math.Sin(t * 9 + _animationPhase * 2.3 + wisp * 1.7) * vortexMaxR * 0.05f);
-                        float px = bcx + (float)(Math.Cos(angle) * r);
-                        float py = bcy + (float)(Math.Sin(angle) * r);
-                        if (s == 0) wispPath.MoveTo(px, py);
-                        else wispPath.LineTo(px, py);
+                        using var wispPath = new SKPath();
+                        float wispOffset = (wisp + 0.5f) * 360f / armCount + (float)_vortexRotation * 0.85f;
+                        int wSamples = 80;
+                        for (int s = 0; s < wSamples; s++)
+                        {
+                            float t = (float)s / wSamples;
+                            float angle = (wispOffset + t * 680) * (float)Math.PI / 180f;
+                            float r = t * vortexMaxR * 0.9f;
+                            float audioVal = s < _smoothedData.Length ? (float)(_smoothedData[s] * _sensitivity * 0.5f) : 0;
+                            r += audioVal * vortexMaxR * 0.25f;
+                            r += (float)(Math.Sin(t * 9 + _animationPhase * 2.3 + wisp * 1.7) * vortexMaxR * 0.05f);
+                            float px = bcx + (float)(Math.Cos(angle) * r);
+                            float py = bcy + (float)(Math.Sin(angle) * r);
+                            if (s == 0) wispPath.MoveTo(px, py);
+                            else wispPath.LineTo(px, py);
+                        }
+                        // Soft wide wisp
+                        vortexPaint.StrokeWidth = 18 + (float)(bassIntensity * 8);
+                        vortexPaint.Color = vortexColors[wisp % vortexColors.Length].WithAlpha(8);
+                        using var wispBlur = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 14);
+                        vortexPaint.MaskFilter = wispBlur;
+                        vCanvas.DrawPath(wispPath, vortexPaint);
+                        vortexPaint.MaskFilter = null;
                     }
-                    // Soft wide wisp
-                    vortexPaint.StrokeWidth = 18 + (float)(bassIntensity * 8);
-                    vortexPaint.Color = vortexColors[wisp % vortexColors.Length].WithAlpha(8);
-                    using var wispBlur = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 14);
-                    vortexPaint.MaskFilter = wispBlur;
-                    vCanvas.DrawPath(wispPath, vortexPaint);
-                    vortexPaint.MaskFilter = null;
                 }
                 
                 // --- Step 5: Golden center glow (event horizon) — compact and warm ---
@@ -8623,6 +8737,10 @@ namespace PlatypusTools.UI.Views
                     using var blitPaint = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.Medium };
                     canvas.DrawBitmap(vortexBuf, destRect, blitPaint);
                 }
+                
+                // Swap buffers: current front becomes next frame's back (source)
+                _timeLordVortexBuffer = prevFrame;
+                _timeLordVortexBufferBack = vortexBuf;
             }
             
             // === GALLIFREYAN CIRCLES (overlaid on vortex) ===
@@ -9470,22 +9588,26 @@ namespace PlatypusTools.UI.Views
                 _milkdropWaveMode = (_milkdropWaveMode + 1) % 6;
             
             // === PERSISTENT FRAME BUFFER (feedback loop) ===
-            // Allocate or resize the persistent buffer (capped for performance)
+            // Double-buffered: draw into front reading from back, then swap.
+            // Eliminates per-frame Copy() allocation that caused GC pressure / memory leaks.
             if (_milkdropGpuBuffer == null || _milkdropGpuW != bufW || _milkdropGpuH != bufH)
             {
                 _milkdropGpuBuffer?.Dispose();
+                _milkdropGpuBufferBack?.Dispose();
                 _milkdropGpuBuffer = new SKBitmap(bufW, bufH, SKColorType.Rgba8888, SKAlphaType.Premul);
-                using var initCanvas = new SKCanvas(_milkdropGpuBuffer);
-                initCanvas.Clear(SKColors.Black);
+                _milkdropGpuBufferBack = new SKBitmap(bufW, bufH, SKColorType.Rgba8888, SKAlphaType.Premul);
+                using var initCanvas1 = new SKCanvas(_milkdropGpuBuffer);
+                initCanvas1.Clear(SKColors.Black);
+                using var initCanvas2 = new SKCanvas(_milkdropGpuBufferBack);
+                initCanvas2.Clear(SKColors.Black);
                 _milkdropGpuW = bufW;
                 _milkdropGpuH = bufH;
             }
             
-            // Create a working copy of the previous frame (null guard for mode-switch safety)
+            // Double-buffer swap: read from back, draw into front
             var currentBuffer = _milkdropGpuBuffer;
-            if (currentBuffer == null) return;
-            using var workBitmap = currentBuffer.Copy();
-            if (workBitmap == null) return;
+            var workBitmap = _milkdropGpuBufferBack;
+            if (currentBuffer == null || workBitmap == null) return;
             using var workCanvas = new SKCanvas(currentBuffer);
             workCanvas.Clear(SKColors.Black);
             
@@ -9596,6 +9718,10 @@ namespace PlatypusTools.UI.Views
                 using var blitPaint = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.Medium };
                 canvas.DrawBitmap(currentBuffer, dest, blitPaint);
             }
+            
+            // Swap buffers: current front becomes next frame's back (source)
+            _milkdropGpuBuffer = workBitmap;
+            _milkdropGpuBufferBack = currentBuffer;
         }
         
         /// <summary>Circular waveform with glow — Milkdrop-style ring.</summary>

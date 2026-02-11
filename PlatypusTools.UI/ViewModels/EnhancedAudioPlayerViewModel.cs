@@ -73,7 +73,13 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     public BitmapImage? AlbumArtImage
     {
         get => _albumArtImage;
-        set => SetProperty(ref _albumArtImage, value);
+        set
+        {
+            if (SetProperty(ref _albumArtImage, value))
+            {
+                RaisePropertyChanged(nameof(HasAlbumArt));
+            }
+        }
     }
     
     // Common album art filenames to check
@@ -256,6 +262,78 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         catch
         {
             // Silently fail - album art is optional
+        }
+    }
+    
+    /// <summary>
+    /// Opens a file dialog to select an image file and sets it as album art for the current track.
+    /// Saves the image as folder.jpg in the track's directory for future use.
+    /// </summary>
+    private void SetAlbumArtFromFile()
+    {
+        if (CurrentTrack == null) return;
+        
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp|All Files|*.*",
+            Title = "Select Album Art Image"
+        };
+        
+        if (dialog.ShowDialog() == true)
+        {
+            try
+            {
+                var imageBytes = File.ReadAllBytes(dialog.FileName);
+                if (imageBytes.Length == 0) return;
+                
+                // Save as folder.jpg in the track's directory
+                var directory = Path.GetDirectoryName(CurrentTrack.FilePath);
+                if (!string.IsNullOrEmpty(directory))
+                {
+                    var savePath = Path.Combine(directory, "folder.jpg");
+                    try
+                    {
+                        File.Copy(dialog.FileName, savePath, overwrite: true);
+                        System.Diagnostics.Debug.WriteLine($"Saved album art from file: {savePath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Failed to save album art: {ex.Message}");
+                    }
+                }
+                
+                // Save to track for future use
+                CurrentTrack.AlbumArt = imageBytes;
+                
+                // Apply to all tracks in the same album
+                var albumKey = $"{CurrentTrack.Artist?.ToLowerInvariant()}|{CurrentTrack.Album?.ToLowerInvariant()}";
+                foreach (var albumTrack in _allLibraryTracks.Where(t => 
+                    $"{t.Artist?.ToLowerInvariant()}|{t.Album?.ToLowerInvariant()}" == albumKey))
+                {
+                    if (albumTrack.AlbumArt == null)
+                        albumTrack.AlbumArt = imageBytes;
+                }
+                foreach (var queueTrack in Queue.Where(t => 
+                    $"{t.Artist?.ToLowerInvariant()}|{t.Album?.ToLowerInvariant()}" == albumKey))
+                {
+                    if (queueTrack.AlbumArt == null)
+                        queueTrack.AlbumArt = imageBytes;
+                }
+                
+                // Display it
+                using var stream = new MemoryStream(imageBytes);
+                var image = ImageHelper.LoadFromStream(stream);
+                if (image != null)
+                {
+                    AlbumArtImage = image;
+                }
+                
+                StatusBarViewModel.Instance.StatusMessage = $"Album art set from {Path.GetFileName(dialog.FileName)}";
+            }
+            catch (Exception ex)
+            {
+                StatusBarViewModel.Instance.StatusMessage = $"Failed to set album art: {ex.Message}";
+            }
         }
     }
     
@@ -541,6 +619,27 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         get => _showLyricsOverlay;
         set => SetProperty(ref _showLyricsOverlay, value);
     }
+    
+    private bool _showAlbumArtView;
+    /// <summary>
+    /// When true, the top panel shows album art + lyrics instead of the visualizer.
+    /// Toggled via the "Art" button in both normal and fullscreen views.
+    /// </summary>
+    public bool ShowAlbumArtView
+    {
+        get => _showAlbumArtView;
+        set => SetProperty(ref _showAlbumArtView, value);
+    }
+    
+    /// <summary>
+    /// Whether the current track has album art loaded.
+    /// </summary>
+    public bool HasAlbumArt => AlbumArtImage != null;
+    
+    /// <summary>
+    /// Command to set album art from a file.
+    /// </summary>
+    public ICommand SetAlbumArtCommand { get; }
     
     /// <summary>
     /// Current lyric line text for overlay display
@@ -1330,22 +1429,25 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         0 => "Bars",
         1 => "Mirror",
         2 => "Waveform",
-        3 => "Circular",
-        4 => "Radial",
-        5 => "Particles",
-        6 => "Aurora",
-        7 => "Wave Grid",
-        8 => "Starfield",
-        9 => "Toasters",
-        10 => "Matrix",
+        3 => "VU Meter",
+        4 => "Oscilloscope",
+        5 => "Circular",
+        6 => "Radial",
+        7 => "Aurora",
+        8 => "Wave Grid",
+        9 => "3D Bars",
+        10 => "Waterfall",
         11 => "Star Wars Crawl",
-        12 => "Stargate",
-        13 => "Klingon",
-        14 => "Federation",
-        15 => "Jedi",
-        16 => "TimeLord",
-        17 => "VU Meter",
-        18 => "Oscilloscope",
+        12 => "Particles",
+        13 => "Starfield",
+        14 => "Toasters",
+        15 => "Matrix",
+        16 => "Stargate",
+        17 => "Klingon",
+        18 => "Federation",
+        19 => "Jedi",
+        20 => "TimeLord",
+        21 => "Milkdrop",
         _ => "Bars"
     };
     
@@ -1372,7 +1474,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     // Dropdown collections for visualizer controls
     public List<string> VisualizerModes { get; } = new()
     {
-        "Bars", "Mirror", "Waveform", "Circular", "Radial", "Particles", "Aurora", "Wave Grid", "Starfield", "Toasters", "Matrix", "Star Wars Crawl", "Stargate", "Klingon", "Federation", "Jedi", "TimeLord", "VU Meter", "Oscilloscope", "Milkdrop", "3D Bars", "Waterfall"
+        "Bars", "Mirror", "Waveform", "VU Meter", "Oscilloscope", "Circular", "Radial", "Aurora", "Wave Grid", "3D Bars", "Waterfall", "Star Wars Crawl", "Particles", "Starfield", "Toasters", "Matrix", "Stargate", "Klingon", "Federation", "Jedi", "TimeLord", "Milkdrop"
     };
     
     public List<string> ColorSchemes { get; } = new()
@@ -1813,6 +1915,9 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 SetSleepTimer(m);
         });
         CancelSleepTimerCommand = new RelayCommand(_ => CancelSleepTimer());
+        
+        // Album art command
+        SetAlbumArtCommand = new RelayCommand(_ => SetAlbumArtFromFile());
         
         // Feature-specific commands
         SetRatingCommand = new RelayCommand(param =>

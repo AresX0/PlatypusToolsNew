@@ -75,9 +75,12 @@ namespace PlatypusTools.Core.Services
                 var paths = new[]
                 {
                     "exiftool",
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "exiftool.exe"),
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "exiftool", "exiftool.exe"),
                     Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "exiftool_files", "exiftool.exe"),
                     Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "exiftool-13.45_64", "exiftool.exe"),
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "PlatypusTools", "Tools", "exiftool.exe"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "PlatypusTools", "Tools", "exiftool", "exiftool.exe"),
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "PlatypusTools", "Tools", "exiftool-13.45_64", "exiftool.exe"),
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "exiftool", "exiftool.exe")
                 };

@@ -6,7 +6,7 @@
       <Directory Id="INSTALLFOLDER" Name="PlatypusTools">
         <Directory Id="ToolsFolder" Name="Tools">
           <Directory Id="FFmpegFolder" Name="ffmpeg" />
-          <Directory Id="ExifToolFolder" Name="exiftool" />
+          <!-- ExifTool installs flat into Tools folder, no subfolder needed -->
         </Directory>
         <Directory Id="DataFolder" Name="Data" />
         <Directory Id="LogsFolder" Name="Logs" />
@@ -73,12 +73,12 @@
         <File Id="FFmpegLICENSE.txt" Source="..\Tools\ffmpeg\LICENSE.txt" KeyPath="yes" />
       </Component>
 
-      <!-- ExifTool - bundled executable -->
-      <Component Id="ExifToolExe" Directory="ExifToolFolder" Guid="C5D6E7F8-A9B0-4C5D-9E8F-5A6B7C8D9E0F">
+      <!-- ExifTool - bundled executable (installed flat in Tools folder) -->
+      <Component Id="ExifToolExe" Directory="ToolsFolder" Guid="C5D6E7F8-A9B0-4C5D-9E8F-5A6B7C8D9E0F">
         <File Id="exiftool.exe" Source="..\Tools\exiftool\exiftool.exe" KeyPath="yes" />
       </Component>
 
-      <Component Id="ExifToolReadme" Directory="ExifToolFolder" Guid="E6F7A8B9-C0D1-4E5F-9A8B-7C8D9E0F1A2B">
+      <Component Id="ExifToolReadme" Directory="ToolsFolder" Guid="E6F7A8B9-C0D1-4E5F-9A8B-7C8D9E0F1A2B">
         <File Id="ExifToolREADME.txt" Source="..\Tools\exiftool\README.txt" KeyPath="yes" />
       </Component>
 
