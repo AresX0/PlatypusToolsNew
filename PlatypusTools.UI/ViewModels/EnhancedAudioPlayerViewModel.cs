@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -1221,7 +1222,124 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     
     #region Queue & Library
     
+    // Library browse mode
+    public enum LibraryBrowseMode { All, Artists, Albums, Genres, Folders }
+    
+    private LibraryBrowseMode _browseMode = LibraryBrowseMode.All;
+    public LibraryBrowseMode BrowseMode
+    {
+        get => _browseMode;
+        set
+        {
+            if (SetProperty(ref _browseMode, value))
+            {
+                RaisePropertyChanged(nameof(IsBrowseModeAll));
+                RaisePropertyChanged(nameof(IsBrowseModeArtists));
+                RaisePropertyChanged(nameof(IsBrowseModeAlbums));
+                RaisePropertyChanged(nameof(IsBrowseModeGenres));
+                RaisePropertyChanged(nameof(IsBrowseModeFolder));
+                RaisePropertyChanged(nameof(ShowBrowseGroups));
+                SelectedBrowseGroup = null;
+                BuildBrowseGroups();
+            }
+        }
+    }
+    
+    public bool IsBrowseModeAll => BrowseMode == LibraryBrowseMode.All;
+    public bool IsBrowseModeArtists => BrowseMode == LibraryBrowseMode.Artists;
+    public bool IsBrowseModeAlbums => BrowseMode == LibraryBrowseMode.Albums;
+    public bool IsBrowseModeGenres => BrowseMode == LibraryBrowseMode.Genres;
+    public bool IsBrowseModeFolder => BrowseMode == LibraryBrowseMode.Folders;
+    public bool ShowBrowseGroups => BrowseMode != LibraryBrowseMode.All;
+    
+    public ObservableCollection<string> BrowseGroups { get; } = new();
+    
+    private string? _selectedBrowseGroup;
+    public string? SelectedBrowseGroup
+    {
+        get => _selectedBrowseGroup;
+        set
+        {
+            if (SetProperty(ref _selectedBrowseGroup, value))
+            {
+                FilterLibraryTracks();
+            }
+        }
+    }
+    
+    private void BuildBrowseGroups()
+    {
+        BrowseGroups.Clear();
+        
+        IEnumerable<string> groups = BrowseMode switch
+        {
+            LibraryBrowseMode.Artists => _allLibraryTracks
+                .Select(t => t.DisplayArtist)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(a => a, StringComparer.OrdinalIgnoreCase),
+            LibraryBrowseMode.Albums => _allLibraryTracks
+                .Select(t => t.DisplayAlbum)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(a => a, StringComparer.OrdinalIgnoreCase),
+            LibraryBrowseMode.Genres => _allLibraryTracks
+                .Select(t => t.DisplayGenre)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(g => g, StringComparer.OrdinalIgnoreCase),
+            LibraryBrowseMode.Folders => _allLibraryTracks
+                .Select(t => System.IO.Path.GetDirectoryName(t.FilePath) ?? "")
+                .Where(f => !string.IsNullOrEmpty(f))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(f => f, StringComparer.OrdinalIgnoreCase),
+            _ => Enumerable.Empty<string>()
+        };
+        
+        foreach (var g in groups)
+            BrowseGroups.Add(g);
+        
+        // Show all tracks when switching mode (no group selected yet)
+        FilterLibraryTracks();
+    }
+    
+    public int LibraryGenreCount => _allLibraryTracks.Select(t => t.DisplayGenre).Distinct().Count();
+    
     public ObservableCollection<AudioTrack> Queue { get; } = new();
+    
+    private ICollectionView? _queueView;
+    public ICollectionView QueueView
+    {
+        get
+        {
+            if (_queueView == null)
+            {
+                _queueView = System.Windows.Data.CollectionViewSource.GetDefaultView(Queue);
+                _queueView.Filter = QueueFilter;
+            }
+            return _queueView;
+        }
+    }
+    
+    private string? _queueSearchQuery;
+    public string? QueueSearchQuery
+    {
+        get => _queueSearchQuery;
+        set
+        {
+            if (SetProperty(ref _queueSearchQuery, value))
+                QueueView.Refresh();
+        }
+    }
+    
+    private bool QueueFilter(object obj)
+    {
+        if (string.IsNullOrWhiteSpace(_queueSearchQuery)) return true;
+        if (obj is not AudioTrack track) return false;
+        return track.DisplayTitle.Contains(_queueSearchQuery, StringComparison.OrdinalIgnoreCase) ||
+               track.DisplayArtist.Contains(_queueSearchQuery, StringComparison.OrdinalIgnoreCase) ||
+               track.DisplayAlbum.Contains(_queueSearchQuery, StringComparison.OrdinalIgnoreCase) ||
+               track.DisplayGenre.Contains(_queueSearchQuery, StringComparison.OrdinalIgnoreCase);
+    }
+    
+    public ICommand ClearQueueSearchCommand => new RelayCommand(_ => QueueSearchQuery = null);
     
     private ObservableCollection<AudioTrack> _libraryTracks = new();
     public ObservableCollection<AudioTrack> LibraryTracks
@@ -1232,6 +1350,17 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     
     public ObservableCollection<string> LibraryFolders { get; } = new();
     private List<AudioTrack> _allLibraryTracks = new();
+    
+    // Watch Folders
+    public ObservableCollection<string> WatchFolders { get; } = new();
+    private string? _selectedWatchFolder;
+    public string? SelectedWatchFolder
+    {
+        get => _selectedWatchFolder;
+        set => SetProperty(ref _selectedWatchFolder, value);
+    }
+    
+    private Services.FileWatcherService? _fileWatcher;
     
     private string? _selectedLibraryFolder;
     public string? SelectedLibraryFolder
@@ -1332,12 +1461,51 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     private void FilterLibraryTracks()
     {
         var query = SearchQuery?.ToLowerInvariant() ?? "";
-        var filtered = string.IsNullOrWhiteSpace(query)
-            ? _allLibraryTracks
-            : _allLibraryTracks.Where(t =>
+        
+        // Start with all tracks
+        IEnumerable<AudioTrack> filtered = _allLibraryTracks;
+        
+        // Apply browse mode group filter
+        if (SelectedBrowseGroup != null && BrowseMode != LibraryBrowseMode.All)
+        {
+            filtered = BrowseMode switch
+            {
+                LibraryBrowseMode.Artists => filtered.Where(t => 
+                    string.Equals(t.DisplayArtist, SelectedBrowseGroup, StringComparison.OrdinalIgnoreCase)),
+                LibraryBrowseMode.Albums => filtered.Where(t => 
+                    string.Equals(t.DisplayAlbum, SelectedBrowseGroup, StringComparison.OrdinalIgnoreCase)),
+                LibraryBrowseMode.Genres => filtered.Where(t => 
+                    string.Equals(t.DisplayGenre, SelectedBrowseGroup, StringComparison.OrdinalIgnoreCase)),
+                LibraryBrowseMode.Folders => filtered.Where(t => 
+                    string.Equals(System.IO.Path.GetDirectoryName(t.FilePath), SelectedBrowseGroup, StringComparison.OrdinalIgnoreCase)),
+                _ => filtered
+            };
+        }
+        
+        // Apply text search filter
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            filtered = filtered.Where(t =>
                 t.DisplayTitle.Contains(query, StringComparison.OrdinalIgnoreCase) ||
                 t.DisplayArtist.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                t.DisplayAlbum.Contains(query, StringComparison.OrdinalIgnoreCase));
+                t.DisplayAlbum.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                t.DisplayGenre.Contains(query, StringComparison.OrdinalIgnoreCase));
+        }
+        
+        // Apply sort order based on browse mode
+        filtered = BrowseMode switch
+        {
+            LibraryBrowseMode.Artists => filtered.OrderBy(t => t.DisplayArtist, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(t => t.DisplayAlbum, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(t => t.TrackNumber),
+            LibraryBrowseMode.Albums => filtered.OrderBy(t => t.DisplayAlbum, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(t => t.DiscNumber)
+                .ThenBy(t => t.TrackNumber),
+            LibraryBrowseMode.Genres => filtered.OrderBy(t => t.DisplayGenre, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(t => t.DisplayArtist, StringComparer.OrdinalIgnoreCase),
+            LibraryBrowseMode.Folders => filtered.OrderBy(t => t.FilePath, StringComparer.OrdinalIgnoreCase),
+            _ => filtered
+        };
         
         // Create new collection in one shot to avoid UI freeze from individual add notifications
         // UI virtualization handles performance for large collections
@@ -1633,7 +1801,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         }
     }
     
-    public List<string> QueueSortOptions { get; } = new() { "None", "Title", "Artist", "Album", "Duration", "Rating" };
+    public List<string> QueueSortOptions { get; } = new() { "None", "Title", "Artist", "Album", "Genre", "Duration", "Rating" };
     
     private void SortQueue()
     {
@@ -1644,6 +1812,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             "Title" => Queue.OrderBy(t => t.DisplayTitle).ToList(),
             "Artist" => Queue.OrderBy(t => t.DisplayArtist).ToList(),
             "Album" => Queue.OrderBy(t => t.DisplayAlbum).ToList(),
+            "Genre" => Queue.OrderBy(t => t.DisplayGenre).ThenBy(t => t.DisplayArtist).ToList(),
             "Duration" => Queue.OrderBy(t => t.Duration).ToList(),
             "Rating" => Queue.OrderByDescending(t => t.Rating).ToList(),
             _ => null
@@ -1780,6 +1949,11 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     public ICommand RemoveSelectedTracksFromLibraryCommand { get; }
     public ICommand ClearLibraryCommand { get; }
     public ICommand RemoveMissingTracksCommand { get; }
+    public ICommand RelinkMissingTracksCommand { get; }
+    
+    // Watch folder commands
+    public ICommand AddWatchFolderCommand { get; }
+    public ICommand RemoveWatchFolderCommand { get; }
     
     // Screensaver commands
     public ICommand LaunchScreensaverCommand { get; }
@@ -1788,6 +1962,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     // Navigation commands
     public ICommand ScrollToCurrentTrackCommand { get; }
     public ICommand ShowLibraryFromPlaylistCommand { get; }
+    public ICommand SetBrowseModeCommand { get; }
     
     // A-B Loop commands
     public ICommand SetLoopPointACommand { get; }
@@ -2035,12 +2210,30 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         RemoveSelectedTracksFromLibraryCommand = new AsyncRelayCommand(RemoveSelectedTrackFromLibraryAsync);
         ClearLibraryCommand = new AsyncRelayCommand(ClearLibraryAsync);
         RemoveMissingTracksCommand = new AsyncRelayCommand(RemoveMissingTracksAsync);
+        RelinkMissingTracksCommand = new AsyncRelayCommand(RelinkMissingTracksAsync);
+        
+        // Watch folder commands
+        AddWatchFolderCommand = new RelayCommand(_ => AddWatchFolder());
+        RemoveWatchFolderCommand = new RelayCommand(_ => RemoveWatchFolder(), _ => !string.IsNullOrEmpty(SelectedWatchFolder));
         
         ShowLibraryFromPlaylistCommand = new RelayCommand(_ =>
         {
             // Deselect playlist to show all library tracks
             SelectedPlaylist = null;
+            BrowseMode = LibraryBrowseMode.All;
             StatusMessage = "Showing all library tracks";
+        });
+        
+        SetBrowseModeCommand = new RelayCommand(param =>
+        {
+            if (param is string mode && Enum.TryParse<LibraryBrowseMode>(mode, out var browseMode))
+            {
+                SelectedPlaylist = null; // Exit playlist view when switching browse mode
+                BrowseMode = browseMode;
+                StatusMessage = browseMode == LibraryBrowseMode.All 
+                    ? "Showing all library tracks" 
+                    : $"Browsing by {browseMode}";
+            }
         });
         
         ResetEqCommand = new RelayCommand(_ =>
@@ -2249,7 +2442,18 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         });
         
         // Load library
-        _ = LoadLibraryAsync();
+        _ = LoadLibraryAsync().ContinueWith(t =>
+        {
+            if (t.IsFaulted && t.Exception != null)
+            {
+                var ex = t.Exception.InnerException ?? t.Exception;
+                System.Diagnostics.Debug.WriteLine($"[AudioLibrary] CRITICAL: LoadLibraryAsync failed: {ex.GetType().Name}: {ex.Message}");
+                Application.Current?.Dispatcher.InvokeAsync(() =>
+                {
+                    StatusMessage = $"Library load error: {ex.Message}";
+                });
+            }
+        }, TaskScheduler.Default);
         
         // Initialize audio devices list
         RefreshAudioDevices();
@@ -2629,7 +2833,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     {
         using var dialog = new System.Windows.Forms.OpenFileDialog
         {
-            Filter = "Audio Files|*.mp3;*.flac;*.wav;*.ogg;*.m4a;*.aac;*.wma|All Files|*.*",
+            Filter = "Audio Files|*.mp3;*.flac;*.wav;*.ogg;*.m4a;*.aac;*.wma;*.opus|All Files|*.*",
             Multiselect = true
         };
         
@@ -2674,7 +2878,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         
         if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
         
-        var extensions = new[] { ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma" };
+        var extensions = new[] { ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma", ".opus" };
         var files = Directory.GetFiles(dialog.SelectedPath, "*.*", SearchOption.AllDirectories)
             .Where(f => extensions.Contains(Path.GetExtension(f).ToLowerInvariant()));
         
@@ -2766,7 +2970,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         
         var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma"
+            ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma", ".opus"
         };
         
         _allLibraryTracks.Clear();
@@ -2808,8 +3012,6 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             "PlatypusTools", "enhanced_audio_library.json");
         
         System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Looking for cache at: {cacheFile}");
-        System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Cache exists: {File.Exists(cacheFile)}");
-        
         if (File.Exists(cacheFile))
         {
             try
@@ -2839,6 +3041,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                     RaisePropertyChanged(nameof(LibraryTrackCount));
                     RaisePropertyChanged(nameof(LibraryArtistCount));
                     RaisePropertyChanged(nameof(LibraryAlbumCount));
+                    RaisePropertyChanged(nameof(LibraryGenreCount));
                     StatusMessage = $"Library: {_allLibraryTracks.Count:N0} tracks";
                 });
                 
@@ -2848,7 +3051,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             }
             catch (JsonException jsonEx)
             {
-                System.Diagnostics.Debug.WriteLine($"JSON error loading library cache: {jsonEx.Message} at position {jsonEx.BytePositionInLine}");
+                System.Diagnostics.Debug.WriteLine($"[AudioLibrary] JSON error: {jsonEx.Message}");
                 StatusMessage = $"Library cache corrupted - rescan needed";
                 _allLibraryTracks = new List<AudioTrack>();
                 
@@ -2866,7 +3069,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error loading library cache: {ex.GetType().Name}: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[AudioLibrary] ERROR: {ex.GetType().Name}: {ex.Message}");
                 StatusMessage = $"Library cache load failed: {ex.Message}";
                 _allLibraryTracks = new List<AudioTrack>();
             }
@@ -2951,7 +3154,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         
         var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma"
+            ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma", ".opus"
         };
         
         // Build index of existing tracks for incremental scanning
@@ -3123,6 +3326,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 RaisePropertyChanged(nameof(LibraryTrackCount));
                 RaisePropertyChanged(nameof(LibraryArtistCount));
                 RaisePropertyChanged(nameof(LibraryAlbumCount));
+                RaisePropertyChanged(nameof(LibraryGenreCount));
                 System.Diagnostics.Debug.WriteLine($"[SCAN] Final UI update: {_allLibraryTracks.Count} total tracks");
             });
             
@@ -3226,7 +3430,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         
         var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma"
+            ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma", ".opus"
         };
         
         ScanStatus = "Discovering files...";
@@ -3296,6 +3500,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             RaisePropertyChanged(nameof(LibraryTrackCount));
             RaisePropertyChanged(nameof(LibraryArtistCount));
             RaisePropertyChanged(nameof(LibraryAlbumCount));
+            RaisePropertyChanged(nameof(LibraryGenreCount));
             
             StatusMessage = $"Library updated: {_allLibraryTracks.Count} tracks (all from cache)";
             IsScanning = false;
@@ -3376,6 +3581,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         RaisePropertyChanged(nameof(LibraryTrackCount));
         RaisePropertyChanged(nameof(LibraryArtistCount));
         RaisePropertyChanged(nameof(LibraryAlbumCount));
+        RaisePropertyChanged(nameof(LibraryGenreCount));
         
         // Show results
         if (cachedTracks.Count > 0)
@@ -3560,6 +3766,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         RaisePropertyChanged(nameof(LibraryTrackCount));
         RaisePropertyChanged(nameof(LibraryArtistCount));
         RaisePropertyChanged(nameof(LibraryAlbumCount));
+        RaisePropertyChanged(nameof(LibraryGenreCount));
         
         // Save the updated library cache
         await SaveLibraryCacheAsync();
@@ -3601,6 +3808,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         RaisePropertyChanged(nameof(LibraryTrackCount));
         RaisePropertyChanged(nameof(LibraryArtistCount));
         RaisePropertyChanged(nameof(LibraryAlbumCount));
+        RaisePropertyChanged(nameof(LibraryGenreCount));
         
         // Save the updated library cache
         await SaveLibraryCacheAsync();
@@ -3667,6 +3875,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 RaisePropertyChanged(nameof(LibraryTrackCount));
                 RaisePropertyChanged(nameof(LibraryArtistCount));
                 RaisePropertyChanged(nameof(LibraryAlbumCount));
+                RaisePropertyChanged(nameof(LibraryGenreCount));
                 
                 // Save the updated library cache
                 await SaveLibraryCacheAsync();
@@ -3687,6 +3896,222 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         ScanProgress = 0;
         ScanStatus = "";
     }
+    
+    /// <summary>
+    /// Relink tracks with missing files to new locations.
+    /// </summary>
+    private async Task RelinkMissingTracksAsync()
+    {
+        StatusMessage = "Checking for missing files...";
+        IsScanning = true;
+        
+        var missingTracks = new List<AudioTrack>();
+        foreach (var track in _allLibraryTracks.ToList())
+        {
+            if (!File.Exists(track.FilePath))
+                missingTracks.Add(track);
+        }
+        
+        if (missingTracks.Count == 0)
+        {
+            StatusMessage = "All tracks found on disk — nothing to relink";
+            IsScanning = false;
+            return;
+        }
+        
+        var result = MessageBox.Show(
+            $"Found {missingTracks.Count:N0} missing tracks.\n\n" +
+            "Choose a folder to search for the missing files.\n" +
+            "Files will be matched by filename.",
+            "Relink Missing Files",
+            MessageBoxButton.OKCancel,
+            MessageBoxImage.Information);
+        
+        if (result != MessageBoxResult.OK)
+        {
+            IsScanning = false;
+            return;
+        }
+        
+        using var dialog = new System.Windows.Forms.FolderBrowserDialog
+        {
+            Description = "Select folder to search for missing files",
+            UseDescriptionForTitle = true
+        };
+        
+        if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+        {
+            IsScanning = false;
+            return;
+        }
+        
+        var searchPath = dialog.SelectedPath;
+        StatusMessage = $"Searching {searchPath} for missing files...";
+        
+        // Build index of files in the target folder
+        var fileIndex = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        await Task.Run(() =>
+        {
+            try
+            {
+                foreach (var file in Directory.EnumerateFiles(searchPath, "*.*", SearchOption.AllDirectories))
+                {
+                    var name = System.IO.Path.GetFileName(file);
+                    if (!fileIndex.ContainsKey(name))
+                        fileIndex[name] = file;
+                }
+            }
+            catch (Exception) { /* ignore access denied */ }
+        });
+        
+        int relinked = 0;
+        foreach (var track in missingTracks)
+        {
+            var fileName = System.IO.Path.GetFileName(track.FilePath);
+            if (fileIndex.TryGetValue(fileName, out var newPath))
+            {
+                track.FilePath = newPath;
+                relinked++;
+            }
+        }
+        
+        if (relinked > 0)
+            await SaveLibraryCacheAsync();
+        
+        StatusMessage = $"Relinked {relinked:N0} of {missingTracks.Count:N0} missing tracks";
+        IsScanning = false;
+        ScanProgress = 0;
+        ScanStatus = "";
+    }
+    
+    #region Watch Folders
+    
+    private void AddWatchFolder()
+    {
+        using var dialog = new System.Windows.Forms.FolderBrowserDialog
+        {
+            Description = "Select folder to watch for new audio files",
+            UseDescriptionForTitle = true
+        };
+        
+        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            var path = dialog.SelectedPath;
+            if (!WatchFolders.Contains(path))
+            {
+                WatchFolders.Add(path);
+                StartWatchingFolder(path);
+                StatusMessage = $"Now watching: {path}";
+            }
+        }
+    }
+    
+    private void RemoveWatchFolder()
+    {
+        if (string.IsNullOrEmpty(SelectedWatchFolder)) return;
+        var path = SelectedWatchFolder;
+        
+        _fileWatcher?.StopWatching(path);
+        WatchFolders.Remove(path);
+        StatusMessage = $"Stopped watching: {path}";
+    }
+    
+    private void StartWatchingFolder(string path)
+    {
+        _fileWatcher ??= Services.FileWatcherService.Instance;
+        
+        _fileWatcher.FileCreated -= OnWatchedFileCreated;
+        _fileWatcher.FileCreated += OnWatchedFileCreated;
+        _fileWatcher.FileRenamed -= OnWatchedFileRenamed;
+        _fileWatcher.FileRenamed += OnWatchedFileRenamed;
+        
+        _fileWatcher.Watch(path, "*.*", includeSubdirectories: true);
+    }
+    
+    public void InitializeWatchFolders()
+    {
+        foreach (var folder in WatchFolders)
+        {
+            StartWatchingFolder(folder);
+        }
+    }
+    
+    private void OnWatchedFileCreated(object? sender, Services.FileChangeEvent e)
+    {
+        var ext = System.IO.Path.GetExtension(e.FullPath).ToLowerInvariant();
+        var audioExts = new[] { ".mp3", ".wav", ".flac", ".ogg", ".m4a", ".aac", ".wma", ".opus", ".aiff", ".ape" };
+        
+        if (!audioExts.Contains(ext)) return;
+        if (_allLibraryTracks.Any(t => string.Equals(t.FilePath, e.FullPath, StringComparison.OrdinalIgnoreCase)))
+            return;
+        
+        Application.Current?.Dispatcher.BeginInvoke(() =>
+        {
+            _ = AddFileToLibraryAsync(e.FullPath);
+        });
+    }
+    
+    private void OnWatchedFileRenamed(object? sender, Services.FileChangeEvent e)
+    {
+        if (string.IsNullOrEmpty(e.OldPath)) return;
+        
+        Application.Current?.Dispatcher.BeginInvoke(() =>
+        {
+            var track = _allLibraryTracks.FirstOrDefault(t =>
+                string.Equals(t.FilePath, e.OldPath, StringComparison.OrdinalIgnoreCase));
+            if (track != null)
+            {
+                track.FilePath = e.FullPath;
+                StatusMessage = $"Auto-relinked: {track.FileName}";
+            }
+        });
+    }
+    
+    private async Task AddFileToLibraryAsync(string filePath)
+    {
+        try
+        {
+            var track = new AudioTrack
+            {
+                Id = Guid.NewGuid().ToString(),
+                FilePath = filePath,
+                DateAdded = DateTime.Now
+            };
+            
+            // Try to read metadata
+            try
+            {
+                using var tagFile = TagLib.File.Create(filePath);
+                track.Title = tagFile.Tag.Title ?? System.IO.Path.GetFileNameWithoutExtension(filePath);
+                track.Artist = tagFile.Tag.FirstPerformer ?? "Unknown Artist";
+                track.Album = tagFile.Tag.Album ?? "Unknown Album";
+                track.Genre = tagFile.Tag.FirstGenre ?? "";
+                track.Duration = tagFile.Properties.Duration;
+                track.Year = (int)tagFile.Tag.Year;
+                track.TrackNumber = (int)tagFile.Tag.Track;
+            }
+            catch
+            {
+                track.Title = System.IO.Path.GetFileNameWithoutExtension(filePath);
+                track.Artist = "Unknown Artist";
+                track.Album = "Unknown Album";
+            }
+            
+            _allLibraryTracks.Add(track);
+            LibraryTracks.Add(track);
+            
+            RaisePropertyChanged(nameof(LibraryTrackCount));
+            StatusMessage = $"Auto-imported: {track.Title}";
+            
+            await SaveLibraryCacheAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to auto-import: {ex.Message}";
+        }
+    }
+    
+    #endregion
     
     /// <summary>
     /// Installs the PlatypusTools visualizer as a Windows screensaver.

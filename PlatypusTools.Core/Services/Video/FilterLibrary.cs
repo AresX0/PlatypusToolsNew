@@ -125,6 +125,11 @@ namespace PlatypusTools.Core.Services.Video
             filters.Add(CreateCheckerboardFilter());
             filters.Add(CreateGridFilter());
 
+            // === NOISE REDUCTION FILTERS ===
+            filters.Add(CreateVideoDenoiseFilter());
+            filters.Add(CreateVideoDenoiseNLMeansFilter());
+            filters.Add(CreateAudioDenoiseFilter());
+
             // === TIME FILTERS ===
             filters.Add(CreateFreezeFrameFilter());
             filters.Add(CreateReverseFilter());
@@ -1465,6 +1470,41 @@ namespace PlatypusTools.Core.Services.Video
             FFmpegFilterName = "stereotools",
             Icon = "⚖️",
             Description = "Left/right balance"
+        };
+
+        #endregion
+
+        #region Noise Reduction Filters
+
+        private static Filter CreateVideoDenoiseFilter() => new()
+        {
+            Name = "video_denoise",
+            DisplayName = "Video Denoise (hqdn3d)",
+            Category = FilterCategory.Blur,
+            FFmpegFilterName = "hqdn3d",
+            Icon = "🧹",
+            Description = "High quality video noise reduction using temporal and spatial filtering"
+        };
+
+        private static Filter CreateVideoDenoiseNLMeansFilter() => new()
+        {
+            Name = "video_denoise_nlmeans",
+            DisplayName = "Video Denoise (NLMeans)",
+            Category = FilterCategory.Blur,
+            FFmpegFilterName = "nlmeans",
+            Icon = "✨",
+            Description = "Non-local means video denoising — high quality, slower processing"
+        };
+
+        private static Filter CreateAudioDenoiseFilter() => new()
+        {
+            Name = "audio_denoise",
+            DisplayName = "Audio Noise Reduction",
+            Category = FilterCategory.AudioEffect,
+            MediaType = FilterMediaType.Audio,
+            FFmpegFilterName = "afftdn",
+            Icon = "🔇",
+            Description = "FFT-based audio noise reduction — removes background hiss and hum"
         };
 
         #endregion

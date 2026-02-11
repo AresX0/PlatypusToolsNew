@@ -73,6 +73,7 @@ namespace PlatypusTools.UI.Services
         public Visibility FileCleaner => GetVisibility("FileManagement.FileCleaner");
         public Visibility Duplicates => GetVisibility("FileManagement.Duplicates");
         public Visibility EmptyFolderScanner => GetVisibility("FileManagement.EmptyFolderScanner");
+        public Visibility CloudSync => GetVisibility("FileManagement.CloudSync");
 
         // Multimedia
         public Visibility Multimedia => GetVisibility("Multimedia");

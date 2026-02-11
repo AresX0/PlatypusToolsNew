@@ -7,101 +7,131 @@
              d:DesignHeight="800" d:DesignWidth="1200">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <!-- Compact tool button style -->
+        <Style x:Key="ToolBtn" TargetType="Button">
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Padding" Value="6,2"/>
+            <Setter Property="Margin" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        </Style>
+        <Style x:Key="ToolBtnSmall" TargetType="Button">
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="1"/>
+        </Style>
+        <Style x:Key="SectionLabel" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="#555"/>
+            <Setter Property="Margin" Value="0,6,0,2"/>
+        </Style>
     </UserControl.Resources>
     
-    <Grid Margin="5">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="220"/>
-        </Grid.ColumnDefinitions>
+    <Grid Margin="2">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto" MinHeight="60"/>
-            <RowDefinition Height="5"/>
-            <RowDefinition Height="*" MinHeight="100"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-
-        <!-- File Selection / New Image -->
-        <GroupBox Header="Image Source" Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,5">
-            <Grid Margin="5">
+        
+        <!-- Row 0: Compact top bar (File + View toggles) -->
+        <Border Grid.Row="0" BorderBrush="#CCC" BorderThickness="0,0,0,1" Padding="4,2">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="File:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <TextBox x:Name="ImageFilePathBox" Grid.Column="1" IsReadOnly="True" Margin="0,0,10,0"/>
-                <Button Grid.Column="2" Content="📂 Open..." Click="BrowseImage_Click" MinWidth="180" Padding="5" Margin="0,0,5,0"/>
-                <Button Grid.Column="3" Content="🆕 New..." Click="NewImage_Click" MinWidth="180" Padding="5" ToolTip="Create a new blank canvas"/>
-                <Button Grid.Column="4" Content="📋 Paste" Click="PasteImage_Click" MinWidth="180" Margin="5,0,0,0" ToolTip="Paste image from clipboard"/>
+                <TextBlock Grid.Column="0" Text="File:" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0"/>
+                <TextBox x:Name="ImageFilePathBox" Grid.Column="1" IsReadOnly="True" FontSize="11" Height="22" VerticalContentAlignment="Center" Margin="0,0,4,0"/>
+                <Button Grid.Column="2" Content="📂 Open" Click="BrowseImage_Click" Style="{StaticResource ToolBtn}" Width="70"/>
+                <Button Grid.Column="3" Content="🆕 New" Click="NewImage_Click" Style="{StaticResource ToolBtn}" Width="60" ToolTip="Create a new blank canvas"/>
+                <Button Grid.Column="4" Content="📋 Paste" Click="PasteImage_Click" Style="{StaticResource ToolBtn}" Width="65" ToolTip="Paste image from clipboard"/>
+                <Separator Grid.Column="5" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="6,2"/>
+                <StackPanel Grid.Column="6" Orientation="Horizontal" Margin="2,0">
+                    <TextBlock Text="View:" VerticalAlignment="Center" FontSize="10" Margin="0,0,4,0"/>
+                    <ToggleButton x:Name="ToggleToolsPanel" Content="🔧" Width="28" Height="22" FontSize="11" IsChecked="True"
+                                  ToolTip="Toggle Tools panel" Click="ToggleToolsPanel_Click"/>
+                    <ToggleButton x:Name="ToggleSettingsPanel" Content="⚙" Width="28" Height="22" FontSize="11" IsChecked="True" Margin="2,0,0,0"
+                                  ToolTip="Toggle Settings panel" Click="ToggleSettingsPanel_Click"/>
+                </StackPanel>
+                <StackPanel Grid.Column="7" Orientation="Horizontal" Margin="6,0,0,0">
+                    <Button Content="↩ Undo" Click="Undo_Click" Style="{StaticResource ToolBtn}" Width="60"/>
+                    <Button Content="↩ Reset" Click="Reset_Click" Style="{StaticResource ToolBtn}" Width="60"/>
+                </StackPanel>
             </Grid>
-        </GroupBox>
-
-        <!-- Toolbar -->
-        <GroupBox Header="Tools" Grid.Row="1" Grid.ColumnSpan="2" Margin="0,0,0,5">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel Margin="5">
-                <!-- Transform Operations -->
-                <WrapPanel Margin="0,0,0,5">
-                    <TextBlock Text="Transform:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0" Width="80"/>
-                    <Button Content="↶ Rotate Left" Click="RotateLeft_Click" MinWidth="180" Height="32" Margin="0,0,3,0"/>
-                    <Button Content="↷ Rotate Right" Click="RotateRight_Click" MinWidth="180" Height="32" Margin="0,0,3,0"/>
-                    <Button Content="↔ Flip H" Click="FlipH_Click" MinWidth="180" Height="32" Margin="0,0,3,0"/>
-                    <Button Content="↕ Flip V" Click="FlipV_Click" MinWidth="180" Height="32" Margin="0,0,3,0"/>
-                    <Button Content="✂ Crop" Click="StartCrop_Click" MinWidth="180" Height="32" Margin="0,0,3,0" ToolTip="Click and drag to select crop region"/>
-                    <Button Content="📐 Resize" Click="Resize_Click" MinWidth="180" Height="32"/>
-                </WrapPanel>
-
-                <!-- Effects -->
-                <WrapPanel Margin="0,0,0,5">
-                    <TextBlock Text="Effects:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0" Width="80"/>
-                    <Button Content="🎨 Grayscale" Click="Grayscale_Click" MinWidth="180" Height="32" Margin="0,0,3,0"/>
-                    <Button Content="🔄 Invert" Click="Invert_Click" MinWidth="180" Height="32" Margin="0,0,3,0"/>
-                    <Button Content="☀ Brightness" Click="Brightness_Click" MinWidth="180" Height="32" Margin="0,0,3,0"/>
-                    <Button Content="🌓 Contrast" Click="Contrast_Click" MinWidth="180" Height="32" Margin="0,0,3,0"/>
-                    <Button Content="🌊 Blur" Click="Blur_Click" MinWidth="180" Height="32" Margin="0,0,3,0"/>
-                    <Button Content="🔪 Sharpen" Click="Sharpen_Click" MinWidth="180" Height="32"/>
-                </WrapPanel>
-
-                <!-- Annotation Tools -->
-                <WrapPanel Margin="0,0,0,5">
-                    <TextBlock Text="Annotate:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0" Width="80"/>
-                    <Button x:Name="BtnArrow" Content="➜ Arrow" ToolTip="Arrow (Left-click: outline, Right-click: set fill mode)" Click="SetAnnotationMode_Click" MouseRightButtonDown="ShapeButton_RightClick" Tag="Arrow" MinWidth="180" Height="32" Margin="0,0,3,0"/>
-                    <Button x:Name="BtnRect" Content="▢ Rect" ToolTip="Rectangle (Left-click: outline, Right-click: set fill mode)" Click="SetAnnotationMode_Click" MouseRightButtonDown="ShapeButton_RightClick" Tag="Rectangle" MinWidth="180" Height="32" Margin="0,0,3,0"/>
-                    <Button x:Name="BtnEllipse" Content="○ Ellipse" ToolTip="Ellipse (Left-click: outline, Right-click: set fill mode)" Click="SetAnnotationMode_Click" MouseRightButtonDown="ShapeButton_RightClick" Tag="Ellipse" MinWidth="180" Height="32" Margin="0,0,3,0"/>
-                    <Button x:Name="BtnText" Content="T Text" ToolTip="Text" Click="SetAnnotationMode_Click" Tag="Text" MinWidth="180" Height="32" Margin="0,0,3,0"/>
-                    <Button x:Name="BtnHighlight" Content="▮ Highlight" ToolTip="Highlight" Click="SetAnnotationMode_Click" Tag="Highlight" MinWidth="180" Height="32" Margin="0,0,3,0"/>
-                    <Button x:Name="BtnFreehand" Content="✎ Draw" ToolTip="Freehand Draw" Click="SetAnnotationMode_Click" Tag="Freehand" MinWidth="180" Height="32" Margin="0,0,3,0"/>
-                    <Button x:Name="BtnFill" Content="🪣 Fill" ToolTip="Fill Color (Flood Fill)" Click="SetAnnotationMode_Click" Tag="Fill" MinWidth="180" Height="32" Margin="0,0,3,0"/>
-                    <CheckBox x:Name="FillShapesCheckBox" Content="Fill Shapes" VerticalAlignment="Center" Margin="10,0,0,0" ToolTip="When checked, shapes will be filled solid"/>
-                    <TextBox x:Name="AnnotationTextBox" Width="120" Height="28" Margin="10,0,0,0" VerticalContentAlignment="Center" ToolTip="Text for text annotation"/>
-                </WrapPanel>
-
-                <!-- Advanced Tools -->
-                <WrapPanel>
-                    <TextBlock Text="Advanced:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0" Width="80"/>
-                    <Button Content="🎯 Color Picker" Click="ColorPicker_Click" MinWidth="180" Height="32" Margin="0,0,3,0" ToolTip="Pick a color from the image"/>
-                    <Button Content="🔄 Replace Color" Click="ReplaceColor_Click" MinWidth="180" Height="32" Margin="0,0,3,0" ToolTip="Replace one color with another"/>
-                    <Button Content="✂ Remove Background" Click="RemoveBackground_Click" MinWidth="180" Height="32" Margin="0,0,3,0" ToolTip="Auto-remove background (works best with solid backgrounds)"/>
-                    <Button Content="🪄 Magic Select" Click="MagicSelect_Click" MinWidth="180" Height="32" Margin="0,0,3,0" ToolTip="Select similar colors"/>
-                    <Button Content="↩ Undo" Click="Undo_Click" MinWidth="180" Height="32" Margin="0,0,3,0"/>
-                    <Button Content="↩ Reset" Click="Reset_Click" MinWidth="180" Height="32"/>
-                </WrapPanel>
-            </StackPanel>
-            </ScrollViewer>
-        </GroupBox>
-
-        <!-- GridSplitter -->
-        <GridSplitter Grid.Row="2" Grid.ColumnSpan="2" Height="5" HorizontalAlignment="Stretch" 
-                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+        </Border>
         
-        <!-- Image Preview with Overlay Canvas -->
-        <GroupBox Header="Image Canvas" Grid.Row="3" Grid.Column="0" Margin="0,0,5,0">
-            <Grid>
-                <ScrollViewer x:Name="ImageScrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <!-- Row 1: Main 3-column layout (Tools | Canvas | Settings+Layers) -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="ToolsColumn" Width="155"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition x:Name="SettingsColumn" Width="185"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- LEFT PANEL: Tools -->
+            <Border x:Name="ToolsPanel" Grid.Column="0" BorderBrush="#DDD" BorderThickness="0,0,1,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="3">
+                        <!-- Transform -->
+                        <TextBlock Text="TRANSFORM" Style="{StaticResource SectionLabel}"/>
+                        <Button Content="↶ Rotate Left" Click="RotateLeft_Click" Style="{StaticResource ToolBtn}"/>
+                        <Button Content="↷ Rotate Right" Click="RotateRight_Click" Style="{StaticResource ToolBtn}"/>
+                        <Button Content="↔ Flip H" Click="FlipH_Click" Style="{StaticResource ToolBtn}"/>
+                        <Button Content="↕ Flip V" Click="FlipV_Click" Style="{StaticResource ToolBtn}"/>
+                        <Button Content="✂ Crop" Click="StartCrop_Click" Style="{StaticResource ToolBtn}" ToolTip="Click and drag to select crop region"/>
+                        <Button Content="📐 Resize" Click="Resize_Click" Style="{StaticResource ToolBtn}"/>
+                        
+                        <!-- Effects -->
+                        <TextBlock Text="EFFECTS" Style="{StaticResource SectionLabel}"/>
+                        <Button Content="🎨 Grayscale" Click="Grayscale_Click" Style="{StaticResource ToolBtn}"/>
+                        <Button Content="🔄 Invert" Click="Invert_Click" Style="{StaticResource ToolBtn}"/>
+                        <Button Content="☀ Brightness" Click="Brightness_Click" Style="{StaticResource ToolBtn}"/>
+                        <Button Content="🌓 Contrast" Click="Contrast_Click" Style="{StaticResource ToolBtn}"/>
+                        <Button Content="🌊 Blur" Click="Blur_Click" Style="{StaticResource ToolBtn}"/>
+                        <Button Content="🔪 Sharpen" Click="Sharpen_Click" Style="{StaticResource ToolBtn}"/>
+                        
+                        <!-- Annotate -->
+                        <TextBlock Text="ANNOTATE" Style="{StaticResource SectionLabel}"/>
+                        <Button x:Name="BtnArrow" Content="➜ Arrow" Click="SetAnnotationMode_Click" MouseRightButtonDown="ShapeButton_RightClick" Tag="Arrow" Style="{StaticResource ToolBtn}" ToolTip="Arrow (Right-click: fill mode)"/>
+                        <Button x:Name="BtnRect" Content="▢ Rect" Click="SetAnnotationMode_Click" MouseRightButtonDown="ShapeButton_RightClick" Tag="Rectangle" Style="{StaticResource ToolBtn}" ToolTip="Rectangle (Right-click: fill mode)"/>
+                        <Button x:Name="BtnEllipse" Content="○ Ellipse" Click="SetAnnotationMode_Click" MouseRightButtonDown="ShapeButton_RightClick" Tag="Ellipse" Style="{StaticResource ToolBtn}" ToolTip="Ellipse (Right-click: fill mode)"/>
+                        <Button x:Name="BtnText" Content="T Text" Click="SetAnnotationMode_Click" Tag="Text" Style="{StaticResource ToolBtn}"/>
+                        <Button x:Name="BtnHighlight" Content="▮ Highlight" Click="SetAnnotationMode_Click" Tag="Highlight" Style="{StaticResource ToolBtn}"/>
+                        <Button x:Name="BtnFreehand" Content="✎ Draw" Click="SetAnnotationMode_Click" Tag="Freehand" Style="{StaticResource ToolBtn}"/>
+                        <Button x:Name="BtnFill" Content="🪣 Fill" Click="SetAnnotationMode_Click" Tag="Fill" Style="{StaticResource ToolBtn}" ToolTip="Flood Fill"/>
+                        <CheckBox x:Name="FillShapesCheckBox" Content="Fill Shapes" FontSize="10" VerticalAlignment="Center" Margin="2,4,0,0" ToolTip="When checked, shapes will be filled solid"/>
+                        <TextBox x:Name="AnnotationTextBox" Height="22" FontSize="10" Margin="1,3,1,0" VerticalContentAlignment="Center" ToolTip="Text for text annotation"/>
+                        
+                        <!-- Advanced -->
+                        <TextBlock Text="ADVANCED" Style="{StaticResource SectionLabel}"/>
+                        <Button Content="🎯 Pick Color" Click="ColorPicker_Click" Style="{StaticResource ToolBtn}" ToolTip="Pick a color from the image"/>
+                        <Button Content="🔄 Replace Color" Click="ReplaceColor_Click" Style="{StaticResource ToolBtn}" ToolTip="Replace one color with another"/>
+                        <Button Content="✂ Rm Background" Click="RemoveBackground_Click" Style="{StaticResource ToolBtn}" ToolTip="Auto-remove background"/>
+                        <Button Content="🪄 Magic Select" Click="MagicSelect_Click" Style="{StaticResource ToolBtn}" ToolTip="Select similar colors"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+            
+            <!-- Left GridSplitter -->
+            <GridSplitter x:Name="LeftToolsSplitter" Grid.Column="1" Width="4" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                          Background="#CCC" Cursor="SizeWE" ResizeBehavior="PreviousAndNext"/>
+            
+            <!-- CENTER: Image Canvas -->
+            <Grid Grid.Column="2" Margin="0">
+                <ScrollViewer x:Name="ImageScrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                              Background="#F0F0F0">
                     <Grid x:Name="CanvasContainer">
                         <Image x:Name="ImagePreview" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         <Canvas x:Name="DrawingOverlay" 
@@ -114,65 +144,137 @@
                 </ScrollViewer>
                 <TextBlock x:Name="PlaceholderText" Text="Open an image or create a new canvas to begin" 
                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                           Foreground="#999" FontSize="14" FontStyle="Italic"/>
+                           Foreground="#999" FontSize="14" FontStyle="Italic" IsHitTestVisible="False"/>
             </Grid>
-        </GroupBox>
-
-        <!-- Settings Panel -->
-        <GroupBox Header="Settings" Grid.Row="3" Grid.Column="1">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="10">
-                    <!-- Current Tool -->
-                    <TextBlock Text="Current Tool:" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                    <TextBlock x:Name="CurrentToolText" Text="None" Foreground="Blue" Margin="0,0,0,15"/>
-                    
-                    <!-- Color Selection -->
-                    <TextBlock Text="Draw Color:" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                    <WrapPanel Margin="0,0,0,10">
-                        <Border x:Name="ColorRed" Width="25" Height="25" Background="Red" Margin="2" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="3"/>
-                        <Border x:Name="ColorYellow" Width="25" Height="25" Background="Yellow" Margin="2" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="3"/>
-                        <Border x:Name="ColorGreen" Width="25" Height="25" Background="Green" Margin="2" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="3"/>
-                        <Border x:Name="ColorBlue" Width="25" Height="25" Background="Blue" Margin="2" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="3"/>
-                        <Border x:Name="ColorOrange" Width="25" Height="25" Background="Orange" Margin="2" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="3"/>
-                        <Border x:Name="ColorPurple" Width="25" Height="25" Background="Purple" Margin="2" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="3"/>
-                        <Border x:Name="ColorWhite" Width="25" Height="25" Background="White" Margin="2" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="3" BorderBrush="Gray" BorderThickness="1"/>
-                        <Border x:Name="ColorBlack" Width="25" Height="25" Background="Black" Margin="2" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="3"/>
-                    </WrapPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                        <TextBlock Text="Selected: " VerticalAlignment="Center"/>
-                        <Border x:Name="SelectedColorPreview" Width="40" Height="25" Background="Red" CornerRadius="3" BorderBrush="Gray" BorderThickness="1"/>
-                        <Button Content="Custom" Click="CustomColor_Click" MinWidth="180" Height="25" Margin="10,0,0,0" FontSize="11"/>
+            
+            <!-- Right GridSplitter -->
+            <GridSplitter x:Name="RightSettingsSplitter" Grid.Column="3" Width="4" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                          Background="#CCC" Cursor="SizeWE" ResizeBehavior="PreviousAndNext"/>
+            
+            <!-- RIGHT PANEL: Settings + Layers -->
+            <Border x:Name="SettingsPanel" Grid.Column="4" BorderBrush="#DDD" BorderThickness="1,0,0,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="4">
+                        <!-- Current Tool -->
+                        <TextBlock Text="Tool:" FontWeight="SemiBold" FontSize="10" Margin="0,2,0,1"/>
+                        <TextBlock x:Name="CurrentToolText" Text="None" Foreground="Blue" FontSize="10" Margin="0,0,0,6"/>
+                        
+                        <!-- Color Selection -->
+                        <TextBlock Text="Draw Color:" FontWeight="SemiBold" FontSize="10" Margin="0,0,0,3"/>
+                        <WrapPanel Margin="0,0,0,4">
+                            <Border x:Name="ColorRed" Width="20" Height="20" Background="Red" Margin="1" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="2"/>
+                            <Border x:Name="ColorYellow" Width="20" Height="20" Background="Yellow" Margin="1" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="2"/>
+                            <Border x:Name="ColorGreen" Width="20" Height="20" Background="Green" Margin="1" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="2"/>
+                            <Border x:Name="ColorBlue" Width="20" Height="20" Background="Blue" Margin="1" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="2"/>
+                            <Border x:Name="ColorOrange" Width="20" Height="20" Background="Orange" Margin="1" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="2"/>
+                            <Border x:Name="ColorPurple" Width="20" Height="20" Background="Purple" Margin="1" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="2"/>
+                            <Border x:Name="ColorWhite" Width="20" Height="20" Background="White" Margin="1" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="2" BorderBrush="Gray" BorderThickness="1"/>
+                            <Border x:Name="ColorBlack" Width="20" Height="20" Background="Black" Margin="1" Cursor="Hand" MouseLeftButtonDown="ColorSwatch_Click" CornerRadius="2"/>
+                        </WrapPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <Border x:Name="SelectedColorPreview" Width="30" Height="18" Background="Red" CornerRadius="2" BorderBrush="Gray" BorderThickness="1"/>
+                            <Button Content="Custom" Click="CustomColor_Click" Height="20" Width="55" Margin="4,0,0,0" FontSize="10" Padding="2,0"/>
+                        </StackPanel>
+                        
+                        <!-- Picked Color -->
+                        <TextBlock Text="Picked:" FontWeight="SemiBold" FontSize="10" Margin="0,4,0,2"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="PickedColorPreview" Width="30" Height="18" Background="Transparent" CornerRadius="2" BorderBrush="Gray" BorderThickness="1"/>
+                            <TextBlock x:Name="PickedColorHex" Text="" VerticalAlignment="Center" Margin="4,0,0,0" FontFamily="Consolas" FontSize="10"/>
+                        </StackPanel>
+                        
+                        <!-- Line Thickness -->
+                        <TextBlock Text="Thickness:" FontWeight="SemiBold" FontSize="10" Margin="0,8,0,2"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Slider x:Name="ThicknessSlider" Minimum="1" Maximum="20" Value="3" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="ThicknessSlider_ValueChanged"/>
+                            <TextBlock x:Name="ThicknessText" Grid.Column="1" Text="3 px" FontSize="10" VerticalAlignment="Center" Margin="4,0,0,0" Width="28"/>
+                        </Grid>
+                        
+                        <!-- Color Tolerance -->
+                        <TextBlock Text="Tolerance:" FontWeight="SemiBold" FontSize="10" Margin="0,6,0,2"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Slider x:Name="ToleranceSlider" Minimum="0" Maximum="100" Value="30" TickFrequency="5" IsSnapToTickEnabled="True" ValueChanged="ToleranceSlider_ValueChanged"/>
+                            <TextBlock x:Name="ToleranceText" Grid.Column="1" Text="30%" FontSize="10" VerticalAlignment="Center" Margin="4,0,0,0" Width="28"/>
+                        </Grid>
+                        
+                        <!-- Image Info -->
+                        <Separator Margin="0,8,0,4"/>
+                        <TextBlock Text="Image Info:" FontWeight="SemiBold" FontSize="10" Margin="0,0,0,2"/>
+                        <TextBlock x:Name="ImageInfoText" Text="No image loaded" TextWrapping="Wrap" Foreground="#666" FontSize="10"/>
+                        
+                        <!-- Layers -->
+                        <Separator Margin="0,8,0,4"/>
+                        <TextBlock Text="LAYERS" FontWeight="SemiBold" FontSize="10" Foreground="#555" Margin="0,0,0,2"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                            <TextBlock Text="Active:" FontSize="10" Foreground="#888" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                            <TextBlock x:Name="ActiveLayerText" Text="Background" FontSize="10" Foreground="Blue" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        
+                        <ListBox x:Name="LayersList" ItemsSource="{Binding Layers, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                 MaxHeight="150" MinHeight="60" SelectionChanged="LayersList_SelectionChanged"
+                                 HorizontalContentAlignment="Stretch" FontSize="10">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Height="18">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox IsChecked="{Binding IsVisible}" VerticalAlignment="Center">
+                                            <CheckBox.LayoutTransform>
+                                                <ScaleTransform ScaleX="0.85" ScaleY="0.85"/>
+                                            </CheckBox.LayoutTransform>
+                                        </CheckBox>
+                                        <TextBlock Grid.Column="1" Text="{Binding Name}" Margin="2,0" VerticalAlignment="Center" FontSize="10" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding Opacity, StringFormat='{}{0:P0}'}" FontSize="8" Foreground="Gray" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        
+                        <!-- Layer action buttons - compact grid layout -->
+                        <UniformGrid Columns="7" Margin="0,3,0,0">
+                            <Button Content="+" Click="AddLayer_Click" Height="22" ToolTip="Add layer" FontSize="12" FontWeight="Bold" Padding="0"/>
+                            <Button Content="⎘" Click="DuplicateLayer_Click" Height="22" ToolTip="Duplicate layer" FontSize="12" Padding="0"/>
+                            <Button Content="✕" Click="RemoveLayer_Click" Height="22" ToolTip="Remove layer" FontSize="11" Padding="0"/>
+                            <Button Content="▲" Click="MoveLayerUp_Click" Height="22" ToolTip="Move up" FontSize="10" Padding="0"/>
+                            <Button Content="▼" Click="MoveLayerDown_Click" Height="22" ToolTip="Move down" FontSize="10" Padding="0"/>
+                            <Button Content="⤵" Click="MergeDown_Click" Height="22" ToolTip="Merge down" FontSize="10" Padding="0"/>
+                            <Button Content="⤓" Click="FlattenLayers_Click" Height="22" ToolTip="Flatten all" FontSize="10" Padding="0"/>
+                        </UniformGrid>
+                        
+                        <Grid Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Opacity:" FontSize="10" VerticalAlignment="Center"/>
+                            <Slider x:Name="LayerOpacitySlider" Grid.Column="1" Minimum="0" Maximum="100" Value="100" Margin="4,0"
+                                    ValueChanged="LayerOpacitySlider_ValueChanged"/>
+                            <TextBlock Grid.Column="2" FontSize="9" VerticalAlignment="Center">
+                                <TextBlock.Text>
+                                    <Binding ElementName="LayerOpacitySlider" Path="Value" StringFormat="{}{0:0}%"/>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </Grid>
                     </StackPanel>
-                    
-                    <!-- Picked Color (from image) -->
-                    <TextBlock Text="Picked Color:" FontWeight="SemiBold" Margin="0,10,0,5"/>
-                    <StackPanel Orientation="Horizontal">
-                        <Border x:Name="PickedColorPreview" Width="40" Height="25" Background="Transparent" CornerRadius="3" BorderBrush="Gray" BorderThickness="1"/>
-                        <TextBlock x:Name="PickedColorHex" Text="" VerticalAlignment="Center" Margin="10,0,0,0" FontFamily="Consolas"/>
-                    </StackPanel>
-                    
-                    <!-- Line Thickness -->
-                    <TextBlock Text="Line Thickness:" FontWeight="SemiBold" Margin="0,15,0,5"/>
-                    <Slider x:Name="ThicknessSlider" Minimum="1" Maximum="20" Value="3" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="ThicknessSlider_ValueChanged"/>
-                    <TextBlock x:Name="ThicknessText" Text="3 px" HorizontalAlignment="Center" Margin="0,3,0,0"/>
-                    
-                    <!-- Color Tolerance (for magic select/replace) -->
-                    <TextBlock Text="Color Tolerance:" FontWeight="SemiBold" Margin="0,15,0,5"/>
-                    <Slider x:Name="ToleranceSlider" Minimum="0" Maximum="100" Value="30" TickFrequency="5" IsSnapToTickEnabled="True" ValueChanged="ToleranceSlider_ValueChanged"/>
-                    <TextBlock x:Name="ToleranceText" Text="30%" HorizontalAlignment="Center" Margin="0,3,0,0"/>
-                    
-                    <Separator Margin="0,15"/>
-                    
-                    <!-- Image Info -->
-                    <TextBlock Text="Image Info:" FontWeight="SemiBold" Margin="0,0,0,5"/>
-                    <TextBlock x:Name="ImageInfoText" Text="No image loaded" TextWrapping="Wrap" Foreground="#666"/>
-                </StackPanel>
-            </ScrollViewer>
-        </GroupBox>
-
-        <!-- Save Options -->
-        <GroupBox Header="Save Options" Grid.Row="4" Grid.ColumnSpan="2" Margin="0,5,0,0">
-            <Grid Margin="10">
+                </ScrollViewer>
+            </Border>
+        </Grid>
+        
+        <!-- Row 2: Compact bottom bar (Save) -->
+        <Border Grid.Row="2" BorderBrush="#CCC" BorderThickness="0,1,0,0" Padding="4,3">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
@@ -181,8 +283,8 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Output Format:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <ComboBox x:Name="OutputFormat" Grid.Column="1" SelectedIndex="0" Width="100">
+                <TextBlock Grid.Column="0" Text="Format:" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0"/>
+                <ComboBox x:Name="OutputFormat" Grid.Column="1" SelectedIndex="0" Width="80" Height="24" FontSize="11">
                     <ComboBoxItem Content="PNG"/>
                     <ComboBoxItem Content="JPEG"/>
                     <ComboBoxItem Content="BMP"/>
@@ -191,13 +293,13 @@
                     <ComboBoxItem Content="TIFF"/>
                     <ComboBoxItem Content="SVG"/>
                 </ComboBox>
-                <TextBlock x:Name="StatusText" Grid.Column="2" Text="" Foreground="Blue" VerticalAlignment="Center" Margin="20,0,0,0"/>
-                <Button Grid.Column="3" Content="📋 Copy" Click="CopyToClipboard_Click" MinWidth="180" Height="35" Margin="10,0,5,0" ToolTip="Copy image to clipboard"/>
-                <Button Grid.Column="4" Content="💾 Save As..." Click="Save_Click" MinWidth="180" Height="35" Margin="0,0,5,0" FontWeight="Bold"
+                <TextBlock x:Name="StatusText" Grid.Column="2" Text="" Foreground="Blue" VerticalAlignment="Center" FontSize="11" Margin="10,0,0,0"/>
+                <Button Grid.Column="3" Content="📋 Copy" Click="CopyToClipboard_Click" Style="{StaticResource ToolBtn}" Width="70" Margin="4,0" ToolTip="Copy image to clipboard"/>
+                <Button Grid.Column="4" Content="💾 Save As..." Click="Save_Click" Style="{StaticResource ToolBtn}" Width="90" FontWeight="Bold"
                         Background="#FF4CAF50" Foreground="White"/>
-                <Button Grid.Column="5" Content="💾 Quick Save" Click="QuickSave_Click" MinWidth="180" Height="35" ToolTip="Save with same name + _edited"
-                        Background="#FF2196F3" Foreground="White"/>
+                <Button Grid.Column="5" Content="💾 Quick Save" Click="QuickSave_Click" Style="{StaticResource ToolBtn}" Width="95" Margin="4,0,0,0"
+                        Background="#FF2196F3" Foreground="White" ToolTip="Save with same name + _edited"/>
             </Grid>
-        </GroupBox>
+        </Border>
     </Grid>
 </UserControl>

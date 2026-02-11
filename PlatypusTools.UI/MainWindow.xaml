@@ -123,6 +123,10 @@
                              Visibility="{Binding Robocopy, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:RobocopyView}" ViewDataContext="{Binding Robocopy}" />
                     </TabItem>
+                    <TabItem Header="☁ Cloud Sync"
+                             Visibility="{Binding CloudSync, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:CloudSyncView}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
 

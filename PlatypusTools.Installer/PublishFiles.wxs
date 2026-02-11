@@ -179,8 +179,8 @@
       <Component Id="CMP_mscordaccore_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_mscordaccore_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\mscordaccore.dll" KeyPath="yes" />
       </Component>
-      <Component Id="CMP_mscordaccore_amd64_amd64_10_0_225_61305_dll" Guid="*" Directory="INSTALLFOLDER">
-        <File Id="FIL_mscordaccore_amd64_amd64_10_0_225_61305_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\mscordaccore_amd64_amd64_10.0.225.61305.dll" KeyPath="yes" />
+      <Component Id="CMP_mscordaccore_amd64_amd64_10_0_326_7603_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_mscordaccore_amd64_amd64_10_0_326_7603_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\mscordaccore_amd64_amd64_10.0.326.7603.dll" KeyPath="yes" />
       </Component>
       <Component Id="CMP_mscordbi_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_mscordbi_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\mscordbi.dll" KeyPath="yes" />
@@ -4566,7 +4566,7 @@
       <ComponentRef Id="CMP_Microsoft_Win32_SystemEvents_dll" />
       <ComponentRef Id="CMP_Microsoft_Windows_SDK_NET_dll" />
       <ComponentRef Id="CMP_mscordaccore_dll" />
-      <ComponentRef Id="CMP_mscordaccore_amd64_amd64_10_0_225_61305_dll" />
+      <ComponentRef Id="CMP_mscordaccore_amd64_amd64_10_0_326_7603_dll" />
       <ComponentRef Id="CMP_mscordbi_dll" />
       <ComponentRef Id="CMP_mscorlib_dll" />
       <ComponentRef Id="CMP_mscorrc_dll" />

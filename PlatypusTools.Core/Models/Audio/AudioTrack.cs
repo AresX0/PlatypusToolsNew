@@ -50,6 +50,7 @@ public class AudioTrack
     public string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? FileName : Title;
     public string DisplayArtist => string.IsNullOrWhiteSpace(Artist) ? "Unknown Artist" : Artist;
     public string DisplayAlbum => string.IsNullOrWhiteSpace(Album) ? "Unknown Album" : Album;
+    public string DisplayGenre => string.IsNullOrWhiteSpace(Genre) ? "Unknown Genre" : Genre;
     public string DurationFormatted => Duration.TotalHours >= 1 
         ? Duration.ToString(@"h\:mm\:ss") 
         : Duration.ToString(@"m\:ss");

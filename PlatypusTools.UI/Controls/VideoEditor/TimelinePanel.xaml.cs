@@ -207,24 +207,50 @@ namespace PlatypusTools.UI.Controls.VideoEditor
                 Margin = new Thickness(0, 2, 0, 2),
                 Tag = clip,
                 Cursor = Cursors.Hand,
-                ToolTip = $"{clip.Name}\n{clip.Duration:hh\\:mm\\:ss\\.ff}"
+                ToolTip = $"{clip.Name}\n{clip.Duration:hh\\:mm\\:ss\\.ff}",
+                ClipToBounds = true
             };
 
             // Clip content
             var grid = new Grid();
             
-            // Thumbnail (if video)
+            // Thumbnail strip (tile thumbnails across clip width for video clips)
             if (trackType == TrackType.Video && clip.Thumbnail != null)
             {
-                var thumbnail = new Image
+                var thumbPanel = new StackPanel
                 {
-                    Source = clip.Thumbnail,
-                    Stretch = Stretch.UniformToFill,
-                    Opacity = 0.5,
-                    HorizontalAlignment = HorizontalAlignment.Left,
-                    Width = 60
+                    Orientation = Orientation.Horizontal,
+                    Opacity = 0.45,
+                    IsHitTestVisible = false
                 };
-                grid.Children.Add(thumbnail);
+                
+                // Calculate how many thumbnails fit across the clip width
+                double clipPixelWidth = TimeToPixels(clip.Duration);
+                double thumbWidth = 60;
+                int thumbCount = Math.Max(1, (int)Math.Ceiling(clipPixelWidth / thumbWidth));
+                
+                for (int i = 0; i < thumbCount; i++)
+                {
+                    var thumb = new Image
+                    {
+                        Source = clip.Thumbnail,
+                        Stretch = Stretch.UniformToFill,
+                        Width = thumbWidth,
+                        Height = 46
+                    };
+                    thumbPanel.Children.Add(thumb);
+                }
+                grid.Children.Add(thumbPanel);
+            }
+            // Audio waveform placeholder for audio clips
+            else if (trackType == TrackType.Audio)
+            {
+                var waveformBorder = new Border
+                {
+                    Background = new SolidColorBrush(Color.FromArgb(0x40, 0x80, 0x80, 0xFF)),
+                    IsHitTestVisible = false
+                };
+                grid.Children.Add(waveformBorder);
             }
 
             // Clip name

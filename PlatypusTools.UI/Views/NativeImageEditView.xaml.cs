@@ -21,6 +21,7 @@ using SixLabors.ImageSharp.Formats.Tiff;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System.Collections.ObjectModel;
 using Color = System.Windows.Media.Color;
 using Image = SixLabors.ImageSharp.Image;
 using Point = System.Windows.Point;
@@ -29,6 +30,31 @@ using WpfResizeMode = System.Windows.ResizeMode;
 
 namespace PlatypusTools.UI.Views
 {
+    /// <summary>
+    /// Represents a single layer in the image editor.
+    /// </summary>
+    public class ImageLayer : System.ComponentModel.INotifyPropertyChanged
+    {
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+        private void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
+        
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        
+        private string _name = "Layer";
+        public string Name { get => _name; set { _name = value; OnPropertyChanged(nameof(Name)); } }
+        
+        private bool _isVisible = true;
+        public bool IsVisible { get => _isVisible; set { _isVisible = value; OnPropertyChanged(nameof(IsVisible)); } }
+        
+        private double _opacity = 1.0;
+        public double Opacity { get => _opacity; set { _opacity = Math.Clamp(value, 0, 1); OnPropertyChanged(nameof(Opacity)); } }
+        
+        private bool _isLocked;
+        public bool IsLocked { get => _isLocked; set { _isLocked = value; OnPropertyChanged(nameof(IsLocked)); } }
+        
+        public Image<Rgba32>? Content { get; set; }
+    }
+
     public partial class NativeImageEditView : UserControl
     {
         private Image<Rgba32>? _currentImage;
@@ -49,6 +75,19 @@ namespace PlatypusTools.UI.Views
         private Color _selectedColor = Colors.Red;
         private Color _pickedColor = Colors.Transparent;
         private int _lineThickness = 3;
+        
+        // Layers
+        public ObservableCollection<ImageLayer> Layers { get; } = new();
+        private ImageLayer? _activeLayer;
+        public ImageLayer? ActiveLayer
+        {
+            get => _activeLayer;
+            set
+            {
+                _activeLayer = value;
+                ActiveLayerText.Text = value?.Name ?? "None";
+            }
+        }
 
         public NativeImageEditView()
         {
@@ -57,6 +96,47 @@ namespace PlatypusTools.UI.Views
             ToleranceSlider.ValueChanged += (s, e) => ToleranceText.Text = $"{(int)ToleranceSlider.Value}%";
         }
 
+        #region Panel Toggle
+        
+        private GridLength _savedToolsWidth = new(155);
+        private GridLength _savedSettingsWidth = new(185);
+        
+        private void ToggleToolsPanel_Click(object sender, RoutedEventArgs e)
+        {
+            if (ToggleToolsPanel.IsChecked == true)
+            {
+                ToolsPanel.Visibility = Visibility.Visible;
+                LeftToolsSplitter.Visibility = Visibility.Visible;
+                ToolsColumn.Width = _savedToolsWidth;
+            }
+            else
+            {
+                _savedToolsWidth = ToolsColumn.Width;
+                ToolsPanel.Visibility = Visibility.Collapsed;
+                LeftToolsSplitter.Visibility = Visibility.Collapsed;
+                ToolsColumn.Width = new GridLength(0);
+            }
+        }
+        
+        private void ToggleSettingsPanel_Click(object sender, RoutedEventArgs e)
+        {
+            if (ToggleSettingsPanel.IsChecked == true)
+            {
+                SettingsPanel.Visibility = Visibility.Visible;
+                RightSettingsSplitter.Visibility = Visibility.Visible;
+                SettingsColumn.Width = _savedSettingsWidth;
+            }
+            else
+            {
+                _savedSettingsWidth = SettingsColumn.Width;
+                SettingsPanel.Visibility = Visibility.Collapsed;
+                RightSettingsSplitter.Visibility = Visibility.Collapsed;
+                SettingsColumn.Width = new GridLength(0);
+            }
+        }
+        
+        #endregion
+        
         #region Image Loading
 
         private void BrowseImage_Click(object sender, RoutedEventArgs e)
@@ -1084,6 +1164,199 @@ namespace PlatypusTools.UI.Views
             }
         }
 
+        #endregion
+        
+        #region Layer Management
+        
+        private void AddLayer_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentImage == null) return;
+            
+            var layer = new ImageLayer
+            {
+                Name = $"Layer {Layers.Count + 1}",
+                Content = new Image<Rgba32>(_currentImage.Width, _currentImage.Height)
+            };
+            Layers.Add(layer);
+            ActiveLayer = layer;
+            LayersList.SelectedItem = layer;
+            StatusText.Text = $"Added {layer.Name}";
+        }
+        
+        private void DuplicateLayer_Click(object sender, RoutedEventArgs e)
+        {
+            if (ActiveLayer?.Content == null) return;
+            
+            var layer = new ImageLayer
+            {
+                Name = $"{ActiveLayer.Name} (copy)",
+                Content = ActiveLayer.Content.Clone(),
+                Opacity = ActiveLayer.Opacity
+            };
+            Layers.Add(layer);
+            ActiveLayer = layer;
+            LayersList.SelectedItem = layer;
+            StatusText.Text = $"Duplicated as {layer.Name}";
+        }
+        
+        private void RemoveLayer_Click(object sender, RoutedEventArgs e)
+        {
+            if (ActiveLayer == null || Layers.Count <= 1) return;
+            
+            var idx = Layers.IndexOf(ActiveLayer);
+            ActiveLayer.Content?.Dispose();
+            Layers.Remove(ActiveLayer);
+            
+            ActiveLayer = Layers[Math.Min(idx, Layers.Count - 1)];
+            LayersList.SelectedItem = ActiveLayer;
+            FlattenAndPreview();
+            StatusText.Text = "Removed layer";
+        }
+        
+        private void MoveLayerUp_Click(object sender, RoutedEventArgs e)
+        {
+            if (ActiveLayer == null) return;
+            var idx = Layers.IndexOf(ActiveLayer);
+            if (idx > 0)
+            {
+                Layers.Move(idx, idx - 1);
+                FlattenAndPreview();
+            }
+        }
+        
+        private void MoveLayerDown_Click(object sender, RoutedEventArgs e)
+        {
+            if (ActiveLayer == null) return;
+            var idx = Layers.IndexOf(ActiveLayer);
+            if (idx < Layers.Count - 1)
+            {
+                Layers.Move(idx, idx + 1);
+                FlattenAndPreview();
+            }
+        }
+        
+        private void MergeDown_Click(object sender, RoutedEventArgs e)
+        {
+            if (ActiveLayer == null) return;
+            var idx = Layers.IndexOf(ActiveLayer);
+            if (idx >= Layers.Count - 1) return;
+            
+            var below = Layers[idx + 1];
+            if (ActiveLayer.Content != null && below.Content != null)
+            {
+                below.Content.Mutate(ctx => ctx.DrawImage(ActiveLayer.Content, (float)ActiveLayer.Opacity));
+            }
+            
+            ActiveLayer.Content?.Dispose();
+            Layers.RemoveAt(idx);
+            ActiveLayer = below;
+            LayersList.SelectedItem = below;
+            FlattenAndPreview();
+            StatusText.Text = "Merged layer down";
+        }
+        
+        private void FlattenLayers_Click(object sender, RoutedEventArgs e)
+        {
+            FlattenAndApply();
+            StatusText.Text = "Flattened all layers";
+        }
+        
+        private void LayersList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (LayersList.SelectedItem is ImageLayer layer)
+                ActiveLayer = layer;
+        }
+        
+        private void LayerOpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (ActiveLayer != null)
+            {
+                ActiveLayer.Opacity = e.NewValue / 100.0;
+                FlattenAndPreview();
+            }
+        }
+        
+        /// <summary>
+        /// Flatten visible layers to produce composite preview.
+        /// </summary>
+        private void FlattenAndPreview()
+        {
+            if (_currentImage == null) return;
+            
+            var composite = _currentImage.Clone();
+            
+            for (int i = Layers.Count - 1; i >= 0; i--)
+            {
+                var layer = Layers[i];
+                if (layer.IsVisible && layer.Content != null)
+                {
+                    composite.Mutate(ctx => ctx.DrawImage(layer.Content, (float)layer.Opacity));
+                }
+            }
+            
+            try
+            {
+                using var ms = new MemoryStream();
+                composite.SaveAsPng(ms);
+                ms.Position = 0;
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.StreamSource = ms;
+                bitmap.EndInit();
+                bitmap.Freeze();
+                ImagePreview.Source = bitmap;
+            }
+            catch { }
+            
+            composite.Dispose();
+        }
+        
+        /// <summary>
+        /// Flatten all layers into _currentImage.
+        /// </summary>
+        private void FlattenAndApply()
+        {
+            if (_currentImage == null) return;
+            
+            SaveUndoState();
+            
+            for (int i = Layers.Count - 1; i >= 0; i--)
+            {
+                var layer = Layers[i];
+                if (layer.IsVisible && layer.Content != null)
+                {
+                    _currentImage.Mutate(ctx => ctx.DrawImage(layer.Content, (float)layer.Opacity));
+                }
+                layer.Content?.Dispose();
+            }
+            Layers.Clear();
+            
+            var baseLayer = new ImageLayer
+            {
+                Name = "Background",
+                Content = new Image<Rgba32>(_currentImage.Width, _currentImage.Height)
+            };
+            Layers.Add(baseLayer);
+            ActiveLayer = baseLayer;
+            
+            UpdatePreview();
+        }
+        
+        private void InitializeLayers()
+        {
+            Layers.Clear();
+            if (_currentImage == null) return;
+            
+            var baseLayer = new ImageLayer
+            {
+                Name = "Background",
+                Content = new Image<Rgba32>(_currentImage.Width, _currentImage.Height)
+            };
+            Layers.Add(baseLayer);
+            ActiveLayer = baseLayer;
+        }
+        
         #endregion
     }
 

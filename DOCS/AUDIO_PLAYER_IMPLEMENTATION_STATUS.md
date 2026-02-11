@@ -1,7 +1,7 @@
 # Audio Player Implementation Status & Gap Analysis
 
 **Status**: ✅ Production Ready  
-**Date**: February 8, 2026  
+**Date**: February 11, 2026  
 **Version**: 3.4.0  
 
 ---
@@ -19,7 +19,7 @@ Your audio player currently has:
 - ✅ **100% Atomic Index System** - JSON library index with atomic writes (LibraryIndexService.cs)
 - ✅ **100% Memory Safety** - All SkiaSharp native leaks fixed (SKMaskFilter, SKTypeface, SKBitmap)
 
-**Remaining for future**: Gapless playback, Real audio EQ (DSP), Replay Gain, Sleep Timer
+**Remaining for future**: Relink missing files (detection exists, no relink), Watch Folders integration with audio player, dedicated Artist/Album/Genre browse tabs, unit tests
 
 ---
 
@@ -100,15 +100,15 @@ Your audio player currently has:
 **Status**: ✅ 100% Complete (v3.1.1)
 
 #### Library Display
-- ✅ **Library View Tab** - Shows queued tracks
+- ✅ **Library View Tab** - Full library with DataGrid
 - ✅ **Organization Modes** - Buttons for All/Artist/Album/Genre/Folder
 - ✅ **Search Box** - Search functionality with debounce
 - ✅ **Groups List** - Shows grouped items when selected
-- 🔄 **DataGrid** - Columns defined, virtualization needs work
-- ⚠️ **Filtering** - Search works but needs optimization
-- ⚠️ **Track Info** - Currently shows queue, not full library
+- ✅ **DataGrid** - Virtualized with VirtualizingStackPanel.IsVirtualizing="True"
+- ✅ **Filtering** - Search with debounce optimized
+- ✅ **Track Info** - Full library display via LibraryIndexService
 
-**Status**: ~60% UI complete, ~30% functionality
+**Status**: ✅ 100% Complete
 
 ---
 
@@ -142,105 +142,64 @@ Your audio player currently has:
 **Dependencies**: TagLib# 2.2.0 ✅ Installed
 
 #### File Operations & Safety
-- ❌ Delete from Disk not implemented
-- ⚠️ Double-confirm for >20 items (UI exists)
-- ❌ Atomic writes for index
-- ❌ Backup/restore logic
-- ❌ Relink missing files
+- ✅ Remove from library (non-destructive)
+- ✅ Double-confirm for bulk operations
+- ✅ Atomic writes for index (AtomicFileWriter.cs)
+- ✅ Backup/restore logic (.bak pattern)
+- ⚠️ Relink missing files (detection exists via RemoveMissingTracksAsync, no relink)
 
-**Impact**: Medium - File safety critical  
-**Effort**: 6-8 hours
+**Status**: ✅ ~90% Complete
 
 #### Advanced Playback
-- ❌ Gapless playback (planned for v3.2.0)
-- ✅ Crossfade between tracks (AudioPlayerService.cs - configurable 0-5s)
-- ❌ Replay Gain normalization (planned for v3.2.0)
+- ✅ Gapless playback (PreloadNextTrack in EnhancedAudioPlayerService)
+- ✅ Crossfade between tracks (AudioPlayerService.cs - configurable)
+- ✅ Replay Gain normalization (ReplayGainMode Off/Track/Album in EnhancedAudioPlayerService)
 - ✅ Error state handling complete
+- ✅ Sleep Timer (15/30/45/60 min + end-of-track)
+- ✅ A-B Loop (SetABLoop/ClearABLoop)
+- ✅ Audio Bookmarks (save/resume/clear position)
+- ✅ Fade on Pause (configurable duration)
+- ✅ 10-Band EQ (real DSP via NAudio EqualizerBand)
+- ✅ Playback Speed Control (0.5x-2x)
 
-**Status**: ~60% Complete  
-**Remaining Effort**: 6-8 hours for gapless + ReplayGain
+**Status**: ✅ 100% Complete
 
 ---
 
 ## Critical Gap Analysis
 
-### Gap 1: Library Index System (HIGHEST PRIORITY)
+### Gap 1: Library Index System ✅ RESOLVED
 
-**Current State**:
-- No persistent JSON index exists
-- All data lives in memory (ObservableCollections)
-- App loses library on restart
-- No incremental rescanning
+**Current State**: ✅ FULLY IMPLEMENTED (v3.1.0)
+- LibraryIndexService.cs with atomic writes via AtomicFileWriter ✅
+- Track and LibraryIndex models with System.Text.Json serialization ✅
+- PathCanonicalizer.cs for deduplication ✅
+- MetadataExtractorService.cs with TagLib# 2.3.0 ✅
+- Missing file detection via RemoveMissingTracksAsync ✅
+- Incremental rescan implemented ✅
 
-**Impact**: 
-- ❌ Cannot provide fast cold starts
-- ❌ No incremental updates
-- ❌ No library persistence
+**Files Created**:
+- `PlatypusTools.Core/Services/LibraryIndexService.cs` ✅
+- `PlatypusTools.Core/Services/MetadataExtractorService.cs` ✅
+- `PlatypusTools.Core/Utilities/PathCanonicalizer.cs` ✅
+- `PlatypusTools.Core/Utilities/AtomicFileWriter.cs` ✅
+- `PlatypusTools.Core/Models/Audio/Track.cs` ✅
+- `PlatypusTools.Core/Models/Audio/LibraryIndex.cs` ✅
 
-**Solution**:
-1. Implement `LibraryIndexService.cs` with atomic writes
-2. Create `Track` and `LibraryIndex` models with System.Text.Json source generators
-3. Add `PathCanonicalizer.cs` for deduplication
-4. Integrate with existing `LibraryViewModel`
-
-**Estimated Effort**: 8-12 hours  
-**Files to Create**:
-```
-PlatypusTools.Core/
-├── Models/
-│   ├── Track.cs (new)
-│   ├── LibraryIndex.cs (new)
-│   └── QueueSnapshot.cs (update)
-├── Services/
-│   ├── LibraryIndexService.cs (new)
-│   └── JsonIndexService.cs (new)
-└── Utilities/
-    ├── PathCanonicalizer.cs (new)
-    └── AtomicFileWriter.cs (new)
-```
+**Status**: ✅ Complete
 
 ---
 
-### Gap 2: Metadata Extraction (HIGH PRIORITY)
+### Gap 2: Metadata Extraction ✅ RESOLVED
 
-**Current State**:
-- AudioTrack has metadata properties but not populated
-- No tag reading from files
-- No artwork extraction
-- Fallback to filename only
+**Current State**: ✅ FULLY IMPLEMENTED (v3.1.0)
+- TagLib# 2.3.0 (TagLibSharp) installed in both UI and Core projects ✅
+- MetadataExtractorService.cs with full tag parsing ✅
+- Artwork extraction from embedded tags ✅
+- Fallback to filename when tags are missing ✅
+- Corrupt tag handling with graceful degradation ✅
 
-**Impact**:
-- ❌ Library display shows generic info
-- ❌ Search doesn't work on proper metadata
-- ❌ No album art display
-
-**Solution**:
-1. Install TagLib# NuGet package
-2. Create `MetadataExtractor.cs` with tag parsing
-3. Handle errors gracefully (corrupt tags, missing files)
-4. Cache extracted metadata in JSON index
-
-**Estimated Effort**: 6-8 hours  
-**Implementation**:
-```csharp
-public class MetadataExtractor
-{
-    public static AudioTrack ExtractMetadata(string filePath)
-    {
-        using (var file = TagLib.File.Create(filePath))
-        {
-            return new AudioTrack
-            {
-                Title = file.Tag.Title ?? Path.GetFileNameWithoutExtension(filePath),
-                Artist = file.Tag.FirstPerformer ?? "Unknown",
-                Album = file.Tag.Album ?? "Unknown",
-                Duration = file.Properties.Duration,
-                // ... etc
-            };
-        }
-    }
-}
-```
+**Status**: ✅ Complete
 
 ---
 
@@ -262,104 +221,62 @@ public class MetadataExtractor
 
 ---
 
-### Gap 4: Atomic Index Writes (MEDIUM PRIORITY)
+### Gap 4: Atomic Index Writes ✅ RESOLVED
 
-**Current State**:
-- Settings saved directly to files
-- No corruption protection
-- No backup/restore logic
+**Current State**: ✅ FULLY IMPLEMENTED
+- AtomicFileWriter.cs with WriteTextAtomicAsync() ✅
+- .tmp → atomic swap → .bak backup pattern ✅
+- Used by LibraryIndexService for index saves ✅
+- Corruption protection with JSON validation ✅
 
-**Impact**:
-- ⚠️ Index corruption possible on crash
-- ⚠️ No recovery mechanism
-
-**Solution**:
-```csharp
-public class AtomicFileWriter
-{
-    public static void WriteAtomic(string targetPath, string content)
-    {
-        var dir = Path.GetDirectoryName(targetPath)!;
-        Directory.CreateDirectory(dir);
-        
-        var tmp = Path.Combine(dir, $".{Path.GetFileName(targetPath)}.tmp");
-        var bak = Path.Combine(dir, $"{Path.GetFileName(targetPath)}.bak");
-        
-        File.WriteAllText(tmp, content);
-        File.Replace(tmp, targetPath, bak);
-    }
-}
-```
-
-**Estimated Effort**: 2-3 hours
+**Status**: ✅ Complete
 
 ---
 
 ## Recommended Implementation Order
 
-### Phase 1: Foundation (Week 1 - CRITICAL)
-1. **Library Indexing** (8h) - Most impactful
-   - Models + serialization
-   - Atomic writes
-   - Basic scanning
-2. **Metadata Extraction** (6h) - Enables library display
-   - TagLib# integration
-   - Tag parsing
-   - Error handling
+### Phase 1: Foundation (Week 1 - CRITICAL) ✅ COMPLETE
+1. **Library Indexing** ✅ - LibraryIndexService.cs, AtomicFileWriter, Track/LibraryIndex models
+2. **Metadata Extraction** ✅ - TagLib# 2.3.0, MetadataExtractorService.cs
 
-**Cumulative Effort**: 14 hours  
-**Impact**: Library becomes functional, persistent
+### Phase 2: Enhancement (Week 2 - HIGH) ✅ COMPLETE
+3. **Queue Persistence** ✅ - SaveQueueAsync/LoadQueueAsync
+4. **Multi-Select Operations** ✅ - RemoveFromQueueCommand
+5. **File Operations** ✅ - AtomicFileWriter, missing file detection
 
-### Phase 2: Enhancement (Week 2 - HIGH)
-3. **Queue Persistence** (4h) - User convenience
-4. **Multi-Select Operations** (3h) - Complete queue UI
-5. **File Operations** (4h) - Safety
+### Phase 3: Polish (Week 3 - MEDIUM) ✅ MOSTLY COMPLETE
+6. **Search Optimization** ✅ - Debounce filtering
+7. **Missing File Detection** ✅ - RemoveMissingTracksAsync
+8. **Error Handling** ✅ - Comprehensive try/catch
 
-**Cumulative Effort**: 11 hours  
-**Impact**: Queue & library now fully functional
+### Phase 4: Testing (Week 4 - ONGOING) ⚠️ PENDING
+9. **Unit Tests** ⚠️ - Not yet written
+10. **UI Smoke Tests** ⚠️ - Not yet written
+11. **Performance Testing** ⚠️ - Not yet tested
 
-### Phase 3: Polish (Week 3 - MEDIUM)
-6. **Search Optimization** (3h)
-7. **Missing File Detection** (3h)
-8. **Error Handling** (4h)
-
-**Cumulative Effort**: 10 hours  
-**Impact**: Production readiness
-
-### Phase 4: Testing (Week 4 - ONGOING)
-9. **Unit Tests** (6h)
-10. **UI Smoke Tests** (4h)
-11. **Performance Testing** (3h)
-
-**Total Estimated Effort**: 48-52 hours (~1.5 months part-time)
+**Status**: Phases 1-3 complete. Phase 4 (testing) remains.
 
 ---
 
-## Quick Wins (Can Complete Today)
+## Quick Wins ✅ ALL COMPLETE
 
-If you want to make quick progress, these are easy wins:
+All previously identified quick wins have been implemented:
 
-### 1. Wire Multi-Select Queue Removal (30 min)
-- Current: UI exists, command not connected
-- Fix: Bind `RemoveSelectedFromQueueCommand` to DataGrid
-- Impact: Enable bulk removal from queue
+### 1. Multi-Select Queue Removal ✅
+- RemoveFromQueueCommand bound to DataGrid
+- Bulk removal works
 
-### 2. Enable Queue Persistence (1 hour)
-- Add simple JSON save/load
-- Auto-save on track change
-- Impact: Queue survives app restart
+### 2. Queue Persistence ✅
+- SaveQueueAsync/LoadQueueAsync in AudioPlayerService
+- Auto-save on track change, restore on startup
 
-### 3. Add Settings Save/Load (1 hour)
-- Persist visualizer mode
-- Persist user preferences
-- Impact: Better UX
+### 3. Settings Save/Load ✅
+- SettingsManager with persistence
+- Visualizer mode, user preferences all saved
 
-### 4. Improve Error Messages (1 hour)
-- Add try/catch around file operations
-- Show user-friendly errors in UI
-- Impact: Better stability
-
-**Total Quick Wins**: 3.5 hours → 5 critical issues resolved
+### 4. Error Messages ✅
+- Try/catch around all file/playback operations
+- User-friendly StatusMessage display
 
 ---
 
@@ -440,11 +357,11 @@ dotnet publish PlatypusTools.UI -c Release -o ./publish --self-contained -r win-
 
 ## Next Steps
 
-1. **Today**: Review this manifest and gap analysis
-2. **Tomorrow**: Start with Library Indexing (highest ROI)
-3. **This Week**: Complete Phase 1 (indexing + metadata)
-4. **Next Week**: Phase 2 (persistence + operations)
-5. **Release**: v1.0 with full feature set ready
+1. **Relink Missing Files** - Add UI for remapping files that moved (detection already works)
+2. **Watch Folders** - Wire FileWatcherService to auto-import new audio files
+3. **Artist/Album/Genre Browse Tabs** - Dedicated browse UI (stats already displayed)
+4. **Unit Tests** - Create test suite for LibraryIndexService, MetadataExtractorService
+5. **Performance Benchmarks** - Validate cold start < 1.5s for 10k tracks
 
 ---
 
@@ -482,6 +399,6 @@ dotnet add PlatypusTools.Core package MathNet.Numerics
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: January 14, 2026  
-**Next Review**: January 21, 2026
+**Document Version**: 2.0  
+**Last Updated**: February 11, 2026  
+**Next Review**: March 11, 2026

@@ -690,13 +690,18 @@
                                 <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
                                     <TextBlock Text="Sort: " VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <ComboBox ItemsSource="{Binding QueueSortOptions}" SelectedItem="{Binding QueueSortBy}" Width="90"/>
+                                    <TextBlock Text="  Search: " VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="8,0,0,0"/>
+                                    <TextBox Text="{Binding QueueSearchQuery, UpdateSourceTrigger=PropertyChanged}" Width="160" VerticalAlignment="Center"
+                                             FontSize="11" Padding="3,2"/>
+                                    <Button Content="✕" Width="22" Height="22" Margin="2,0,0,0" FontSize="9" ToolTip="Clear search"
+                                            Command="{Binding ClearQueueSearchCommand}"/>
                                 </StackPanel>
                                 
                                 <!-- Scroll Up Button -->
                                 <Button Grid.Row="2" Content="▲" Height="24" VerticalAlignment="Top" Margin="0,0,0,0"
                                         Click="QueueScrollUp_Click" ToolTip="Scroll Up" Panel.ZIndex="1" Opacity="0.8"/>
                                 
-                                <ListBox x:Name="QueueListBox" Grid.Row="2" ItemsSource="{Binding Queue}" SelectedItem="{Binding SelectedQueueTrack}"
+                                <ListBox x:Name="QueueListBox" Grid.Row="2" ItemsSource="{Binding QueueView}" SelectedItem="{Binding SelectedQueueTrack}"
                                          AllowDrop="True" Margin="0,26,0,26"
                                          PreviewMouseLeftButtonDown="Queue_PreviewMouseLeftButtonDown"
                                          Drop="Queue_Drop"
@@ -828,13 +833,13 @@
                         <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="0,0,8,8" Padding="10">
                             <Grid>
                                 <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" MaxHeight="250"/>
+                                    <RowDefinition Height="Auto" MaxHeight="350"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
                                 
-                                <!-- Scrollable area for folder management and playlists -->
-                                <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" MaxHeight="250">
+                                <!-- Scrollable area for folder management, playlists, and browse -->
+                                <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" MaxHeight="350">
                                     <StackPanel>
                                         <!-- Library Folder Management -->
                                         <Expander Header="📂 Library Folders" IsExpanded="True" Margin="0,0,0,8">
@@ -869,7 +874,31 @@
                                                     <TextBlock Text="Artists: " FontSize="10" FontWeight="Bold"/>
                                                     <TextBlock Text="{Binding LibraryArtistCount, FallbackValue=0}" FontSize="10" Margin="0,0,10,0"/>
                                                     <TextBlock Text="Albums: " FontSize="10" FontWeight="Bold"/>
-                                                    <TextBlock Text="{Binding LibraryAlbumCount, FallbackValue=0}" FontSize="10"/>
+                                                    <TextBlock Text="{Binding LibraryAlbumCount, FallbackValue=0}" FontSize="10" Margin="0,0,10,0"/>
+                                                    <TextBlock Text="Genres: " FontSize="10" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding LibraryGenreCount, FallbackValue=0}" FontSize="10"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Expander>
+                                        
+                                        <!-- Watch Folders Section -->
+                                        <Expander Header="👁 Watch Folders" IsExpanded="False" Margin="0,0,0,8">
+                                            <StackPanel Margin="5">
+                                                <TextBlock Text="Auto-import new audio files from watched folders" FontSize="10" Foreground="Gray" Margin="0,0,0,5"/>
+                                                <ListBox ItemsSource="{Binding WatchFolders}" SelectedItem="{Binding SelectedWatchFolder}"
+                                                         MaxHeight="80" FontSize="11"
+                                                         HorizontalContentAlignment="Stretch">
+                                                    <ListBox.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" FontSize="11" ToolTip="{Binding}"/>
+                                                        </DataTemplate>
+                                                    </ListBox.ItemTemplate>
+                                                </ListBox>
+                                                <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                    <Button Content="📁 Add Watch" Command="{Binding AddWatchFolderCommand}" 
+                                                            Margin="0,0,5,0" FontSize="11"/>
+                                                    <Button Content="✕ Remove" Command="{Binding RemoveWatchFolderCommand}" 
+                                                            FontSize="11"/>
                                                 </StackPanel>
                                             </StackPanel>
                                         </Expander>
@@ -909,6 +938,39 @@
                                                 </ItemsControl>
                                             </StackPanel>
                                         </Expander>
+                                        
+                                        <!-- Browse Mode Bar -->
+                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,4">
+                                            <TextBlock Text="Browse:" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <RadioButton Content="All" GroupName="BrowseMode" FontSize="11" Padding="6,3" Margin="0,0,2,0"
+                                                         IsChecked="{Binding IsBrowseModeAll, Mode=OneWay}"
+                                                         Command="{Binding SetBrowseModeCommand}" CommandParameter="All"/>
+                                            <RadioButton Content="Artists" GroupName="BrowseMode" FontSize="11" Padding="6,3" Margin="0,0,2,0"
+                                                         IsChecked="{Binding IsBrowseModeArtists, Mode=OneWay}"
+                                                         Command="{Binding SetBrowseModeCommand}" CommandParameter="Artists"/>
+                                            <RadioButton Content="Albums" GroupName="BrowseMode" FontSize="11" Padding="6,3" Margin="0,0,2,0"
+                                                         IsChecked="{Binding IsBrowseModeAlbums, Mode=OneWay}"
+                                                         Command="{Binding SetBrowseModeCommand}" CommandParameter="Albums"/>
+                                            <RadioButton Content="Genres" GroupName="BrowseMode" FontSize="11" Padding="6,3" Margin="0,0,2,0"
+                                                         IsChecked="{Binding IsBrowseModeGenres, Mode=OneWay}"
+                                                         Command="{Binding SetBrowseModeCommand}" CommandParameter="Genres"/>
+                                            <RadioButton Content="Folders" GroupName="BrowseMode" FontSize="11" Padding="6,3"
+                                                         IsChecked="{Binding IsBrowseModeFolder, Mode=OneWay}"
+                                                         Command="{Binding SetBrowseModeCommand}" CommandParameter="Folders"/>
+                                        </StackPanel>
+                                        
+                                        <!-- Browse Groups List -->
+                                        <ListBox ItemsSource="{Binding BrowseGroups}" 
+                                                 SelectedItem="{Binding SelectedBrowseGroup}"
+                                                 MaxHeight="120" FontSize="11" Margin="0,0,0,4"
+                                                 Visibility="{Binding ShowBrowseGroups, Converter={StaticResource BoolToVis}}"
+                                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" ToolTip="{Binding}"/>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
                                     </StackPanel>
                                 </ScrollViewer>
                                 
@@ -933,7 +995,9 @@
                                                 FontSize="11" ToolTip="Remove selected track from library" Foreground="#FF9800"/>
                                         <Button Content="🧹" Command="{Binding RemoveMissingTracksCommand}" 
                                                 Margin="3,0,0,0" FontSize="11" ToolTip="Remove tracks with missing files"/>
-                                        <Button Content="🗑️ Clear" Command="{Binding ClearLibraryCommand}" 
+                                        <Button Content="�" Command="{Binding RelinkMissingTracksCommand}" 
+                                                Margin="3,0,0,0" FontSize="11" ToolTip="Relink tracks with missing files to new locations"/>
+                                        <Button Content="�🗑️ Clear" Command="{Binding ClearLibraryCommand}" 
                                                 Margin="3,0,0,0" FontSize="11" ToolTip="Clear entire library" Foreground="#F44336"/>
                                     </StackPanel>
                                 </Grid>
@@ -949,7 +1013,9 @@
                                           ScrollViewer.CanContentScroll="True">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Title" Binding="{Binding DisplayTitle}" Width="*"/>
-                                        <DataGridTextColumn Header="Artist" Binding="{Binding DisplayArtist}" Width="80"/>
+                                        <DataGridTextColumn Header="Artist" Binding="{Binding DisplayArtist}" Width="100"/>
+                                        <DataGridTextColumn Header="Album" Binding="{Binding DisplayAlbum}" Width="100"/>
+                                        <DataGridTextColumn Header="Genre" Binding="{Binding DisplayGenre}" Width="80"/>
                                         <DataGridTextColumn Header="Duration" Binding="{Binding DurationFormatted}" Width="50"/>
                                     </DataGrid.Columns>
                                     <DataGrid.ContextMenu>
