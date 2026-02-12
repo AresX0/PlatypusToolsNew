@@ -11,6 +11,27 @@ namespace PlatypusTools.UI.Services
     /// Provides singleton access to shared services.
     /// Optimizes memory usage by reusing stateless service instances.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <strong>MIGRATION NOTE:</strong> This class is being gradually replaced by 
+    /// <see cref="PlatypusTools.Core.Services.ServiceContainer"/> which provides dependency injection.
+    /// </para>
+    /// <para>
+    /// New code should prefer resolving services via ServiceContainer:
+    /// <code>
+    /// var service = ServiceContainer.GetService&lt;VideoConverterService&gt;();
+    /// </code>
+    /// </para>
+    /// <para>
+    /// Or better yet, use constructor injection when creating new ViewModels:
+    /// <code>
+    /// public MyViewModel(IVideoConverterService videoConverter)
+    /// {
+    ///     _videoConverter = videoConverter;
+    /// }
+    /// </code>
+    /// </para>
+    /// </remarks>
     public static class ServiceLocator
     {
         #region Video Services (Lazy Singletons)

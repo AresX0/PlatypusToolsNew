@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using PlatypusTools.Core.Services;
 using PlatypusTools.UI.Views;
 using PlatypusTools.UI.ViewModels;
@@ -277,6 +278,10 @@ namespace PlatypusTools.UI
             // Start startup profiling
             StartupProfiler.Start();
             StartupProfiler.BeginPhase("Exception handlers");
+
+            // Initialize the dependency injection container
+            StartupProfiler.BeginPhase("DI Container");
+            InitializeServiceContainer();
 
             // Register global unhandled exception handlers
             AppDomain.CurrentDomain.UnhandledException += (s, args) =>
@@ -602,6 +607,46 @@ namespace PlatypusTools.UI
             {
                 SimpleLogger.Warn($"App: Font auto-installation failed: {ex.Message}");
                 // Non-fatal — app continues with fallback fonts
+            }
+        }
+
+        /// <summary>
+        /// Initializes the dependency injection service container.
+        /// Registers both Core and UI services.
+        /// </summary>
+        private void InitializeServiceContainer()
+        {
+            try
+            {
+                ServiceContainer.Initialize(services =>
+                {
+                    // Register UI-specific services
+                    services.AddSingleton<Services.ThemeManager>();
+                    services.AddSingleton<Services.KeyboardShortcutService>();
+                    services.AddSingleton<Services.RecentWorkspacesService>();
+                    services.AddSingleton<Services.UpdateService>();
+                    services.AddSingleton<Services.PluginService>();
+                    services.AddSingleton<Services.LoggingService>();
+                    services.AddSingleton<Services.ToastNotificationService>();
+                    services.AddSingleton<Services.CommandService>();
+                    services.AddSingleton<Services.EnhancedAudioPlayerService>();
+                    services.AddSingleton<Services.AudioStreamingService>();
+                    services.AddSingleton<Services.TabVisibilityService>();
+                    
+                    // Register UI forensics services
+                    services.AddSingleton<Services.Forensics.IOCScannerService>();
+                    services.AddSingleton<Services.Forensics.YaraService>();
+                    services.AddSingleton<Services.Forensics.PcapParserService>();
+                    services.AddSingleton<Services.Forensics.BrowserForensicsService>();
+                    services.AddSingleton<Services.Forensics.RegistryDiffService>();
+                    services.AddSingleton<Services.Forensics.TaskSchedulerService>();
+                });
+                SimpleLogger.Info("ServiceContainer initialized successfully.");
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error($"Failed to initialize ServiceContainer: {ex.Message}");
+                // Non-fatal - fall back to static Instance patterns
             }
         }
 

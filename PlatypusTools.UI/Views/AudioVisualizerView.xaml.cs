@@ -57,6 +57,7 @@ namespace PlatypusTools.UI.Views
         private bool _subscribedToService = false;
         private bool _isMusicPlaying = false; // Track if music is actually playing
         private bool _isExternallyDriven = false; // When true, skip internal service subscription (for fullscreen)
+        private bool _shouldAnimate = false; // Global flag: true ONLY when music is playing with data
         
         // HD quality settings - tuned for smoothness with sensitivity control
         private const double PEAK_FALL_SPEED = 0.02; // How fast peaks fall (per frame) - slightly faster
@@ -462,12 +463,101 @@ namespace PlatypusTools.UI.Views
             Unloaded += OnUnloaded;
             SizeChanged += OnSizeChanged;
             IsVisibleChanged += OnIsVisibleChanged;
+            DataContextChanged += OnDataContextChanged;
             
             // SkiaSharp canvas is wired up in XAML via PaintSurface="OnSkiaPaintSurface"
             
             // Subscribe immediately in constructor as backup
             SubscribeToService();
             StartRenderTimer();
+        }
+        
+        /// <summary>
+        /// Handles DataContext changes to subscribe to ViewModel property changes (especially mode changes).
+        /// </summary>
+        private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            // Unsubscribe from old ViewModel
+            if (e.OldValue is System.ComponentModel.INotifyPropertyChanged oldVm)
+            {
+                oldVm.PropertyChanged -= OnViewModelPropertyChanged;
+            }
+            
+            // Subscribe to new ViewModel
+            if (e.NewValue is System.ComponentModel.INotifyPropertyChanged newVm)
+            {
+                newVm.PropertyChanged += OnViewModelPropertyChanged;
+                
+                // Also sync mode immediately
+                if (e.NewValue is PlatypusTools.UI.ViewModels.EnhancedAudioPlayerViewModel vm)
+                {
+                    UpdateModeFromViewModel(vm);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Handles ViewModel property changes - immediately updates mode when user changes dropdown.
+        /// </summary>
+        private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "VisualizerModeIndex" || e.PropertyName == "VisualizerModeName")
+            {
+                if (sender is PlatypusTools.UI.ViewModels.EnhancedAudioPlayerViewModel vm)
+                {
+                    Dispatcher.BeginInvoke(() => UpdateModeFromViewModel(vm));
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Updates the visualization mode from the ViewModel. Called when dropdown changes.
+        /// </summary>
+        private void UpdateModeFromViewModel(PlatypusTools.UI.ViewModels.EnhancedAudioPlayerViewModel vm)
+        {
+            string mode = vm.VisualizerModeIndex switch
+            {
+                0 => "Bars", 1 => "Mirror", 2 => "Waveform", 3 => "VU Meter",
+                4 => "Oscilloscope", 5 => "Circular", 6 => "Radial", 7 => "Aurora",
+                8 => "Wave Grid", 9 => "3D Bars", 10 => "Waterfall", 11 => "Star Wars Crawl",
+                12 => "Particles", 13 => "Starfield", 14 => "Toasters", 15 => "Matrix",
+                16 => "Stargate", 17 => "Klingon", 18 => "Federation", 19 => "Jedi",
+                20 => "TimeLord", 21 => "Milkdrop", _ => "Bars"
+            };
+            
+            if (_visualizationMode != mode)
+            {
+                System.Diagnostics.Debug.WriteLine($"Mode change: {_visualizationMode} → {mode}");
+                
+                // Clean up old mode resources
+                CleanupModeResources(_visualizationMode, mode);
+                _visualizationMode = mode;
+                
+                // Clear WPF canvas completely
+                VisualizerCanvas.Children.Clear();
+                _cachedBackground = null;
+                _cachedBars.Clear();
+                _cachedPeaks.Clear();
+                _cachedBarBrush = null;
+                _cachedPeakBrush = null;
+                _cachedWaveformLine = null;
+                _needsFullRebuild = true;
+                
+                // Reset smoothing buffers for fresh start
+                for (int i = 0; i < _barHeights.Length; i++)
+                {
+                    _barHeights[i] = 0;
+                    _smoothedData[i] = 0;
+                    _peakHeights[i] = 0;
+                }
+                _isRendering = false;
+                
+                // Force immediate redraw with new mode
+                if (_useGpuRendering)
+                {
+                    SkiaCanvas.InvalidateVisual();
+                }
+            }
         }
         
         /// <summary>
@@ -578,8 +668,19 @@ namespace PlatypusTools.UI.Views
                         };
                         if (_visualizationMode != mode)
                         {
+                            // STOP rendering immediately
                             CleanupModeResources(_visualizationMode, mode);
                             _visualizationMode = mode;
+                            
+                            // Clear canvas completely for fresh start
+                            VisualizerCanvas.Children.Clear();
+                            _cachedBackground = null;
+                            _cachedBars.Clear();
+                            _cachedPeaks.Clear();
+                            _cachedBarBrush = null;
+                            _cachedPeakBrush = null;
+                            _cachedWaveformLine = null;
+                            _needsFullRebuild = true;
                             
                             // Reset smoothing buffers for fresh start with new mode
                             for (int i = 0; i < _barHeights.Length; i++)
@@ -589,6 +690,8 @@ namespace PlatypusTools.UI.Views
                                 _peakHeights[i] = 0;
                             }
                             _isRendering = false;
+                            
+                            System.Diagnostics.Debug.WriteLine($"Mode changed: → {mode}");
                         }
                     }
                 }
@@ -706,8 +809,16 @@ namespace PlatypusTools.UI.Views
                     
                     System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Became visible, ensuring subscription and timer");
                 }
-                // Don't stop the timer when invisible - let it keep running
-                // This prevents the visualizer from freezing when tabs are switched
+                else
+                {
+                    // Stop the timer when invisible (e.g., user switched to album art view)
+                    // This saves CPU/GPU when visualizer is not shown
+                    if (!_isExternallyDriven) // Don't stop if fullscreen mode is driving us
+                    {
+                        StopRenderTimer();
+                        System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Became invisible, stopping timer");
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -766,6 +877,27 @@ namespace PlatypusTools.UI.Views
         {
             System.Diagnostics.Debug.WriteLine($"AudioVisualizerView.OnLoaded called, ActualWidth={ActualWidth}, ActualHeight={ActualHeight}");
             
+            // Re-initialize visual elements cleared by DisposeGpuResources() on Unload
+            if (_matrixColumns.Count == 0)
+            {
+                for (int i = 0; i < 60; i++)
+                {
+                    _matrixColumns.Add(new MatrixColumn
+                    {
+                        X = i / 60.0,
+                        Y = _random.NextDouble() * -1.0,
+                        Speed = 0.01 + _random.NextDouble() * 0.02,
+                        Length = 8 + _random.Next(12),
+                        Characters = new char[20]
+                    });
+                    for (int j = 0; j < _matrixColumns[i].Characters.Length; j++)
+                    {
+                        _matrixColumns[i].Characters[j] = MatrixChars[_random.Next(MatrixChars.Length)];
+                    }
+                }
+                System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Re-initialized _matrixColumns");
+            }
+            
             // Ensure subscription and timer are running
             SubscribeToService();
             StartRenderTimer();
@@ -811,6 +943,12 @@ namespace PlatypusTools.UI.Views
                     System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Unsubscribed from EnhancedAudioPlayerService");
                 }
                 catch { }
+            }
+            
+            // Unsubscribe from ViewModel PropertyChanged
+            if (DataContext is System.ComponentModel.INotifyPropertyChanged oldViewModel)
+            {
+                oldViewModel.PropertyChanged -= OnViewModelPropertyChanged;
             }
             
             // Dispose all GPU bitmap resources to prevent native memory leaks
@@ -1484,6 +1622,10 @@ namespace PlatypusTools.UI.Views
 
         private void RenderVisualization()
         {
+            // Animate whenever music is playing - data freshness is handled separately
+            // The _isMusicPlaying flag is set by OnPlaybackStateChanged from the service  
+            _shouldAnimate = _isMusicPlaying;
+            
             // GPU RENDERING TOGGLE: when GPU is on, ALL modes go through SKElement.
             // When GPU is off, ALL modes go through WPF Canvas. No per-mode switching.
             // This eliminates the waterfall/mode release bug entirely.
@@ -1492,8 +1634,21 @@ namespace PlatypusTools.UI.Views
                 VisualizerCanvas.Visibility = Visibility.Collapsed;
                 SkiaCanvas.Visibility = Visibility.Visible;
                 
-                ApplySmoothing();
-                _animationPhase += 0.05;
+                if (_shouldAnimate)
+                {
+                    ApplySmoothing();
+                    _animationPhase += 0.05;
+                }
+                else
+                {
+                    // Decay bars when not playing
+                    for (int i = 0; i < _barHeights.Length; i++)
+                    {
+                        _barHeights[i] *= 0.92;
+                        _smoothedData[i] = _barHeights[i];
+                        if (_barHeights[i] < 0.001) _barHeights[i] = 0;
+                    }
+                }
                 _hdRenderMode = _visualizationMode;
                 SkiaCanvas.InvalidateVisual();
                 return;
@@ -1573,9 +1728,9 @@ namespace PlatypusTools.UI.Views
             }
 
             // When music is not playing and no recent data, show idle state (decay bars)
-            bool hasRecentData = _hasExternalData && (DateTime.Now - _lastExternalUpdate).TotalMilliseconds < 100;
+            // (Using class field _shouldAnimate already calculated at top of RenderVisualization)
             
-            if (!_isMusicPlaying && !hasRecentData)
+            if (!_shouldAnimate)
             {
                 // Decay all bars to zero when not playing
                 for (int i = 0; i < _barHeights.Length; i++)
@@ -1586,15 +1741,15 @@ namespace PlatypusTools.UI.Views
                     if (_barHeights[i] < 0.001) _barHeights[i] = 0;
                     if (_peakHeights[i] < 0.001) _peakHeights[i] = 0;
                 }
+                // Don't advance animation phase when music is stopped
             }
             else
             {
                 // Apply smoothing for fluid animation when playing
                 ApplySmoothing();
+                // Advance animation phase only when music is playing
+                _animationPhase += 0.05;
             }
-
-            // Advance animation phase (only for idle animations like starfield/toasters)
-            _animationPhase += 0.05;
 
             // For dynamic modes, clear non-cached elements before each frame
             // This prevents elements from piling up and causing trails/artifacts
@@ -7045,6 +7200,9 @@ namespace PlatypusTools.UI.Views
                 avgIntensity /= _smoothedData.Length;
             }
             
+            // ONLY move when music is playing
+            double moveSpeedFactor = _shouldAnimate ? (1 + avgIntensity * 3) : 0;
+            
             using var paint = new SKPaint
             {
                 IsAntialias = true,
@@ -7061,9 +7219,9 @@ namespace PlatypusTools.UI.Views
             // Update and draw particles
             foreach (var particle in _particles)
             {
-                // Move particle (was missing — particles were static in GPU path)
-                particle.X += particle.VelocityX * (1 + avgIntensity * 3);
-                particle.Y += particle.VelocityY * (1 + avgIntensity * 3);
+                // Move particle only when music is playing
+                particle.X += particle.VelocityX * moveSpeedFactor;
+                particle.Y += particle.VelocityY * moveSpeedFactor;
                 
                 // Wrap around
                 if (particle.X < 0) particle.X = 1;
@@ -7138,7 +7296,8 @@ namespace PlatypusTools.UI.Views
             for (int layer = 0; layer < layers; layer++)
             {
                 using var path = new SKPath();
-                float phase = (float)(_animationPhase + layer * 0.5);
+                // Only animate phase when music is playing
+                float phase = _shouldAnimate ? (float)(_animationPhase + layer * 0.5) : layer * 0.5f;
                 
                 path.MoveTo(0, info.Height);
                 
@@ -7182,8 +7341,9 @@ namespace PlatypusTools.UI.Views
             double avgIntensity = 0;
             int bassCount = Math.Min(10, _smoothedData.Length);
             for (int i = 0; i < bassCount; i++) avgIntensity += _smoothedData[i];
-            avgIntensity = bassCount > 0 ? avgIntensity / bassCount : 0.3;
-            double speedMultiplier = 1.0 + avgIntensity * 4;
+            avgIntensity = bassCount > 0 ? avgIntensity / bassCount : 0;
+            // ONLY move when music is playing - no animation without music
+            double speedMultiplier = _shouldAnimate ? (1.0 + avgIntensity * 4) : 0;
             
             using var paint = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill };
             using var linePaint = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Stroke, StrokeCap = SKStrokeCap.Round };
@@ -7271,7 +7431,8 @@ namespace PlatypusTools.UI.Views
                     
                     float perspective = 1.0f - (y / (float)gridY) * 0.5f;
                     float xOffset = (x - gridX / 2f) * (1 - perspective) * 10;
-                    float wavePhase = (float)(_animationPhase + x * 0.2 + y * 0.3);
+                    // Only animate wave when music is playing
+                    float wavePhase = _shouldAnimate ? (float)(_animationPhase + x * 0.2 + y * 0.3) : 0f;
                     float waveHeight = (float)(value * 30 * perspective + Math.Sin(wavePhase) * 5);
                     
                     float px = x * cellWidth + xOffset;
@@ -7307,7 +7468,9 @@ namespace PlatypusTools.UI.Views
                 avgIntensity += _smoothedData[i];
             avgIntensity /= Math.Max(1, Math.Min(20, _smoothedData.Length));
             
-            double wingSpeed = 0.3 + avgIntensity * 0.5;
+            // ONLY animate when music is playing
+            double moveSpeedFactor = _shouldAnimate ? (1 + avgIntensity * 2) : 0;
+            double wingSpeed = _shouldAnimate ? (0.3 + avgIntensity * 0.5) : 0;
             
             using var bodyPaint = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill };
             using var strokePaint = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Stroke, StrokeWidth = 2 };
@@ -7316,8 +7479,8 @@ namespace PlatypusTools.UI.Views
             
             foreach (var toaster in _toasters)
             {
-                toaster.X -= toaster.Speed * (1 + avgIntensity * 2);
-                toaster.Y += toaster.Speed * 0.6 * (1 + avgIntensity * 2);
+                toaster.X -= toaster.Speed * moveSpeedFactor;
+                toaster.Y += toaster.Speed * 0.6 * moveSpeedFactor;
                 if (toaster.X < -0.2) { toaster.X = 1.2; toaster.Y = _random.NextDouble() * 0.5 - 0.2; }
                 if (toaster.Y > 1.2) { toaster.Y = -0.2; toaster.X = _random.NextDouble() * 0.5 + 0.5; }
                 toaster.WingPhase += wingSpeed;
@@ -7385,7 +7548,9 @@ namespace PlatypusTools.UI.Views
             for (int i = 0; i < _smoothedData.Length; i++) avgIntensity += _smoothedData[i];
             avgIntensity /= Math.Max(1, _smoothedData.Length);
             
-            double speedMultiplier = 0.5 + bassIntensity * 3.0;
+            // ONLY move when music is playing - no animation without music
+            // Base speed of 2.5 ensures clearly visible movement even with quiet music
+            double speedMultiplier = _shouldAnimate ? (2.5 + bassIntensity * 4.0) : 0;
             float fontSize = Math.Max(8, w / 60);
             float charHeight = fontSize * 1.2f;
             
@@ -7493,7 +7658,8 @@ namespace PlatypusTools.UI.Views
             double avgIntensity = 0;
             for (int i = 0; i < _smoothedData.Length; i++) avgIntensity += _smoothedData[i];
             avgIntensity /= Math.Max(1, _smoothedData.Length);
-            if (avgIntensity > 0.01) _crawlPosition += 0.8 * _crawlSpeed;
+            // ONLY scroll when music is playing
+            if (_shouldAnimate && avgIntensity > 0.01) _crawlPosition += 0.8 * _crawlSpeed;
             
             float lineHeight = h / 18f;
             float totalTextHeight = StarWarsCrawlText.Length * lineHeight;
@@ -7573,8 +7739,8 @@ namespace PlatypusTools.UI.Views
             for (int i = 0; i < _smoothedData.Length; i++) avgIntensity += _smoothedData[i];
             avgIntensity = _smoothedData.Length > 0 ? avgIntensity / _smoothedData.Length : 0;
             
-            // Update dialing state machine
-            if (_stargateIsDialing && avgIntensity > 0.01)
+            // Update dialing state machine - ONLY when music is playing
+            if (_shouldAnimate && _stargateIsDialing && avgIntensity > 0.01)
             {
                 if (!_stargateChevronEngaging)
                 {
@@ -7603,7 +7769,8 @@ namespace PlatypusTools.UI.Views
                     }
                 }
             }
-            if (!_stargateIsDialing)
+            // ONLY animate wormhole when music is playing
+            if (_shouldAnimate && !_stargateIsDialing)
             {
                 if (_stargateKawooshActive) { _stargateKawooshPhase += 0.04; if (_stargateKawooshPhase >= 1.0) _stargateKawooshActive = false; }
                 _stargateWormholePhase += 0.08 + avgIntensity * 0.15;
@@ -8120,13 +8287,13 @@ namespace PlatypusTools.UI.Views
             canvas.DrawRect(0, 0, w, h, paint);
             paint.Shader = null;
             
-            // Transporter particles (draw behind logo)
-            _transporterPhase += 0.05 + avgIntensity * 0.1;
+            // Transporter particles (draw behind logo) - only animate when music playing
+            if (_shouldAnimate) _transporterPhase += 0.05 + avgIntensity * 0.1;
             paint.Style = SKPaintStyle.Fill;
             foreach (var tp in _transporterParticles)
             {
-                tp.Y += tp.VelocityY;
-                tp.Phase += 0.1;
+                if (_shouldAnimate) tp.Y += tp.VelocityY;
+                if (_shouldAnimate) tp.Phase += 0.1;
                 if (tp.Y > 1.1 || tp.Y < -0.1) { tp.Y = _random.NextDouble(); tp.X = 0.3 + _random.NextDouble() * 0.4; }
                 
                 float px = (float)(tp.X * w);
@@ -8264,12 +8431,12 @@ namespace PlatypusTools.UI.Views
             
             using var paint = new SKPaint { IsAntialias = true };
             
-            // Star field background
+            // Star field background - only twinkle when music is playing
             for (int i = 0; i < 80; i++)
             {
                 float sx = (float)((i * 31 + 17) % w);
                 float sy = (float)((i * 47 + i * i * 3) % (h * 0.7f));
-                float twinkle = (float)(0.5 + 0.5 * Math.Sin(_animationPhase * 2 + i * 0.7));
+                float twinkle = _shouldAnimate ? (float)(0.5 + 0.5 * Math.Sin(_animationPhase * 2 + i * 0.7)) : 0.7f;
                 byte bright = (byte)(120 + 135 * twinkle);
                 paint.Color = new SKColor(bright, bright, (byte)(bright * 0.95), 255);
                 canvas.DrawCircle(sx, sy, 0.8f + (i % 3) * 0.5f, paint);
@@ -8411,27 +8578,31 @@ namespace PlatypusTools.UI.Views
             double bassIntensity = 0;
             int bassCount = Math.Min(8, _smoothedData.Length);
             for (int i = 0; i < bassCount; i++) bassIntensity += _smoothedData[i];
-            bassIntensity = bassCount > 0 ? bassIntensity / bassCount : 0.3;
+            bassIntensity = bassCount > 0 ? bassIntensity / bassCount : 0;
             for (int i = 0; i < _smoothedData.Length; i++) avgIntensity += _smoothedData[i];
             avgIntensity /= Math.Max(1, _smoothedData.Length);
             
-            // Animation update
-            double rotationSpeed = 0.8 + bassIntensity * 2.0 + avgIntensity * 1.0;
-            _vortexRotation += rotationSpeed;
-            if (_vortexRotation >= 360) _vortexRotation -= 360;
-            
-            // TARDIS orbital movement
-            double orbitSpeed = 0.015 + avgIntensity * 0.025;
-            _animationPhase += orbitSpeed;
-            double spiralRadius = 0.12 + bassIntensity * 0.08;
-            double targetX = 0.5 + Math.Sin(_animationPhase * 1.1) * spiralRadius + Math.Sin(_animationPhase * 2.3) * 0.04;
-            double targetY = 0.5 + Math.Cos(_animationPhase * 0.8) * spiralRadius * 0.8 + Math.Cos(_animationPhase * 1.9) * 0.03;
-            _tardisX += (targetX - _tardisX) * 0.18;
-            _tardisY += (targetY - _tardisY) * 0.18;
-            double moveDeltaX = targetX - _tardisX;
-            _tardisTumble = _tardisTumble * 0.92 + moveDeltaX * 40;  // Decay tumble so it doesn't accumulate
-            double targetScale = 1.0 + bassIntensity * 0.25;
-            _tardisScale += (targetScale - _tardisScale) * 0.12;
+            // Animation update - ONLY when music is playing
+            if (_shouldAnimate)
+            {
+                // Base rotation of 1.5 ensures visible vortex spin even with quiet music
+                double rotationSpeed = 1.5 + bassIntensity * 2.0 + avgIntensity * 1.5;
+                _vortexRotation += rotationSpeed;
+                if (_vortexRotation >= 360) _vortexRotation -= 360;
+                
+                // TARDIS orbital movement - base speed of 0.03 for visible orbit
+                double orbitSpeed = 0.03 + avgIntensity * 0.04;
+                _animationPhase += orbitSpeed;
+                double spiralRadius = 0.12 + bassIntensity * 0.08;
+                double targetX = 0.5 + Math.Sin(_animationPhase * 1.1) * spiralRadius + Math.Sin(_animationPhase * 2.3) * 0.04;
+                double targetY = 0.5 + Math.Cos(_animationPhase * 0.8) * spiralRadius * 0.8 + Math.Cos(_animationPhase * 1.9) * 0.03;
+                _tardisX += (targetX - _tardisX) * 0.18;
+                _tardisY += (targetY - _tardisY) * 0.18;
+                double moveDeltaX = targetX - _tardisX;
+                _tardisTumble = _tardisTumble * 0.92 + moveDeltaX * 40;  // Decay tumble so it doesn't accumulate
+                double targetScale = 1.0 + bassIntensity * 0.25;
+                _tardisScale += (targetScale - _tardisScale) * 0.12;
+            }
             
             using var paint = new SKPaint { IsAntialias = true };
             
@@ -8464,10 +8635,14 @@ namespace PlatypusTools.UI.Views
                     _timeLordVortexH = bufH;
                 }
                 
-                _timeLordVortexFrame++;
-                // Slow phase drift for subtle color shimmer (NOT hue cycling)
-                _timeLordVortexHue += 0.08 + bassIntensity * 0.15;
-                if (_timeLordVortexHue >= 360) _timeLordVortexHue -= 360;
+                // ONLY advance animation when music is playing
+                if (_shouldAnimate)
+                {
+                    _timeLordVortexFrame++;
+                    // Slow phase drift for subtle color shimmer (NOT hue cycling)
+                    _timeLordVortexHue += 0.08 + bassIntensity * 0.15;
+                    if (_timeLordVortexHue >= 360) _timeLordVortexHue -= 360;
+                }
                 
                 // Double-buffer swap: read from back, draw into front
                 var vortexBuf = _timeLordVortexBuffer;
@@ -9576,16 +9751,20 @@ namespace PlatypusTools.UI.Views
             treb = Math.Min(treb * _sensitivity * 3, 2.0);
             avg = Math.Min(avg * _sensitivity * 3, 1.5);
             
-            _milkdropTime += 1.0 / Math.Max(_targetFps, 15);
-            _milkdropGpuFrame++;
-            
-            // Cycle hue continuously
-            _milkdropWaveHue += 0.3 + treb * 0.5;
-            if (_milkdropWaveHue >= 360) _milkdropWaveHue -= 360;
-            
-            // Auto-change wave mode every ~20 seconds
-            if (_milkdropGpuFrame % (20 * Math.Max(_targetFps, 15)) == 0)
-                _milkdropWaveMode = (_milkdropWaveMode + 1) % 6;
+            // ONLY advance animation when music is playing
+            if (_shouldAnimate)
+            {
+                _milkdropTime += 1.0 / Math.Max(_targetFps, 15);
+                _milkdropGpuFrame++;
+                
+                // Cycle hue continuously
+                _milkdropWaveHue += 0.3 + treb * 0.5;
+                if (_milkdropWaveHue >= 360) _milkdropWaveHue -= 360;
+                
+                // Auto-change wave mode every ~20 seconds
+                if (_milkdropGpuFrame % (20 * Math.Max(_targetFps, 15)) == 0)
+                    _milkdropWaveMode = (_milkdropWaveMode + 1) % 6;
+            }
             
             // === PERSISTENT FRAME BUFFER (feedback loop) ===
             // Double-buffered: draw into front reading from back, then swap.

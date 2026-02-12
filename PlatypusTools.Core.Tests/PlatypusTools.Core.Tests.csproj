@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041</TargetFramework>
+    <UseWPF>true</UseWPF>
     <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -12,5 +13,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PlatypusTools.Core\PlatypusTools.Core.csproj" />
+    <ProjectReference Include="..\PlatypusTools.UI\PlatypusTools.UI.csproj" />
   </ItemGroup>
 </Project>
