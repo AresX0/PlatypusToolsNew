@@ -126,6 +126,31 @@ namespace PlatypusTools.UI.Models.VideoEditor
         /// Indicates if this clip represents audio only (extracted from video)
         /// </summary>
         public bool IsAudioOnly { get; set; }
+
+        /// <summary>
+        /// Speed multiplier for the clip (1.0 = normal, 0.5 = half, 2.0 = double).
+        /// </summary>
+        private double _speed = 1.0;
+        public double Speed
+        {
+            get => _speed;
+            set { _speed = Math.Clamp(value, 0.1, 100); OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Whether audio pitch should be preserved when speed != 1.0.
+        /// </summary>
+        public bool PreservePitch { get; set; } = true;
+
+        /// <summary>
+        /// Whether this clip has a freeze frame applied.
+        /// </summary>
+        public bool IsFreezeFrame { get; set; }
+
+        /// <summary>
+        /// Position within the clip to freeze at (when IsFreezeFrame is true).
+        /// </summary>
+        public TimeSpan FreezeAt { get; set; }
         
         /// <summary>
         /// Applied filters for this clip

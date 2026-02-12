@@ -18,6 +18,9 @@ namespace PlatypusTools.UI.Models.VideoEditor
         private bool _isLocked;
         private bool _isComposite = true;
         private double _height = 50;
+        private double _opacity = 1.0;
+        private string _blendMode = "Normal";
+        private string _outputRoute = "Master";
 
         public string Id { get; } = Guid.NewGuid().ToString();
 
@@ -62,6 +65,51 @@ namespace PlatypusTools.UI.Models.VideoEditor
             get => _height;
             set { _height = value; OnPropertyChanged(); }
         }
+
+        /// <summary>
+        /// Track opacity for compositing (0.0 = transparent, 1.0 = fully opaque).
+        /// Keyframeable in future.
+        /// </summary>
+        public double Opacity
+        {
+            get => _opacity;
+            set { _opacity = Math.Clamp(value, 0, 1); OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Blend mode for track compositing.
+        /// </summary>
+        public string BlendMode
+        {
+            get => _blendMode;
+            set { _blendMode = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Available blend modes for the track.
+        /// </summary>
+        public static string[] AvailableBlendModes { get; } = new[]
+        {
+            "Normal", "Add", "Multiply", "Screen", "Overlay", "Darken", "Lighten", "SoftLight", "HardLight"
+        };
+
+        /// <summary>
+        /// Output routing for multi-output export (TASK-330).
+        /// Tracks can be routed to different output files or streams.
+        /// </summary>
+        public string OutputRoute
+        {
+            get => _outputRoute;
+            set { _outputRoute = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Available output routes.
+        /// </summary>
+        public static string[] AvailableOutputRoutes { get; } = new[]
+        {
+            "Master", "Output A", "Output B", "Output C", "Preview Only", "Disabled"
+        };
 
         public ObservableCollection<TimelineClip> Clips { get; } = new();
 

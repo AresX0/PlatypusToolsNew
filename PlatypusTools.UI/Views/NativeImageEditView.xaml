@@ -101,6 +101,11 @@
                         <Button Content="🌓 Contrast" Click="Contrast_Click" Style="{StaticResource ToolBtn}"/>
                         <Button Content="🌊 Blur" Click="Blur_Click" Style="{StaticResource ToolBtn}"/>
                         <Button Content="🔪 Sharpen" Click="Sharpen_Click" Style="{StaticResource ToolBtn}"/>
+                        <Button Content="🎭 Saturation" Click="Saturation_Click" Style="{StaticResource ToolBtn}" ToolTip="Adjust saturation (+20%)"/>
+                        <Button Content="🌈 Hue" Click="HueRotate_Click" Style="{StaticResource ToolBtn}" ToolTip="Rotate hue by 30°"/>
+                        <Button Content="📜 Sepia" Click="Sepia_Click" Style="{StaticResource ToolBtn}" ToolTip="Apply warm sepia tone"/>
+                        <Button Content="🎞 Vintage" Click="Vintage_Click" Style="{StaticResource ToolBtn}" ToolTip="Vintage film look"/>
+                        <Button Content="🔲 Vignette" Click="Vignette_Click" Style="{StaticResource ToolBtn}" ToolTip="Dark edge vignette"/>
                         
                         <!-- Annotate -->
                         <TextBlock Text="ANNOTATE" Style="{StaticResource SectionLabel}"/>

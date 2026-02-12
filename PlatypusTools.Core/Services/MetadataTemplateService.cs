@@ -16,18 +16,25 @@ namespace PlatypusTools.Core.Services
     public class MetadataTemplateService
     {
         private static MetadataTemplateService? _instance;
+        /// <summary>Gets the singleton instance of the MetadataTemplateService.</summary>
         public static MetadataTemplateService Instance => _instance ??= new MetadataTemplateService();
         
         private readonly List<MetadataTemplate> _templates = new();
         private string _templatesDirectory = string.Empty;
         private string? _exiftoolPath;
         
+        /// <summary>Raised when a new template is added.</summary>
         public event EventHandler<MetadataTemplate>? TemplateAdded;
+        /// <summary>Raised when an existing template is updated.</summary>
         public event EventHandler<MetadataTemplate>? TemplateUpdated;
+        /// <summary>Raised when a template is deleted.</summary>
         public event EventHandler<MetadataTemplate>? TemplateDeleted;
+        /// <summary>Raised when a file has been processed with a template.</summary>
         public event EventHandler<MetadataApplyResult>? FileProcessed;
+        /// <summary>Raised when batch processing progress changes (0.0 to 1.0).</summary>
         public event EventHandler<double>? ProgressChanged;
         
+        /// <summary>Gets the list of all loaded metadata templates.</summary>
         public IReadOnlyList<MetadataTemplate> Templates => _templates.AsReadOnly();
         
         /// <summary>

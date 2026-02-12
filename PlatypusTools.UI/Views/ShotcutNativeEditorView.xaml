@@ -181,108 +181,121 @@
         <!-- Top Toolbar (like Shotcut) -->
         <Border Grid.Row="0" Background="{StaticResource HeaderBg}" 
                 BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1"
-                Padding="4">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                
-                <!-- File operations -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="OpenFile_Click">
+                Padding="4" MaxHeight="80">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <WrapPanel Orientation="Horizontal">
+                    <!-- Row 1: File & Edit Operations -->
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="OpenFile_Click">
                         <TextBlock Text="📁 Open" Foreground="White"/>
                     </Button>
-                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="SaveProject_Click">
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="SaveProject_Click">
                         <TextBlock Text="💾 Save" Foreground="White"/>
                     </Button>
-                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,2"/>
-                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="Undo_Click" ToolTip="Undo (Ctrl+Z)">
+                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,4"/>
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="Undo_Click" ToolTip="Undo (Ctrl+Z)">
                         <TextBlock Text="↩ Undo" Foreground="White"/>
                     </Button>
-                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="Redo_Click" ToolTip="Redo (Ctrl+Y)">
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="Redo_Click" ToolTip="Redo (Ctrl+Y)">
                         <TextBlock Text="↪ Redo" Foreground="White"/>
                     </Button>
-                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,2"/>
+                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,4"/>
+                    
                     <!-- Advanced Edits -->
-                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="RollingEdit_Click" ToolTip="Rolling Edit — adjust edit point between clips">
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="RollingEdit_Click" ToolTip="Rolling Edit — adjust edit point between clips">
                         <TextBlock Text="↔ Roll" Foreground="White"/>
                     </Button>
-                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="SlipEdit_Click" ToolTip="Slip Edit — shift source under clip">
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="SlipEdit_Click" ToolTip="Slip Edit — shift source under clip">
                         <TextBlock Text="⇄ Slip" Foreground="White"/>
                     </Button>
-                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="SlideEdit_Click" ToolTip="Slide Edit — move clip, adjust neighbors">
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="SlideEdit_Click" ToolTip="Slide Edit — move clip, adjust neighbors">
                         <TextBlock Text="⇔ Slide" Foreground="White"/>
                     </Button>
-                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,2"/>
+                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,4"/>
+                    
                     <!-- Clip Operations -->
-                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="ReversePlayback_Click" ToolTip="Toggle reverse playback">
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="ReversePlayback_Click" ToolTip="Toggle reverse playback">
                         <TextBlock Text="⏪ Rev" Foreground="White"/>
                     </Button>
-                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="CopyKeyframes_Click" ToolTip="Copy clip filters">
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="CopyKeyframes_Click" ToolTip="Copy clip filters">
                         <TextBlock Text="📋 Copy" Foreground="White"/>
                     </Button>
-                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="PasteKeyframes_Click" ToolTip="Paste filters to clip">
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="PasteKeyframes_Click" ToolTip="Paste filters to clip">
                         <TextBlock Text="📌 Paste" Foreground="White"/>
                     </Button>
-                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,2"/>
+                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,4"/>
+                    
                     <!-- Text/Title & Recording -->
-                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="AddTextTitle_Click" ToolTip="Text/Title generator">
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="AddTextTitle_Click" ToolTip="Text/Title generator">
                         <TextBlock Text="🔤 Title" Foreground="White"/>
                     </Button>
-                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="VoiceOverRecord_Click" ToolTip="Record voice-over">
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="VoiceOverRecord_Click" ToolTip="Record voice-over">
                         <TextBlock Text="🎙️ VO" Foreground="White"/>
                     </Button>
-                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="AddChapterMarker_Click" ToolTip="Add chapter marker at playhead">
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="AddChapterMarker_Click" ToolTip="Add chapter marker at playhead">
                         <TextBlock Text="📑 Ch" Foreground="White"/>
                     </Button>
-                </StackPanel>
-                
-                <!-- Center: Shuttle/Jog Controls -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                    <Button Style="{StaticResource IconButton}" Click="ShuttleReverse_Click" ToolTip="Shuttle Reverse (J)">
+                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,4"/>
+                    
+                    <!-- Speed & Effects -->
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="SpeedRamping_Click" ToolTip="Clip speed ramping">
+                        <TextBlock Text="⚡ Speed" Foreground="White"/>
+                    </Button>
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="FreezeFrame_Click" ToolTip="Insert freeze frame at playhead">
+                        <TextBlock Text="❄ Freeze" Foreground="White"/>
+                    </Button>
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="SnapToNearestEdit_Click" ToolTip="Snap playhead to nearest edit">
+                        <TextBlock Text="🧲 Snap" Foreground="White"/>
+                    </Button>
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="TimeRemap_Click" ToolTip="Time remap / speed curves">
+                        <TextBlock Text="⏱ Remap" Foreground="White"/>
+                    </Button>
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="ExternalMonitor_Click" ToolTip="External preview monitor (second screen)">
+                        <TextBlock Text="🖥 Monitor" Foreground="White"/>
+                    </Button>
+                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,4"/>
+                    
+                    <!-- Playback Controls -->
+                    <Button Style="{StaticResource IconButton}" Margin="2,2" Click="ShuttleReverse_Click" ToolTip="Shuttle Reverse (J)">
                         <TextBlock Text="⏪" Foreground="White" FontSize="12"/>
                     </Button>
-                    <Button Style="{StaticResource IconButton}" Click="JogBackward_Click" ToolTip="Jog -1 frame">
+                    <Button Style="{StaticResource IconButton}" Margin="2,2" Click="JogBackward_Click" ToolTip="Jog -1 frame">
                         <TextBlock Text="⏮" Foreground="White" FontSize="12"/>
                     </Button>
-                    <Button Style="{StaticResource IconButton}" Click="ShuttlePause_Click" ToolTip="Pause (K)">
+                    <Button Style="{StaticResource IconButton}" Margin="2,2" Click="ShuttlePause_Click" ToolTip="Pause (K)">
                         <TextBlock Text="⏸" Foreground="White" FontSize="12"/>
                     </Button>
-                    <Button Style="{StaticResource IconButton}" Click="JogForward_Click" ToolTip="Jog +1 frame">
+                    <Button Style="{StaticResource IconButton}" Margin="2,2" Click="JogForward_Click" ToolTip="Jog +1 frame">
                         <TextBlock Text="⏭" Foreground="White" FontSize="12"/>
                     </Button>
-                    <Button Style="{StaticResource IconButton}" Click="ShuttleForward_Click" ToolTip="Shuttle Forward (L)">
+                    <Button Style="{StaticResource IconButton}" Margin="2,2" Click="ShuttleForward_Click" ToolTip="Shuttle Forward (L)">
                         <TextBlock Text="⏩" Foreground="White" FontSize="12"/>
                     </Button>
-                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="4,2"/>
-                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="SetLoopRegion_Click" ToolTip="Toggle loop region (In/Out)">
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="SetLoopRegion_Click" ToolTip="Toggle loop region (In/Out)">
                         <TextBlock Text="🔁 Loop" Foreground="White"/>
                     </Button>
-                </StackPanel>
-                
-                <!-- Right: Proxy, Preview, Export -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="GenerateProxy_Click" ToolTip="Generate proxy media">
+                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,4"/>
+                    
+                    <!-- Preview & Export -->
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="GenerateProxy_Click" ToolTip="Generate proxy media">
                         <TextBlock Text="🎞 Proxy" Foreground="White"/>
                     </Button>
-                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="SetPreviewScale_Click" ToolTip="Preview scaling">
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="SetPreviewScale_Click" ToolTip="Preview scaling">
                         <TextBlock x:Name="PreviewScaleLabel" Text="📐 100%" Foreground="White"/>
                     </Button>
-                    <Button Style="{StaticResource DarkButton}" Margin="2,0" Click="RenderPreview_Click" ToolTip="Quick render preview">
+                    <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="RenderPreview_Click" ToolTip="Quick render preview">
                         <TextBlock Text="👁 Preview" Foreground="White"/>
                     </Button>
-                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="4,2"/>
+                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,4"/>
                     <Button Padding="12,4" 
                             Background="{StaticResource AccentColor}"
                             BorderThickness="0"
                             Style="{StaticResource DarkButton}"
+                            Margin="4,2"
                             Click="Export_Click">
                         <TextBlock Text="📤 Export" Foreground="White"/>
                     </Button>
-                </StackPanel>
-            </Grid>
+                </WrapPanel>
+            </ScrollViewer>
         </Border>
         
         <!-- Main content area -->

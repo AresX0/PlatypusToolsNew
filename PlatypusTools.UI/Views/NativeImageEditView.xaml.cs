@@ -398,6 +398,89 @@ namespace PlatypusTools.UI.Views
             StatusText.Text = "Applied sharpen";
         }
 
+        private void Saturation_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentImage == null) return;
+            SaveUndoState();
+            _currentImage.Mutate(x => x.Saturate(1.4f));
+            UpdatePreview();
+            StatusText.Text = "Increased saturation";
+        }
+
+        private void HueRotate_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentImage == null) return;
+            SaveUndoState();
+            _currentImage.Mutate(x => x.Hue(30f));
+            UpdatePreview();
+            StatusText.Text = "Rotated hue +30°";
+        }
+
+        private void Sepia_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentImage == null) return;
+            SaveUndoState();
+            // Sepia = desaturate + warm tint via color matrix
+            _currentImage.Mutate(x =>
+            {
+                x.Saturate(0);
+                x.Brightness(1.05f);
+                x.Contrast(0.95f);
+                // Apply warm tint using a filter
+                x.ProcessPixelRowsAsVector4(row =>
+                {
+                    for (int i = 0; i < row.Length; i++)
+                    {
+                        ref var pixel = ref row[i];
+                        float r = pixel.X;
+                        float g = pixel.Y;
+                        float b = pixel.Z;
+                        pixel.X = Math.Min(1f, r * 1.2f + 0.04f);  // warmer red
+                        pixel.Y = Math.Min(1f, g * 1.05f + 0.02f);  // slight green
+                        pixel.Z = Math.Min(1f, b * 0.85f);          // reduce blue
+                    }
+                });
+            });
+            UpdatePreview();
+            StatusText.Text = "Applied sepia tone";
+        }
+
+        private void Vintage_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentImage == null) return;
+            SaveUndoState();
+            _currentImage.Mutate(x =>
+            {
+                // Reduce saturation, slightly boost contrast, add warm tint
+                x.Saturate(0.6f);
+                x.Contrast(1.1f);
+                x.Brightness(0.95f);
+                x.GaussianBlur(0.3f);
+                // Warm vintage toning
+                x.ProcessPixelRowsAsVector4(row =>
+                {
+                    for (int i = 0; i < row.Length; i++)
+                    {
+                        ref var pixel = ref row[i];
+                        pixel.X = Math.Min(1f, pixel.X * 1.1f + 0.02f);  // warm red
+                        pixel.Y = Math.Min(1f, pixel.Y * 1.02f);          // keep green
+                        pixel.Z = Math.Max(0f, pixel.Z * 0.9f);           // cool blue
+                    }
+                });
+            });
+            UpdatePreview();
+            StatusText.Text = "Applied vintage filter";
+        }
+
+        private void Vignette_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentImage == null) return;
+            SaveUndoState();
+            _currentImage.Mutate(x => x.Vignette());
+            UpdatePreview();
+            StatusText.Text = "Applied vignette";
+        }
+
         #endregion
 
         #region Annotation Mode

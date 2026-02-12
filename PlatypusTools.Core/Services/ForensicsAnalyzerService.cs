@@ -43,6 +43,9 @@ namespace PlatypusTools.Core.Services
             4740, 4756, 4767, 4768, 4769, 4771, 4776, 4778, 4779, 1102, 4688, 4689
         };
 
+        /// <summary>
+        /// Initializes a new instance of the ForensicsAnalyzerService with default parallelism settings.
+        /// </summary>
         public ForensicsAnalyzerService()
         {
             _maxDegreeOfParallelism = Environment.ProcessorCount;

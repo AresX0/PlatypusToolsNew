@@ -621,7 +621,9 @@ namespace PlatypusTools.UI.Views
                         : Core.Models.Video.TrackType.Audio,
                     IsVisible = !uiTrack.IsHidden,
                     IsMuted = uiTrack.IsMuted,
-                    IsLocked = uiTrack.IsLocked
+                    IsLocked = uiTrack.IsLocked,
+                    Opacity = uiTrack.Opacity,
+                    BlendMode = uiTrack.BlendMode
                 };
                 
                 foreach (var uiClip in uiTrack.Clips)
@@ -1212,6 +1214,269 @@ namespace PlatypusTools.UI.Views
 
         #endregion
 
+        #region Speed Ramping
+
+        private void SpeedRamping_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedTimelineClip == null)
+            {
+                MessageBox.Show("Select a clip to adjust speed.", "Speed Ramping", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            
+            var clip = _selectedTimelineClip;
+            
+            var dialog = new Window
+            {
+                Title = "Speed Ramping",
+                Width = 400, Height = 340,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Window.GetWindow(this),
+                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x1E, 0x1E, 0x1E))
+            };
+            
+            var stack = new StackPanel { Margin = new Thickness(20) };
+            stack.Children.Add(new TextBlock { Text = "Speed Ramping", FontSize = 16, FontWeight = FontWeights.Bold,
+                Foreground = System.Windows.Media.Brushes.White, Margin = new Thickness(0, 0, 0, 15) });
+            
+            stack.Children.Add(new TextBlock { Text = $"Clip: {clip.Name}", Foreground = System.Windows.Media.Brushes.Gray, Margin = new Thickness(0, 0, 0, 10) });
+            
+            // Speed slider
+            var speedPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 5) };
+            speedPanel.Children.Add(new TextBlock { Text = "Speed:", Foreground = System.Windows.Media.Brushes.White, VerticalAlignment = VerticalAlignment.Center, Width = 60 });
+            var speedSlider = new Slider { Width = 200, Minimum = 0.1, Maximum = 8, Value = clip.Speed, TickFrequency = 0.1 };
+            var speedLabel = new TextBlock { Text = $"{clip.Speed:F2}x", Foreground = System.Windows.Media.Brushes.Gray, 
+                VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0), Width = 50 };
+            speedSlider.ValueChanged += (s, args) => speedLabel.Text = $"{args.NewValue:F2}x";
+            speedPanel.Children.Add(speedSlider);
+            speedPanel.Children.Add(speedLabel);
+            stack.Children.Add(speedPanel);
+            
+            // Preset buttons
+            stack.Children.Add(new TextBlock { Text = "Presets:", Foreground = System.Windows.Media.Brushes.White, Margin = new Thickness(0, 10, 0, 5) });
+            var presetPanel = new WrapPanel { Margin = new Thickness(0, 0, 0, 10) };
+            foreach (var (label, speed) in new[] { ("0.25x", 0.25), ("0.5x", 0.5), ("1x", 1.0), ("1.5x", 1.5), ("2x", 2.0), ("4x", 4.0), ("8x", 8.0) })
+            {
+                var btn = new Button { Content = label, Width = 44, Margin = new Thickness(0, 0, 4, 4), Padding = new Thickness(4, 2, 4, 2) };
+                var s = speed;
+                btn.Click += (_, _) => { speedSlider.Value = s; };
+                presetPanel.Children.Add(btn);
+            }
+            stack.Children.Add(presetPanel);
+            
+            // Preserve pitch
+            var pitchCheck = new CheckBox { Content = "Preserve Audio Pitch", Foreground = System.Windows.Media.Brushes.White, 
+                IsChecked = clip.PreservePitch, Margin = new Thickness(0, 0, 0, 15) };
+            stack.Children.Add(pitchCheck);
+            
+            // Buttons
+            var btnPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+            var cancelBtn = new Button { Content = "Cancel", Width = 80, Margin = new Thickness(0, 0, 10, 0), Padding = new Thickness(8, 4, 8, 4) };
+            cancelBtn.Click += (_, _) => dialog.Close();
+            var applyBtn = new Button { Content = "Apply", Width = 80, Padding = new Thickness(8, 4, 8, 4),
+                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x88, 0xFF)),
+                Foreground = System.Windows.Media.Brushes.White, BorderThickness = new Thickness(0) };
+            applyBtn.Click += (_, _) =>
+            {
+                clip.Speed = speedSlider.Value;
+                clip.PreservePitch = pitchCheck.IsChecked == true;
+                UpdatePropertiesPanel(clip);
+                dialog.Close();
+            };
+            btnPanel.Children.Add(cancelBtn);
+            btnPanel.Children.Add(applyBtn);
+            stack.Children.Add(btnPanel);
+            
+            dialog.Content = stack;
+            dialog.ShowDialog();
+        }
+
+        #endregion
+
+        #region Freeze Frame
+
+        private void FreezeFrame_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedTimelineClip == null)
+            {
+                MessageBox.Show("Select a clip to insert a freeze frame.", "Freeze Frame", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            
+            var clip = _selectedTimelineClip;
+            var freezePoint = Timeline.Position;
+            
+            // Validate freeze point is within the clip
+            if (freezePoint < clip.StartTime || freezePoint > clip.EndTime)
+            {
+                MessageBox.Show("Move the playhead to a position within the selected clip.", "Freeze Frame",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            
+            // Find the track containing this clip
+            foreach (var track in TimelineModel.Tracks)
+            {
+                var idx = track.Clips.IndexOf(clip);
+                if (idx < 0) continue;
+                
+                // Split the clip at freeze point and insert a freeze clip
+                var freezeDuration = TimeSpan.FromSeconds(2); // Default 2s freeze
+                var offsetInClip = freezePoint - clip.StartTime;
+                
+                // Create the freeze frame clip
+                var freezeClip = new TimelineClip
+                {
+                    Name = $"Freeze: {clip.Name}",
+                    SourcePath = clip.SourcePath,
+                    StartTime = freezePoint,
+                    Duration = freezeDuration,
+                    InPoint = clip.InPoint + offsetInClip,
+                    OutPoint = clip.InPoint + offsetInClip + TimeSpan.FromMilliseconds(33), // Single frame
+                    SourceDuration = clip.SourceDuration,
+                    IsFreezeFrame = true,
+                    FreezeAt = clip.InPoint + offsetInClip,
+                    Color = System.Windows.Media.Colors.LightBlue
+                };
+                
+                // Add freeze filter
+                freezeClip.Filters.Add(new Filter
+                {
+                    Name = "freeze",
+                    DisplayName = "Freeze Frame",
+                    Category = Core.Models.Video.FilterCategory.Time,
+                    FFmpegFilterName = "freeze",
+                    Icon = "❄",
+                    Description = "Holds a single frame",
+                    IsEnabled = true
+                });
+                
+                // Shift all subsequent clips
+                for (int i = idx + 1; i < track.Clips.Count; i++)
+                    track.Clips[i].StartTime += freezeDuration;
+                
+                // If freeze point splits the clip, trim the original and add remainder after freeze
+                if (freezePoint > clip.StartTime && freezePoint < clip.EndTime)
+                {
+                    var origEnd = clip.EndTime;
+                    var origOutPoint = clip.OutPoint;
+                    
+                    // Trim original clip to freeze point
+                    clip.Duration = freezePoint - clip.StartTime;
+                    clip.OutPoint = clip.InPoint + clip.Duration;
+                    
+                    // Insert freeze clip
+                    track.Clips.Insert(idx + 1, freezeClip);
+                    
+                    // Create remainder clip
+                    var remainder = new TimelineClip
+                    {
+                        Name = clip.Name,
+                        SourcePath = clip.SourcePath,
+                        StartTime = freezePoint + freezeDuration,
+                        Duration = origEnd - freezePoint,
+                        InPoint = clip.InPoint + (freezePoint - clip.StartTime),
+                        OutPoint = origOutPoint,
+                        SourceDuration = clip.SourceDuration,
+                        Color = clip.Color
+                    };
+                    track.Clips.Insert(idx + 2, remainder);
+                }
+                else
+                {
+                    track.Clips.Insert(idx + 1, freezeClip);
+                }
+                
+                TimelineModel.RecalculateDuration();
+                Timeline.TimelineModel = TimelineModel;
+                
+                MessageBox.Show($"Inserted {freezeDuration.TotalSeconds}s freeze frame at {freezePoint:hh\\:mm\\:ss\\.ff}", 
+                    "Freeze Frame", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+        }
+
+        #endregion
+
+        #region Keyframe Snapping
+
+        /// <summary>
+        /// Snaps the playhead to the nearest clip boundary, marker, or edit point.
+        /// </summary>
+        private void SnapToNearestEdit_Click(object sender, RoutedEventArgs e)
+        {
+            var position = Timeline.Position;
+            var snapPoints = new List<TimeSpan>();
+            
+            // Collect all snap points from clip boundaries
+            foreach (var track in TimelineModel.Tracks)
+            {
+                foreach (var clip in track.Clips)
+                {
+                    snapPoints.Add(clip.StartTime);
+                    snapPoints.Add(clip.EndTime);
+                }
+            }
+            
+            // Add chapter markers as snap points
+            foreach (var marker in ChapterMarkers)
+                snapPoints.Add(marker.Position);
+            
+            // Add in/out points
+            if (TimelineModel.InPoint != TimeSpan.Zero) snapPoints.Add(TimelineModel.InPoint);
+            if (TimelineModel.OutPoint != TimeSpan.Zero) snapPoints.Add(TimelineModel.OutPoint);
+            
+            if (snapPoints.Count == 0) return;
+            
+            // Find nearest point
+            var nearest = snapPoints.OrderBy(p => Math.Abs((p - position).TotalMilliseconds)).First();
+            Timeline.Position = nearest;
+        }
+
+        /// <summary>
+        /// Snaps playhead to next edit point.
+        /// </summary>
+        private void SnapToNextEdit()
+        {
+            var position = Timeline.Position;
+            var nextPoints = new List<TimeSpan>();
+            
+            foreach (var track in TimelineModel.Tracks)
+            {
+                foreach (var clip in track.Clips)
+                {
+                    if (clip.StartTime > position) nextPoints.Add(clip.StartTime);
+                    if (clip.EndTime > position) nextPoints.Add(clip.EndTime);
+                }
+            }
+            
+            if (nextPoints.Count > 0)
+                Timeline.Position = nextPoints.Min();
+        }
+
+        /// <summary>
+        /// Snaps playhead to previous edit point.
+        /// </summary>
+        private void SnapToPreviousEdit()
+        {
+            var position = Timeline.Position;
+            var prevPoints = new List<TimeSpan>();
+            
+            foreach (var track in TimelineModel.Tracks)
+            {
+                foreach (var clip in track.Clips)
+                {
+                    if (clip.StartTime < position) prevPoints.Add(clip.StartTime);
+                    if (clip.EndTime < position) prevPoints.Add(clip.EndTime);
+                }
+            }
+            
+            if (prevPoints.Count > 0)
+                Timeline.Position = prevPoints.Max();
+        }
+
+        #endregion
+
         #region Text/Title Generator
 
         /// <summary>
@@ -1288,6 +1553,47 @@ namespace PlatypusTools.UI.Views
             // Scrolling credits option
             var scrollCheck = new CheckBox { Content = "Scrolling Credits (vertical scroll)", Foreground = System.Windows.Media.Brushes.White, Margin = new Thickness(0, 0, 0, 5) };
             stack.Children.Add(scrollCheck);
+            
+            // Scroll speed (visible when scrolling is checked)
+            var scrollSpeedPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(20, 0, 0, 5), Visibility = Visibility.Collapsed };
+            scrollSpeedPanel.Children.Add(new TextBlock { Text = "Scroll Speed:", Foreground = System.Windows.Media.Brushes.Gray, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) });
+            var scrollSpeedSlider = new Slider { Width = 140, Minimum = 10, Maximum = 200, Value = 60 };
+            var scrollSpeedLabel = new TextBlock { Text = "60 px/s", Foreground = System.Windows.Media.Brushes.Gray, 
+                VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
+            scrollSpeedSlider.ValueChanged += (s, args) => scrollSpeedLabel.Text = $"{(int)args.NewValue} px/s";
+            scrollSpeedPanel.Children.Add(scrollSpeedSlider);
+            scrollSpeedPanel.Children.Add(scrollSpeedLabel);
+            stack.Children.Add(scrollSpeedPanel);
+            scrollCheck.Checked += (_, _) => scrollSpeedPanel.Visibility = Visibility.Visible;
+            scrollCheck.Unchecked += (_, _) => scrollSpeedPanel.Visibility = Visibility.Collapsed;
+
+            // 3D Perspective options
+            var perspectiveExpander = new Expander
+            {
+                Header = new TextBlock { Text = "3D Text / Perspective", Foreground = System.Windows.Media.Brushes.White },
+                Foreground = System.Windows.Media.Brushes.White,
+                Margin = new Thickness(0, 5, 0, 5),
+                IsExpanded = false
+            };
+            var perspStack = new StackPanel { Margin = new Thickness(20, 5, 0, 0) };
+            var perspXPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 4) };
+            perspXPanel.Children.Add(new TextBlock { Text = "X Rotation:", Foreground = System.Windows.Media.Brushes.Gray, Width = 80, VerticalAlignment = VerticalAlignment.Center });
+            var perspXSlider = new Slider { Width = 140, Minimum = -60, Maximum = 60, Value = 0 };
+            var perspXLabel = new TextBlock { Text = "0°", Foreground = System.Windows.Media.Brushes.Gray, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
+            perspXSlider.ValueChanged += (s, args) => perspXLabel.Text = $"{(int)args.NewValue}°";
+            perspXPanel.Children.Add(perspXSlider);
+            perspXPanel.Children.Add(perspXLabel);
+            perspStack.Children.Add(perspXPanel);
+            var perspYPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 4) };
+            perspYPanel.Children.Add(new TextBlock { Text = "Y Rotation:", Foreground = System.Windows.Media.Brushes.Gray, Width = 80, VerticalAlignment = VerticalAlignment.Center });
+            var perspYSlider = new Slider { Width = 140, Minimum = -60, Maximum = 60, Value = 0 };
+            var perspYLabel = new TextBlock { Text = "0°", Foreground = System.Windows.Media.Brushes.Gray, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
+            perspYSlider.ValueChanged += (s, args) => perspYLabel.Text = $"{(int)args.NewValue}°";
+            perspYPanel.Children.Add(perspYSlider);
+            perspYPanel.Children.Add(perspYLabel);
+            perspStack.Children.Add(perspYPanel);
+            perspectiveExpander.Content = perspStack;
+            stack.Children.Add(perspectiveExpander);
 
             // Duration
             var durPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 10) };
@@ -1296,13 +1602,22 @@ namespace PlatypusTools.UI.Views
             durPanel.Children.Add(durBox);
             stack.Children.Add(durPanel);
 
-            // Animation preset
+            // Animation preset — expanded with more options (TASK-359)
             stack.Children.Add(new TextBlock { Text = "Animation:", Foreground = System.Windows.Media.Brushes.White, Margin = new Thickness(0, 0, 0, 4) });
-            var animCombo = new ComboBox { Margin = new Thickness(0, 0, 0, 15) };
-            foreach (var anim in new[] { "None", "Fade In", "Slide Up", "Slide Left", "Zoom In", "Typewriter", "Glitch", "Bounce" })
+            var animCombo = new ComboBox { Margin = new Thickness(0, 0, 0, 5) };
+            foreach (var anim in new[] { "None", "Fade In", "Fade Out", "Slide Up", "Slide Down", "Slide Left", "Slide Right",
+                "Zoom In", "Zoom Out", "Spin In", "Bounce In", "Typewriter", "Glitch", "Flicker", "Blur In", "Wave" })
                 animCombo.Items.Add(anim);
             animCombo.SelectedIndex = 1;
             stack.Children.Add(animCombo);
+            
+            // Out animation
+            stack.Children.Add(new TextBlock { Text = "Exit Animation:", Foreground = System.Windows.Media.Brushes.White, Margin = new Thickness(0, 0, 0, 4) });
+            var outAnimCombo = new ComboBox { Margin = new Thickness(0, 0, 0, 15) };
+            foreach (var anim in new[] { "None", "Fade Out", "Slide Down", "Slide Right", "Zoom Out", "Spin Out", "Bounce Out", "Blur Out" })
+                outAnimCombo.Items.Add(anim);
+            outAnimCombo.SelectedIndex = 0;
+            stack.Children.Add(outAnimCombo);
 
             // Buttons
             var buttonPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
@@ -1349,12 +1664,34 @@ namespace PlatypusTools.UI.Views
                 textElement.InAnimation = animName switch
                 {
                     "Fade In" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.FadeIn },
+                    "Fade Out" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.FadeOut },
                     "Slide Up" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.SlideUp },
+                    "Slide Down" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.SlideDown },
                     "Slide Left" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.SlideLeft },
+                    "Slide Right" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.SlideRight },
                     "Zoom In" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.ZoomIn },
+                    "Zoom Out" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.ZoomOut },
+                    "Spin In" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.SpinIn },
+                    "Bounce In" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.BounceIn },
                     "Typewriter" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.Typewriter },
                     "Glitch" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.GlitchIn },
-                    "Bounce" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.BounceIn },
+                    "Flicker" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.FlickerIn },
+                    "Blur In" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.BlurIn },
+                    "Wave" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.WaveIn },
+                    _ => null
+                };
+                
+                // Exit animation (TASK-359)
+                var outAnimName = outAnimCombo.SelectedItem?.ToString() ?? "None";
+                textElement.OutAnimation = outAnimName switch
+                {
+                    "Fade Out" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.FadeOut },
+                    "Slide Down" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.SlideDown },
+                    "Slide Right" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.SlideRight },
+                    "Zoom Out" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.ZoomOut },
+                    "Spin Out" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.SpinOut },
+                    "Bounce Out" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.BounceOut },
+                    "Blur Out" => new Core.Models.Video.TextAnimation { Type = Core.Models.Video.TextAnimationType.BlurOut },
                     _ => null
                 };
 
@@ -1387,6 +1724,108 @@ namespace PlatypusTools.UI.Views
                     Description = textElement.Text,
                     IsEnabled = true
                 };
+                
+                // Store text rendering parameters for FFmpeg drawtext export (TASK-360)
+                textFilter.Parameters.Add(new Core.Models.Video.FilterParameter 
+                { 
+                    Name = "text", DisplayName = "Text", Type = Core.Models.Video.FilterParameterType.String, 
+                    Value = textElement.Text 
+                });
+                textFilter.Parameters.Add(new Core.Models.Video.FilterParameter 
+                { 
+                    Name = "fontfile", DisplayName = "Font", Type = Core.Models.Video.FilterParameterType.String, 
+                    Value = textElement.FontFamily 
+                });
+                textFilter.Parameters.Add(new Core.Models.Video.FilterParameter 
+                { 
+                    Name = "fontsize", DisplayName = "Font Size", Type = Core.Models.Video.FilterParameterType.Integer, 
+                    Value = (int)textElement.FontSize 
+                });
+                textFilter.Parameters.Add(new Core.Models.Video.FilterParameter 
+                { 
+                    Name = "fontcolor", DisplayName = "Color", Type = Core.Models.Video.FilterParameterType.Color, 
+                    Value = textElement.Color.TrimStart('#') 
+                });
+                
+                // Drop shadow parameters (TASK-360)
+                if (shadowCheck.IsChecked == true)
+                {
+                    textFilter.Parameters.Add(new Core.Models.Video.FilterParameter
+                    {
+                        Name = "shadowcolor", DisplayName = "Shadow Color", Type = Core.Models.Video.FilterParameterType.Color,
+                        Value = (textElement.ShadowColor ?? "#80000000").TrimStart('#')
+                    });
+                    textFilter.Parameters.Add(new Core.Models.Video.FilterParameter
+                    {
+                        Name = "shadowx", DisplayName = "Shadow X", Type = Core.Models.Video.FilterParameterType.Integer,
+                        Value = (int)textElement.ShadowOffsetX
+                    });
+                    textFilter.Parameters.Add(new Core.Models.Video.FilterParameter
+                    {
+                        Name = "shadowy", DisplayName = "Shadow Y", Type = Core.Models.Video.FilterParameterType.Integer,
+                        Value = (int)textElement.ShadowOffsetY
+                    });
+                }
+                
+                // Outline/border parameters (TASK-360)
+                if (outlineCheck.IsChecked == true && textElement.OutlineColor != null)
+                {
+                    textFilter.Parameters.Add(new Core.Models.Video.FilterParameter
+                    {
+                        Name = "borderw", DisplayName = "Outline Width", Type = Core.Models.Video.FilterParameterType.Integer,
+                        Value = (int)textElement.OutlineWidth
+                    });
+                    textFilter.Parameters.Add(new Core.Models.Video.FilterParameter
+                    {
+                        Name = "bordercolor", DisplayName = "Outline Color", Type = Core.Models.Video.FilterParameterType.Color,
+                        Value = textElement.OutlineColor.TrimStart('#')
+                    });
+                }
+                
+                // Position parameters
+                textFilter.Parameters.Add(new Core.Models.Video.FilterParameter
+                {
+                    Name = "x", DisplayName = "X Position", Type = Core.Models.Video.FilterParameterType.String,
+                    Value = $"(w-text_w)*{textElement.PositionX:F2}"
+                });
+                textFilter.Parameters.Add(new Core.Models.Video.FilterParameter
+                {
+                    Name = "y", DisplayName = "Y Position", Type = Core.Models.Video.FilterParameterType.String,
+                    Value = $"(h-text_h)*{textElement.PositionY:F2}"
+                });
+                
+                // Scrolling text support (TASK-357)
+                if (scrollCheck.IsChecked == true)
+                {
+                    var scrollSpeed = (int)scrollSpeedSlider.Value;
+                    // Override Y position to create vertical scroll: y starts at bottom, scrolls to top
+                    textFilter.Parameters.RemoveAll(p => p.Name == "y");
+                    textFilter.Parameters.Add(new Core.Models.Video.FilterParameter
+                    {
+                        Name = "y", DisplayName = "Y Position (Scroll)", Type = Core.Models.Video.FilterParameterType.String,
+                        Value = $"h-{scrollSpeed}*t"
+                    });
+                }
+                
+                // 3D perspective parameters (TASK-358) — stored as metadata for ASS/drawtext overlay
+                var pxRot = (int)perspXSlider.Value;
+                var pyRot = (int)perspYSlider.Value;
+                if (pxRot != 0 || pyRot != 0)
+                {
+                    textFilter.Parameters.Add(new Core.Models.Video.FilterParameter
+                    {
+                        Name = "perspX", DisplayName = "3D X Rotation", Type = Core.Models.Video.FilterParameterType.Integer,
+                        Value = pxRot
+                    });
+                    textFilter.Parameters.Add(new Core.Models.Video.FilterParameter
+                    {
+                        Name = "perspY", DisplayName = "3D Y Rotation", Type = Core.Models.Video.FilterParameterType.Integer,
+                        Value = pyRot
+                    });
+                    // Apply perspective via rotate filter with angle expression
+                    textElement.Rotation = pxRot; // Store primary rotation
+                }
+                
                 titleClip.Filters.Add(textFilter);
                 
                 titleTrack.Clips.Add(titleClip);
@@ -2311,10 +2750,39 @@ namespace PlatypusTools.UI.Views
             AddPropertyRow("In Point", clip.InPoint.ToString(@"hh\:mm\:ss\.ff"));
             AddPropertyRow("Out Point", clip.OutPoint.ToString(@"hh\:mm\:ss\.ff"));
             AddPropertyRow("Gain", $"{clip.Gain:F2}");
+            AddPropertyRow("Speed", $"{clip.Speed:F2}x");
             AddPropertyRow("Source", clip.SourcePath);
             
             // Add edit controls
             AddPropertySlider("Gain", clip.Gain, 0, 2, value => clip.Gain = value);
+            AddPropertySlider("Speed", clip.Speed, 0.1, 4.0, value =>
+            {
+                clip.Speed = value;
+                // Adjust clip duration based on speed
+            });
+            
+            // Freeze frame toggle
+            AddPropertyToggle("Freeze Frame", clip.IsFreezeFrame, isOn =>
+            {
+                clip.IsFreezeFrame = isOn;
+                if (isOn)
+                {
+                    clip.FreezeAt = Timeline.Position > clip.StartTime && Timeline.Position < clip.EndTime
+                        ? Timeline.Position - clip.StartTime 
+                        : TimeSpan.Zero;
+                }
+            });
+            
+            // Track opacity for the track containing this clip
+            foreach (var track in TimelineModel.Tracks)
+            {
+                if (track.Clips.Contains(clip))
+                {
+                    AddPropertySlider($"Track Opacity ({track.Name})", track.Opacity, 0, 1, value => track.Opacity = value);
+                    AddPropertyCombo($"Blend Mode ({track.Name})", TimelineTrack.AvailableBlendModes, track.BlendMode, value => track.BlendMode = value);
+                    break;
+                }
+            }
         }
 
         private void AddPropertyRow(string label, string value)
@@ -2393,6 +2861,43 @@ namespace PlatypusTools.UI.Views
             PropertiesPanel.Children.Add(row);
         }
 
+        private void AddPropertyToggle(string label, bool value, Action<bool> onChanged)
+        {
+            var check = new CheckBox
+            {
+                Content = label,
+                IsChecked = value,
+                Foreground = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0xCC, 0xCC, 0xCC)),
+                FontSize = 11,
+                Margin = new Thickness(0, 8, 0, 0)
+            };
+            check.Checked += (s, e) => onChanged(true);
+            check.Unchecked += (s, e) => onChanged(false);
+            PropertiesPanel.Children.Add(check);
+        }
+
+        private void AddPropertyCombo(string label, string[] options, string selected, Action<string> onChanged)
+        {
+            var row = new StackPanel { Margin = new Thickness(0, 8, 0, 0) };
+            row.Children.Add(new TextBlock
+            {
+                Text = label,
+                Foreground = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0xCC, 0xCC, 0xCC)),
+                FontSize = 11
+            });
+            var combo = new ComboBox { Margin = new Thickness(0, 4, 0, 0), FontSize = 11 };
+            foreach (var opt in options) combo.Items.Add(opt);
+            combo.SelectedItem = selected;
+            combo.SelectionChanged += (s, e) =>
+            {
+                if (combo.SelectedItem is string val) onChanged(val);
+            };
+            row.Children.Add(combo);
+            PropertiesPanel.Children.Add(row);
+        }
+
         #region Customizable Layouts
         
         private bool _leftPanelVisible = true;
@@ -2456,6 +2961,298 @@ namespace PlatypusTools.UI.Views
             TimelineSplitter.Visibility = timeline ? Visibility.Visible : Visibility.Collapsed;
         }
         
+        #endregion
+
+        #region Time Remap (TASK-351)
+
+        /// <summary>
+        /// Opens a time remap/speed curve editor dialog for the selected clip.
+        /// Allows defining keyframeable speed changes over the clip duration.
+        /// </summary>
+        private void TimeRemap_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedTimelineClip == null)
+            {
+                MessageBox.Show("Select a clip to apply time remapping.", "Time Remap", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            
+            var clip = _selectedTimelineClip;
+            
+            var dialog = new Window
+            {
+                Title = "Time Remap / Speed Curves",
+                Width = 600, Height = 480,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Window.GetWindow(this),
+                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x1E, 0x1E, 0x1E))
+            };
+            
+            var stack = new StackPanel { Margin = new Thickness(20) };
+            stack.Children.Add(new TextBlock { Text = "Time Remap / Speed Curves", FontSize = 16, FontWeight = FontWeights.Bold,
+                Foreground = System.Windows.Media.Brushes.White, Margin = new Thickness(0, 0, 0, 10) });
+            stack.Children.Add(new TextBlock { Text = $"Clip: {clip.Name}  |  Duration: {clip.Duration:hh\\:mm\\:ss\\.ff}", 
+                Foreground = System.Windows.Media.Brushes.Gray, Margin = new Thickness(0, 0, 0, 15) });
+            
+            // Speed curve preset selector
+            stack.Children.Add(new TextBlock { Text = "Speed Curve Preset:", Foreground = System.Windows.Media.Brushes.White, Margin = new Thickness(0, 0, 0, 4) });
+            var curvePresetCombo = new ComboBox { Margin = new Thickness(0, 0, 0, 10) };
+            foreach (var preset in new[] { "Constant", "Ease In (Speed Up)", "Ease Out (Slow Down)", "Ease In-Out", 
+                "Speed Ramp In", "Speed Ramp Out", "Slow Motion Center", "Reverse Ramp" })
+                curvePresetCombo.Items.Add(preset);
+            curvePresetCombo.SelectedIndex = 0;
+            stack.Children.Add(curvePresetCombo);
+            
+            // Speed range
+            var rangePanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 5) };
+            rangePanel.Children.Add(new TextBlock { Text = "Min Speed:", Foreground = System.Windows.Media.Brushes.White, VerticalAlignment = VerticalAlignment.Center, Width = 80 });
+            var minSpeedSlider = new Slider { Width = 160, Minimum = 0.1, Maximum = 4, Value = 0.25 };
+            var minSpeedLabel = new TextBlock { Text = "0.25x", Foreground = System.Windows.Media.Brushes.Gray, 
+                VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
+            minSpeedSlider.ValueChanged += (s, args) => minSpeedLabel.Text = $"{args.NewValue:F2}x";
+            rangePanel.Children.Add(minSpeedSlider);
+            rangePanel.Children.Add(minSpeedLabel);
+            stack.Children.Add(rangePanel);
+            
+            var maxPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 10) };
+            maxPanel.Children.Add(new TextBlock { Text = "Max Speed:", Foreground = System.Windows.Media.Brushes.White, VerticalAlignment = VerticalAlignment.Center, Width = 80 });
+            var maxSpeedSlider = new Slider { Width = 160, Minimum = 0.5, Maximum = 8, Value = 2.0 };
+            var maxSpeedLabel = new TextBlock { Text = "2.00x", Foreground = System.Windows.Media.Brushes.Gray, 
+                VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
+            maxSpeedSlider.ValueChanged += (s, args) => maxSpeedLabel.Text = $"{args.NewValue:F2}x";
+            maxPanel.Children.Add(maxSpeedSlider);
+            maxPanel.Children.Add(maxSpeedLabel);
+            stack.Children.Add(maxPanel);
+            
+            // Preserve pitch
+            var pitchCheck = new CheckBox { Content = "Preserve Audio Pitch", Foreground = System.Windows.Media.Brushes.White, 
+                IsChecked = clip.PreservePitch, Margin = new Thickness(0, 0, 0, 10) };
+            stack.Children.Add(pitchCheck);
+            
+            // Speed curve visual (simplified representation)
+            var curveCanvas = new Canvas { Width = 540, Height = 120, Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x2A, 0x2A, 0x2A)),
+                Margin = new Thickness(0, 0, 0, 10) };
+            // Draw baseline at 1x speed
+            var baseLine = new System.Windows.Shapes.Line 
+            { 
+                X1 = 0, Y1 = 60, X2 = 540, Y2 = 60, 
+                Stroke = System.Windows.Media.Brushes.Gray, 
+                StrokeDashArray = new System.Windows.Media.DoubleCollection(new[] { 4.0, 4.0 }) 
+            };
+            curveCanvas.Children.Add(baseLine);
+            var baseLabel = new TextBlock { Text = "1.0x", Foreground = System.Windows.Media.Brushes.Gray, FontSize = 10 };
+            Canvas.SetLeft(baseLabel, 2); Canvas.SetTop(baseLabel, 45);
+            curveCanvas.Children.Add(baseLabel);
+            stack.Children.Add(curveCanvas);
+            
+            // Draw curve based on preset selection
+            void UpdateCurveVisual()
+            {
+                // Remove previous curve lines
+                var toRemove = curveCanvas.Children.OfType<System.Windows.Shapes.Polyline>().ToList();
+                foreach (var r in toRemove) curveCanvas.Children.Remove(r);
+                
+                var points = new System.Windows.Media.PointCollection();
+                var preset = curvePresetCombo.SelectedItem?.ToString() ?? "Constant";
+                var minS = minSpeedSlider.Value;
+                var maxS = maxSpeedSlider.Value;
+                
+                for (int i = 0; i <= 100; i++)
+                {
+                    double t = i / 100.0;
+                    double speed = preset switch
+                    {
+                        "Ease In (Speed Up)" => minS + (maxS - minS) * t * t,
+                        "Ease Out (Slow Down)" => maxS + (minS - maxS) * t * t,
+                        "Ease In-Out" => minS + (maxS - minS) * (t < 0.5 ? 2 * t * t : 1 - Math.Pow(-2 * t + 2, 2) / 2),
+                        "Speed Ramp In" => t < 0.3 ? minS : minS + (maxS - minS) * ((t - 0.3) / 0.7),
+                        "Speed Ramp Out" => t < 0.7 ? maxS + (minS - maxS) * (t / 0.7) : minS,
+                        "Slow Motion Center" => t < 0.25 ? 1.0 : (t > 0.75 ? 1.0 : minS),
+                        "Reverse Ramp" => maxS - (maxS - minS) * t,
+                        _ => 1.0 // Constant
+                    };
+                    double x = t * 540;
+                    double y = 120 - (speed / Math.Max(maxS, 4)) * 100;
+                    points.Add(new System.Windows.Point(x, Math.Clamp(y, 5, 115)));
+                }
+                
+                var polyline = new System.Windows.Shapes.Polyline 
+                { 
+                    Points = points, 
+                    Stroke = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x88, 0xFF)),
+                    StrokeThickness = 2 
+                };
+                curveCanvas.Children.Add(polyline);
+            }
+            
+            curvePresetCombo.SelectionChanged += (_, _) => UpdateCurveVisual();
+            minSpeedSlider.ValueChanged += (_, _) => UpdateCurveVisual();
+            maxSpeedSlider.ValueChanged += (_, _) => UpdateCurveVisual();
+            UpdateCurveVisual();
+            
+            // Buttons
+            var btnPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+            var cancelBtn = new Button { Content = "Cancel", Width = 80, Margin = new Thickness(0, 0, 10, 0), Padding = new Thickness(8, 4, 8, 4) };
+            cancelBtn.Click += (_, _) => dialog.Close();
+            var applyBtn = new Button { Content = "Apply Curve", Width = 100, Padding = new Thickness(8, 4, 8, 4),
+                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x44, 0x88, 0xFF)),
+                Foreground = System.Windows.Media.Brushes.White, BorderThickness = new Thickness(0) };
+            applyBtn.Click += (_, _) =>
+            {
+                var selectedPreset = curvePresetCombo.SelectedItem?.ToString() ?? "Constant";
+                clip.PreservePitch = pitchCheck.IsChecked == true;
+                
+                // Apply the average speed from the curve preset
+                var avgSpeed = selectedPreset switch
+                {
+                    "Ease In (Speed Up)" => (minSpeedSlider.Value + maxSpeedSlider.Value) / 2.0,
+                    "Ease Out (Slow Down)" => (maxSpeedSlider.Value + minSpeedSlider.Value) / 2.0,
+                    "Ease In-Out" => (minSpeedSlider.Value + maxSpeedSlider.Value) / 2.0,
+                    "Speed Ramp In" => minSpeedSlider.Value * 0.3 + maxSpeedSlider.Value * 0.7,
+                    "Speed Ramp Out" => maxSpeedSlider.Value * 0.7 + minSpeedSlider.Value * 0.3,
+                    "Slow Motion Center" => (1.0 * 0.5 + minSpeedSlider.Value * 0.5),
+                    "Reverse Ramp" => (maxSpeedSlider.Value + minSpeedSlider.Value) / 2.0,
+                    _ => 1.0
+                };
+                clip.Speed = avgSpeed;
+                
+                // Add time remap filter with curve data
+                var remapFilter = clip.Filters.FirstOrDefault(f => f.Name == "time_remap");
+                if (remapFilter != null) clip.Filters.Remove(remapFilter);
+                
+                remapFilter = new Filter
+                {
+                    Name = "time_remap",
+                    DisplayName = $"Time Remap: {selectedPreset}",
+                    Category = Core.Models.Video.FilterCategory.Time,
+                    FFmpegFilterName = "setpts",
+                    Icon = "⏱",
+                    Description = $"Speed curve: {selectedPreset} ({minSpeedSlider.Value:F1}x → {maxSpeedSlider.Value:F1}x)",
+                    IsEnabled = true
+                };
+                clip.Filters.Add(remapFilter);
+                
+                UpdatePropertiesPanel(clip);
+                dialog.Close();
+                MessageBox.Show($"Applied time remap: {selectedPreset}\nAvg speed: {avgSpeed:F2}x", "Time Remap", 
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            };
+            btnPanel.Children.Add(cancelBtn);
+            btnPanel.Children.Add(applyBtn);
+            stack.Children.Add(btnPanel);
+            
+            var scrollViewer = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Content = stack };
+            dialog.Content = scrollViewer;
+            dialog.ShowDialog();
+        }
+
+        #endregion
+
+        #region External Monitor (TASK-370)
+
+        private Window? _externalMonitorWindow;
+
+        /// <summary>
+        /// Opens or toggles an external monitor preview window.
+        /// Shows the current frame/preview on a separate window that can be moved to a second monitor.
+        /// </summary>
+        private void ExternalMonitor_Click(object sender, RoutedEventArgs e)
+        {
+            if (_externalMonitorWindow != null && _externalMonitorWindow.IsVisible)
+            {
+                _externalMonitorWindow.Close();
+                _externalMonitorWindow = null;
+                return;
+            }
+            
+            _externalMonitorWindow = new Window
+            {
+                Title = "PlatypusTools — External Preview",
+                Width = 960, Height = 540,
+                Background = System.Windows.Media.Brushes.Black,
+                WindowStyle = WindowStyle.SingleBorderWindow,
+                ResizeMode = ResizeMode.CanResize
+            };
+            
+            var grid = new Grid();
+            
+            // Preview image (mirrors the main preview)
+            var previewImage = new System.Windows.Controls.Image
+            {
+                Stretch = System.Windows.Media.Stretch.Uniform,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            grid.Children.Add(previewImage);
+            
+            // Status bar
+            var statusBar = new TextBlock
+            {
+                Text = "External Preview — drag to second monitor | Ctrl+F = fullscreen",
+                Foreground = System.Windows.Media.Brushes.Gray,
+                FontSize = 11,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Bottom,
+                Margin = new Thickness(0, 0, 0, 5)
+            };
+            grid.Children.Add(statusBar);
+            
+            // Fullscreen toggle on Ctrl+F
+            _externalMonitorWindow.KeyDown += (s, args) =>
+            {
+                if (args.Key == System.Windows.Input.Key.F && (System.Windows.Input.Keyboard.Modifiers & System.Windows.Input.ModifierKeys.Control) == System.Windows.Input.ModifierKeys.Control)
+                {
+                    if (_externalMonitorWindow.WindowStyle == WindowStyle.None)
+                    {
+                        _externalMonitorWindow.WindowStyle = WindowStyle.SingleBorderWindow;
+                        _externalMonitorWindow.WindowState = WindowState.Normal;
+                        statusBar.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        _externalMonitorWindow.WindowStyle = WindowStyle.None;
+                        _externalMonitorWindow.WindowState = WindowState.Maximized;
+                        statusBar.Visibility = Visibility.Collapsed;
+                    }
+                }
+                else if (args.Key == System.Windows.Input.Key.Escape)
+                {
+                    if (_externalMonitorWindow.WindowStyle == WindowStyle.None)
+                    {
+                        _externalMonitorWindow.WindowStyle = WindowStyle.SingleBorderWindow;
+                        _externalMonitorWindow.WindowState = WindowState.Normal;
+                        statusBar.Visibility = Visibility.Visible;
+                    }
+                }
+            };
+            
+            // Mirror the main preview frame info
+            var statusText = "Drag this window to a second monitor for full-screen preview.";
+            statusBar.Text = $"External Preview — {statusText}";
+            
+            // Update external monitor status periodically
+            var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+            timer.Tick += (s, args) =>
+            {
+                if (_externalMonitorWindow == null || !_externalMonitorWindow.IsVisible)
+                {
+                    timer.Stop();
+                    return;
+                }
+                statusBar.Text = $"External Preview — {Timeline.Position:hh\\:mm\\:ss\\.ff}";
+            };
+            timer.Start();
+            
+            _externalMonitorWindow.Closed += (s, args) =>
+            {
+                timer.Stop();
+                _externalMonitorWindow = null;
+            };
+            
+            _externalMonitorWindow.Content = grid;
+            _externalMonitorWindow.Show();
+        }
+
         #endregion
     }
 

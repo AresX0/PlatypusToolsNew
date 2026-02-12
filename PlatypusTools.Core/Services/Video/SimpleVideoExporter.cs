@@ -22,6 +22,11 @@ namespace PlatypusTools.Core.Services.Video
         private readonly string _ffmpegPath;
         private readonly string _tempDir;
 
+        /// <summary>
+        /// Initializes a new SimpleVideoExporter with an optional FFmpeg path.
+        /// </summary>
+        /// <param name="ffmpegPath">Path to FFmpeg executable. If null, attempts to find FFmpeg in PATH.</param>
+        /// <exception cref="InvalidOperationException">Thrown when FFmpeg cannot be found.</exception>
         public SimpleVideoExporter(string? ffmpegPath = null)
         {
             _ffmpegPath = ffmpegPath ?? FindFFmpeg() 

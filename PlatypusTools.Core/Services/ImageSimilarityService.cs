@@ -54,6 +54,7 @@ namespace PlatypusTools.Core.Services
     {
         private static readonly string[] SupportedExtensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp", ".tiff", ".tif" };
         
+        /// <summary>Raised when scanning progress changes.</summary>
         public event EventHandler<SimilarityScanProgress>? ProgressChanged;
 
         /// <summary>

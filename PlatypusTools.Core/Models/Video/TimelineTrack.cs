@@ -69,6 +69,11 @@ namespace PlatypusTools.Core.Models.Video
         public double Opacity { get; set; } = 1.0;
         
         /// <summary>
+        /// Blend mode for track compositing (TASK-329).
+        /// </summary>
+        public string BlendMode { get; set; } = "Normal";
+        
+        /// <summary>
         /// Track volume (0.0 - 2.0, 1.0 = 100%).
         /// </summary>
         public double Volume { get; set; } = 1.0;

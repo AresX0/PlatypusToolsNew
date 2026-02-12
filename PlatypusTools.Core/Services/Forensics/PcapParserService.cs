@@ -17,6 +17,7 @@ namespace PlatypusTools.Core.Services.Forensics
     public class PcapParserService
     {
         private static readonly Lazy<PcapParserService> _instance = new(() => new PcapParserService());
+        /// <summary>Gets the singleton instance of the PcapParserService.</summary>
         public static PcapParserService Instance => _instance.Value;
 
         // Magic numbers for file type detection
@@ -24,11 +25,14 @@ namespace PlatypusTools.Core.Services.Forensics
         private static readonly byte[] PCAP_MAGIC_BE = { 0xA1, 0xB2, 0xC3, 0xD4 };
         private static readonly byte[] PCAPNG_MAGIC = { 0x0A, 0x0D, 0x0D, 0x0A };
 
+        /// <summary>Raised during parsing to report progress.</summary>
         public event EventHandler<PcapParseProgress>? ProgressChanged;
+        /// <summary>Raised when a network artifact (IOC) is discovered during parsing.</summary>
         public event EventHandler<NetworkArtifact>? ArtifactFound;
 
         #region Models
 
+        /// <summary>Detected file format of a network capture file.</summary>
         public enum PcapFileType
         {
             Unknown,
@@ -36,6 +40,7 @@ namespace PlatypusTools.Core.Services.Forensics
             PcapNg
         }
 
+        /// <summary>Network protocol types identified in packet analysis.</summary>
         public enum ProtocolType
         {
             Unknown,
@@ -59,6 +64,7 @@ namespace PlatypusTools.Core.Services.Forensics
             NTP
         }
 
+        /// <summary>Progress information during PCAP file parsing.</summary>
         public class PcapParseProgress
         {
             public long BytesProcessed { get; set; }
@@ -68,6 +74,7 @@ namespace PlatypusTools.Core.Services.Forensics
             public double PercentComplete => TotalBytes > 0 ? (double)BytesProcessed / TotalBytes * 100 : 0;
         }
 
+        /// <summary>Metadata about a PCAP/PCAPNG capture file.</summary>
         public class PcapFileInfo
         {
             public string FilePath { get; set; } = string.Empty;
@@ -83,6 +90,7 @@ namespace PlatypusTools.Core.Services.Forensics
             public int TotalPackets { get; set; }
         }
 
+        /// <summary>Represents a single parsed network packet with protocol details.</summary>
         public class NetworkPacket
         {
             public int PacketNumber { get; set; }
@@ -102,6 +110,7 @@ namespace PlatypusTools.Core.Services.Forensics
             public string? PayloadPreview { get; set; }
         }
 
+        /// <summary>Represents an aggregated network connection between two endpoints.</summary>
         public class NetworkConnection
         {
             public string ConnectionId { get; set; } = string.Empty;
@@ -118,6 +127,7 @@ namespace PlatypusTools.Core.Services.Forensics
             public List<string> Flags { get; set; } = new();
         }
 
+        /// <summary>Represents a discovered network artifact or indicator of compromise.</summary>
         public class NetworkArtifact
         {
             public string Type { get; set; } = string.Empty; // URL, Email, Domain, IP, File, Credential, etc.
@@ -132,6 +142,7 @@ namespace PlatypusTools.Core.Services.Forensics
             public Dictionary<string, string> Metadata { get; set; } = new();
         }
 
+        /// <summary>Represents a DNS query extracted from network traffic.</summary>
         public class DnsQuery
         {
             public DateTime Timestamp { get; set; }
@@ -143,6 +154,7 @@ namespace PlatypusTools.Core.Services.Forensics
             public int TransactionId { get; set; }
         }
 
+        /// <summary>Represents an HTTP request extracted from network traffic.</summary>
         public class HttpRequest
         {
             public DateTime Timestamp { get; set; }
@@ -159,6 +171,7 @@ namespace PlatypusTools.Core.Services.Forensics
             public int ServerPort { get; set; }
         }
 
+        /// <summary>Complete analysis result from parsing a PCAP file, containing all extracted data.</summary>
         public class PcapAnalysisResult
         {
             public PcapFileInfo FileInfo { get; set; } = new();

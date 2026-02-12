@@ -16,6 +16,7 @@ namespace PlatypusTools.Core.Services
     public class BatchUpscaleService
     {
         private static BatchUpscaleService? _instance;
+        /// <summary>Gets the singleton instance of the BatchUpscaleService.</summary>
         public static BatchUpscaleService Instance => _instance ??= new BatchUpscaleService();
         
         private readonly ConcurrentQueue<BatchUpscaleJob> _jobQueue = new();
@@ -26,20 +27,30 @@ namespace PlatypusTools.Core.Services
         private bool _isPaused;
         private readonly ManualResetEventSlim _pauseEvent = new(true); // Initially not paused
         
+        /// <summary>Raised when a batch job starts processing.</summary>
         public event EventHandler<BatchUpscaleJob>? JobStarted;
+        /// <summary>Raised when a batch job completes (success or failure).</summary>
         public event EventHandler<BatchUpscaleJob>? JobCompleted;
+        /// <summary>Raised when an individual item within a job starts processing.</summary>
         public event EventHandler<BatchUpscaleItem>? ItemStarted;
+        /// <summary>Raised when an individual item completes successfully.</summary>
         public event EventHandler<BatchUpscaleItem>? ItemCompleted;
+        /// <summary>Raised when an individual item fails with an error.</summary>
         public event EventHandler<(BatchUpscaleItem Item, string Error)>? ItemFailed;
+        /// <summary>Raised when overall progress changes (0.0 to 1.0).</summary>
         public event EventHandler<double>? OverallProgressChanged;
         
+        /// <summary>Gets all jobs that have been created, including completed ones.</summary>
         public IReadOnlyList<BatchUpscaleJob> AllJobs
         {
             get { lock (_lock) { return _allJobs.ToList(); } }
         }
         
+        /// <summary>Gets whether the service is currently processing jobs.</summary>
         public bool IsProcessing => _isProcessing;
+        /// <summary>Gets whether processing is currently paused.</summary>
         public bool IsPaused => _isPaused;
+        /// <summary>Gets the number of jobs waiting in the queue.</summary>
         public int QueuedJobCount => _jobQueue.Count;
         
         /// <summary>
