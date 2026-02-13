@@ -1,7 +1,7 @@
 # Audio Player Implementation Status & Gap Analysis
 
 **Status**: ✅ Production Ready  
-**Date**: February 11, 2026  
+**Date**: February 12, 2026  
 **Version**: 3.4.0  
 
 ---
@@ -18,6 +18,7 @@ Your audio player currently has:
 - ✅ **100% Metadata Extraction** - TagLib# integration complete (MetadataExtractorService.cs)
 - ✅ **100% Atomic Index System** - JSON library index with atomic writes (LibraryIndexService.cs)
 - ✅ **100% Memory Safety** - All SkiaSharp native leaks fixed (SKMaskFilter, SKTypeface, SKBitmap)
+- ✅ **100% Remote Control** - Platypus Remote: phone/PWA control via SignalR, QR pairing, library browser, streaming
 
 **Remaining for future**: Relink missing files (detection exists, no relink), Watch Folders integration with audio player, dedicated Artist/Album/Genre browse tabs, unit tests
 
@@ -82,6 +83,26 @@ Your audio player currently has:
 - ✅ Basic audio settings placeholders
 
 **File**: [SettingsWindow.xaml](PlatypusTools.UI/Views/SettingsWindow.xaml)
+
+#### Remote Control (Platypus Remote)
+- ✅ **Embedded Web Server** - ASP.NET Core Kestrel on port 47392 (HTTPS)
+- ✅ **SignalR Hub** - Real-time playback state sync
+- ✅ **REST API** - Playback control endpoints
+- ✅ **PWA Web Interface** - Mobile-optimized responsive UI
+- ✅ **QR Code Pairing** - Scan to connect (QRCoder library)
+- ✅ **iOS PWA Support** - apple-mobile-web-app-capable, touch icons
+- ✅ **Android PWA Support** - Web App Manifest, install prompts
+- ✅ **Bottom Navigation** - Now Playing, Library, Queue tabs
+- ✅ **Library Browsing** - Search and play from phone
+- ✅ **Audio Streaming** - HTTP range-request streaming to phone
+- ✅ **Album Art Display** - Base64-encoded artwork sync
+
+**Files**: 
+- [PlatypusRemoteServer.cs](PlatypusTools.UI/Services/RemoteServer/PlatypusRemoteServer.cs)
+- [PlatypusHub.cs](PlatypusTools.UI/Services/RemoteServer/PlatypusHub.cs)
+- [AudioServiceBridge.cs](PlatypusTools.UI/Services/RemoteServer/AudioServiceBridge.cs)
+- [Resources/Remote/index.html](PlatypusTools.UI/Resources/Remote/index.html)
+- [Resources/Remote/app.js](PlatypusTools.UI/Resources/Remote/app.js)
 
 ---
 

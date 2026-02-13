@@ -1,0 +1,26 @@
+{
+  "name": "Platypus Remote",
+  "short_name": "Platypus",
+  "description": "Remote control for PlatypusTools audio player",
+  "id": "./",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#6200EA",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ],
+  "categories": ["music", "entertainment"],
+  "orientation": "portrait"
+}

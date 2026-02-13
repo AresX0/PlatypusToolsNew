@@ -29,6 +29,14 @@ A comprehensive Windows system utility combining file management, media conversi
   - Global hotkeys (Ctrl+Shift+R/S)
   - 3-second countdown delay option
 - **Audio Library** - Manage and tag audio files
+  - 22 GPU-accelerated visualizer modes
+  - Screensaver with all visualizer modes
+  - **Platypus Remote** - Control from your phone:
+    - Scan QR code to connect instantly
+    - Install as PWA on iOS/Android
+    - Real-time playback control via SignalR
+    - Browse library and manage queue
+    - Stream audio to your phone
 
 ### 🔧 System Tools
 - Disk cleanup and space analyzer

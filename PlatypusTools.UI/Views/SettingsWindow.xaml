@@ -66,6 +66,12 @@
                         <TextBlock Text="Last.fm"/>
                     </StackPanel>
                 </ListBoxItem>
+                <ListBoxItem Tag="RemoteControl">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📱" Width="24"/>
+                        <TextBlock Text="Remote Control"/>
+                    </StackPanel>
+                </ListBoxItem>
                 <ListBoxItem Tag="Updates">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="🔄" Width="24"/>
@@ -317,7 +323,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.0.10"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.1.0"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="Gray" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
@@ -600,6 +606,87 @@
                                            TextWrapping="Wrap" Foreground="Gray" Margin="0,8,0,0"/>
                                 <Button Content="Clear Session (Re-authenticate)" MinWidth="220" HorizontalAlignment="Left" Margin="0,12,0,0" Click="ClearLastFmSession_Click"
                                         Background="#FFFF9800" Foreground="White"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+
+                    <!-- Remote Control Settings -->
+                    <StackPanel x:Name="RemoteControlPanel" Visibility="Collapsed">
+                        <TextBlock Text="Platypus Remote Control" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
+                        <TextBlock Text="Control audio playback from your phone or tablet using a web browser. Enable the built-in server to access the remote control interface." 
+                                   TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,16"/>
+
+                        <GroupBox Header="Server Configuration" Margin="0,0,0,16">
+                            <StackPanel Margin="8">
+                                <CheckBox x:Name="RemoteServerEnabledCheck" Content="Enable Remote Control Server" Margin="0,4"
+                                          ToolTip="Allows remote devices to control audio playback"/>
+                                <CheckBox x:Name="RemoteServerAutoStartCheck" Content="Start server automatically with app" Margin="0,4"
+                                          IsEnabled="{Binding IsChecked, ElementName=RemoteServerEnabledCheck}"/>
+                                
+                                <Grid Margin="0,12,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Server Port:" VerticalAlignment="Center"/>
+                                    <TextBox x:Name="RemoteServerPortBox" Grid.Column="1" Text="47392"
+                                             IsEnabled="{Binding IsChecked, ElementName=RemoteServerEnabledCheck}"/>
+                                    <TextBlock Grid.Column="2" Text="(default: 47392)" Foreground="Gray" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                </Grid>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="Server Status" Margin="0,0,0,16">
+                            <StackPanel Margin="8">
+                                <StackPanel Orientation="Horizontal" Margin="0,4">
+                                    <TextBlock Text="Status: " FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="RemoteServerStatusText" Text="Stopped" Foreground="#FFF44336"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,8">
+                                    <Button x:Name="StartRemoteServerBtn" Content="▶ Start Server" MinWidth="120" Margin="0,0,8,0" Click="StartRemoteServer_Click"
+                                            Background="#FF4CAF50" Foreground="White"/>
+                                    <Button x:Name="StopRemoteServerBtn" Content="⬛ Stop Server" MinWidth="120" Click="StopRemoteServer_Click"
+                                            Background="#FFF44336" Foreground="White" IsEnabled="False"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="Connection Info" Margin="0,0,0,16">
+                            <StackPanel Margin="8">
+                                <TextBlock Text="To control audio from another device:" Margin="0,0,0,8"/>
+                                <TextBlock Text="1. Make sure both devices are on the same network" Margin="12,2"/>
+                                <TextBlock Text="2. Scan the QR code or enter the URL below" Margin="12,2"/>
+                                
+                                <Grid Margin="0,16,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <!-- QR Code -->
+                                    <Border Background="White" CornerRadius="8" Padding="8" Margin="0,0,16,0">
+                                        <Image x:Name="RemoteQRCodeImage" Width="150" Height="150" 
+                                               RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                                    </Border>
+                                    
+                                    <!-- URL and buttons -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Connection URL:" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="4" Padding="12">
+                                            <TextBlock x:Name="RemoteServerUrlText" Text="https://[your-ip]:47392" FontFamily="Consolas" FontSize="14" TextWrapping="Wrap"/>
+                                        </Border>
+                                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                            <Button Content="📋 Copy URL" Margin="0,0,8,0" Click="CopyRemoteUrl_Click"/>
+                                            <Button Content="🔄 Refresh QR" Click="RefreshQRCode_Click"/>
+                                        </StackPanel>
+                                        <TextBlock Text="💡 Tip: You can install this as an app on your phone!" 
+                                                   Foreground="{DynamicResource AccentBrush}" Margin="0,12,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                                
+                                <TextBlock Text="Note: Accept the security certificate warning in your browser on first connection." 
+                                           TextWrapping="Wrap" Foreground="Gray" FontStyle="Italic" Margin="0,12,0,0"/>
                             </StackPanel>
                         </GroupBox>
                     </StackPanel>

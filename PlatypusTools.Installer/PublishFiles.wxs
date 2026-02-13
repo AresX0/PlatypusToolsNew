@@ -77,6 +77,9 @@
       <Component Id="CMP_Microsoft_Extensions_DependencyI_336F6185AC8F" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Microsoft_Extensions_DependencyI_336F6185AC8F" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.DependencyInjection.Abstractions.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_Microsoft_Extensions_DependencyInjection_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_DependencyInjection_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.DependencyInjection.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_Microsoft_Extensions_Logging_Abstractions_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Microsoft_Extensions_Logging_Abstractions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Logging.Abstractions.dll" KeyPath="yes" />
       </Component>
@@ -4532,6 +4535,7 @@
       <ComponentRef Id="CMP_Microsoft_CSharp_dll" />
       <ComponentRef Id="CMP_Microsoft_DiaSymReader_Native_amd64_dll" />
       <ComponentRef Id="CMP_Microsoft_Extensions_DependencyI_336F6185AC8F" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_DependencyInjection_dll" />
       <ComponentRef Id="CMP_Microsoft_Extensions_Logging_Abstractions_dll" />
       <ComponentRef Id="CMP_Microsoft_Graph_Core_dll" />
       <ComponentRef Id="CMP_Microsoft_Graph_dll" />

@@ -4,6 +4,7 @@ using PlatypusTools.UI.Views;
 using PlatypusTools.UI.ViewModels;
 using PlatypusTools.UI.Utilities;
 using PlatypusTools.UI.Services;
+using PlatypusTools.UI.Services.RemoteServer;
 using PlatypusTools.UI.Windows;
 using System;
 using System.Diagnostics;
@@ -18,6 +19,7 @@ namespace PlatypusTools.UI
     {
         private SplashScreenWindow? _splashScreen;
         private string[]? _startupArgs;
+        private PlatypusRemoteServer? _remoteServer;
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -113,6 +115,21 @@ namespace PlatypusTools.UI
             // Now kick off the async initialization in the background
             // The video will loop while everything loads
             Dispatcher.BeginInvoke(new Action(async () => await InitializeApplicationAsync()));
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            // Stop the Remote Server on shutdown
+            try
+            {
+                _remoteServer?.Dispose();
+            }
+            catch
+            {
+                // Ignore disposal errors during shutdown
+            }
+
+            base.OnExit(e);
         }
         
         /// <summary>
@@ -377,6 +394,9 @@ namespace PlatypusTools.UI
                     await Task.Delay(2000); // Wait for app to fully load
                     await CheckDependenciesInBackgroundAsync();
                 });
+
+                // Start Platypus Remote Server if enabled
+                await StartRemoteServerIfEnabledAsync();
             }
             catch (Exception ex)
             {
@@ -781,5 +801,88 @@ namespace PlatypusTools.UI
                 SimpleLogger.Warn($"Dependency check failed: {ex.Message}");
             }
         }
+
+        #region Platypus Remote Server
+
+        /// <summary>
+        /// Gets the Remote Server instance for external access (e.g., from settings UI).
+        /// </summary>
+        public static PlatypusRemoteServer? RemoteServer => ((App)Current)._remoteServer;
+
+        /// <summary>
+        /// Starts the Remote Server if auto-start is enabled in settings.
+        /// </summary>
+        private async Task StartRemoteServerIfEnabledAsync()
+        {
+            try
+            {
+                var settings = SettingsManager.Current;
+                if (settings.RemoteServerEnabled && settings.RemoteServerAutoStart)
+                {
+                    await StartRemoteServerAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Warn($"Failed to auto-start Remote Server: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Starts the Platypus Remote Server.
+        /// </summary>
+        public async Task StartRemoteServerAsync()
+        {
+            if (_remoteServer?.IsRunning == true)
+            {
+                SimpleLogger.Info("Remote Server already running");
+                return;
+            }
+
+            try
+            {
+                var settings = SettingsManager.Current;
+                _remoteServer = new PlatypusRemoteServer(settings.RemoteServerPort);
+                PlatypusRemoteServer.Current = _remoteServer; // Make available for SystemTrayService
+                
+                _remoteServer.LogMessage += (s, msg) => SimpleLogger.Info(msg);
+                _remoteServer.ServerStateChanged += (s, running) =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        SimpleLogger.Info($"Remote Server state changed: {(running ? "Running" : "Stopped")}");
+                    });
+                };
+
+                await _remoteServer.StartAsync();
+                SimpleLogger.Info($"Platypus Remote Server started at {_remoteServer.ServerUrl}");
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error($"Failed to start Remote Server: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Stops the Platypus Remote Server.
+        /// </summary>
+        public async Task StopRemoteServerAsync()
+        {
+            if (_remoteServer == null || !_remoteServer.IsRunning)
+                return;
+
+            try
+            {
+                await _remoteServer.StopAsync();
+                SimpleLogger.Info("Platypus Remote Server stopped");
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error($"Failed to stop Remote Server: {ex.Message}");
+            }
+        }
+
+        #endregion
     }
 }

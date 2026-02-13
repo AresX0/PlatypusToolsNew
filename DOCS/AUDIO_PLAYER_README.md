@@ -56,6 +56,7 @@ This package contains **three comprehensive guides** for your audio player:
 - **Crossfade**: Configurable 0-5s transitions - **100% done** ✅
 - **Drag-and-Drop**: Queue reordering - **100% done** ✅
 - **Context Menus**: Play, Add to Queue, Remove - **100% done** ✅
+- **Remote Control (Platypus Remote)**: Phone/PWA control - **100% done** ✅
 
 ### What's Missing ⚠️
 - **Gapless Playback**: Pre-buffer next track - **0% done** (v3.2.0)
@@ -428,9 +429,285 @@ For implementation support:
 
 ---
 
-**Documents Version**: 1.0.0  
+**Documents Version**: 1.1.0  
 **Status**: 🟢 Ready for Production Implementation  
-**Last Updated**: January 14, 2026  
-**Next Review**: February 14, 2026  
+**Last Updated**: February 12, 2026  
+**Next Review**: March 12, 2026  
 
 ✨ **Good luck with the implementation!** ✨
+
+---
+
+## Platypus Remote - Phone Control
+
+**Version**: v3.4.0+ | **Status**: ✅ Complete
+
+Control your audio player from any phone, tablet, or browser on your local network.
+
+### Quick Start
+
+1. Go to **Settings** → **Remote Control** tab
+2. Check **"Enable Remote Control Server"**
+3. **Scan the QR code** with your phone
+4. Control playback from your phone!
+
+### Features
+
+| Feature | Description |
+|---------|-------------|
+| **Real-time Sync** | Play/pause, next/prev, volume sync instantly via SignalR |
+| **QR Code Pairing** | Scan to connect - no typing URLs |
+| **PWA Install** | Install as app on iOS/Android for quick access |
+| **Library Browsing** | Search and browse your music from your phone |
+| **Queue Management** | View and manage the play queue |
+| **Audio Streaming** | Stream audio to your phone (optional) |
+| **Album Art** | See current track artwork |
+| **Progress Seeking** | Tap progress bar to seek |
+
+### Installing as an App (PWA)
+
+#### iOS (Safari)
+1. Open the remote URL in Safari
+2. Tap **Share** button (square with arrow)
+3. Scroll down and tap **"Add to Home Screen"**
+4. Tap **Add**
+
+#### Android (Chrome)
+1. Open the remote URL in Chrome
+2. Tap the **⋮** menu (three dots)
+3. Tap **"Install app"** or **"Add to Home screen"**
+4. Tap **Install**
+
+### Audio Streaming to Phone
+
+To listen to music on your phone instead of your PC:
+
+1. On the **Now Playing** tab, tap **"🎧 Stream audio to this device"**
+2. Audio will play on your phone synced with the current track
+3. Tap again to stop streaming
+
+> **Note**: Streaming uses HTTP. For best results, use on the same WiFi network.
+
+### Technical Details
+
+| Component | Technology |
+|-----------|------------|
+| Web Server | ASP.NET Core Kestrel (embedded) |
+| Real-time | SignalR WebSocket |
+| Port | 47392 (HTTPS) |
+| PWA | Service Worker + Web App Manifest |
+| Streaming | HTTP Range Requests |
+| QR Code | QRCoder library |
+
+### Network Requirements
+
+- PC and phone must be on the **same local network**
+- Port **47392** must not be blocked by firewall
+- For external access, use port forwarding or a tunnel (Cloudflare, ngrok)
+
+### Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Can't connect | Ensure both devices are on same WiFi |
+| Certificate warning | Tap "Advanced" → "Proceed" (self-signed cert) |
+| QR code not showing | Click "Refresh QR Code" button |
+| Controls don't respond | Check server is enabled in Settings |
+| Install prompt missing | Use Safari (iOS) or Chrome (Android) |
+
+---
+
+## 🌐 External Access (Outside Local Network)
+
+Control your music from anywhere using your own domain.
+
+### Option 1: Port Forwarding + DNS (Simplest)
+
+#### Step 1: Find Your Local IP
+```powershell
+ipconfig | Select-String "IPv4"
+# Example: 192.168.1.100
+```
+
+#### Step 2: Configure Router Port Forwarding
+1. Log into your router (usually `http://192.168.1.1`)
+2. Find **Port Forwarding** / **NAT** / **Virtual Server** settings
+3. Add a new rule:
+
+| Setting | Value |
+|---------|-------|
+| Name | PlatypusRemote |
+| External Port | 47392 |
+| Internal IP | Your PC's IP (e.g., 192.168.1.100) |
+| Internal Port | 47392 |
+| Protocol | TCP |
+
+4. Save and apply
+
+#### Step 3: Get Your Public IP
+```powershell
+(Invoke-WebRequest -Uri "https://api.ipify.org").Content
+# Example: 203.0.113.42
+```
+
+#### Step 4: Configure DNS (Using Your Domain)
+Go to your DNS provider and add an A record:
+
+| Type | Name | Value | TTL |
+|------|------|-------|-----|
+| A | music | Your public IP (203.0.113.42) | 300 |
+
+This creates `music.josephtheplatypus.com`
+
+#### Step 5: Access From Anywhere
+```
+https://music.josephtheplatypus.com:47392
+```
+
+> **Note**: Accept the certificate warning (self-signed). For proper SSL, use Option 2.
+
+---
+
+### Option 2: Reverse Proxy with Caddy (Proper SSL)
+
+Caddy automatically manages Let's Encrypt SSL certificates.
+
+#### Prerequisites
+- Domain pointing to your public IP
+- Ports 80 and 443 forwarded to your PC
+- Caddy installed
+
+#### Step 1: Install Caddy
+```powershell
+winget install Caddy.Caddy
+# Or download from https://caddyserver.com/download
+```
+
+#### Step 2: Create Caddyfile
+Create `C:\Caddy\Caddyfile`:
+```
+music.josephtheplatypus.com {
+    reverse_proxy localhost:47392 {
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
+}
+```
+
+#### Step 3: Forward Ports 80 and 443
+In your router, forward:
+- Port 80 → Your PC:80 (for Let's Encrypt verification)
+- Port 443 → Your PC:443 (for HTTPS)
+
+#### Step 4: Run Caddy
+```powershell
+cd C:\Caddy
+caddy run
+```
+
+#### Step 5: Access with Proper SSL
+```
+https://music.josephtheplatypus.com
+```
+No port number needed, no certificate warnings!
+
+---
+
+### Option 3: Cloudflare Tunnel (No Port Forwarding)
+
+If you can't forward ports (CG-NAT, apartment, etc.), use Cloudflare Tunnel.
+
+#### Step 1: Create Cloudflare Account
+1. Go to https://cloudflare.com
+2. Add your domain and update nameservers
+
+#### Step 2: Install cloudflared
+```powershell
+winget install Cloudflare.cloudflared
+```
+
+#### Step 3: Authenticate
+```powershell
+cloudflared tunnel login
+```
+
+#### Step 4: Create Tunnel
+```powershell
+cloudflared tunnel create platypus-remote
+cloudflared tunnel route dns platypus-remote music.josephtheplatypus.com
+```
+
+#### Step 5: Configure Tunnel
+Create `~/.cloudflared/config.yml`:
+```yaml
+tunnel: platypus-remote
+credentials-file: ~/.cloudflared/<TUNNEL_ID>.json
+
+ingress:
+  - hostname: music.josephtheplatypus.com
+    service: https://localhost:47392
+    originRequest:
+      noTLSVerify: true
+  - service: http_status:404
+```
+
+#### Step 6: Run Tunnel
+```powershell
+cloudflared tunnel run platypus-remote
+```
+
+#### Step 7: Access From Anywhere
+```
+https://music.josephtheplatypus.com
+```
+
+---
+
+### Dynamic IP Considerations
+
+If your public IP changes (most home connections):
+
+#### Option A: Use a DDNS Service
+1. Sign up at No-IP, DuckDNS, or Dynu
+2. Install their updater client
+3. Create CNAME record: `music.josephtheplatypus.com` → `yourname.ddns.net`
+
+#### Option B: Cloudflare API Script
+```powershell
+# Save as Update-CloudflareDNS.ps1
+$email = "your@email.com"
+$apiKey = "your-api-key"
+$zoneId = "your-zone-id"
+$recordId = "your-record-id"
+
+$ip = (Invoke-WebRequest -Uri "https://api.ipify.org").Content
+$headers = @{
+    "X-Auth-Email" = $email
+    "X-Auth-Key" = $apiKey
+    "Content-Type" = "application/json"
+}
+$body = @{
+    type = "A"
+    name = "music"
+    content = $ip
+    ttl = 300
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri "https://api.cloudflare.com/client/v4/zones/$zoneId/dns_records/$recordId" `
+    -Method PUT -Headers $headers -Body $body
+```
+
+Schedule to run hourly via Task Scheduler.
+
+---
+
+### Security Recommendations
+
+| Setting | Recommendation |
+|---------|----------------|
+| Firewall | Only allow port 47392, 80, 443 |
+| Router | Disable UPnP if not needed |
+| Updates | Keep Windows and router firmware updated |
+| Password | Consider adding basic auth to Caddy |
+| Monitoring | Check router logs for suspicious activity |

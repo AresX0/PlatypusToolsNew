@@ -20,7 +20,7 @@
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>PlatypusTools.UI</RootNamespace>
-    <Version>3.4.0.10</Version>
+    <Version>3.4.1.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
@@ -34,6 +34,19 @@
     <!-- SkiaSharp for high-performance HD audio visualizer rendering -->
     <PackageReference Include="SkiaSharp" Version="3.119.0" />
     <PackageReference Include="SkiaSharp.Views.WPF" Version="3.119.0" />
+    <!-- Platypus Remote - Embedded web server for remote audio control -->
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.Json" Version="10.0.0-preview.2.25163.4" />
+    <PackageReference Include="QRCoder" Version="1.6.0" />
+    <!-- System Tray support for minimize to tray -->
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <!-- Platypus Remote PWA files - embedded for serving via web server -->
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Remote\index.html" />
+    <EmbeddedResource Include="Resources\Remote\app.js" />
+    <EmbeddedResource Include="Resources\Remote\manifest.json" />
+    <EmbeddedResource Include="Resources\Remote\sw.js" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PlatypusTools.Core\PlatypusTools.Core.csproj" />

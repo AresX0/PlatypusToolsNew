@@ -1,0 +1,107 @@
+@page "/queue"
+@inject PlayerStateService PlayerState
+@implements IDisposable
+
+<PageTitle>Queue - Platypus Remote</PageTitle>
+
+<div class="queue-container">
+    <div class="queue-header">
+        <h2>Queue</h2>
+        <div class="queue-actions">
+            <button class="btn btn-secondary" @onclick="ShuffleAsync" disabled="@(!PlayerState.IsConnected)">
+                🔀 Shuffle
+            </button>
+            <button class="btn btn-danger" @onclick="ClearAsync" disabled="@(!PlayerState.IsConnected)">
+                🗑️ Clear
+            </button>
+        </div>
+    </div>
+
+    @if (PlayerState.Queue.Count == 0)
+    {
+        <div class="queue-empty">
+            <p>Queue is empty</p>
+        </div>
+    }
+    else
+    {
+        <div class="queue-list">
+            @foreach (var item in PlayerState.Queue)
+            {
+                <div class="queue-item @(item.IsCurrentTrack ? "current" : "")" @onclick="() => PlayItemAsync(item.Index)">
+                    <div class="queue-item-index">
+                        @if (item.IsCurrentTrack)
+                        {
+                            <span class="now-playing-indicator">▶</span>
+                        }
+                        else
+                        {
+                            <span>@(item.Index + 1)</span>
+                        }
+                    </div>
+                    <div class="queue-item-info">
+                        <div class="queue-item-title">@item.Title</div>
+                        <div class="queue-item-artist">@item.Artist</div>
+                    </div>
+                    <div class="queue-item-duration">
+                        @FormatTime(item.Duration)
+                    </div>
+                    <button class="btn-remove" @onclick:stopPropagation="true" @onclick="() => RemoveAsync(item.Index)">
+                        ✕
+                    </button>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="now-playing-mini" @onclick="GoToNowPlaying">
+        <div class="mini-info">
+            <span class="mini-title">@PlayerState.NowPlaying.Title</span>
+            <span class="mini-artist">@PlayerState.NowPlaying.Artist</span>
+        </div>
+        <div class="mini-controls">
+            @if (PlayerState.NowPlaying.IsPlaying)
+            {
+                <button @onclick:stopPropagation="true" @onclick="PauseAsync">⏸️</button>
+            }
+            else
+            {
+                <button @onclick:stopPropagation="true" @onclick="PlayAsync">▶️</button>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        PlayerState.OnStateChanged += StateHasChanged;
+    }
+
+    private async Task ShuffleAsync() => await PlayerState.ShuffleQueueAsync();
+    private async Task ClearAsync() => await PlayerState.ClearQueueAsync();
+    private async Task PlayAsync() => await PlayerState.PlayAsync();
+    private async Task PauseAsync() => await PlayerState.PauseAsync();
+    private async Task PlayItemAsync(int index) => await PlayerState.PlayQueueItemAsync(index);
+    private async Task RemoveAsync(int index) => await PlayerState.RemoveFromQueueAsync(index);
+
+    private void GoToNowPlaying()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private string FormatTime(TimeSpan time)
+    {
+        return time.TotalHours >= 1 
+            ? time.ToString(@"h\:mm\:ss") 
+            : time.ToString(@"m\:ss");
+    }
+
+    public void Dispose()
+    {
+        PlayerState.OnStateChanged -= StateHasChanged;
+    }
+}

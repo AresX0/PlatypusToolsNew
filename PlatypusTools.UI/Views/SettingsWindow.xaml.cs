@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using PlatypusTools.Core.Services;
 using PlatypusTools.UI.Services;
+using QRCoder;
 
 namespace PlatypusTools.UI.Views
 {
@@ -38,7 +40,7 @@ namespace PlatypusTools.UI.Views
                 _panels = new[] 
                 { 
                     GeneralPanel, AppearancePanel, KeyboardPanel, 
-                    AIPanel, UpdatesPanel, BackupPanel, TabVisibilityPanel, VisualizerPanel, DependenciesPanel, AdvancedPanel, LastFmPanel 
+                    AIPanel, UpdatesPanel, BackupPanel, TabVisibilityPanel, VisualizerPanel, DependenciesPanel, AdvancedPanel, LastFmPanel, RemoteControlPanel 
                 };
             }
             catch (System.Exception ex)
@@ -103,6 +105,9 @@ namespace PlatypusTools.UI.Views
                 
                 // Load Last.fm settings
                 LoadLastFmSettings(settings);
+
+                // Load Remote Control settings
+                LoadRemoteControlSettings(settings);
             }
             catch (System.Exception ex)
             {
@@ -305,6 +310,7 @@ namespace PlatypusTools.UI.Views
                 "TabVisibility" => TabVisibilityPanel,
                 "Visualizer" => VisualizerPanel,
                 "LastFm" => LastFmPanel,
+                "RemoteControl" => RemoteControlPanel,
                 "Dependencies" => DependenciesPanel,
                 "Advanced" => AdvancedPanel,
                 _ => GeneralPanel
@@ -320,6 +326,13 @@ namespace PlatypusTools.UI.Views
             // Load dependency status when switching to that panel
             if (tag == "Dependencies")
                 _ = LoadDependencyStatusAsync();
+
+            // Update Remote Server status when switching to that panel
+            if (tag == "RemoteControl")
+            {
+                UpdateRemoteServerStatus();
+                UpdateRemoteServerUrl();
+            }
         }
         
         private void CustomizeTheme_Click(object sender, RoutedEventArgs e)
@@ -1549,6 +1562,189 @@ namespace PlatypusTools.UI.Views
             Process.Start(new ProcessStartInfo { FileName = installerPath, UseShellExecute = true });
             
             return true;
+        }
+        
+        #endregion
+
+        #region Remote Control Settings
+        
+        private void LoadRemoteControlSettings(AppSettings? settings)
+        {
+            if (settings == null) return;
+            try
+            {
+                if (RemoteServerEnabledCheck != null)
+                    RemoteServerEnabledCheck.IsChecked = settings.RemoteServerEnabled;
+                if (RemoteServerAutoStartCheck != null)
+                    RemoteServerAutoStartCheck.IsChecked = settings.RemoteServerAutoStart;
+                if (RemoteServerPortBox != null)
+                    RemoteServerPortBox.Text = settings.RemoteServerPort.ToString();
+                
+                UpdateRemoteServerStatus();
+                UpdateRemoteServerUrl();
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading Remote Control settings: {ex.Message}");
+            }
+        }
+        
+        private void UpdateRemoteServerStatus()
+        {
+            var server = App.RemoteServer;
+            if (server?.IsRunning == true)
+            {
+                if (RemoteServerStatusText != null)
+                {
+                    RemoteServerStatusText.Text = "Running";
+                    RemoteServerStatusText.Foreground = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50)); // Green
+                }
+                if (StartRemoteServerBtn != null) StartRemoteServerBtn.IsEnabled = false;
+                if (StopRemoteServerBtn != null) StopRemoteServerBtn.IsEnabled = true;
+            }
+            else
+            {
+                if (RemoteServerStatusText != null)
+                {
+                    RemoteServerStatusText.Text = "Stopped";
+                    RemoteServerStatusText.Foreground = new SolidColorBrush(Color.FromRgb(0xF4, 0x43, 0x36)); // Red
+                }
+                if (StartRemoteServerBtn != null) StartRemoteServerBtn.IsEnabled = true;
+                if (StopRemoteServerBtn != null) StopRemoteServerBtn.IsEnabled = false;
+            }
+        }
+        
+        private void UpdateRemoteServerUrl()
+        {
+            try
+            {
+                var port = int.TryParse(RemoteServerPortBox?.Text, out var p) ? p : 47392;
+                var ipAddress = GetLocalIpAddress();
+                var url = $"https://{ipAddress}:{port}";
+                
+                if (RemoteServerUrlText != null)
+                    RemoteServerUrlText.Text = url;
+                
+                // Generate QR code
+                GenerateQRCode(url);
+            }
+            catch { }
+        }
+
+        private void GenerateQRCode(string url)
+        {
+            try
+            {
+                if (RemoteQRCodeImage == null) return;
+
+                using var qrGenerator = new QRCodeGenerator();
+                using var qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.M);
+                using var qrCode = new BitmapByteQRCode(qrCodeData);
+                var qrCodeBytes = qrCode.GetGraphic(10); // 10 pixels per module
+
+                // Convert to WPF BitmapImage
+                using var ms = new System.IO.MemoryStream(qrCodeBytes);
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.StreamSource = ms;
+                bitmap.EndInit();
+                bitmap.Freeze();
+
+                RemoteQRCodeImage.Source = bitmap;
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error generating QR code: {ex.Message}");
+            }
+        }
+
+        private void RefreshQRCode_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateRemoteServerUrl();
+        }
+        
+        private string GetLocalIpAddress()
+        {
+            try
+            {
+                var host = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName());
+                foreach (var ip in host.AddressList)
+                {
+                    if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    {
+                        return ip.ToString();
+                    }
+                }
+            }
+            catch { }
+            return "localhost";
+        }
+        
+        private async void StartRemoteServer_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Save settings first
+                SaveRemoteControlSettings();
+                
+                // Start the server
+                var app = (App)Application.Current;
+                await app.StartRemoteServerAsync();
+                
+                UpdateRemoteServerStatus();
+                MessageBox.Show($"Remote Control Server started!\n\nAccess it from your phone at:\n{RemoteServerUrlText?.Text}",
+                    "Server Started", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Failed to start server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        
+        private async void StopRemoteServer_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var app = (App)Application.Current;
+                await app.StopRemoteServerAsync();
+                UpdateRemoteServerStatus();
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Failed to stop server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        
+        private void SaveRemoteControlSettings()
+        {
+            try
+            {
+                var settings = SettingsManager.Current;
+                settings.RemoteServerEnabled = RemoteServerEnabledCheck?.IsChecked ?? false;
+                settings.RemoteServerAutoStart = RemoteServerAutoStartCheck?.IsChecked ?? false;
+                if (int.TryParse(RemoteServerPortBox?.Text, out var port))
+                    settings.RemoteServerPort = port;
+                SettingsManager.SaveCurrent();
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error saving Remote Control settings: {ex.Message}");
+            }
+        }
+        
+        private void CopyRemoteUrl_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var url = RemoteServerUrlText?.Text ?? "";
+                System.Windows.Clipboard.SetText(url);
+                MessageBox.Show($"URL copied to clipboard:\n{url}", "Copied", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Failed to copy: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
         
         #endregion

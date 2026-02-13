@@ -1,0 +1,129 @@
+﻿@page "/"
+@inject PlayerStateService PlayerState
+@implements IDisposable
+
+<PageTitle>Platypus Remote</PageTitle>
+
+<div class="now-playing-container">
+    @if (!PlayerState.IsConnected)
+    {
+        <div class="connection-status disconnected">
+            <span>⚠️ Disconnected</span>
+            <button class="btn btn-primary" @onclick="ConnectAsync">Connect</button>
+        </div>
+    }
+    else
+    {
+        <div class="connection-status connected">
+            <span>● Connected</span>
+        </div>
+    }
+
+    <div class="album-art">
+        @if (!string.IsNullOrEmpty(PlayerState.NowPlaying.AlbumArtUrl))
+        {
+            <img src="@PlayerState.NowPlaying.AlbumArtUrl" alt="Album Art" />
+        }
+        else
+        {
+            <div class="album-art-placeholder">
+                <span>🎵</span>
+            </div>
+        }
+    </div>
+
+    <div class="track-info">
+        <h2 class="track-title">@PlayerState.NowPlaying.Title</h2>
+        <p class="track-artist">@PlayerState.NowPlaying.Artist</p>
+        <p class="track-album">@PlayerState.NowPlaying.Album</p>
+    </div>
+
+    <div class="progress-container">
+        <span class="time-current">@FormatTime(PlayerState.NowPlaying.Position)</span>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: @(PlayerState.NowPlaying.PositionPercent * 100)%"></div>
+        </div>
+        <span class="time-total">@FormatTime(PlayerState.NowPlaying.Duration)</span>
+    </div>
+
+    <div class="controls">
+        <button class="btn-control" @onclick="PreviousAsync" disabled="@(!PlayerState.IsConnected)">
+            ⏮️
+        </button>
+        
+        @if (PlayerState.NowPlaying.IsPlaying)
+        {
+            <button class="btn-control btn-play" @onclick="PauseAsync" disabled="@(!PlayerState.IsConnected)">
+                ⏸️
+            </button>
+        }
+        else
+        {
+            <button class="btn-control btn-play" @onclick="PlayAsync" disabled="@(!PlayerState.IsConnected)">
+                ▶️
+            </button>
+        }
+        
+        <button class="btn-control" @onclick="NextAsync" disabled="@(!PlayerState.IsConnected)">
+            ⏭️
+        </button>
+    </div>
+
+    <div class="volume-container">
+        <span>🔊</span>
+        <input type="range" min="0" max="100" value="@((int)(PlayerState.NowPlaying.Volume * 100))" 
+               @onchange="VolumeChangedAsync" disabled="@(!PlayerState.IsConnected)" />
+        <span>@((int)(PlayerState.NowPlaying.Volume * 100))%</span>
+    </div>
+
+    <div class="queue-info">
+        <a href="/queue">
+            Queue: @(PlayerState.NowPlaying.QueueIndex + 1) / @PlayerState.NowPlaying.QueueLength
+        </a>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        PlayerState.OnStateChanged += StateHasChanged;
+        await ConnectAsync();
+    }
+
+    private async Task ConnectAsync()
+    {
+        try
+        {
+            await PlayerState.ConnectAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Connection failed: {ex.Message}");
+        }
+    }
+
+    private async Task PlayAsync() => await PlayerState.PlayAsync();
+    private async Task PauseAsync() => await PlayerState.PauseAsync();
+    private async Task NextAsync() => await PlayerState.NextTrackAsync();
+    private async Task PreviousAsync() => await PlayerState.PreviousTrackAsync();
+
+    private async Task VolumeChangedAsync(ChangeEventArgs e)
+    {
+        if (double.TryParse(e.Value?.ToString(), out var volume))
+        {
+            await PlayerState.SetVolumeAsync(volume / 100.0);
+        }
+    }
+
+    private string FormatTime(TimeSpan time)
+    {
+        return time.TotalHours >= 1 
+            ? time.ToString(@"h\:mm\:ss") 
+            : time.ToString(@"m\:ss");
+    }
+
+    public void Dispose()
+    {
+        PlayerState.OnStateChanged -= StateHasChanged;
+    }
+}

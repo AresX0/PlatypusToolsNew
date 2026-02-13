@@ -10,6 +10,7 @@ namespace PlatypusTools.UI
     public partial class MainWindow : Window
     {
         private bool _glassInitialized = false;
+        private bool _forceExit = false; // True when exiting from tray or force close
         
         // Fullscreen mode state
         private bool _isFullScreen = false;
@@ -57,6 +58,34 @@ namespace PlatypusTools.UI
             
             // Subscribe to workspace changes
             RecentWorkspacesService.Instance.WorkspacesChanged += (s, e) => RefreshRecentWorkspacesMenu();
+            
+            // Initialize system tray
+            InitializeSystemTray();
+        }
+        
+        /// <summary>
+        /// Initializes the system tray icon and handlers.
+        /// </summary>
+        private void InitializeSystemTray()
+        {
+            try
+            {
+                var trayService = SystemTrayService.Instance;
+                trayService.Initialize(this);
+                
+                // Handle exit request from tray
+                trayService.ExitRequested += (s, e) =>
+                {
+                    _forceExit = true;
+                    this.Close();
+                };
+                
+                PlatypusTools.Core.Services.SimpleLogger.Info("System tray initialized");
+            }
+            catch (System.Exception ex)
+            {
+                PlatypusTools.Core.Services.SimpleLogger.Error($"Error initializing system tray: {ex.Message}");
+            }
         }
         
         /// <summary>
@@ -141,11 +170,15 @@ namespace PlatypusTools.UI
         
         private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
+            // If force exit (from tray or programmatic), skip dialog
+            if (_forceExit)
+                return;
+                
             // Show custom exit dialog with clear options
             var dialog = new Window
             {
                 Title = "Exit PlatypusTools",
-                Width = 380,
+                Width = 460,
                 Height = 140,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
@@ -165,16 +198,19 @@ namespace PlatypusTools.UI
             
             var buttonPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center };
             
-            var exitBtn = new Button { Content = "Exit Application", MinWidth = 120, Height = 30, Margin = new Thickness(5), Padding = new Thickness(10, 4, 10, 4) };
-            var minimizeBtn = new Button { Content = "Minimize", MinWidth = 100, Height = 30, Margin = new Thickness(5), Padding = new Thickness(10, 4, 10, 4) };
-            var cancelBtn = new Button { Content = "Cancel", MinWidth = 80, Height = 30, Margin = new Thickness(5), Padding = new Thickness(10, 4, 10, 4) };
+            var exitBtn = new Button { Content = "Exit Application", MinWidth = 110, Height = 30, Margin = new Thickness(4), Padding = new Thickness(8, 4, 8, 4) };
+            var trayBtn = new Button { Content = "Minimize to Tray", MinWidth = 110, Height = 30, Margin = new Thickness(4), Padding = new Thickness(8, 4, 8, 4) };
+            var minimizeBtn = new Button { Content = "Minimize", MinWidth = 80, Height = 30, Margin = new Thickness(4), Padding = new Thickness(8, 4, 8, 4) };
+            var cancelBtn = new Button { Content = "Cancel", MinWidth = 70, Height = 30, Margin = new Thickness(4), Padding = new Thickness(8, 4, 8, 4) };
             
             string? choice = null;
             exitBtn.Click += (s, args) => { choice = "exit"; dialog.Close(); };
+            trayBtn.Click += (s, args) => { choice = "tray"; dialog.Close(); };
             minimizeBtn.Click += (s, args) => { choice = "minimize"; dialog.Close(); };
             cancelBtn.Click += (s, args) => { choice = "cancel"; dialog.Close(); };
             
             buttonPanel.Children.Add(exitBtn);
+            buttonPanel.Children.Add(trayBtn);
             buttonPanel.Children.Add(minimizeBtn);
             buttonPanel.Children.Add(cancelBtn);
             mainPanel.Children.Add(buttonPanel);
@@ -186,6 +222,12 @@ namespace PlatypusTools.UI
             {
                 case "exit":
                     // User wants to exit - let the close proceed
+                    break;
+                    
+                case "tray":
+                    // Minimize to system tray
+                    e.Cancel = true;
+                    SystemTrayService.Instance.MinimizeToTray();
                     break;
                     
                 case "minimize":
@@ -204,6 +246,13 @@ namespace PlatypusTools.UI
         
         private void MainWindow_Closed(object? sender, System.EventArgs e)
         {
+            // Clean up system tray
+            try
+            {
+                SystemTrayService.Instance.Dispose();
+            }
+            catch { }
+            
             // Force complete shutdown - kill all processes
             try
             {

@@ -232,6 +232,39 @@ namespace PlatypusTools.UI.Services
             set { _lastFmSessionKey = value ?? string.Empty; OnPropertyChanged(); }
         }
 
+        // Platypus Remote Server Settings
+        private bool _remoteServerEnabled = false;
+        private int _remoteServerPort = 47392;
+        private bool _remoteServerAutoStart = false;
+
+        /// <summary>
+        /// Gets or sets whether the Platypus Remote Server is enabled.
+        /// When enabled, allows remote control of audio playback via web/PWA.
+        /// </summary>
+        public bool RemoteServerEnabled
+        {
+            get => _remoteServerEnabled;
+            set { _remoteServerEnabled = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets the port for the Remote Server (default: 47392).
+        /// </summary>
+        public int RemoteServerPort
+        {
+            get => _remoteServerPort;
+            set { _remoteServerPort = Math.Clamp(value, 1024, 65535); OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets whether the Remote Server should auto-start with the application.
+        /// </summary>
+        public bool RemoteServerAutoStart
+        {
+            get => _remoteServerAutoStart;
+            set { _remoteServerAutoStart = value; OnPropertyChanged(); }
+        }
+
         /// <summary>
         /// Gets or sets the stored license key for the AD Security Analyzer tab.
         /// Empty string means no license key is registered (tab is inaccessible).
