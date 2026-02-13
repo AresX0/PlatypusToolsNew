@@ -265,6 +265,49 @@ namespace PlatypusTools.UI.Services
             set { _remoteServerAutoStart = value; OnPropertyChanged(); }
         }
 
+        // Cloudflare Tunnel Settings
+        private bool _cloudflareTunnelEnabled = false;
+        private bool _cloudflareTunnelAutoStart = false;
+        private string _cloudflareTunnelHostname = "";
+        private bool _cloudflareTunnelUseQuickTunnel = true;
+
+        /// <summary>
+        /// Gets or sets whether Cloudflare Tunnel is enabled for external access.
+        /// </summary>
+        public bool CloudflareTunnelEnabled
+        {
+            get => _cloudflareTunnelEnabled;
+            set { _cloudflareTunnelEnabled = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets whether the Cloudflare Tunnel should auto-start with the Remote Server.
+        /// </summary>
+        public bool CloudflareTunnelAutoStart
+        {
+            get => _cloudflareTunnelAutoStart;
+            set { _cloudflareTunnelAutoStart = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets the custom hostname for named tunnels (e.g., platypus.josephtheplatypus.com).
+        /// Leave empty to use quick tunnels with random *.trycloudflare.com URLs.
+        /// </summary>
+        public string CloudflareTunnelHostname
+        {
+            get => _cloudflareTunnelHostname;
+            set { _cloudflareTunnelHostname = value ?? string.Empty; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to use Quick Tunnel (no account required) vs Named Tunnel (requires CF account).
+        /// </summary>
+        public bool CloudflareTunnelUseQuickTunnel
+        {
+            get => _cloudflareTunnelUseQuickTunnel;
+            set { _cloudflareTunnelUseQuickTunnel = value; OnPropertyChanged(); }
+        }
+
         /// <summary>
         /// Gets or sets the stored license key for the AD Security Analyzer tab.
         /// Empty string means no license key is registered (tab is inaccessible).

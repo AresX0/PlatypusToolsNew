@@ -76,6 +76,11 @@ app.Use(async (context, next) =>
 
 app.UseHttpsRedirection();
 app.UseCors("PlatypusPWA");
+
+// Serve Blazor WebAssembly client
+app.UseBlazorFrameworkFiles();
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
@@ -215,5 +220,8 @@ api.MapDelete("/sessions/{sessionId}", async (string sessionId, ISessionManager 
     await sessionManager.EndSessionAsync(userId, sessionId);
     return Results.Ok();
 }).WithName("EndSession");
+
+// Fallback to Blazor client for SPA routing
+app.MapFallbackToFile("index.html");
 
 app.Run();

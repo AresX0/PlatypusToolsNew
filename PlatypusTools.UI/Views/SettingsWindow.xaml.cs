@@ -332,6 +332,7 @@ namespace PlatypusTools.UI.Views
             {
                 UpdateRemoteServerStatus();
                 UpdateRemoteServerUrl();
+                InitializeCloudfareTunnel();
             }
         }
         
@@ -1746,7 +1747,224 @@ namespace PlatypusTools.UI.Views
                 MessageBox.Show($"Failed to copy: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        #region Cloudflare Tunnel
         
+        private CloudflareTunnelService? _tunnelService;
+
+        private void InitializeCloudfareTunnel()
+        {
+            _tunnelService = CloudflareTunnelService.Instance;
+            _tunnelService.TunnelStateChanged += OnTunnelStateChanged;
+            _tunnelService.TunnelUrlGenerated += OnTunnelUrlGenerated;
+            _tunnelService.LogMessage += OnTunnelLogMessage;
+
+            // Load settings
+            LoadCloudflareSettings();
+            UpdateCloudflareStatus();
+        }
+
+        private void LoadCloudflareSettings()
+        {
+            var settings = SettingsManager.Current;
+            if (CloudflareTunnelEnabledCheck != null)
+                CloudflareTunnelEnabledCheck.IsChecked = settings.CloudflareTunnelEnabled;
+            if (CloudflareTunnelAutoStartCheck != null)
+                CloudflareTunnelAutoStartCheck.IsChecked = settings.CloudflareTunnelAutoStart;
+            if (CloudflareTunnelHostnameBox != null)
+                CloudflareTunnelHostnameBox.Text = settings.CloudflareTunnelHostname;
+            if (QuickTunnelRadio != null && NamedTunnelRadio != null)
+            {
+                if (settings.CloudflareTunnelUseQuickTunnel)
+                    QuickTunnelRadio.IsChecked = true;
+                else
+                    NamedTunnelRadio.IsChecked = true;
+            }
+        }
+
+        private void SaveCloudflareSettings()
+        {
+            try
+            {
+                var settings = SettingsManager.Current;
+                settings.CloudflareTunnelEnabled = CloudflareTunnelEnabledCheck?.IsChecked ?? false;
+                settings.CloudflareTunnelAutoStart = CloudflareTunnelAutoStartCheck?.IsChecked ?? false;
+                settings.CloudflareTunnelHostname = CloudflareTunnelHostnameBox?.Text ?? "";
+                settings.CloudflareTunnelUseQuickTunnel = QuickTunnelRadio?.IsChecked ?? true;
+                SettingsManager.SaveCurrent();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error saving Cloudflare settings: {ex.Message}");
+            }
+        }
+
+        private void OnTunnelStateChanged(object? sender, bool isRunning)
+        {
+            Dispatcher.Invoke(() => UpdateCloudflareStatus());
+        }
+
+        private void OnTunnelUrlGenerated(object? sender, string url)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (CloudflareTunnelUrlText != null)
+                    CloudflareTunnelUrlText.Text = url;
+                if (TunnelUrlPanel != null)
+                    TunnelUrlPanel.Visibility = Visibility.Visible;
+            });
+        }
+
+        private void OnTunnelLogMessage(object? sender, string message)
+        {
+            Debug.WriteLine($"[Cloudflare Tunnel] {message}");
+        }
+
+        private void UpdateCloudflareStatus()
+        {
+            var isInstalled = CloudflareTunnelService.Instance.IsInstalled;
+            var isRunning = CloudflareTunnelService.Instance.IsRunning;
+
+            if (CloudflareTunnelStatusText != null)
+            {
+                if (!isInstalled)
+                {
+                    CloudflareTunnelStatusText.Text = "Not Installed";
+                    CloudflareTunnelStatusText.Foreground = new SolidColorBrush(Colors.Orange);
+                }
+                else if (isRunning)
+                {
+                    CloudflareTunnelStatusText.Text = "Running";
+                    CloudflareTunnelStatusText.Foreground = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50)); // Green
+                }
+                else
+                {
+                    CloudflareTunnelStatusText.Text = "Stopped";
+                    CloudflareTunnelStatusText.Foreground = new SolidColorBrush(Color.FromRgb(0xF4, 0x43, 0x36)); // Red
+                }
+            }
+
+            if (StartTunnelBtn != null)
+                StartTunnelBtn.IsEnabled = isInstalled && !isRunning && (CloudflareTunnelEnabledCheck?.IsChecked ?? false);
+            if (StopTunnelBtn != null)
+                StopTunnelBtn.IsEnabled = isRunning;
+            if (InstallCloudflaredBtn != null)
+                InstallCloudflaredBtn.Content = isInstalled ? "✓ cloudflared Installed" : "📥 Install cloudflared";
+            if (TunnelUrlPanel != null && !isRunning)
+                TunnelUrlPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private async void InstallCloudflared_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (InstallCloudflaredBtn != null)
+                {
+                    InstallCloudflaredBtn.IsEnabled = false;
+                    InstallCloudflaredBtn.Content = "Installing...";
+                }
+
+                await CloudflareTunnelService.Instance.InstallAsync();
+                MessageBox.Show("cloudflared installed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                UpdateCloudflareStatus();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to install cloudflared: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                if (InstallCloudflaredBtn != null)
+                    InstallCloudflaredBtn.IsEnabled = true;
+                UpdateCloudflareStatus();
+            }
+        }
+
+        private async void StartTunnel_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                SaveCloudflareSettings();
+                var settings = SettingsManager.Current;
+                var port = settings.RemoteServerPort;
+
+                if (StartTunnelBtn != null)
+                {
+                    StartTunnelBtn.IsEnabled = false;
+                    StartTunnelBtn.Content = "Starting...";
+                }
+
+                if (settings.CloudflareTunnelUseQuickTunnel)
+                {
+                    await CloudflareTunnelService.Instance.StartQuickTunnelAsync(port);
+                }
+                else
+                {
+                    var hostname = settings.CloudflareTunnelHostname;
+                    if (string.IsNullOrWhiteSpace(hostname) || hostname == "platypus.yourdomain.com")
+                    {
+                        MessageBox.Show("Please enter a valid hostname for your named tunnel.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                    await CloudflareTunnelService.Instance.StartNamedTunnelAsync(hostname, port);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to start tunnel: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                if (StartTunnelBtn != null)
+                    StartTunnelBtn.Content = "▶ Start Tunnel";
+                UpdateCloudflareStatus();
+            }
+        }
+
+        private void StopTunnel_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                CloudflareTunnelService.Instance.Stop();
+                UpdateCloudflareStatus();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to stop tunnel: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void CloudflareLogin_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                CloudflareTunnelService.Instance.LoginAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to open Cloudflare login: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void CopyTunnelUrl_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var url = CloudflareTunnelService.Instance.CurrentTunnelUrl;
+                if (!string.IsNullOrEmpty(url))
+                {
+                    System.Windows.Clipboard.SetText(url);
+                    MessageBox.Show($"Tunnel URL copied to clipboard:\n{url}", "Copied", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to copy: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        #endregion
+
         #endregion
     }
     

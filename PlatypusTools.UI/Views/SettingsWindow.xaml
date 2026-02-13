@@ -323,7 +323,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.1.0"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.1.3"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="Gray" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
@@ -687,6 +687,72 @@
                                 
                                 <TextBlock Text="Note: Accept the security certificate warning in your browser on first connection." 
                                            TextWrapping="Wrap" Foreground="Gray" FontStyle="Italic" Margin="0,12,0,0"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Cloudflare Tunnel Settings -->
+                        <GroupBox Header="🌐 External Access (Cloudflare Tunnel)" Margin="0,0,0,16">
+                            <StackPanel Margin="8">
+                                <TextBlock Text="Access Platypus Remote from anywhere without port forwarding. Cloudflare Tunnel creates a secure connection to your server." 
+                                           TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,12"/>
+                                
+                                <CheckBox x:Name="CloudflareTunnelEnabledCheck" Content="Enable Cloudflare Tunnel" Margin="0,4"
+                                          ToolTip="Enables external access via Cloudflare's secure tunnel"/>
+                                <CheckBox x:Name="CloudflareTunnelAutoStartCheck" Content="Start tunnel automatically with Remote Server" Margin="0,4"
+                                          IsEnabled="{Binding IsChecked, ElementName=CloudflareTunnelEnabledCheck}"/>
+                                
+                                <Separator Margin="0,12"/>
+                                
+                                <!-- Tunnel Type Selection -->
+                                <TextBlock Text="Tunnel Type:" FontWeight="SemiBold" Margin="0,8,0,4"/>
+                                <RadioButton x:Name="QuickTunnelRadio" Content="Quick Tunnel (No account required)" GroupName="TunnelType" IsChecked="True" Margin="0,4"
+                                             IsEnabled="{Binding IsChecked, ElementName=CloudflareTunnelEnabledCheck}"/>
+                                <TextBlock Text="Generates a random *.trycloudflare.com URL. URL changes each time tunnel starts." 
+                                           Foreground="Gray" FontSize="11" Margin="20,0,0,8"/>
+                                
+                                <RadioButton x:Name="NamedTunnelRadio" Content="Named Tunnel (Custom hostname)" GroupName="TunnelType" Margin="0,4"
+                                             IsEnabled="{Binding IsChecked, ElementName=CloudflareTunnelEnabledCheck}"/>
+                                <StackPanel Margin="20,4,0,0" IsEnabled="{Binding IsChecked, ElementName=NamedTunnelRadio}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Hostname:" VerticalAlignment="Center"/>
+                                        <TextBox x:Name="CloudflareTunnelHostnameBox" Grid.Column="1" 
+                                                 Text="platypus.yourdomain.com" MaxWidth="300" HorizontalAlignment="Left"/>
+                                    </Grid>
+                                    <TextBlock Text="Requires Cloudflare account setup. Click 'Setup Account' first." 
+                                               Foreground="Gray" FontSize="11" Margin="0,4,0,0"/>
+                                    <Button x:Name="CloudflareLoginBtn" Content="🔐 Setup Cloudflare Account" MinWidth="200" HorizontalAlignment="Left" 
+                                            Margin="0,8,0,0" Click="CloudflareLogin_Click"/>
+                                </StackPanel>
+                                
+                                <Separator Margin="0,12"/>
+                                
+                                <!-- Tunnel Status -->
+                                <StackPanel Orientation="Horizontal" Margin="0,8">
+                                    <TextBlock Text="Tunnel Status: " FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="CloudflareTunnelStatusText" Text="Not Running" Foreground="#FFF44336"/>
+                                </StackPanel>
+                                
+                                <StackPanel Orientation="Horizontal" Margin="0,8">
+                                    <Button x:Name="StartTunnelBtn" Content="▶ Start Tunnel" MinWidth="120" Margin="0,0,8,0" Click="StartTunnel_Click"
+                                            Background="#FF4CAF50" Foreground="White" IsEnabled="{Binding IsChecked, ElementName=CloudflareTunnelEnabledCheck}"/>
+                                    <Button x:Name="StopTunnelBtn" Content="⬛ Stop Tunnel" MinWidth="120" Margin="0,0,8,0" Click="StopTunnel_Click"
+                                            Background="#FFF44336" Foreground="White" IsEnabled="False"/>
+                                    <Button x:Name="InstallCloudflaredBtn" Content="📥 Install cloudflared" MinWidth="150" Click="InstallCloudflared_Click"
+                                            Background="#FF2196F3" Foreground="White"/>
+                                </StackPanel>
+                                
+                                <!-- Tunnel URL -->
+                                <StackPanel x:Name="TunnelUrlPanel" Visibility="Collapsed" Margin="0,12,0,0">
+                                    <TextBlock Text="External Access URL:" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="4" Padding="12">
+                                        <TextBlock x:Name="CloudflareTunnelUrlText" Text="" FontFamily="Consolas" FontSize="14" TextWrapping="Wrap"/>
+                                    </Border>
+                                    <Button Content="📋 Copy Tunnel URL" Margin="0,8,0,0" HorizontalAlignment="Left" Click="CopyTunnelUrl_Click"/>
+                                </StackPanel>
                             </StackPanel>
                         </GroupBox>
                     </StackPanel>

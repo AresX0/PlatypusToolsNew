@@ -5,6 +5,9 @@
       <Component Id="CMP_Accessibility_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Accessibility_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Accessibility.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_aspnetcorev2_inprocess_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_aspnetcorev2_inprocess_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\aspnetcorev2_inprocess.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_Azure_Core_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Azure_Core_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Azure.Core.dll" KeyPath="yes" />
       </Component>
@@ -41,6 +44,9 @@
       <Component Id="CMP_GLWpfControl_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_GLWpfControl_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\GLWpfControl.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_Hardcodet_NotifyIcon_Wpf_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Hardcodet_NotifyIcon_Wpf_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Hardcodet.NotifyIcon.Wpf.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_hostfxr_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_hostfxr_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\hostfxr.dll" KeyPath="yes" />
       </Component>
@@ -65,6 +71,267 @@
       <Component Id="CMP_MetadataExtractor_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_MetadataExtractor_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\MetadataExtractor.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Antiforgery_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Antiforgery_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Antiforgery.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Authenticat_6DD363DD476F" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Authenticat_6DD363DD476F" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Authentication.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Authenticat_971563E3ACDB" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Authenticat_971563E3ACDB" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Authentication.BearerToken.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Authentication_Cookies_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Authentication_Cookies_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Authentication.Cookies.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Authentication_Core_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Authentication_Core_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Authentication.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Authentication_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Authentication_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Authentication.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Authentication_OAuth_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Authentication_OAuth_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Authentication.OAuth.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Authorization_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Authorization_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Authorization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Authorization_Policy_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Authorization_Policy_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Authorization.Policy.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Components__5F4A20038DE8" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Components__5F4A20038DE8" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Components.Authorization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Components_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Components_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Components.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Components_Endpoints_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Components_Endpoints_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Components.Endpoints.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Components_Forms_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Components_Forms_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Components.Forms.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Components_Server_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Components_Server_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Components.Server.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Components_Web_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Components_Web_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Components.Web.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Connections_831EA6D6EE7A" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Connections_831EA6D6EE7A" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Connections.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_CookiePolicy_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_CookiePolicy_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.CookiePolicy.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Cors_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Cors_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Cors.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Cryptography_Internal_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Cryptography_Internal_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Cryptography.Internal.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Cryptograph_5E9A2E9D97E1" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Cryptograph_5E9A2E9D97E1" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Cryptography.KeyDerivation.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_DataProtect_3B69D3AEC266" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_DataProtect_3B69D3AEC266" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.DataProtection.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_DataProtection_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_DataProtection_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.DataProtection.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_DataProtect_1ABBF24855D6" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_DataProtect_1ABBF24855D6" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.DataProtection.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Diagnostics_2E2FE6C08982" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Diagnostics_2E2FE6C08982" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Diagnostics.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Diagnostics_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Diagnostics_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Diagnostics.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Diagnostics_71B01FFD18C2" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Diagnostics_71B01FFD18C2" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Diagnostics.HealthChecks.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_HostFiltering_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_HostFiltering_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.HostFiltering.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Hosting_Abstractions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Hosting_Abstractions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Hosting.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Hosting_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Hosting_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Hosting.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Hosting_Ser_4879A7C3721D" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Hosting_Ser_4879A7C3721D" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Hosting.Server.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Html_Abstractions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Html_Abstractions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Html.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Http_Abstractions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Http_Abstractions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Http.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Http_Connections_Common_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Http_Connections_Common_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Http.Connections.Common.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Http_Connections_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Http_Connections_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Http.Connections.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Http_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Http_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Http.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Http_Extensions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Http_Extensions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Http.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Http_Features_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Http_Features_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Http.Features.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Http_Results_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Http_Results_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Http.Results.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_HttpLogging_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_HttpLogging_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.HttpLogging.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_HttpOverrides_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_HttpOverrides_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.HttpOverrides.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_HttpsPolicy_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_HttpsPolicy_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.HttpsPolicy.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Identity_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Identity_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Identity.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Localization_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Localization_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Localization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Localization_Routing_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Localization_Routing_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Localization.Routing.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Metadata_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Metadata_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Metadata.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Mvc_Abstractions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Mvc_Abstractions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Mvc.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Mvc_ApiExplorer_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Mvc_ApiExplorer_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Mvc.ApiExplorer.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Mvc_Core_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Mvc_Core_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Mvc.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Mvc_Cors_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Mvc_Cors_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Mvc.Cors.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Mvc_DataAnnotations_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Mvc_DataAnnotations_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Mvc.DataAnnotations.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Mvc_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Mvc_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Mvc.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Mvc_Formatters_Json_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Mvc_Formatters_Json_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Mvc.Formatters.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Mvc_Formatters_Xml_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Mvc_Formatters_Xml_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Mvc.Formatters.Xml.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Mvc_Localization_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Mvc_Localization_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Mvc.Localization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Mvc_Razor_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Mvc_Razor_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Mvc.Razor.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Mvc_RazorPages_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Mvc_RazorPages_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Mvc.RazorPages.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Mvc_TagHelpers_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Mvc_TagHelpers_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Mvc.TagHelpers.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Mvc_ViewFeatures_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Mvc_ViewFeatures_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Mvc.ViewFeatures.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_OutputCaching_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_OutputCaching_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.OutputCaching.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_RateLimiting_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_RateLimiting_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.RateLimiting.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Razor_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Razor_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Razor.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Razor_Runtime_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Razor_Runtime_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Razor.Runtime.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_RequestDecompression_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_RequestDecompression_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.RequestDecompression.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_ResponseCac_A2328228FF1F" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_ResponseCac_A2328228FF1F" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.ResponseCaching.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_ResponseCaching_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_ResponseCaching_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.ResponseCaching.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_ResponseCompression_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_ResponseCompression_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.ResponseCompression.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Rewrite_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Rewrite_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Rewrite.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Routing_Abstractions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Routing_Abstractions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Routing.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Routing_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Routing_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Routing.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Server_HttpSys_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Server_HttpSys_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Server.HttpSys.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Server_IIS_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Server_IIS_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Server.IIS.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Server_IISIntegration_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Server_IISIntegration_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Server.IISIntegration.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Server_Kestrel_Core_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Server_Kestrel_Core_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Server.Kestrel.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Server_Kestrel_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Server_Kestrel_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Server.Kestrel.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Server_Kest_C3894731FA85" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Server_Kest_C3894731FA85" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Server.Kestrel.Transport.NamedPipes.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Server_Kest_577F49B67F64" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Server_Kest_577F49B67F64" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Server.Kestrel.Transport.Quic.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Server_Kest_8E178CB401CB" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Server_Kest_8E178CB401CB" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_Session_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_Session_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.Session.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_SignalR_Common_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_SignalR_Common_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.SignalR.Common.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_SignalR_Core_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_SignalR_Core_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.SignalR.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_SignalR_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_SignalR_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.SignalR.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_SignalR_Protocols_Json_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_SignalR_Protocols_Json_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.SignalR.Protocols.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_StaticAssets_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_StaticAssets_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.StaticAssets.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_StaticFiles_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_StaticFiles_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.StaticFiles.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_WebSockets_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_WebSockets_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.WebSockets.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_AspNetCore_WebUtilities_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_AspNetCore_WebUtilities_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.AspNetCore.WebUtilities.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_Microsoft_Bcl_AsyncInterfaces_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Microsoft_Bcl_AsyncInterfaces_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Bcl.AsyncInterfaces.dll" KeyPath="yes" />
       </Component>
@@ -74,14 +341,146 @@
       <Component Id="CMP_Microsoft_DiaSymReader_Native_amd64_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Microsoft_DiaSymReader_Native_amd64_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.DiaSymReader.Native.amd64.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_Microsoft_Extensions_Caching_Abstractions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Caching_Abstractions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Caching.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Caching_Memory_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Caching_Memory_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Caching.Memory.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Configurati_667C887E1660" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Configurati_667C887E1660" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Configuration.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Configuration_Binder_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Configuration_Binder_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Configuration.Binder.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Configurati_29FD6C28D61E" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Configurati_29FD6C28D61E" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Configuration.CommandLine.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Configuration_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Configuration_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Configuration.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Configurati_AC14B5F71EEF" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Configurati_AC14B5F71EEF" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Configuration.EnvironmentVariables.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Configurati_39AF4C06BF16" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Configurati_39AF4C06BF16" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Configuration.FileExtensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Configuration_Ini_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Configuration_Ini_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Configuration.Ini.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Configuration_Json_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Configuration_Json_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Configuration.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Configurati_7200F666D060" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Configurati_7200F666D060" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Configuration.KeyPerFile.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Configurati_DBFDB83921CE" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Configurati_DBFDB83921CE" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Configuration.UserSecrets.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Configuration_Xml_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Configuration_Xml_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Configuration.Xml.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_Microsoft_Extensions_DependencyI_336F6185AC8F" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Microsoft_Extensions_DependencyI_336F6185AC8F" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.DependencyInjection.Abstractions.dll" KeyPath="yes" />
       </Component>
       <Component Id="CMP_Microsoft_Extensions_DependencyInjection_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Microsoft_Extensions_DependencyInjection_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.DependencyInjection.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_Microsoft_Extensions_Diagnostics_878C85E722A1" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Diagnostics_878C85E722A1" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Diagnostics.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Diagnostics_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Diagnostics_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Diagnostics.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Diagnostics_6F2D7C489AEB" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Diagnostics_6F2D7C489AEB" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Diagnostics_363422440DA8" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Diagnostics_363422440DA8" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Diagnostics.HealthChecks.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Features_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Features_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Features.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_FileProvide_4071C58D4AC5" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_FileProvide_4071C58D4AC5" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.FileProviders.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_FileProviders_Composite_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_FileProviders_Composite_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.FileProviders.Composite.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_FileProviders_Embedded_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_FileProviders_Embedded_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.FileProviders.Embedded.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_FileProviders_Physical_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_FileProviders_Physical_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.FileProviders.Physical.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_FileSystemGlobbing_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_FileSystemGlobbing_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.FileSystemGlobbing.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Hosting_Abstractions_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Hosting_Abstractions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Hosting.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Hosting_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Hosting_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Hosting.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Http_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Http_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Http.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Identity_Core_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Identity_Core_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Identity.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Identity_Stores_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Identity_Stores_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Identity.Stores.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Localizatio_4881388944A9" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Localizatio_4881388944A9" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Localization.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Localization_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Localization_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Localization.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_Microsoft_Extensions_Logging_Abstractions_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Microsoft_Extensions_Logging_Abstractions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Logging.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Logging_Configuration_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Logging_Configuration_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Logging.Configuration.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Logging_Console_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Logging_Console_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Logging.Console.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Logging_Debug_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Logging_Debug_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Logging.Debug.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Logging_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Logging_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Logging.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Logging_EventLog_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Logging_EventLog_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Logging.EventLog.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Logging_EventSource_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Logging_EventSource_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Logging.EventSource.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Logging_TraceSource_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Logging_TraceSource_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Logging.TraceSource.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_ObjectPool_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_ObjectPool_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.ObjectPool.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Options_Con_0421F771F00B" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Options_Con_0421F771F00B" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Options.ConfigurationExtensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Options_DataAnnotations_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Options_DataAnnotations_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Options.DataAnnotations.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Options_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Options_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Options.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Primitives_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Primitives_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_Validation_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_Validation_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.Validation.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Extensions_WebEncoders_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Extensions_WebEncoders_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Extensions.WebEncoders.dll" KeyPath="yes" />
       </Component>
       <Component Id="CMP_Microsoft_Graph_Core_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Microsoft_Graph_Core_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Graph.Core.dll" KeyPath="yes" />
@@ -116,6 +515,9 @@
       <Component Id="CMP_Microsoft_IdentityModel_Validators_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Microsoft_IdentityModel_Validators_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.IdentityModel.Validators.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_Microsoft_JSInterop_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_JSInterop_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.JSInterop.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_Microsoft_Kiota_Abstractions_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Microsoft_Kiota_Abstractions_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Kiota.Abstractions.dll" KeyPath="yes" />
       </Component>
@@ -136,6 +538,9 @@
       </Component>
       <Component Id="CMP_Microsoft_Kiota_Serialization_Text_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Microsoft_Kiota_Serialization_Text_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Kiota.Serialization.Text.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Microsoft_Net_Http_Headers_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Microsoft_Net_Http_Headers_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Net.Http.Headers.dll" KeyPath="yes" />
       </Component>
       <Component Id="CMP_Microsoft_VisualBasic_Core_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Microsoft_VisualBasic_Core_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.VisualBasic.Core.dll" KeyPath="yes" />
@@ -317,6 +722,9 @@
       <Component Id="CMP_PresentationUI_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_PresentationUI_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PresentationUI.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_QRCoder_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_QRCoder_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\QRCoder.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_ReachFramework_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_ReachFramework_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ReachFramework.dll" KeyPath="yes" />
       </Component>
@@ -487,6 +895,9 @@
       </Component>
       <Component Id="CMP_System_Formats_Asn1_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_System_Formats_Asn1_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Formats.Asn1.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Formats_Cbor_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Formats_Cbor_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Formats.Cbor.dll" KeyPath="yes" />
       </Component>
       <Component Id="CMP_System_Formats_Nrbf_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_System_Formats_Nrbf_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Formats.Nrbf.dll" KeyPath="yes" />
@@ -856,6 +1267,9 @@
       </Component>
       <Component Id="CMP_System_Threading_Overlapped_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_System_Threading_Overlapped_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Threading.Overlapped.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_System_Threading_RateLimiting_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_System_Threading_RateLimiting_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Threading.RateLimiting.dll" KeyPath="yes" />
       </Component>
       <Component Id="CMP_System_Threading_Tasks_Dataflow_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_System_Threading_Tasks_Dataflow_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\System.Threading.Tasks.Dataflow.dll" KeyPath="yes" />
@@ -4511,6 +4925,7 @@
   <Fragment>
     <ComponentGroup Id="PublishFiles">
       <ComponentRef Id="CMP_Accessibility_dll" />
+      <ComponentRef Id="CMP_aspnetcorev2_inprocess_dll" />
       <ComponentRef Id="CMP_Azure_Core_dll" />
       <ComponentRef Id="CMP_Azure_Identity_dll" />
       <ComponentRef Id="CMP_clretwrc_dll" />
@@ -4523,6 +4938,7 @@
       <ComponentRef Id="CMP_DirectWriteForwarder_dll" />
       <ComponentRef Id="CMP_glfw3_dll" />
       <ComponentRef Id="CMP_GLWpfControl_dll" />
+      <ComponentRef Id="CMP_Hardcodet_NotifyIcon_Wpf_dll" />
       <ComponentRef Id="CMP_hostfxr_dll" />
       <ComponentRef Id="CMP_hostpolicy_dll" />
       <ComponentRef Id="CMP_HtmlAgilityPack_dll" />
@@ -4531,12 +4947,143 @@
       <ComponentRef Id="CMP_LibVLCSharp_dll" />
       <ComponentRef Id="CMP_LibVLCSharp_WPF_dll" />
       <ComponentRef Id="CMP_MetadataExtractor_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Antiforgery_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Authenticat_6DD363DD476F" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Authenticat_971563E3ACDB" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Authentication_Cookies_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Authentication_Core_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Authentication_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Authentication_OAuth_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Authorization_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Authorization_Policy_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Components__5F4A20038DE8" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Components_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Components_Endpoints_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Components_Forms_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Components_Server_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Components_Web_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Connections_831EA6D6EE7A" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_CookiePolicy_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Cors_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Cryptography_Internal_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Cryptograph_5E9A2E9D97E1" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_DataProtect_3B69D3AEC266" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_DataProtection_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_DataProtect_1ABBF24855D6" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Diagnostics_2E2FE6C08982" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Diagnostics_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Diagnostics_71B01FFD18C2" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_HostFiltering_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Hosting_Abstractions_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Hosting_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Hosting_Ser_4879A7C3721D" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Html_Abstractions_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Http_Abstractions_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Http_Connections_Common_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Http_Connections_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Http_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Http_Extensions_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Http_Features_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Http_Results_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_HttpLogging_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_HttpOverrides_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_HttpsPolicy_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Identity_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Localization_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Localization_Routing_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Metadata_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Mvc_Abstractions_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Mvc_ApiExplorer_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Mvc_Core_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Mvc_Cors_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Mvc_DataAnnotations_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Mvc_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Mvc_Formatters_Json_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Mvc_Formatters_Xml_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Mvc_Localization_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Mvc_Razor_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Mvc_RazorPages_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Mvc_TagHelpers_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Mvc_ViewFeatures_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_OutputCaching_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_RateLimiting_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Razor_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Razor_Runtime_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_RequestDecompression_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_ResponseCac_A2328228FF1F" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_ResponseCaching_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_ResponseCompression_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Rewrite_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Routing_Abstractions_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Routing_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Server_HttpSys_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Server_IIS_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Server_IISIntegration_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Server_Kestrel_Core_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Server_Kestrel_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Server_Kest_C3894731FA85" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Server_Kest_577F49B67F64" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Server_Kest_8E178CB401CB" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_Session_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_SignalR_Common_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_SignalR_Core_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_SignalR_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_SignalR_Protocols_Json_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_StaticAssets_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_StaticFiles_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_WebSockets_dll" />
+      <ComponentRef Id="CMP_Microsoft_AspNetCore_WebUtilities_dll" />
       <ComponentRef Id="CMP_Microsoft_Bcl_AsyncInterfaces_dll" />
       <ComponentRef Id="CMP_Microsoft_CSharp_dll" />
       <ComponentRef Id="CMP_Microsoft_DiaSymReader_Native_amd64_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Caching_Abstractions_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Caching_Memory_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Configurati_667C887E1660" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Configuration_Binder_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Configurati_29FD6C28D61E" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Configuration_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Configurati_AC14B5F71EEF" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Configurati_39AF4C06BF16" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Configuration_Ini_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Configuration_Json_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Configurati_7200F666D060" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Configurati_DBFDB83921CE" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Configuration_Xml_dll" />
       <ComponentRef Id="CMP_Microsoft_Extensions_DependencyI_336F6185AC8F" />
       <ComponentRef Id="CMP_Microsoft_Extensions_DependencyInjection_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Diagnostics_878C85E722A1" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Diagnostics_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Diagnostics_6F2D7C489AEB" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Diagnostics_363422440DA8" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Features_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_FileProvide_4071C58D4AC5" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_FileProviders_Composite_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_FileProviders_Embedded_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_FileProviders_Physical_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_FileSystemGlobbing_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Hosting_Abstractions_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Hosting_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Http_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Identity_Core_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Identity_Stores_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Localizatio_4881388944A9" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Localization_dll" />
       <ComponentRef Id="CMP_Microsoft_Extensions_Logging_Abstractions_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Logging_Configuration_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Logging_Console_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Logging_Debug_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Logging_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Logging_EventLog_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Logging_EventSource_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Logging_TraceSource_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_ObjectPool_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Options_Con_0421F771F00B" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Options_DataAnnotations_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Options_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Primitives_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_Validation_dll" />
+      <ComponentRef Id="CMP_Microsoft_Extensions_WebEncoders_dll" />
       <ComponentRef Id="CMP_Microsoft_Graph_Core_dll" />
       <ComponentRef Id="CMP_Microsoft_Graph_dll" />
       <ComponentRef Id="CMP_Microsoft_Identity_Client_dll" />
@@ -4548,6 +5095,7 @@
       <ComponentRef Id="CMP_Microsoft_IdentityModel_Protocol_C278292C0BF4" />
       <ComponentRef Id="CMP_Microsoft_IdentityModel_Tokens_dll" />
       <ComponentRef Id="CMP_Microsoft_IdentityModel_Validators_dll" />
+      <ComponentRef Id="CMP_Microsoft_JSInterop_dll" />
       <ComponentRef Id="CMP_Microsoft_Kiota_Abstractions_dll" />
       <ComponentRef Id="CMP_Microsoft_Kiota_Authentication_Azure_dll" />
       <ComponentRef Id="CMP_Microsoft_Kiota_Http_HttpClientLibrary_dll" />
@@ -4555,6 +5103,7 @@
       <ComponentRef Id="CMP_Microsoft_Kiota_Serialization_Json_dll" />
       <ComponentRef Id="CMP_Microsoft_Kiota_Serialization_Multipart_dll" />
       <ComponentRef Id="CMP_Microsoft_Kiota_Serialization_Text_dll" />
+      <ComponentRef Id="CMP_Microsoft_Net_Http_Headers_dll" />
       <ComponentRef Id="CMP_Microsoft_VisualBasic_Core_dll" />
       <ComponentRef Id="CMP_Microsoft_VisualBasic_dll" />
       <ComponentRef Id="CMP_Microsoft_VisualBasic_Forms_dll" />
@@ -4615,6 +5164,7 @@
       <ComponentRef Id="CMP_PresentationFramework_Royale_dll" />
       <ComponentRef Id="CMP_PresentationNative_cor3_dll" />
       <ComponentRef Id="CMP_PresentationUI_dll" />
+      <ComponentRef Id="CMP_QRCoder_dll" />
       <ComponentRef Id="CMP_ReachFramework_dll" />
       <ComponentRef Id="CMP_SharpCompress_dll" />
       <ComponentRef Id="CMP_SixLabors_Fonts_dll" />
@@ -4672,6 +5222,7 @@
       <ComponentRef Id="CMP_System_Drawing_Primitives_dll" />
       <ComponentRef Id="CMP_System_Dynamic_Runtime_dll" />
       <ComponentRef Id="CMP_System_Formats_Asn1_dll" />
+      <ComponentRef Id="CMP_System_Formats_Cbor_dll" />
       <ComponentRef Id="CMP_System_Formats_Nrbf_dll" />
       <ComponentRef Id="CMP_System_Formats_Tar_dll" />
       <ComponentRef Id="CMP_System_Globalization_Calendars_dll" />
@@ -4795,6 +5346,7 @@
       <ComponentRef Id="CMP_System_Threading_Channels_dll" />
       <ComponentRef Id="CMP_System_Threading_dll" />
       <ComponentRef Id="CMP_System_Threading_Overlapped_dll" />
+      <ComponentRef Id="CMP_System_Threading_RateLimiting_dll" />
       <ComponentRef Id="CMP_System_Threading_Tasks_Dataflow_dll" />
       <ComponentRef Id="CMP_System_Threading_Tasks_dll" />
       <ComponentRef Id="CMP_System_Threading_Tasks_Extensions_dll" />
