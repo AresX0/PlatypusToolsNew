@@ -199,6 +199,66 @@ namespace PlatypusTools.UI.Services
             
             StackChanged?.Invoke(this, EventArgs.Empty);
         }
+
+        /// <summary>
+        /// IDEA-006: Records an operation and shows a toast notification with an Undo action button.
+        /// Call this instead of RecordRename/Move/etc. when you want the user to see an undo toast.
+        /// </summary>
+        public void RecordWithToast(FileOperation operation)
+        {
+            RecordOperation(operation);
+            
+            var desc = operation.GetDescription();
+            ToastNotificationService.Instance.ShowWithAction(
+                desc,
+                "Undo",
+                () => _ = UndoAsync(),
+                title: "File Operation",
+                type: ToastType.Info,
+                durationMs: 8000);
+        }
+
+        /// <summary>
+        /// IDEA-006: Convenience — Record rename + show undo toast.
+        /// </summary>
+        public void RecordRenameWithToast(string oldPath, string newPath)
+        {
+            RecordWithToast(new FileOperation
+            {
+                Type = OperationType.Rename,
+                OriginalPath = oldPath,
+                NewPath = newPath,
+                Timestamp = DateTime.Now
+            });
+        }
+
+        /// <summary>
+        /// IDEA-006: Convenience — Record move + show undo toast.
+        /// </summary>
+        public void RecordMoveWithToast(string source, string dest)
+        {
+            RecordWithToast(new FileOperation
+            {
+                Type = OperationType.Move,
+                OriginalPath = source,
+                NewPath = dest,
+                Timestamp = DateTime.Now
+            });
+        }
+
+        /// <summary>
+        /// IDEA-006: Convenience — Record delete + show undo toast.
+        /// </summary>
+        public void RecordDeleteWithToast(string path, string? backup = null)
+        {
+            RecordWithToast(new FileOperation
+            {
+                Type = OperationType.Delete,
+                OriginalPath = path,
+                BackupPath = backup,
+                Timestamp = DateTime.Now
+            });
+        }
         
         private async Task UndoOperationAsync(FileOperation operation)
         {

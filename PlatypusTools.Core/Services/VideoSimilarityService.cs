@@ -501,7 +501,7 @@ namespace PlatypusTools.Core.Services
                 else if (Directory.Exists(path))
                 {
                     var searchOption = recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-                    foreach (var file in Directory.EnumerateFiles(path, "*", searchOption))
+                    foreach (var file in Utilities.SafeFileEnumerator.EnumerateFiles(path, "*", recurse))
                     {
                         if (IsVideoFile(file))
                             yield return file;

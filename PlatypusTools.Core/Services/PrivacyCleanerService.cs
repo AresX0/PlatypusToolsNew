@@ -393,7 +393,7 @@ public class PrivacyCleanerService
 
         await Task.Run(() =>
         {
-            var files = Directory.GetFiles(path, pattern, SearchOption.AllDirectories);
+            var files = Utilities.SafeFileEnumerator.EnumerateFiles(path, pattern, recurse: true);
             foreach (var file in files)
             {
                 try

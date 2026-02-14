@@ -27,6 +27,11 @@ namespace PlatypusTools.UI
             base.OnStartup(e);
             _startupArgs = e.Args;
             
+            // IDEA-011: Auto-apply standard context menus to all DataGrids
+            EventManager.RegisterClassHandler(typeof(System.Windows.Controls.DataGrid),
+                FrameworkElement.LoadedEvent,
+                new RoutedEventHandler(DataGrid_GlobalLoaded));
+            
             // Check for screensaver mode command-line arguments
             if (_startupArgs != null && _startupArgs.Length > 0)
             {
@@ -131,6 +136,30 @@ namespace PlatypusTools.UI
             }
 
             base.OnExit(e);
+        }
+
+        /// <summary>
+        /// IDEA-011: Automatically applies a standard context menu to DataGrids that don't already have one.
+        /// </summary>
+        private void DataGrid_GlobalLoaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.DataGrid dg && dg.ContextMenu == null)
+            {
+                // Auto-detect path property
+                string? pathProp = null;
+                if (dg.Items.Count > 0 && dg.Items[0] != null)
+                {
+                    var type = dg.Items[0].GetType();
+                    var names = new[] { "Path", "FilePath", "FullPath", "FileName", "SourcePath", "OutputPath", "KeyPath", "DumpPath", "FolderPath" };
+                    foreach (var name in names)
+                    {
+                        if (type.GetProperty(name) != null) { pathProp = name; break; }
+                    }
+                }
+                dg.ContextMenu = !string.IsNullOrEmpty(pathProp)
+                    ? Services.StandardContextMenuService.CreateFileContextMenu(pathProp)
+                    : Services.StandardContextMenuService.CreateTextContextMenu();
+            }
         }
         
         /// <summary>
@@ -364,6 +393,7 @@ namespace PlatypusTools.UI
                 // Create and show main window IMMEDIATELY - don't wait for dependency checks
                 StartupProfiler.BeginPhase("Create main window");
                 _splashScreen?.UpdateStatus("Loading...");
+                
                 var mainWindow = new MainWindow();
                 
                 // Apply font settings after window content is loaded
@@ -398,12 +428,30 @@ namespace PlatypusTools.UI
 
                 // Start Platypus Remote Server if enabled
                 await StartRemoteServerIfEnabledAsync();
+
+                // Start the internal App Task Scheduler
+                try
+                {
+                    var scheduler = ServiceContainer.GetService<AppTaskSchedulerService>();
+                    scheduler?.Start();
+                    SimpleLogger.Info("AppTaskSchedulerService started.");
+                }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Warn($"Failed to start AppTaskScheduler: {ex.Message}");
+                }
             }
             catch (Exception ex)
             {
-                SimpleLogger.Error($"Startup failed: {ex.Message}");
+                // Log full exception chain for debugging
+                var fullError = ex.ToString();
+                var innerMsg = ex.InnerException?.InnerException?.Message 
+                    ?? ex.InnerException?.Message 
+                    ?? ex.Message;
+                SimpleLogger.Error($"Startup failed: {fullError}");
+                try { File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startup_crash.log"), fullError); } catch { }
                 _splashScreen?.Close();
-                MessageBox.Show($"Failed to start application: {ex.Message}", "Startup Error", 
+                MessageBox.Show($"Failed to start application: {innerMsg}\n\nSee startup_crash.log for details.", "Startup Error", 
                     MessageBoxButton.OK, MessageBoxImage.Error);
                 Shutdown();
             }

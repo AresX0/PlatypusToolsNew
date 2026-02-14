@@ -1,7 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using PlatypusTools.Core.Models;
 
 namespace PlatypusTools.UI.Models.VideoEditor
 {
@@ -9,7 +8,7 @@ namespace PlatypusTools.UI.Models.VideoEditor
     /// Represents a track in the timeline (video or audio).
     /// Modeled after Shotcut's multitrackmodel.h
     /// </summary>
-    public class TimelineTrack : INotifyPropertyChanged
+    public class TimelineTrack : BindableModel
     {
         private string _name = string.Empty;
         private TrackType _type;
@@ -112,10 +111,6 @@ namespace PlatypusTools.UI.Models.VideoEditor
         };
 
         public ObservableCollection<TimelineClip> Clips { get; } = new();
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? name = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
     public enum TrackType

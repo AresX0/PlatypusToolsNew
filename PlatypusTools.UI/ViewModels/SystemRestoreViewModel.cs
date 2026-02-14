@@ -30,7 +30,7 @@ namespace PlatypusTools.UI.ViewModels
 
         public SystemRestoreViewModel()
         {
-            _systemRestoreService = Services.ServiceLocator.SystemRestore;
+            _systemRestoreService = ServiceContainer.GetService<SystemRestoreService>() ?? new SystemRestoreService();
 
             RefreshCommand = new RelayCommand(async _ => await RefreshAsync(), _ => !IsLoading);
             CreatePointCommand = new RelayCommand(async _ => await CreatePointAsync(), _ => !IsLoading);

@@ -163,5 +163,49 @@ namespace PlatypusTools.UI.Utilities
                 return null;
             }
         }
+
+        /// <summary>
+        /// Loads a BitmapImage from a URI (pack://, file://, https://, etc).
+        /// Uses CacheOption.OnLoad and Freeze() for memory safety.
+        /// </summary>
+        /// <param name="uri">URI to load from</param>
+        /// <returns>Frozen BitmapImage or null if failed</returns>
+        public static BitmapImage? LoadFromUri(Uri uri)
+        {
+            if (uri == null) return null;
+
+            try
+            {
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.UriSource = uri;
+                bitmap.EndInit();
+                bitmap.Freeze();
+                return bitmap;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Loads a BitmapImage from a URI string.
+        /// </summary>
+        /// <param name="uriString">URI string to load from</param>
+        /// <param name="uriKind">URI kind (default: Absolute)</param>
+        /// <returns>Frozen BitmapImage or null if failed</returns>
+        public static BitmapImage? LoadFromUri(string uriString, UriKind uriKind = UriKind.Absolute)
+        {
+            try
+            {
+                return LoadFromUri(new Uri(uriString, uriKind));
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }

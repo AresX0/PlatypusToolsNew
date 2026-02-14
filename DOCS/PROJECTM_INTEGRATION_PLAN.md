@@ -1,5 +1,11 @@
 # ProjectM / Butterchurn Milkdrop Visualizer Integration Plan
 
+## Current Status (February 14, 2026)
+
+**Not implemented as described.** The current Milkdrop visualizer mode (#19) is a **custom SkiaSharp implementation** with double-buffered feedback loops and warping effects. It is NOT Butterchurn or projectM. It looks good but cannot load real Winamp `.milk` presets.
+
+**Decision needed**: Implement Butterchurn via WebView2 for real preset compatibility (130k+ presets), or keep the custom implementation.
+
 ## Overview
 
 Integrate Milkdrop-compatible visualizations into PlatypusTools audio player.

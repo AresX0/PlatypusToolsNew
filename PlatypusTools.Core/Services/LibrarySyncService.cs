@@ -150,8 +150,8 @@ namespace PlatypusTools.Core.Services
                 if (!Directory.Exists(location.Path))
                     return (0, 0L);
 
-                var files = Directory.GetFiles(location.Path, "*", SearchOption.AllDirectories);
-                var totalSize = files.Sum(f => new FileInfo(f).Length);
+                var files = Utilities.SafeFileEnumerator.EnumerateFiles(location.Path, "*", recurse: true).ToArray();
+                var totalSize = files.Sum(f => { try { return new FileInfo(f).Length; } catch { return 0L; } });
                 return (files.Length, totalSize);
             }, cancellationToken);
         }
@@ -462,7 +462,7 @@ namespace PlatypusTools.Core.Services
 
             try
             {
-                foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
+                foreach (var file in Utilities.SafeFileEnumerator.EnumerateFiles(path, "*", recurse: true))
                 {
                     var ext = Path.GetExtension(file);
                     if (extensions.Count == 0 || extensions.Contains(ext))

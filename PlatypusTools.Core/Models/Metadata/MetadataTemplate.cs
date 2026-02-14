@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System.Linq;
 
 namespace PlatypusTools.Core.Models.Metadata
 {
@@ -25,7 +24,7 @@ namespace PlatypusTools.Core.Models.Metadata
     /// <summary>
     /// Represents a single metadata field definition.
     /// </summary>
-    public class MetadataField : INotifyPropertyChanged
+    public class MetadataField : BindableModel
     {
         private string _name = string.Empty;
         private string _displayName = string.Empty;
@@ -118,19 +117,12 @@ namespace PlatypusTools.Core.Models.Metadata
                 Options = Options != null ? new List<string>(Options) : null
             };
         }
-        
-        public event PropertyChangedEventHandler? PropertyChanged;
-        
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
     
     /// <summary>
     /// Represents a metadata template preset.
     /// </summary>
-    public class MetadataTemplate : INotifyPropertyChanged
+    public class MetadataTemplate : BindableModel
     {
         private string _id = Guid.NewGuid().ToString();
         private string _name = string.Empty;
@@ -212,13 +204,6 @@ namespace PlatypusTools.Core.Models.Metadata
                 Fields = Fields.Select(f => f.Clone()).ToList()
             };
         }
-        
-        public event PropertyChangedEventHandler? PropertyChanged;
-        
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
     
     /// <summary>
@@ -281,7 +266,7 @@ namespace PlatypusTools.Core.Models.Metadata
     /// <summary>
     /// Represents a metadata tag that can be selected for batch copy operations.
     /// </summary>
-    public class SelectableMetadataTag : INotifyPropertyChanged
+    public class SelectableMetadataTag : BindableModel
     {
         private bool _isSelected = true;
         private string _tagName = string.Empty;
@@ -317,13 +302,6 @@ namespace PlatypusTools.Core.Models.Metadata
         {
             get => _category;
             set { _category = value; OnPropertyChanged(); }
-        }
-        
-        public event PropertyChangedEventHandler? PropertyChanged;
-        
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

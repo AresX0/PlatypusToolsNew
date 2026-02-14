@@ -40,12 +40,11 @@ namespace PlatypusTools.Core.Services
             if (!Directory.Exists(folderPath))
                 return tasks;
 
-            var searchOption = includeSubfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
             var extensionsToUse = extensions.Length > 0 ? extensions : _defaultExtensions;
 
             foreach (var ext in extensionsToUse)
             {
-                var files = Directory.GetFiles(folderPath, $"*{ext}", searchOption);
+                var files = Utilities.SafeFileEnumerator.EnumerateFiles(folderPath, $"*{ext}", includeSubfolders);
                 foreach (var file in files)
                 {
                     var info = await GetVideoInfo(file);

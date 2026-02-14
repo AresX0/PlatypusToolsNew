@@ -63,6 +63,8 @@ namespace PlatypusTools.UI.Views
                     KlingonThemeRadio.IsChecked = true;
                 else if (settings?.Theme == ThemeManager.PipBoy)
                     PipBoyThemeRadio.IsChecked = true;
+                else if (settings?.Theme == ThemeManager.KPopDemonHunters)
+                    KPopDemonHuntersThemeRadio.IsChecked = true;
                 else if (settings?.Theme == ThemeManager.Dark)
                     DarkThemeRadio.IsChecked = true;
                 else if (LightThemeRadio != null)
@@ -93,6 +95,10 @@ namespace PlatypusTools.UI.Views
                 // Admin rights
                 if (RequireAdminRightsCheck != null)
                     RequireAdminRightsCheck.IsChecked = settings?.RequireAdminRights ?? true;
+
+                // Restore last session (IDEA-009)
+                if (RestoreLastSessionCheck != null)
+                    RestoreLastSessionCheck.IsChecked = settings?.RestoreLastSession ?? true;
 
                 // Load keyboard shortcuts
                 LoadKeyboardShortcuts();
@@ -892,6 +898,11 @@ namespace PlatypusTools.UI.Views
                 settings.Theme = ThemeManager.PipBoy;
                 ThemeManager.ApplyTheme(ThemeManager.PipBoy);
             }
+            else if (KPopDemonHuntersThemeRadio.IsChecked == true)
+            {
+                settings.Theme = ThemeManager.KPopDemonHunters;
+                ThemeManager.ApplyTheme(ThemeManager.KPopDemonHunters);
+            }
             else if (DarkThemeRadio.IsChecked == true)
             {
                 settings.Theme = ThemeManager.Dark;
@@ -930,6 +941,9 @@ namespace PlatypusTools.UI.Views
             
             // Save tab visibility settings
             SaveTabVisibilitySettings(settings);
+
+            // Session restore (IDEA-009)
+            settings.RestoreLastSession = RestoreLastSessionCheck.IsChecked == true;
             
             // Save audio visualizer settings
             SaveVisualizerSettings(settings);
@@ -1645,14 +1659,9 @@ namespace PlatypusTools.UI.Views
 
                 // Convert to WPF BitmapImage
                 using var ms = new System.IO.MemoryStream(qrCodeBytes);
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.StreamSource = ms;
-                bitmap.EndInit();
-                bitmap.Freeze();
-
-                RemoteQRCodeImage.Source = bitmap;
+                var bitmap = Utilities.ImageHelper.LoadFromStream(ms);
+                if (bitmap != null)
+                    RemoteQRCodeImage.Source = bitmap;
             }
             catch (System.Exception ex)
             {

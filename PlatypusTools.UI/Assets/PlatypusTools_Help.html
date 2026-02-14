@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlatypusTools v3.4.1.4.4 - Help Documentation</title>
+    <title>PlatypusTools v3.4.1.5.5.4 - Help Documentation</title>
     <style>
         :root {
             --primary: #2d5aa8;
@@ -148,7 +148,7 @@
 <header>
     <h1>🦆 PlatypusTools</h1>
     <p>Advanced File Management &amp; Media Tools Suite</p>
-    <div class="version">Version 3.4.1.4.4 | Built with .NET 10 / WPF</div>
+    <div class="version">Version 3.4.1.5.5.4 | Built with .NET 10 / WPF</div>
 </header>
 
 <div class="container">
@@ -260,6 +260,10 @@
         </li>
         <li><strong>Quick Forensics Scanner</strong> <span class="new-badge">New</span> - Lightweight and deep system analysis for security issues
         </li>
+        <li><strong>CVE Search</strong> <span class="new-badge">New</span> - Look up CVE vulnerabilities by ID (MITRE API) or keyword (NVD API) with CVSS scoring and severity badges
+        </li>
+        <li><strong>Improved Visualizer Lifecycle</strong> <span class="new-badge">New</span> - Full stop/start on mode switches; Matrix and Honmoon fullscreen sync fixes
+        </li>
     </ul>
     
     <h3>Previous Updates (v3.2.15)</h3>
@@ -343,7 +347,7 @@
         </div>
         <div class="feature-card">
             <h4>🔒 Security</h4>
-            <p>Folder Hider, System Audit, AD Security Analyzer, Cloud Identity, Quick Forensics</p>
+            <p>Folder Hider, System Audit, AD Security Analyzer, Cloud Identity, CVE Search, Quick Forensics</p>
         </div>
         <div class="feature-card">
             <h4>🔬 Advanced Forensics <span class="new-badge">New</span></h4>
@@ -1172,6 +1176,52 @@ ingress:
     <div class="warning">
         <strong>Caution:</strong> Incident response actions are disruptive. Ensure proper authorization and documentation before executing.
     </div>
+
+    <h3>🔍 CVE Search <span class="new-badge">New</span></h3>
+    <p>Search the global CVE vulnerability database directly from PlatypusTools. Supports two search modes — direct CVE ID lookup via the MITRE CVE AWG API and keyword search via the NVD (National Vulnerability Database) API v2.0.</p>
+
+    <h4>Search Modes</h4>
+    <table>
+        <tr><th>Mode</th><th>API</th><th>Description</th></tr>
+        <tr><td>CVE ID</td><td>MITRE CVE AWG</td><td>Look up a specific CVE by its identifier (e.g. <code>CVE-2024-3094</code>). Returns the full CVE record directly from MITRE.</td></tr>
+        <tr><td>Keyword</td><td>NVD v2.0</td><td>Search for vulnerabilities by keyword (e.g. <code>remote code execution</code>, <code>log4j</code>). Returns up to 50 matching results.</td></tr>
+    </table>
+    <div class="tip">
+        <strong>Tip:</strong> The search type auto-detects when you type a CVE ID starting with "CVE-". You can also press <strong>Enter</strong> in the search box to start a search.
+    </div>
+
+    <h4>Results</h4>
+    <p>Search results are displayed in a sortable DataGrid with color-coded CVSS severity badges:</p>
+    <table>
+        <tr><th>Column</th><th>Description</th></tr>
+        <tr><td>CVE ID</td><td>The unique CVE identifier (e.g. CVE-2024-3094)</td></tr>
+        <tr><td>Published</td><td>Date the CVE was first published</td></tr>
+        <tr><td>Score</td><td>CVSS base score with severity badge: <strong style="color:#C62828;">CRITICAL</strong> (9.0-10.0), <strong style="color:#E65100;">HIGH</strong> (7.0-8.9), <strong style="color:#FF8F00;">MEDIUM</strong> (4.0-6.9), <strong style="color:#2E7D32;">LOW</strong> (0.1-3.9)</td></tr>
+        <tr><td>State</td><td>CVE status: PUBLISHED, MODIFIED, REJECTED, etc.</td></tr>
+        <tr><td>Description</td><td>Brief vulnerability description (hover for full text)</td></tr>
+    </table>
+
+    <h4>Detail Panel</h4>
+    <p>Click any result to view the full CVE record in the detail panel on the right:</p>
+    <ul>
+        <li><strong>CVSS Vector String</strong> - Full CVSS v3.1/v4.0 vector for detailed risk assessment</li>
+        <li><strong>Full Description</strong> - Complete vulnerability narrative</li>
+        <li><strong>Affected Products</strong> - Vendor/product pairs or CPE entries affected by the vulnerability</li>
+        <li><strong>References</strong> - Clickable links to advisories, patches, and write-ups</li>
+    </ul>
+
+    <h4>Actions</h4>
+    <table>
+        <tr><th>Action</th><th>Description</th></tr>
+        <tr><td>Copy CVE ID</td><td>Copy the selected CVE identifier to the clipboard</td></tr>
+        <tr><td>Copy Description</td><td>Copy the full description text to the clipboard</td></tr>
+        <tr><td>Export</td><td>Export all results to CSV, JSON, or plain text file</td></tr>
+        <tr><td>Cancel</td><td>Cancel an in-progress search</td></tr>
+        <tr><td>Open Reference</td><td>Click any reference URL to open it in your default browser</td></tr>
+    </table>
+    <div class="tip">
+        <strong>No API key required:</strong> Both the MITRE CVE AWG and NVD public APIs are used without authentication. Rate limits may apply for high-volume searches.
+    </div>
 </section>
 
 <section id="forensics" class="section">
@@ -1874,7 +1924,7 @@ ingress:
 </div>
 
 <footer>
-    <p>PlatypusTools v3.4.1.4.4 | © 2026 PlatypusTools Project | Built with .NET 10 / WPF</p>
+    <p>PlatypusTools v3.4.1.5.5.4 | © 2026 PlatypusTools Project | Built with .NET 10 / WPF</p>
 </footer>
 
 </body>

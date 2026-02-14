@@ -75,6 +75,7 @@
                         <ComboBoxItem Content="Milkdrop"/>
                         <ComboBoxItem Content="3D Bars"/>
                         <ComboBoxItem Content="Waterfall"/>
+                        <ComboBoxItem Content="Honmoon"/>
                     </ComboBox>
                 </StackPanel>
                 

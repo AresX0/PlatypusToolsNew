@@ -40,12 +40,11 @@ namespace PlatypusTools.Core.Services
             FileTypeFilter fileTypeFilter)
         {
             var operations = new List<RenameOperation>();
-            var searchOption = includeSubfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 
             if (!Directory.Exists(folderPath))
                 return operations;
 
-            var files = Directory.GetFiles(folderPath, "*.*", searchOption);
+            var files = Utilities.SafeFileEnumerator.EnumerateFiles(folderPath, "*.*", includeSubfolders);
 
             foreach (var filePath in files)
             {

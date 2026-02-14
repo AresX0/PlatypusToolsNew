@@ -1382,13 +1382,9 @@ namespace PlatypusTools.UI.Views
                 using var ms = new MemoryStream();
                 composite.SaveAsPng(ms);
                 ms.Position = 0;
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.StreamSource = ms;
-                bitmap.EndInit();
-                bitmap.Freeze();
-                ImagePreview.Source = bitmap;
+                var bitmap = Utilities.ImageHelper.LoadFromStream(ms);
+                if (bitmap != null)
+                    ImagePreview.Source = bitmap;
             }
             catch { }
             

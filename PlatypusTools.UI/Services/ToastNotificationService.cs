@@ -19,8 +19,33 @@ namespace PlatypusTools.UI.Services
         
         public ObservableCollection<ToastNotification> ActiveNotifications { get; } = new();
         
+        /// <summary>
+        /// Notification history — keeps the last 100 dismissed notifications (IDEA-008).
+        /// </summary>
+        public ObservableCollection<ToastNotification> NotificationHistory { get; } = new();
+        
+        /// <summary>
+        /// Unread notification count for badge display.
+        /// </summary>
+        private int _unreadCount;
+        public int UnreadCount
+        {
+            get => _unreadCount;
+            private set
+            {
+                _unreadCount = value;
+                UnreadCountChanged?.Invoke(this, value);
+            }
+        }
+        
+        /// <summary>
+        /// Whether the notification center panel is open.
+        /// </summary>
+        public bool IsPanelOpen { get; set; }
+        
         public event EventHandler<ToastNotification>? NotificationShown;
         public event EventHandler<ToastNotification>? NotificationDismissed;
+        public event EventHandler<int>? UnreadCountChanged;
         
         private ToastNotificationService()
         {
@@ -127,6 +152,12 @@ namespace PlatypusTools.UI.Services
                 ActiveNotifications.Add(notification);
                 NotificationShown?.Invoke(this, notification);
                 
+                // IDEA-008: Track in history
+                NotificationHistory.Insert(0, notification);
+                while (NotificationHistory.Count > 100)
+                    NotificationHistory.RemoveAt(NotificationHistory.Count - 1);
+                if (!IsPanelOpen) UnreadCount++;
+                
                 if (!notification.IsPersistent && notification.Duration > 0)
                 {
                     var timer = new System.Timers.Timer(notification.Duration);
@@ -187,6 +218,26 @@ namespace PlatypusTools.UI.Services
                     ActiveNotifications.RemoveAt(0);
                     NotificationDismissed?.Invoke(this, notification);
                 }
+            });
+        }
+        
+        /// <summary>
+        /// Marks all notifications as read (resets unread count). IDEA-008.
+        /// </summary>
+        public void MarkAllRead()
+        {
+            UnreadCount = 0;
+        }
+        
+        /// <summary>
+        /// Clears notification history. IDEA-008.
+        /// </summary>
+        public void ClearHistory()
+        {
+            _dispatcher.Invoke(() =>
+            {
+                NotificationHistory.Clear();
+                UnreadCount = 0;
             });
         }
     }

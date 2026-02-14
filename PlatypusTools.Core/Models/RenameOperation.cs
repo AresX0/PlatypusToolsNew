@@ -1,16 +1,7 @@
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-
 namespace PlatypusTools.Core.Models
 {
-    public class RenameOperation : INotifyPropertyChanged
+    public class RenameOperation : BindableModel
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
         public string OriginalPath { get; set; } = string.Empty;
         public string ProposedPath { get; set; } = string.Empty;

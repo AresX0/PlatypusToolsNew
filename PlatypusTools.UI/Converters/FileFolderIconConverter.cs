@@ -14,7 +14,7 @@ namespace PlatypusTools.UI.Converters
             {
                 bool isFile = value is bool b && b;
                 string icon = isFile ? "pack://application:,,,/PlatypusTools.UI;component/Assets/file.png" : "pack://application:,,,/PlatypusTools.UI;component/Assets/folder.png";
-                return new BitmapImage(new Uri(icon));
+                return Utilities.ImageHelper.LoadFromUri(icon);
             }
             catch (Exception ex)
             {

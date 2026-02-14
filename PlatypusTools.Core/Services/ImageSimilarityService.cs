@@ -391,13 +391,11 @@ namespace PlatypusTools.Core.Services
         /// </summary>
         private IEnumerable<string> CollectImageFiles(IEnumerable<string> paths, bool recurse)
         {
-            var searchOption = recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-            
             foreach (var path in paths)
             {
                 if (Directory.Exists(path))
                 {
-                    foreach (var file in Directory.EnumerateFiles(path, "*", searchOption))
+                    foreach (var file in Utilities.SafeFileEnumerator.EnumerateFiles(path, "*", recurse))
                     {
                         var ext = Path.GetExtension(file).ToLowerInvariant();
                         if (SupportedExtensions.Contains(ext))

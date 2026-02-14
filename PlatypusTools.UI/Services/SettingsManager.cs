@@ -36,6 +36,16 @@ namespace PlatypusTools.UI.Services
         private string _customFontFamily = "Default";
         private double _fontScale = 1.0;
 
+        // Session Restore Settings (IDEA-009)
+        private bool _restoreLastSession = true;
+        private int _lastSelectedMainTabIndex = 0;
+        private Dictionary<string, int> _lastSelectedSubTabIndices = new();
+        private double _windowWidth = 0;
+        private double _windowHeight = 0;
+        private double _windowTop = double.NaN;
+        private double _windowLeft = double.NaN;
+        private int _windowState = 0; // 0=Normal, 2=Maximized
+
         public string Theme
         {
             get => _theme;
@@ -339,6 +349,80 @@ namespace PlatypusTools.UI.Services
             set { _visibleTabs = value ?? new Dictionary<string, bool>(); OnPropertyChanged(); }
         }
 
+        // ======================== Session Restore (IDEA-009) ========================
+
+        /// <summary>
+        /// IDEA-003: Whether to minimize to system tray instead of closing.
+        /// </summary>
+        private bool _minimizeToTray;
+        public bool MinimizeToTray
+        {
+            get => _minimizeToTray;
+            set { _minimizeToTray = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Whether to restore the last session's tab selection and window position on startup.
+        /// </summary>
+        public bool RestoreLastSession
+        {
+            get => _restoreLastSession;
+            set { _restoreLastSession = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// The index of the last selected main (top-level) tab.
+        /// </summary>
+        public int LastSelectedMainTabIndex
+        {
+            get => _lastSelectedMainTabIndex;
+            set { _lastSelectedMainTabIndex = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Maps main tab names to their last selected sub-tab index.
+        /// </summary>
+        public Dictionary<string, int> LastSelectedSubTabIndices
+        {
+            get => _lastSelectedSubTabIndices;
+            set { _lastSelectedSubTabIndices = value ?? new Dictionary<string, int>(); OnPropertyChanged(); }
+        }
+
+        /// <summary>Window width in device-independent pixels. 0 = use default.</summary>
+        public double WindowWidth
+        {
+            get => _windowWidth;
+            set { _windowWidth = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>Window height in device-independent pixels. 0 = use default.</summary>
+        public double WindowHeight
+        {
+            get => _windowHeight;
+            set { _windowHeight = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>Window top position. NaN = use default.</summary>
+        public double WindowTop
+        {
+            get => _windowTop;
+            set { _windowTop = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>Window left position. NaN = use default.</summary>
+        public double WindowLeft
+        {
+            get => _windowLeft;
+            set { _windowLeft = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>Window state: 0=Normal, 2=Maximized.</summary>
+        public int WindowStateValue
+        {
+            get => _windowState;
+            set { _windowState = value; OnPropertyChanged(); }
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -456,8 +540,36 @@ namespace PlatypusTools.UI.Services
 
     public static class SettingsManager
     {
-        private static string AppFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PlatypusTools");
-        private static string SettingsFile => Path.Combine(AppFolder, "settings.json");
+        /// <summary>
+        /// Whether the app is running in portable mode (IDEA-017).
+        /// Portable mode stores settings next to the exe instead of in AppData.
+        /// Detected by the presence of a "portable.txt" file alongside the executable.
+        /// </summary>
+        public static bool IsPortableMode { get; }
+
+        private static readonly string _appFolder;
+        private static readonly string _settingsFile;
+
+        static SettingsManager()
+        {
+            // Check for portable mode marker file (IDEA-017)
+            var exeDir = AppContext.BaseDirectory;
+            var portableMarker = Path.Combine(exeDir, "portable.txt");
+            IsPortableMode = File.Exists(portableMarker);
+
+            if (IsPortableMode)
+            {
+                _appFolder = Path.Combine(exeDir, "PlatypusData");
+            }
+            else
+            {
+                _appFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PlatypusTools");
+            }
+            _settingsFile = Path.Combine(_appFolder, "settings.json");
+        }
+
+        private static string AppFolder => _appFolder;
+        private static string SettingsFile => _settingsFile;
 
         private static AppSettings? _cachedSettings;
 
@@ -580,6 +692,7 @@ namespace PlatypusTools.UI.Services
                 new("Security.AdvancedForensics.PCAP", "PCAP Parser", "Security.AdvancedForensics"),
                 new("Security.AdvancedForensics.Results", "Results", "Security.AdvancedForensics"),
                 new("Security.AdSecurityAnalyzer", "AD Security Analyzer", "Security"),
+                new("Security.CveSearch", "CVE Search", "Security"),
 
                 new("Metadata", "📋 Metadata", null),
 

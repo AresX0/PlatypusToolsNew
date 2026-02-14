@@ -21,6 +21,7 @@ namespace PlatypusTools.UI.ViewModels
             DownloadUpdateCommand = new AsyncRelayCommand(DownloadUpdateAsync, () => UpdateAvailable != null && !IsDownloading);
             InstallUpdateCommand = new RelayCommand(_ => InstallUpdate(), _ => !string.IsNullOrEmpty(DownloadedFilePath));
             ViewReleaseNotesCommand = new RelayCommand(_ => ViewReleaseNotes(), _ => UpdateAvailable != null);
+            ViewChangelogCommand = new RelayCommand(_ => ToggleChangelog(), _ => UpdateAvailable != null);
             DismissCommand = new RelayCommand(_ => Dismiss());
         }
 
@@ -38,8 +39,10 @@ namespace PlatypusTools.UI.ViewModels
                 {
                     RaisePropertyChanged(nameof(HasUpdate));
                     RaisePropertyChanged(nameof(UpdateMessage));
+                    RaisePropertyChanged(nameof(ChangelogText));
                     ((AsyncRelayCommand)DownloadUpdateCommand).RaiseCanExecuteChanged();
                     ((RelayCommand)ViewReleaseNotesCommand).RaiseCanExecuteChanged();
+                    ((RelayCommand)ViewChangelogCommand).RaiseCanExecuteChanged();
                 }
             }
         }
@@ -104,6 +107,21 @@ namespace PlatypusTools.UI.ViewModels
             set => SetProperty(ref _isVisible, value);
         }
 
+        /// <summary>
+        /// Changelog / release notes body from GitHub (Markdown formatted).
+        /// </summary>
+        public string ChangelogText => UpdateAvailable?.Body ?? string.Empty;
+
+        /// <summary>
+        /// Whether the changelog panel is visible.
+        /// </summary>
+        private bool _isChangelogVisible;
+        public bool IsChangelogVisible
+        {
+            get => _isChangelogVisible;
+            set => SetProperty(ref _isChangelogVisible, value);
+        }
+
         private bool _checkOnStartup = true;
         public bool CheckOnStartup
         {
@@ -125,6 +143,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand DownloadUpdateCommand { get; }
         public ICommand InstallUpdateCommand { get; }
         public ICommand ViewReleaseNotesCommand { get; }
+        public ICommand ViewChangelogCommand { get; }
         public ICommand DismissCommand { get; }
 
         #endregion
@@ -145,6 +164,7 @@ namespace PlatypusTools.UI.ViewModels
                     UpdateAvailable = update;
                     StatusMessage = $"Update {update.Version} available!";
                     IsVisible = true;
+                    IsChangelogVisible = true; // IDEA-013: auto-show changelog
                 }
                 else
                 {
@@ -216,6 +236,11 @@ namespace PlatypusTools.UI.ViewModels
             {
                 _updateService.OpenReleasePage(UpdateAvailable);
             }
+        }
+
+        private void ToggleChangelog()
+        {
+            IsChangelogVisible = !IsChangelogVisible;
         }
 
         private void Dismiss()

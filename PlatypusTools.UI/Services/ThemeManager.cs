@@ -25,6 +25,7 @@ namespace PlatypusTools.UI.Services
         public const string Glass = "Glass";
         public const string PipBoy = "PipBoy";
         public const string Klingon = "Klingon";
+        public const string KPopDemonHunters = "KPopDemonHunters";
 
         /// <summary>Gets the singleton instance.</summary>
         public static ThemeManager Instance => _instance ??= new ThemeManager();
@@ -197,7 +198,8 @@ namespace PlatypusTools.UI.Services
                    path.Contains("themes\\lcars.xaml") ||
                    path.Contains("themes\\glass.xaml") ||
                    path.Contains("themes\\pipboy.xaml") ||
-                   path.Contains("themes\\klingon.xaml");
+                   path.Contains("themes\\klingon.xaml") ||
+                   path.Contains("themes\\kpopdemonhunters.xaml");
         }
 
         /// <summary>
@@ -218,7 +220,7 @@ namespace PlatypusTools.UI.Services
 
                 // Update singleton state
                 Instance._currentTheme = name;
-                Instance._isDarkTheme = name == Dark || name == LCARS || name == PipBoy || name == Klingon; // LCARS, PipBoy, Klingon are dark-based
+                Instance._isDarkTheme = name == Dark || name == LCARS || name == PipBoy || name == Klingon || name == KPopDemonHunters; // LCARS, PipBoy, Klingon, KPopDemonHunters are dark-based
                 Instance._isLcarsTheme = name == LCARS;
                 Instance._isPipBoyTheme = name == PipBoy;
                 Instance._isKlingonTheme = name == Klingon;
@@ -250,6 +252,9 @@ namespace PlatypusTools.UI.Services
                         break;
                     case Klingon:
                         themePath = System.IO.Path.Combine(baseDir, "Themes", "Klingon.xaml");
+                        break;
+                    case KPopDemonHunters:
+                        themePath = System.IO.Path.Combine(baseDir, "Themes", "KPopDemonHunters.xaml");
                         break;
                     case Dark:
                         themePath = System.IO.Path.Combine(baseDir, "Themes", "Dark.xaml");

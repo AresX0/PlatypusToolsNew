@@ -1,9 +1,8 @@
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System;
 
 namespace PlatypusTools.Core.Models
 {
-    public class VideoConversionTask : INotifyPropertyChanged
+    public class VideoConversionTask : BindableModel
     {
         private string _sourcePath = string.Empty;
         private string _outputPath = string.Empty;
@@ -16,21 +15,6 @@ namespace PlatypusTools.Core.Models
         private TimeSpan? _elapsed;
         private long? _fileSizeBytes;
         private bool _isSelected = true;
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-        {
-            if (Equals(field, value)) return false;
-            field = value;
-            OnPropertyChanged(propertyName);
-            return true;
-        }
 
         public string SourcePath
         {

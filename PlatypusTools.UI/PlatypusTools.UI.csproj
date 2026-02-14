@@ -17,10 +17,15 @@
     </Reference>
   </ItemGroup>
     <!-- Removed explicit <Page> entries for Views/*.xaml; SDK includes them by default -->
+  <!-- Exclude theme XAML files from BAML compilation - they are loaded from disk at runtime
+       by ThemeManager. Compiling them as Page items can cause spurious Type-key entries. -->
+  <ItemGroup>
+    <Page Remove="Themes\*.xaml" />
+  </ItemGroup>
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>PlatypusTools.UI</RootNamespace>
-    <Version>3.4.1.4</Version>
+    <Version>3.4.1.5</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
@@ -148,6 +153,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Themes\Klingon.xaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Themes\KPopDemonHunters.xaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

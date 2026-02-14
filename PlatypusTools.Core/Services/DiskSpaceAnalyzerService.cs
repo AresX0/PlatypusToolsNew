@@ -108,6 +108,10 @@ namespace PlatypusTools.Core.Services
                     {
                         // Skip directories we can't access
                     }
+                    catch (PathTooLongException)
+                    {
+                        // Skip paths that exceed max length
+                    }
 
                     // Recursively add subdirectory sizes (synchronously to avoid deadlock)
                     try
@@ -121,6 +125,10 @@ namespace PlatypusTools.Core.Services
                     catch (UnauthorizedAccessException)
                     {
                         // Skip directories we can't access
+                    }
+                    catch (PathTooLongException)
+                    {
+                        // Skip paths that exceed max length
                     }
 
                     return size;
@@ -149,6 +157,7 @@ namespace PlatypusTools.Core.Services
                 size += files.Sum(f => f.Length);
             }
             catch (UnauthorizedAccessException) { }
+            catch (PathTooLongException) { }
 
             try
             {
@@ -159,6 +168,7 @@ namespace PlatypusTools.Core.Services
                 }
             }
             catch (UnauthorizedAccessException) { }
+            catch (PathTooLongException) { }
 
             return size;
         }
@@ -304,6 +314,10 @@ namespace PlatypusTools.Core.Services
             catch (UnauthorizedAccessException)
             {
                 // Skip directories we can't access
+            }
+            catch (PathTooLongException)
+            {
+                // Skip paths that exceed max length
             }
 
             return node;

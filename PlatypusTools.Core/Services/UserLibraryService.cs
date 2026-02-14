@@ -191,7 +191,7 @@ public class UserLibraryService
         var playlist = new Playlist
         {
             Name = name,
-            Description = description
+            Description = description ?? string.Empty
         };
         _data!.Playlists.Add(playlist);
         _isDirty = true;

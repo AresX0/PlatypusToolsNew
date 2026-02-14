@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace PlatypusTools.Core.Models.ImageScaler
 {
@@ -40,7 +38,7 @@ namespace PlatypusTools.Core.Models.ImageScaler
     /// <summary>
     /// Represents a single image in a batch upscale job.
     /// </summary>
-    public class BatchUpscaleItem : INotifyPropertyChanged
+    public class BatchUpscaleItem : BindableModel
     {
         private string _sourcePath = string.Empty;
         private string _outputPath = string.Empty;
@@ -201,19 +199,12 @@ namespace PlatypusTools.Core.Models.ImageScaler
         }
         
         public string OutputDimensions => $"{OutputWidth} x {OutputHeight}";
-        
-        public event PropertyChangedEventHandler? PropertyChanged;
-        
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
     
     /// <summary>
     /// Represents a batch upscale job with multiple images.
     /// </summary>
-    public class BatchUpscaleJob : INotifyPropertyChanged
+    public class BatchUpscaleJob : BindableModel
     {
         private string _name = string.Empty;
         private BatchJobStatus _status = BatchJobStatus.Queued;
@@ -291,13 +282,6 @@ namespace PlatypusTools.Core.Models.ImageScaler
         /// Settings for this batch job.
         /// </summary>
         public BatchUpscaleSettings Settings { get; set; } = new();
-        
-        public event PropertyChangedEventHandler? PropertyChanged;
-        
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
     
     /// <summary>
@@ -342,7 +326,7 @@ namespace PlatypusTools.Core.Models.ImageScaler
     /// Per-item settings overrides for batch upscaling.
     /// Allows individual items to use different settings than the job defaults.
     /// </summary>
-    public class BatchUpscaleItemOverrides : INotifyPropertyChanged
+    public class BatchUpscaleItemOverrides : BindableModel
     {
         private UpscaleMode _mode = UpscaleMode.RealESRGAN;
         private double _scaleFactor = 2.0;
@@ -398,13 +382,6 @@ namespace PlatypusTools.Core.Models.ImageScaler
             TargetHeight = settings.TargetHeight;
             OutputFormat = settings.OutputFormat;
             JpegQuality = settings.JpegQuality;
-        }
-        
-        public event PropertyChangedEventHandler? PropertyChanged;
-        
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

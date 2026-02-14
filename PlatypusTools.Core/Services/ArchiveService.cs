@@ -94,7 +94,7 @@ namespace PlatypusTools.Core.Services
                 
                 var entriesToExtract = archive.Entries
                     .Where(e => !e.IsDirectory)
-                    .Where(e => options.SelectedEntries == null || options.SelectedEntries.Contains(e.Key))
+                    .Where(e => options.SelectedEntries == null || (e.Key != null && options.SelectedEntries.Contains(e.Key)))
                     .ToList();
                 
                 int totalFiles = entriesToExtract.Count;

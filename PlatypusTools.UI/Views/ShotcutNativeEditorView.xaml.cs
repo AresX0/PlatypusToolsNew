@@ -1001,7 +1001,7 @@ namespace PlatypusTools.UI.Views
             // If we have a selected playlist item, add it
             if (_selectedPlaylistItem != null)
             {
-                AddToTimeline_Click(sender, new RoutedEventArgs());
+                AddToTimeline_Click(sender ?? this, new RoutedEventArgs());
             }
             else
             {
@@ -1019,7 +1019,7 @@ namespace PlatypusTools.UI.Views
                 {
                     AddFileToPlaylist(dialog.FileName);
                     _selectedPlaylistItem = PlaylistItems.LastOrDefault();
-                    AddToTimeline_Click(sender, new RoutedEventArgs());
+                    AddToTimeline_Click(sender ?? this, new RoutedEventArgs());
                 }
             }
         }

@@ -1,7 +1,7 @@
 # PlatypusTools - Priority Feature List
 
 **Created**: January 19, 2026  
-**Updated**: February 11, 2026  
+**Updated**: February 14, 2026 (audited)  
 **Purpose**: Quick wins and high-impact features for Audio Player (MusicBee-inspired) and Video Editor (Shotcut-inspired)  
 **Legend**: ⭐ = 1-2 hours | ⭐⭐ = 3-4 hours | ⭐⭐⭐ = 5-8 hours | ✅ = Complete | 🔄 = Partial | ❌ = Not Started
 
@@ -18,7 +18,7 @@
 | Task Scheduler | ⭐⭐ | Schedule cleanup, backup, analysis tasks | 🔄 Partial | Views Windows tasks only, can't schedule app tasks |
 | Command Palette | ⭐⭐⭐ | Ctrl+Shift+P quick access to all functions | ✅ Complete | CommandPaletteWindow with Ctrl+Shift+P |
 | Multi-language Support | ⭐⭐ | Resource file localization | ✅ Complete | LocalizationService with Strings.resx files |
-| Dark/Light Theme Auto-Switch | ⭐ | Follow Windows system theme | 🔄 Partial | "Use system" option exists, no runtime auto-switch |
+| Dark/Light Theme Auto-Switch | ⭐ | Follow Windows system theme | ✅ Complete | ThemeAutoSwitchService.cs with Win32 RegNotifyChangeKeyValue watcher |
 | Drag-Drop File Processing | ⭐⭐⭐ | Drop files directly onto main window | ✅ Complete | DragDropService singleton in multiple views |
 
 ### DFIR-Specific Enhancements
@@ -28,7 +28,7 @@
 | YARA Rules Integration | Scan files/memory with YARA rules | ✅ Complete | YaraService with community rule sources |
 | IOC Scanner | Import threat intel feeds and scan | ✅ Complete | IOCScannerService with STIX/TAXII feed support |
 | Registry Diff Tool | Compare registry snapshots before/after | ✅ Complete | RegistryDiffService with snapshots |
-| Browser Forensics | Parse Chrome/Firefox/Edge artifacts | 🔄 Partial | Plaso integration can parse; no dedicated UI |
+| Browser Forensics | Parse Chrome/Firefox/Edge artifacts | ✅ Complete | Dedicated "Browser" tab in AdvancedForensicsView with BrowserForensicsService |
 | Network Artifact Extraction | Parse PCAP files for IOCs | ✅ Complete | PcapParser in AdvancedForensicsViewModel with packet analysis |
 
 ### Quick Wins (All Complete ✅)
@@ -47,8 +47,8 @@
 | Feature | Description | Status | Notes |
 |---------|-------------|--------|-------|
 | ForensicOperationBase | Reusable forensic operation patterns | ✅ Complete | IForensicOperation.cs with 11 services |
-| Dependency Injection | Microsoft.Extensions.DependencyInjection | 🔄 Partial | Uses ServiceLocator pattern, not proper DI |
-| Unit Tests for DFIR | Test coverage for forensic services | ❌ Not Started | No tests for YaraService, etc. |
+| Dependency Injection | Microsoft.Extensions.DependencyInjection | 🔄 Partial | ServiceContainer with IServiceCollection exists; ServiceLocator still used by ~15 VMs — migration ongoing |
+| Unit Tests for DFIR | Test coverage for forensic services | ✅ Complete | YaraServiceTests, IOCAndYaraPatternTests, BrowserForensicsServiceTests, ForensicsAnalyzerServiceTests, PcapParserServiceTests |
 
 ### Summary
 
@@ -111,7 +111,7 @@
 | # | Task | Effort | Description | Status |
 |---|------|--------|-------------|--------|
 | ML-006 | Duplicate Detection | ⭐⭐ | Detect duplicates before copying (hash comparison) | ✅ Complete |
-| ML-007 | Metadata Enrichment | ⭐⭐ | Auto-fetch metadata from online sources | 🔄 Partial |
+| ML-007 | Metadata Enrichment | ⭐⭐ | Auto-fetch metadata from online sources | ✅ Complete | MetadataEnrichmentService.cs — MusicBrainz, Cover Art Archive, Last.fm |
 | ML-008 | Watch Folders | ⭐⭐ | Monitor folders for new media and auto-import | ✅ Complete |
 | ML-009 | Library Sync | ⭐⭐⭐ | Sync library between multiple locations | ✅ Complete |
 | ML-010 | Smart Collections | ⭐⭐ | Auto-collections based on rules (date, type, size) | ✅ Complete |
@@ -180,7 +180,7 @@
 |---|------|--------|-------------|--------|
 | VE-011 | Audio Waveforms on Clips | ⭐⭐⭐ | Display audio waveform visualization on timeline clips | ✅ Complete |
 | VE-012 | Keyframe Editor Panel | ⭐⭐⭐ | Visual keyframe editor for filter parameters with bezier curves | ✅ Complete |
-| VE-013 | Thumbnail Strip for Clips | ⭐⭐⭐ | Show video frame thumbnails on timeline clips | 🔄 Partial |
+| VE-013 | Thumbnail Strip for Clips | ⭐⭐⭐ | Show video frame thumbnails on timeline clips | ✅ Complete | TimelineThumbnailService.cs with caching |
 | VE-014 | Ripple/Rolling Edit Modes | ⭐⭐⭐ | Advanced edit modes that shift/adjust adjacent clips | ✅ Complete |
 | VE-015 | Export Presets Panel | ⭐⭐⭐ | Export presets for YouTube, Vimeo, Instagram, TikTok, etc. | ✅ Complete |
 

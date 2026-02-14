@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using PlatypusTools.Core.Utilities;
 
 namespace PlatypusTools.UI.Services.RemoteServer;
 
@@ -37,6 +38,14 @@ public class PlatypusRemoteServer : IDisposable
     private bool _isRunning;
     private readonly CancellationTokenSource _cts = new();
 
+    /// <summary>
+    /// IP allowlist for remote connections. When empty, all IPs are allowed.
+    /// Supports individual IPs (192.168.1.100) and CIDR notation (192.168.1.0/24).
+    /// Loopback (127.0.0.1, ::1) is always allowed.
+    /// </summary>
+    private readonly List<string> _ipAllowlist = new();
+    private bool _ipAllowlistEnabled;
+
     public event EventHandler<string>? LogMessage;
     public event EventHandler<bool>? ServerStateChanged;
     public event EventHandler<RemoteClientInfo>? ClientConnected;
@@ -46,9 +55,190 @@ public class PlatypusRemoteServer : IDisposable
     public int Port => _port;
     public string ServerUrl => $"https://localhost:{_port}";
 
+    /// <summary>
+    /// Gets or sets whether the IP allowlist is enabled.
+    /// </summary>
+    public bool IpAllowlistEnabled
+    {
+        get => _ipAllowlistEnabled;
+        set => _ipAllowlistEnabled = value;
+    }
+
+    /// <summary>
+    /// Gets the current IP allowlist entries.
+    /// </summary>
+    public IReadOnlyList<string> IpAllowlist => _ipAllowlist;
+
     public PlatypusRemoteServer(int port = 47392)
     {
         _port = port;
+        LoadIpAllowlist();
+    }
+
+    /// <summary>
+    /// Adds an IP or CIDR range to the allowlist.
+    /// </summary>
+    public void AddToAllowlist(string ipOrCidr)
+    {
+        if (!string.IsNullOrWhiteSpace(ipOrCidr) && !_ipAllowlist.Contains(ipOrCidr, StringComparer.OrdinalIgnoreCase))
+        {
+            _ipAllowlist.Add(ipOrCidr.Trim());
+            SaveIpAllowlist();
+            Log($"Added to IP allowlist: {ipOrCidr}");
+        }
+    }
+
+    /// <summary>
+    /// Removes an IP or CIDR range from the allowlist.
+    /// </summary>
+    public void RemoveFromAllowlist(string ipOrCidr)
+    {
+        if (_ipAllowlist.Remove(ipOrCidr))
+        {
+            SaveIpAllowlist();
+            Log($"Removed from IP allowlist: {ipOrCidr}");
+        }
+    }
+
+    /// <summary>
+    /// Clears all IP allowlist entries.
+    /// </summary>
+    public void ClearAllowlist()
+    {
+        _ipAllowlist.Clear();
+        SaveIpAllowlist();
+        Log("IP allowlist cleared");
+    }
+
+    /// <summary>
+    /// Checks if a remote IP address is allowed.
+    /// </summary>
+    private bool IsIpAllowed(IPAddress? remoteIp)
+    {
+        if (!_ipAllowlistEnabled || _ipAllowlist.Count == 0)
+            return true; // Allowlist disabled or empty = allow all
+
+        if (remoteIp == null)
+            return false;
+
+        // Loopback is always allowed
+        if (IPAddress.IsLoopback(remoteIp))
+            return true;
+
+        var remoteStr = remoteIp.ToString();
+
+        foreach (var entry in _ipAllowlist)
+        {
+            // CIDR notation support (e.g., 192.168.1.0/24)
+            if (entry.Contains('/'))
+            {
+                if (IsInCidrRange(remoteIp, entry))
+                    return true;
+            }
+            else
+            {
+                // Exact IP match
+                if (IPAddress.TryParse(entry, out var allowedIp) && allowedIp.Equals(remoteIp))
+                    return true;
+                // String match fallback
+                if (string.Equals(entry, remoteStr, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if an IP address is within a CIDR range.
+    /// </summary>
+    private static bool IsInCidrRange(IPAddress address, string cidr)
+    {
+        try
+        {
+            var parts = cidr.Split('/');
+            if (parts.Length != 2 || !IPAddress.TryParse(parts[0], out var network) || !int.TryParse(parts[1], out var prefixLength))
+                return false;
+
+            var networkBytes = network.GetAddressBytes();
+            var addressBytes = address.GetAddressBytes();
+
+            if (networkBytes.Length != addressBytes.Length)
+                return false;
+
+            var totalBits = networkBytes.Length * 8;
+            if (prefixLength > totalBits)
+                return false;
+
+            for (int i = 0; i < networkBytes.Length; i++)
+            {
+                if (prefixLength >= 8)
+                {
+                    if (networkBytes[i] != addressBytes[i])
+                        return false;
+                    prefixLength -= 8;
+                }
+                else if (prefixLength > 0)
+                {
+                    var mask = (byte)(0xFF << (8 - prefixLength));
+                    if ((networkBytes[i] & mask) != (addressBytes[i] & mask))
+                        return false;
+                    prefixLength = 0;
+                }
+                // Remaining bits don't need to match
+            }
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private void LoadIpAllowlist()
+    {
+        try
+        {
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var configPath = Path.Combine(appData, "PlatypusTools", "remote_ip_allowlist.json");
+            if (File.Exists(configPath))
+            {
+                var json = File.ReadAllText(configPath);
+                var config = System.Text.Json.JsonSerializer.Deserialize<IpAllowlistConfig>(json);
+                if (config != null)
+                {
+                    _ipAllowlistEnabled = config.Enabled;
+                    _ipAllowlist.Clear();
+                    _ipAllowlist.AddRange(config.AllowedIps ?? Array.Empty<string>());
+                }
+            }
+        }
+        catch { }
+    }
+
+    private void SaveIpAllowlist()
+    {
+        try
+        {
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var folder = Path.Combine(appData, "PlatypusTools");
+            Directory.CreateDirectory(folder);
+            var configPath = Path.Combine(folder, "remote_ip_allowlist.json");
+            var config = new IpAllowlistConfig
+            {
+                Enabled = _ipAllowlistEnabled,
+                AllowedIps = _ipAllowlist.ToArray()
+            };
+            File.WriteAllText(configPath, System.Text.Json.JsonSerializer.Serialize(config,
+                new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+        }
+        catch { }
+    }
+
+    private class IpAllowlistConfig
+    {
+        public bool Enabled { get; set; }
+        public string[] AllowedIps { get; set; } = Array.Empty<string>();
     }
 
     public async Task StartAsync()
@@ -100,6 +290,20 @@ public class PlatypusRemoteServer : IDisposable
                         app.UseCors();
                         app.UseWebSockets();
 
+                        // IP Allowlist middleware - reject connections not in allowlist
+                        app.Use(async (context, next) =>
+                        {
+                            var remoteIp = context.Connection.RemoteIpAddress;
+                            if (!IsIpAllowed(remoteIp))
+                            {
+                                Log($"Blocked connection from {remoteIp} - not in IP allowlist");
+                                context.Response.StatusCode = 403;
+                                await context.Response.WriteAsync("Forbidden: IP not in allowlist");
+                                return;
+                            }
+                            await next();
+                        });
+
                         // Security headers
                         app.Use(async (context, next) =>
                         {
@@ -119,14 +323,106 @@ public class PlatypusRemoteServer : IDisposable
 
                         app.UseEndpoints(endpoints =>
                         {
-                            // Health check
+                            // Health check — enhanced (IDEA-019)
                             endpoints.MapGet("/health", async context =>
                             {
+                                var tailscale = TailscaleHelper.GetStatus();
+                                var process = System.Diagnostics.Process.GetCurrentProcess();
+                                var uptime = DateTime.UtcNow - process.StartTime.ToUniversalTime();
+                                var appVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown";
+                                
+                                // Audio status
+                                IAudioServiceBridge? audioBridge = null;
+                                object? audioStatus = null;
+                                try
+                                {
+                                    audioBridge = context.RequestServices.GetService<IAudioServiceBridge>();
+                                    if (audioBridge != null)
+                                    {
+                                        var np = await audioBridge.GetNowPlayingAsync();
+                                        audioStatus = new { playing = np != null, title = np?.Title, artist = np?.Artist };
+                                    }
+                                }
+                                catch { audioStatus = new { playing = false, title = (string?)null, artist = (string?)null }; }
+
                                 await context.Response.WriteAsJsonAsync(new
                                 {
                                     status = "healthy",
                                     timestamp = DateTime.UtcNow,
-                                    version = "1.0.0"
+                                    version = appVersion,
+                                    uptime = new
+                                    {
+                                        totalSeconds = (int)uptime.TotalSeconds,
+                                        display = $"{(int)uptime.TotalHours}h {uptime.Minutes}m {uptime.Seconds}s"
+                                    },
+                                    memory = new
+                                    {
+                                        workingSetMB = process.WorkingSet64 / (1024 * 1024),
+                                        peakWorkingSetMB = process.PeakWorkingSet64 / (1024 * 1024),
+                                        gcTotalMemoryMB = GC.GetTotalMemory(false) / (1024 * 1024)
+                                    },
+                                    system = new
+                                    {
+                                        os = Environment.OSVersion.ToString(),
+                                        processors = Environment.ProcessorCount,
+                                        is64Bit = Environment.Is64BitProcess,
+                                        dotnetVersion = Environment.Version.ToString()
+                                    },
+                                    server = new
+                                    {
+                                        port = _port,
+                                        portableMode = SettingsManager.IsPortableMode
+                                    },
+                                    audio = audioStatus,
+                                    tailscale = new
+                                    {
+                                        installed = tailscale.IsInstalled,
+                                        connected = tailscale.IsConnected,
+                                        ip = tailscale.TailscaleIp,
+                                        remoteUrl = TailscaleHelper.GetRemoteUrl(_port)
+                                    }
+                                });
+                            });
+
+                            // Detailed health — includes disk space and GC stats (IDEA-019)
+                            endpoints.MapGet("/api/health/detailed", async context =>
+                            {
+                                var process = System.Diagnostics.Process.GetCurrentProcess();
+                                var drives = new List<object>();
+                                foreach (var d in DriveInfo.GetDrives())
+                                {
+                                    try
+                                    {
+                                        if (d.IsReady)
+                                            drives.Add(new { name = d.Name, totalGB = d.TotalSize / (1024L * 1024 * 1024), freeGB = d.AvailableFreeSpace / (1024L * 1024 * 1024), format = d.DriveFormat });
+                                    }
+                                    catch { /* skip inaccessible drives */ }
+                                }
+
+                                var gcInfo = GC.GetGCMemoryInfo();
+                                await context.Response.WriteAsJsonAsync(new
+                                {
+                                    status = "healthy",
+                                    timestamp = DateTime.UtcNow,
+                                    process = new
+                                    {
+                                        id = process.Id,
+                                        name = process.ProcessName,
+                                        threads = process.Threads.Count,
+                                        handles = process.HandleCount,
+                                        totalProcessorTimeSec = (int)process.TotalProcessorTime.TotalSeconds,
+                                        workingSetMB = process.WorkingSet64 / (1024 * 1024),
+                                        privateMemoryMB = process.PrivateMemorySize64 / (1024 * 1024)
+                                    },
+                                    gc = new
+                                    {
+                                        gen0Collections = GC.CollectionCount(0),
+                                        gen1Collections = GC.CollectionCount(1),
+                                        gen2Collections = GC.CollectionCount(2),
+                                        totalAllocatedMB = GC.GetTotalAllocatedBytes(false) / (1024 * 1024),
+                                        heapSizeMB = gcInfo.HeapSizeBytes / (1024 * 1024)
+                                    },
+                                    drives
                                 });
                             });
 
@@ -332,6 +628,18 @@ public class PlatypusRemoteServer : IDisposable
 
             Log($"Platypus Remote Server started at {ServerUrl}");
             ServerStateChanged?.Invoke(this, true);
+
+            // Check Tailscale availability
+            var tailscaleStatus = TailscaleHelper.GetStatus();
+            if (tailscaleStatus.IsConnected)
+            {
+                var tailscaleUrl = TailscaleHelper.GetRemoteUrl(_port);
+                Log($"Tailscale detected! Remote access available at: {tailscaleUrl}");
+            }
+            else if (tailscaleStatus.IsInstalled)
+            {
+                Log("Tailscale installed but not connected. Connect Tailscale for remote access.");
+            }
         }
         catch (Exception ex)
         {

@@ -26,7 +26,7 @@ namespace PlatypusTools.UI.ViewModels
         
         public PdfToolsViewModel()
         {
-            _service = Services.ServiceLocator.PdfTools;
+            _service = ServiceContainer.GetService<PdfService>() ?? new PdfService();
             _service.ProgressChanged += OnProgressChanged;
             
             InputFiles = new ObservableCollection<PdfFileItem>();

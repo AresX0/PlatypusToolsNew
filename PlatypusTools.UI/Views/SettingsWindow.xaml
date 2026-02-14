@@ -171,6 +171,7 @@
                                 <RadioButton x:Name="LCARSThemeRadio" Content="LCARS (Star Trek)" GroupName="Theme" Margin="0,4"/>
                                 <RadioButton x:Name="KlingonThemeRadio" Content="Klingon (tlhIngan)" GroupName="Theme" Margin="0,4"/>
                                 <RadioButton x:Name="PipBoyThemeRadio" Content="Pip-Boy (Fallout)" GroupName="Theme" Margin="0,4"/>
+                                <RadioButton x:Name="KPopDemonHuntersThemeRadio" Content="K-Pop Demon Hunters" GroupName="Theme" Margin="0,4"/>
                                 <RadioButton x:Name="SystemThemeRadio" Content="Use system setting" GroupName="Theme" Margin="0,4"/>
                                 <Button Content="Customize Theme..." MinWidth="190" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CustomizeTheme_Click"/>
                             </StackPanel>
@@ -323,7 +324,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.1.4"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.1.5"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="Gray" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>

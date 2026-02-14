@@ -47,7 +47,7 @@ namespace PlatypusTools.Core.Services
         {
             var opts = recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
             if (!Directory.Exists(path)) return Array.Empty<string>();
-            if (includePatterns == null) return Directory.EnumerateFiles(path, "*", opts);
+            if (includePatterns == null) return Utilities.SafeFileEnumerator.EnumerateFiles(path, "*", recurse);
 
             var files = new List<string>();
             foreach (var pat in includePatterns)

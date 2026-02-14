@@ -178,6 +178,7 @@ public partial class EnhancedAudioPlayerView : UserControl
         19 => "Jedi",
         20 => "TimeLord",
         21 => "Milkdrop",
+        22 => "Honmoon",
         _ => "Bars"
     };
     
@@ -325,9 +326,6 @@ public partial class EnhancedAudioPlayerView : UserControl
             var fullscreenVisualizer = new AudioVisualizerView();
             fullscreenVisualizer.SetExternallyDriven(); // Prevent double subscription, use external mode/data only
             _fullscreenVisualizer = fullscreenVisualizer;
-            
-            // Frame-skip guard for spectrum data updates — declared early so button handlers can reset it
-            int _fsUpdating = 0;
             
             // Set initial mode and color before first render
             string initialMode = GetVisualizerModeName(vm?.VisualizerModeIndex ?? 0);
@@ -482,12 +480,11 @@ public partial class EnhancedAudioPlayerView : UserControl
             {
                 if (vm != null)
                 {
-                    int maxMode = 21;
+                    int maxMode = 22;
                     vm.VisualizerModeIndex = (vm.VisualizerModeIndex - 1 + maxMode + 1) % (maxMode + 1);
                     var modeName = GetVisualizerModeName(vm.VisualizerModeIndex);
                     modeLabel.Text = modeName;
                     ShowFullscreenModeToast(modeName);
-                    System.Threading.Interlocked.Exchange(ref _fsUpdating, 0);
                     fullscreenVisualizer.ForceVisualizationMode(modeName);
                 }
             };
@@ -495,12 +492,11 @@ public partial class EnhancedAudioPlayerView : UserControl
             {
                 if (vm != null)
                 {
-                    int maxMode = 21;
+                    int maxMode = 22;
                     vm.VisualizerModeIndex = (vm.VisualizerModeIndex + 1) % (maxMode + 1);
                     var modeName = GetVisualizerModeName(vm.VisualizerModeIndex);
                     modeLabel.Text = modeName;
                     ShowFullscreenModeToast(modeName);
-                    System.Threading.Interlocked.Exchange(ref _fsUpdating, 0);
                     fullscreenVisualizer.ForceVisualizationMode(modeName);
                 }
             };
@@ -526,88 +522,99 @@ public partial class EnhancedAudioPlayerView : UserControl
             
             _fullscreenOsd.Child = osdGrid;
             
-            // Create lyrics overlay for fullscreen
-            Border? lyricsOverlay = null;
-            TextBlock? lyricsText = null;
-            if (vm?.ShowLyricsOverlay == true)
+            // Create lyrics overlay for fullscreen — ALWAYS create it so toggling works at runtime
+            // Visibility is controlled dynamically by the data pump based on ShowLyricsOverlay
+            var lyricsOverlay = new Border
             {
-                lyricsOverlay = new Border
-                {
-                    Background = new SolidColorBrush(Color.FromArgb(128, 0, 0, 0)),
-                    CornerRadius = new CornerRadius(8),
-                    Padding = new Thickness(20, 10, 20, 10),
-                    VerticalAlignment = VerticalAlignment.Bottom,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    Margin = new Thickness(20, 0, 20, 100) // Above the OSD
-                };
-                lyricsText = new TextBlock
-                {
-                    Text = vm?.CurrentLyricLineText ?? "",
-                    FontSize = 24,
-                    FontWeight = FontWeights.SemiBold,
-                    Foreground = Brushes.White,
-                    TextAlignment = TextAlignment.Center,
-                    TextWrapping = TextWrapping.Wrap,
-                    MaxWidth = 800
-                };
-                lyricsOverlay.Child = lyricsText;
-            }
+                Background = new SolidColorBrush(Color.FromArgb(128, 0, 0, 0)),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(20, 10, 20, 10),
+                VerticalAlignment = VerticalAlignment.Bottom,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(20, 0, 20, 100), // Above the OSD
+                Visibility = Visibility.Collapsed // Start hidden, data pump will show when lyrics are active
+            };
+            var lyricsText = new TextBlock
+            {
+                Text = vm?.CurrentLyricLineText ?? "",
+                FontSize = 24,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = Brushes.White,
+                TextAlignment = TextAlignment.Center,
+                TextWrapping = TextWrapping.Wrap,
+                MaxWidth = 800
+            };
+            lyricsOverlay.Child = lyricsText;
             
             // Container grid
             var container = new Grid();
             container.Children.Add(fullscreenVisualizer);
             _fullscreenAlbumArtPanel.Visibility = Visibility.Collapsed;
             container.Children.Add(_fullscreenAlbumArtPanel);
-            if (lyricsOverlay != null)
-                container.Children.Add(lyricsOverlay);
+            container.Children.Add(lyricsOverlay);
             container.Children.Add(_fullscreenOsd);
             
             _fullscreenWindow.Content = container;
             
             // Subscribe to spectrum data for fullscreen visualizer
-            // Latest data fields — always updated by background thread, read by UI thread.
-            // This ensures the visualizer always gets the FRESHEST data even when
-            // the frame-skip guard drops intermediate dispatches (fixes sluggish
-            // responsiveness in heavy modes like Klingon, Federation, Jedi).
-            double[]? _latestData = null;
-            string _latestMode = initialMode;
-            int _latestDensity = vm?.Density ?? 32;
-            int _latestColor = vm?.ColorSchemeIndex ?? 0;
-            double _latestSensitivity = vm?.VisualizerSensitivity ?? 0.7;
-            int _latestFps = vm?.VisualizerFps ?? 22;
-            double _latestCrawlSpeed = vm?.CrawlScrollSpeed ?? 1.0;
+            // Dispatch every event directly — matching how the normal view works.
+            // The old Interlocked frame-skip guard prevented queue buildup but starved
+            // the fullscreen of data: during heavy renders (Honmoon, Klingon, Jedi, etc.)
+            // the UI thread was busy painting, the guard never released, and ALL incoming
+            // spectrum events were dropped. Result: flat, non-reactive visualizations.
+            // Without the guard, multiple dispatches may queue during renders, but each is
+            // just a lightweight array copy (microseconds) and only the final one matters
+            // since each overwrites _spectrumData. Lyrics also sync now since they're
+            // updated on every dispatch.
             
             void OnSpectrumData(object? s, float[] data)
             {
                 if (data == null || data.Length == 0) return;
                 
-                // Always convert and store latest data (no guard) — background thread
+                // Don't process spectrum data when visualizer is fully stopped (V key = album art)
+                // Only update album art panel info, skip all visualizer work
+                if (_fullscreenVisualizerHidden)
+                {
+                    fullscreenVisualizer.Dispatcher.BeginInvoke(
+                        System.Windows.Threading.DispatcherPriority.Background, () =>
+                    {
+                        try
+                        {
+                            // Only update album art panel track info
+                            if (_fullscreenAlbumArtPanel != null)
+                            {
+                                UpdateTaggedElement(_fullscreenAlbumArtPanel, "FullscreenTrackTitle",
+                                    e => ((TextBlock)e).Text = vm?.CurrentTrackTitle ?? "");
+                                UpdateTaggedElement(_fullscreenAlbumArtPanel, "FullscreenTrackArtist",
+                                    e => ((TextBlock)e).Text = $"{vm?.CurrentTrackArtist} — {vm?.CurrentTrackAlbum}");
+                            }
+                        }
+                        catch { }
+                    });
+                    return;
+                }
+                
+                // Convert float[] to double[] on background thread
                 var doubleData = new double[data.Length];
                 for (int i = 0; i < data.Length; i++)
                     doubleData[i] = data[i];
                 
-                _latestData = doubleData;
-                _latestMode = GetVisualizerModeName(vm?.VisualizerModeIndex ?? 0);
-                _latestDensity = vm?.Density ?? 32;
-                _latestColor = vm?.ColorSchemeIndex ?? 0;
-                _latestSensitivity = vm?.VisualizerSensitivity ?? 0.7;
-                _latestFps = vm?.VisualizerFps ?? 22;
-                _latestCrawlSpeed = vm?.CrawlScrollSpeed ?? 1.0;
+                // Read settings from VM on background thread (all simple property reads)
+                string mode = GetVisualizerModeName(vm?.VisualizerModeIndex ?? 0);
+                int density = vm?.Density ?? 32;
+                int color = vm?.ColorSchemeIndex ?? 0;
+                double sensitivity = vm?.VisualizerSensitivity ?? 0.7;
+                int fps = vm?.VisualizerFps ?? 22;
+                double crawlSpeed = vm?.CrawlScrollSpeed ?? 1.0;
                 
-                // Only queue one dispatch at a time — but the lambda reads latest values
-                if (System.Threading.Interlocked.CompareExchange(ref _fsUpdating, 1, 0) != 0) return;
-                
-                // Use Normal priority — higher than Render (7) so data delivery is never starved
-                // by the render timer. Previously used Input (5) which is LOWER than Render,
-                // causing fullscreen data pump to be starved when heavy modes consumed render time.
-                fullscreenVisualizer.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, () =>
+                // Dispatch directly — no guard, matches normal view behavior
+                fullscreenVisualizer.Dispatcher.BeginInvoke(
+                    System.Windows.Threading.DispatcherPriority.Send, () =>
                 {
                     try
                     {
-                        // Read the LATEST stored values (not stale captured ones from dispatch time)
-                        var freshData = _latestData;
-                        if (freshData != null)
-                            fullscreenVisualizer.UpdateSpectrumData(freshData, _latestMode, _latestDensity, _latestColor, _latestSensitivity, _latestFps, _latestCrawlSpeed);
+                        fullscreenVisualizer.UpdateSpectrumData(
+                            doubleData, mode, density, color, sensitivity, fps, crawlSpeed);
                     
                         // Update lyrics if enabled
                         if (lyricsText != null && vm?.ShowLyricsOverlay == true)
@@ -619,23 +626,10 @@ public partial class EnhancedAudioPlayerView : UserControl
                             lyricsOverlay.Visibility = vm?.ShowLyricsOverlay == true && !string.IsNullOrWhiteSpace(vm?.CurrentLyricLineText)
                                 ? Visibility.Visible : Visibility.Collapsed;
                         }
-                    
-                        // Update album art panel track info in real-time when visualizer is hidden
-                        if (_fullscreenVisualizerHidden)
-                        {
-                            UpdateTaggedElement(_fullscreenAlbumArtPanel!, "FullscreenTrackTitle",
-                                e => ((TextBlock)e).Text = vm?.CurrentTrackTitle ?? "");
-                            UpdateTaggedElement(_fullscreenAlbumArtPanel!, "FullscreenTrackArtist",
-                                e => ((TextBlock)e).Text = $"{vm?.CurrentTrackArtist} — {vm?.CurrentTrackAlbum}");
-                        }
                     }
                     catch (Exception ex)
                     {
                         System.Diagnostics.Debug.WriteLine($"Fullscreen spectrum data error: {ex.Message}");
-                    }
-                    finally
-                    {
-                        System.Threading.Interlocked.Exchange(ref _fsUpdating, 0);
                     }
                 });
             }
@@ -769,17 +763,13 @@ public partial class EnhancedAudioPlayerView : UserControl
                 {
                     if (vm != null)
                     {
-                        int maxMode = 21; // 0-21 = 22 modes
+                        int maxMode = 22; // 0-22 = 23 modes
                         vm.VisualizerModeIndex = (vm.VisualizerModeIndex + 1) % (maxMode + 1);
                         var modeName = GetVisualizerModeName(vm.VisualizerModeIndex);
                         modeLabel.Text = modeName;
                         ShowFullscreenModeToast(modeName);
                         
-                        // Force mode change through immediately — reset frame-skip guard
-                        // so the next spectrum data event carries the new mode name.
-                        // Without this, heavy modes (Matrix, TimeLord, Milkdrop, Jedi)
-                        // block the guard and the mode change never propagates.
-                        System.Threading.Interlocked.Exchange(ref _fsUpdating, 0);
+                        // Force mode change through immediately
                         fullscreenVisualizer.ForceVisualizationMode(modeName);
                     }
                     args.Handled = true;
@@ -788,14 +778,13 @@ public partial class EnhancedAudioPlayerView : UserControl
                 {
                     if (vm != null)
                     {
-                        int maxMode = 21;
+                        int maxMode = 22;
                         vm.VisualizerModeIndex = (vm.VisualizerModeIndex - 1 + maxMode + 1) % (maxMode + 1);
                         var modeName = GetVisualizerModeName(vm.VisualizerModeIndex);
                         modeLabel.Text = modeName;
                         ShowFullscreenModeToast(modeName);
                         
-                        // Force mode change through immediately (see comment above)
-                        System.Threading.Interlocked.Exchange(ref _fsUpdating, 0);
+                        // Force mode change through immediately
                         fullscreenVisualizer.ForceVisualizationMode(modeName);
                     }
                     args.Handled = true;
@@ -982,6 +971,7 @@ public partial class EnhancedAudioPlayerView : UserControl
     /// <summary>
     /// Toggles between visualizer and album art + lyrics display in fullscreen mode.
     /// Triggered by pressing 'V' key or clicking the Art toggle button.
+    /// FULLY STOPS the visualizer when hiding, FULLY STARTS when showing.
     /// </summary>
     private void ToggleFullscreenVisualizerVisibility(EnhancedAudioPlayerViewModel? vm)
     {
@@ -989,7 +979,18 @@ public partial class EnhancedAudioPlayerView : UserControl
         
         if (_fullscreenVisualizer != null)
         {
-            _fullscreenVisualizer.Visibility = _fullscreenVisualizerHidden ? Visibility.Collapsed : Visibility.Visible;
+            if (_fullscreenVisualizerHidden)
+            {
+                // FULL STOP — no rendering while hidden
+                _fullscreenVisualizer.StopRendering();
+                _fullscreenVisualizer.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                // FULL START — fresh from zero
+                _fullscreenVisualizer.Visibility = Visibility.Visible;
+                _fullscreenVisualizer.StartRendering();
+            }
         }
         
         if (_fullscreenAlbumArtPanel != null)

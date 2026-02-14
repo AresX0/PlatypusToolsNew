@@ -24,12 +24,12 @@ namespace PlatypusTools.Core.Services
         /// <summary>
         /// Get details about a specific prerequisite
         /// </summary>
-        PrerequisiteInfo GetPrerequisiteInfo(string toolName);
+        PrerequisiteInfo? GetPrerequisiteInfo(string toolName);
 
         /// <summary>
         /// Get version of an installed tool
         /// </summary>
-        Task<string> GetToolVersionAsync(string toolName);
+        Task<string?> GetToolVersionAsync(string toolName);
     }
 
     /// <summary>
@@ -109,7 +109,7 @@ namespace PlatypusTools.Core.Services
                 return false;
 
             var info = Prerequisites[toolName.ToLower()];
-            return await CheckToolExistsAsync(info.ExecutableName);
+            return await CheckToolExistsAsync(info.ExecutableName ?? toolName);
         }
 
         public async Task<List<PrerequisiteInfo>> GetMissingPrerequisitesAsync()
@@ -118,7 +118,7 @@ namespace PlatypusTools.Core.Services
 
             foreach (var (key, prereq) in Prerequisites)
             {
-                bool isAvailable = await CheckToolExistsAsync(prereq.ExecutableName);
+                bool isAvailable = await CheckToolExistsAsync(prereq.ExecutableName ?? key);
                 if (!isAvailable)
                 {
                     missing.Add(prereq);
@@ -139,7 +139,7 @@ namespace PlatypusTools.Core.Services
                 return null;
 
             var info = Prerequisites[toolName.ToLower()];
-            return await GetToolVersionAsync(info.ExecutableName, info.VersionCheckArgument);
+            return await GetToolVersionAsync(info.ExecutableName ?? toolName, info.VersionCheckArgument ?? "--version");
         }
 
         private static async Task<bool> CheckToolExistsAsync(string executableName)
@@ -171,7 +171,7 @@ namespace PlatypusTools.Core.Services
             });
         }
 
-        private static async Task<string> GetToolVersionAsync(string executableName, string versionArg)
+        private static async Task<string?> GetToolVersionAsync(string executableName, string versionArg)
         {
             return await Task.Run(() =>
             {

@@ -52,6 +52,14 @@ public class EnhancedAudioPlayerService : IDisposable
     private readonly List<AudioTrack> _playHistory = new();
     private const int MAX_HISTORY_SIZE = 100;
     
+    // Queue Deduplication
+    private bool _preventDuplicates = true;
+    
+    // Playback Error Auto-Retry
+    private const int MAX_RETRY_ATTEMPTS = 3;
+    private int _retryCount = 0;
+    private bool _isRetrying = false;
+    
     // A-B Loop
     private bool _isABLoopEnabled;
     private TimeSpan? _loopPointA;
@@ -283,6 +291,20 @@ public class EnhancedAudioPlayerService : IDisposable
     
     #endregion
     
+    #region Queue Deduplication Properties
+    
+    /// <summary>
+    /// Gets or sets whether duplicates are prevented when adding to queue.
+    /// When true, tracks with the same file path won't be added again.
+    /// </summary>
+    public bool PreventDuplicates
+    {
+        get => _preventDuplicates;
+        set => _preventDuplicates = value;
+    }
+    
+    #endregion
+    
     #region Audio Bookmarks Properties
     
     /// <summary>
@@ -373,13 +395,23 @@ public class EnhancedAudioPlayerService : IDisposable
     /// <summary>
     /// Gets available audio output devices.
     /// </summary>
-    public static IEnumerable<(int DeviceNumber, string Name)> GetAudioOutputDevices()
+    public static List<(int DeviceNumber, string Name)> GetAudioOutputDevices()
     {
-        for (int i = -1; i < WaveOut.DeviceCount; i++)
+        var devices = new List<(int DeviceNumber, string Name)>();
+        devices.Add((-1, "Default Device"));
+        for (int i = 0; i < WaveOut.DeviceCount; i++)
         {
-            var caps = WaveOut.GetCapabilities(i);
-            yield return (i, i == -1 ? "Default Device" : caps.ProductName);
+            try
+            {
+                var caps = WaveOut.GetCapabilities(i);
+                devices.Add((i, caps.ProductName));
+            }
+            catch
+            {
+                devices.Add((i, $"Device {i}"));
+            }
         }
+        return devices;
     }
     
     /// <summary>
@@ -635,6 +667,10 @@ public class EnhancedAudioPlayerService : IDisposable
             CurrentTrack.PlayCount++;
             CurrentTrack.LastPlayed = DateTime.Now;
             
+            // Reset retry counter on successful playback
+            _retryCount = 0;
+            _isRetrying = false;
+            
             TrackChanged?.Invoke(this, CurrentTrack);
             PlaybackStateChanged?.Invoke(this, true);
             DurationChanged?.Invoke(this, Duration);
@@ -644,7 +680,33 @@ public class EnhancedAudioPlayerService : IDisposable
         }
         catch (Exception ex)
         {
-            PlaybackError?.Invoke(this, ex.Message);
+            // Auto-retry logic: retry up to MAX_RETRY_ATTEMPTS with exponential backoff
+            if (!_isRetrying && _retryCount < MAX_RETRY_ATTEMPTS)
+            {
+                _retryCount++;
+                _isRetrying = true;
+                var delay = (int)Math.Pow(2, _retryCount) * 500; // 1s, 2s, 4s
+                System.Diagnostics.Debug.WriteLine($"Playback error (attempt {_retryCount}/{MAX_RETRY_ATTEMPTS}): {ex.Message}. Retrying in {delay}ms...");
+                PlaybackError?.Invoke(this, $"Playback error (retry {_retryCount}/{MAX_RETRY_ATTEMPTS}): {ex.Message}");
+                
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(delay);
+                    await Application.Current.Dispatcher.InvokeAsync(async () =>
+                    {
+                        _isRetrying = false;
+                        await PlayCurrentAsync();
+                    });
+                });
+                return;
+            }
+            
+            // All retries exhausted — skip to next track
+            _retryCount = 0;
+            _isRetrying = false;
+            PlaybackError?.Invoke(this, $"Playback failed after {MAX_RETRY_ATTEMPTS} retries: {ex.Message}. Skipping to next track.");
+            System.Diagnostics.Debug.WriteLine($"Playback failed permanently: {ex.Message}. Skipping...");
+            _ = NextAsync();
         }
     }
     
@@ -853,6 +915,14 @@ public class EnhancedAudioPlayerService : IDisposable
     
     public void AddToQueue(AudioTrack track)
     {
+        // Queue deduplication: skip if track with same path already exists
+        if (_preventDuplicates && _queue.Any(t => 
+            string.Equals(t.FilePath, track.FilePath, StringComparison.OrdinalIgnoreCase)))
+        {
+            System.Diagnostics.Debug.WriteLine($"Queue dedup: Skipping duplicate '{track.Title}'");
+            return;
+        }
+        
         _queue.Add(track);
         if (_isShuffled)
         {
@@ -866,6 +936,61 @@ public class EnhancedAudioPlayerService : IDisposable
         {
             AddToQueue(track);
         }
+    }
+    
+    /// <summary>
+    /// Inserts a track to play next (after the currently playing track).
+    /// If the track is already in the queue, it will be moved to the next position.
+    /// </summary>
+    public void PlayNext(AudioTrack track)
+    {
+        if (track == null) return;
+        
+        // Remove if already in queue (to reposition it)
+        var existingIndex = _queue.FindIndex(t => 
+            string.Equals(t.FilePath, track.FilePath, StringComparison.OrdinalIgnoreCase));
+        if (existingIndex >= 0)
+        {
+            if (existingIndex == _currentIndex) return; // Can't move currently playing track
+            _queue.RemoveAt(existingIndex);
+            if (existingIndex < _currentIndex) _currentIndex--;
+            
+            if (_isShuffled)
+            {
+                _shuffledIndices.Remove(existingIndex);
+                for (int i = 0; i < _shuffledIndices.Count; i++)
+                {
+                    if (_shuffledIndices[i] > existingIndex)
+                        _shuffledIndices[i]--;
+                }
+            }
+        }
+        
+        // Insert after current track
+        var insertIndex = _currentIndex + 1;
+        if (insertIndex > _queue.Count) insertIndex = _queue.Count;
+        if (insertIndex < 0) insertIndex = 0;
+        
+        _queue.Insert(insertIndex, track);
+        
+        // Update shuffle indices if needed
+        if (_isShuffled)
+        {
+            // Shift indices at or after insertIndex
+            for (int i = 0; i < _shuffledIndices.Count; i++)
+            {
+                if (_shuffledIndices[i] >= insertIndex)
+                    _shuffledIndices[i]++;
+            }
+            
+            var currentShuffleIndex = _shuffledIndices.IndexOf(_currentIndex);
+            if (currentShuffleIndex >= 0 && currentShuffleIndex < _shuffledIndices.Count - 1)
+                _shuffledIndices.Insert(currentShuffleIndex + 1, insertIndex);
+            else
+                _shuffledIndices.Add(insertIndex);
+        }
+        
+        System.Diagnostics.Debug.WriteLine($"PlayNext: Inserted '{track.Title}' at index {insertIndex}");
     }
     
     /// <summary>

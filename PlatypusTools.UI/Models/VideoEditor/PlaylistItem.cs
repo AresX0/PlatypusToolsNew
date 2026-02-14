@@ -1,7 +1,6 @@
 using System;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows.Media;
+using PlatypusTools.Core.Models;
 
 namespace PlatypusTools.UI.Models.VideoEditor
 {
@@ -9,7 +8,7 @@ namespace PlatypusTools.UI.Models.VideoEditor
     /// Represents a source media item in the playlist/bin.
     /// Modeled after Shotcut's PlaylistModel.
     /// </summary>
-    public class PlaylistItem : INotifyPropertyChanged
+    public class PlaylistItem : BindableModel
     {
         private string _name = string.Empty;
         private string _filePath = string.Empty;
@@ -126,10 +125,6 @@ namespace PlatypusTools.UI.Models.VideoEditor
                 return $"{_fileSize / (1024.0 * 1024 * 1024):F2} GB";
             }
         }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? name = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
     public enum MediaType

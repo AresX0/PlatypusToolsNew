@@ -1,0 +1,367 @@
+<UserControl x:Class="PlatypusTools.UI.Views.CveSearchView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:CveSearchViewModel}">
+
+    <UserControl.Resources>
+        <!-- Severity color converter -->
+        <Style x:Key="SeverityBadge" TargetType="Border">
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="6,2" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />      <!-- Search bar -->
+            <RowDefinition Height="Auto" />      <!-- Status bar -->
+            <RowDefinition Height="5" />         <!-- GridSplitter -->
+            <RowDefinition Height="*" />         <!-- Results + Detail split -->
+        </Grid.RowDefinitions>
+
+        <!-- Search Bar -->
+        <Border Grid.Row="0" Background="#FF1E1E2E" CornerRadius="6" Padding="10" Margin="0,0,0,4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="🔍 CVE Search" FontSize="16" FontWeight="Bold"
+                           Foreground="#FF00BCD4" VerticalAlignment="Center" Margin="0,0,12,0" />
+
+                <TextBox Grid.Column="1" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                         FontSize="14" Padding="8,6" VerticalContentAlignment="Center"
+                         Background="#FF2D2D3D" Foreground="White" BorderBrush="#FF555577"
+                         ToolTip="Enter CVE ID (e.g. CVE-2024-1234) or keyword (e.g. 'remote code execution')">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Return" Command="{Binding SearchCommand}" />
+                    </TextBox.InputBindings>
+                </TextBox>
+
+                <ComboBox Grid.Column="2" ItemsSource="{Binding SearchTypes}"
+                          SelectedIndex="{Binding SelectedSearchType}"
+                          Width="100" Margin="8,0,0,0" VerticalContentAlignment="Center"
+                          FontSize="13" Padding="6,4"
+                          ToolTip="CVE ID: Direct lookup via MITRE API&#x0a;Keyword: Search via NVD API" />
+
+                <Button Grid.Column="3" Content="Search" Command="{Binding SearchCommand}"
+                        Background="#FF2196F3" Foreground="White" FontWeight="Bold"
+                        Padding="16,6" Margin="8,0,0,0" Cursor="Hand"
+                        ToolTip="Search for CVEs" />
+
+                <Button Grid.Column="4" Content="Cancel" Command="{Binding CancelCommand}"
+                        Background="#FFFF9800" Foreground="White"
+                        Padding="10,6" Margin="4,0,0,0" Cursor="Hand"
+                        ToolTip="Cancel current search" />
+
+                <Button Grid.Column="5" Content="Clear" Command="{Binding ClearCommand}"
+                        Background="#FF616161" Foreground="White"
+                        Padding="10,6" Margin="4,0,0,0" Cursor="Hand"
+                        ToolTip="Clear results" />
+            </Grid>
+        </Border>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="1" Background="#FF252535" CornerRadius="4" Padding="8,4" Margin="0,0,0,2">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding StatusText}" Foreground="#FFAAAACC"
+                           FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="📋 Copy ID" Command="{Binding CopyIdCommand}"
+                            Background="#FF9C27B0" Foreground="White"
+                            Padding="8,3" Margin="4,0,0,0" FontSize="11" Cursor="Hand" />
+                    <Button Content="💾 Export" Command="{Binding ExportCommand}"
+                            Background="#FF4CAF50" Foreground="White"
+                            Padding="8,3" Margin="4,0,0,0" FontSize="11" Cursor="Hand" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch"
+                      Background="#FF333350" Cursor="SizeNS" ResizeDirection="Rows" />
+
+        <!-- Results + Detail -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="300" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="350" MinWidth="250" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Results DataGrid -->
+            <DataGrid Grid.Column="0"
+                      ItemsSource="{Binding Results}"
+                      SelectedItem="{Binding SelectedResult}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      SelectionMode="Single"
+                      CanUserSortColumns="True"
+                      GridLinesVisibility="Horizontal"
+                      HeadersVisibility="Column"
+                      RowHeaderWidth="0"
+                      Background="#FF1A1A2E"
+                      Foreground="White"
+                      BorderBrush="#FF333355"
+                      AlternatingRowBackground="#FF22223A"
+                      RowBackground="#FF1A1A2E"
+                      FontSize="12"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Auto">
+
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="#FF2D2D4E" />
+                        <Setter Property="Foreground" Value="#FF00BCD4" />
+                        <Setter Property="Padding" Value="8,6" />
+                        <Setter Property="FontWeight" Value="Bold" />
+                        <Setter Property="FontSize" Value="12" />
+                        <Setter Property="BorderBrush" Value="#FF444466" />
+                        <Setter Property="BorderThickness" Value="0,0,1,1" />
+                    </Style>
+                </DataGrid.ColumnHeaderStyle>
+
+                <DataGrid.Columns>
+                    <!-- CVE ID -->
+                    <DataGridTextColumn Header="CVE ID" Binding="{Binding CveId}" Width="160" MinWidth="130">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontWeight" Value="Bold" />
+                                <Setter Property="Foreground" Value="#FF64B5F6" />
+                                <Setter Property="Padding" Value="4,2" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <!-- Published Date -->
+                    <DataGridTextColumn Header="Published" Binding="{Binding Published}" Width="130">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Padding" Value="4,2" />
+                                <Setter Property="Foreground" Value="#FFAAAACC" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <!-- CVSS Score -->
+                    <DataGridTemplateColumn Header="Score" Width="100" SortMemberPath="BaseScore">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Padding="4,2" CornerRadius="3" HorizontalAlignment="Center" MinWidth="50">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="#FF616161" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Severity}" Value="CRITICAL">
+                                                    <Setter Property="Background" Value="#FFC62828" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Severity}" Value="HIGH">
+                                                    <Setter Property="Background" Value="#FFE65100" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Severity}" Value="MEDIUM">
+                                                    <Setter Property="Background" Value="#FFFF8F00" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Severity}" Value="LOW">
+                                                    <Setter Property="Background" Value="#FF2E7D32" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding ScoreDisplay}" Foreground="White"
+                                               HorizontalAlignment="Center" FontWeight="SemiBold" FontSize="11" />
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- State -->
+                    <DataGridTextColumn Header="State" Binding="{Binding State}" Width="100">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Padding" Value="4,2" />
+                                <Setter Property="Foreground" Value="#FFAAAACC" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <!-- Description -->
+                    <DataGridTextColumn Header="Description" Binding="{Binding ShortDescription}" Width="*" MinWidth="200">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Padding" Value="4,2" />
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                <Setter Property="ToolTip" Value="{Binding Description}" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- Vertical Splitter -->
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"
+                          Background="#FF333350" Cursor="SizeWE" />
+
+            <!-- Detail Panel -->
+            <Border Grid.Column="2" Background="#FF1E1E30" CornerRadius="6" Padding="12"
+                    BorderBrush="#FF333355" BorderThickness="1">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <!-- No selection message -->
+                        <TextBlock Text="Select a CVE from the results to view details"
+                                   Foreground="#FF666688" FontSize="13" FontStyle="Italic"
+                                   TextWrapping="Wrap" Margin="0,20,0,0"
+                                   HorizontalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedResult}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <!-- Detail content (visible when selected) -->
+                        <StackPanel DataContext="{Binding SelectedResult}">
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+
+                            <!-- CVE ID Header -->
+                            <TextBlock Text="{Binding CveId}" FontSize="18" FontWeight="Bold"
+                                       Foreground="#FF64B5F6" Margin="0,0,0,8" />
+
+                            <!-- Score Badge -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border CornerRadius="4" Padding="8,4" Margin="0,0,8,0">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="#FF616161" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Severity}" Value="CRITICAL">
+                                                    <Setter Property="Background" Value="#FFC62828" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Severity}" Value="HIGH">
+                                                    <Setter Property="Background" Value="#FFE65100" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Severity}" Value="MEDIUM">
+                                                    <Setter Property="Background" Value="#FFFF8F00" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Severity}" Value="LOW">
+                                                    <Setter Property="Background" Value="#FF2E7D32" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding ScoreDisplay}" Foreground="White" FontWeight="Bold" FontSize="13" />
+                                </Border>
+                                <TextBlock Text="{Binding State}" Foreground="#FFAAAACC" FontSize="12"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+
+                            <!-- CVSS Vector -->
+                            <StackPanel Margin="0,0,0,8">
+                                <TextBlock Text="CVSS Vector" Foreground="#FF888899" FontSize="11" Margin="0,0,0,2" />
+                                <TextBlock Text="{Binding CvssVector}" Foreground="#FFCCCCDD" FontSize="11"
+                                           TextWrapping="Wrap" FontFamily="Consolas" />
+                            </StackPanel>
+
+                            <!-- Dates -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <StackPanel Margin="0,0,16,0">
+                                    <TextBlock Text="Published" Foreground="#FF888899" FontSize="11" />
+                                    <TextBlock Text="{Binding Published}" Foreground="#FFCCCCDD" FontSize="12" />
+                                </StackPanel>
+                                <StackPanel>
+                                    <TextBlock Text="Last Modified" Foreground="#FF888899" FontSize="11" />
+                                    <TextBlock Text="{Binding LastModified}" Foreground="#FFCCCCDD" FontSize="12" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Description -->
+                            <TextBlock Text="Description" Foreground="#FF00BCD4" FontWeight="Bold"
+                                       FontSize="13" Margin="0,8,0,4" />
+                            <Border Background="#FF151525" CornerRadius="4" Padding="8">
+                                <TextBlock Text="{Binding Description}" Foreground="#FFDDDDEE"
+                                           FontSize="12" TextWrapping="Wrap" LineHeight="18" />
+                            </Border>
+
+                            <!-- Affected Products -->
+                            <TextBlock Text="Affected Products" Foreground="#FF00BCD4" FontWeight="Bold"
+                                       FontSize="13" Margin="0,12,0,4" />
+                            <Border Background="#FF151525" CornerRadius="4" Padding="8">
+                                <TextBlock Text="{Binding AffectedProductsText}" Foreground="#FFDDDDEE"
+                                           FontSize="12" TextWrapping="Wrap" />
+                            </Border>
+
+                            <!-- References -->
+                            <TextBlock Text="References" Foreground="#FF00BCD4" FontWeight="Bold"
+                                       FontSize="13" Margin="0,12,0,4" />
+                            <Border Background="#FF151525" CornerRadius="4" Padding="8" MaxHeight="200">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl ItemsSource="{Binding References}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Content="{Binding}" Margin="0,1"
+                                                        Cursor="Hand" HorizontalContentAlignment="Left"
+                                                        Background="Transparent" Foreground="#FF64B5F6"
+                                                        BorderThickness="0" Padding="2"
+                                                        FontSize="11"
+                                                        Command="{Binding DataContext.OpenReferenceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <TextBlock Text="{TemplateBinding Content}"
+                                                                       Foreground="#FF64B5F6"
+                                                                       TextDecorations="Underline"
+                                                                       TextTrimming="CharacterEllipsis"
+                                                                       ToolTip="{TemplateBinding Content}"
+                                                                       Cursor="Hand" />
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Border>
+
+                            <!-- Action Buttons -->
+                            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                <Button Content="📋 Copy CVE ID" Padding="10,6" Margin="0,0,6,0"
+                                        Background="#FF9C27B0" Foreground="White" Cursor="Hand"
+                                        Command="{Binding DataContext.CopyIdCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                <Button Content="📝 Copy Description" Padding="10,6" Margin="0,0,6,0"
+                                        Background="#FF2196F3" Foreground="White" Cursor="Hand"
+                                        Command="{Binding DataContext.CopyDescriptionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

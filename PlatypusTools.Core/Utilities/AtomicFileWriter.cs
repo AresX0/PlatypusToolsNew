@@ -31,7 +31,7 @@ namespace PlatypusTools.Core.Utilities
         public static async Task<bool> WriteTextAtomicAsync(
             string filePath,
             string content,
-            Encoding encoding = null,
+            Encoding? encoding = null,
             bool keepBackup = true)
         {
             encoding ??= Encoding.UTF8;
@@ -43,7 +43,7 @@ namespace PlatypusTools.Core.Utilities
                 var directory = Path.GetDirectoryName(filePath);
 
                 // Ensure directory exists
-                if (!Directory.Exists(directory))
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
                     Directory.CreateDirectory(directory);
 
                 // Write to temp file
@@ -112,7 +112,7 @@ namespace PlatypusTools.Core.Utilities
                 var directory = Path.GetDirectoryName(filePath);
 
                 // Ensure directory exists
-                if (!Directory.Exists(directory))
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
                     Directory.CreateDirectory(directory);
 
                 // Write to temp file

@@ -33,7 +33,7 @@ namespace PlatypusTools.Core.Models.Archive
     /// <summary>
     /// Represents an entry within an archive.
     /// </summary>
-    public class ArchiveEntry : INotifyPropertyChanged
+    public class ArchiveEntry : BindableModel
     {
         private bool _isSelected;
         private string _name = string.Empty;
@@ -124,13 +124,6 @@ namespace PlatypusTools.Core.Models.Archive
                 size /= 1024;
             }
             return $"{size:0.##} {sizes[order]}";
-        }
-        
-        public event PropertyChangedEventHandler? PropertyChanged;
-        
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
     

@@ -12,15 +12,20 @@ namespace PlatypusTools.UI.Services.RemoteServer;
 public class PlatypusHub : Hub
 {
     private readonly IAudioServiceBridge _audioService;
+    private readonly RemoteAuditLogService _auditLog = RemoteAuditLogService.Instance;
 
     public PlatypusHub(IAudioServiceBridge audioService)
     {
         _audioService = audioService;
     }
 
+    private string ClientIp => Context.GetHttpContext()?.Connection?.RemoteIpAddress?.ToString() ?? "unknown";
+
     public override async Task OnConnectedAsync()
     {
         System.Diagnostics.Debug.WriteLine($"[PlatypusHub] Client connected: {Context.ConnectionId}");
+        var userAgent = Context.GetHttpContext()?.Request?.Headers["User-Agent"].ToString() ?? "unknown";
+        _auditLog.LogConnection(Context.ConnectionId, ClientIp, userAgent);
         
         // Send current state to newly connected client
         var nowPlaying = await _audioService.GetNowPlayingAsync();
@@ -32,6 +37,7 @@ public class PlatypusHub : Hub
     public override Task OnDisconnectedAsync(Exception? exception)
     {
         System.Diagnostics.Debug.WriteLine($"[PlatypusHub] Client disconnected: {Context.ConnectionId}");
+        _auditLog.LogDisconnection(Context.ConnectionId, ClientIp);
         return base.OnDisconnectedAsync(exception);
     }
 
@@ -40,6 +46,7 @@ public class PlatypusHub : Hub
     /// </summary>
     public async Task Play()
     {
+        _auditLog.LogAction(Context.ConnectionId, ClientIp, "Play");
         await _audioService.PlayAsync();
         await BroadcastNowPlaying();
     }
@@ -49,6 +56,7 @@ public class PlatypusHub : Hub
     /// </summary>
     public async Task Pause()
     {
+        _auditLog.LogAction(Context.ConnectionId, ClientIp, "Pause");
         await _audioService.PauseAsync();
         await BroadcastNowPlaying();
     }
@@ -58,6 +66,7 @@ public class PlatypusHub : Hub
     /// </summary>
     public async Task PlayPause()
     {
+        _auditLog.LogAction(Context.ConnectionId, ClientIp, "PlayPause");
         await _audioService.PlayPauseAsync();
         await BroadcastNowPlaying();
     }
@@ -67,6 +76,7 @@ public class PlatypusHub : Hub
     /// </summary>
     public async Task Next()
     {
+        _auditLog.LogAction(Context.ConnectionId, ClientIp, "Next");
         await _audioService.NextAsync();
         await BroadcastNowPlaying();
     }
@@ -76,6 +86,7 @@ public class PlatypusHub : Hub
     /// </summary>
     public async Task Previous()
     {
+        _auditLog.LogAction(Context.ConnectionId, ClientIp, "Previous");
         await _audioService.PreviousAsync();
         await BroadcastNowPlaying();
     }
@@ -85,6 +96,7 @@ public class PlatypusHub : Hub
     /// </summary>
     public async Task Seek(double positionSeconds)
     {
+        _auditLog.LogAction(Context.ConnectionId, ClientIp, "Seek", $"Position: {positionSeconds:F1}s");
         await _audioService.SeekAsync(TimeSpan.FromSeconds(positionSeconds));
     }
 
@@ -93,6 +105,7 @@ public class PlatypusHub : Hub
     /// </summary>
     public async Task SetVolume(double volume)
     {
+        _auditLog.LogAction(Context.ConnectionId, ClientIp, "SetVolume", $"Volume: {volume:P0}");
         await _audioService.SetVolumeAsync(volume);
         await BroadcastNowPlaying();
     }
@@ -102,6 +115,7 @@ public class PlatypusHub : Hub
     /// </summary>
     public async Task PlayQueueItem(int index)
     {
+        _auditLog.LogAction(Context.ConnectionId, ClientIp, "PlayQueueItem", $"Index: {index}");
         await _audioService.PlayQueueItemAsync(index);
         await BroadcastNowPlaying();
         await BroadcastQueue();
@@ -112,6 +126,7 @@ public class PlatypusHub : Hub
     /// </summary>
     public async Task ToggleShuffle()
     {
+        _auditLog.LogAction(Context.ConnectionId, ClientIp, "ToggleShuffle");
         await _audioService.ToggleShuffleAsync();
         await BroadcastNowPlaying();
     }
@@ -121,6 +136,7 @@ public class PlatypusHub : Hub
     /// </summary>
     public async Task ToggleRepeat()
     {
+        _auditLog.LogAction(Context.ConnectionId, ClientIp, "ToggleRepeat");
         await _audioService.ToggleRepeatAsync();
         await BroadcastNowPlaying();
     }
@@ -148,6 +164,7 @@ public class PlatypusHub : Hub
     /// </summary>
     public async Task PlayFile(string filePath)
     {
+        _auditLog.LogAction(Context.ConnectionId, ClientIp, "PlayFile", $"File: {filePath}");
         await _audioService.PlayFileAsync(filePath);
         await BroadcastNowPlaying();
         await BroadcastQueue();
@@ -158,6 +175,7 @@ public class PlatypusHub : Hub
     /// </summary>
     public async Task AddToQueue(string filePath)
     {
+        _auditLog.LogAction(Context.ConnectionId, ClientIp, "AddToQueue", $"File: {filePath}");
         await _audioService.AddToQueueAsync(filePath);
         await BroadcastQueue();
     }

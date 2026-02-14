@@ -73,6 +73,23 @@ public class SystemTrayService : IDisposable
             // Double-click to show window
             _trayIcon.TrayMouseDoubleClick += (s, e) => ShowMainWindow();
 
+            // IDEA-003: Auto-update tray tooltip when track changes
+            try
+            {
+                var player = EnhancedAudioPlayerService.Instance;
+                if (player != null)
+                {
+                    player.TrackChanged += (s, track) =>
+                    {
+                        if (track != null)
+                            UpdateTrackInfo(track.Title, track.Artist);
+                        else
+                            UpdateTrackInfo(null, null);
+                    };
+                }
+            }
+            catch { /* player not yet initialized */ }
+
             PlatypusTools.Core.Services.SimpleLogger.Info("System tray initialized");
         }
         catch (Exception ex)

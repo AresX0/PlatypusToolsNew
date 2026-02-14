@@ -30,7 +30,7 @@ namespace PlatypusTools.UI.ViewModels
 
         public UpscalerViewModel(UpscalerService? svc = null)
         {
-            _service = svc ?? Services.ServiceLocator.Upscaler;
+            _service = svc ?? ServiceContainer.GetService<UpscalerService>() ?? new UpscalerService();
             AddFilesCommand = new RelayCommand(_ => AddFiles());
             BrowseOutputCommand = new RelayCommand(_ => BrowseOutput());
             UpscaleCommand = new AsyncRelayCommand(UpscaleAsync, () => !IsRunning);

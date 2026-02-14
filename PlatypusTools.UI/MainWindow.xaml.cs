@@ -52,6 +52,9 @@ namespace PlatypusTools.UI
                     InitializeGlassTheme();
                 }
                 
+                // Restore session state (IDEA-009)
+                RestoreSessionState();
+                
                 // Show dependency setup on first run or if dependencies are missing and user hasn't opted out
                 await CheckAndShowDependencySetupAsync();
             };
@@ -170,6 +173,9 @@ namespace PlatypusTools.UI
         
         private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
+            // Save session state before showing dialog (IDEA-009)
+            SaveSessionState();
+            
             // If force exit (from tray or programmatic), skip dialog
             if (_forceExit)
                 return;
@@ -267,6 +273,121 @@ namespace PlatypusTools.UI
                 // Ignore errors during shutdown
             }
         }
+
+        #region Session Restore (IDEA-009)
+
+        /// <summary>
+        /// Saves the current session state (selected tabs, window position/size) to settings.
+        /// </summary>
+        private void SaveSessionState()
+        {
+            try
+            {
+                var settings = SettingsManager.Current;
+                
+                // Save main tab selection
+                settings.LastSelectedMainTabIndex = MainTabControl.SelectedIndex;
+                
+                // Save sub-tab selections for each main tab that has a nested TabControl
+                var subIndices = new Dictionary<string, int>();
+                for (int i = 0; i < MainTabControl.Items.Count; i++)
+                {
+                    if (MainTabControl.Items[i] is TabItem mainTab && mainTab.Content is TabControl subTab)
+                    {
+                        string key = mainTab.Header?.ToString() ?? $"Tab{i}";
+                        subIndices[key] = subTab.SelectedIndex;
+                    }
+                }
+                settings.LastSelectedSubTabIndices = subIndices;
+                
+                // Save window position and size (only if not minimized)
+                if (this.WindowState != WindowState.Minimized)
+                {
+                    settings.WindowWidth = this.ActualWidth;
+                    settings.WindowHeight = this.ActualHeight;
+                    settings.WindowTop = this.Top;
+                    settings.WindowLeft = this.Left;
+                    settings.WindowStateValue = this.WindowState == WindowState.Maximized ? 2 : 0;
+                }
+                
+                SettingsManager.SaveCurrent();
+                PlatypusTools.Core.Services.SimpleLogger.Debug("Session state saved successfully");
+            }
+            catch (System.Exception ex)
+            {
+                PlatypusTools.Core.Services.SimpleLogger.Error($"Error saving session state: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Restores the last session state (selected tabs, window position/size) from settings.
+        /// </summary>
+        private void RestoreSessionState()
+        {
+            try
+            {
+                var settings = SettingsManager.Current;
+                if (!settings.RestoreLastSession) return;
+                
+                // Restore window position and size
+                if (settings.WindowWidth > 100 && settings.WindowHeight > 100)
+                {
+                    // Ensure window is within screen bounds
+                    var screen = System.Windows.SystemParameters.WorkArea;
+                    double left = double.IsNaN(settings.WindowLeft) ? this.Left : settings.WindowLeft;
+                    double top = double.IsNaN(settings.WindowTop) ? this.Top : settings.WindowTop;
+                    
+                    // Clamp to screen area
+                    if (left + settings.WindowWidth > screen.Right + 50) left = screen.Right - settings.WindowWidth;
+                    if (top + settings.WindowHeight > screen.Bottom + 50) top = screen.Bottom - settings.WindowHeight;
+                    if (left < screen.Left - 50) left = screen.Left;
+                    if (top < screen.Top - 50) top = screen.Top;
+                    
+                    this.Width = settings.WindowWidth;
+                    this.Height = settings.WindowHeight;
+                    this.Left = left;
+                    this.Top = top;
+                }
+                
+                // Restore maximized state
+                if (settings.WindowStateValue == 2)
+                {
+                    this.WindowState = WindowState.Maximized;
+                }
+                
+                // Restore main tab selection
+                if (settings.LastSelectedMainTabIndex >= 0 && 
+                    settings.LastSelectedMainTabIndex < MainTabControl.Items.Count)
+                {
+                    MainTabControl.SelectedIndex = settings.LastSelectedMainTabIndex;
+                }
+                
+                // Restore sub-tab selections
+                if (settings.LastSelectedSubTabIndices.Count > 0)
+                {
+                    for (int i = 0; i < MainTabControl.Items.Count; i++)
+                    {
+                        if (MainTabControl.Items[i] is TabItem mainTab && mainTab.Content is TabControl subTab)
+                        {
+                            string key = mainTab.Header?.ToString() ?? $"Tab{i}";
+                            if (settings.LastSelectedSubTabIndices.TryGetValue(key, out int subIndex) &&
+                                subIndex >= 0 && subIndex < subTab.Items.Count)
+                            {
+                                subTab.SelectedIndex = subIndex;
+                            }
+                        }
+                    }
+                }
+                
+                PlatypusTools.Core.Services.SimpleLogger.Debug("Session state restored successfully");
+            }
+            catch (System.Exception ex)
+            {
+                PlatypusTools.Core.Services.SimpleLogger.Error($"Error restoring session state: {ex.Message}");
+            }
+        }
+
+        #endregion
         
         /// <summary>
         /// Handles keyboard shortcuts for fullscreen mode and command palette.
@@ -277,18 +398,59 @@ namespace PlatypusTools.UI
         /// </summary>
         private void MainWindow_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
+            var mods = System.Windows.Input.Keyboard.Modifiers;
+            var ctrlOnly = mods == System.Windows.Input.ModifierKeys.Control;
+            var ctrlShift = mods == (System.Windows.Input.ModifierKeys.Control | System.Windows.Input.ModifierKeys.Shift);
+
             // Ctrl+Shift+P - Command Palette
-            if (e.Key == System.Windows.Input.Key.P && 
-                System.Windows.Input.Keyboard.Modifiers == (System.Windows.Input.ModifierKeys.Control | System.Windows.Input.ModifierKeys.Shift))
+            if (e.Key == System.Windows.Input.Key.P && ctrlShift)
             {
                 Services.CommandService.Instance.ShowCommandPalette(this);
                 e.Handled = true;
             }
             // Ctrl+Shift+A - Unlock AD Security Analyzer
-            else if (e.Key == System.Windows.Input.Key.A && 
-                System.Windows.Input.Keyboard.Modifiers == (System.Windows.Input.ModifierKeys.Control | System.Windows.Input.ModifierKeys.Shift))
+            else if (e.Key == System.Windows.Input.Key.A && ctrlShift)
             {
                 ShowAdSecurityUnlockDialog();
+                e.Handled = true;
+            }
+            // IDEA-010: Ctrl+Z - Undo last operation
+            else if (e.Key == System.Windows.Input.Key.Z && ctrlOnly)
+            {
+                _ = Services.UndoRedoService.Instance.UndoAsync();
+                e.Handled = true;
+            }
+            // IDEA-010: Ctrl+Y - Redo
+            else if (e.Key == System.Windows.Input.Key.Y && ctrlOnly)
+            {
+                _ = Services.UndoRedoService.Instance.RedoAsync();
+                e.Handled = true;
+            }
+            // IDEA-010: Ctrl+1 through Ctrl+9 - Switch to main tab by number
+            else if (ctrlOnly && e.Key >= System.Windows.Input.Key.D1 && e.Key <= System.Windows.Input.Key.D9)
+            {
+                var index = e.Key - System.Windows.Input.Key.D1;
+                if (MainTabControl != null && index < MainTabControl.Items.Count)
+                {
+                    MainTabControl.SelectedIndex = index;
+                    e.Handled = true;
+                }
+            }
+            // IDEA-010: Ctrl+, - Open Settings
+            else if (e.Key == System.Windows.Input.Key.OemComma && ctrlOnly)
+            {
+                try
+                {
+                    var settingsWindow = new Views.SettingsWindow { Owner = this };
+                    settingsWindow.ShowDialog();
+                }
+                catch { /* ignore if already open */ }
+                e.Handled = true;
+            }
+            // IDEA-002: Ctrl+K - Global Search / Spotlight (same as command palette)
+            else if (e.Key == System.Windows.Input.Key.K && ctrlOnly)
+            {
+                Services.CommandService.Instance.ShowCommandPalette(this);
                 e.Handled = true;
             }
             else if (e.Key == System.Windows.Input.Key.F11)

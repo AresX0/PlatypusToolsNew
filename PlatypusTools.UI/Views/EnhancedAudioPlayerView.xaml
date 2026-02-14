@@ -1292,6 +1292,7 @@
                                     <TextBlock Text="Select the audio output device for playback:" 
                                                Margin="0,0,0,10" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <ComboBox ItemsSource="{Binding AudioOutputDevices}" 
+                                              SelectedValue="{Binding SelectedDeviceNumber}"
                                               SelectedValuePath="Item1"
                                               DisplayMemberPath="Item2"
                                               Width="300" HorizontalAlignment="Left"/>

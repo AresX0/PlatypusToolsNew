@@ -1,0 +1,750 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- ================================================================
+         K-Pop Demon Hunters Theme
+         Inspired by the Netflix animated film K-Pop: Demon Hunters
+         Dark concert stage base with hot pink, electric violet, neon cyan accents
+         ================================================================ -->
+    
+    <!-- Font Family (System default - clean modern look) -->
+    <FontFamily x:Key="KPopFontFamily">Segoe UI, Arial</FontFamily>
+    
+    <!-- ======================== COLOR PALETTE ======================== -->
+    
+    <!-- Base / Background Colors -->
+    <Color x:Key="KPopDeepBlack">#FF0A0515</Color>
+    <Color x:Key="KPopDarkPurple">#FF150A25</Color>
+    <Color x:Key="KPopMidDark">#FF1E1035</Color>
+    <Color x:Key="KPopControlBg">#FF1A0D2E</Color>
+    
+    <!-- Accent Colors -->
+    <Color x:Key="KPopHotPink">#FFFF1493</Color>
+    <Color x:Key="KPopElectricViolet">#FFC832FF</Color>
+    <Color x:Key="KPopNeonCyan">#FF00FFE0</Color>
+    <Color x:Key="KPopBrightMagenta">#FFFF00FF</Color>
+    <Color x:Key="KPopGoldenHonmoon">#FFFFD700</Color>
+    
+    <!-- Text Colors -->
+    <Color x:Key="KPopTextPrimary">#FFF0E6FF</Color>
+    <Color x:Key="KPopTextBright">#FFFFFFFF</Color>
+    <Color x:Key="KPopTextAccent">#FFFF69B4</Color>
+    <Color x:Key="KPopTextDim">#FF9B85B0</Color>
+    
+    <!-- ======================== NAMED BRUSHES ======================== -->
+    
+    <SolidColorBrush x:Key="KPopHotPinkBrush" Color="{StaticResource KPopHotPink}"/>
+    <SolidColorBrush x:Key="KPopElectricVioletBrush" Color="{StaticResource KPopElectricViolet}"/>
+    <SolidColorBrush x:Key="KPopNeonCyanBrush" Color="{StaticResource KPopNeonCyan}"/>
+    <SolidColorBrush x:Key="KPopBrightMagentaBrush" Color="{StaticResource KPopBrightMagenta}"/>
+    <SolidColorBrush x:Key="KPopGoldenHonmoonBrush" Color="{StaticResource KPopGoldenHonmoon}"/>
+    <SolidColorBrush x:Key="KPopDarkPurpleBrush" Color="{StaticResource KPopDarkPurple}"/>
+    <SolidColorBrush x:Key="KPopMidDarkBrush" Color="{StaticResource KPopMidDark}"/>
+    <SolidColorBrush x:Key="KPopTextPrimaryBrush" Color="{StaticResource KPopTextPrimary}"/>
+    <SolidColorBrush x:Key="KPopTextBrightBrush" Color="{StaticResource KPopTextBright}"/>
+    <SolidColorBrush x:Key="KPopTextAccentBrush" Color="{StaticResource KPopTextAccent}"/>
+    
+    <!-- ======================== STANDARD RESOURCE KEYS ======================== -->
+    
+    <!-- Window / Page backgrounds -->
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource KPopDeepBlack}"/>
+    <SolidColorBrush x:Key="WindowForegroundBrush" Color="{StaticResource KPopTextPrimary}"/>
+    <SolidColorBrush x:Key="ControlBackgroundBrush" Color="{StaticResource KPopControlBg}"/>
+    <SolidColorBrush x:Key="ControlBorderBrush" Color="{StaticResource KPopElectricViolet}"/>
+    
+    <!-- Accent / Highlight brushes -->
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource KPopHotPink}"/>
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource KPopElectricViolet}"/>
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource KPopNeonCyan}"/>
+    <SolidColorBrush x:Key="HighlightBrush" Color="{StaticResource KPopBrightMagenta}"/>
+    
+    <!-- Title bar -->
+    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="{StaticResource KPopDarkPurple}"/>
+    <SolidColorBrush x:Key="TitleBarForegroundBrush" Color="{StaticResource KPopTextBright}"/>
+    
+    <!-- Header -->
+    <SolidColorBrush x:Key="HeaderBrush" Color="{StaticResource KPopMidDark}"/>
+    <SolidColorBrush x:Key="HeaderForegroundBrush" Color="{StaticResource KPopTextPrimary}"/>
+    
+    <!-- Tab styling -->
+    <SolidColorBrush x:Key="TabHeaderBackground" Color="{StaticResource KPopDarkPurple}"/>
+    <SolidColorBrush x:Key="TabHeaderForeground" Color="{StaticResource KPopTextPrimary}"/>
+    <SolidColorBrush x:Key="TabSelectedBackground" Color="{StaticResource KPopHotPink}"/>
+    <SolidColorBrush x:Key="TabSelectedForeground" Color="{StaticResource KPopTextBright}"/>
+    <SolidColorBrush x:Key="TabHoverBackground" Color="{StaticResource KPopElectricViolet}"/>
+    
+    <!-- Status brushes -->
+    <SolidColorBrush x:Key="SuccessBrush" Color="#FF00E676"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="#FFFFAB40"/>
+    <SolidColorBrush x:Key="ErrorBrush" Color="#FFFF1744"/>
+    <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource KPopNeonCyan}"/>
+    
+    <!-- Warning/Info box brushes -->
+    <SolidColorBrush x:Key="WarningBackgroundBrush" Color="#FF2A1A0A"/>
+    <SolidColorBrush x:Key="WarningBorderBrush" Color="#FFFFAB40"/>
+    <SolidColorBrush x:Key="WarningForegroundBrush" Color="#FFFFCC80"/>
+    <SolidColorBrush x:Key="InfoBackgroundBrush" Color="#FF0A1520"/>
+    <SolidColorBrush x:Key="InfoBorderBrush" Color="{StaticResource KPopNeonCyan}"/>
+    <SolidColorBrush x:Key="InfoForegroundBrush" Color="{StaticResource KPopNeonCyan}"/>
+    <SolidColorBrush x:Key="SuccessBackgroundBrush" Color="#FF0A200A"/>
+    <SolidColorBrush x:Key="SuccessBorderBrush" Color="#FF00E676"/>
+    <SolidColorBrush x:Key="SuccessForegroundBrush" Color="#FF80FFAB"/>
+    <SolidColorBrush x:Key="ErrorBackgroundBrush" Color="#FF200A0A"/>
+    <SolidColorBrush x:Key="ErrorBorderBrush" Color="#FFFF1744"/>
+    <SolidColorBrush x:Key="ErrorForegroundBrush" Color="#FFFF8A80"/>
+
+    <!-- ======================== Gradient Brushes ======================== -->
+    
+    <LinearGradientBrush x:Key="KPopHeaderGradient" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="{StaticResource KPopDarkPurple}" Offset="0"/>
+        <GradientStop Color="{StaticResource KPopMidDark}" Offset="0.5"/>
+        <GradientStop Color="{StaticResource KPopDarkPurple}" Offset="1"/>
+    </LinearGradientBrush>
+    
+    <LinearGradientBrush x:Key="KPopButtonGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FF2A1545" Offset="0"/>
+        <GradientStop Color="{StaticResource KPopMidDark}" Offset="0.5"/>
+        <GradientStop Color="{StaticResource KPopDarkPurple}" Offset="1"/>
+    </LinearGradientBrush>
+    
+    <LinearGradientBrush x:Key="KPopAccentGradient" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="{StaticResource KPopHotPink}" Offset="0"/>
+        <GradientStop Color="{StaticResource KPopElectricViolet}" Offset="0.5"/>
+        <GradientStop Color="{StaticResource KPopNeonCyan}" Offset="1"/>
+    </LinearGradientBrush>
+
+    <!-- ======================== DEFAULT STYLES (No x:Key = applies to all) ======================== -->
+    
+    <!-- Window -->
+    <Style TargetType="Window">
+        <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+    </Style>
+    
+    <!-- Grid -->
+    <Style TargetType="Grid">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    
+    <!-- DockPanel -->
+    <Style TargetType="DockPanel">
+        <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}"/>
+    </Style>
+
+    <!-- TextBlock -->
+    <Style TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource KPopFontFamily}"/>
+    </Style>
+
+    <!-- Label -->
+    <Style TargetType="Label">
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource KPopFontFamily}"/>
+    </Style>
+
+    <!-- TextBox -->
+    <Style TargetType="TextBox">
+        <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource KPopFontFamily}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KPopElectricVioletBrush}"/>
+        <Setter Property="CaretBrush" Value="{StaticResource KPopNeonCyanBrush}"/>
+        <Setter Property="SelectionBrush" Value="{StaticResource KPopHotPinkBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="3">
+                        <ScrollViewer x:Name="PART_ContentHost" 
+                                      Margin="{TemplateBinding Padding}"
+                                      Focusable="False"
+                                      HorizontalScrollBarVisibility="Hidden"
+                                      VerticalScrollBarVisibility="Hidden"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource KPopHotPinkBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource KPopNeonCyanBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- PasswordBox -->
+    <Style TargetType="PasswordBox">
+        <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KPopElectricVioletBrush}"/>
+        <Setter Property="CaretBrush" Value="{StaticResource KPopNeonCyanBrush}"/>
+        <Setter Property="SelectionBrush" Value="{StaticResource KPopHotPinkBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="6,4"/>
+    </Style>
+
+    <!-- Button -->
+    <Style TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource KPopButtonGradient}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource KPopFontFamily}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KPopElectricVioletBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="10,5"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border" 
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="3"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background">
+                                <Setter.Value>
+                                    <SolidColorBrush Color="{StaticResource KPopHotPink}"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource KPopNeonCyanBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource KPopElectricVioletBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- CheckBox -->
+    <Style TargetType="CheckBox">
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource KPopFontFamily}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KPopElectricVioletBrush}"/>
+        <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}"/>
+    </Style>
+
+    <!-- RadioButton -->
+    <Style TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource KPopFontFamily}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KPopElectricVioletBrush}"/>
+        <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}"/>
+    </Style>
+
+    <!-- ComboBox Toggle Button Template -->
+    <ControlTemplate x:Key="KPopComboBoxToggleButton" TargetType="ToggleButton">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="20" />
+            </Grid.ColumnDefinitions>
+            <Border x:Name="Border" 
+                    Grid.ColumnSpan="2"
+                    Background="{StaticResource ControlBackgroundBrush}"
+                    BorderBrush="{StaticResource KPopElectricVioletBrush}"
+                    BorderThickness="1"
+                    CornerRadius="3" />
+            <Border Grid.Column="0"
+                    Margin="2"
+                    Background="{StaticResource ControlBackgroundBrush}" 
+                    BorderThickness="0"
+                    CornerRadius="3,0,0,3" />
+            <Path x:Name="Arrow"
+                  Grid.Column="1"     
+                  Fill="{StaticResource KPopNeonCyanBrush}"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Data="M0,0 L4,4 L8,0 Z" />
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource KPopHotPinkBrush}" />
+            </Trigger>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource KPopNeonCyanBrush}" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="KPopComboBoxTextBox" TargetType="TextBox">
+        <Border x:Name="PART_ContentHost" Focusable="False" Background="{TemplateBinding Background}" />
+    </ControlTemplate>
+
+    <!-- ComboBox -->
+    <Style TargetType="ComboBox">
+        <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KPopElectricVioletBrush}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Grid>
+                        <ToggleButton x:Name="ToggleButton" 
+                                      Template="{StaticResource KPopComboBoxToggleButton}"
+                                      Focusable="False"
+                                      IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                      ClickMode="Press" />
+                        <ContentPresenter x:Name="ContentSite"
+                                          IsHitTestVisible="False" 
+                                          Content="{TemplateBinding SelectionBoxItem}"
+                                          ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                          ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                          Margin="6,3,23,3"
+                                          VerticalAlignment="Center"
+                                          HorizontalAlignment="Left">
+                            <ContentPresenter.Resources>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}" />
+                                </Style>
+                            </ContentPresenter.Resources>
+                        </ContentPresenter>
+                        <TextBox x:Name="PART_EditableTextBox"
+                                 Style="{x:Null}" 
+                                 Template="{StaticResource KPopComboBoxTextBox}" 
+                                 HorizontalAlignment="Left" 
+                                 VerticalAlignment="Center" 
+                                 Margin="3,3,23,3"
+                                 Focusable="True" 
+                                 Background="Transparent"
+                                 Foreground="{StaticResource WindowForegroundBrush}"
+                                 CaretBrush="{StaticResource KPopNeonCyanBrush}"
+                                 Visibility="Hidden"
+                                 IsReadOnly="{TemplateBinding IsReadOnly}" />
+                        <Popup x:Name="Popup"
+                               Placement="Bottom"
+                               IsOpen="{TemplateBinding IsDropDownOpen}"
+                               AllowsTransparency="True" 
+                               Focusable="False"
+                               PopupAnimation="Slide">
+                            <Grid x:Name="DropDown"
+                                  SnapsToDevicePixels="True"                
+                                  MinWidth="{TemplateBinding ActualWidth}"
+                                  MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                <Border x:Name="DropDownBorder"
+                                        Background="{StaticResource ControlBackgroundBrush}"
+                                        BorderThickness="1"
+                                        BorderBrush="{StaticResource KPopHotPinkBrush}"
+                                        CornerRadius="0,0,3,3"/>
+                                <ScrollViewer Margin="4,6,4,6" SnapsToDevicePixels="True">
+                                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                </ScrollViewer>
+                            </Grid>
+                        </Popup>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="HasItems" Value="False">
+                            <Setter TargetName="DropDownBorder" Property="MinHeight" Value="95" />
+                        </Trigger>
+                        <Trigger Property="IsEditable" Value="True">
+                            <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="ContentSite" Property="Visibility" Value="Hidden" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- ComboBoxItem -->
+    <Style TargetType="ComboBoxItem">
+        <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBoxItem">
+                    <Border x:Name="Border"
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter>
+                            <ContentPresenter.Resources>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}" />
+                                </Style>
+                            </ContentPresenter.Resources>
+                        </ContentPresenter>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{StaticResource KPopHotPinkBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{StaticResource KPopElectricVioletBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ListBox -->
+    <Style TargetType="ListBox">
+        <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KPopElectricVioletBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <!-- ListBoxItem -->
+    <Style TargetType="ListBoxItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KPopDarkPurpleBrush}"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource KPopMidDarkBrush}"/>
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{StaticResource KPopHotPinkBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource KPopTextBrightBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ListView -->
+    <Style TargetType="ListView">
+        <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KPopElectricVioletBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <!-- ListViewItem -->
+    <Style TargetType="ListViewItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource KPopMidDarkBrush}"/>
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{StaticResource KPopHotPinkBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- DataGrid -->
+    <Style TargetType="DataGrid">
+        <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KPopElectricVioletBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource KPopDarkPurpleBrush}"/>
+        <Setter Property="VerticalGridLinesBrush" Value="{StaticResource KPopDarkPurpleBrush}"/>
+        <Setter Property="RowBackground" Value="Transparent"/>
+        <Setter Property="AlternatingRowBackground" Value="#FF120820"/>
+    </Style>
+
+    <!-- DataGridColumnHeader -->
+    <Style TargetType="DataGridColumnHeader">
+        <Setter Property="Background" Value="{StaticResource KPopHeaderGradient}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="Padding" Value="10,8"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KPopHotPinkBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,1,2"/>
+    </Style>
+
+    <!-- DataGridRow -->
+    <Style TargetType="DataGridRow">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource KPopMidDarkBrush}"/>
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{StaticResource KPopHotPinkBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- DataGridCell -->
+    <Style TargetType="DataGridCell">
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Padding" Value="4,2"/>
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{StaticResource KPopHotPinkBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- GroupBox -->
+    <Style TargetType="GroupBox">
+        <Setter Property="BorderBrush" Value="{StaticResource KPopElectricVioletBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{StaticResource KPopNeonCyanBrush}"/>
+        <Setter Property="Padding" Value="8"/>
+        <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GroupBox">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Border Background="{StaticResource KPopHeaderGradient}" 
+                                BorderBrush="{StaticResource KPopHotPinkBrush}" 
+                                BorderThickness="1,1,1,0"
+                                CornerRadius="3,3,0,0"
+                                Padding="12,6">
+                            <ContentPresenter ContentSource="Header" 
+                                              TextElement.Foreground="{StaticResource KPopNeonCyanBrush}"
+                                              TextElement.FontWeight="Bold"/>
+                        </Border>
+                        <Border Grid.Row="1" 
+                                Background="{StaticResource ControlBackgroundBrush}"
+                                BorderBrush="{StaticResource KPopHotPinkBrush}"
+                                BorderThickness="1,0,1,1"
+                                CornerRadius="0,0,3,3"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- TabControl -->
+    <Style TargetType="TabControl">
+        <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KPopElectricVioletBrush}"/>
+    </Style>
+
+    <!-- TabItem -->
+    <Style TargetType="TabItem">
+        <Setter Property="Background" Value="{StaticResource KPopDarkPurpleBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="BorderThickness" Value="1,1,1,0"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KPopElectricVioletBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Padding="{TemplateBinding Padding}"
+                            CornerRadius="3,3,0,0"
+                            Margin="2,0,0,0">
+                        <ContentPresenter x:Name="contentPresenter" 
+                                          ContentSource="Header" 
+                                          HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"
+                                          TextElement.Foreground="{StaticResource WindowForegroundBrush}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource KPopHotPinkBrush}"/>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource KPopNeonCyanBrush}"/>
+                            <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="{StaticResource KPopTextBrightBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource KPopElectricVioletBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Menu -->
+    <Style TargetType="Menu">
+        <Setter Property="Background" Value="{StaticResource KPopDarkPurpleBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource KPopFontFamily}"/>
+    </Style>
+
+    <!-- MenuItem -->
+    <Style TargetType="MenuItem">
+        <Setter Property="Background" Value="{StaticResource KPopDarkPurpleBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource KPopFontFamily}"/>
+        <Setter Property="Padding" Value="12,6"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Border x:Name="Border" 
+                            Background="{TemplateBinding Background}" 
+                            BorderBrush="{StaticResource KPopHotPinkBrush}" 
+                            BorderThickness="0"
+                            Padding="{TemplateBinding Padding}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Icon"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Shortcut"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter x:Name="Icon" Grid.Column="0" Margin="0,0,6,0" 
+                                              VerticalAlignment="Center" ContentSource="Icon"/>
+                            <TextBlock x:Name="HeaderText" Grid.Column="1" 
+                                       Text="{TemplateBinding Header}"
+                                       VerticalAlignment="Center"
+                                       Foreground="{StaticResource WindowForegroundBrush}"/>
+                            <TextBlock x:Name="InputGestureText" Grid.Column="2" 
+                                       Text="{TemplateBinding InputGestureText}" 
+                                       Margin="24,0,0,0" VerticalAlignment="Center"
+                                       Foreground="{StaticResource KPopNeonCyanBrush}" Opacity="0.8"/>
+                            <Path x:Name="Arrow" Grid.Column="3" 
+                                  Data="M0,0 L4,4 L0,8 Z" 
+                                  Fill="{StaticResource KPopNeonCyanBrush}"
+                                  VerticalAlignment="Center" Margin="6,0,0,0"
+                                  Visibility="Collapsed"/>
+                            <Popup x:Name="PART_Popup" 
+                                   IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                   Placement="Bottom" 
+                                   AllowsTransparency="True" 
+                                   Focusable="False"
+                                   PopupAnimation="Fade">
+                                <Border Background="{StaticResource KPopDarkPurpleBrush}" 
+                                        BorderBrush="{StaticResource KPopHotPinkBrush}" 
+                                        BorderThickness="1"
+                                        CornerRadius="0,0,3,3">
+                                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Role" Value="TopLevelHeader">
+                            <Setter TargetName="Arrow" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="PART_Popup" Property="Placement" Value="Bottom"/>
+                        </Trigger>
+                        <Trigger Property="Role" Value="TopLevelItem">
+                            <Setter TargetName="Arrow" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                        <Trigger Property="Role" Value="SubmenuHeader">
+                            <Setter TargetName="Arrow" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="PART_Popup" Property="Placement" Value="Right"/>
+                        </Trigger>
+                        <Trigger Property="Role" Value="SubmenuItem">
+                            <Setter TargetName="Arrow" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{StaticResource KPopHotPinkBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="HeaderText" Property="Foreground" Value="{StaticResource KPopElectricVioletBrush}"/>
+                            <Setter TargetName="HeaderText" Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                        <Trigger Property="Icon" Value="{x:Null}">
+                            <Setter TargetName="Icon" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ProgressBar -->
+    <Style TargetType="ProgressBar">
+        <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource KPopHotPinkBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KPopElectricVioletBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Height" Value="20"/>
+    </Style>
+
+    <!-- Slider -->
+    <Style TargetType="Slider">
+        <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource KPopHotPinkBrush}"/>
+    </Style>
+
+    <!-- ToolTip -->
+    <Style TargetType="ToolTip">
+        <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KPopHotPinkBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="8,4"/>
+    </Style>
+
+    <!-- ScrollViewer -->
+    <Style TargetType="ScrollViewer">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <!-- Expander -->
+    <Style TargetType="Expander">
+        <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KPopElectricVioletBrush}"/>
+    </Style>
+
+    <!-- TreeView -->
+    <Style TargetType="TreeView">
+        <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KPopElectricVioletBrush}"/>
+    </Style>
+
+    <!-- TreeViewItem -->
+    <Style TargetType="TreeViewItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{StaticResource KPopHotPinkBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- StatusBar -->
+    <Style TargetType="StatusBar">
+        <Setter Property="Background" Value="{StaticResource KPopDarkPurpleBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+    </Style>
+
+    <!-- ToolBar -->
+    <Style TargetType="ToolBar">
+        <Setter Property="Background" Value="{StaticResource KPopDarkPurpleBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+    </Style>
+
+    <!-- Separator -->
+    <Style TargetType="Separator">
+        <Setter Property="Background" Value="{StaticResource KPopElectricVioletBrush}"/>
+    </Style>
+
+</ResourceDictionary>

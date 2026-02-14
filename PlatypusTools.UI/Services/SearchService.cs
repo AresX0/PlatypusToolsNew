@@ -88,6 +88,7 @@ namespace PlatypusTools.UI.Services
                 }
                 catch (UnauthorizedAccessException) { }
                 catch (DirectoryNotFoundException) { }
+                catch (PathTooLongException) { }
             }
 
             return files;

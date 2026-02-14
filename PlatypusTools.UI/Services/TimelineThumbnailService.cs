@@ -336,14 +336,8 @@ namespace PlatypusTools.UI.Services
                         BitmapSource? image = null;
                         await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                         {
-                            var bitmap = new BitmapImage();
                             using var ms = new MemoryStream(imageData);
-                            bitmap.BeginInit();
-                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                            bitmap.StreamSource = ms;
-                            bitmap.EndInit();
-                            bitmap.Freeze();
-                            image = bitmap;
+                            image = UI.Utilities.ImageHelper.LoadFromStream(ms);
                         });
 
                         return new ThumbnailFrame
@@ -536,14 +530,8 @@ namespace PlatypusTools.UI.Services
                         BitmapSource? image = null;
                         await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                         {
-                            var bitmap = new BitmapImage();
                             using var ms = new MemoryStream(imageData);
-                            bitmap.BeginInit();
-                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                            bitmap.StreamSource = ms;
-                            bitmap.EndInit();
-                            bitmap.Freeze();
-                            image = bitmap;
+                            image = UI.Utilities.ImageHelper.LoadFromStream(ms);
                         });
 
                         strip.Frames.Add(new ThumbnailFrame

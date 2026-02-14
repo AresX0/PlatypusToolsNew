@@ -29,7 +29,7 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<FileCleanerViewModel> _fileCleaner = new(() => new FileCleanerViewModel());
         private readonly Lazy<HiderViewModel> _hider = new(() => new HiderViewModel());
         private readonly Lazy<DuplicatesViewModel> _duplicates = new(() => new DuplicatesViewModel());
-        private readonly Lazy<VideoCombinerViewModel> _videoCombiner = new(() => new VideoCombinerViewModel(Services.ServiceLocator.VideoCombiner));
+        private readonly Lazy<VideoCombinerViewModel> _videoCombiner = new(() => new VideoCombinerViewModel(ServiceContainer.GetService<VideoCombinerService>() ?? new VideoCombinerService()));
         private readonly Lazy<ImageConverterViewModel> _imageConverter = new(() => new ImageConverterViewModel());
         private readonly Lazy<ImageResizerViewModel> _imageResizer = new(() => new ImageResizerViewModel());
         private readonly Lazy<IconConverterViewModel> _iconConverter = new(() => new IconConverterViewModel());
@@ -71,6 +71,7 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<IntunePackagerViewModel> _intunePackager = new(() => new IntunePackagerViewModel());
         private readonly Lazy<HashScannerViewModel> _hashScanner = new(() => new HashScannerViewModel());
         private readonly Lazy<AdSecurityAnalyzerViewModel> _adSecurityAnalyzer = new(() => new AdSecurityAnalyzerViewModel());
+        private readonly Lazy<CveSearchViewModel> _cveSearch = new(() => new CveSearchViewModel());
         
         #endregion
 
@@ -106,7 +107,9 @@ namespace PlatypusTools.UI.ViewModels
                     CurrentThemeName = theme;
                     IsDarkTheme = string.Equals(theme, PlatypusTools.UI.Services.ThemeManager.Dark, StringComparison.OrdinalIgnoreCase) ||
                                   string.Equals(theme, PlatypusTools.UI.Services.ThemeManager.LCARS, StringComparison.OrdinalIgnoreCase) ||
-                                  string.Equals(theme, PlatypusTools.UI.Services.ThemeManager.PipBoy, StringComparison.OrdinalIgnoreCase);
+                                  string.Equals(theme, PlatypusTools.UI.Services.ThemeManager.PipBoy, StringComparison.OrdinalIgnoreCase) ||
+                                  string.Equals(theme, PlatypusTools.UI.Services.ThemeManager.Klingon, StringComparison.OrdinalIgnoreCase) ||
+                                  string.Equals(theme, PlatypusTools.UI.Services.ThemeManager.KPopDemonHunters, StringComparison.OrdinalIgnoreCase);
                 }
                 catch { }
             
@@ -167,6 +170,7 @@ namespace PlatypusTools.UI.ViewModels
         public IntunePackagerViewModel IntunePackager => _intunePackager.Value;
         public HashScannerViewModel HashScanner => _hashScanner.Value;
         public AdSecurityAnalyzerViewModel AdSecurityAnalyzer => _adSecurityAnalyzer.Value;
+        public CveSearchViewModel CveSearch => _cveSearch.Value;
         
         #endregion
 
@@ -520,7 +524,8 @@ namespace PlatypusTools.UI.ViewModels
                     PlatypusTools.UI.Services.ThemeManager.Light,
                     PlatypusTools.UI.Services.ThemeManager.LCARS,
                     PlatypusTools.UI.Services.ThemeManager.Klingon,
-                    PlatypusTools.UI.Services.ThemeManager.PipBoy
+                    PlatypusTools.UI.Services.ThemeManager.PipBoy,
+                    PlatypusTools.UI.Services.ThemeManager.KPopDemonHunters
                 };
                 var customThemes = PlatypusTools.UI.Services.ThemeManager.GetCustomThemeNames();
                 var allThemes = new System.Collections.Generic.List<string>(builtInThemes);

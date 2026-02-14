@@ -174,7 +174,7 @@ namespace PlatypusTools.UI.ViewModels
                         {
                             Type = r.Type,
                             Path = r.Path,
-                            Target = r.Target,
+                            Target = r.Target ?? string.Empty,
                             IsSelected = false
                         };
                         selectable.PropertyChanged += (s, e) => 

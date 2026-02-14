@@ -118,7 +118,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand ExportCsvCommand { get; }
         public ICommand ApplyPreviewCommand { get; }
 
-        public FileCleanerViewModel() : this(Services.ServiceLocator.FileRenamer) { }
+        public FileCleanerViewModel() : this(ServiceContainer.GetService<FileRenamerService>() ?? new FileRenamerService()) { }
 
         public FileCleanerViewModel(IFileRenamerService renamerService)
         {

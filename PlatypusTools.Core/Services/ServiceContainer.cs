@@ -161,6 +161,9 @@ namespace PlatypusTools.Core.Services
             // Cloud services - Singleton
             services.AddSingleton<CloudSyncService>();
 
+            // App Task Scheduler - Singleton
+            services.AddSingleton(AppTaskSchedulerService.Instance);
+
             SimpleLogger.Debug("Core services registered with DI container.");
         }
 

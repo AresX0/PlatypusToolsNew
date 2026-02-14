@@ -19,7 +19,7 @@ namespace PlatypusTools.Core.Models.Audio
         /// Full file path (after canonicalization).
         /// </summary>
         [JsonPropertyName("filePath")]
-        public string FilePath { get; set; }
+        public string FilePath { get; set; } = string.Empty;
 
         /// <summary>
         /// File size in bytes.
@@ -37,31 +37,31 @@ namespace PlatypusTools.Core.Models.Audio
         /// Track title.
         /// </summary>
         [JsonPropertyName("title")]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
         /// <summary>
         /// Artist name.
         /// </summary>
         [JsonPropertyName("artist")]
-        public string Artist { get; set; }
+        public string Artist { get; set; } = string.Empty;
 
         /// <summary>
         /// Album name.
         /// </summary>
         [JsonPropertyName("album")]
-        public string Album { get; set; }
+        public string Album { get; set; } = string.Empty;
 
         /// <summary>
         /// Album artist (for compilation albums).
         /// </summary>
         [JsonPropertyName("albumArtist")]
-        public string AlbumArtist { get; set; }
+        public string AlbumArtist { get; set; } = string.Empty;
 
         /// <summary>
         /// Genre classification.
         /// </summary>
         [JsonPropertyName("genre")]
-        public string Genre { get; set; }
+        public string Genre { get; set; } = string.Empty;
 
         /// <summary>
         /// Year of release.
@@ -115,13 +115,13 @@ namespace PlatypusTools.Core.Models.Audio
         /// Audio codec (e.g., MP3, AAC, FLAC).
         /// </summary>
         [JsonPropertyName("codec")]
-        public string Codec { get; set; }
+        public string Codec { get; set; } = string.Empty;
 
         /// <summary>
         /// Comments or description.
         /// </summary>
         [JsonPropertyName("comments")]
-        public string Comments { get; set; }
+        public string Comments { get; set; } = string.Empty;
 
         /// <summary>
         /// List of genres (if multiple).
@@ -133,19 +133,19 @@ namespace PlatypusTools.Core.Models.Audio
         /// Composer/songwriter.
         /// </summary>
         [JsonPropertyName("composer")]
-        public string Composer { get; set; }
+        public string Composer { get; set; } = string.Empty;
 
         /// <summary>
         /// Conductor (for classical music).
         /// </summary>
         [JsonPropertyName("conductor")]
-        public string Conductor { get; set; }
+        public string Conductor { get; set; } = string.Empty;
 
         /// <summary>
         /// Lyrics content.
         /// </summary>
         [JsonPropertyName("lyrics")]
-        public string Lyrics { get; set; }
+        public string Lyrics { get; set; } = string.Empty;
 
         /// <summary>
         /// Whether artwork/cover image is embedded.
@@ -157,7 +157,7 @@ namespace PlatypusTools.Core.Models.Audio
         /// Base64-encoded artwork thumbnail (small size for index).
         /// </summary>
         [JsonPropertyName("artworkThumbnail")]
-        public string ArtworkThumbnail { get; set; }
+        public string ArtworkThumbnail { get; set; } = string.Empty;
 
         /// <summary>
         /// ReplayGain album gain in dB.

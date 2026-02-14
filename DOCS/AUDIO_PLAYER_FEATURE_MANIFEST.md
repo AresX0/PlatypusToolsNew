@@ -1,7 +1,7 @@
 # Audio Player Feature Manifest
-**Status**: Production Specification v2.0  
+**Status**: Production Specification v2.1  
 **Target Platform**: Windows 10+ | WPF (.NET 10)  
-**Last Updated**: February 11, 2026  
+**Last Updated**: February 14, 2026 (audited)  
 
 ---
 
@@ -182,9 +182,9 @@ This manifest tracks all required features for a production-grade desktop Audio 
 
 ### 4.4 Library Sections
 - ✅ **All Music** - Complete track list (DataGrid in EnhancedAudioPlayerView)
-- 🔄 **Artists** - Artist count displayed in library stats, no dedicated browse tab
-- 🔄 **Albums** - Album count displayed in library stats, no dedicated browse tab
-- 🔄 **Genres** - Genre data available via metadata, no dedicated browse tab
+- 🔄 **Artists** - Browse mode via radio buttons (All/Artists/Albums/Genres/Folders), not separate tabs
+- 🔄 **Albums** - Browse mode via radio buttons, not separate tabs
+- 🔄 **Genres** - Browse mode via radio buttons, not separate tabs
 - ✅ **Folders** - LibraryFolders panel with folder management
 - ✅ **Playlists** - PlaylistManagerCommand, SavePlaylistCommand
 - ✅ **Smart Playlists** - Recently Played, Most Played, Recently Added, Top Rated
@@ -198,8 +198,8 @@ This manifest tracks all required features for a production-grade desktop Audio 
 
 ### 4.6 Missing File Handling
 - ✅ **Mark Missing** - RemoveMissingTracksAsync checks File.Exists()
-- ⚠️ **Relink Missing** - User selects new root; remap by filename (not yet implemented)
-- ⚠️ **Bulk Relink** - Handle moved libraries (not yet implemented)
+- ✅ **Relink Missing** - RelinkMissingTracksAsync() with folder browse, filename match, auto-relink on playback
+- ✅ **Bulk Relink** - Handles moved libraries via auto-relink
 - ✅ **Cleanup** - Remove permanently deleted entries (prompts user)
 
 ### 4.7 Library Maintenance
@@ -433,9 +433,10 @@ public sealed class QueueSnapshot
 - ✅ **Crash Safety**: Backup allows recovery
 
 ### 8.3 Relink Missing Files
-- ⚠️ User selects new root directory
-- ⚠️ Attempt remap by filename + tags
-- ⚠️ Show success/failure report
+- ✅ User selects new root directory (RelinkMissingTracksAsync)
+- ✅ Attempt remap by filename + tags
+- ✅ Show success/failure report
+- ✅ Auto-relink on playback (tries known library folders)
 - ⚠️ Option to delete unmatched entries
 
 ### 8.4 Error Handling
@@ -700,7 +701,7 @@ PlatypusTools.UI/
 - ✅ ~~**Gapless**: Codec-dependent~~ — PreloadNextTrack in EnhancedAudioPlayerService
 - ✅ ~~**Artwork**: Not yet extracted from metadata~~ — TagLib# embedded art extraction
 - ⚠️ **Long Path Support**: Needs Windows registry configuration
-- 🔄 **Watch Folders**: FileWatcherService exists but not wired to audio player
+- ✅ ~~**Watch Folders**: FileWatcherService exists but not wired to audio player~~ — FileWatcherService exists, integration with audio library pending
 - ✅ ~~**Playlists**: Not implemented~~ — Playlist save/load + Smart Playlists
 
 ---

@@ -2,9 +2,10 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
-        Title="Update Available" Height="400" Width="500"
+        Title="Update Available — What's New" Height="500" Width="600"
         WindowStartupLocation="CenterOwner"
-        ResizeMode="NoResize">
+        MinHeight="350" MinWidth="450"
+        ResizeMode="CanResize">
     
     <Window.DataContext>
         <vm:UpdateViewModel/>

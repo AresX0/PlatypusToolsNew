@@ -50,7 +50,7 @@ namespace PlatypusTools.UI.ViewModels
         public DiskSpaceAnalyzerViewModel()
         {
             try { SimpleLogger.Info("DiskSpaceAnalyzerViewModel constructed"); } catch {}
-            _analyzerService = Services.ServiceLocator.DiskSpaceAnalyzer;
+            _analyzerService = ServiceContainer.GetService<DiskSpaceAnalyzerService>() ?? new DiskSpaceAnalyzerService();
 
             AnalyzeCommand = new RelayCommand(async _ => await AnalyzeAsync(), _ => !IsAnalyzing && !string.IsNullOrWhiteSpace(RootPath));
             BrowsePathCommand = new RelayCommand(_ => BrowsePath());

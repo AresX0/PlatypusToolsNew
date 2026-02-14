@@ -1172,6 +1172,23 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     
     #region AP-023: Audio Output Device Properties
     
+    private int _selectedDeviceNumber = -1;
+    public int SelectedDeviceNumber
+    {
+        get => _selectedDeviceNumber;
+        set
+        {
+            if (SetProperty(ref _selectedDeviceNumber, value))
+            {
+                _playerService.SelectedDeviceNumber = value;
+                var devices = EnhancedAudioPlayerService.GetAudioOutputDevices().ToList();
+                var device = devices.FirstOrDefault(d => d.DeviceNumber == value);
+                SelectedAudioDeviceName = device.Name ?? "Default";
+                StatusMessage = $"Audio device: {SelectedAudioDeviceName}";
+            }
+        }
+    }
+    
     private string _selectedAudioDeviceName = "Default";
     public string SelectedAudioDeviceName
     {
@@ -1184,12 +1201,11 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     private void RefreshAudioDevices()
     {
         AudioOutputDevices.Clear();
-        AudioOutputDevices.Add((-1, "Default"));
         foreach (var device in EnhancedAudioPlayerService.GetAudioOutputDevices())
         {
             AudioOutputDevices.Add(device);
         }
-        SelectedAudioDeviceName = "Default";
+        SelectedDeviceNumber = -1;
     }
     
     #endregion
@@ -1625,6 +1641,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         19 => "Jedi",
         20 => "TimeLord",
         21 => "Milkdrop",
+        22 => "Honmoon",
         _ => "Bars"
     };
     
@@ -1651,12 +1668,12 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     // Dropdown collections for visualizer controls
     public List<string> VisualizerModes { get; } = new()
     {
-        "Bars", "Mirror", "Waveform", "VU Meter", "Oscilloscope", "Circular", "Radial", "Aurora", "Wave Grid", "3D Bars", "Waterfall", "Star Wars Crawl", "Particles", "Starfield", "Toasters", "Matrix", "Stargate", "Klingon", "Federation", "Jedi", "TimeLord", "Milkdrop"
+        "Bars", "Mirror", "Waveform", "VU Meter", "Oscilloscope", "Circular", "Radial", "Aurora", "Wave Grid", "3D Bars", "Waterfall", "Star Wars Crawl", "Particles", "Starfield", "Toasters", "Matrix", "Stargate", "Klingon", "Federation", "Jedi", "TimeLord", "Milkdrop", "Honmoon"
     };
     
     public List<string> ColorSchemes { get; } = new()
     {
-        "Blue-Green", "Rainbow", "Fire", "Purple", "Neon", "Ocean", "Sunset", "Monochrome", "Pip-Boy", "LCARS", "Klingon", "Federation", "Jedi"
+        "Blue-Green", "Rainbow", "Fire", "Purple", "Neon", "Ocean", "Sunset", "Monochrome", "Pip-Boy", "LCARS", "Klingon", "Federation", "K-Pop Demon Hunters"
     };
     
     public List<int> DensityOptions { get; } = new() { 16, 24, 32, 48, 64, 72, 96, 128 };
@@ -1812,6 +1829,19 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     
     public List<string> QueueSortOptions { get; } = new() { "None", "Title", "Artist", "Album", "Genre", "Duration", "Rating" };
     
+    /// <summary>
+    /// Refreshes the observable Queue collection from the service's actual queue state.
+    /// Used after operations like PlayNext that modify queue order.
+    /// </summary>
+    private void RefreshQueueDisplay()
+    {
+        Queue.Clear();
+        foreach (var track in _playerService.Queue)
+        {
+            Queue.Add(track);
+        }
+    }
+    
     private void SortQueue()
     {
         if (Queue.Count == 0 || QueueSortBy == "None") return;
@@ -1932,6 +1962,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     public ICommand ToggleMuteCommand { get; }
     public ICommand PlayTrackCommand { get; }
     public ICommand AddToQueueCommand { get; }
+    public ICommand PlayNextCommand { get; }
     public ICommand RemoveFromQueueCommand { get; }
     public ICommand ClearQueueCommand { get; }
     public ICommand PlaySelectedCommand { get; }
@@ -2011,6 +2042,9 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         // Load saved library folders
         _ = LoadLibraryFoldersAsync();
         
+        // Load saved watch folders and start watching
+        _ = LoadWatchFoldersAsync();
+        
         // Subscribe to service events
         _playerService.TrackChanged += OnTrackChanged;
         _playerService.PositionChanged += OnPositionChanged;
@@ -2054,8 +2088,27 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             if (param is AudioTrack track)
             {
                 _playerService.AddToQueue(track);
-                Queue.Add(track);
-                StatusMessage = $"Added: {track.DisplayTitle}";
+                // Only add to observable collection if it was actually added (dedup may skip)
+                if (_playerService.Queue.Contains(track))
+                {
+                    Queue.Add(track);
+                    StatusMessage = $"Added: {track.DisplayTitle}";
+                }
+                else
+                {
+                    StatusMessage = $"Already in queue: {track.DisplayTitle}";
+                }
+            }
+        });
+        
+        PlayNextCommand = new RelayCommand(param =>
+        {
+            if (param is AudioTrack track)
+            {
+                _playerService.PlayNext(track);
+                // Refresh the queue display
+                RefreshQueueDisplay();
+                StatusMessage = $"Playing next: {track.DisplayTitle}";
             }
         });
         
@@ -2803,11 +2856,13 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         
         int newColorScheme = theme switch
         {
-            ThemeManager.PipBoy => 8,  // PipBoy green phosphor
-            ThemeManager.LCARS => 9,   // LCARS orange/tan/purple
-            ThemeManager.Light => 1,   // Rainbow for Light theme
-            ThemeManager.Dark => 1,    // Rainbow for Dark theme
-            _ => 1                     // Default to Rainbow
+            ThemeManager.PipBoy => 8,           // PipBoy green phosphor
+            ThemeManager.LCARS => 9,             // LCARS orange/tan/purple
+            ThemeManager.Klingon => 10,          // Klingon blood red/metal
+            ThemeManager.KPopDemonHunters => 12, // K-Pop Demon Hunters pink/violet/cyan
+            ThemeManager.Light => 1,             // Rainbow for Light theme
+            ThemeManager.Dark => 1,              // Rainbow for Dark theme
+            _ => 1                               // Default to Rainbow
         };
         
         // Only update if it's different to avoid unnecessary redraws
@@ -4011,6 +4066,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             {
                 WatchFolders.Add(path);
                 StartWatchingFolder(path);
+                _ = SaveWatchFoldersAsync();
                 StatusMessage = $"Now watching: {path}";
             }
         }
@@ -4023,6 +4079,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         
         _fileWatcher?.StopWatching(path);
         WatchFolders.Remove(path);
+        _ = SaveWatchFoldersAsync();
         StatusMessage = $"Stopped watching: {path}";
     }
     
@@ -4034,6 +4091,8 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         _fileWatcher.FileCreated += OnWatchedFileCreated;
         _fileWatcher.FileRenamed -= OnWatchedFileRenamed;
         _fileWatcher.FileRenamed += OnWatchedFileRenamed;
+        _fileWatcher.FileDeleted -= OnWatchedFileDeleted;
+        _fileWatcher.FileDeleted += OnWatchedFileDeleted;
         
         _fileWatcher.Watch(path, "*.*", includeSubdirectories: true);
     }
@@ -4075,6 +4134,84 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 StatusMessage = $"Auto-relinked: {track.FileName}";
             }
         });
+    }
+    
+    private void OnWatchedFileDeleted(object? sender, Services.FileChangeEvent e)
+    {
+        var ext = System.IO.Path.GetExtension(e.FullPath).ToLowerInvariant();
+        var audioExts = new[] { ".mp3", ".wav", ".flac", ".ogg", ".m4a", ".aac", ".wma", ".opus", ".aiff", ".ape" };
+        
+        if (!audioExts.Contains(ext)) return;
+        
+        Application.Current?.Dispatcher.BeginInvoke(() =>
+        {
+            var track = _allLibraryTracks.FirstOrDefault(t =>
+                string.Equals(t.FilePath, e.FullPath, StringComparison.OrdinalIgnoreCase));
+            if (track != null)
+            {
+                _allLibraryTracks.Remove(track);
+                LibraryTracks.Remove(track);
+                RaisePropertyChanged(nameof(LibraryTrackCount));
+                StatusMessage = $"Auto-removed deleted file: {track.FileName}";
+                _ = SaveLibraryCacheAsync();
+            }
+        });
+    }
+    
+    private async Task SaveWatchFoldersAsync()
+    {
+        try
+        {
+            var watchPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "PlatypusTools", "enhanced_watch_folders.json");
+            
+            var dir = Path.GetDirectoryName(watchPath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            
+            var json = JsonSerializer.Serialize(WatchFolders.ToList());
+            await File.WriteAllTextAsync(watchPath, json);
+            System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Saved {WatchFolders.Count} watch folder(s)");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Error saving watch folders: {ex.Message}");
+        }
+    }
+    
+    private async Task LoadWatchFoldersAsync()
+    {
+        try
+        {
+            var watchPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "PlatypusTools", "enhanced_watch_folders.json");
+            
+            if (File.Exists(watchPath))
+            {
+                var json = await File.ReadAllTextAsync(watchPath);
+                var folders = JsonSerializer.Deserialize<List<string>>(json);
+                if (folders != null)
+                {
+                    foreach (var folder in folders)
+                    {
+                        if (Directory.Exists(folder) && !WatchFolders.Contains(folder))
+                        {
+                            WatchFolders.Add(folder);
+                        }
+                    }
+                    System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Loaded {WatchFolders.Count} watch folder(s)");
+                }
+            }
+            
+            // Start watching restored folders
+            InitializeWatchFolders();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Error loading watch folders: {ex.Message}");
+        }
     }
     
     private async Task AddFileToLibraryAsync(string filePath)

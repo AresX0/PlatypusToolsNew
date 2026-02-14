@@ -71,35 +71,37 @@
                     
                     <!-- Global Font Settings (can be overridden by user preferences) -->
                     <sys:Double x:Key="GlobalFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">12</sys:Double>
+                    
+                    <!-- Converters — must be inside MergedDictionary to avoid .NET 10 BAML
+                         offset collision that causes BooleanToVisibilityConverter to be cast as Style -->
+                    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+                    <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+                    <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+                    <converters:InverseBoolToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
+                    <converters:FileSizeConverter x:Key="FileSizeConverter" />
+                    <converters:BytesToMBConverter x:Key="BytesToMBConverter" />
+                    <converters:InverseBooleanToBooleanConverter x:Key="InverseBooleanToBooleanConverter" />
+                    <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+                    <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
+                    <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+                    <converters:InverseNullToVisibilityConverter x:Key="InverseNullToVisibilityConverter" />
+                    <converters:BoolToThemeTextConverter x:Key="BoolToThemeTextConverter" />
+                    <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+                    <converters:CountToVisibilityConverter x:Key="ZeroToVisibleConverter" />
+                    <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
+                    <converters:CountToVisibilityConverter x:Key="InverseCountToVisibilityConverter" Invert="True" />
+                    <converters:EnumToBoolConverter x:Key="EnumToBoolConverter" />
+                    <converters:FileFolderIconConverter x:Key="FileFolderIconConverter" />
+                    <converters:FileFontWeightConverter x:Key="FileFontWeightConverter" />
+                    <converters:FileCountVisibilityConverter x:Key="FileCountVisibilityConverter" />
+                    <converters:TabVisibilityConverter x:Key="TabVisibilityConverter" />
+                    <converters:BoolToConnectionBrushConverter x:Key="BoolToConnectionBrushConverter" />
+                    <converters:BoolToConnectionTextConverter x:Key="BoolToConnectionTextConverter" />
+                    <converters:BoolToFavoriteIconConverter x:Key="BoolToFavoriteIconConverter" />
+                    <converters:ListToStringConverter x:Key="ListToStringConverter" />
+                    <converters:PercentToWidthConverter x:Key="PercentToWidthConverter" />
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
-            
-            <!-- Converters -->
-            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-            <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
-            <converters:InverseBoolToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
-            <converters:FileSizeConverter x:Key="FileSizeConverter" />
-            <converters:BytesToMBConverter x:Key="BytesToMBConverter" />
-            <converters:InverseBooleanToBooleanConverter x:Key="InverseBooleanToBooleanConverter" />
-            <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
-            <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
-            <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
-            <converters:InverseNullToVisibilityConverter x:Key="InverseNullToVisibilityConverter" />
-            <converters:BoolToThemeTextConverter x:Key="BoolToThemeTextConverter" />
-            <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
-            <converters:CountToVisibilityConverter x:Key="ZeroToVisibleConverter" />
-            <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
-            <converters:CountToVisibilityConverter x:Key="InverseCountToVisibilityConverter" Invert="True" />
-            <converters:EnumToBoolConverter x:Key="EnumToBoolConverter" />
-            <converters:FileFolderIconConverter x:Key="FileFolderIconConverter" />
-            <converters:FileFontWeightConverter x:Key="FileFontWeightConverter" />
-            <converters:FileCountVisibilityConverter x:Key="FileCountVisibilityConverter" />
-            <converters:TabVisibilityConverter x:Key="TabVisibilityConverter" />
-            <converters:BoolToConnectionBrushConverter x:Key="BoolToConnectionBrushConverter" />
-            <converters:BoolToConnectionTextConverter x:Key="BoolToConnectionTextConverter" />
-            <converters:BoolToFavoriteIconConverter x:Key="BoolToFavoriteIconConverter" />
-            <converters:ListToStringConverter x:Key="ListToStringConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

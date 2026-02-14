@@ -18,7 +18,7 @@ namespace PlatypusTools.UI.ViewModels
             
             try
             {
-                _service = Services.ServiceLocator.StartupManager;
+                _service = ServiceContainer.GetService<StartupManagerService>() ?? new StartupManagerService();
                 StartupItems = new ObservableCollection<StartupItemViewModel>();
 
             RefreshCommand = new RelayCommand(_ => Refresh());

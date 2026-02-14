@@ -32,7 +32,7 @@ namespace PlatypusTools.Core.Models.Audio
         /// SHA256 hash of the index content (for integrity check).
         /// </summary>
         [JsonPropertyName("contentHash")]
-        public string ContentHash { get; set; }
+        public string ContentHash { get; set; } = string.Empty;
 
         /// <summary>
         /// Number of tracks in this index.
@@ -68,13 +68,13 @@ namespace PlatypusTools.Core.Models.Audio
         /// Index of tracks by artist for quick lookup.
         /// </summary>
         [JsonIgnore]
-        private Dictionary<string, List<Track>> _artistIndex;
+        private Dictionary<string, List<Track>> _artistIndex = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Index of tracks by album for quick lookup.
         /// </summary>
         [JsonIgnore]
-        private Dictionary<string, List<Track>> _albumIndex;
+        private Dictionary<string, List<Track>> _albumIndex = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Rebuild internal indices for quick lookups.
@@ -129,7 +129,7 @@ namespace PlatypusTools.Core.Models.Audio
         /// <summary>
         /// Find track by file path.
         /// </summary>
-        public Track FindTrackByPath(string filePath)
+        public Track? FindTrackByPath(string filePath)
         {
             var normalizedPath = filePath.ToLowerInvariant();
             return Tracks.Find(t => t.FilePath.ToLowerInvariant() == normalizedPath);

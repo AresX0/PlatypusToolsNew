@@ -1,8 +1,8 @@
 # Audio Player Implementation Status & Gap Analysis
 
 **Status**: ✅ Production Ready  
-**Date**: February 12, 2026  
-**Version**: 3.4.0  
+**Date**: February 14, 2026 (audited)  
+**Version**: 3.4.1.4  
 
 ---
 
@@ -20,7 +20,9 @@ Your audio player currently has:
 - ✅ **100% Memory Safety** - All SkiaSharp native leaks fixed (SKMaskFilter, SKTypeface, SKBitmap)
 - ✅ **100% Remote Control** - Platypus Remote: phone/PWA control via SignalR, QR pairing, library browser, streaming
 
-**Remaining for future**: Relink missing files (detection exists, no relink), Watch Folders integration with audio player, dedicated Artist/Album/Genre browse tabs, unit tests
+**Remaining for future**: Watch Folders integration with audio player, queue deduplication, playback error auto-retry, advanced multi-field search syntax
+
+**Correction (Feb 14 audit)**: Relink missing files IS implemented (`RelinkMissingTracksAsync` + auto-relink on playback). Artist/Album/Genre browse modes ARE implemented (RadioButton browse modes). Unit tests for DFIR ARE implemented.
 
 ---
 

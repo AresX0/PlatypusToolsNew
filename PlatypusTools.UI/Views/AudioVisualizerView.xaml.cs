@@ -31,7 +31,8 @@ namespace PlatypusTools.UI.Views
         PipBoy,         // Fallout Pip-Boy green phosphor
         LCARS,          // Star Trek LCARS orange/tan/purple
         Klingon,        // Klingon Empire - blood red, black, metal
-        Federation      // United Federation of Planets - blue, silver, gold
+        Federation,     // United Federation of Planets - blue, silver, gold
+        KPopDemonHunters // K-Pop Demon Hunters - hot pink, electric violet, neon cyan
     }
     
     /// <summary>
@@ -98,6 +99,17 @@ namespace PlatypusTools.UI.Views
         // Performance: Frame skipping
         private int _frameCount = 0;
         private bool _isRendering = false;
+        
+        // Dynamic Quality Adaptation (NEW-005)
+        private DateTime _fpsCheckStart = DateTime.UtcNow;
+        private int _fpsFrameCounter = 0;
+        private double _currentFps = 22;
+        private bool _dynamicQualityEnabled = true;
+        private int _qualityLevel = 2; // 0=Low, 1=Medium, 2=High
+        private const double FPS_LOW_THRESHOLD = 15.0; // Downgrade below this
+        private const double FPS_HIGH_THRESHOLD = 25.0; // Upgrade above this
+        private int _stableFrameCount = 0; // Frames since last quality change
+        private const int STABILITY_FRAMES = 60; // Wait this many frames before quality change
         
         // Performance settings (adjustable)
         private int _maxStars = 400; // More stars for better effect
@@ -522,15 +534,16 @@ namespace PlatypusTools.UI.Views
                 8 => "Wave Grid", 9 => "3D Bars", 10 => "Waterfall", 11 => "Star Wars Crawl",
                 12 => "Particles", 13 => "Starfield", 14 => "Toasters", 15 => "Matrix",
                 16 => "Stargate", 17 => "Klingon", 18 => "Federation", 19 => "Jedi",
-                20 => "TimeLord", 21 => "Milkdrop", _ => "Bars"
+                20 => "TimeLord", 21 => "Milkdrop", 22 => "Honmoon", _ => "Bars"
             };
             
             if (_visualizationMode != mode)
             {
-                System.Diagnostics.Debug.WriteLine($"Mode change: {_visualizationMode} → {mode}");
+                System.Diagnostics.Debug.WriteLine($"UpdateModeFromViewModel: STOPPING {_visualizationMode}, starting {mode}");
                 
-                // Clean up old mode resources
-                CleanupModeResources(_visualizationMode, mode);
+                // Clean up old mode's resources (animation state, mode-specific buffers)
+                try { CleanupModeResources(_visualizationMode, mode); } catch { }
+                
                 _visualizationMode = mode;
                 
                 // Clear WPF canvas completely
@@ -542,8 +555,9 @@ namespace PlatypusTools.UI.Views
                 _cachedPeakBrush = null;
                 _cachedWaveformLine = null;
                 _needsFullRebuild = true;
+                _animationPhase = 0;
                 
-                // Reset smoothing buffers for fresh start
+                // Zero all buffers for completely fresh start
                 for (int i = 0; i < _barHeights.Length; i++)
                 {
                     _barHeights[i] = 0;
@@ -664,12 +678,14 @@ namespace PlatypusTools.UI.Views
                             8 => "Wave Grid", 9 => "3D Bars", 10 => "Waterfall", 11 => "Star Wars Crawl",
                             12 => "Particles", 13 => "Starfield", 14 => "Toasters", 15 => "Matrix",
                             16 => "Stargate", 17 => "Klingon", 18 => "Federation", 19 => "Jedi",
-                            20 => "TimeLord", 21 => "Milkdrop", _ => "Bars"
+                            20 => "TimeLord", 21 => "Milkdrop", 22 => "Honmoon", _ => "Bars"
                         };
                         if (_visualizationMode != mode)
                         {
-                            // STOP rendering immediately
-                            CleanupModeResources(_visualizationMode, mode);
+                            // Clean up old mode's resources (animation state, mode-specific buffers)
+                            System.Diagnostics.Debug.WriteLine($"OnSpectrumData inline: STOPPING {_visualizationMode}, starting {mode}");
+                            try { CleanupModeResources(_visualizationMode, mode); } catch { }
+                            
                             _visualizationMode = mode;
                             
                             // Clear canvas completely for fresh start
@@ -681,8 +697,9 @@ namespace PlatypusTools.UI.Views
                             _cachedPeakBrush = null;
                             _cachedWaveformLine = null;
                             _needsFullRebuild = true;
+                            _animationPhase = 0;
                             
-                            // Reset smoothing buffers for fresh start with new mode
+                            // Zero all buffers for completely fresh start
                             for (int i = 0; i < _barHeights.Length; i++)
                             {
                                 _barHeights[i] = 0;
@@ -690,8 +707,6 @@ namespace PlatypusTools.UI.Views
                                 _peakHeights[i] = 0;
                             }
                             _isRendering = false;
-                            
-                            System.Diagnostics.Debug.WriteLine($"Mode changed: → {mode}");
                         }
                     }
                 }
@@ -798,25 +813,25 @@ namespace PlatypusTools.UI.Views
             {
                 if ((bool)e.NewValue)
                 {
-                    // When becoming visible, ensure we're subscribed and running
+                    // When becoming visible, ensure we're subscribed and do a FULL fresh start
                     SubscribeToService();
                     
-                    // Use Dispatcher to ensure timer starts on UI thread after layout is complete
+                    // Use Dispatcher to ensure start happens on UI thread after layout is complete
                     Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () =>
                     {
-                        StartRenderTimer();
+                        StartRendering();
                     });
                     
-                    System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Became visible, ensuring subscription and timer");
+                    System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Became visible — FULL START");
                 }
                 else
                 {
-                    // Stop the timer when invisible (e.g., user switched to album art view)
-                    // This saves CPU/GPU when visualizer is not shown
+                    // FULLY STOP when invisible (e.g., user switched to album art view)
+                    // There is NO reason to keep rendering while hidden.
                     if (!_isExternallyDriven) // Don't stop if fullscreen mode is driving us
                     {
-                        StopRenderTimer();
-                        System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Became invisible, stopping timer");
+                        StopRendering();
+                        System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Became invisible — FULL STOP");
                     }
                 }
             }
@@ -827,27 +842,124 @@ namespace PlatypusTools.UI.Views
         }
         
         /// <summary>
-        /// Pauses the render timer to reduce CPU/GPU usage while this visualizer is not visible.
-        /// Called when the fullscreen visualizer opens to stop the hidden normal-view from
-        /// competing for UI thread time and GPU rendering resources.
+        /// FULLY STOPS the visualizer — kills the render timer, cleans up mode resources,
+        /// disposes GPU buffers, and zeros all spectrum/smoothing data.
+        /// There is NO reason to keep rendering while hidden. Call StartRendering() to restart.
         /// </summary>
-        public void PauseRendering()
+        public void StopRendering()
         {
-            if (_renderTimer != null && _renderTimer.IsEnabled)
+            // Kill the render timer completely
+            StopRenderTimer();
+            
+            // Clean up current mode's resources (GPU buffers, bitmaps, etc.)
+            try { CleanupModeResources(_visualizationMode, _visualizationMode); }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"StopRendering cleanup error: {ex.Message}"); }
+            
+            // Dispose all GPU resources to free VRAM
+            DisposeGpuResources();
+            
+            // Zero out ALL buffers — nothing should persist
+            for (int i = 0; i < _spectrumData.Length; i++)
             {
-                _renderTimer.Stop();
-                System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Render timer PAUSED (fullscreen open)");
+                _spectrumData[i] = 0;
+                _smoothedData[i] = 0;
+                _barHeights[i] = 0;
+                _peakHeights[i] = 0;
             }
+            if (_previousSmoothed != null)
+            {
+                for (int i = 0; i < _previousSmoothed.Length; i++)
+                    _previousSmoothed[i] = 0;
+            }
+            
+            // Reset all animation/render state
+            _isRendering = false;
+            _hasExternalData = false;
+            _animationPhase = 0;
+            _needsFullRebuild = true;
+            _shouldAnimate = false;
+            
+            // Clear WPF canvas
+            try { VisualizerCanvas?.Children.Clear(); } catch { }
+            _cachedBackground = null;
+            _cachedBars.Clear();
+            _cachedPeaks.Clear();
+            _cachedBarBrush = null;
+            _cachedPeakBrush = null;
+            _cachedWaveformLine = null;
+            
+            System.Diagnostics.Debug.WriteLine($"AudioVisualizerView: FULLY STOPPED (mode was {_visualizationMode})");
         }
         
         /// <summary>
-        /// Resumes the render timer after a pause. Called when fullscreen closes.
+        /// Starts the visualizer from a fully stopped state. Reinitializes everything fresh.
         /// </summary>
-        public void ResumeRendering()
+        public void StartRendering()
         {
+            // Re-initialize with small seed values so smoothing has something to work with
+            for (int i = 0; i < _spectrumData.Length; i++)
+            {
+                _spectrumData[i] = 0.01;
+                _smoothedData[i] = 0.01;
+                _barHeights[i] = 0;
+                _peakHeights[i] = 0;
+            }
+            
+            _isRendering = false;
+            _needsFullRebuild = true;
+            _animationPhase = 0;
+            
+            // Re-initialize Matrix columns if they were cleared by StopRendering/DisposeGpuResources
+            if (_matrixColumns.Count == 0)
+            {
+                for (int i = 0; i < 60; i++)
+                {
+                    _matrixColumns.Add(new MatrixColumn
+                    {
+                        X = i / 60.0,
+                        Y = _random.NextDouble() * -1.0,
+                        Speed = 0.01 + _random.NextDouble() * 0.02,
+                        Length = 8 + _random.Next(12),
+                        Characters = new char[20]
+                    });
+                    for (int j = 0; j < _matrixColumns[i].Characters.Length; j++)
+                        _matrixColumns[i].Characters[j] = MatrixChars[_random.Next(MatrixChars.Length)];
+                }
+            }
+            
+            // Re-initialize stars if cleared
+            if (_stars.Count == 0)
+            {
+                for (int i = 0; i < 400; i++)
+                {
+                    int colorType = 0;
+                    if (_random.NextDouble() < 0.05) colorType = _random.Next(1, 4);
+                    _stars.Add(new Star
+                    {
+                        X = _random.NextDouble() - 0.5,
+                        Y = _random.NextDouble() - 0.5,
+                        Z = _random.NextDouble() * 4 + 0.1,
+                        Speed = 0.005 + _random.NextDouble() * 0.02,
+                        ColorType = colorType
+                    });
+                }
+            }
+            
+            // Re-start the render timer
             StartRenderTimer();
-            System.Diagnostics.Debug.WriteLine("AudioVisualizerView: Render timer RESUMED (fullscreen closed)");
+            
+            System.Diagnostics.Debug.WriteLine($"AudioVisualizerView: STARTED fresh (mode {_visualizationMode})");
         }
+        
+        /// <summary>
+        /// Legacy alias — calls StopRendering() for backward compatibility.
+        /// </summary>
+        public void PauseRendering() => StopRendering();
+        
+        /// <summary>
+        /// Legacy alias — calls StartRendering() for backward compatibility.
+        /// </summary>
+        public void ResumeRendering() => StartRendering();
         
         /// <summary>
         /// Gets or sets the color scheme for the visualizer.
@@ -1111,6 +1223,41 @@ namespace PlatypusTools.UI.Views
             {
                 _isRendering = true;
                 _frameCount++;
+                
+                // Dynamic Quality: Monitor FPS and auto-adjust
+                if (_dynamicQualityEnabled)
+                {
+                    _fpsFrameCounter++;
+                    _stableFrameCount++;
+                    var elapsed = (DateTime.UtcNow - _fpsCheckStart).TotalSeconds;
+                    if (elapsed >= 2.0) // Check every 2 seconds
+                    {
+                        _currentFps = _fpsFrameCounter / elapsed;
+                        _fpsFrameCounter = 0;
+                        _fpsCheckStart = DateTime.UtcNow;
+                        
+                        if (_stableFrameCount >= STABILITY_FRAMES)
+                        {
+                            if (_currentFps < FPS_LOW_THRESHOLD && _qualityLevel > 0)
+                            {
+                                // Downgrade quality
+                                _qualityLevel--;
+                                ApplyQualityLevel();
+                                _stableFrameCount = 0;
+                                System.Diagnostics.Debug.WriteLine($"Dynamic Quality: FPS={_currentFps:F1}, downgraded to level {_qualityLevel}");
+                            }
+                            else if (_currentFps > FPS_HIGH_THRESHOLD && _qualityLevel < 2)
+                            {
+                                // Upgrade quality
+                                _qualityLevel++;
+                                ApplyQualityLevel();
+                                _stableFrameCount = 0;
+                                System.Diagnostics.Debug.WriteLine($"Dynamic Quality: FPS={_currentFps:F1}, upgraded to level {_qualityLevel}");
+                            }
+                        }
+                    }
+                }
+                
                 RenderVisualization();
             }
             catch (Exception ex)
@@ -1122,6 +1269,62 @@ namespace PlatypusTools.UI.Views
                 _isRendering = false;
             }
         }
+        
+        /// <summary>
+        /// Applies quality settings based on the current quality level.
+        /// Level 0 (Low): 16 bars, 200 max stars, 50 particles, 30ms timer (33 FPS target)
+        /// Level 1 (Medium): 32 bars, 300 stars, 75 particles, 40ms timer (25 FPS target)
+        /// Level 2 (High): 64 bars, 400 stars, 100 particles, 45ms timer (22 FPS target)
+        /// </summary>
+        private void ApplyQualityLevel()
+        {
+            switch (_qualityLevel)
+            {
+                case 0: // Low
+                    _maxBarCount = 16;
+                    _maxStars = 200;
+                    _maxParticles = 50;
+                    if (_renderTimer != null)
+                        _renderTimer.Interval = TimeSpan.FromMilliseconds(30);
+                    break;
+                case 1: // Medium
+                    _maxBarCount = 32;
+                    _maxStars = 300;
+                    _maxParticles = 75;
+                    if (_renderTimer != null)
+                        _renderTimer.Interval = TimeSpan.FromMilliseconds(40);
+                    break;
+                case 2: // High
+                default:
+                    _maxBarCount = 64;
+                    _maxStars = 400;
+                    _maxParticles = 100;
+                    if (_renderTimer != null)
+                        _renderTimer.Interval = TimeSpan.FromMilliseconds(45);
+                    break;
+            }
+            _needsFullRebuild = true;
+        }
+        
+        /// <summary>
+        /// Gets or sets whether dynamic quality adaptation is enabled.
+        /// When enabled, the visualizer automatically reduces quality when FPS drops below threshold.
+        /// </summary>
+        public bool DynamicQualityEnabled
+        {
+            get => _dynamicQualityEnabled;
+            set => _dynamicQualityEnabled = value;
+        }
+        
+        /// <summary>
+        /// Gets the current measured FPS.
+        /// </summary>
+        public double CurrentFps => _currentFps;
+        
+        /// <summary>
+        /// Gets the current quality level (0=Low, 1=Medium, 2=High).
+        /// </summary>
+        public int QualityLevel => _qualityLevel;
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
@@ -1278,40 +1481,51 @@ namespace PlatypusTools.UI.Views
         #endregion
 
         /// <summary>
-        /// Forces an immediate mode switch without waiting for the next spectrum data update.
-        /// Called from fullscreen keyboard handler to ensure mode changes propagate even when
-        /// heavy renderers (Matrix, TimeLord, Milkdrop, Jedi) are blocking the frame-skip guard.
-        /// Performs a full stop/start: cleans up old mode resources, resets smoothing buffers,
-        /// and initializes the new mode fresh so it renders with live audio data immediately.
+        /// Forces an immediate mode switch. FULLY STOPS the old mode (disposes GPU resources,
+        /// zeros buffers, clears canvas) then starts the new mode fresh.
+        /// Called from fullscreen keyboard handler and OSD buttons.
         /// </summary>
         public void ForceVisualizationMode(string newMode)
         {
             if (_visualizationMode == newMode) return;
             
             var oldMode = _visualizationMode;
+            System.Diagnostics.Debug.WriteLine($"ForceVisualizationMode: STOPPING {oldMode}, starting {newMode}");
             
+            // Clean up old mode's resources (animation state, mode-specific buffers)
             try { CleanupModeResources(oldMode, newMode); }
             catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"ForceVisualizationMode cleanup error: {ex.Message}"); }
             
-            _visualizationMode = newMode;
+            // Clear the WPF canvas completely
+            try { VisualizerCanvas?.Children.Clear(); } catch { }
+            _cachedBackground = null;
+            _cachedBars.Clear();
+            _cachedPeaks.Clear();
+            _cachedBarBrush = null;
+            _cachedPeakBrush = null;
+            _cachedWaveformLine = null;
             
-            // Reset smoothing buffers to force fresh data adoption — prevents stale
-            // smoothed values from the previous mode carrying over and causing the
-            // new mode to appear frozen (especially after switching from heavy modes
-            // like TimeLord/Milkdrop to lighter modes like Federation/Klingon).
+            // === Switch to new mode ===
+            _visualizationMode = newMode;
+            _needsFullRebuild = true;
+            _animationPhase = 0;
+            
+            // Zero all smoothing buffers then seed with current spectrum
+            // so the new mode starts responsive to live audio immediately
             for (int i = 0; i < _barHeights.Length; i++)
             {
-                _barHeights[i] = _spectrumData.Length > i ? _spectrumData[i] * _sensitivity : 0;
-                _smoothedData[i] = _barHeights[i];
-                _peakHeights[i] = _barHeights[i];
+                double seedVal = _spectrumData.Length > i ? _spectrumData[i] * _sensitivity : 0;
+                _barHeights[i] = seedVal;
+                _smoothedData[i] = seedVal;
+                _peakHeights[i] = seedVal;
             }
             
-            // Reset rendering flag to prevent stuck state
+            // Reset rendering flag to prevent stuck state from old mode
             _isRendering = false;
             
-            System.Diagnostics.Debug.WriteLine($"ForceVisualizationMode: {oldMode} → {newMode} (smoothing reset, ready for live data)");
+            System.Diagnostics.Debug.WriteLine($"ForceVisualizationMode: {oldMode} → {newMode} (old STOPPED, new ready)");
             
-            // Force immediate repaint
+            // Force immediate repaint with new mode
             try { SkiaCanvas?.InvalidateVisual(); } catch { }
         }
 
@@ -1319,13 +1533,28 @@ namespace PlatypusTools.UI.Views
         {
             if (_visualizationMode != mode)
             {
-                try { CleanupModeResources(_visualizationMode, mode); }
+                var oldMode = _visualizationMode;
+                System.Diagnostics.Debug.WriteLine($"UpdateSpectrumData: mode change {oldMode} → {mode}");
+                
+                // Clean up old mode's resources (animation state, mode-specific buffers)
+                try { CleanupModeResources(oldMode, mode); }
                 catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"CleanupModeResources error: {ex.Message}"); }
                 
-                // Always update mode even if cleanup throws
-                _visualizationMode = mode;
+                // Clear WPF canvas
+                try { VisualizerCanvas?.Children.Clear(); } catch { }
+                _cachedBackground = null;
+                _cachedBars.Clear();
+                _cachedPeaks.Clear();
+                _cachedBarBrush = null;
+                _cachedPeakBrush = null;
+                _cachedWaveformLine = null;
                 
-                // Reset smoothing buffers on mode switch for fresh start
+                // === Switch to new mode ===
+                _visualizationMode = mode;
+                _needsFullRebuild = true;
+                _animationPhase = 0;
+                
+                // Zero all smoothing buffers for completely fresh start
                 for (int i = 0; i < _barHeights.Length; i++)
                 {
                     _barHeights[i] = 0;
@@ -1334,7 +1563,7 @@ namespace PlatypusTools.UI.Views
                 }
                 _isRendering = false;
                 
-                // Force immediate repaint so mode switch is visible without waiting for timer tick
+                // Force immediate repaint so mode switch is visible
                 try { SkiaCanvas?.InvalidateVisual(); } catch { }
             }
             else
@@ -1512,6 +1741,24 @@ namespace PlatypusTools.UI.Views
                     new GradientStop(Color.FromRgb(180, 140, 100), 0.8),  // Bat'leth metal
                     new GradientStop(Color.FromRgb(220, 180, 120), 1)     // Polished blade
                 },
+                VisualizerColorScheme.Federation => new GradientStopCollection
+                {
+                    new GradientStop(Color.FromRgb(0, 20, 80), 0),        // Deep space blue
+                    new GradientStop(Color.FromRgb(30, 100, 200), 0.25),  // Starfleet blue
+                    new GradientStop(Color.FromRgb(100, 180, 255), 0.5),  // Sky blue
+                    new GradientStop(Color.FromRgb(200, 200, 220), 0.7),  // Silver
+                    new GradientStop(Color.FromRgb(255, 215, 0), 0.85),   // Command gold
+                    new GradientStop(Color.FromRgb(255, 240, 180), 1)     // Warm gold
+                },
+                VisualizerColorScheme.KPopDemonHunters => new GradientStopCollection
+                {
+                    new GradientStop(Color.FromRgb(15, 0, 30), 0),        // Deep dark purple-black
+                    new GradientStop(Color.FromRgb(140, 0, 40), 0.2),     // Blood crimson
+                    new GradientStop(Color.FromRgb(255, 20, 100), 0.4),   // Hot pink
+                    new GradientStop(Color.FromRgb(200, 50, 255), 0.6),   // Electric violet
+                    new GradientStop(Color.FromRgb(120, 80, 255), 0.8),   // Bright purple-blue
+                    new GradientStop(Color.FromRgb(0, 255, 220), 1)       // Neon cyan
+                },
                 _ => new GradientStopCollection // BlueGreen (default)
                 {
                     new GradientStop(Color.FromRgb(30, 144, 255), 0),
@@ -1566,6 +1813,12 @@ namespace PlatypusTools.UI.Views
                 VisualizerColorScheme.Klingon => InterpolateWpfGradient(value,
                     (0.0, Color.FromRgb(30, 0, 0)), (0.3, Color.FromRgb(120, 10, 10)), (0.5, Color.FromRgb(180, 30, 20)),
                     (0.7, Color.FromRgb(220, 80, 40)), (0.85, Color.FromRgb(200, 140, 100)), (1.0, Color.FromRgb(180, 170, 160))),
+                VisualizerColorScheme.Federation => InterpolateWpfGradient(value,
+                    (0.0, Color.FromRgb(0, 20, 80)), (0.25, Color.FromRgb(30, 100, 200)), (0.5, Color.FromRgb(100, 180, 255)),
+                    (0.7, Color.FromRgb(200, 200, 220)), (0.85, Color.FromRgb(255, 215, 0)), (1.0, Color.FromRgb(255, 240, 180))),
+                VisualizerColorScheme.KPopDemonHunters => InterpolateWpfGradient(value,
+                    (0.0, Color.FromRgb(15, 0, 30)), (0.2, Color.FromRgb(140, 0, 40)), (0.4, Color.FromRgb(255, 20, 100)),
+                    (0.6, Color.FromRgb(200, 50, 255)), (0.8, Color.FromRgb(120, 80, 255)), (1.0, Color.FromRgb(0, 255, 220))),
                 _ => InterpolateWpfGradient(value, // BlueGreen/Federation
                     (0.0, Color.FromRgb(0, 20, 80)), (0.25, Color.FromRgb(0, 80, 180)), (0.5, Color.FromRgb(30, 144, 255)),
                     (0.7, Color.FromRgb(80, 200, 220)), (0.85, Color.FromRgb(150, 230, 200)), (1.0, Color.FromRgb(200, 255, 240)))
@@ -1753,7 +2006,7 @@ namespace PlatypusTools.UI.Views
 
             // For dynamic modes, clear non-cached elements before each frame
             // This prevents elements from piling up and causing trails/artifacts
-            bool isDynamicMode = _visualizationMode is "Starfield" or "Toasters" or "Particles" or "Aurora" or "WaveGrid" or "Wave Grid" or "Circular" or "Radial" or "Mirror" or "Matrix" or "Star Wars Crawl" or "Stargate" or "Klingon" or "Federation" or "Jedi" or "TimeLord" or "VU Meter" or "Oscilloscope" or "Milkdrop" or "3D Bars" or "Waterfall";
+            bool isDynamicMode = _visualizationMode is "Starfield" or "Toasters" or "Particles" or "Aurora" or "WaveGrid" or "Wave Grid" or "Circular" or "Radial" or "Mirror" or "Matrix" or "Star Wars Crawl" or "Stargate" or "Klingon" or "Federation" or "Jedi" or "TimeLord" or "VU Meter" or "Oscilloscope" or "Milkdrop" or "3D Bars" or "Waterfall" or "Honmoon";
             if (isDynamicMode)
             {
                 ClearDynamicElements(canvas);
@@ -1825,6 +2078,9 @@ namespace PlatypusTools.UI.Views
                 case "Waterfall":
                     RenderWaterfall(canvas);
                     break;
+                case "Honmoon":
+                    RenderHonmoon(canvas);
+                    break;
                 default: // Bars
                     RenderBars(canvas);
                     break;
@@ -1859,10 +2115,17 @@ namespace PlatypusTools.UI.Views
                 _barHeights = new double[_barCount];
             }
             
-            // Apply logarithmic frequency mapping if enabled
+            // Work on a LOCAL copy — never mutate _spectrumData.
+            // _spectrumData holds the raw FFT data from UpdateSpectrumData().
+            // If we overwrote it with log-mapped values, any render tick that fires
+            // before new data arrives would re-log-map the already-mapped data,
+            // compressing values toward zero.  This is the root cause of the
+            // "fullscreen doesn't sync" bug: the frame-skip guard means some ticks
+            // fire without fresh data, and each re-mapping destroys the signal.
+            double[] processedSpec;
             if (USE_LOGARITHMIC_FREQ && _spectrumData.Length > 0)
             {
-                var logMapped = new double[_barCount];
+                processedSpec = new double[_barCount];
                 int spectrumLength = _spectrumData.Length;
                 
                 for (int i = 0; i < _barCount; i++)
@@ -1880,13 +2143,16 @@ namespace PlatypusTools.UI.Views
                         sum += _spectrumData[j];
                         count++;
                     }
-                    logMapped[i] = count > 0 ? sum / count : _spectrumData[srcIdx];
+                    processedSpec[i] = count > 0 ? sum / count : _spectrumData[srcIdx];
                 }
-                _spectrumData = logMapped;
             }
             else if (_spectrumData.Length != _barCount)
             {
-                _spectrumData = ResampleSpectrum(_spectrumData, _barCount);
+                processedSpec = ResampleSpectrum(_spectrumData, _barCount);
+            }
+            else
+            {
+                processedSpec = _spectrumData;
             }
             
             // Use pre-configured rise/fall speeds (set by SetSensitivity)
@@ -1896,7 +2162,7 @@ namespace PlatypusTools.UI.Views
             double fallMultiplier = _isExternallyDriven ? 1.3 : 1.0;
             for (int i = 0; i < _barCount; i++)
             {
-                double target = i < _spectrumData.Length ? _spectrumData[i] * _sensitivity : 0;
+                double target = i < processedSpec.Length ? processedSpec[i] * _sensitivity : 0;
                 
                 // Apply attack/release envelope for smooth animation
                 if (target > _barHeights[i])
@@ -6702,6 +6968,9 @@ namespace PlatypusTools.UI.Views
             var canvas = e.Surface.Canvas;
             var info = e.Info;
             
+            // Track frame for performance monitor (IDEA-012)
+            Services.PerformanceMonitorService.Instance.RecordFrame();
+            
             // Flag large surfaces for performance scaling (skip expensive blurs, reduce effects)
             _isLargeSurface = (long)info.Width * info.Height > 1_000_000; // ~1000x1000+
             
@@ -6810,6 +7079,9 @@ namespace PlatypusTools.UI.Views
                     case "Milkdrop":
                         RenderMilkdropHD(canvas, info);
                         break;
+                    case "Honmoon":
+                        RenderHonmoonHdSkia(canvas, info);
+                        break;
                     default:
                         RenderBarsHdSkia(canvas, info);
                         break;
@@ -6862,6 +7134,12 @@ namespace PlatypusTools.UI.Views
                 },
                 VisualizerColorScheme.LCARS => new SKColor[] {
                     new SKColor(255, 153, 0), new SKColor(204, 153, 255), new SKColor(153, 153, 255)
+                },
+                VisualizerColorScheme.KPopDemonHunters => new SKColor[] {
+                    new SKColor(255, 20, 100), new SKColor(200, 50, 255), new SKColor(0, 255, 220)
+                },
+                VisualizerColorScheme.Federation => new SKColor[] {
+                    new SKColor(30, 100, 200), new SKColor(200, 200, 220), new SKColor(255, 215, 0)
                 },
                 _ => new SKColor[] { 
                     new SKColor(30, 144, 255), new SKColor(0, 255, 127), new SKColor(127, 255, 0) 
@@ -9314,7 +9592,13 @@ namespace PlatypusTools.UI.Views
                 VisualizerColorScheme.Klingon => InterpolateHDGradient(value,
                     new[] { (0.0, new SKColor(30, 0, 0)), (0.3, new SKColor(120, 10, 10)), (0.5, new SKColor(180, 30, 20)),
                             (0.7, new SKColor(220, 80, 40)), (0.85, new SKColor(200, 140, 100)), (1.0, new SKColor(180, 170, 160)) }),
-                _ => InterpolateHDGradient(value, // BlueGreen/Federation
+                VisualizerColorScheme.Federation => InterpolateHDGradient(value,
+                    new[] { (0.0, new SKColor(0, 20, 80)), (0.25, new SKColor(30, 100, 200)), (0.5, new SKColor(100, 180, 255)),
+                            (0.7, new SKColor(200, 200, 220)), (0.85, new SKColor(255, 215, 0)), (1.0, new SKColor(255, 240, 180)) }),
+                VisualizerColorScheme.KPopDemonHunters => InterpolateHDGradient(value,
+                    new[] { (0.0, new SKColor(15, 0, 30)), (0.2, new SKColor(140, 0, 40)), (0.4, new SKColor(255, 20, 100)),
+                            (0.6, new SKColor(200, 50, 255)), (0.8, new SKColor(120, 80, 255)), (1.0, new SKColor(0, 255, 220)) }),
+                _ => InterpolateHDGradient(value, // BlueGreen default
                     new[] { (0.0, new SKColor(0, 20, 80)), (0.25, new SKColor(0, 80, 180)), (0.5, new SKColor(30, 144, 255)),
                             (0.7, new SKColor(80, 200, 220)), (0.85, new SKColor(150, 230, 200)), (1.0, new SKColor(200, 255, 240)) })
             };
@@ -9710,6 +9994,234 @@ namespace PlatypusTools.UI.Views
         #endregion
         
         #region HD Milkdrop (GPU path)
+        
+        
+        #region Honmoon HD SkiaSharp
+        
+        /// <summary>
+        /// GPU-accelerated Honmoon (혼문; 魂門) spirit gate visualizer.
+        /// Inspired by K-Pop: Demon Hunters — a magical barrier created by demon hunters' singing.
+        /// Honmoon (혼문) Spirit Gate — HD flowing wave field visualizer.
+        /// Horizontal wavy lines flow across the canvas like topographic contours,
+        /// undulating with the audio spectrum. Peak-energy lines turn golden while
+        /// others follow the active color scheme. Inspired by satellite imagery with
+        /// flowing energy waves overlaid on a dark landscape.
+        /// </summary>
+        private void RenderHonmoonHdSkia(SKCanvas canvas, SKImageInfo info)
+        {
+            int w = info.Width;
+            int h = info.Height;
+            if (w <= 0 || h <= 0) return;
+            
+            int barCount = Math.Min(_barCount, _smoothedData.Length);
+            if (barCount < 2) barCount = 2;
+            
+            float phase = (float)_animationPhase;
+            
+            // Resolution scale factor — thicker lines at fullscreen so they're visible
+            float resScale = Math.Max(1f, h / 350f);  // 1x at 350px, ~3x at 1080p
+            
+            // Calculate energy stats from smoothed data
+            float totalEnergy = 0, maxVal = 0;
+            for (int i = 0; i < barCount; i++)
+            {
+                float v = (float)_smoothedData[i];
+                totalEnergy += v;
+                if (v > maxVal) maxVal = v;
+            }
+            totalEnergy /= Math.Max(1, barCount);
+            
+            // Golden threshold: absolute minimum + top 15% of current peak
+            // Much more selective so golden only flashes on strong beats
+            float goldenThreshold = Math.Max(0.7f, maxVal * 0.88f);
+            
+            // === Background: deep dark with subtle warm tones ===
+            using (var bgPaint = new SKPaint())
+            {
+                bgPaint.Shader = SKShader.CreateRadialGradient(
+                    new SKPoint(w * 0.4f, h * 0.5f), Math.Max(w, h) * 0.8f,
+                    new SKColor[] {
+                        new SKColor(18, 12, 28),    // Dark purple-brown center
+                        new SKColor(8, 5, 15),      // Near-black mid
+                        new SKColor(3, 2, 6)         // True dark edge
+                    },
+                    new float[] { 0f, 0.5f, 1f },
+                    SKShaderTileMode.Clamp);
+                canvas.DrawRect(0, 0, w, h, bgPaint);
+            }
+            
+            // === Subtle warm ground glow (like satellite city lights) ===
+            using (var glowPaint = new SKPaint { IsAntialias = true })
+            {
+                float glowX = w * (0.35f + (float)Math.Sin(phase * 0.1) * 0.1f);
+                float glowY = h * 0.55f;
+                float glowR = Math.Min(w, h) * (0.3f + totalEnergy * 0.15f);
+                glowPaint.Shader = SKShader.CreateRadialGradient(
+                    new SKPoint(glowX, glowY), glowR,
+                    new SKColor[] {
+                        new SKColor(180, 130, 40, (byte)(30 + totalEnergy * 40)),
+                        new SKColor(100, 60, 20, (byte)(15 + totalEnergy * 15)),
+                        new SKColor(40, 20, 10, 0)
+                    },
+                    new float[] { 0f, 0.4f, 1f },
+                    SKShaderTileMode.Clamp);
+                canvas.DrawCircle(glowX, glowY, glowR, glowPaint);
+            }
+            
+            // === Flowing wave lines ===
+            int lineCount = Math.Max(35, h / 4);
+            int pointsPerLine = Math.Max(100, w / 3);
+            
+            using (var linePaint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Stroke,
+                StrokeCap = SKStrokeCap.Round,
+                StrokeJoin = SKStrokeJoin.Round
+            })
+            {
+                for (int row = 0; row < lineCount; row++)
+                {
+                    float rowT = (float)row / (lineCount - 1); // 0..1
+                    float baseY = rowT * h;
+                    
+                    // Map row to spectrum frequency band
+                    int specIdx = (int)(rowT * (barCount - 1));
+                    specIdx = Math.Clamp(specIdx, 0, Math.Min(barCount - 1, _smoothedData.Length - 1));
+                    float specVal = (float)_smoothedData[specIdx];
+                    
+                    // Blend with neighbors for smoother mapping
+                    if (specIdx > 0 && specIdx < _smoothedData.Length - 1)
+                    {
+                        specVal = (float)(_smoothedData[specIdx - 1] * 0.2 + _smoothedData[specIdx] * 0.6 + _smoothedData[specIdx + 1] * 0.2);
+                    }
+                    
+                    // Direct linear scaling — _smoothedData already has _sensitivity applied
+                    // by ApplySmoothing(), so we just boost for visual range (no double-application).
+                    // Clamp to 1.0 for color/alpha calculations.
+                    float scaledSpec = Math.Min(1.0f, specVal * 2.5f);
+                    
+                    // Wave amplitude driven by spectrum — scales with resolution
+                    float amplitude = scaledSpec * h * 0.14f + h * 0.003f;
+                    
+                    // Line thickness scales with resolution for fullscreen visibility
+                    linePaint.StrokeWidth = (0.8f + scaledSpec * 3.0f) * resScale;
+                    
+                    // Determine color: golden for peak lines, color scheme for others
+                    bool isGolden = specVal >= goldenThreshold && specVal > 0.10f;
+                    
+                    if (isGolden)
+                    {
+                        // Golden flowing energy — brighter and wider
+                        byte gAlpha = (byte)(180 + Math.Min(75, scaledSpec * 100));
+                        byte gGreen = (byte)(180 + Math.Min(75, scaledSpec * 75));
+                        linePaint.Color = new SKColor(255, gGreen, 45, gAlpha);
+                        linePaint.StrokeWidth += 1.5f * resScale;
+                    }
+                    else
+                    {
+                        // Color scheme colors with higher base alpha for visibility at bottom
+                        SKColor schemeColor = GetHDColor(Math.Max(0.15, specVal));
+                        byte cAlpha = (byte)(90 + Math.Min(165, scaledSpec * 220));
+                        linePaint.Color = schemeColor.WithAlpha(cAlpha);
+                    }
+                    
+                    // Build the path
+                    using (var path = new SKPath())
+                    {
+                        for (int px = 0; px <= pointsPerLine; px++)
+                        {
+                            float xT = (float)px / pointsPerLine;
+                            float x = xT * w;
+                            
+                            // Multi-layered flowing wave
+                            float wave1 = (float)Math.Sin(xT * 4.0 * Math.PI + phase * 1.2 + row * 0.28) * amplitude;
+                            float wave2 = (float)Math.Sin(xT * 7.5 * Math.PI + phase * 0.75 - row * 0.45) * amplitude * 0.35f;
+                            float wave3 = (float)Math.Sin(xT * 2.0 * Math.PI + phase * 0.5 + row * 0.12) * amplitude * 0.55f;
+                            float wave4 = (float)Math.Sin(xT * 11.0 * Math.PI + phase * 1.8 + row * 0.6) * amplitude * 0.15f;
+                            
+                            float y = baseY + wave1 + wave2 + wave3 + wave4;
+                            
+                            if (px == 0) path.MoveTo(x, y);
+                            else path.LineTo(x, y);
+                        }
+                        
+                        canvas.DrawPath(path, linePaint);
+                        
+                        // Add glow effect for golden lines
+                        if (isGolden)
+                        {
+                            using (var glowLinePaint = new SKPaint
+                            {
+                                IsAntialias = true,
+                                Style = SKPaintStyle.Stroke,
+                                StrokeWidth = linePaint.StrokeWidth + 6f * resScale,
+                                Color = new SKColor(255, 200, 60, (byte)(30 + specVal * 40)),
+                                MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 4f * resScale),
+                                StrokeCap = SKStrokeCap.Round,
+                                StrokeJoin = SKStrokeJoin.Round
+                            })
+                            {
+                                canvas.DrawPath(path, glowLinePaint);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // === Floating golden particles in high-energy areas ===
+            var rng = new Random((int)(phase * 600) % 10000);
+            int particleCount = 15 + (int)(totalEnergy * 30);
+            using (var particlePaint = new SKPaint { IsAntialias = true })
+            {
+                for (int p = 0; p < particleCount; p++)
+                {
+                    float px = (float)rng.NextDouble() * w;
+                    float py = (float)rng.NextDouble() * h;
+                    
+                    // Only place particles near high-energy spectrum areas
+                    int specIdx = (int)((py / h) * (barCount - 1));
+                    specIdx = Math.Clamp(specIdx, 0, Math.Min(barCount - 1, _smoothedData.Length - 1));
+                    if (_smoothedData[specIdx] < goldenThreshold * 0.6f) continue;
+                    
+                    float size = 1f + (float)rng.NextDouble() * 2.5f;
+                    byte pAlpha = (byte)(40 + rng.Next(120));
+                    
+                    particlePaint.Color = new SKColor(255, 220, 80, pAlpha);
+                    canvas.DrawCircle(px + (float)Math.Sin(phase + p * 0.5) * 3f, py, size, particlePaint);
+                }
+            }
+            
+            // === Title overlay ===
+            using (var titleTypeface = SKTypeface.FromFamilyName("Malgun Gothic", SKFontStyle.Normal) ?? SKTypeface.Default)
+            using (var titleFont = new SKFont(titleTypeface, Math.Max(14f, h * 0.023f)))
+            using (var titlePaint = new SKPaint
+            {
+                IsAntialias = true,
+                Color = new SKColor(255, 215, 100, (byte)(130 + totalEnergy * 80))
+            })
+            {
+                string titleText = "\ud63c \ubb38  \u00b7  H O N M O O N";
+                float titleWidth = titleFont.MeasureText(titleText, out _);
+                canvas.DrawText(titleText, w / 2f - titleWidth / 2f, h - 18f, titleFont, titlePaint);
+            }
+            
+            // === Subtitle ===
+            using (var subTypeface = SKTypeface.FromFamilyName("Malgun Gothic", SKFontStyle.Normal) ?? SKTypeface.Default)
+            using (var subFont = new SKFont(subTypeface, Math.Max(10f, h * 0.015f)))
+            using (var subPaint = new SKPaint
+            {
+                IsAntialias = true,
+                Color = new SKColor(200, 170, 80, (byte)(70 + totalEnergy * 40))
+            })
+            {
+                string subText = "S P I R I T   W A V E S";
+                float subWidth = subFont.MeasureText(subText, out _);
+                canvas.DrawText(subText, w / 2f - subWidth / 2f, h - 4f, subFont, subPaint);
+            }
+        }
+        
+        #endregion
         
         /// <summary>
         /// GPU-accelerated Milkdrop visualization using SkiaSharp canvas drawing.
@@ -10296,6 +10808,126 @@ namespace PlatypusTools.UI.Views
                     canvas.Children.Add(reflection);
                 }
             }
+        }
+        
+        #endregion
+        
+        #region Honmoon (Spirit Gate) Visualizer
+        
+        /// <summary>
+        /// Renders the Honmoon (혼문; 魂門) spirit gate visualizer using WPF Canvas.
+        /// Inspired by K-Pop: Demon Hunters — a magical barrier created by singing voices.
+        /// Honmoon (혼문) Spirit Gate visualizer — flowing wave lines.
+        /// Horizontal wavy lines flow across the canvas, undulating with the audio spectrum.
+        /// Peak-energy lines turn golden while others follow the active color scheme.
+        /// </summary>
+        private void RenderHonmoon(Canvas canvas)
+        {
+            double width = canvas.ActualWidth;
+            double height = canvas.ActualHeight;
+            if (width < 10 || height < 10) return;
+            
+            int barCount = Math.Min(_barCount, _smoothedData.Length);
+            if (barCount < 2) barCount = 2;
+            
+            // Calculate overall energy for golden threshold
+            double totalEnergy = 0;
+            double maxVal = 0;
+            for (int i = 0; i < Math.Min(barCount, _smoothedData.Length); i++)
+            {
+                double v = _smoothedData[i];
+                totalEnergy += v;
+                if (v > maxVal) maxVal = v;
+            }
+            totalEnergy /= Math.Max(1, barCount);
+            // Golden threshold: absolute minimum + top 15% of current peak
+            double goldenThreshold = Math.Max(0.7, maxVal * 0.88);
+            
+            // Dark background
+            var bg = new System.Windows.Shapes.Rectangle
+            {
+                Width = width, Height = height,
+                Fill = new RadialGradientBrush(
+                    Color.FromRgb(12, 8, 20),
+                    Color.FromRgb(3, 2, 5))
+            };
+            Canvas.SetLeft(bg, 0); Canvas.SetTop(bg, 0);
+            canvas.Children.Add(bg);
+            
+            // Draw flowing wave lines
+            int lineCount = Math.Max(25, (int)(height / 6));
+            double phase = _animationPhase;
+            int samplesPerLine = Math.Max(50, (int)(width / 5));
+            
+            for (int row = 0; row < lineCount; row++)
+            {
+                double rowT = (double)row / (lineCount - 1); // 0 to 1
+                double baseY = rowT * height;
+                
+                // Map this row to a frequency band from the spectrum
+                int specIdx = (int)(rowT * (barCount - 1));
+                specIdx = Math.Clamp(specIdx, 0, Math.Min(barCount - 1, _smoothedData.Length - 1));
+                double specVal = _smoothedData[specIdx];
+                
+                // Direct linear scaling — _smoothedData already has _sensitivity from ApplySmoothing
+                double scaledSpec = Math.Min(1.0, specVal * 2.5);
+                
+                // Amplitude of the wave is driven by the spectrum value — more reactive
+                double amplitude = scaledSpec * height * 0.14 + 1.5;
+                
+                // Build polyline points
+                var polyline = new System.Windows.Shapes.Polyline
+                {
+                    StrokeThickness = 1.5 + scaledSpec * 3.0,
+                    StrokeLineJoin = PenLineJoin.Round
+                };
+                
+                // Determine color: golden for peaks, color scheme for others
+                if (specVal >= goldenThreshold && specVal > 0.10)
+                {
+                    // Golden for top-energy lines
+                    byte gAlpha = (byte)(170 + scaledSpec * 85);
+                    byte gGreen = (byte)(175 + scaledSpec * 60);
+                    polyline.Stroke = new SolidColorBrush(Color.FromArgb(gAlpha, 255, gGreen, 40));
+                }
+                else
+                {
+                    // Use active color scheme with higher base alpha for bottom visibility
+                    var color = GetColorFromScheme(Math.Max(0.15, specVal));
+                    byte cAlpha = (byte)(85 + scaledSpec * 170);
+                    polyline.Stroke = new SolidColorBrush(Color.FromArgb(cAlpha, color.R, color.G, color.B));
+                }
+                
+                for (int x = 0; x <= samplesPerLine; x++)
+                {
+                    double xT = (double)x / samplesPerLine;
+                    double px = xT * width;
+                    
+                    // Multi-frequency wave: base flow + audio-reactive ripple
+                    double wave1 = Math.Sin(xT * 4.0 * Math.PI + phase * 1.2 + row * 0.3) * amplitude;
+                    double wave2 = Math.Sin(xT * 7.0 * Math.PI + phase * 0.8 - row * 0.5) * amplitude * 0.4;
+                    double wave3 = Math.Sin(xT * 2.0 * Math.PI + phase * 0.5 + row * 0.15) * amplitude * 0.6;
+                    
+                    double py = baseY + wave1 + wave2 + wave3;
+                    polyline.Points.Add(new Point(px, py));
+                }
+                
+                canvas.Children.Add(polyline);
+            }
+            
+            // Title overlay
+            var title = new TextBlock
+            {
+                Text = "\ud63c \ubb38  \u00b7  H O N M O O N",
+                FontSize = 16,
+                FontFamily = new System.Windows.Media.FontFamily("Malgun Gothic, Segoe UI, Arial"),
+                Foreground = new SolidColorBrush(Color.FromArgb(160, 255, 215, 100)),
+                FontWeight = FontWeights.Light
+            };
+            title.Measure(new System.Windows.Size(width, height));
+            Canvas.SetLeft(title, width / 2 - title.DesiredSize.Width / 2);
+            Canvas.SetTop(title, height - 36);
+            canvas.Children.Add(title);
         }
         
         #endregion

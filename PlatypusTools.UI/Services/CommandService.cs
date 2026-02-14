@@ -91,6 +91,88 @@ namespace PlatypusTools.UI.Services
                 Shortcut = "Ctrl+,"
             });
 
+            // IDEA-002: Navigation commands for quick tab switching
+            Register(new CommandItem
+            {
+                Icon = "📁",
+                Name = "File Management",
+                Description = "Go to File Management tab",
+                Category = "Navigate",
+                Keywords = new List<string> { "files", "cleaner", "duplicates", "robocopy" },
+                Shortcut = "Ctrl+1"
+            });
+
+            Register(new CommandItem
+            {
+                Icon = "🎬",
+                Name = "Multimedia",
+                Description = "Go to Multimedia tab (Audio, Image, Video)",
+                Category = "Navigate",
+                Keywords = new List<string> { "audio", "player", "image", "video", "music" },
+                Shortcut = "Ctrl+2"
+            });
+
+            Register(new CommandItem
+            {
+                Icon = "🔧",
+                Name = "System Tools",
+                Description = "Go to System Tools tab",
+                Category = "Navigate",
+                Keywords = new List<string> { "system", "process", "startup", "registry", "disk" },
+                Shortcut = "Ctrl+3"
+            });
+
+            Register(new CommandItem
+            {
+                Icon = "🔒",
+                Name = "Security",
+                Description = "Go to Security tab",
+                Category = "Navigate",
+                Keywords = new List<string> { "security", "forensics", "hash", "wipe", "encryption" },
+                Shortcut = "Ctrl+4"
+            });
+
+            Register(new CommandItem
+            {
+                Icon = "🌐",
+                Name = "Network",
+                Description = "Go to Network tab",
+                Category = "Navigate",
+                Keywords = new List<string> { "network", "ftp", "download", "remote", "browser" },
+                Shortcut = "Ctrl+5"
+            });
+
+            Register(new CommandItem
+            {
+                Icon = "📦",
+                Name = "Deployment",
+                Description = "Go to Deployment tab",
+                Category = "Navigate",
+                Keywords = new List<string> { "intune", "package", "deploy" },
+                Shortcut = "Ctrl+6"
+            });
+
+            // IDEA-002: Utility commands
+            Register(new CommandItem
+            {
+                Icon = "↩️",
+                Name = "Undo",
+                Description = "Undo last file operation",
+                Category = "Edit",
+                Keywords = new List<string> { "undo", "revert", "back" },
+                Shortcut = "Ctrl+Z"
+            });
+
+            Register(new CommandItem
+            {
+                Icon = "↪️",
+                Name = "Redo",
+                Description = "Redo last undone operation",
+                Category = "Edit",
+                Keywords = new List<string> { "redo", "forward" },
+                Shortcut = "Ctrl+Y"
+            });
+
             // Help commands
             Register(new CommandItem
             {

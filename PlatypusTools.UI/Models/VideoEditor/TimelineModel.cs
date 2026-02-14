@@ -1,8 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using PlatypusTools.Core.Models;
 
 namespace PlatypusTools.UI.Models.VideoEditor
 {
@@ -10,7 +9,7 @@ namespace PlatypusTools.UI.Models.VideoEditor
     /// Main timeline model containing all tracks and clips.
     /// Modeled after Shotcut's MultitrackModel.
     /// </summary>
-    public class TimelineModel : INotifyPropertyChanged
+    public class TimelineModel : BindableModel
     {
         private TimeSpan _position;
         private TimeSpan _duration;
@@ -180,9 +179,5 @@ namespace PlatypusTools.UI.Models.VideoEditor
                 }
             }
         }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? name = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

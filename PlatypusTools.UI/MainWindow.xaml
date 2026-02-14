@@ -100,30 +100,41 @@
         <!-- Status Bar -->
         <controls:StatusBarControl DockPanel.Dock="Bottom"/>
 
-        <TabControl DockPanel.Dock="Top" Margin="8" 
+        <TabControl x:Name="MainTabControl" DockPanel.Dock="Top" Margin="8" 
                     Background="{DynamicResource WindowBackgroundBrush}"
-                    BorderBrush="{DynamicResource ControlBorderBrush}">
+                    BorderBrush="{DynamicResource ControlBorderBrush}"
+                    AutomationProperties.Name="Main Navigation">
+            <!-- Dashboard -->
+            <TabItem Header="🏠 Dashboard" AutomationProperties.Name="Dashboard">
+                <views:DashboardView/>
+            </TabItem>
             <!-- File Management -->
             <TabItem Header="📁 File Management" 
+                     AutomationProperties.Name="File Management"
                      Visibility="{Binding FileManagement, Source={x:Static services:TabVisibilityService.Instance}}">
-                <TabControl>
+                <TabControl AutomationProperties.Name="File Management Tabs">
                     <TabItem Header="File Cleaner" 
+                             AutomationProperties.Name="File Cleaner"
                              Visibility="{Binding FileCleaner, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:FileCleanerView}" ViewDataContext="{Binding FileCleaner}" />
                     </TabItem>
                     <TabItem Header="Duplicates"
+                             AutomationProperties.Name="Duplicate File Finder"
                              Visibility="{Binding Duplicates, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:DuplicatesView}" ViewDataContext="{Binding Duplicates}" />
                     </TabItem>
                     <TabItem Header="Empty Folder Scanner"
+                             AutomationProperties.Name="Empty Folder Scanner"
                              Visibility="{Binding EmptyFolderScanner, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:EmptyFolderScannerView}" ViewDataContext="{Binding EmptyFolderScanner}" />
                     </TabItem>
                     <TabItem Header="Robocopy"
+                             AutomationProperties.Name="Robocopy File Copy"
                              Visibility="{Binding Robocopy, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:RobocopyView}" ViewDataContext="{Binding Robocopy}" />
                     </TabItem>
                     <TabItem Header="☁ Cloud Sync"
+                             AutomationProperties.Name="Cloud Sync"
                              Visibility="{Binding CloudSync, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:CloudSyncView}" />
                     </TabItem>
@@ -132,6 +143,7 @@
 
             <!-- Multimedia (hierarchical layout) -->
             <TabItem Header="🎬 Multimedia"
+                     AutomationProperties.Name="Multimedia"
                      Visibility="{Binding Multimedia, Source={x:Static services:TabVisibilityService.Instance}}">
                 <TabControl>
                     <!-- Audio -->
@@ -224,8 +236,9 @@
 
             <!-- System -->
             <TabItem Header="🖥️ System"
+                     AutomationProperties.Name="System Tools"
                      Visibility="{Binding System, Source={x:Static services:TabVisibilityService.Instance}}">
-                <TabControl>
+                <TabControl AutomationProperties.Name="System Tabs">
                     <TabItem Header="Disk Cleanup"
                              Visibility="{Binding DiskCleanup, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:DiskCleanupView}" ViewDataContext="{Binding DiskCleanup}" />
@@ -265,13 +278,17 @@
                     <TabItem Header="💻 Terminal">
                         <views:LocalTerminalView/>
                     </TabItem>
+                    <TabItem Header="📋 Job Queue">
+                        <views:BatchJobQueueView/>
+                    </TabItem>
                 </TabControl>
             </TabItem>
 
             <!-- Security -->
             <TabItem Header="🔒 Security"
+                     AutomationProperties.Name="Security Tools"
                      Visibility="{Binding Security, Source={x:Static services:TabVisibilityService.Instance}}">
-                <TabControl>
+                <TabControl AutomationProperties.Name="Security Tabs">
                     <TabItem Header="Folder Hider"
                              Visibility="{Binding FolderHider, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:HiderView}" ViewDataContext="{Binding Hider}" />
@@ -304,19 +321,25 @@
                              Visibility="{Binding AdSecurityAnalyzer, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:AdSecurityAnalyzerView}" ViewDataContext="{Binding AdSecurityAnalyzer}" />
                     </TabItem>
+                    <TabItem Header="🔍 CVE Search"
+                             Visibility="{Binding CveSearch, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:CveSearchView}" ViewDataContext="{Binding CveSearch}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
 
             <!-- Metadata -->
             <TabItem Header="📋 Metadata"
+                     AutomationProperties.Name="Metadata Editor"
                      Visibility="{Binding Metadata, Source={x:Static services:TabVisibilityService.Instance}}">
                 <controls:LazyTabContent ViewType="{x:Type views:MetadataEditorView}" ViewDataContext="{Binding MetadataEditor}" />
             </TabItem>
 
             <!-- Tools -->
             <TabItem Header="🔧 Tools"
+                     AutomationProperties.Name="Tools"
                      Visibility="{Binding Tools, Source={x:Static services:TabVisibilityService.Instance}}">
-                <TabControl>
+                <TabControl AutomationProperties.Name="Tools Tabs">
                     <TabItem Header="Website Downloader"
                              Visibility="{Binding WebsiteDownloader, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:WebsiteDownloaderView}" ViewDataContext="{Binding WebsiteDownloader}" />

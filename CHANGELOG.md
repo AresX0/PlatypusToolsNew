@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.4.2 - 2026-02-14
+
+### Added
+- **🔍 CVE Search** — New tab under Security for searching the global CVE vulnerability database
+  - Direct CVE ID lookup via MITRE CVE AWG API (e.g. CVE-2024-3094)
+  - Keyword search via NVD API v2.0 (e.g. "log4j", "remote code execution")
+  - Color-coded CVSS severity badges (Critical/High/Medium/Low)
+  - Detail panel with full description, CVSS vector, affected products, and clickable references
+  - Export results to CSV, JSON, or plain text
+  - Auto-detects CVE ID format and switches search mode
+
+### Fixed
+- **Visualizer Mode Switch Lifecycle** — Complete stop/start on mode change instead of pause/resume
+  - Old mode fully stops (timer killed, GPU resources released, buffers zeroed, canvas cleared)
+  - New mode starts fresh with clean state
+- **Matrix Visualizer** — Fixed Matrix not rendering after mode switch (DisposeGpuResources was
+  clearing `_matrixColumns` on every mode switch; now only called on full stop/unload)
+- **Honmoon Fullscreen Sync** — Fixed double-application of `_sensitivity` causing barely-visible
+  animation (ApplySmoothing already bakes sensitivity into smoothed data; removed redundant multiplier)
+- **Fullscreen V-Key Toggle** — Now properly stops/starts rendering when toggling visualizer visibility
+- **Album Art Toggle** — Stops rendering completely when visualizer is hidden via visibility change
+- **Lyrics Overlay** — Always creates overlay elements (no conditional guard), starts collapsed,
+  dynamically shown when enabled
+
 ## v3.4.0 - 2026-02-08
 
 ### 🎆 Major Release: Visualizer Performance & Stability Overhaul

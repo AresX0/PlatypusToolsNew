@@ -116,7 +116,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand SelectNoneCommand { get; }
         public ICommand ClearCompletedCommand { get; }
 
-        public VideoConverterViewModel() : this(Services.ServiceLocator.VideoConverter) { }
+        public VideoConverterViewModel() : this(ServiceContainer.GetService<VideoConverterService>() ?? new VideoConverterService()) { }
 
         public VideoConverterViewModel(IVideoConverterService service)
         {
