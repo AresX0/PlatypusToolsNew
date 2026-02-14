@@ -4748,6 +4748,9 @@
         <Component Id="CMP_Themes_Klingon_xaml" Guid="*" Directory="DIR_Themes">
           <File Id="FIL_Themes_Klingon_xaml" Source="$(var.PlatypusTools.UI.TargetDir)publish\Themes\Klingon.xaml" KeyPath="yes" />
         </Component>
+        <Component Id="CMP_Themes_KPopDemonHunters_xaml" Guid="*" Directory="DIR_Themes">
+          <File Id="FIL_Themes_KPopDemonHunters_xaml" Source="$(var.PlatypusTools.UI.TargetDir)publish\Themes\KPopDemonHunters.xaml" KeyPath="yes" />
+        </Component>
         <Component Id="CMP_Themes_LCARS_xaml" Guid="*" Directory="DIR_Themes">
           <File Id="FIL_Themes_LCARS_xaml" Source="$(var.PlatypusTools.UI.TargetDir)publish\Themes\LCARS.xaml" KeyPath="yes" />
         </Component>
@@ -6431,6 +6434,7 @@
       <ComponentRef Id="CMP_Themes_Dark_xaml" />
       <ComponentRef Id="CMP_Themes_Glass_xaml" />
       <ComponentRef Id="CMP_Themes_Klingon_xaml" />
+      <ComponentRef Id="CMP_Themes_KPopDemonHunters_xaml" />
       <ComponentRef Id="CMP_Themes_LCARS_xaml" />
       <ComponentRef Id="CMP_Themes_Light_xaml" />
       <ComponentRef Id="CMP_Themes_PipBoy_png" />

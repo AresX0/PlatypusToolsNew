@@ -29,6 +29,8 @@ public partial class EnhancedAudioPlayerView : UserControl
     private Grid? _fullscreenAlbumArtPanel;
     private TextBlock? _fullscreenModeToast;
     private DispatcherTimer? _modeToastTimer;
+    private bool _isSidebarHidden;
+    private GridLength _savedSidebarWidth = new GridLength(2, GridUnitType.Star);
     
     public EnhancedAudioPlayerView()
     {
@@ -36,6 +38,16 @@ public partial class EnhancedAudioPlayerView : UserControl
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
         DataContextChanged += OnDataContextChanged;
+        PreviewKeyDown += EnhancedAudioPlayerView_PreviewKeyDown;
+    }
+
+    private void EnhancedAudioPlayerView_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.B && Keyboard.Modifiers == ModifierKeys.Control)
+        {
+            ToggleSidebar();
+            e.Handled = true;
+        }
     }
     
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -303,6 +315,41 @@ public partial class EnhancedAudioPlayerView : UserControl
         else
             EnterFullscreenVisualizer();
     }
+
+    #region Sidebar Toggle
+    
+    private void ToggleSidebar_Click(object sender, RoutedEventArgs e)
+    {
+        ToggleSidebar();
+    }
+    
+    private void ToggleSidebar()
+    {
+        _isSidebarHidden = !_isSidebarHidden;
+        
+        if (_isSidebarHidden)
+        {
+            // Save current width before hiding
+            _savedSidebarWidth = SidebarColumn.Width;
+            SidebarColumn.Width = new GridLength(0);
+            SidebarColumn.MinWidth = 0;
+            SidebarTabControl.Visibility = Visibility.Collapsed;
+            SidebarSplitter.Visibility = Visibility.Collapsed;
+            SidebarToggleButton.Content = "\u25c0"; // ◀ arrow to indicate "expand"
+            SidebarToggleButton.ToolTip = "Show Sidebar (Ctrl+B)";
+        }
+        else
+        {
+            SidebarColumn.Width = _savedSidebarWidth;
+            SidebarColumn.MinWidth = 280;
+            SidebarTabControl.Visibility = Visibility.Visible;
+            SidebarSplitter.Visibility = Visibility.Visible;
+            SidebarToggleButton.Content = "\ud83d\udccc"; // 📌
+            SidebarToggleButton.ToolTip = "Toggle Sidebar (Ctrl+B)";
+        }
+    }
+    
+    #endregion
     
     private void EnterFullscreenVisualizer()
     {

@@ -35,6 +35,7 @@
             </MenuItem>
             <MenuItem Header="View">
                 <MenuItem Header="Fullscreen Mode" Click="ToggleFullScreen_Click" InputGestureText="F11" />
+                <MenuItem Header="Auto-Hide Navigation" Click="ToggleAutoHideNavigation_Click" InputGestureText="Ctrl+H" />
                 <Separator />
                 <MenuItem Header="Toggle Staging Panel" Command="{Binding ToggleStagingInDuplicatesCommand}" IsCheckable="True" IsChecked="{Binding DuplicatesStagingVisible, Mode=TwoWay}" />
                 <MenuItem Header="Show Preview Panel" IsCheckable="True" IsChecked="{Binding DuplicatesPreviewVisible, Mode=TwoWay}" Command="{Binding TogglePreviewPanelCommand}" />
@@ -72,7 +73,8 @@
             </MenuItem>
         </Menu>
 
-        <Border DockPanel.Dock="Top" Background="{DynamicResource HeaderBrush}" Padding="12,8">
+        <Border x:Name="HeaderBorder" DockPanel.Dock="Top" Background="{DynamicResource HeaderBrush}" Padding="12,8"
+                MouseEnter="NavigationArea_MouseEnter" MouseLeave="NavigationArea_MouseLeave">
             <Grid>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <Image Source="{Binding HeaderImage}" Width="48" Height="48" Margin="0,0,12,0" />
@@ -93,9 +95,21 @@
                     <Button Content="⚙ Settings" Click="OpenSettings" 
                             Width="90" Height="32"
                             BorderThickness="0" FontWeight="SemiBold"/>
+                    <Button x:Name="AutoHideButton" Click="ToggleAutoHideNavigation_Click"
+                            ToolTip="Auto-hide navigation tabs (Ctrl+H)"
+                            Width="36" Height="32" Margin="8,0,0,0" Padding="4,2"
+                            BorderThickness="0" FontWeight="SemiBold">
+                        <TextBlock Text="📌" FontSize="14"/>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
+
+        <!-- Auto-Hide Reveal Bar (visible only when navigation is hidden) -->
+        <Border x:Name="TabRevealBar" DockPanel.Dock="Top" Height="4" Background="#FF2196F3" 
+                Visibility="Collapsed" Cursor="Hand"
+                MouseEnter="TabRevealBar_MouseEnter"
+                ToolTip="Hover to show navigation tabs (Ctrl+H to toggle)"/>
 
         <!-- Status Bar -->
         <controls:StatusBarControl DockPanel.Dock="Bottom"/>
@@ -103,7 +117,8 @@
         <TabControl x:Name="MainTabControl" DockPanel.Dock="Top" Margin="8" 
                     Background="{DynamicResource WindowBackgroundBrush}"
                     BorderBrush="{DynamicResource ControlBorderBrush}"
-                    AutomationProperties.Name="Main Navigation">
+                    AutomationProperties.Name="Main Navigation"
+                    MouseEnter="NavigationArea_MouseEnter" MouseLeave="NavigationArea_MouseLeave">
             <!-- Dashboard -->
             <TabItem Header="🏠 Dashboard" AutomationProperties.Name="Dashboard">
                 <views:DashboardView/>

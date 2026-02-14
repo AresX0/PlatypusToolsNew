@@ -1,9 +1,9 @@
-# PlatypusTools v3.4.1 - Detailed TODO List
+# PlatypusTools v3.4.2 - Detailed TODO List
 
 **Branch**: `main`  
 **Last Updated**: February 14, 2026  
-**Current Version**: v3.4.1.4 (released)  
-**Status**: 332/332 original tasks complete | 26 new items identified  
+**Current Version**: v3.4.1.5 (released)  
+**Status**: 332/332 original tasks complete | 15 implemented since audit | 11 genuinely remaining  
 **Legend**: ✅ Complete | 🔄 In Progress | ❌ Not Started | 📝 Docs outdated
 
 ---
@@ -34,7 +34,7 @@ Cross-referenced all 34 DOCS files against the actual codebase. Key corrections:
 |---|------|-----------|--------|-------------|
 | NEW-001 | Queue Deduplication | AUDIO_PLAYER_FEATURE_MANIFEST | ⭐ | `AddToQueue` in EnhancedAudioPlayerService appends without checking for duplicate paths. Add canonical path check with user toggle. |
 | NEW-002 | Playback Error Auto-Retry | AUDIO_PLAYER_FEATURE_MANIFEST | ⭐⭐ | No auto-retry on playback failure. Add retry logic (3 attempts with backoff) then skip to next track. |
-| NEW-003 | Remote Audit Logging | REMOTE_ACCESS_PLAN | ⭐⭐ | No logging of remote commands/sessions. Add audit log service tracking who played/paused/skipped and when. |
+| ~~NEW-003~~ | ~~Remote Audit Logging~~ | ~~REMOTE_ACCESS_PLAN~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `RemoteAuditLogService.cs` (277 lines): ConcurrentQueue flush timer, JSON serialization, file-based log rotation, event notifications. |
 | NEW-004 | ServiceLocator → DI Migration | DEPENDENCY_INJECTION, TODO_PRIORITY | ⭐⭐⭐ | `ServiceLocator` still used by ~15 ViewModels. Migrate remaining to `ServiceContainer.GetService<T>()`. |
 
 #### 🟡 MEDIUM PRIORITY
@@ -48,7 +48,7 @@ Cross-referenced all 34 DOCS files against the actual codebase. Key corrections:
 | NEW-009 | Advanced Multi-Field Search | AUDIO_PLAYER_FEATURE_MANIFEST | ⭐⭐ | Single search box matches across all fields. Add syntax like `artist:X year:2020 genre:Rock` for targeted queries. |
 | NEW-010 | App Task Scheduler | TODO_PRIORITY | ⭐⭐⭐ | ScheduledTasksService only reads Windows tasks. Add ability to schedule PlatypusTools internal tasks (library rescans, backups, cleanup). |
 | NEW-011 | IP Allowlist for Remote | REMOTE_ACCESS_PLAN | ⭐⭐ | Only CORS origin allowlist exists. Add IP-level filtering middleware for remote server endpoints. |
-| NEW-012 | Progress Reporting Consolidation (OPT-008) | TODO_PRIORITY | ⭐⭐ | Deferred — unified progress reporting pattern for all long-running operations. Currently each service implements its own. |
+| ~~NEW-012~~ | ~~Progress Reporting Consolidation (OPT-008)~~ | ~~TODO_PRIORITY~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `IProgressReporter.cs` (223 lines): Full interface with `Report`, `ReportPercent`, `ReportItems`, `ReportIndeterminate`, plus `ProgressInfo` class. Services still need migration to use it. |
 
 #### 🟢 LOW PRIORITY / NICE-TO-HAVE
 
@@ -58,7 +58,7 @@ Cross-referenced all 34 DOCS files against the actual codebase. Key corrections:
 | NEW-014 | Accessibility: High Contrast Theme | AUDIO_PLAYER_FEATURE_MANIFEST | ⭐⭐ | No dedicated high-contrast theme. Create one that respects Windows HC settings. |
 | NEW-015 | Accessibility: Color-Blind Palettes | AUDIO_PLAYER_FEATURE_MANIFEST | ⭐ | No deuteranopia/protanopia-safe color schemes for visualizer. |
 | NEW-016 | Butterchurn/ProjectM Integration | PROJECTM_INTEGRATION_PLAN | ⭐⭐⭐ | Current Milkdrop mode is custom SkiaSharp — not real Winamp preset compatible. Butterchurn via WebView2 would enable 130k+ presets. |
-| NEW-017 | Tailscale Remote Option | REMOTE_ACCESS_PLAN | ⭐ | Documentation-only mention. Add detection/instructions for Tailscale mesh VPN as connection option. |
+| ~~NEW-017~~ | ~~Tailscale Remote Option~~ | ~~REMOTE_ACCESS_PLAN~~ | ~~⭐~~ | ✅ **IMPLEMENTED** — `TailscaleHelper.cs` (211 lines): Install path detection, active adapter check via `NetworkInterface`, Tailscale IP resolution. |
 | NEW-018 | BitmapImage → ImageHelper Migration | TODO_PRIORITY (PERF-001) | ⭐⭐ | ~20 files still use manual `new BitmapImage()` instead of `ImageHelper.LoadFromFile()`. Remaining: EnhancedAudioPlayerVM, VideoEditorView, NativeImageEditView, PdfToolsVM, etc. |
 | NEW-019 | INotifyPropertyChanged → BindableBase | TODO_PRIORITY (CONS-001) | ⭐⭐ | ~12 model classes still implement INPC manually. `BindableModel` base class exists but not yet adopted. |
 | NEW-020 | Nullable Enable + Fix Warnings | TODO_PRIORITY (QUAL-002) | ⭐⭐⭐ | `<Nullable>enable</Nullable>` not enabled. ~37 build warnings remain. |
@@ -92,13 +92,13 @@ These are net-new ideas that don't appear in any existing planning documents.
 
 | # | Feature | Effort | Description |
 |---|---------|--------|-------------|
-| IDEA-001 | **Drag-and-Drop Between Tabs** | ⭐⭐ | Drag a file from File Cleaner → Secure Wipe, or Duplicates → Metadata Editor. Cross-tab DnD workflow. |
+| ~~IDEA-001~~ | ~~**Drag-and-Drop Between Tabs**~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `CrossTabDragDropService.cs` (186 lines): WPF `DragDrop.DoDragDrop`, custom data format, registered drop targets, event args. |
 | IDEA-002 | **Global Search / Spotlight** | ⭐⭐ | Ctrl+K search across ALL tabs — find files, settings, tools, recent items in one place (extends Command Palette). |
 | IDEA-003 | **System Tray / Mini Mode** | ⭐⭐ | Minimize to system tray with tooltip showing now-playing. Right-click tray menu for play/pause/next. |
-| IDEA-004 | **Export/Share Report** | ⭐⭐ | One-click export of forensics/audit/scan results to PDF or HTML report with charts. |
-| IDEA-005 | **Dashboard / Home Tab** | ⭐⭐⭐ | Live dashboard showing: disk usage, recent files, music now-playing, remote server status, quick actions. |
+| ~~IDEA-004~~ | ~~**Export/Share Report**~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `ReportExportService.cs` (195 lines): SaveFileDialog, HTML/CSV/TXT generation, toast notification on completion. |
+| ~~IDEA-005~~ | ~~**Dashboard / Home Tab**~~ | ~~⭐⭐⭐~~ | ✅ **IMPLEMENTED** — `DashboardView.xaml` (190 lines) + `DashboardViewModel.cs` (273 lines): Greeting, quick actions, disk usage, recent files, server status. Wired into MainWindow.xaml. |
 | IDEA-006 | **Undo Anywhere** | ⭐⭐ | Global undo for destructive operations (file moves, renames, wipes). UndoRedoService exists — wire to more tools. |
-| IDEA-007 | **Batch Job Queue** | ⭐⭐⭐ | Unified job queue UI: video conversions, image upscales, file copies all in one panel with priority ordering. |
+| ~~IDEA-007~~ | ~~**Batch Job Queue**~~ | ~~⭐⭐⭐~~ | ✅ **IMPLEMENTED** — `BatchJobQueueService.cs` (375 lines) + View/ViewModel: Semaphore-based queue, concurrent execution, pause/resume, observable collection. Wired into MainWindow.xaml. |
 
 ### 🟡 MEDIUM VALUE — Quality & Polish
 
@@ -107,24 +107,38 @@ These are net-new ideas that don't appear in any existing planning documents.
 | IDEA-008 | **Notification Center** | ⭐⭐ | Toast notifications for completed operations (conversion done, scan complete). ToastNotificationService exists — add persistent notification center panel. |
 | IDEA-009 | **Session Restore** | ⭐ | Remember which tabs were open and their state across app restarts (partially exists for tab visibility). |
 | IDEA-010 | **Keyboard Navigation Audit** | ⭐⭐ | Full Tab-order audit, visible focus indicators, consistent Enter/Escape behavior across all views. |
-| IDEA-011 | **Context Menu Standardization** | ⭐⭐ | Ensure every DataGrid has a context menu with: Copy, Open, Open Folder, Properties. Many already do, some don't. |
-| IDEA-012 | **Performance Monitor** | ⭐ | Small FPS/CPU/Memory widget in status bar. Useful for visualizer performance tuning and memory leak detection. |
+| ~~IDEA-011~~ | ~~**Context Menu Standardization**~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `StandardContextMenuService.cs` (170 lines): Builds ContextMenu with Copy Path, Copy File Name, Open File, Open Folder. Services need wiring to remaining DataGrids. |
+| ~~IDEA-012~~ | ~~**Performance Monitor**~~ | ~~⭐~~ | ✅ **IMPLEMENTED** — `PerformanceMonitorService.cs` (167 lines): DispatcherTimer-based CPU/memory/FPS sampling. Needs wiring to status bar widget. |
 | IDEA-013 | **Update Changelog Viewer** | ⭐ | When update is available, show the changelog diff (what's new) before downloading. |
 
 ### 🟢 LOW VALUE / EXPERIMENTAL
 
 | # | Feature | Effort | Description |
 |---|---------|--------|-------------|
-| IDEA-014 | **AI Image Description** | ⭐⭐⭐ | Use local ONNX model to auto-describe images for accessibility alt-text and metadata tagging. |
-| IDEA-015 | **Music Mood Detection** | ⭐⭐⭐ | ML-based mood tagging (happy, sad, energetic) for smart playlist generation. |
-| IDEA-016 | **Multi-Window Support** | ⭐⭐⭐ | Detach tabs into separate windows for multi-monitor setups. |
+| ~~IDEA-014~~ | ~~**AI Image Description**~~ | ~~⭐⭐⭐~~ | ✅ **IMPLEMENTED** — `ImageDescriptionService.cs` (333 lines): EXIF metadata extraction, file-characteristic analysis, alt-text generation, batch support. Not ONNX — uses heuristic approach. |
+| ~~IDEA-015~~ | ~~**Music Mood Detection**~~ | ~~⭐⭐⭐~~ | ✅ **IMPLEMENTED** — `MusicMoodService.cs` (284 lines): FFT spectrum band-energy analysis (bass/mid/treble), heuristic mood classification across 10 categories. |
+| ~~IDEA-016~~ | ~~**Multi-Window Support**~~ | ~~⭐⭐⭐~~ | ✅ **IMPLEMENTED** — `DetachableTabService.cs` (188 lines): Creates `FloatingTabWindow`, tracks detached windows, supports re-dock with events. |
 | IDEA-017 | **Portable Mode** | ⭐ | Detect if running from USB/portable drive and store settings alongside exe instead of AppData. |
-| IDEA-018 | **Serilog Structured Logging** | ⭐⭐ | Replace current logging with Serilog for structured JSON logs, log levels, and log rotation. |
+| ~~IDEA-018~~ | ~~**Serilog Structured Logging**~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `StructuredLogger.cs` (267 lines): ConcurrentQueue pipeline, JSON output, file rotation by size, multiple sinks, log levels. Custom implementation (not Serilog NuGet). |
 | IDEA-019 | **Health Check API** | ⭐ | `/api/health` endpoint on the remote server for monitoring (uptime, version, disk space). |
 
 ---
 
-## Recently Completed (v3.4.1)
+## Recently Completed (v3.4.1+)
+
+### v3.4.1.5 — CVE Search + Visualizer Lifecycle (February 14, 2026)
+- [x] **🔍 CVE Search** — New Security tab for searching CVE vulnerability database ✅
+  - Direct CVE ID lookup via MITRE CVE AWG API
+  - Keyword search via NVD API v2.0 (up to 50 results)
+  - Color-coded CVSS severity badges (Critical/High/Medium/Low)
+  - Detail panel with description, CVSS vector, affected products, clickable references
+  - Export results to CSV, JSON, or plain text
+- [x] **Visualizer Stop/Start Lifecycle** — Full mode switch lifecycle (stop old → start fresh) ✅
+- [x] **Matrix Visualizer Fix** — DisposeGpuResources no longer called on mode switch ✅
+- [x] **Honmoon Fullscreen Sync** — Fixed double-sensitivity application ✅
+- [x] **Fullscreen V-Key Toggle** — Properly stops/starts rendering ✅
+- [x] **Lyrics Overlay** — Always created, dynamically shown when enabled ✅
+- [x] **Help Documentation** — Added CVE Search section to in-app help ✅
 
 ### v3.4.1.4 — Stream Mode + Help Documentation
 - [x] **Stream Mode Fixes** — Fixed pause/play reliability, mode-aware controls ✅

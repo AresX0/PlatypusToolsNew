@@ -362,6 +362,17 @@ namespace PlatypusTools.UI.Services
         }
 
         /// <summary>
+        /// Whether the navigation tab bars are auto-hidden.
+        /// When enabled, all tab strips collapse and show a thin reveal bar on hover.
+        /// </summary>
+        private bool _autoHideNavigation;
+        public bool AutoHideNavigation
+        {
+            get => _autoHideNavigation;
+            set { _autoHideNavigation = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
         /// Whether to restore the last session's tab selection and window position on startup.
         /// </summary>
         public bool RestoreLastSession

@@ -55,6 +55,9 @@ namespace PlatypusTools.UI
                 // Restore session state (IDEA-009)
                 RestoreSessionState();
                 
+                // Restore auto-hide tab bar state
+                RestoreAutoHideState();
+                
                 // Show dependency setup on first run or if dependencies are missing and user hasn't opted out
                 await CheckAndShowDependencySetupAsync();
             };
@@ -453,6 +456,12 @@ namespace PlatypusTools.UI
                 Services.CommandService.Instance.ShowCommandPalette(this);
                 e.Handled = true;
             }
+            // Ctrl+H - Toggle auto-hide navigation tabs
+            else if (e.Key == System.Windows.Input.Key.H && ctrlOnly)
+            {
+                ToggleAutoHideNavigation();
+                e.Handled = true;
+            }
             else if (e.Key == System.Windows.Input.Key.F11)
             {
                 ToggleFullScreen();
@@ -565,6 +574,158 @@ namespace PlatypusTools.UI
         {
             ToggleFullScreen();
         }
+
+        #region Auto-Hide Navigation
+
+        private bool _isNavigationHidden = false;
+
+        /// <summary>
+        /// Toggles auto-hide mode for all navigation tab strips.
+        /// When hidden, a thin reveal bar appears at the top that shows tabs on hover.
+        /// </summary>
+        public void ToggleAutoHideNavigation()
+        {
+            _isNavigationHidden = !_isNavigationHidden;
+            ApplyAutoHideNavigation(_isNavigationHidden);
+
+            // Save to settings
+            var settings = SettingsManager.Current;
+            settings.AutoHideNavigation = _isNavigationHidden;
+            SettingsManager.Save(settings);
+
+            StatusBarViewModel.Instance.StatusMessage = _isNavigationHidden
+                ? "Navigation hidden - hover top edge or press Ctrl+H to show"
+                : "Navigation visible";
+        }
+
+        /// <summary>
+        /// Applies or removes auto-hide on all TabPanels in the visual tree.
+        /// </summary>
+        private void ApplyAutoHideNavigation(bool hide)
+        {
+            _isNavigationHidden = hide;
+
+            // Toggle visibility of the tab strip (TabPanel) in MainTabControl
+            // and the header bar, making more room for content
+            if (TabRevealBar != null)
+                TabRevealBar.Visibility = hide ? Visibility.Visible : Visibility.Collapsed;
+
+            if (HeaderBorder != null)
+                HeaderBorder.Visibility = hide ? Visibility.Collapsed : Visibility.Visible;
+
+            // Walk visual tree and collapse all TabPanels
+            SetAllTabPanelsVisibility(MainTabControl, hide ? Visibility.Collapsed : Visibility.Visible);
+        }
+
+        /// <summary>
+        /// Recursively sets visibility on all TabPanel elements within a parent.
+        /// </summary>
+        private void SetAllTabPanelsVisibility(DependencyObject? parent, Visibility visibility)
+        {
+            if (parent == null) return;
+
+            int childCount = System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < childCount; i++)
+            {
+                var child = System.Windows.Media.VisualTreeHelper.GetChild(parent, i);
+                if (child is System.Windows.Controls.Primitives.TabPanel tabPanel)
+                {
+                    tabPanel.Visibility = visibility;
+                }
+                SetAllTabPanelsVisibility(child, visibility);
+            }
+        }
+
+        /// <summary>
+        /// Temporarily reveals navigation tabs when hovering the reveal bar.
+        /// </summary>
+        private void TabRevealBar_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (_isNavigationHidden)
+            {
+                // Temporarily show tab panels and header
+                if (HeaderBorder != null)
+                    HeaderBorder.Visibility = Visibility.Visible;
+                SetAllTabPanelsVisibility(MainTabControl, Visibility.Visible);
+            }
+        }
+
+        /// <summary>
+        /// Re-hides navigation when mouse leaves the navigation area.
+        /// Uses delayed hide to prevent flickering.
+        /// </summary>
+        private System.Windows.Threading.DispatcherTimer? _autoHideTimer;
+        
+        private void NavigationArea_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (!_isNavigationHidden) return;
+
+            // Delay the hide to prevent flickering when moving between elements
+            _autoHideTimer?.Stop();
+            _autoHideTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(400)
+            };
+            _autoHideTimer.Tick += (s, args) =>
+            {
+                _autoHideTimer?.Stop();
+                if (_isNavigationHidden && !IsMouseOverNavigationArea())
+                {
+                    if (HeaderBorder != null)
+                        HeaderBorder.Visibility = Visibility.Collapsed;
+                    SetAllTabPanelsVisibility(MainTabControl, Visibility.Collapsed);
+                }
+            };
+            _autoHideTimer.Start();
+        }
+
+        private void NavigationArea_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            // Cancel pending hide when mouse re-enters navigation
+            _autoHideTimer?.Stop();
+        }
+
+        /// <summary>
+        /// Checks if the mouse is currently over the navigation area (reveal bar, header, or tab panels).
+        /// </summary>
+        private bool IsMouseOverNavigationArea()
+        {
+            if (TabRevealBar?.IsMouseOver == true) return true;
+            if (HeaderBorder?.IsMouseOver == true) return true;
+            if (MainTabControl?.IsMouseOver == true)
+            {
+                // Check if mouse is in the top portion (tab strip area)
+                var pos = System.Windows.Input.Mouse.GetPosition(MainTabControl);
+                if (pos.Y < 40) return true; // Tab strip is roughly 30-40px tall
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Restores auto-hide state from settings on load.
+        /// </summary>
+        private void RestoreAutoHideState()
+        {
+            var settings = SettingsManager.Current;
+            if (settings.AutoHideNavigation)
+            {
+                // Delay to ensure visual tree is loaded
+                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () =>
+                {
+                    ApplyAutoHideNavigation(true);
+                });
+            }
+        }
+
+        /// <summary>
+        /// Menu/button click handler for auto-hide navigation toggle.
+        /// </summary>
+        private void ToggleAutoHideNavigation_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleAutoHideNavigation();
+        }
+
+        #endregion
 
         private void RefreshRecentWorkspacesMenu()
         {
