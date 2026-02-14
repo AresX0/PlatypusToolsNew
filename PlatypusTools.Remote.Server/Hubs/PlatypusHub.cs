@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using PlatypusTools.Core.Models.Remote;
 using PlatypusTools.Remote.Server.Models;
 using PlatypusTools.Remote.Server.Services;
 
@@ -180,6 +181,38 @@ public class PlatypusHub : Hub
     public async Task AddToQueue(string path)
     {
         await _audioService.AddToQueueAsync(path);
+        await BroadcastQueue();
+    }
+
+    /// <summary>
+    /// Get library folders (music library roots)
+    /// </summary>
+    public async Task<IReadOnlyList<LibraryFolderDto>> GetLibraryFolders()
+    {
+        return await _audioService.GetLibraryFoldersAsync();
+    }
+
+    /// <summary>
+    /// Get files and subfolders in a library path
+    /// </summary>
+    public async Task<IReadOnlyList<LibraryFileDto>> GetLibraryFiles(string path)
+    {
+        return await _audioService.GetLibraryFilesAsync(path);
+    }
+
+    /// <summary>
+    /// Add file to queue and play it immediately
+    /// </summary>
+    public async Task PlayFile(string path)
+    {
+        await _audioService.AddToQueueAsync(path);
+        var queue = await _audioService.GetQueueAsync();
+        // Play the last item (the one we just added)
+        if (queue.Count > 0)
+        {
+            await _audioService.PlayQueueItemAsync(queue.Count - 1);
+        }
+        await BroadcastNowPlaying();
         await BroadcastQueue();
     }
 

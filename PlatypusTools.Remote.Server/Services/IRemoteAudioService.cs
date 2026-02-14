@@ -1,4 +1,4 @@
-using PlatypusTools.Remote.Server.Models;
+using PlatypusTools.Core.Models.Remote;
 
 namespace PlatypusTools.Remote.Server.Services;
 
@@ -31,4 +31,7 @@ public interface IRemoteAudioService
     // Library browsing
     Task<IReadOnlyList<LibraryFolderDto>> GetLibraryFoldersAsync();
     Task<IReadOnlyList<LibraryFileDto>> GetLibraryFilesAsync(string path);
+    
+    // Direct file play
+    Task PlayFileAsync(string path);
 }

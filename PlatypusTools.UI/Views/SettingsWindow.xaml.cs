@@ -1758,10 +1758,17 @@ namespace PlatypusTools.UI.Views
             _tunnelService.TunnelStateChanged += OnTunnelStateChanged;
             _tunnelService.TunnelUrlGenerated += OnTunnelUrlGenerated;
             _tunnelService.LogMessage += OnTunnelLogMessage;
+            _tunnelService.DiagnosticsUpdated += OnTunnelDiagnosticsUpdated;
 
             // Load settings
             LoadCloudflareSettings();
             UpdateCloudflareStatus();
+            UpdateTunnelDiagnosticsDisplay();
+        }
+        
+        private void OnTunnelDiagnosticsUpdated(object? sender, TunnelDiagnostics diag)
+        {
+            Dispatcher.Invoke(() => UpdateTunnelDiagnosticsDisplay());
         }
 
         private void LoadCloudflareSettings()
@@ -1824,6 +1831,9 @@ namespace PlatypusTools.UI.Views
         {
             var isInstalled = CloudflareTunnelService.Instance.IsInstalled;
             var isRunning = CloudflareTunnelService.Instance.IsRunning;
+            
+            // Update Windows Service status
+            UpdateWindowsServiceStatus();
 
             if (CloudflareTunnelStatusText != null)
             {
@@ -1852,6 +1862,166 @@ namespace PlatypusTools.UI.Views
                 InstallCloudflaredBtn.Content = isInstalled ? "✓ cloudflared Installed" : "📥 Install cloudflared";
             if (TunnelUrlPanel != null && !isRunning)
                 TunnelUrlPanel.Visibility = Visibility.Collapsed;
+        }
+        
+        private void UpdateWindowsServiceStatus()
+        {
+            var service = CloudflareTunnelService.Instance;
+            var tunnelStatus = service.PersistentTunnelStatus;
+            var isRunning = service.IsPersistentTunnelRunning;
+            var isAutoStart = service.IsAutoStartEnabled;
+            
+            if (WindowsServiceStatusText != null)
+            {
+                WindowsServiceStatusText.Text = tunnelStatus;
+                WindowsServiceStatusText.Foreground = tunnelStatus switch
+                {
+                    var s when s.StartsWith("Running") => new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50)),
+                    var s when s.Contains("Stopped") => new SolidColorBrush(Color.FromRgb(0xF4, 0x43, 0x36)),
+                    "Not Configured" => new SolidColorBrush(Colors.Orange),
+                    _ => new SolidColorBrush(Colors.Gray)
+                };
+            }
+            
+            if (StartServiceBtn != null)
+                StartServiceBtn.IsEnabled = !isRunning && service.IsInstalled;
+            if (StopServiceBtn != null)
+                StopServiceBtn.IsEnabled = isRunning;
+            if (InstallServiceBtn != null)
+                InstallServiceBtn.IsEnabled = !isAutoStart && service.IsInstalled;
+            if (UninstallServiceBtn != null)
+                UninstallServiceBtn.IsEnabled = isAutoStart || isRunning;
+        }
+        
+        private async void StartWindowsService_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (StartServiceBtn != null)
+                {
+                    StartServiceBtn.IsEnabled = false;
+                    StartServiceBtn.Content = "Starting...";
+                }
+                
+                var success = await CloudflareTunnelService.Instance.StartWindowsServiceAsync();
+                if (!success)
+                {
+                    MessageBox.Show("Failed to start the tunnel. Check the Cloudflare logs for details.", 
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error starting service: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                if (StartServiceBtn != null)
+                    StartServiceBtn.Content = "▶ Start Tunnel";
+                UpdateCloudflareStatus();
+            }
+        }
+        
+        private async void StopWindowsService_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (StopServiceBtn != null)
+                {
+                    StopServiceBtn.IsEnabled = false;
+                    StopServiceBtn.Content = "Stopping...";
+                }
+                
+                var success = await CloudflareTunnelService.Instance.StopWindowsServiceAsync();
+                if (!success)
+                {
+                    MessageBox.Show("Failed to stop the tunnel.", 
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error stopping service: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                if (StopServiceBtn != null)
+                    StopServiceBtn.Content = "⬛ Stop Tunnel";
+                UpdateCloudflareStatus();
+            }
+        }
+        
+        private async void InstallWindowsService_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (InstallServiceBtn != null)
+                {
+                    InstallServiceBtn.IsEnabled = false;
+                    InstallServiceBtn.Content = "Installing...";
+                }
+                
+                var success = await CloudflareTunnelService.Instance.InstallWindowsServiceAsync();
+                if (success)
+                {
+                    MessageBox.Show("Tunnel auto-start configured! The tunnel will start on login and is running now.", 
+                        "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Failed to set up tunnel auto-start. Make sure cloudflared is installed and a tunnel is configured.", 
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error installing service: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                if (InstallServiceBtn != null)
+                    InstallServiceBtn.Content = "📥 Enable Auto-Start";
+                UpdateCloudflareStatus();
+            }
+        }
+        
+        private async void UninstallWindowsService_Click(object sender, RoutedEventArgs e)
+        {
+            var result = MessageBox.Show("Remove tunnel auto-start?\n\nThe tunnel will be stopped and will no longer start on login.", 
+                "Confirm Remove", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                
+            if (result != MessageBoxResult.Yes) return;
+            
+            try
+            {
+                if (UninstallServiceBtn != null)
+                {
+                    UninstallServiceBtn.IsEnabled = false;
+                    UninstallServiceBtn.Content = "Uninstalling...";
+                }
+                
+                var success = await CloudflareTunnelService.Instance.UninstallWindowsServiceAsync();
+                if (success)
+                {
+                    MessageBox.Show("Tunnel auto-start removed and tunnel stopped.", 
+                        "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Failed to remove tunnel auto-start.", 
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error uninstalling service: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                if (UninstallServiceBtn != null)
+                    UninstallServiceBtn.Content = "🗑 Remove Auto-Start";
+                UpdateCloudflareStatus();
+            }
         }
 
         private async void InstallCloudflared_Click(object sender, RoutedEventArgs e)
@@ -1961,6 +2131,91 @@ namespace PlatypusTools.UI.Views
             {
                 MessageBox.Show($"Failed to copy: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+        
+        private void RefreshTunnelDiagnostics_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                _ = CloudflareTunnelService.Instance.CheckHealthAsync();
+                UpdateTunnelDiagnosticsDisplay();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to refresh diagnostics: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        
+        private void KillAllTunnelProcesses_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var count = CloudflareTunnelService.Instance.GetRunningProcessCount();
+                if (count > 0)
+                {
+                    var result = MessageBox.Show($"Kill all {count} cloudflared process(es)?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        CloudflareTunnelService.Instance.KillAllCloudflaredProcesses();
+                        UpdateTunnelDiagnosticsDisplay();
+                        UpdateCloudflareStatus();
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("No cloudflared processes are running.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to kill processes: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        
+        private async void RestartTunnel_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is Button btn)
+                {
+                    btn.IsEnabled = false;
+                    btn.Content = "Restarting...";
+                }
+                
+                await CloudflareTunnelService.Instance.RestartTunnelAsync();
+                UpdateTunnelDiagnosticsDisplay();
+                UpdateCloudflareStatus();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to restart tunnel: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                if (sender is Button btn)
+                {
+                    btn.IsEnabled = true;
+                    btn.Content = "🔁 Restart Tunnel";
+                }
+            }
+        }
+        
+        private void UpdateTunnelDiagnosticsDisplay()
+        {
+            var diag = CloudflareTunnelService.Instance.Diagnostics;
+            
+            if (TunnelDiagProcessText != null)
+                TunnelDiagProcessText.Text = diag.ProcessRunning ? "Yes" : "No";
+            if (TunnelDiagConnectionsText != null)
+                TunnelDiagConnectionsText.Text = diag.ActiveConnections.ToString();
+            if (TunnelDiagEdgeText != null)
+                TunnelDiagEdgeText.Text = diag.EdgeLocation ?? "-";
+            if (TunnelDiagHealthCheckText != null)
+                TunnelDiagHealthCheckText.Text = diag.LastHealthCheck?.ToString("HH:mm:ss") ?? "-";
+            if (TunnelDiagLastLogText != null)
+                TunnelDiagLastLogText.Text = diag.LastLogMessage ?? "-";
+            if (TunnelDiagProcessCountText != null)
+                TunnelDiagProcessCountText.Text = CloudflareTunnelService.Instance.GetRunningProcessCount().ToString();
         }
 
         #endregion

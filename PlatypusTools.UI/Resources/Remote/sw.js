@@ -1,5 +1,5 @@
 // Platypus Remote Service Worker
-const CACHE_NAME = 'platypus-remote-v1';
+const CACHE_NAME = 'platypus-remote-v3';
 const urlsToCache = [
     '/',
     '/index.html',
@@ -8,6 +8,8 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', (event) => {
+    // Skip waiting to activate immediately
+    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => cache.addAll(urlsToCache))
@@ -27,17 +29,20 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // Network-first strategy: try network, fall back to cache
     event.respondWith(
-        caches.match(event.request)
+        fetch(event.request)
             .then((response) => {
-                // Return cached response or fetch from network
-                return response || fetch(event.request);
+                // Clone and cache the response
+                const responseClone = response.clone();
+                caches.open(CACHE_NAME).then((cache) => {
+                    cache.put(event.request, responseClone);
+                });
+                return response;
             })
             .catch(() => {
-                // If both fail, return a generic offline page
-                if (event.request.mode === 'navigate') {
-                    return caches.match('/');
-                }
+                // Network failed, try cache
+                return caches.match(event.request);
             })
     );
 });

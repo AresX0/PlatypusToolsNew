@@ -98,6 +98,7 @@ public class PlatypusRemoteServer : IDisposable
                     {
                         app.UseRouting();
                         app.UseCors();
+                        app.UseWebSockets();
 
                         // Security headers
                         app.Use(async (context, next) =>
@@ -319,6 +320,16 @@ public class PlatypusRemoteServer : IDisposable
 
             await _host.StartAsync(_cts.Token);
             _isRunning = true;
+
+            // Wire up IHubContext to AudioServiceBridge for background broadcasting
+            // IHubContext<PlatypusHub> is a singleton that's always valid (unlike transient Hub instances)
+            var bridge = _host.Services.GetRequiredService<IAudioServiceBridge>();
+            if (bridge is AudioServiceBridge audioBridge)
+            {
+                var hubContext = _host.Services.GetRequiredService<IHubContext<PlatypusHub>>();
+                audioBridge.SetHubContext(hubContext);
+            }
+
             Log($"Platypus Remote Server started at {ServerUrl}");
             ServerStateChanged?.Invoke(this, true);
         }

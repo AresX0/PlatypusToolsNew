@@ -1,0 +1,287 @@
+@page "/library"
+@using PlatypusTools.Remote.Client.Services
+@inject PlayerStateService PlayerState
+@implements IDisposable
+
+<PageTitle>Library - Platypus Remote</PageTitle>
+
+<div class="library-container">
+    <div class="library-header">
+        <h2>Library @(PlayerState.Mode == PlayerMode.RemoteStream ? "(Stream)" : "(PC)")</h2>
+        @if (_currentPath != null)
+        {
+            <button class="btn btn-secondary" @onclick="GoBack">
+                ◀ Back
+            </button>
+        }
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="library-loading">
+            <p>Loading...</p>
+        </div>
+    }
+    else if (!PlayerState.IsConnected)
+    {
+        <div class="library-empty">
+            <p>Not connected to server</p>
+        </div>
+    }
+    else if (_currentPath == null)
+    {
+        <!-- Show library folders (roots) -->
+        <div class="library-list">
+            @if (_folders.Count == 0)
+            {
+                <div class="library-empty">
+                    <p>No music folders configured</p>
+                    <p style="font-size: 0.8em; color: #888;">Add folders in PlatypusTools Audio Player settings</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var folder in _folders)
+                {
+                    <div class="library-item folder" @onclick="() => OpenFolder(folder.Path)">
+                        <div class="library-item-icon">📁</div>
+                        <div class="library-item-info">
+                            <div class="library-item-name">@folder.Name</div>
+                            <div class="library-item-meta">@folder.FileCount files</div>
+                        </div>
+                        <div class="library-item-action">▶</div>
+                    </div>
+                }
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Show files in current folder -->
+        <div class="library-breadcrumb">
+            <span @onclick="GoToRoot">Library</span>
+            @foreach (var part in GetPathParts())
+            {
+                <span> / </span>
+                <span @onclick="() => NavigateTo(part.Path)">@part.Name</span>
+            }
+        </div>
+        
+        <div class="library-list">
+            @if (_files.Count == 0)
+            {
+                <div class="library-empty">
+                    <p>Empty folder</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var file in _files)
+                {
+                    <div class="library-item @(file.IsDirectory ? "folder" : "file")" 
+                         @onclick="() => HandleItemClick(file)">
+                        <div class="library-item-icon">
+                            @if (file.IsDirectory)
+                            {
+                                <span>📁</span>
+                            }
+                            else
+                            {
+                                <span>🎵</span>
+                            }
+                        </div>
+                        <div class="library-item-info">
+                            <div class="library-item-name">@file.Name</div>
+                            @if (!file.IsDirectory)
+                            {
+                                <div class="library-item-meta">@FormatSize(file.Size)</div>
+                            }
+                        </div>
+                        <div class="library-item-actions">
+                            @if (!file.IsDirectory)
+                            {
+                                <button class="btn-action" @onclick:stopPropagation="true" @onclick="() => AddToQueue(file.Path)" title="Add to queue">
+                                    ➕
+                                </button>
+                                <button class="btn-action play" @onclick:stopPropagation="true" @onclick="() => PlayFile(file.Path)" title="Play now">
+                                    ▶
+                                </button>
+                            }
+                            else
+                            {
+                                <span>▶</span>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+
+    <div class="now-playing-mini" @onclick="GoToNowPlaying">
+        <div class="mini-info">
+            <span class="mini-title">@PlayerState.NowPlaying.Title</span>
+            <span class="mini-artist">@PlayerState.NowPlaying.Artist</span>
+        </div>
+        <div class="mini-controls">
+            @if (PlayerState.NowPlaying.IsPlaying)
+            {
+                <button @onclick:stopPropagation="true" @onclick="PauseAsync">⏸️</button>
+            }
+            else
+            {
+                <button @onclick:stopPropagation="true" @onclick="PlayAsync">▶️</button>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
+
+    private List<LibraryFolderDto> _folders = new();
+    private List<LibraryFileDto> _files = new();
+    private string? _currentPath;
+    private Stack<string> _pathHistory = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        PlayerState.OnStateChanged += StateHasChanged;
+        await LoadRootFolders();
+    }
+
+    private async Task LoadRootFolders()
+    {
+        _isLoading = true;
+        StateHasChanged();
+        
+        try
+        {
+            _folders = await PlayerState.GetLibraryFoldersAsync();
+            _currentPath = null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading folders: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OpenFolder(string path)
+    {
+        _isLoading = true;
+        StateHasChanged();
+        
+        try
+        {
+            if (_currentPath != null)
+            {
+                _pathHistory.Push(_currentPath);
+            }
+            _currentPath = path;
+            _files = await PlayerState.GetLibraryFilesAsync(path);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading files: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleItemClick(LibraryFileDto file)
+    {
+        if (file.IsDirectory)
+        {
+            await OpenFolder(file.Path);
+        }
+        else
+        {
+            await PlayFile(file.Path);
+        }
+    }
+
+    private async Task GoBack()
+    {
+        if (_pathHistory.Count > 0)
+        {
+            var previousPath = _pathHistory.Pop();
+            _currentPath = previousPath;
+            _files = await PlayerState.GetLibraryFilesAsync(previousPath);
+            StateHasChanged();
+        }
+        else
+        {
+            await GoToRoot();
+        }
+    }
+
+    private async Task GoToRoot()
+    {
+        _pathHistory.Clear();
+        await LoadRootFolders();
+    }
+
+    private async Task NavigateTo(string path)
+    {
+        _pathHistory.Clear();
+        await OpenFolder(path);
+    }
+
+    private async Task PlayFile(string path)
+    {
+        await PlayerState.PlayFileAsync(path);
+    }
+
+    private async Task AddToQueue(string path)
+    {
+        await PlayerState.AddToQueueAsync(path);
+    }
+
+    private List<(string Name, string Path)> GetPathParts()
+    {
+        if (_currentPath == null) return new();
+        
+        var parts = new List<(string Name, string Path)>();
+        var fullPath = _currentPath;
+        var segments = fullPath.Split(new[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries);
+        
+        var currentBuild = "";
+        foreach (var segment in segments)
+        {
+            if (string.IsNullOrEmpty(currentBuild))
+                currentBuild = segment.Contains(":") ? segment + "\\" : segment;
+            else
+                currentBuild = System.IO.Path.Combine(currentBuild, segment);
+            
+            parts.Add((segment, currentBuild));
+        }
+        
+        return parts;
+    }
+
+    private string FormatSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / (1024.0 * 1024.0):F1} MB";
+    }
+
+    private void GoToNowPlaying() => Navigation.NavigateTo("/");
+    private async Task PlayAsync() => await PlayerState.PlayAsync();
+    private async Task PauseAsync() => await PlayerState.PauseAsync();
+
+    public void Dispose()
+    {
+        PlayerState.OnStateChanged -= StateHasChanged;
+    }
+}

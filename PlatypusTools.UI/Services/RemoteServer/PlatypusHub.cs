@@ -6,6 +6,8 @@ namespace PlatypusTools.UI.Services.RemoteServer;
 
 /// <summary>
 /// SignalR hub for real-time audio control from remote clients.
+/// Hubs are TRANSIENT — do NOT subscribe to events in the constructor.
+/// Background broadcasting is handled by AudioServiceBridge via IHubContext.
 /// </summary>
 public class PlatypusHub : Hub
 {
@@ -14,10 +16,6 @@ public class PlatypusHub : Hub
     public PlatypusHub(IAudioServiceBridge audioService)
     {
         _audioService = audioService;
-
-        // Subscribe to service events to broadcast to clients
-        _audioService.PlaybackStateChanged += async (s, e) => await BroadcastNowPlaying();
-        _audioService.PositionChanged += async (s, e) => await BroadcastPosition(e.TotalSeconds);
     }
 
     public override async Task OnConnectedAsync()

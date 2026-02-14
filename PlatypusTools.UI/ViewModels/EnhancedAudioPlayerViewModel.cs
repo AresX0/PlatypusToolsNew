@@ -38,6 +38,10 @@ namespace PlatypusTools.UI.ViewModels;
 /// </summary>
 public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
 {
+    // Static instance for remote access to library
+    private static EnhancedAudioPlayerViewModel? _instance;
+    public static EnhancedAudioPlayerViewModel? Instance => _instance;
+    
     private readonly EnhancedAudioPlayerService _playerService;
     private readonly LibraryIndexService _libraryIndexService;
     private readonly UserLibraryService _userLibraryService;
@@ -1408,6 +1412,11 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     public int LibraryArtistCount => _allLibraryTracks.Select(t => t.DisplayArtist).Distinct().Count();
     public int LibraryAlbumCount => _allLibraryTracks.Select(t => t.DisplayAlbum).Distinct().Count();
     
+    /// <summary>
+    /// Gets all library tracks for remote access.
+    /// </summary>
+    public IReadOnlyList<AudioTrack> AllLibraryTracks => _allLibraryTracks;
+    
     private AudioTrack? _selectedQueueTrack;
     public AudioTrack? SelectedQueueTrack
     {
@@ -1988,6 +1997,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     
     public EnhancedAudioPlayerViewModel()
     {
+        _instance = this;
         _playerService = EnhancedAudioPlayerService.Instance;
         _libraryIndexService = new LibraryIndexService();
         _userLibraryService = new UserLibraryService();

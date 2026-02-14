@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using Microsoft.AspNetCore.SignalR;
 using PlatypusTools.Core.Models.Audio;
 
 namespace PlatypusTools.UI.Services.RemoteServer;
@@ -16,6 +17,7 @@ public class AudioServiceBridge : IAudioServiceBridge
 {
     private readonly EnhancedAudioPlayerService _playerService;
     private readonly PlatypusRemoteServer _server;
+    private IHubContext<PlatypusHub>? _hubContext;
 
     public event EventHandler<NowPlayingDto>? PlaybackStateChanged;
     public event EventHandler<TimeSpan>? PositionChanged;
@@ -32,21 +34,63 @@ public class AudioServiceBridge : IAudioServiceBridge
         _playerService.PositionChanged += OnPositionChanged;
     }
 
+    /// <summary>
+    /// Sets the hub context for broadcasting to connected SignalR clients.
+    /// Must be called after the ASP.NET Core host is built and started.
+    /// </summary>
+    public void SetHubContext(IHubContext<PlatypusHub> hubContext)
+    {
+        _hubContext = hubContext;
+        System.Diagnostics.Debug.WriteLine("[AudioServiceBridge] IHubContext set for broadcasting");
+    }
+
     private void OnTrackChanged(object? sender, AudioTrack? e)
     {
         var nowPlaying = GetNowPlayingSync();
         PlaybackStateChanged?.Invoke(this, nowPlaying);
+        // Broadcast to all connected SignalR clients via IHubContext (always valid, unlike Hub instances)
+        _ = BroadcastNowPlayingViaHubContextAsync(nowPlaying);
     }
 
     private void OnPlaybackStateChanged(object? sender, bool isPlaying)
     {
         var nowPlaying = GetNowPlayingSync();
         PlaybackStateChanged?.Invoke(this, nowPlaying);
+        // Broadcast to all connected SignalR clients via IHubContext
+        _ = BroadcastNowPlayingViaHubContextAsync(nowPlaying);
     }
 
     private void OnPositionChanged(object? sender, TimeSpan position)
     {
         PositionChanged?.Invoke(this, position);
+        // Broadcast position to all connected SignalR clients via IHubContext
+        _ = BroadcastPositionViaHubContextAsync(position.TotalSeconds);
+    }
+
+    private async Task BroadcastNowPlayingViaHubContextAsync(NowPlayingDto nowPlaying)
+    {
+        if (_hubContext == null) return;
+        try
+        {
+            await _hubContext.Clients.All.SendAsync("nowPlaying", nowPlaying);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AudioServiceBridge] Error broadcasting nowPlaying: {ex.Message}");
+        }
+    }
+
+    private async Task BroadcastPositionViaHubContextAsync(double positionSeconds)
+    {
+        if (_hubContext == null) return;
+        try
+        {
+            await _hubContext.Clients.All.SendAsync("position", positionSeconds);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AudioServiceBridge] Error broadcasting position: {ex.Message}");
+        }
     }
 
     public Task<NowPlayingDto> GetNowPlayingAsync()
@@ -205,13 +249,27 @@ public class AudioServiceBridge : IAudioServiceBridge
         });
     }
 
-    public Task<IEnumerable<LibraryItemDto>> GetLibraryAsync()
+    public async Task<IEnumerable<LibraryItemDto>> GetLibraryAsync()
     {
-        return InvokeOnDispatcher(() =>
+        return await InvokeOnDispatcher(() =>
         {
-            // Get recent tracks from the queue as a starting point
-            var queue = _playerService.Queue.ToList();
+            // Get library from ViewModel (already scanned and loaded)
+            var vm = ViewModels.EnhancedAudioPlayerViewModel.Instance;
+            if (vm != null && vm.AllLibraryTracks.Count > 0)
+            {
+                return vm.AllLibraryTracks.Take(1000).Select(track => new LibraryItemDto
+                {
+                    FilePath = track.FilePath ?? string.Empty,
+                    FileName = Path.GetFileName(track.FilePath ?? string.Empty),
+                    Title = track.Title ?? Path.GetFileNameWithoutExtension(track.FilePath ?? "Unknown"),
+                    Artist = track.Artist ?? "Unknown Artist",
+                    Album = track.Album ?? "Unknown Album",
+                    DurationSeconds = track.Duration.TotalSeconds
+                }).AsEnumerable();
+            }
             
+            // Fallback to current queue
+            var queue = _playerService.Queue.ToList();
             return queue.Select(track => new LibraryItemDto
             {
                 FilePath = track.FilePath ?? string.Empty,
@@ -232,23 +290,30 @@ public class AudioServiceBridge : IAudioServiceBridge
                 return Enumerable.Empty<LibraryItemDto>();
 
             var queryLower = query.ToLowerInvariant();
-            var queue = _playerService.Queue.ToList();
             
-            return queue
-                .Where(track => 
-                    (track.Title?.ToLowerInvariant().Contains(queryLower) ?? false) ||
-                    (track.Artist?.ToLowerInvariant().Contains(queryLower) ?? false) ||
-                    (track.Album?.ToLowerInvariant().Contains(queryLower) ?? false) ||
-                    (track.FilePath?.ToLowerInvariant().Contains(queryLower) ?? false))
-                .Select(track => new LibraryItemDto
-                {
-                    FilePath = track.FilePath ?? string.Empty,
-                    FileName = Path.GetFileName(track.FilePath ?? string.Empty),
-                    Title = track.Title ?? Path.GetFileNameWithoutExtension(track.FilePath ?? "Unknown"),
-                    Artist = track.Artist ?? "Unknown Artist",
-                    Album = track.Album ?? "Unknown Album",
-                    DurationSeconds = track.Duration.TotalSeconds
-                }).AsEnumerable();
+            // Search from ViewModel's library
+            var vm = ViewModels.EnhancedAudioPlayerViewModel.Instance;
+            if (vm != null && vm.AllLibraryTracks.Count > 0)
+            {
+                return vm.AllLibraryTracks
+                    .Where(track =>
+                        (track.Title?.Contains(queryLower, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                        (track.Artist?.Contains(queryLower, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                        (track.Album?.Contains(queryLower, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                        (track.FilePath?.Contains(queryLower, StringComparison.OrdinalIgnoreCase) ?? false))
+                    .Take(100)
+                    .Select(track => new LibraryItemDto
+                    {
+                        FilePath = track.FilePath ?? string.Empty,
+                        FileName = Path.GetFileName(track.FilePath ?? string.Empty),
+                        Title = track.Title ?? Path.GetFileNameWithoutExtension(track.FilePath ?? "Unknown"),
+                        Artist = track.Artist ?? "Unknown Artist",
+                        Album = track.Album ?? "Unknown Album",
+                        DurationSeconds = track.Duration.TotalSeconds
+                    }).AsEnumerable();
+            }
+            
+            return Enumerable.Empty<LibraryItemDto>();
         });
     }
 
@@ -256,9 +321,21 @@ public class AudioServiceBridge : IAudioServiceBridge
     {
         return InvokeOnDispatcherAsync(async () =>
         {
-            if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
+            if (string.IsNullOrEmpty(filePath)) return;
+            
+            // Find track in library to get proper metadata
+            var vm = ViewModels.EnhancedAudioPlayerViewModel.Instance;
+            var track = vm?.AllLibraryTracks.FirstOrDefault(t => 
+                string.Equals(t.FilePath, filePath, StringComparison.OrdinalIgnoreCase));
+            
+            if (track == null && File.Exists(filePath))
             {
-                var track = new AudioTrack { FilePath = filePath };
+                // Create new track if not in library
+                track = new AudioTrack { FilePath = filePath };
+            }
+            
+            if (track != null)
+            {
                 await _playerService.PlayTrackAsync(track);
             }
         });
@@ -268,20 +345,33 @@ public class AudioServiceBridge : IAudioServiceBridge
     {
         return InvokeOnDispatcher(() =>
         {
-            if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
+            if (string.IsNullOrEmpty(filePath)) return;
+            
+            // Find track in library to get proper metadata
+            var vm = ViewModels.EnhancedAudioPlayerViewModel.Instance;
+            var track = vm?.AllLibraryTracks.FirstOrDefault(t => 
+                string.Equals(t.FilePath, filePath, StringComparison.OrdinalIgnoreCase));
+            
+            if (track == null && File.Exists(filePath))
             {
-                var track = new AudioTrack { FilePath = filePath };
-                var currentQueue = _playerService.Queue.ToList();
-                currentQueue.Add(track);
-                _playerService.SetQueue(currentQueue);
+                // Create new track if not in library
+                track = new AudioTrack { FilePath = filePath };
+            }
+            
+            if (track != null)
+            {
+                _playerService.AddToQueue(track);
             }
         });
     }
 
     // Helper to invoke on WPF dispatcher
+    // RunContinuationsAsynchronously ensures awaiters resume on thread pool, NOT the dispatcher.
+    // This is critical: without it, SignalR hub continuations would run on the WPF dispatcher
+    // thread, which can cause the WebSocket transport loop to break.
     private Task<T> InvokeOnDispatcher<T>(Func<T> action)
     {
-        var tcs = new TaskCompletionSource<T>();
+        var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
         
         Application.Current?.Dispatcher.BeginInvoke(() =>
         {
@@ -301,7 +391,7 @@ public class AudioServiceBridge : IAudioServiceBridge
 
     private Task InvokeOnDispatcher(Action action)
     {
-        var tcs = new TaskCompletionSource<bool>();
+        var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         
         Application.Current?.Dispatcher.BeginInvoke(() =>
         {
@@ -321,7 +411,7 @@ public class AudioServiceBridge : IAudioServiceBridge
 
     private Task InvokeOnDispatcherAsync(Func<Task> asyncAction)
     {
-        var tcs = new TaskCompletionSource<bool>();
+        var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         
         Application.Current?.Dispatcher.BeginInvoke(async () =>
         {

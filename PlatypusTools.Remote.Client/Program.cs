@@ -30,7 +30,17 @@ builder.Services.AddMsalAuthentication(options =>
 // Add SignalR connection service
 builder.Services.AddScoped<PlatypusHubConnection>();
 
+// Add local audio player for streaming mode
+builder.Services.AddScoped<LocalAudioPlayerService>();
+
 // Add state management
-builder.Services.AddScoped<PlayerStateService>();
+builder.Services.AddScoped<PlayerStateService>(sp =>
+{
+    var hub = sp.GetRequiredService<PlatypusHubConnection>();
+    var localPlayer = sp.GetRequiredService<LocalAudioPlayerService>();
+    var service = new PlayerStateService(hub, localPlayer);
+    service.SetServerBaseUrl(apiBaseAddress);
+    return service;
+});
 
 await builder.Build().RunAsync();

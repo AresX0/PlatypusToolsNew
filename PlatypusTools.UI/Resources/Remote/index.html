@@ -489,6 +489,38 @@
 
         .no-content { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
         .audio-player { display: none; }
+
+        /* Mode Selector */
+        .mode-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 4px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .mode-btn:hover {
+            background: var(--bg-surface);
+        }
+        .mode-btn.active {
+            background: var(--accent);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -509,6 +541,16 @@
         </header>
 
         <div id="errorContainer"></div>
+
+        <!-- Mode Selector -->
+        <div class="mode-selector" id="modeSelector">
+            <button class="mode-btn active" id="controlModeBtn" data-mode="control">
+                🖥️ Control PC
+            </button>
+            <button class="mode-btn" id="streamModeBtn" data-mode="stream">
+                📱 Stream Here
+            </button>
+        </div>
 
         <div id="loadingView" class="loading">
             <div class="spinner"></div>
@@ -549,11 +591,6 @@
                     <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70">
                     <span id="volumeValue">70%</span>
                 </section>
-
-                <div class="stream-toggle" id="streamToggle">
-                    <span class="icon">🎧</span>
-                    <span>Stream audio to this device</span>
-                </div>
             </div>
 
             <!-- Library Tab -->
@@ -603,8 +640,8 @@
         </button>
     </nav>
 
-    <!-- Hidden Audio Element for Streaming -->
-    <audio id="streamAudio" class="audio-player"></audio>
+    <!-- Audio Element for Streaming - must have these attrs for mobile -->
+    <audio id="streamAudio" preload="auto" playsinline webkit-playsinline></audio>
 
     <script src="/app.js"></script>
 </body>

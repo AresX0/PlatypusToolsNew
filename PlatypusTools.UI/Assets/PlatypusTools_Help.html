@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlatypusTools v3.3.4.2.2.1.7.7.6.5.4.3.2.1.10.9.6.6.5.4.3 - Help Documentation</title>
+    <title>PlatypusTools v3.4.1.4.4 - Help Documentation</title>
     <style>
         :root {
             --primary: #2d5aa8;
@@ -148,7 +148,7 @@
 <header>
     <h1>🦆 PlatypusTools</h1>
     <p>Advanced File Management &amp; Media Tools Suite</p>
-    <div class="version">Version 3.3.4.2.2.1.7.7.6.5.4.3.2.1.10.9.6.6.5.4.3 | Built with .NET 10 / WPF</div>
+    <div class="version">Version 3.4.1.4.4 | Built with .NET 10 / WPF</div>
 </header>
 
 <div class="container">
@@ -159,11 +159,14 @@
         <li><a href="#file-management">File Management</a></li>
         <li><a href="#robocopy">Robocopy</a></li>
         <li><a href="#multimedia">Multimedia</a></li>
+        <li><a href="#remote">Remote &amp; Streaming</a></li>
         <li><a href="#system">System</a></li>
         <li><a href="#security">Security</a></li>
         <li><a href="#forensics">Advanced Forensics</a></li>
         <li><a href="#metadata">Metadata</a></li>
         <li><a href="#tools">Tools</a></li>
+        <li><a href="#terminal">Terminal &amp; Remote</a></li>
+        <li><a href="#themes">Themes &amp; Plugins</a></li>
         <li><a href="#keyboard">Keyboard Shortcuts</a></li>
         <li><a href="#troubleshooting">Troubleshooting</a></li>
     </ul>
@@ -173,8 +176,20 @@
     <h2>Overview</h2>
     <p>PlatypusTools is a powerful, all-in-one Windows system utility that combines file management, multimedia editing, system cleanup, security tools, digital forensics, and metadata editing into a single, modern WPF application.</p>
     
-    <h3>What's New in v3.3.4.2.2.1.7.7.6.5.4.3.2.1.10.9.6.6.5.4</h3>
+    <h3>What's New in v3.4</h3>
     <ul>
+        <li><strong>Platypus Remote - Mobile Music Control &amp; Streaming</strong> <span class="new-badge">New</span> - Control your PC music or stream directly to your phone
+            <ul>
+                <li>Progressive Web App (PWA) accessible from any device via browser</li>
+                <li><strong>Control PC Mode</strong> - Remote control your desktop audio player (play, pause, skip, seek, volume)</li>
+                <li><strong>Stream Mode</strong> - Stream music directly to your phone with independent playback</li>
+                <li>Mobile-only queue system in stream mode (doesn't affect PC playback)</li>
+                <li>Cloudflare Tunnel integration for secure access from anywhere</li>
+                <li>Real-time sync via SignalR WebSocket connection</li>
+                <li>Library browsing and search from your phone</li>
+                <li>Install as a native app on Android/iOS home screen</li>
+            </ul>
+        </li>
         <li><strong>Active Directory Security Analyzer</strong> <span class="new-badge">New</span> - Enterprise security analysis for AD environments
             <ul>
                 <li>Privileged group and account enumeration</li>
@@ -199,6 +214,51 @@
                 <li>Emergency privilege removal</li>
                 <li>AdminCount cleanup and RID pool invalidation</li>
             </ul>
+        </li>
+        <li><strong>Plex Media Server Backup</strong> <span class="new-badge">New</span> - Native Plex backup &amp; restore
+            <ul>
+                <li>Auto-detect Plex installation, registry, and running status</li>
+                <li>Full and incremental backup modes</li>
+                <li>One-click restore from backup</li>
+            </ul>
+        </li>
+        <li><strong>Intune Win32 Packager</strong> <span class="new-badge">New</span> - Create .intunewin packages for Microsoft Intune deployment
+            <ul>
+                <li>GUI wrapper for Microsoft Win32 Content Prep Tool</li>
+                <li>Auto-download of IntuneWinAppUtil.exe</li>
+                <li>Quiet mode and configurable output</li>
+            </ul>
+        </li>
+        <li><strong>FTP/SFTP Client</strong> <span class="new-badge">New</span> - Full file transfer client with saved sessions
+            <ul>
+                <li>FTP, FTPS (SSL), and SFTP protocols</li>
+                <li>Upload, download, create folders, delete files</li>
+                <li>Session storage and credential management</li>
+            </ul>
+        </li>
+        <li><strong>Hash Scanner</strong> <span class="new-badge">New</span> - Calculate and verify file hashes (MD5, SHA1, SHA256, SHA512, CRC32)
+        </li>
+        <li><strong>Secure Wipe</strong> <span class="new-badge">New</span> - Forensic-grade data destruction with configurable pass counts and free space wiping
+        </li>
+        <li><strong>Cloud Sync Manager</strong> <span class="new-badge">New</span> - Sync files between local folders and cloud providers (OneDrive, etc.)
+        </li>
+        <li><strong>Built-in Web Browser</strong> <span class="new-badge">New</span> - WebView2-based browser with favorites, history, and Edge import
+        </li>
+        <li><strong>Local Terminal</strong> <span class="new-badge">New</span> - Embedded command shell supporting PowerShell, CMD, Git Bash, and WSL
+        </li>
+        <li><strong>SSH/Telnet Client</strong> <span class="new-badge">New</span> - Remote terminal with SSH key auth and saved sessions
+        </li>
+        <li><strong>Reboot &amp; Crash Analyzer</strong> <span class="new-badge">New</span> - Analyze BSODs, unexpected reboots, and app crashes from event logs
+        </li>
+        <li><strong>Windows Update Repair</strong> <span class="new-badge">New</span> - Diagnose and fix Windows Update with SFC, DISM, component reset
+        </li>
+        <li><strong>Audio Visualizer Screensaver</strong> <span class="new-badge">New</span> - 22+ visualization modes with custom color schemes (Stargate, Matrix, Toasters, and more)
+        </li>
+        <li><strong>Theme Editor</strong> <span class="new-badge">New</span> - Create custom UI themes with full color and font control
+        </li>
+        <li><strong>Plugin Manager</strong> <span class="new-badge">New</span> - Install, enable/disable, and manage extensibility plugins
+        </li>
+        <li><strong>Quick Forensics Scanner</strong> <span class="new-badge">New</span> - Lightweight and deep system analysis for security issues
         </li>
     </ul>
     
@@ -275,27 +335,35 @@
         </div>
         <div class="feature-card">
             <h4>🎬 Multimedia <span class="new-badge">Reorganized</span></h4>
-            <p>Audio, Image, Video tools with nested sub-tabs</p>
+            <p>Audio, Image, Video tools with nested sub-tabs, visualizer screensaver</p>
         </div>
         <div class="feature-card">
             <h4>🖥️ System</h4>
-            <p>Disk Cleanup, Privacy Cleaner, Startup Manager, Process Manager, and more</p>
+            <p>Disk Cleanup, Privacy Cleaner, Startup Manager, Process Manager, Reboot Analyzer, WU Repair</p>
         </div>
         <div class="feature-card">
             <h4>🔒 Security</h4>
-            <p>Folder Hider, System Audit with vulnerability scanning</p>
+            <p>Folder Hider, System Audit, AD Security Analyzer, Cloud Identity, Quick Forensics</p>
         </div>
         <div class="feature-card">
-            <h4>� Advanced Forensics <span class="new-badge">New</span></h4>
+            <h4>🔬 Advanced Forensics <span class="new-badge">New</span></h4>
             <p>DFIR tools: Memory analysis, artifact collection, timeline, malware scanning</p>
         </div>
         <div class="feature-card">
-            <h4>�📋 Metadata</h4>
+            <h4>📋 Metadata</h4>
             <p>View and edit file metadata with ExifTool integration</p>
         </div>
         <div class="feature-card">
             <h4>🔧 Tools</h4>
-            <p>Website Downloader, Network Tools, Archive Manager, PDF Tools, and more</p>
+            <p>Website Downloader, Network Tools, Archive Manager, PDF Tools, FTP Client, and more</p>
+        </div>
+        <div class="feature-card">
+            <h4>💻 Terminal &amp; Remote <span class="new-badge">New</span></h4>
+            <p>Local shell, SSH/Telnet client, built-in browser, Platypus Remote PWA</p>
+        </div>
+        <div class="feature-card">
+            <h4>🎨 Themes &amp; Plugins <span class="new-badge">New</span></h4>
+            <p>Theme Editor, Plugin Manager, customizable UI and extensibility</p>
         </div>
     </div>
     
@@ -380,6 +448,42 @@
         <li>Option to delete or just list empty folders</li>
         <li>Exclude patterns for system folders</li>
     </ul>
+
+    <h3>Hash Scanner <span class="new-badge">New</span></h3>
+    <p>Calculate and verify file hashes for integrity checking and forensic verification.</p>
+    <h4>Supported Algorithms</h4>
+    <table>
+        <tr><th>Algorithm</th><th>Description</th></tr>
+        <tr><td>MD5</td><td>128-bit hash — fast, widely used for basic integrity checks</td></tr>
+        <tr><td>SHA1</td><td>160-bit hash — common in legacy systems</td></tr>
+        <tr><td>SHA256</td><td>256-bit hash — recommended for security verification</td></tr>
+        <tr><td>SHA512</td><td>512-bit hash — strongest built-in option</td></tr>
+        <tr><td>CRC32</td><td>32-bit checksum — fast error detection</td></tr>
+    </table>
+    <h4>How to Use</h4>
+    <ol>
+        <li>Browse to a file or drag-and-drop a file onto the scanner</li>
+        <li>Click <strong>Calculate</strong> to compute all hash values</li>
+        <li>Copy individual hashes or all at once</li>
+        <li>Paste a known hash into the <strong>Verify</strong> field to compare</li>
+    </ol>
+    <div class="tip">
+        <strong>Tip:</strong> Hash history is maintained so you can compare multiple files in a session.
+    </div>
+
+    <h3>Secure Wipe <span class="new-badge">New</span></h3>
+    <p>Permanently and irrecoverably destroy files using forensic-grade wiping methods. Data wiped with this tool cannot be recovered by any data recovery software or forensic techniques.</p>
+    <h4>Features</h4>
+    <ul>
+        <li><strong>File or Folder Target</strong> — select individual files or entire directories</li>
+        <li><strong>Configurable Pass Count</strong> — more passes = more secure (1 pass is usually sufficient for modern drives)</li>
+        <li><strong>Rename Before Delete</strong> — randomizes the filename before deletion to prevent name-based recovery</li>
+        <li><strong>Wipe Free Space</strong> — overwrite all free space on a drive to destroy previously deleted file remnants</li>
+        <li><strong>Confirmation Prompt</strong> — optional confirmation before irreversible wipe</li>
+    </ul>
+    <div class="warning">
+        <strong>Warning:</strong> Secure wipe is <strong>irreversible</strong>. There is no undo. Double-check your target before proceeding.
+    </div>
     
     <h3 id="robocopy">Robocopy File Transfer</h3>
     <p>A powerful graphical interface for Windows Robocopy, providing enterprise-grade file copying and synchronization capabilities.</p>
@@ -452,6 +556,27 @@
     <div class="tip">
         <strong>Requires:</strong> FFmpeg must be available in your system PATH or Tools folder.
     </div>
+
+    <h4>Audio Visualizer &amp; Screensaver <span class="new-badge">New</span></h4>
+    <p>GPU-accelerated audio visualizations powered by SkiaSharp, available as a fullscreen screensaver or embedded in the Audio Player.</p>
+    <h5>Visualization Modes (22+)</h5>
+    <table>
+        <tr><th>Category</th><th>Modes</th></tr>
+        <tr><td>Classic</td><td>Bars, Mirror Bars, Waveform, Circular, Spectrum</td></tr>
+        <tr><td>Atmospheric</td><td>Particles, Aurora, Waterfall, Oscilloscope, VU Meter</td></tr>
+        <tr><td>3D</td><td>3D Bars, Milkdrop (projectM-style)</td></tr>
+        <tr><td>Retro/Fun</td><td>Toasters, Matrix, Starfield</td></tr>
+        <tr><td>Sci-Fi</td><td>Stargate, Star Wars Crawl, Klingon, Federation, Jedi, TimeLord</td></tr>
+    </table>
+    <h5>Color Schemes</h5>
+    <p>13 built-in color schemes including Neon, Plasma, Ocean, Forest, Sunset, Galaxy, Fire, Ice, Rainbow, Cyberpunk, Synth, and more.</p>
+    <h5>Screensaver Mode</h5>
+    <ul>
+        <li>Launch from the Audio Player or via the View menu</li>
+        <li>Right-click for settings panel (change mode, color scheme)</li>
+        <li>Press any key or click to exit</li>
+        <li>Auto-cycles through visualizations when music is playing</li>
+    </ul>
     
     <h3>🖼️ Image</h3>
     
@@ -559,8 +684,16 @@
     <h4>Video Upscaler</h4>
     <p>Upscale videos to higher resolutions using AI-powered algorithms.</p>
     
-    <h4>Image Scaler</h4>
-    <p>Process multiple images for upscaling/downscaling in batch mode.</p>
+    <h4>Batch Image Upscaler <span class="new-badge">New</span></h4>
+    <p>Upscale multiple images at once using AI models (e.g., RealESRGAN).</p>
+    <ul>
+        <li><strong>Queue Management</strong> — Add files/folders, remove, clear</li>
+        <li><strong>Scale Factor</strong> — 2x, 3x, 4x upscaling</li>
+        <li><strong>Parallel Processing</strong> — configurable max parallel jobs for speed</li>
+        <li><strong>Per-Item Settings</strong> — override scale/mode per image</li>
+        <li><strong>Preview</strong> — see before/after in the preview panel</li>
+        <li><strong>Pause/Resume</strong> — pause batch processing and resume later</li>
+    </ul>
     
     <h4>Video Combiner</h4>
     <p>Merge multiple video files into a single output file.</p>
@@ -587,6 +720,24 @@
     <div class="tip">
         <strong>Note:</strong> The exporter automatically converts 5.1 and 7.1 surround audio to stereo for maximum compatibility.
     </div>
+
+    <h4>Advanced Video Editor (NLE) <span class="new-badge">New</span></h4>
+    <p>A professional non-linear video editor inspired by Shotcut, with a dark studio-style UI and advanced editing capabilities.</p>
+    <ul>
+        <li><strong>Multi-track Timeline</strong> — video and audio tracks with precise clip placement</li>
+        <li><strong>Edit Modes</strong> — Rolling, Slip, Slide edits for professional workflows</li>
+        <li><strong>Text/Title Generator</strong> — add titles and text overlays</li>
+        <li><strong>Voice-over Recording</strong> — record narration directly into the timeline</li>
+        <li><strong>Chapter Markers</strong> — add and export chapter marks</li>
+        <li><strong>Speed Ramping</strong> — variable speed changes within clips</li>
+        <li><strong>Freeze Frame</strong> — insert freeze frames at any point</li>
+        <li><strong>Reverse Playback</strong> — reverse clip direction</li>
+        <li><strong>Time Remap</strong> — advanced time manipulation</li>
+        <li><strong>Copy/Paste Filters</strong> — copy effects between clips</li>
+        <li><strong>Snap-to-Edit</strong> — magnetic snapping for precise alignment</li>
+        <li><strong>Layout Presets</strong> — Default, Edit Only, Preview, Trim layouts</li>
+        <li><strong>Export Options</strong> — Export Video, EDL/XML interchange, Chapter export</li>
+    </ul>
     
     <h4>Screen Recorder <span class="new-badge">New in v3.2.15</span></h4>
     <p>Record your entire screen to video files with audio capture support.</p>
@@ -651,6 +802,123 @@
     <div class="tip">
         <strong>Tip:</strong> Each external tool can be auto-detected, manually configured, or downloaded directly from the Settings &amp; Tools tab.
     </div>
+
+    <h3>🧊 3D Model Editor <span class="new-badge">New</span></h3>
+    <p>Create 3D models from SVG vector files or basic shapes, ideal for 3D printing and rapid prototyping.</p>
+    <ul>
+        <li><strong>SVG Import &amp; Extrusion</strong> — Load an SVG file and extrude it to 3D with configurable depth and scale</li>
+        <li><strong>Basic Shapes</strong> — Create cubes, spheres, cylinders, and other primitives</li>
+        <li><strong>3D Text</strong> — Generate 3D text objects</li>
+        <li><strong>Live Preview</strong> — Real-time 3D viewport with position, rotation, and zoom controls</li>
+        <li><strong>Export</strong> — Save as STL (for 3D printing) or OBJ (for 3D editing software)</li>
+    </ul>
+</section>
+
+<section id="remote" class="section">
+    <h2>📱 Remote Control &amp; Streaming <span class="new-badge">New</span></h2>
+    <p>Platypus Remote lets you control your PC's music player or stream audio directly to your phone from anywhere. It works as a Progressive Web App (PWA) through your browser — no app store download required.</p>
+
+    <h3>Getting Started</h3>
+    <h4>1. Enable the Remote Server</h4>
+    <ol>
+        <li>Open PlatypusTools on your PC</li>
+        <li>Go to <strong>Settings</strong> (gear icon or Ctrl+,)</li>
+        <li>Find the <strong>Remote Server</strong> section</li>
+        <li>Toggle <strong>Enable Remote Server</strong> to ON</li>
+        <li>The server starts on <code>https://localhost:47392</code></li>
+    </ol>
+
+    <h4>2. Set Up Cloudflare Tunnel (Access from Anywhere)</h4>
+    <p>To access Platypus Remote from outside your home network (e.g., from your phone on mobile data), you need a Cloudflare Tunnel:</p>
+    <ol>
+        <li>Create a free <a href="https://dash.cloudflare.com" target="_blank">Cloudflare account</a> and add your domain</li>
+        <li>Install <code>cloudflared</code> — PlatypusTools can download it automatically via Settings</li>
+        <li>Authenticate: run <code>cloudflared tunnel login</code> in a terminal</li>
+        <li>Create a tunnel: <code>cloudflared tunnel create platypus-remote</code></li>
+        <li>Create a config file at <code>C:\ProgramData\cloudflared\config.yml</code>:
+            <pre><code>tunnel: platypus-remote
+credentials-file: C:\Users\YOUR_USER\.cloudflared\TUNNEL_ID.json
+
+ingress:
+  - hostname: your-subdomain.yourdomain.com
+    service: https://localhost:47392
+    originRequest:
+      noTLSVerify: true
+  - service: http_status:404</code></pre>
+        </li>
+        <li>Add a DNS route: <code>cloudflared tunnel route dns platypus-remote your-subdomain.yourdomain.com</code></li>
+        <li>In PlatypusTools Settings, enable <strong>Start Tunnel on Launch</strong> — the tunnel runs as a background process and auto-starts with Windows via a Registry Run key</li>
+    </ol>
+
+    <div class="tip">
+        <strong>Tip:</strong> Once configured, the tunnel starts automatically when PlatypusTools launches. You can also start/stop it manually from Settings.
+    </div>
+
+    <h4>3. Open the PWA on Your Phone</h4>
+    <ol>
+        <li>On your phone's browser, navigate to your tunnel URL (e.g., <code>https://your-subdomain.yourdomain.com</code>)</li>
+        <li>The Platypus Remote app loads automatically</li>
+        <li>Tap <strong>Install</strong> (or use "Add to Home Screen" on iOS) to pin it as a native-feeling app</li>
+    </ol>
+
+    <h3>Two Playback Modes</h3>
+    <p>Platypus Remote offers two distinct modes, selectable via the <strong>Control PC</strong> / <strong>Stream Here</strong> buttons at the top:</p>
+
+    <h4>🖥️ Control PC Mode</h4>
+    <p>Your phone acts as a remote control for the desktop audio player. All audio plays from your PC speakers.</p>
+    <ul>
+        <li><strong>Play/Pause, Next, Previous</strong> — sends commands to your PC in real-time</li>
+        <li><strong>Seek</strong> — tap the progress bar to jump to any position</li>
+        <li><strong>Volume</strong> — adjust PC volume from your phone</li>
+        <li><strong>Shuffle &amp; Repeat</strong> — toggle shuffle and repeat modes</li>
+        <li><strong>Queue</strong> — view and manage the PC's playback queue; tap a library track to add it</li>
+        <li><strong>Now Playing</strong> — shows real-time track info, album art, and progress from the PC</li>
+    </ul>
+
+    <h4>📱 Stream Here Mode</h4>
+    <p>Music streams directly to your phone's speaker/headphones. Your PC player is unaffected — this is fully independent playback (Plex-style).</p>
+    <ul>
+        <li><strong>Play/Pause</strong> — controls the phone's local audio element (instant response, no network lag)</li>
+        <li><strong>Next/Previous</strong> — cycles through your phone's stream queue or library</li>
+        <li><strong>Seek</strong> — tap the progress bar to jump position in the streaming audio</li>
+        <li><strong>Volume</strong> — controls your phone's playback volume</li>
+        <li><strong>Mobile Queue</strong> — a separate queue just for your phone. Tap a library track row to add it to the phone queue (tap the ▶️ button to play immediately). The queue tab shows "X tracks (phone)" with remove buttons</li>
+        <li><strong>Auto-advance</strong> — when a track finishes, the next track in your phone queue plays automatically</li>
+    </ul>
+
+    <div class="tip">
+        <strong>Tip:</strong> In Stream mode, the PC queue and phone queue are completely separate. Adding tracks to the queue won't affect what's playing on your PC.
+    </div>
+
+    <h3>Library Browsing</h3>
+    <p>The <strong>Library</strong> tab lets you browse and search your entire music collection from your phone:</p>
+    <ul>
+        <li><strong>Search</strong> — type a query and tap the search button (or press Enter) to find tracks</li>
+        <li><strong>Play button (▶️)</strong> — immediately plays the track (on PC in Control mode, on phone in Stream mode)</li>
+        <li><strong>Tap the row</strong> — adds the track to the queue (PC queue in Control mode, phone queue in Stream mode)</li>
+    </ul>
+
+    <h3>Technical Details</h3>
+    <table>
+        <tr><th>Feature</th><th>Detail</th></tr>
+        <tr><td>Embedded Server</td><td>ASP.NET Kestrel on port 47392 (HTTPS)</td></tr>
+        <tr><td>Real-time Protocol</td><td>SignalR over WebSockets</td></tr>
+        <tr><td>Audio Streaming</td><td>HTTP range requests via <code>/api/stream</code> endpoint (supports seeking)</td></tr>
+        <tr><td>Tunnel</td><td>Cloudflare Tunnel (background process with auto-start)</td></tr>
+        <tr><td>PWA</td><td>Service worker, manifest.json, installable on Android &amp; iOS</td></tr>
+        <tr><td>Formats</td><td>Streams any format your browser supports (MP3, FLAC, AAC, OGG, WAV, etc.)</td></tr>
+    </table>
+
+    <h3>Troubleshooting Remote</h3>
+    <table>
+        <tr><th>Problem</th><th>Solution</th></tr>
+        <tr><td>PWA shows "Connecting..." forever</td><td>Check that the remote server is enabled in Settings and the tunnel is running. Verify the URL is correct.</td></tr>
+        <tr><td>Stream mode won't play</td><td>On mobile, the first play <strong>must</strong> come from a user tap (browser security policy). Tap the ▶️ button on a library track or press play/pause.</td></tr>
+        <tr><td>Tunnel not connecting</td><td>Ensure <code>cloudflared</code> is running (check Settings). Try restarting the tunnel. Verify your DNS route with <code>cloudflared tunnel route dns</code>.</td></tr>
+        <tr><td>Audio cuts out on phone</td><td>Mobile browsers may suspend background audio. Install the PWA to Home Screen for better background playback support.</td></tr>
+        <tr><td>Controls unresponsive</td><td>Check the connection status dot at the top. If red/disconnected, the app will auto-reconnect. Try refreshing the page.</td></tr>
+        <tr><td>Can't install PWA on iOS</td><td>Safari doesn't support the install prompt. Use Share → Add to Home Screen instead.</td></tr>
+    </table>
 </section>
 
 <section id="system" class="section">
@@ -713,6 +981,70 @@
     
     <h3>System Restore</h3>
     <p>Create and manage system restore points.</p>
+
+    <h3>Reboot &amp; Crash Analyzer <span class="new-badge">New</span></h3>
+    <p>Analyze unexpected reboots, Blue Screen of Death (BSOD) events, and application crashes by mining Windows Event Logs.</p>
+    <h4>Summary Cards</h4>
+    <table>
+        <tr><th>Card</th><th>Description</th></tr>
+        <tr><td>System Uptime</td><td>Current uptime since last boot</td></tr>
+        <tr><td>Unexpected Reboots</td><td>Count of unplanned restarts in the time range</td></tr>
+        <tr><td>Blue Screens</td><td>BSOD events with bug check codes</td></tr>
+        <tr><td>App Crashes</td><td>Application errors and hang events</td></tr>
+        <tr><td>Crash Dumps</td><td>Memory dump files found</td></tr>
+        <tr><td>Clean Shutdowns</td><td>Proper shutdown/restart events</td></tr>
+    </table>
+    <h4>How to Use</h4>
+    <ol>
+        <li>Select a time range: <strong>7, 30, 90, or 365 days</strong></li>
+        <li>Click <strong>Scan</strong> to analyze event logs</li>
+        <li>Review the summary cards and tabbed detail views</li>
+        <li>Click individual events for full details and recommended actions</li>
+    </ol>
+    <div class="tip">
+        <strong>Tip:</strong> If you're experiencing intermittent BSODs, extend the scan range to 90 days to spot patterns.
+    </div>
+
+    <h3>Windows Update Repair <span class="new-badge">New</span></h3>
+    <p>Diagnose and fix Windows Update problems with automated repair workflows.</p>
+    <h4>Repair Actions</h4>
+    <table>
+        <tr><th>Action</th><th>Description</th></tr>
+        <tr><td>Create Restore Point</td><td>Create a system restore point before making changes</td></tr>
+        <tr><td>Run Troubleshooter</td><td>Launch the built-in Windows Update troubleshooter</td></tr>
+        <tr><td>Reset WU Components</td><td>Stop WU services, rename SoftwareDistribution/catroot2, restart services</td></tr>
+        <tr><td>Clear WU Cache</td><td>Delete cached update files to force re-download</td></tr>
+        <tr><td>Re-register DLLs</td><td>Re-register Windows Update related DLL files</td></tr>
+        <tr><td>Run SFC</td><td>System File Checker — scan and repair protected system files</td></tr>
+        <tr><td>Run DISM</td><td>Repair the Windows component store with DISM /RestoreHealth</td></tr>
+    </table>
+    <h4>How to Use</h4>
+    <ol>
+        <li>Click <strong>Scan for Issues</strong> to detect problems</li>
+        <li>Review detected issues in the results list</li>
+        <li>Click <strong>Repair All</strong> to fix all issues, or use individual action buttons</li>
+        <li>Click <strong>Quick Fix</strong> for the most common repair sequence</li>
+    </ol>
+    <div class="warning">
+        <strong>Note:</strong> Most repair actions require Administrator privileges. Run PlatypusTools as Administrator.
+    </div>
+
+    <h3>Quick Forensics Scanner <span class="new-badge">New</span></h3>
+    <p>Fast system security analysis that checks memory usage, running processes, file system, registry, and event logs for anomalies.</p>
+    <h4>Scan Modes</h4>
+    <table>
+        <tr><th>Mode</th><th>Description</th><th>Duration</th></tr>
+        <tr><td>Lightweight Scan</td><td>Quick analysis using a single core — checks critical areas</td><td>1-5 minutes</td></tr>
+        <tr><td>Deep Analysis</td><td>Comprehensive scan using all CPU cores — full system review</td><td>10-30 minutes</td></tr>
+    </table>
+    <h4>Findings</h4>
+    <p>Results are categorized by severity:</p>
+    <ul>
+        <li><strong style="color: red;">Critical</strong> — immediate attention required (rootkits, active malware indicators)</li>
+        <li><strong style="color: orange;">High</strong> — significant security concerns (suspicious processes, unauthorized services)</li>
+        <li><strong style="color: #cc0;">Medium</strong> — potential issues worth investigating</li>
+        <li><strong style="color: green;">Low</strong> — informational or minor configuration concerns</li>
+    </ul>
 </section>
 
 <section id="security" class="section">
@@ -1217,6 +1549,156 @@
     
     <h3>Bootable USB</h3>
     <p>Create bootable USB drives from ISO files.</p>
+
+    <h3>FTP / SFTP Client <span class="new-badge">New</span></h3>
+    <p>Full-featured file transfer client supporting FTP, FTPS (SSL/TLS), and SFTP (SSH) protocols.</p>
+    <h4>Features</h4>
+    <ul>
+        <li><strong>Protocol Support:</strong> FTP, FTPS (explicit &amp; implicit), SFTP</li>
+        <li><strong>File Operations:</strong> Upload, download, create directories, rename, delete</li>
+        <li><strong>Saved Sessions:</strong> Save connection details for quick reconnection</li>
+        <li><strong>Credential Management:</strong> Secure storage of passwords and SSH keys</li>
+        <li><strong>Transfer Queue:</strong> Queue multiple file transfers with progress tracking</li>
+    </ul>
+
+    <h3>Cloud Sync Manager <span class="new-badge">New</span></h3>
+    <p>Monitor and manage cloud storage synchronization across providers.</p>
+    <h4>Features</h4>
+    <ul>
+        <li><strong>Provider Detection:</strong> Auto-detects OneDrive, Google Drive, Dropbox, and other installed providers</li>
+        <li><strong>Sync Rules:</strong> Configure sync direction (upload only, download only, bidirectional)</li>
+        <li><strong>Schedule:</strong> Set sync intervals (real-time, hourly, daily)</li>
+        <li><strong>Conflict Resolution:</strong> Choose how to handle file conflicts (newest wins, keep both, ask)</li>
+        <li><strong>Status Dashboard:</strong> View sync status, pending items, and errors</li>
+    </ul>
+
+    <h3>Plex Media Server Backup <span class="new-badge">New</span></h3>
+    <p>Back up and restore Plex Media Server configurations and databases.</p>
+    <h4>Features</h4>
+    <ul>
+        <li><strong>Auto-Detection:</strong> Finds your Plex installation and reports server status</li>
+        <li><strong>Full Backup:</strong> Complete backup of Plex data directory (databases, metadata, settings)</li>
+        <li><strong>Incremental Backup:</strong> Back up only changed files since last backup</li>
+        <li><strong>Restore:</strong> Restore from any previous backup with one click</li>
+        <li><strong>Scheduling:</strong> Configure automatic backup schedules</li>
+    </ul>
+    <div class="tip">
+        <strong>Tip:</strong> Stop the Plex Media Server service before performing a full backup for best results.
+    </div>
+
+    <h3>Intune Win32 Packager <span class="new-badge">New</span></h3>
+    <p>Package applications as <code>.intunewin</code> files for Microsoft Intune deployment.</p>
+    <h4>How to Use</h4>
+    <ol>
+        <li>Select the <strong>source folder</strong> containing the application files</li>
+        <li>Choose the <strong>setup file</strong> (e.g., setup.exe, install.msi)</li>
+        <li>Select an <strong>output folder</strong> for the .intunewin file</li>
+        <li>Click <strong>Package</strong> to create the Intune package</li>
+    </ol>
+    <p>The tool automatically downloads the Microsoft Win32 Content Prep Tool if not already present.</p>
+</section>
+
+<section id="terminal" class="section">
+    <h2>💻 Terminal &amp; Remote</h2>
+    <p>Built-in terminal emulators, remote access clients, and a web browser — all integrated into PlatypusTools.</p>
+
+    <h3>Local Terminal</h3>
+    <p>A full-featured terminal emulator embedded directly in the application.</p>
+    <h4>Available Shells</h4>
+    <table>
+        <tr><th>Shell</th><th>Description</th></tr>
+        <tr><td>PowerShell</td><td>Windows PowerShell or PowerShell 7+</td></tr>
+        <tr><td>CMD</td><td>Classic Windows Command Prompt</td></tr>
+        <tr><td>Git Bash</td><td>Bash shell from Git for Windows</td></tr>
+        <tr><td>WSL</td><td>Windows Subsystem for Linux</td></tr>
+    </table>
+    <h4>Features</h4>
+    <ul>
+        <li><strong>Shell Selector:</strong> Switch between installed shells from a dropdown</li>
+        <li><strong>Working Directory:</strong> Set the starting directory for new sessions</li>
+        <li><strong>Quick Commands:</strong> Toolbar with common commands (ipconfig, systeminfo, etc.)</li>
+        <li><strong>Copy/Paste:</strong> Full clipboard support within the terminal</li>
+    </ul>
+
+    <h3>SSH / Telnet Client</h3>
+    <p>Connect to remote servers using SSH or Telnet protocols.</p>
+    <h4>Features</h4>
+    <ul>
+        <li><strong>SSH Support:</strong> Secure Shell connections with password or key-based authentication</li>
+        <li><strong>Telnet Support:</strong> Legacy Telnet connections for older devices</li>
+        <li><strong>Saved Sessions:</strong> Store connection profiles (host, port, username, key file)</li>
+        <li><strong>Key Authentication:</strong> Support for RSA, ECDSA, and Ed25519 private keys</li>
+        <li><strong>Multiple Tabs:</strong> Open multiple remote sessions in separate tabs</li>
+    </ul>
+    <h4>How to Connect via SSH</h4>
+    <ol>
+        <li>Enter the <strong>hostname or IP address</strong></li>
+        <li>Set the <strong>port</strong> (default: 22 for SSH, 23 for Telnet)</li>
+        <li>Enter your <strong>username</strong></li>
+        <li>Choose <strong>password</strong> or <strong>key file</strong> authentication</li>
+        <li>Click <strong>Connect</strong></li>
+    </ol>
+
+    <h3>Built-in Web Browser</h3>
+    <p>An integrated web browser powered by Microsoft Edge WebView2.</p>
+    <h4>Features</h4>
+    <ul>
+        <li><strong>Tabbed Browsing:</strong> Open multiple tabs within PlatypusTools</li>
+        <li><strong>Favorites:</strong> Save and organize bookmarks</li>
+        <li><strong>History:</strong> Track browsing history with search</li>
+        <li><strong>Edge Import:</strong> Import favorites and history from Microsoft Edge</li>
+        <li><strong>Navigation:</strong> Back, forward, refresh, home, and address bar</li>
+    </ul>
+    <div class="tip">
+        <strong>Tip:</strong> The built-in browser is perfect for accessing documentation, admin portals, or web-based tools without leaving PlatypusTools.
+    </div>
+</section>
+
+<section id="themes" class="section">
+    <h2>🎨 Themes &amp; Plugins</h2>
+    <p>Customize the look of PlatypusTools and extend functionality with plugins.</p>
+
+    <h3>Theme Editor</h3>
+    <p>Create and apply custom visual themes for the entire application.</p>
+    <h4>Customization Options</h4>
+    <ul>
+        <li><strong>Colors:</strong> Customize background, foreground, accent, button, and border colors</li>
+        <li><strong>Fonts:</strong> Choose from system fonts or specialty fonts:
+            <ul>
+                <li><strong>LCARS</strong> — Star Trek computer interface font</li>
+                <li><strong>PipBoy</strong> — Fallout-inspired retro-futuristic font</li>
+                <li><strong>Klingon</strong> — Klingon script font</li>
+            </ul>
+        </li>
+        <li><strong>Custom Logos:</strong> Set a custom logo image for the application header</li>
+        <li><strong>Live Preview:</strong> See changes in real-time before applying</li>
+        <li><strong>Export/Import:</strong> Share themes as JSON files</li>
+    </ul>
+    <h4>Built-in Themes</h4>
+    <table>
+        <tr><th>Theme</th><th>Description</th></tr>
+        <tr><td>Default</td><td>Standard dark theme with blue accents</td></tr>
+        <tr><td>LCARS</td><td>Star Trek LCARS computer interface</td></tr>
+        <tr><td>Glass</td><td>Semi-transparent glass effect with blur</td></tr>
+        <tr><td>High Contrast</td><td>Accessibility-focused high contrast theme</td></tr>
+    </table>
+
+    <h3>Plugin Manager</h3>
+    <p>Extend PlatypusTools with third-party plugins.</p>
+    <h4>Features</h4>
+    <ul>
+        <li><strong>Install:</strong> Load plugin DLL files to add new functionality</li>
+        <li><strong>Enable/Disable:</strong> Toggle plugins on or off without uninstalling</li>
+        <li><strong>Uninstall:</strong> Completely remove plugins</li>
+        <li><strong>Reload:</strong> Hot-reload plugins without restarting PlatypusTools</li>
+    </ul>
+    <h4>How to Install a Plugin</h4>
+    <ol>
+        <li>Click <strong>Install Plugin</strong></li>
+        <li>Browse to the plugin DLL file</li>
+        <li>The plugin will be loaded and appear in the plugin list</li>
+        <li>Enable or disable it as needed</li>
+    </ol>
 </section>
 
 <section id="keyboard" class="section">
@@ -1392,7 +1874,7 @@
 </div>
 
 <footer>
-    <p>PlatypusTools v3.3.4.2.2.1.7.7.6.5.4.3.2.1.10.9.6.6.5.4.3.2.1.7.7.6.5.1.1.5.5.4.3.2 | © 2026 PlatypusTools Project | Built with .NET 10 / WPF</p>
+    <p>PlatypusTools v3.4.1.4.4 | © 2026 PlatypusTools Project | Built with .NET 10 / WPF</p>
 </footer>
 
 </body>

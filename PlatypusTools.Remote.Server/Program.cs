@@ -200,6 +200,30 @@ api.MapPost("/library/add", async (string path, IRemoteAudioService audioService
     return Results.Ok();
 }).WithName("AddToQueue");
 
+// Audio Streaming - stream audio file to phone for remote playback
+api.MapGet("/stream", (string path, HttpContext context) =>
+{
+    if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path))
+        return Results.NotFound("File not found");
+
+    var extension = System.IO.Path.GetExtension(path).ToLowerInvariant();
+    var contentType = extension switch
+    {
+        ".mp3" => "audio/mpeg",
+        ".wav" => "audio/wav",
+        ".flac" => "audio/flac",
+        ".ogg" => "audio/ogg",
+        ".m4a" => "audio/mp4",
+        ".aac" => "audio/aac",
+        ".wma" => "audio/x-ms-wma",
+        ".opus" => "audio/opus",
+        _ => "application/octet-stream"
+    };
+
+    var fileStream = System.IO.File.OpenRead(path);
+    return Results.File(fileStream, contentType, enableRangeProcessing: true);
+}).WithName("StreamAudio");
+
 // Session management
 api.MapGet("/sessions", async (ISessionManager sessionManager, HttpContext context) =>
 {

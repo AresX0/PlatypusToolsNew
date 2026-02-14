@@ -113,6 +113,27 @@ public class PlatypusHubConnection : IAsyncDisposable
     public async Task PlayQueueItemAsync(int index) => await InvokeAsync("PlayQueueItem", index);
     public async Task AddToQueueAsync(string path) => await InvokeAsync("AddToQueue", path);
 
+    // Library browsing
+    public async Task<List<LibraryFolderDto>> GetLibraryFoldersAsync()
+    {
+        if (_hubConnection?.State == HubConnectionState.Connected)
+        {
+            return await _hubConnection.InvokeAsync<List<LibraryFolderDto>>("GetLibraryFolders");
+        }
+        return new List<LibraryFolderDto>();
+    }
+
+    public async Task<List<LibraryFileDto>> GetLibraryFilesAsync(string path)
+    {
+        if (_hubConnection?.State == HubConnectionState.Connected)
+        {
+            return await _hubConnection.InvokeAsync<List<LibraryFileDto>>("GetLibraryFiles", path);
+        }
+        return new List<LibraryFileDto>();
+    }
+
+    public async Task PlayFileAsync(string path) => await InvokeAsync("PlayFile", path);
+
     private async Task InvokeAsync(string method, params object[] args)
     {
         if (_hubConnection?.State == HubConnectionState.Connected)

@@ -13,6 +13,11 @@ class PlatypusRemote {
         this.currentTab = 'nowPlayingTab';
         this.isStreaming = false;
         this.deferredInstallPrompt = null;
+        this.mode = 'control'; // 'control' = PC plays, 'stream' = phone plays
+        this.streamTrack = null; // Current track metadata for stream mode
+        this.streamLibraryIndex = -1; // Index in library for next/prev in stream mode
+        this.streamQueue = []; // Mobile-only queue for stream mode
+        this.streamQueueIndex = -1; // Current position in stream queue
         
         this.init();
     }
@@ -20,6 +25,7 @@ class PlatypusRemote {
     async init() {
         this.bindElements();
         this.bindEvents();
+        this.bindStreamAudioEvents();
         this.setupInstallPrompt();
         await this.connect();
     }
@@ -57,7 +63,10 @@ class PlatypusRemote {
             searchBtn: document.getElementById('searchBtn'),
             libraryList: document.getElementById('libraryList'),
             streamToggle: document.getElementById('streamToggle'),
-            streamAudio: document.getElementById('streamAudio')
+            streamAudio: document.getElementById('streamAudio'),
+            // Mode buttons
+            controlModeBtn: document.getElementById('controlModeBtn'),
+            streamModeBtn: document.getElementById('streamModeBtn')
         };
     }
 
@@ -77,9 +86,16 @@ class PlatypusRemote {
 
         // Progress bar click to seek
         this.elements.progressBar.addEventListener('click', (e) => {
-            if (!this.nowPlaying) return;
             const rect = this.elements.progressBar.getBoundingClientRect();
             const percent = (e.clientX - rect.left) / rect.width;
+            if (this.mode === 'stream') {
+                const audio = this.elements.streamAudio;
+                if (audio && audio.duration) {
+                    audio.currentTime = percent * audio.duration;
+                }
+                return;
+            }
+            if (!this.nowPlaying) return;
             const seekTime = percent * this.nowPlaying.durationSeconds;
             this.seek(seekTime);
         });
@@ -116,6 +132,90 @@ class PlatypusRemote {
         if (this.elements.streamToggle) {
             this.elements.streamToggle.addEventListener('click', () => this.toggleStreaming());
         }
+
+        // Mode buttons
+        if (this.elements.controlModeBtn) {
+            this.elements.controlModeBtn.addEventListener('click', () => this.setMode('control'));
+        }
+        if (this.elements.streamModeBtn) {
+            this.elements.streamModeBtn.addEventListener('click', () => this.setMode('stream'));
+        }
+    }
+
+    bindStreamAudioEvents() {
+        const audio = this.elements.streamAudio;
+        if (!audio) return;
+
+        audio.addEventListener('timeupdate', () => {
+            if (this.mode !== 'stream' || !this.isStreaming) return;
+            this.updateProgress(audio.currentTime, audio.duration || 0);
+        });
+
+        audio.addEventListener('loadedmetadata', () => {
+            if (this.mode !== 'stream') return;
+            this.updateProgress(audio.currentTime, audio.duration || 0);
+        });
+
+        audio.addEventListener('play', () => {
+            if (this.mode !== 'stream') return;
+            this.elements.playPauseBtn.textContent = '⏸️';
+        });
+
+        audio.addEventListener('pause', () => {
+            if (this.mode !== 'stream') return;
+            this.elements.playPauseBtn.textContent = '▶️';
+        });
+
+        audio.addEventListener('ended', () => {
+            if (this.mode !== 'stream') return;
+            // Auto-advance to next track in library
+            this.streamNext();
+        });
+
+        audio.addEventListener('error', (e) => {
+            if (this.mode !== 'stream') return;
+            console.error('Stream audio error:', e);
+        });
+    }
+
+    setMode(mode) {
+        this.mode = mode;
+        
+        // Update button styles
+        if (this.elements.controlModeBtn) {
+            this.elements.controlModeBtn.classList.toggle('active', mode === 'control');
+        }
+        if (this.elements.streamModeBtn) {
+            this.elements.streamModeBtn.classList.toggle('active', mode === 'stream');
+        }
+
+        if (mode === 'stream') {
+            // Restore stream track UI if we have one, otherwise show prompt
+            if (this.streamTrack) {
+                this.showStreamTrackUI();
+            } else {
+                this.elements.trackTitle.textContent = 'Pick a track from Library';
+                this.elements.trackArtist.textContent = 'Stream Mode';
+                this.elements.trackAlbum.textContent = '';
+                this.elements.playPauseBtn.textContent = '▶️';
+                this.updateProgress(0, 0);
+            }
+            // Show stream queue if on queue tab
+            if (this.currentTab === 'queueTab') this.renderQueue();
+        } else {
+            // Switching to control - stop local audio, restore remote state
+            this.stopStreaming();
+            if (this.nowPlaying) {
+                this.applyNowPlayingToUI(this.nowPlaying);
+            }
+            // Restore PC queue if on queue tab
+            if (this.currentTab === 'queueTab') this.renderQueue();
+        }
+
+        // Update status text
+        this.elements.statusText.textContent = mode === 'stream' 
+            ? 'Streaming Mode' 
+            : 'Connected';
     }
 
     async connect() {
@@ -221,55 +321,75 @@ class PlatypusRemote {
         this.elements.errorContainer.innerHTML = '';
     }
 
-    // Server message handlers
-    handleNowPlaying(data) {
-        this.nowPlaying = data;
-        this.clearError();
-        
-        // Update track info
+    // Apply now-playing data to UI elements (shared by control + stream modes)
+    applyNowPlayingToUI(data) {
         this.elements.trackTitle.textContent = data.title || 'No Track Playing';
         this.elements.trackArtist.textContent = data.artist || '-';
         this.elements.trackAlbum.textContent = data.album || '-';
 
-        // Update album art
         if (data.albumArtData) {
             this.elements.albumArt.innerHTML = `<img src="data:image/jpeg;base64,${data.albumArtData}" alt="Album Art">`;
         } else {
             this.elements.albumArt.innerHTML = '<span>🎵</span>';
         }
 
-        // Update play/pause button
         this.elements.playPauseBtn.textContent = data.isPlaying ? '⏸️' : '▶️';
+        this.updateProgress(data.positionSeconds || 0, data.durationSeconds || 0);
 
-        // Update progress
-        this.updateProgress(data.positionSeconds, data.durationSeconds);
-
-        // Update volume
-        const volumePercent = Math.round(data.volume * 100);
+        const volumePercent = Math.round((data.volume || 0) * 100);
         this.elements.volumeSlider.value = volumePercent;
         this.elements.volumeValue.textContent = `${volumePercent}%`;
 
-        // Update shuffle/repeat
-        this.elements.shuffleBtn.classList.toggle('active', data.isShuffle);
-        this.elements.repeatBtn.classList.toggle('active', data.repeatMode > 0);
-        
-        // Update repeat icon based on mode
-        const repeatIcons = ['🔁', '🔁', '🔂']; // None, All, One
-        this.elements.repeatBtn.textContent = data.repeatMode === 2 ? '🔂' : '🔁';
+        if (data.isShuffle !== undefined) {
+            this.elements.shuffleBtn.classList.toggle('active', data.isShuffle);
+        }
+        if (data.repeatMode !== undefined) {
+            this.elements.repeatBtn.classList.toggle('active', data.repeatMode > 0);
+            this.elements.repeatBtn.textContent = data.repeatMode === 2 ? '🔂' : '🔁';
+        }
+    }
 
-        // Update streaming if active
-        this.updateStreaming();
+    // Show the current stream track info in the UI
+    showStreamTrackUI() {
+        if (!this.streamTrack) return;
+        this.elements.trackTitle.textContent = this.streamTrack.title || 'Unknown';
+        this.elements.trackArtist.textContent = this.streamTrack.artist || 'Streaming to device';
+        this.elements.trackAlbum.textContent = this.streamTrack.album || '';
+        this.elements.albumArt.innerHTML = '<span>🎵</span>';
+        
+        const audio = this.elements.streamAudio;
+        if (audio && audio.duration) {
+            this.updateProgress(audio.currentTime, audio.duration);
+        }
+        this.elements.playPauseBtn.textContent = (audio && !audio.paused) ? '⏸️' : '▶️';
+    }
+
+    // Server message handlers
+    handleNowPlaying(data) {
+        this.nowPlaying = data;
+        this.clearError();
+
+        // In stream mode, don't let remote state overwrite our local playback UI
+        if (this.mode === 'stream') return;
+
+        this.applyNowPlayingToUI(data);
     }
 
     handlePosition(positionSeconds) {
         if (this.nowPlaying) {
             this.nowPlaying.positionSeconds = positionSeconds;
+        }
+        // In stream mode, local audio timeupdate drives the progress bar
+        if (this.mode === 'stream') return;
+        if (this.nowPlaying) {
             this.updateProgress(positionSeconds, this.nowPlaying.durationSeconds);
         }
     }
 
     handleQueue(data) {
         this.queue = data || [];
+        // In stream mode, don't overwrite the stream queue display
+        if (this.mode === 'stream') return;
         this.renderQueue();
     }
 
@@ -281,6 +401,12 @@ class PlatypusRemote {
     }
 
     renderQueue() {
+        // In stream mode, show the mobile stream queue
+        if (this.mode === 'stream') {
+            this.renderStreamQueue();
+            return;
+        }
+
         if (!this.queue.length) {
             this.elements.queueList.innerHTML = '<div class="no-track"><p>No tracks in queue</p></div>';
             this.elements.queueCount.textContent = '0 tracks';
@@ -309,6 +435,49 @@ class PlatypusRemote {
         });
     }
 
+    renderStreamQueue() {
+        if (!this.streamQueue.length) {
+            this.elements.queueList.innerHTML = '<div class="no-track"><p>No tracks in phone queue</p><p style="font-size:0.85rem;margin-top:8px;">Tap a track in Library to add it</p></div>';
+            this.elements.queueCount.textContent = '0 tracks (phone)';
+            return;
+        }
+
+        this.elements.queueCount.textContent = `${this.streamQueue.length} tracks (phone)`;
+
+        this.elements.queueList.innerHTML = this.streamQueue.map((item, index) => `
+            <div class="queue-item ${index === this.streamQueueIndex ? 'current' : ''}" data-index="${index}">
+                <span class="index">${index + 1}</span>
+                <div class="track-details">
+                    <div class="track-title">${this.escapeHtml(item.title || item.fileName || 'Unknown')}</div>
+                    <div class="track-artist">${this.escapeHtml(item.artist || 'Unknown Artist')}</div>
+                </div>
+                <button class="action" data-remove="${index}" style="background:#F44336;color:white;border:none;border-radius:4px;padding:4px 8px;font-size:0.8rem;">✕</button>
+            </div>
+        `).join('');
+
+        // Bind click to play from stream queue
+        this.elements.queueList.querySelectorAll('.queue-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (e.target.dataset.remove !== undefined) return; // Let remove handle it
+                const index = parseInt(item.dataset.index);
+                this.playQueueItem(index);
+            });
+        });
+
+        // Bind remove buttons
+        this.elements.queueList.querySelectorAll('[data-remove]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const idx = parseInt(btn.dataset.remove);
+                this.streamQueue.splice(idx, 1);
+                // Adjust current index if needed
+                if (idx < this.streamQueueIndex) this.streamQueueIndex--;
+                else if (idx === this.streamQueueIndex) this.streamQueueIndex = -1;
+                this.renderStreamQueue();
+            });
+        });
+    }
+
     formatTime(seconds) {
         if (!seconds || isNaN(seconds)) return '0:00';
         const mins = Math.floor(seconds / 60);
@@ -322,40 +491,87 @@ class PlatypusRemote {
         return div.innerHTML;
     }
 
-    // Control methods
-    async playPause() {
-        if (!this.isConnected) return;
-        await this.connection.invoke('PlayPause');
+    escapeJsString(text) {
+        // Escape for use inside JS single-quoted string
+        return (text || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     }
 
-    async play() {
+    // Control methods - mode-aware: route to local audio or remote SignalR
+    playPause() {
+        if (this.mode === 'stream') {
+            const audio = this.elements.streamAudio;
+            if (!audio || !this.isStreaming) return;
+            // MUST be synchronous for mobile tap-to-play
+            if (audio.paused) {
+                audio.play().catch(e => console.error('Play failed:', e));
+            } else {
+                audio.pause();
+            }
+            return;
+        }
         if (!this.isConnected) return;
-        await this.connection.invoke('Play');
+        this.connection.invoke('PlayPause').catch(e => console.error('PlayPause failed:', e));
     }
 
-    async pause() {
+    play() {
+        if (this.mode === 'stream') {
+            const audio = this.elements.streamAudio;
+            if (!audio || !this.isStreaming) return;
+            audio.play().catch(e => console.error('Play failed:', e));
+            return;
+        }
         if (!this.isConnected) return;
-        await this.connection.invoke('Pause');
+        this.connection.invoke('Play').catch(e => console.error('Play failed:', e));
     }
 
-    async next() {
+    pause() {
+        if (this.mode === 'stream') {
+            const audio = this.elements.streamAudio;
+            if (audio) audio.pause();
+            return;
+        }
         if (!this.isConnected) return;
-        await this.connection.invoke('Next');
+        this.connection.invoke('Pause').catch(e => console.error('Pause failed:', e));
     }
 
-    async previous() {
+    next() {
+        if (this.mode === 'stream') {
+            this.streamNext();
+            return;
+        }
         if (!this.isConnected) return;
-        await this.connection.invoke('Previous');
+        this.connection.invoke('Next').catch(e => console.error('Next failed:', e));
     }
 
-    async seek(positionSeconds) {
+    previous() {
+        if (this.mode === 'stream') {
+            this.streamPrevious();
+            return;
+        }
         if (!this.isConnected) return;
-        await this.connection.invoke('Seek', positionSeconds);
+        this.connection.invoke('Previous').catch(e => console.error('Previous failed:', e));
     }
 
-    async setVolume(volume) {
+    seek(positionSeconds) {
+        if (this.mode === 'stream') {
+            const audio = this.elements.streamAudio;
+            if (audio && audio.duration) {
+                audio.currentTime = positionSeconds;
+            }
+            return;
+        }
         if (!this.isConnected) return;
-        await this.connection.invoke('SetVolume', volume);
+        this.connection.invoke('Seek', positionSeconds).catch(e => console.error('Seek failed:', e));
+    }
+
+    setVolume(volume) {
+        if (this.mode === 'stream') {
+            const audio = this.elements.streamAudio;
+            if (audio) audio.volume = volume;
+            return;
+        }
+        if (!this.isConnected) return;
+        this.connection.invoke('SetVolume', volume).catch(e => console.error('SetVolume failed:', e));
     }
 
     async toggleShuffle() {
@@ -368,9 +584,63 @@ class PlatypusRemote {
         await this.connection.invoke('ToggleRepeat');
     }
 
-    async playQueueItem(index) {
+    playQueueItem(index) {
+        if (this.mode === 'stream') {
+            // Play from stream queue
+            if (index >= 0 && index < this.streamQueue.length) {
+                this.streamQueueIndex = index;
+                const item = this.streamQueue[index];
+                if (item?.filePath) this.playLocalAudio(item.filePath, item);
+                this.renderQueue(); // Update current highlight
+            }
+            return;
+        }
         if (!this.isConnected) return;
-        await this.connection.invoke('PlayQueueItem', index);
+        this.connection.invoke('PlayQueueItem', index).catch(e => console.error('PlayQueueItem failed:', e));
+    }
+
+    // Stream mode: advance to next track (stream queue first, then library)
+    streamNext() {
+        // Use stream queue if it has items
+        if (this.streamQueue.length > 0) {
+            this.streamQueueIndex = (this.streamQueueIndex + 1) % this.streamQueue.length;
+            const item = this.streamQueue[this.streamQueueIndex];
+            if (item?.filePath) {
+                this.playLocalAudio(item.filePath, item);
+                this.renderQueue();
+            }
+            return;
+        }
+        // Fallback to library
+        if (!this.library.length) return;
+        this.streamLibraryIndex = (this.streamLibraryIndex + 1) % this.library.length;
+        const item = this.library[this.streamLibraryIndex];
+        if (item?.filePath) this.playLocalAudio(item.filePath, item);
+    }
+
+    // Stream mode: go to previous track
+    streamPrevious() {
+        // If more than 3s in, restart current track
+        const audio = this.elements.streamAudio;
+        if (audio && audio.currentTime > 3) {
+            audio.currentTime = 0;
+            return;
+        }
+        // Use stream queue if it has items
+        if (this.streamQueue.length > 0) {
+            this.streamQueueIndex = (this.streamQueueIndex - 1 + this.streamQueue.length) % this.streamQueue.length;
+            const item = this.streamQueue[this.streamQueueIndex];
+            if (item?.filePath) {
+                this.playLocalAudio(item.filePath, item);
+                this.renderQueue();
+            }
+            return;
+        }
+        // Fallback to library
+        if (!this.library.length) return;
+        this.streamLibraryIndex = (this.streamLibraryIndex - 1 + this.library.length) % this.library.length;
+        const item = this.library[this.streamLibraryIndex];
+        if (item?.filePath) this.playLocalAudio(item.filePath, item);
     }
 
     // Tab Navigation
@@ -391,6 +661,11 @@ class PlatypusRemote {
         // Load library data when switching to library tab
         if (tabId === 'libraryTab' && this.library.length === 0) {
             this.loadLibrary();
+        }
+
+        // Re-render queue when switching to queue tab (mode-aware)
+        if (tabId === 'queueTab') {
+            this.renderQueue();
         }
     }
 
@@ -510,38 +785,157 @@ class PlatypusRemote {
                     <div class="title">${this.escapeHtml(item.title || item.fileName || 'Unknown')}</div>
                     <div class="subtitle">${this.escapeHtml(item.artist || 'Unknown Artist')}</div>
                 </div>
-                <button class="action" onclick="event.stopPropagation(); platypusRemote.playLibraryItem('${this.escapeHtml(item.filePath || '')}')">▶️</button>
+                <button class="action play-btn" data-path="${this.escapeHtml(item.filePath || '')}">▶️</button>
             </div>
         `).join('');
 
-        // Bind click events
+        // Bind play button click events - SYNC for mobile audio
+        this.elements.libraryList.querySelectorAll('.play-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const path = btn.dataset.path;
+                if (!path) return;
+                
+                // For stream mode, play audio SYNCHRONOUSLY (required for mobile)
+                if (this.mode === 'stream') {
+                    const idx = parseInt(btn.closest('.library-item')?.dataset.index || '0');
+                    const libraryItem = items[idx];
+                    this.playLocalAudio(path, libraryItem);
+                    this.switchTab('nowPlayingTab');
+                } else {
+                    // Control mode can be async
+                    this.playOnPC(path);
+                }
+            });
+        });
+
+        // Bind row click events for queue (mode-aware)
         this.elements.libraryList.querySelectorAll('.library-item').forEach(item => {
             item.addEventListener('click', () => {
                 const path = item.dataset.path;
-                if (path) this.addToQueue(path);
+                if (!path) return;
+                const idx = parseInt(item.dataset.index || '0');
+                const libraryItem = items[idx];
+                
+                if (this.mode === 'stream') {
+                    // Add to mobile stream queue
+                    this.addToStreamQueue(path, libraryItem);
+                } else {
+                    // Add to PC queue
+                    this.addToQueue(path);
+                }
             });
         });
     }
 
-    async playLibraryItem(filePath) {
+    async playOnPC(filePath) {
         if (!this.isConnected || !filePath) return;
         try {
             await this.connection.invoke('PlayFile', filePath);
             this.switchTab('nowPlayingTab');
         } catch (error) {
-            console.error('Failed to play file:', error);
+            console.error('Failed to play on PC:', error);
+        }
+    }
+
+    async playLibraryItem(filePath, libraryItem) {
+        if (!filePath) return;
+        
+        if (this.mode === 'stream') {
+            // Stream mode: play directly on phone - MUST be immediate for mobile
+            this.playLocalAudio(filePath, libraryItem);
+            this.switchTab('nowPlayingTab');
+        } else {
+            // Control mode: play on PC via SignalR
+            if (!this.isConnected) return;
+            try {
+                await this.connection.invoke('PlayFile', filePath);
+                this.switchTab('nowPlayingTab');
+            } catch (error) {
+                console.error('Failed to play file:', error);
+            }
+        }
+    }
+
+    playLocalAudio(filePath, libraryItem) {
+        if (!this.elements.streamAudio) return;
+        
+        const streamUrl = `/api/stream?path=${encodeURIComponent(filePath)}`;
+        const audio = this.elements.streamAudio;
+        
+        // Set source and play immediately - no async between click and play (mobile requirement)
+        audio.src = streamUrl;
+        audio.load();
+        
+        const playPromise = audio.play();
+        if (playPromise) {
+            playPromise.catch(e => console.error('Play failed:', e));
+        }
+        
+        this.isStreaming = true;
+        
+        // Store stream track metadata
+        const filename = filePath.split(/[/\\]/).pop() || 'Unknown';
+        this.streamTrack = {
+            title: libraryItem?.title || filename.replace(/\.[^/.]+$/, ''),
+            artist: libraryItem?.artist || 'Streaming to device',
+            album: libraryItem?.album || '',
+            filePath: filePath
+        };
+
+        // Track library index for next/prev
+        if (libraryItem && this.library.length) {
+            const idx = this.library.findIndex(l => l.filePath === filePath);
+            if (idx >= 0) this.streamLibraryIndex = idx;
+        }
+
+        // Update UI directly (bypass handleNowPlaying which guards against stream mode)
+        this.showStreamTrackUI();
+    }
+
+    addToStreamQueue(filePath, libraryItem) {
+        if (!filePath) return;
+        const filename = filePath.split(/[/\\]/).pop() || 'Unknown';
+        this.streamQueue.push({
+            title: libraryItem?.title || filename.replace(/\.[^/.]+$/, ''),
+            artist: libraryItem?.artist || 'Unknown Artist',
+            album: libraryItem?.album || '',
+            filePath: filePath,
+            fileName: libraryItem?.fileName || filename
+        });
+
+        // If this is the first item and nothing is playing, start playing it
+        if (this.streamQueue.length === 1 && !this.isStreaming) {
+            this.streamQueueIndex = 0;
+            this.playLocalAudio(filePath, libraryItem);
+        }
+
+        // Show feedback
+        const items = this.elements.libraryList?.querySelectorAll('.library-item');
+        items?.forEach(item => {
+            if (item.dataset.path === filePath) {
+                item.style.background = 'var(--success)';
+                setTimeout(() => item.style.background = '', 500);
+            }
+        });
+
+        // Re-render queue if it's visible
+        if (this.currentTab === 'queueTab') {
+            this.renderStreamQueue();
         }
     }
 
     async addToQueue(filePath) {
-        if (!this.isConnected || !filePath) return;
+        if (!filePath || !this.isConnected) return;
         try {
             await this.connection.invoke('AddToQueue', filePath);
             // Show feedback
-            const items = this.elements.libraryList?.querySelectorAll(`[data-path="${filePath}"]`);
+            const items = this.elements.libraryList?.querySelectorAll('.library-item');
             items?.forEach(item => {
-                item.style.background = 'var(--success)';
-                setTimeout(() => item.style.background = '', 500);
+                if (item.dataset.path === filePath) {
+                    item.style.background = 'var(--success)';
+                    setTimeout(() => item.style.background = '', 500);
+                }
             });
         } catch (error) {
             console.error('Failed to add to queue:', error);
@@ -553,40 +947,19 @@ class PlatypusRemote {
         this.isStreaming = !this.isStreaming;
         this.elements.streamToggle?.classList.toggle('active', this.isStreaming);
 
-        if (this.isStreaming) {
-            this.startStreaming();
-        } else {
+        if (!this.isStreaming) {
             this.stopStreaming();
         }
     }
 
-    startStreaming() {
-        if (!this.nowPlaying?.filePath || !this.elements.streamAudio) return;
-
-        // Create streaming URL
-        const streamUrl = `/api/stream?path=${encodeURIComponent(this.nowPlaying.filePath)}`;
-        
-        this.elements.streamAudio.src = streamUrl;
-        this.elements.streamAudio.currentTime = this.nowPlaying.positionSeconds || 0;
-        
-        // Sync with desktop playback
-        if (this.nowPlaying.isPlaying) {
-            this.elements.streamAudio.play().catch(e => console.error('Stream play failed:', e));
-        }
-    }
-
     stopStreaming() {
-        if (this.elements.streamAudio) {
-            this.elements.streamAudio.pause();
-            this.elements.streamAudio.src = '';
+        const audio = this.elements.streamAudio;
+        if (audio) {
+            audio.pause();
+            audio.removeAttribute('src');
+            audio.load(); // Reset the element
         }
-    }
-
-    // Update streaming when track changes
-    updateStreaming() {
-        if (this.isStreaming && this.nowPlaying) {
-            this.startStreaming();
-        }
+        this.isStreaming = false;
     }
 }
 

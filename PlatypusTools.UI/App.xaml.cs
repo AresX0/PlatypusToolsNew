@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using PlatypusTools.Core.Services;
+using PlatypusTools.Core.Services.Remote;
 using PlatypusTools.UI.Views;
 using PlatypusTools.UI.ViewModels;
 using PlatypusTools.UI.Utilities;
@@ -854,6 +855,9 @@ namespace PlatypusTools.UI
                     });
                 };
 
+                // Register the audio player bridge so remote clients can control playback
+                RegisterAudioPlayerBridge();
+
                 await _remoteServer.StartAsync();
                 SimpleLogger.Info($"Platypus Remote Server started at {_remoteServer.ServerUrl}");
             }
@@ -861,6 +865,34 @@ namespace PlatypusTools.UI
             {
                 SimpleLogger.Error($"Failed to start Remote Server: {ex.Message}");
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Registers the audio player bridge for remote control.
+        /// </summary>
+        private void RegisterAudioPlayerBridge()
+        {
+            try
+            {
+                // Get the ViewModel from MainWindow
+                EnhancedAudioPlayerViewModel? viewModel = null;
+                if (MainWindow?.DataContext is MainWindowViewModel mainVm)
+                {
+                    viewModel = mainVm.EnhancedAudioPlayer;
+                }
+
+                // Create and register the provider
+                var provider = new AudioPlayerProviderImpl(
+                    EnhancedAudioPlayerService.Instance,
+                    viewModel
+                );
+                AudioPlayerBridge.RegisterProvider(provider);
+                SimpleLogger.Info("Audio player bridge registered for remote control");
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Warn($"Failed to register audio player bridge: {ex.Message}");
             }
         }
 
@@ -874,6 +906,9 @@ namespace PlatypusTools.UI
 
             try
             {
+                // Unregister the audio player bridge
+                AudioPlayerBridge.UnregisterProvider();
+                
                 await _remoteServer.StopAsync();
                 SimpleLogger.Info("Platypus Remote Server stopped");
             }

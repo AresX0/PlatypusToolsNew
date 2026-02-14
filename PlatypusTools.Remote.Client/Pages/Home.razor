@@ -1,10 +1,23 @@
 ﻿@page "/"
+@using PlatypusTools.Remote.Client.Services
 @inject PlayerStateService PlayerState
 @implements IDisposable
 
 <PageTitle>Platypus Remote</PageTitle>
 
 <div class="now-playing-container">
+    <!-- Mode Selector -->
+    <div class="mode-selector">
+        <button class="mode-btn @(PlayerState.Mode == PlayerMode.RemoteControl ? "active" : "")" 
+                @onclick="() => SetModeAsync(PlayerMode.RemoteControl)">
+            🖥️ Control PC
+        </button>
+        <button class="mode-btn @(PlayerState.Mode == PlayerMode.RemoteStream ? "active" : "")" 
+                @onclick="() => SetModeAsync(PlayerMode.RemoteStream)">
+            📱 Stream to Phone
+        </button>
+    </div>
+
     @if (!PlayerState.IsConnected)
     {
         <div class="connection-status disconnected">
@@ -15,7 +28,7 @@
     else
     {
         <div class="connection-status connected">
-            <span>● Connected</span>
+            <span>● Connected (@(PlayerState.Mode == PlayerMode.RemoteControl ? "Controlling PC" : "Streaming to Phone"))</span>
         </div>
     }
 
@@ -40,7 +53,7 @@
 
     <div class="progress-container">
         <span class="time-current">@FormatTime(PlayerState.NowPlaying.Position)</span>
-        <div class="progress-bar">
+        <div class="progress-bar" @onclick="OnProgressBarClick">
             <div class="progress-fill" style="width: @(PlayerState.NowPlaying.PositionPercent * 100)%"></div>
         </div>
         <span class="time-total">@FormatTime(PlayerState.NowPlaying.Duration)</span>
@@ -87,6 +100,7 @@
     protected override async Task OnInitializedAsync()
     {
         PlayerState.OnStateChanged += StateHasChanged;
+        PlayerState.OnModeChanged += OnModeChanged;
         await ConnectAsync();
     }
 
@@ -102,6 +116,16 @@
         }
     }
 
+    private async Task SetModeAsync(PlayerMode mode)
+    {
+        await PlayerState.SetModeAsync(mode);
+    }
+
+    private void OnModeChanged(PlayerMode mode)
+    {
+        StateHasChanged();
+    }
+
     private async Task PlayAsync() => await PlayerState.PlayAsync();
     private async Task PauseAsync() => await PlayerState.PauseAsync();
     private async Task NextAsync() => await PlayerState.NextTrackAsync();
@@ -115,6 +139,13 @@
         }
     }
 
+    private async Task OnProgressBarClick(MouseEventArgs e)
+    {
+        // Calculate seek position based on click position
+        // This is a simplified approach - for precise positioning, would need element bounds
+        // For now, just seek to middle on click (needs JS interop for accurate positioning)
+    }
+
     private string FormatTime(TimeSpan time)
     {
         return time.TotalHours >= 1 
@@ -125,5 +156,6 @@
     public void Dispose()
     {
         PlayerState.OnStateChanged -= StateHasChanged;
+        PlayerState.OnModeChanged -= OnModeChanged;
     }
 }

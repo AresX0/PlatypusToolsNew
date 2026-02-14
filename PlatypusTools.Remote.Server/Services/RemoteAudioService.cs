@@ -1,208 +1,231 @@
-using PlatypusTools.Remote.Server.Models;
+using PlatypusTools.Core.Models.Remote;
+using PlatypusTools.Core.Services.Remote;
 
 namespace PlatypusTools.Remote.Server.Services;
 
 /// <summary>
-/// Implementation of remote audio service.
-/// In production, this will communicate with the PlatypusTools.UI audio player
-/// via a shared interface or inter-process communication.
-/// 
-/// For now, this is a placeholder that returns mock data for testing.
+/// Implementation of remote audio service that bridges to the actual PlatypusTools.UI audio player
+/// via the AudioPlayerBridge. Falls back gracefully if no bridge is registered.
 /// </summary>
 public class RemoteAudioService : IRemoteAudioService
 {
     private readonly ILogger<RemoteAudioService> _logger;
-    
-    // Mock state for testing
-    private bool _isPlaying;
-    private double _currentPosition;
-    private double _volume = 0.75;
-    private int _currentTrackIndex;
-    private readonly List<QueueItemDto> _queue = new();
 
     public RemoteAudioService(ILogger<RemoteAudioService> logger)
     {
         _logger = logger;
-        
-        // Initialize with mock data
-        _queue.AddRange(new[]
-        {
-            new QueueItemDto { Index = 0, Title = "Sample Track 1", Artist = "Artist A", Duration = TimeSpan.FromMinutes(3.5), FilePath = "C:\\Music\\track1.mp3" },
-            new QueueItemDto { Index = 1, Title = "Sample Track 2", Artist = "Artist B", Duration = TimeSpan.FromMinutes(4.2), FilePath = "C:\\Music\\track2.mp3" },
-            new QueueItemDto { Index = 2, Title = "Sample Track 3", Artist = "Artist C", Duration = TimeSpan.FromMinutes(2.8), FilePath = "C:\\Music\\track3.mp3" },
-        });
     }
+
+    private bool HasProvider => AudioPlayerBridge.Provider != null;
 
     public Task PlayAsync()
     {
-        _isPlaying = true;
-        _logger.LogInformation("Remote: Play");
+        if (HasProvider)
+        {
+            AudioPlayerBridge.Provider!.Play();
+            _logger.LogInformation("Remote: Play (bridged)");
+        }
+        else
+        {
+            _logger.LogWarning("Remote: Play - no provider registered");
+        }
         return Task.CompletedTask;
     }
 
     public Task PauseAsync()
     {
-        _isPlaying = false;
-        _logger.LogInformation("Remote: Pause");
+        if (HasProvider)
+        {
+            AudioPlayerBridge.Provider!.Pause();
+            _logger.LogInformation("Remote: Pause (bridged)");
+        }
+        else
+        {
+            _logger.LogWarning("Remote: Pause - no provider registered");
+        }
         return Task.CompletedTask;
     }
 
     public Task StopAsync()
     {
-        _isPlaying = false;
-        _currentPosition = 0;
-        _logger.LogInformation("Remote: Stop");
+        if (HasProvider)
+        {
+            AudioPlayerBridge.Provider!.Stop();
+            _logger.LogInformation("Remote: Stop (bridged)");
+        }
         return Task.CompletedTask;
     }
 
     public Task NextTrackAsync()
     {
-        if (_queue.Count > 0)
+        if (HasProvider)
         {
-            _currentTrackIndex = (_currentTrackIndex + 1) % _queue.Count;
-            _currentPosition = 0;
+            AudioPlayerBridge.Provider!.NextTrack();
+            _logger.LogInformation("Remote: Next track (bridged)");
         }
-        _logger.LogInformation("Remote: Next track -> {Index}", _currentTrackIndex);
         return Task.CompletedTask;
     }
 
     public Task PreviousTrackAsync()
     {
-        if (_queue.Count > 0)
+        if (HasProvider)
         {
-            _currentTrackIndex = (_currentTrackIndex - 1 + _queue.Count) % _queue.Count;
-            _currentPosition = 0;
+            AudioPlayerBridge.Provider!.PreviousTrack();
+            _logger.LogInformation("Remote: Previous track (bridged)");
         }
-        _logger.LogInformation("Remote: Previous track -> {Index}", _currentTrackIndex);
         return Task.CompletedTask;
     }
 
     public Task SeekAsync(double position)
     {
-        _currentPosition = Math.Clamp(position, 0, 1);
-        _logger.LogInformation("Remote: Seek to {Position:P0}", _currentPosition);
+        if (HasProvider)
+        {
+            AudioPlayerBridge.Provider!.Seek(position);
+            _logger.LogInformation("Remote: Seek to {Position:P0} (bridged)", position);
+        }
         return Task.CompletedTask;
     }
 
     public Task SetVolumeAsync(double volume)
     {
-        _volume = Math.Clamp(volume, 0, 1);
-        _logger.LogInformation("Remote: Volume set to {Volume:P0}", _volume);
+        if (HasProvider)
+        {
+            AudioPlayerBridge.Provider!.SetVolume(volume);
+            _logger.LogInformation("Remote: Volume set to {Volume:P0} (bridged)", volume);
+        }
         return Task.CompletedTask;
     }
 
     public Task<NowPlayingDto> GetNowPlayingAsync()
     {
-        var current = _queue.Count > 0 && _currentTrackIndex < _queue.Count 
-            ? _queue[_currentTrackIndex] 
-            : null;
-
+        if (HasProvider)
+        {
+            var provider = AudioPlayerBridge.Provider!;
+            var queue = provider.GetQueue();
+            
+            return Task.FromResult(new NowPlayingDto
+            {
+                IsPlaying = provider.IsPlaying,
+                Title = provider.CurrentTrackTitle ?? "Nothing Playing",
+                Artist = provider.CurrentTrackArtist ?? "",
+                Album = provider.CurrentTrackAlbum ?? "",
+                Duration = provider.Duration,
+                Position = provider.Position,
+                PositionPercent = provider.Duration.TotalSeconds > 0 
+                    ? provider.Position.TotalSeconds / provider.Duration.TotalSeconds 
+                    : 0,
+                Volume = provider.Volume,
+                AlbumArtUrl = null,
+                QueueIndex = provider.CurrentTrackIndex,
+                QueueLength = queue.Count
+            });
+        }
+        
         return Task.FromResult(new NowPlayingDto
         {
-            IsPlaying = _isPlaying,
-            Title = current?.Title ?? "Nothing Playing",
-            Artist = current?.Artist ?? "",
-            Album = "Sample Album",
-            Duration = current?.Duration ?? TimeSpan.Zero,
-            Position = TimeSpan.FromSeconds((current?.Duration.TotalSeconds ?? 0) * _currentPosition),
-            PositionPercent = _currentPosition,
-            Volume = _volume,
+            IsPlaying = false,
+            Title = "Not Connected",
+            Artist = "No audio player connected",
+            Album = "",
+            Duration = TimeSpan.Zero,
+            Position = TimeSpan.Zero,
+            PositionPercent = 0,
+            Volume = 0.5,
             AlbumArtUrl = null,
-            QueueIndex = _currentTrackIndex,
-            QueueLength = _queue.Count
+            QueueIndex = 0,
+            QueueLength = 0
         });
     }
 
     public Task<IReadOnlyList<QueueItemDto>> GetQueueAsync()
     {
-        // Update indices
-        for (int i = 0; i < _queue.Count; i++)
+        if (HasProvider)
         {
-            _queue[i].Index = i;
-            _queue[i].IsCurrentTrack = i == _currentTrackIndex;
+            var queue = AudioPlayerBridge.Provider!.GetQueue();
+            return Task.FromResult(queue);
         }
-        return Task.FromResult<IReadOnlyList<QueueItemDto>>(_queue.AsReadOnly());
+        return Task.FromResult<IReadOnlyList<QueueItemDto>>(Array.Empty<QueueItemDto>());
     }
 
     public Task ClearQueueAsync()
     {
-        _queue.Clear();
-        _currentTrackIndex = 0;
-        _isPlaying = false;
-        _logger.LogInformation("Remote: Queue cleared");
+        if (HasProvider)
+        {
+            AudioPlayerBridge.Provider!.ClearQueue();
+            _logger.LogInformation("Remote: Queue cleared (bridged)");
+        }
         return Task.CompletedTask;
     }
 
     public Task ShuffleQueueAsync()
     {
-        var random = new Random();
-        for (int i = _queue.Count - 1; i > 0; i--)
+        if (HasProvider)
         {
-            int j = random.Next(i + 1);
-            (_queue[i], _queue[j]) = (_queue[j], _queue[i]);
+            AudioPlayerBridge.Provider!.ShuffleQueue();
+            _logger.LogInformation("Remote: Queue shuffled (bridged)");
         }
-        _logger.LogInformation("Remote: Queue shuffled");
         return Task.CompletedTask;
     }
 
     public Task RemoveFromQueueAsync(int index)
     {
-        if (index >= 0 && index < _queue.Count)
+        if (HasProvider)
         {
-            _queue.RemoveAt(index);
-            if (_currentTrackIndex >= _queue.Count)
-                _currentTrackIndex = Math.Max(0, _queue.Count - 1);
+            AudioPlayerBridge.Provider!.RemoveFromQueue(index);
+            _logger.LogInformation("Remote: Removed queue item {Index} (bridged)", index);
         }
-        _logger.LogInformation("Remote: Removed queue item at {Index}", index);
         return Task.CompletedTask;
     }
 
     public Task PlayQueueItemAsync(int index)
     {
-        if (index >= 0 && index < _queue.Count)
+        if (HasProvider)
         {
-            _currentTrackIndex = index;
-            _currentPosition = 0;
-            _isPlaying = true;
+            AudioPlayerBridge.Provider!.PlayQueueItem(index);
+            _logger.LogInformation("Remote: Playing queue item {Index} (bridged)", index);
         }
-        _logger.LogInformation("Remote: Playing queue item {Index}", index);
         return Task.CompletedTask;
     }
 
     public Task AddToQueueAsync(string path)
     {
-        _queue.Add(new QueueItemDto
+        if (HasProvider)
         {
-            Index = _queue.Count,
-            Title = Path.GetFileNameWithoutExtension(path),
-            Artist = "Unknown Artist",
-            Duration = TimeSpan.FromMinutes(3),
-            FilePath = path
-        });
-        _logger.LogInformation("Remote: Added to queue: {Path}", path);
+            AudioPlayerBridge.Provider!.AddToQueue(path);
+            _logger.LogInformation("Remote: Added to queue: {Path} (bridged)", path);
+        }
         return Task.CompletedTask;
     }
 
     public Task<IReadOnlyList<LibraryFolderDto>> GetLibraryFoldersAsync()
     {
-        // Mock data - in production, this would read from PlatypusTools settings
-        var folders = new List<LibraryFolderDto>
+        if (HasProvider)
         {
-            new() { Path = "C:\\Music", Name = "Music", FileCount = 150 },
-            new() { Path = "C:\\Downloads\\Audio", Name = "Downloads", FileCount = 25 }
-        };
-        return Task.FromResult<IReadOnlyList<LibraryFolderDto>>(folders);
+            var folders = AudioPlayerBridge.Provider!.GetLibraryFolders();
+            _logger.LogInformation("Remote: Got {Count} library folders (bridged)", folders.Count);
+            return Task.FromResult(folders);
+        }
+        return Task.FromResult<IReadOnlyList<LibraryFolderDto>>(Array.Empty<LibraryFolderDto>());
     }
 
     public Task<IReadOnlyList<LibraryFileDto>> GetLibraryFilesAsync(string path)
     {
-        // Mock data - in production, this would browse actual files
-        var files = new List<LibraryFileDto>
+        if (HasProvider)
         {
-            new() { Path = Path.Combine(path, "song1.mp3"), Name = "song1.mp3", Size = 5_000_000, IsDirectory = false },
-            new() { Path = Path.Combine(path, "song2.mp3"), Name = "song2.mp3", Size = 4_500_000, IsDirectory = false },
-            new() { Path = Path.Combine(path, "Subfolder"), Name = "Subfolder", Size = 0, IsDirectory = true }
-        };
-        return Task.FromResult<IReadOnlyList<LibraryFileDto>>(files);
+            var files = AudioPlayerBridge.Provider!.GetLibraryFiles(path);
+            _logger.LogInformation("Remote: Got {Count} files from {Path} (bridged)", files.Count, path);
+            return Task.FromResult(files);
+        }
+        return Task.FromResult<IReadOnlyList<LibraryFileDto>>(Array.Empty<LibraryFileDto>());
+    }
+
+    public Task PlayFileAsync(string path)
+    {
+        if (HasProvider)
+        {
+            AudioPlayerBridge.Provider!.PlayFile(path);
+            _logger.LogInformation("Remote: Playing file: {Path} (bridged)", path);
+        }
+        return Task.CompletedTask;
     }
 }

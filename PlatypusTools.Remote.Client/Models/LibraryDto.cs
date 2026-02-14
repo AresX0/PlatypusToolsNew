@@ -1,4 +1,4 @@
-namespace PlatypusTools.Remote.Server.Models;
+namespace PlatypusTools.Remote.Client.Models;
 
 /// <summary>
 /// Library folder for browsing.

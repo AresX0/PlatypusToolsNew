@@ -472,3 +472,69 @@ body {
         margin-top: env(safe-area-inset-top);
     }
 }
+
+/* Mode Selector */
+.mode-selector {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background: #1a1a1a;
+    border-radius: 8px;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 2px solid #333;
+    background: #222;
+    color: #888;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.mode-btn:hover {
+    background: #333;
+    color: #fff;
+}
+
+.mode-btn.active {
+    background: #6200EA;
+    border-color: #7c3aed;
+    color: #fff;
+}
+
+/* Streaming indicator */
+.streaming-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    background: #0d47a1;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 0.875rem;
+}
+
+.streaming-indicator::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4caf50;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
