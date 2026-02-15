@@ -1,4 +1,5 @@
 using PlatypusTools.Core.Services;
+using PlatypusTools.UI.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -325,6 +326,8 @@ namespace PlatypusTools.UI.ViewModels
             {
                 StatusMessage = $"Removing {selectedItems.Count} shortcuts...";
                 int removed = 0;
+                var undoOps = new System.Collections.Generic.List<FileOperation>();
+                var undoBackupDir = Path.Combine(Path.GetTempPath(), "PlatypusTools", "UndoBackups");
 
                 await Task.Run(() =>
                 {
@@ -334,7 +337,12 @@ namespace PlatypusTools.UI.ViewModels
                         {
                             if (File.Exists(item.Path))
                             {
+                                // Backup for undo
+                                Directory.CreateDirectory(undoBackupDir);
+                                var backupPath = Path.Combine(undoBackupDir, Guid.NewGuid().ToString("N") + Path.GetExtension(item.Path));
+                                File.Copy(item.Path, backupPath);
                                 File.Delete(item.Path);
+                                undoOps.Add(new FileOperation { Type = OperationType.Delete, OriginalPath = item.Path, BackupPath = backupPath, Timestamp = DateTime.Now });
                                 removed++;
                             }
                         }
@@ -344,6 +352,9 @@ namespace PlatypusTools.UI.ViewModels
                         }
                     }
                 });
+
+                if (undoOps.Count > 0)
+                    UndoRedoService.Instance.RecordBatch(undoOps, $"Remove {undoOps.Count} recent shortcuts");
 
                 // Remove from list
                 foreach (var item in selectedItems)

@@ -28,7 +28,7 @@ namespace PlatypusTools.UI.Services
         
         private RecentWorkspacesService()
         {
-            var appFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PlatypusTools");
+            var appFolder = SettingsManager.DataDirectory;
             Directory.CreateDirectory(appFolder);
             _dataFile = Path.Combine(appFolder, "workspaces.json");
             _data = LoadData();

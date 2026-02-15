@@ -62,8 +62,7 @@ public class RemoteAuditLogService : IDisposable
     public RemoteAuditLogService()
     {
         _logDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "PlatypusTools", "RemoteAuditLogs");
+            SettingsManager.DataDirectory, "RemoteAuditLogs");
         Directory.CreateDirectory(_logDirectory);
 
         _jsonOptions = new JsonSerializerOptions

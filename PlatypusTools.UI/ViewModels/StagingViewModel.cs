@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using PlatypusTools.UI.Services;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -82,6 +83,7 @@ namespace PlatypusTools.UI.ViewModels
                         i++;
                     }
                     File.Copy(s.StagedPath, dest);
+                    UndoRedoService.Instance.RecordCopy(s.StagedPath, dest);
                 }
                 catch { }
             }
@@ -90,33 +92,58 @@ namespace PlatypusTools.UI.ViewModels
 
         public void RemoveSelected()
         {
+            var undoOps = new System.Collections.Generic.List<FileOperation>();
+            var undoBackupDir = Path.Combine(Path.GetTempPath(), "PlatypusTools", "UndoBackups");
             foreach (var s in StagedFiles.Where(s => s.IsSelected).ToList())
             {
                 try
                 {
+                    // Backup for undo before deleting
+                    string? backupPath = null;
+                    if (File.Exists(s.StagedPath))
+                    {
+                        System.IO.Directory.CreateDirectory(undoBackupDir);
+                        backupPath = Path.Combine(undoBackupDir, System.Guid.NewGuid().ToString("N") + Path.GetExtension(s.StagedPath));
+                        File.Copy(s.StagedPath, backupPath);
+                    }
                     File.Delete(s.StagedPath);
+                    undoOps.Add(new FileOperation { Type = OperationType.Delete, OriginalPath = s.StagedPath, BackupPath = backupPath, Timestamp = System.DateTime.Now });
                     var meta = s.StagedPath + ".meta";
                     if (File.Exists(meta)) File.Delete(meta);
                 }
                 catch { }
             }
+            if (undoOps.Count > 0)
+                UndoRedoService.Instance.RecordBatch(undoOps, $"Remove {undoOps.Count} staged files");
             LoadStagedFiles();
         }
 
         public void CommitSelected()
         {
+            var undoOps = new System.Collections.Generic.List<FileOperation>();
+            var undoBackupDir = Path.Combine(Path.GetTempPath(), "PlatypusTools", "UndoBackups");
             // Commit defined here as deleting the original file that the staged copy came from
             foreach (var s in StagedFiles.Where(s => s.IsSelected).ToList())
             {
                 try
                 {
-                    if (!string.IsNullOrWhiteSpace(s.OriginalPath) && File.Exists(s.OriginalPath)) File.Delete(s.OriginalPath);
+                    if (!string.IsNullOrWhiteSpace(s.OriginalPath) && File.Exists(s.OriginalPath))
+                    {
+                        // Backup original for undo
+                        System.IO.Directory.CreateDirectory(undoBackupDir);
+                        var backupPath = Path.Combine(undoBackupDir, System.Guid.NewGuid().ToString("N") + Path.GetExtension(s.OriginalPath));
+                        File.Copy(s.OriginalPath, backupPath);
+                        File.Delete(s.OriginalPath);
+                        undoOps.Add(new FileOperation { Type = OperationType.Delete, OriginalPath = s.OriginalPath, BackupPath = backupPath, Timestamp = System.DateTime.Now });
+                    }
                     File.Delete(s.StagedPath);
                     var meta = s.StagedPath + ".meta";
                     if (File.Exists(meta)) File.Delete(meta);
                 }
                 catch { }
             }
+            if (undoOps.Count > 0)
+                UndoRedoService.Instance.RecordBatch(undoOps, $"Commit {undoOps.Count} staged files");
             LoadStagedFiles();
         }
     }

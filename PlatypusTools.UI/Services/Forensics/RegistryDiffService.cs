@@ -107,8 +107,7 @@ namespace PlatypusTools.UI.Services.Forensics
     public class RegistryDiffService : ForensicOperationBase
     {
         private static readonly string SnapshotsPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "PlatypusTools", "RegistrySnapshots");
+            PlatypusTools.UI.Services.SettingsManager.DataDirectory, "RegistrySnapshots");
 
         public override string OperationName => "Registry Diff Tool";
 

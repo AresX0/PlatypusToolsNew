@@ -525,7 +525,9 @@ namespace PlatypusTools.UI.ViewModels
                     PlatypusTools.UI.Services.ThemeManager.LCARS,
                     PlatypusTools.UI.Services.ThemeManager.Klingon,
                     PlatypusTools.UI.Services.ThemeManager.PipBoy,
-                    PlatypusTools.UI.Services.ThemeManager.KPopDemonHunters
+                    PlatypusTools.UI.Services.ThemeManager.KPopDemonHunters,
+                    PlatypusTools.UI.Services.ThemeManager.Glass,
+                    PlatypusTools.UI.Services.ThemeManager.HighContrast
                 };
                 var customThemes = PlatypusTools.UI.Services.ThemeManager.GetCustomThemeNames();
                 var allThemes = new System.Collections.Generic.List<string>(builtInThemes);
@@ -548,7 +550,8 @@ namespace PlatypusTools.UI.ViewModels
                 else
                 {
                     PlatypusTools.UI.Services.ThemeManager.ApplyTheme(nextTheme);
-                    IsDarkTheme = nextTheme != PlatypusTools.UI.Services.ThemeManager.Light;
+                    IsDarkTheme = nextTheme != PlatypusTools.UI.Services.ThemeManager.Light 
+                               && nextTheme != PlatypusTools.UI.Services.ThemeManager.Glass;
                 }
                 
                 PlatypusTools.UI.Services.SettingsManager.Current.Theme = nextTheme;

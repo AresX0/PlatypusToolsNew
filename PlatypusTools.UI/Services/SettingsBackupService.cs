@@ -22,9 +22,7 @@ namespace PlatypusTools.UI.Services
 
         public SettingsBackupService()
         {
-            _appDataPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "PlatypusTools");
+            _appDataPath = SettingsManager.DataDirectory;
         }
 
         /// <summary>

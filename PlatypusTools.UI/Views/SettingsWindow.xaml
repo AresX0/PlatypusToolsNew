@@ -27,6 +27,7 @@
             
             <!-- Navigation -->
             <ListBox x:Name="NavList" Grid.Column="0" 
+                     AutomationProperties.Name="Settings Navigation"
                      Background="{DynamicResource SurfaceBrush}"
                      BorderThickness="0"
                      SelectionChanged="NavList_SelectionChanged">
@@ -135,7 +136,8 @@
                                         <ColumnDefinition Width="100"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="Undo history limit:" VerticalAlignment="Center"/>
-                                    <TextBox x:Name="UndoLimitText" Grid.Column="1" Text="100" Margin="8,0,0,0"/>
+                                    <TextBox x:Name="UndoLimitText" Grid.Column="1" Text="100" Margin="8,0,0,0"
+                                             AutomationProperties.Name="Undo History Limit"/>
                                 </Grid>
                             </StackPanel>
                         </GroupBox>
@@ -149,7 +151,8 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="Log level:" VerticalAlignment="Center"/>
-                                    <ComboBox x:Name="LogLevelCombo" Grid.Column="1" Margin="8,0,0,0" Width="150" HorizontalAlignment="Left">
+                                    <ComboBox x:Name="LogLevelCombo" Grid.Column="1" Margin="8,0,0,0" Width="150" HorizontalAlignment="Left"
+                                              AutomationProperties.Name="Log Level">
                                         <ComboBoxItem Content="Debug"/>
                                         <ComboBoxItem Content="Info" IsSelected="True"/>
                                         <ComboBoxItem Content="Warning"/>
@@ -168,23 +171,24 @@
                             <StackPanel Margin="8">
                                 <RadioButton x:Name="LightThemeRadio" Content="Light" GroupName="Theme" IsChecked="True" Margin="0,4"/>
                                 <RadioButton x:Name="DarkThemeRadio" Content="Dark" GroupName="Theme" Margin="0,4"/>
+                                <RadioButton x:Name="GlassThemeRadio" Content="Aero Glass (Windows 10/11)" GroupName="Theme" Margin="0,4"
+                                             Checked="ThemeRadio_Changed" Unchecked="ThemeRadio_Changed"/>
                                 <RadioButton x:Name="LCARSThemeRadio" Content="LCARS (Star Trek)" GroupName="Theme" Margin="0,4"/>
                                 <RadioButton x:Name="KlingonThemeRadio" Content="Klingon (tlhIngan)" GroupName="Theme" Margin="0,4"/>
                                 <RadioButton x:Name="PipBoyThemeRadio" Content="Pip-Boy (Fallout)" GroupName="Theme" Margin="0,4"/>
                                 <RadioButton x:Name="KPopDemonHuntersThemeRadio" Content="K-Pop Demon Hunters" GroupName="Theme" Margin="0,4"/>
+                                <RadioButton x:Name="HighContrastThemeRadio" Content="High Contrast (Accessibility)" GroupName="Theme" Margin="0,4"/>
                                 <RadioButton x:Name="SystemThemeRadio" Content="Use system setting" GroupName="Theme" Margin="0,4"/>
                                 <Button Content="Customize Theme..." MinWidth="190" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CustomizeTheme_Click"/>
                             </StackPanel>
                         </GroupBox>
                         
-                        <GroupBox Header="Aero Glass Effect (Windows 10/11)" Margin="0,0,0,16">
+                        <GroupBox Header="Glass Intensity" Margin="0,0,0,16" x:Name="GlassIntensityGroup" IsEnabled="False">
                             <StackPanel Margin="8">
-                                <CheckBox x:Name="GlassEffectCheck" Content="Enable Aero Glass transparency" Margin="0,4" 
-                                          Checked="GlassEffectCheck_Changed" Unchecked="GlassEffectCheck_Changed"/>
-                                <StackPanel Orientation="Horizontal" Margin="0,8,0,4">
+                                <StackPanel Orientation="Horizontal" Margin="0,4">
                                     <TextBlock Text="Glass Intensity:" VerticalAlignment="Center" Width="100"/>
-                                    <ComboBox x:Name="GlassLevelCombo" Width="150" SelectionChanged="GlassLevelCombo_SelectionChanged">
-                                        <ComboBoxItem Content="Off" Tag="Off"/>
+                                    <ComboBox x:Name="GlassLevelCombo" Width="150" SelectionChanged="GlassLevelCombo_SelectionChanged"
+                                              AutomationProperties.Name="Glass Intensity Level">
                                         <ComboBoxItem Content="Subtle" Tag="Low"/>
                                         <ComboBoxItem Content="Medium" Tag="Medium" IsSelected="True"/>
                                         <ComboBoxItem Content="Strong" Tag="High"/>
@@ -210,7 +214,8 @@
                                            TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource ForegroundDimBrush}" Margin="0,0,0,8"/>
                                 <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                                     <TextBlock Text="Font Family:" VerticalAlignment="Center" Width="100"/>
-                                    <ComboBox x:Name="FontFamilyCombo" Width="200" SelectionChanged="FontFamilyCombo_SelectionChanged">
+                                    <ComboBox x:Name="FontFamilyCombo" Width="200" SelectionChanged="FontFamilyCombo_SelectionChanged"
+                                              AutomationProperties.Name="Font Family">
                                         <ComboBoxItem Content="Default (Theme)" Tag="Default" IsSelected="True"/>
                                         <ComboBoxItem Content="Segoe UI" Tag="Segoe UI"/>
                                         <ComboBoxItem Content="Consolas" Tag="Consolas"/>
@@ -224,6 +229,7 @@
                                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                                     <TextBlock Text="Font Scale:" VerticalAlignment="Center" Width="100"/>
                                     <Slider x:Name="FontScaleSlider" Minimum="0.5" Maximum="2.0" Value="1.0" Width="150" 
+                                            AutomationProperties.Name="Font Scale"
                                             TickFrequency="0.1" IsSnapToTickEnabled="True" 
                                             ValueChanged="FontScaleSlider_ValueChanged"/>
                                     <TextBlock x:Name="FontScaleLabel" Text="100%" Width="50" VerticalAlignment="Center" Margin="8,0,0,0"/>
@@ -268,7 +274,8 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="Provider:" VerticalAlignment="Center"/>
-                                    <ComboBox x:Name="AIProviderCombo" Grid.Column="1" Width="200" HorizontalAlignment="Left">
+                                    <ComboBox x:Name="AIProviderCombo" Grid.Column="1" Width="200" HorizontalAlignment="Left"
+                                              AutomationProperties.Name="AI Provider">
                                         <ComboBoxItem Content="OpenAI" IsSelected="True"/>
                                         <ComboBoxItem Content="Azure OpenAI"/>
                                         <ComboBoxItem Content="Anthropic"/>
@@ -281,7 +288,8 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="API Key:" VerticalAlignment="Center"/>
-                                    <PasswordBox x:Name="AIApiKeyBox" Grid.Column="1" MaxWidth="400" HorizontalAlignment="Left"/>
+                                    <PasswordBox x:Name="AIApiKeyBox" Grid.Column="1" MaxWidth="400" HorizontalAlignment="Left"
+                                                 AutomationProperties.Name="AI API Key"/>
                                 </Grid>
                                 
                                 <Grid Margin="0,8">
@@ -290,7 +298,8 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="Model:" VerticalAlignment="Center"/>
-                                    <ComboBox x:Name="AIModelCombo" Grid.Column="1" Width="200" HorizontalAlignment="Left">
+                                    <ComboBox x:Name="AIModelCombo" Grid.Column="1" Width="200" HorizontalAlignment="Left"
+                                              AutomationProperties.Name="AI Model">
                                         <ComboBoxItem Content="gpt-4" IsSelected="True"/>
                                         <ComboBoxItem Content="gpt-4-turbo"/>
                                         <ComboBoxItem Content="gpt-3.5-turbo"/>
@@ -324,7 +333,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.1.7"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.1.8"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="Gray" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
@@ -351,7 +360,8 @@
                                         <ColumnDefinition Width="100"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="Backup interval (days):" VerticalAlignment="Center"/>
-                                    <TextBox x:Name="BackupIntervalText" Grid.Column="1" Text="7" Margin="8,0,0,0"/>
+                                    <TextBox x:Name="BackupIntervalText" Grid.Column="1" Text="7" Margin="8,0,0,0"
+                                             AutomationProperties.Name="Backup Interval in Days"/>
                                 </Grid>
                             </StackPanel>
                         </GroupBox>

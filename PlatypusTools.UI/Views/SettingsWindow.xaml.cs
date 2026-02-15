@@ -65,14 +65,18 @@ namespace PlatypusTools.UI.Views
                     PipBoyThemeRadio.IsChecked = true;
                 else if (settings?.Theme == ThemeManager.KPopDemonHunters)
                     KPopDemonHuntersThemeRadio.IsChecked = true;
+                else if (settings?.Theme == ThemeManager.HighContrast)
+                    HighContrastThemeRadio.IsChecked = true;
+                else if (settings?.Theme == ThemeManager.Glass)
+                    GlassThemeRadio.IsChecked = true;
                 else if (settings?.Theme == ThemeManager.Dark)
                     DarkThemeRadio.IsChecked = true;
                 else if (LightThemeRadio != null)
                     LightThemeRadio.IsChecked = true;
                 
-                // Glass effect
-                if (GlassEffectCheck != null)
-                    GlassEffectCheck.IsChecked = ThemeManager.Instance.IsGlassEnabled;
+                // Glass intensity group enabled only when Glass theme is selected
+                if (GlassIntensityGroup != null)
+                    GlassIntensityGroup.IsEnabled = GlassThemeRadio.IsChecked == true;
                 
                 // Glass level
                 if (GlassLevelCombo != null)
@@ -358,8 +362,14 @@ namespace PlatypusTools.UI.Views
         
         private void GlassEffectCheck_Changed(object sender, RoutedEventArgs e)
         {
-            PlatypusTools.Core.Services.SimpleLogger.Debug($"GlassEffectCheck_Changed: IsChecked={GlassEffectCheck.IsChecked}");
-            ThemeManager.Instance.IsGlassEnabled = GlassEffectCheck.IsChecked == true;
+            // Legacy handler — no longer used (Glass is now a theme radio button)
+        }
+        
+        private void ThemeRadio_Changed(object sender, RoutedEventArgs e)
+        {
+            // Enable/disable the Glass Intensity group based on whether Glass theme is selected
+            if (GlassIntensityGroup != null)
+                GlassIntensityGroup.IsEnabled = GlassThemeRadio.IsChecked == true;
         }
         
         private void GlassLevelCombo_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -903,6 +913,18 @@ namespace PlatypusTools.UI.Views
                 settings.Theme = ThemeManager.KPopDemonHunters;
                 ThemeManager.ApplyTheme(ThemeManager.KPopDemonHunters);
             }
+            else if (HighContrastThemeRadio?.IsChecked == true)
+            {
+                settings.Theme = ThemeManager.HighContrast;
+                ThemeManager.ApplyTheme(ThemeManager.HighContrast);
+            }
+            else if (GlassThemeRadio?.IsChecked == true)
+            {
+                settings.Theme = ThemeManager.Glass;
+                settings.GlassEnabled = true;
+                ThemeManager.Instance.IsGlassEnabled = true;
+                ThemeManager.ApplyTheme(ThemeManager.Glass);
+            }
             else if (DarkThemeRadio.IsChecked == true)
             {
                 settings.Theme = ThemeManager.Dark;
@@ -914,10 +936,12 @@ namespace PlatypusTools.UI.Views
                 ThemeManager.ApplyTheme(ThemeManager.Light);
             }
             
-            // Glass effect - save to settings AND apply
-            var glassEnabled = GlassEffectCheck.IsChecked == true;
-            settings.GlassEnabled = glassEnabled;
-            ThemeManager.Instance.IsGlassEnabled = glassEnabled;
+            // Glass effect - disable if not Glass theme
+            if (GlassThemeRadio?.IsChecked != true)
+            {
+                settings.GlassEnabled = false;
+                ThemeManager.Instance.IsGlassEnabled = false;
+            }
             
             // Glass level
             if (GlassLevelCombo.SelectedItem is System.Windows.Controls.ComboBoxItem levelItem && levelItem.Tag != null)

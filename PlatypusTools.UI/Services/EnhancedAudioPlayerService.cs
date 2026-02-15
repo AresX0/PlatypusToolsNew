@@ -73,8 +73,7 @@ public class EnhancedAudioPlayerService : IDisposable
     // Audio Bookmarks - track position persistence  
     private readonly Dictionary<string, TimeSpan> _bookmarks = new();
     private static readonly string BookmarksFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "PlatypusTools", "audio_bookmarks.json");
+        SettingsManager.DataDirectory, "audio_bookmarks.json");
     
     // Audio Output Device
     private int _selectedDeviceNumber = -1; // -1 = default device
@@ -1906,8 +1905,7 @@ public class EnhancedAudioPlayerService : IDisposable
     #region Queue Persistence
     
     private static readonly string QueueFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "PlatypusTools", "enhanced_audio_queue.json");
+        SettingsManager.DataDirectory, "enhanced_audio_queue.json");
     
     /// <summary>
     /// Saves the current queue to a JSON file for persistence across sessions.

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlatypusTools v3.4.1.7.7.6.5.4 - Help Documentation</title>
+    <title>PlatypusTools v3.4.1.8.8.7.6.5.4 - Help Documentation</title>
     <style>
         :root {
             --primary: #2d5aa8;
@@ -148,7 +148,7 @@
 <header>
     <h1>🦆 PlatypusTools</h1>
     <p>Advanced File Management &amp; Media Tools Suite</p>
-    <div class="version">Version 3.4.1.7.7.6.5.4 | Built with .NET 10 / WPF</div>
+    <div class="version">Version 3.4.1.8.8.7.6.5.4 | Built with .NET 10 / WPF</div>
 </header>
 
 <div class="container">
@@ -913,9 +913,51 @@ ingress:
         <tr><td>Formats</td><td>Streams any format your browser supports (MP3, FLAC, AAC, OGG, WAV, etc.)</td></tr>
     </table>
 
+    <h3>Authentication (Entra ID / Azure AD)</h3>
+    <p>The Remote Server and PWA client are secured with <strong>Microsoft Entra ID</strong> (formerly Azure AD) authentication. All API endpoints and the SignalR hub require a valid JWT token — nothing is accessible without signing in.</p>
+
+    <h4>How It Works</h4>
+    <ul>
+        <li><strong>Server</strong>: Uses <code>Microsoft.Identity.Web</code> with JWT Bearer authentication. Every API endpoint and the SignalR hub (<code>/hub/platypus</code>) has <code>.RequireAuthorization()</code>.</li>
+        <li><strong>Client (PWA)</strong>: Uses <strong>MSAL</strong> (Microsoft Authentication Library) for Blazor WebAssembly. Users sign in via Microsoft redirect flow, receive a token, and use it for all API calls and real-time connections.</li>
+        <li><strong>Rate Limiting</strong>: Authenticated users are limited to 100 requests per minute (fixed window) to prevent abuse.</li>
+    </ul>
+
+    <h4>Setting Up Entra ID App Registration</h4>
+    <ol>
+        <li>Go to <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank">Azure Portal → App registrations</a></li>
+        <li>Click <strong>New registration</strong></li>
+        <li>Name it (e.g., "PlatypusTools Remote"), set supported account types as needed</li>
+        <li>Set <strong>Redirect URI</strong> to <code>https://localhost:47392/authentication/login-callback</code> (type: Single-page application)</li>
+        <li>After creation, go to <strong>Expose an API</strong>:
+            <ul>
+                <li>Set the Application ID URI (e.g., <code>api://YOUR-CLIENT-ID</code>)</li>
+                <li>Add a scope: <code>access_as_user</code> (admin consent optional)</li>
+            </ul>
+        </li>
+        <li>Note the <strong>Application (client) ID</strong> and <strong>Directory (tenant) ID</strong> from the Overview page</li>
+    </ol>
+
+    <h4>Configuring PlatypusTools</h4>
+    <p>Run the configuration script from the project root:</p>
+    <pre><code>.\Configure-PlatypusRemote.ps1 -ClientId "YOUR-CLIENT-ID"
+
+# Optional: specify tenant (defaults to "common" for multi-tenant)
+.\Configure-PlatypusRemote.ps1 -ClientId "YOUR-CLIENT-ID" -TenantId "YOUR-TENANT-ID"
+
+# Optional: set a public URL (Cloudflare Tunnel or custom domain)
+.\Configure-PlatypusRemote.ps1 -ClientId "YOUR-CLIENT-ID" -PublicUrl "https://platypus.yourdomain.com"</code></pre>
+    <p>This updates both the server (<code>appsettings.json</code>) and client (<code>wwwroot/appsettings.json</code>) configuration files with your app registration credentials.</p>
+
+    <div class="tip">
+        <strong>Important:</strong> The default Client IDs in the config files are placeholders. Authentication will not work until you register your own Entra ID app and run <code>Configure-PlatypusRemote.ps1</code>.
+    </div>
+
     <h3>Troubleshooting Remote</h3>
     <table>
         <tr><th>Problem</th><th>Solution</th></tr>
+        <tr><td>Sign-in loop / "AADSTS" error</td><td>Verify your Client ID matches in both server and client configs. Check that the Redirect URI in Azure Portal matches <code>https://localhost:47392/authentication/login-callback</code>.</td></tr>
+        <tr><td>401 Unauthorized on API calls</td><td>Ensure the <code>access_as_user</code> scope is exposed in Azure Portal → Expose an API, and the Client ID in the client config matches the Audience in the server config.</td></tr>
         <tr><td>PWA shows "Connecting..." forever</td><td>Check that the remote server is enabled in Settings and the tunnel is running. Verify the URL is correct.</td></tr>
         <tr><td>Stream mode won't play</td><td>On mobile, the first play <strong>must</strong> come from a user tap (browser security policy). Tap the ▶️ button on a library track or press play/pause.</td></tr>
         <tr><td>Tunnel not connecting</td><td>Ensure <code>cloudflared</code> is running (check Settings). Try restarting the tunnel. Verify your DNS route with <code>cloudflared tunnel route dns</code>.</td></tr>
@@ -1924,7 +1966,7 @@ ingress:
 </div>
 
 <footer>
-    <p>PlatypusTools v3.4.1.7.7.6.5.4 | © 2026 PlatypusTools Project | Built with .NET 10 / WPF</p>
+    <p>PlatypusTools v3.4.1.8.8.7.6.5.4 | © 2026 PlatypusTools Project | Built with .NET 10 / WPF</p>
 </footer>
 
 </body>

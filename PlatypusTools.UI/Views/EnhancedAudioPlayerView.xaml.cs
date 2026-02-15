@@ -555,17 +555,135 @@ public partial class EnhancedAudioPlayerView : UserControl
             Grid.SetColumn(controlsPanel, 1);
             osdGrid.Children.Add(controlsPanel);
             
-            // Right: Progress display
-            var progressPanel = new StackPanel { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
+            // Right: Sensitivity/Density controls + Progress display
+            var rightPanel = new StackPanel { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
+            
+            // Sensitivity row
+            var sensRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 4) };
+            var sensLabel = new TextBlock
+            {
+                Text = $"Sens: {(vm?.VisualizerSensitivity ?? 0.7):F1}",
+                FontSize = 12,
+                Foreground = new SolidColorBrush(Color.FromRgb(200, 200, 200)),
+                VerticalAlignment = VerticalAlignment.Center,
+                MinWidth = 60,
+                Tag = "OsdSensLabel"
+            };
+            var sensDownBtn = new Button
+            {
+                Content = "−",
+                FontSize = 14,
+                Width = 28, Height = 28,
+                Background = new SolidColorBrush(Color.FromArgb(80, 255, 255, 255)),
+                Foreground = Brushes.White,
+                BorderThickness = new Thickness(0),
+                Cursor = Cursors.Hand,
+                Margin = new Thickness(6, 0, 2, 0),
+                ToolTip = "Decrease Sensitivity (S key)"
+            };
+            var sensUpBtn = new Button
+            {
+                Content = "+",
+                FontSize = 14,
+                Width = 28, Height = 28,
+                Background = new SolidColorBrush(Color.FromArgb(80, 255, 255, 255)),
+                Foreground = Brushes.White,
+                BorderThickness = new Thickness(0),
+                Cursor = Cursors.Hand,
+                Margin = new Thickness(2, 0, 0, 0),
+                ToolTip = "Increase Sensitivity (D key)"
+            };
+            sensDownBtn.Click += (s, a) =>
+            {
+                if (vm != null)
+                {
+                    vm.VisualizerSensitivity = Math.Max(0.1, vm.VisualizerSensitivity - 0.1);
+                    sensLabel.Text = $"Sens: {vm.VisualizerSensitivity:F1}";
+                    ShowFullscreenModeToast($"Sensitivity: {vm.VisualizerSensitivity:F1}");
+                }
+            };
+            sensUpBtn.Click += (s, a) =>
+            {
+                if (vm != null)
+                {
+                    vm.VisualizerSensitivity = Math.Min(3.0, vm.VisualizerSensitivity + 0.1);
+                    sensLabel.Text = $"Sens: {vm.VisualizerSensitivity:F1}";
+                    ShowFullscreenModeToast($"Sensitivity: {vm.VisualizerSensitivity:F1}");
+                }
+            };
+            sensRow.Children.Add(sensLabel);
+            sensRow.Children.Add(sensDownBtn);
+            sensRow.Children.Add(sensUpBtn);
+            rightPanel.Children.Add(sensRow);
+            
+            // Density row
+            var densRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 4) };
+            var densLabel = new TextBlock
+            {
+                Text = $"Density: {vm?.Density ?? 32}",
+                FontSize = 12,
+                Foreground = new SolidColorBrush(Color.FromRgb(200, 200, 200)),
+                VerticalAlignment = VerticalAlignment.Center,
+                MinWidth = 60,
+                Tag = "OsdDensLabel"
+            };
+            var densDownBtn = new Button
+            {
+                Content = "−",
+                FontSize = 14,
+                Width = 28, Height = 28,
+                Background = new SolidColorBrush(Color.FromArgb(80, 255, 255, 255)),
+                Foreground = Brushes.White,
+                BorderThickness = new Thickness(0),
+                Cursor = Cursors.Hand,
+                Margin = new Thickness(6, 0, 2, 0),
+                ToolTip = "Decrease Density"
+            };
+            var densUpBtn = new Button
+            {
+                Content = "+",
+                FontSize = 14,
+                Width = 28, Height = 28,
+                Background = new SolidColorBrush(Color.FromArgb(80, 255, 255, 255)),
+                Foreground = Brushes.White,
+                BorderThickness = new Thickness(0),
+                Cursor = Cursors.Hand,
+                Margin = new Thickness(2, 0, 0, 0),
+                ToolTip = "Increase Density"
+            };
+            densDownBtn.Click += (s, a) =>
+            {
+                if (vm != null)
+                {
+                    vm.Density = Math.Max(8, vm.Density - 8);
+                    densLabel.Text = $"Density: {vm.Density}";
+                    ShowFullscreenModeToast($"Density: {vm.Density}");
+                }
+            };
+            densUpBtn.Click += (s, a) =>
+            {
+                if (vm != null)
+                {
+                    vm.Density = Math.Min(256, vm.Density + 8);
+                    densLabel.Text = $"Density: {vm.Density}";
+                    ShowFullscreenModeToast($"Density: {vm.Density}");
+                }
+            };
+            densRow.Children.Add(densLabel);
+            densRow.Children.Add(densDownBtn);
+            densRow.Children.Add(densUpBtn);
+            rightPanel.Children.Add(densRow);
+            
+            // Progress display
             var progressBlock = new TextBlock
             {
                 Text = $"{vm?.PositionDisplay ?? "0:00"} / {vm?.DurationDisplay ?? "0:00"}",
                 FontSize = 14,
                 Foreground = new SolidColorBrush(Color.FromRgb(233, 168, 32))
             };
-            progressPanel.Children.Add(progressBlock);
-            Grid.SetColumn(progressPanel, 2);
-            osdGrid.Children.Add(progressPanel);
+            rightPanel.Children.Add(progressBlock);
+            Grid.SetColumn(rightPanel, 2);
+            osdGrid.Children.Add(rightPanel);
             
             _fullscreenOsd.Child = osdGrid;
             
@@ -654,14 +772,22 @@ public partial class EnhancedAudioPlayerView : UserControl
                 int fps = vm?.VisualizerFps ?? 22;
                 double crawlSpeed = vm?.CrawlScrollSpeed ?? 1.0;
                 
-                // Dispatch directly — no guard, matches normal view behavior
+                // Fast path: just write the raw data. The render tick's ApplySmoothing()
+                // will pick it up. Only do a full UpdateSpectrumData when settings change.
+                // This avoids expensive per-frame mode/density/color/sensitivity/fps
+                // reconfiguration that starves the UI thread of render cycles.
                 fullscreenVisualizer.Dispatcher.BeginInvoke(
                     System.Windows.Threading.DispatcherPriority.Send, () =>
                 {
                     try
                     {
-                        fullscreenVisualizer.UpdateSpectrumData(
-                            doubleData, mode, density, color, sensitivity, fps, crawlSpeed);
+                        // Always push fresh audio data via the fast path
+                        fullscreenVisualizer.UpdateSpectrumDataFast(doubleData);
+                        
+                        // Reconfigure settings only when they actually change
+                        // (mode changes are handled by key handlers calling ForceVisualizationMode)
+                        fullscreenVisualizer.SetSensitivity(sensitivity);
+                        fullscreenVisualizer.SetColorScheme(color);
                     
                         // Update lyrics if enabled
                         if (lyricsText != null && vm?.ShowLyricsOverlay == true)
@@ -731,10 +857,31 @@ public partial class EnhancedAudioPlayerView : UserControl
                                 }
                             }
                         }
-                        // Update progress
-                        if (grid.Children[2] is StackPanel progPanel && progPanel.Children.Count > 0)
+                        // Update progress + sensitivity/density labels in right panel
+                        if (grid.Children[2] is StackPanel rightPnl)
                         {
-                            ((TextBlock)progPanel.Children[0]).Text = $"{vm?.PositionDisplay ?? "0:00"} / {vm?.DurationDisplay ?? "0:00"}";
+                            // Update sens/dens labels by Tag
+                            foreach (var child in rightPnl.Children)
+                            {
+                                if (child is StackPanel row)
+                                {
+                                    foreach (var rowChild in row.Children)
+                                    {
+                                        if (rowChild is TextBlock tb2)
+                                        {
+                                            if (tb2.Tag?.ToString() == "OsdSensLabel")
+                                                tb2.Text = $"Sens: {vm?.VisualizerSensitivity ?? 0.7:F1}";
+                                            else if (tb2.Tag?.ToString() == "OsdDensLabel")
+                                                tb2.Text = $"Density: {vm?.Density ?? 32}";
+                                        }
+                                    }
+                                }
+                                // Progress is the last TextBlock directly in the panel
+                                else if (child is TextBlock progTb && progTb.Tag == null)
+                                {
+                                    progTb.Text = $"{vm?.PositionDisplay ?? "0:00"} / {vm?.DurationDisplay ?? "0:00"}";
+                                }
+                            }
                         }
                     }
                 }
@@ -756,7 +903,7 @@ public partial class EnhancedAudioPlayerView : UserControl
             // Show a brief hint about V key
             var hintText = new TextBlock
             {
-                Text = "◀ ▶  Switch Visualizer  ·  V  Album Art  ·  Space  Play/Pause  ·  Esc  Exit",
+                Text = "◀ ▶  Switch Visualizer  ·  S/D  Sensitivity  ·  A/F  Density  ·  V  Album Art  ·  Space  Play/Pause  ·  Esc  Exit",
                 FontSize = 14,
                 Foreground = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255)),
                 HorizontalAlignment = HorizontalAlignment.Center,
@@ -833,6 +980,50 @@ public partial class EnhancedAudioPlayerView : UserControl
                         
                         // Force mode change through immediately
                         fullscreenVisualizer.ForceVisualizationMode(modeName);
+                    }
+                    args.Handled = true;
+                }
+                else if (args.Key == Key.S)
+                {
+                    // Decrease sensitivity
+                    if (vm != null)
+                    {
+                        vm.VisualizerSensitivity = Math.Max(0.1, vm.VisualizerSensitivity - 0.1);
+                        sensLabel.Text = $"Sens: {vm.VisualizerSensitivity:F1}";
+                        ShowFullscreenModeToast($"Sensitivity: {vm.VisualizerSensitivity:F1}");
+                    }
+                    args.Handled = true;
+                }
+                else if (args.Key == Key.D)
+                {
+                    // Increase sensitivity
+                    if (vm != null)
+                    {
+                        vm.VisualizerSensitivity = Math.Min(3.0, vm.VisualizerSensitivity + 0.1);
+                        sensLabel.Text = $"Sens: {vm.VisualizerSensitivity:F1}";
+                        ShowFullscreenModeToast($"Sensitivity: {vm.VisualizerSensitivity:F1}");
+                    }
+                    args.Handled = true;
+                }
+                else if (args.Key == Key.A)
+                {
+                    // Decrease density
+                    if (vm != null)
+                    {
+                        vm.Density = Math.Max(8, vm.Density - 8);
+                        densLabel.Text = $"Density: {vm.Density}";
+                        ShowFullscreenModeToast($"Density: {vm.Density}");
+                    }
+                    args.Handled = true;
+                }
+                else if (args.Key == Key.F)
+                {
+                    // Increase density
+                    if (vm != null)
+                    {
+                        vm.Density = Math.Min(256, vm.Density + 8);
+                        densLabel.Text = $"Density: {vm.Density}";
+                        ShowFullscreenModeToast($"Density: {vm.Density}");
                     }
                     args.Handled = true;
                 }

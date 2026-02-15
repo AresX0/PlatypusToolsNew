@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using PlatypusTools.UI.Services;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -502,7 +503,12 @@ namespace PlatypusTools.UI.ViewModels
             var newName = dlg.EnteredText;
             if (string.IsNullOrWhiteSpace(newName)) return;
             var dest = Path.Combine(Path.GetDirectoryName(path) ?? string.Empty, newName);
-            try { File.Move(path, dest); } catch { System.Windows.MessageBox.Show("Rename failed.", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error); }
+            try
+            {
+                File.Move(path, dest);
+                UndoRedoService.Instance.RecordRenameWithToast(path, dest);
+            }
+            catch { System.Windows.MessageBox.Show("Rename failed.", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error); }
             // Refresh scan
             _ = ScanAsync();
         }
@@ -541,6 +547,7 @@ namespace PlatypusTools.UI.ViewModels
                 i++;
             }
             File.Copy(path, destPath);
+            UndoRedoService.Instance.RecordCopy(path, destPath);
             // write metadata so staging UI can know original path
             try
             {
@@ -609,6 +616,8 @@ namespace PlatypusTools.UI.ViewModels
             int totalFiles = filesToDelete.Count;
             int processedFiles = 0;
 
+            var undoOps = new List<FileOperation>();
+            var undoBackupDir = Path.Combine(Path.GetTempPath(), "PlatypusTools", "UndoBackups");
             try
             {
                 await Task.Run(async () =>
@@ -617,6 +626,14 @@ namespace PlatypusTools.UI.ViewModels
                     {
                         try
                         {
+                            string? backupPath = null;
+                            if (!UseRecycleBin && File.Exists(f))
+                            {
+                                // Backup file before hard-delete so undo can restore it
+                                Directory.CreateDirectory(undoBackupDir);
+                                backupPath = Path.Combine(undoBackupDir, Guid.NewGuid().ToString("N") + Path.GetExtension(f));
+                                File.Copy(f, backupPath);
+                            }
                             if (UseRecycleBin)
                             {
                                 Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(f, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
@@ -625,6 +642,7 @@ namespace PlatypusTools.UI.ViewModels
                             {
                                 File.Delete(f);
                             }
+                            undoOps.Add(new FileOperation { Type = OperationType.Delete, OriginalPath = f, BackupPath = backupPath, Timestamp = DateTime.Now });
                             deletedPaths.Add(f);
                             deletedCount++;
                         }
@@ -648,6 +666,12 @@ namespace PlatypusTools.UI.ViewModels
             {
                 IsDeleting = false;
                 DeleteProgress = 0;
+            }
+            
+            // Record batch undo operation
+            if (undoOps.Count > 0)
+            {
+                UndoRedoService.Instance.RecordBatch(undoOps, $"Delete {undoOps.Count} duplicate files");
             }
             
             // Remove deleted files from the UI collections (instead of rescanning)

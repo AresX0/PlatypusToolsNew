@@ -199,8 +199,7 @@ public class PlatypusRemoteServer : IDisposable
     {
         try
         {
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var configPath = Path.Combine(appData, "PlatypusTools", "remote_ip_allowlist.json");
+            var configPath = Path.Combine(SettingsManager.DataDirectory, "remote_ip_allowlist.json");
             if (File.Exists(configPath))
             {
                 var json = File.ReadAllText(configPath);
@@ -220,8 +219,7 @@ public class PlatypusRemoteServer : IDisposable
     {
         try
         {
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var folder = Path.Combine(appData, "PlatypusTools");
+            var folder = SettingsManager.DataDirectory;
             Directory.CreateDirectory(folder);
             var configPath = Path.Combine(folder, "remote_ip_allowlist.json");
             var config = new IpAllowlistConfig

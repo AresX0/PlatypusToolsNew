@@ -32,7 +32,10 @@ namespace PlatypusTools.UI.Views
         LCARS,          // Star Trek LCARS orange/tan/purple
         Klingon,        // Klingon Empire - blood red, black, metal
         Federation,     // United Federation of Planets - blue, silver, gold
-        KPopDemonHunters // K-Pop Demon Hunters - hot pink, electric violet, neon cyan
+        KPopDemonHunters, // K-Pop Demon Hunters - hot pink, electric violet, neon cyan
+        Deuteranopia,   // Color-blind safe: blue-orange (red-green deficiency)
+        Protanopia,     // Color-blind safe: blue-yellow (red deficiency)
+        Tritanopia      // Color-blind safe: red-cyan (blue-yellow deficiency)
     }
     
     /// <summary>
@@ -117,6 +120,8 @@ namespace PlatypusTools.UI.Views
         private int _maxBarCount = 64;
         private int _targetFps = 22; // Target frame rate
         private bool _isLargeSurface; // Set per-frame; true when fullscreen or >1M pixels — disables expensive blurs
+        private float _honmoonPrevEnergy; // Previous frame's raw energy for transient detection
+        private float _honmoonBeatDecay; // Decaying beat punch value
         private double _cpuThrottlePercent = 0.5; // Max CPU usage (0.1-1.0)
         private long _maxMemoryBytes = 50 * 1024 * 1024; // 50MB max for visualizer
         
@@ -1345,7 +1350,7 @@ namespace PlatypusTools.UI.Views
             // Adjust rise/fall speeds based on sensitivity
             // Higher sensitivity = faster response
             _riseSpeed = 0.2 + (_sensitivity * 0.3); // 0.23 to 1.1
-            _fallSpeed = 0.04 + (_sensitivity * 0.04); // 0.044 to 0.16
+            _fallSpeed = 0.06 + (_sensitivity * 0.06); // 0.066 to 0.24  (faster decay so energy drops are visible)
         }
         
         /// <summary>
@@ -1527,6 +1532,23 @@ namespace PlatypusTools.UI.Views
             
             // Force immediate repaint with new mode
             try { SkiaCanvas?.InvalidateVisual(); } catch { }
+        }
+
+        /// <summary>
+        /// Lightweight spectrum data update for fullscreen mode.
+        /// Skips mode-switching, density changes, and setting reconfiguration.
+        /// Just writes the raw data so the next render tick picks it up immediately.
+        /// </summary>
+        public void UpdateSpectrumDataFast(double[] spectrumData)
+        {
+            if (spectrumData != null && spectrumData.Length > 0)
+            {
+                _spectrumData = spectrumData.Length == _barCount
+                    ? spectrumData
+                    : ResampleSpectrum(spectrumData, _barCount);
+                _hasExternalData = true;
+                _lastExternalUpdate = DateTime.Now;
+            }
         }
 
         public void UpdateSpectrumData(double[] spectrumData, string mode = "Bars", int density = 128)
@@ -1759,6 +1781,30 @@ namespace PlatypusTools.UI.Views
                     new GradientStop(Color.FromRgb(120, 80, 255), 0.8),   // Bright purple-blue
                     new GradientStop(Color.FromRgb(0, 255, 220), 1)       // Neon cyan
                 },
+                VisualizerColorScheme.Deuteranopia => new GradientStopCollection
+                {
+                    new GradientStop(Color.FromRgb(0, 20, 80), 0),        // Deep blue
+                    new GradientStop(Color.FromRgb(0, 80, 180), 0.25),    // Blue
+                    new GradientStop(Color.FromRgb(100, 150, 255), 0.5),  // Light blue
+                    new GradientStop(Color.FromRgb(230, 160, 50), 0.75),  // Orange
+                    new GradientStop(Color.FromRgb(255, 240, 180), 1)     // Light gold
+                },
+                VisualizerColorScheme.Protanopia => new GradientStopCollection
+                {
+                    new GradientStop(Color.FromRgb(0, 20, 60), 0),        // Deep blue
+                    new GradientStop(Color.FromRgb(0, 80, 160), 0.25),    // Blue
+                    new GradientStop(Color.FromRgb(80, 160, 255), 0.5),   // Sky blue
+                    new GradientStop(Color.FromRgb(200, 200, 80), 0.75),  // Yellow
+                    new GradientStop(Color.FromRgb(255, 255, 180), 1)     // Light yellow
+                },
+                VisualizerColorScheme.Tritanopia => new GradientStopCollection
+                {
+                    new GradientStop(Color.FromRgb(60, 0, 0), 0),         // Dark red
+                    new GradientStop(Color.FromRgb(180, 30, 30), 0.25),   // Red
+                    new GradientStop(Color.FromRgb(255, 80, 80), 0.5),    // Light red
+                    new GradientStop(Color.FromRgb(80, 220, 220), 0.75),  // Cyan
+                    new GradientStop(Color.FromRgb(150, 255, 255), 1)     // Light cyan
+                },
                 _ => new GradientStopCollection // BlueGreen (default)
                 {
                     new GradientStop(Color.FromRgb(30, 144, 255), 0),
@@ -1819,6 +1865,15 @@ namespace PlatypusTools.UI.Views
                 VisualizerColorScheme.KPopDemonHunters => InterpolateWpfGradient(value,
                     (0.0, Color.FromRgb(15, 0, 30)), (0.2, Color.FromRgb(140, 0, 40)), (0.4, Color.FromRgb(255, 20, 100)),
                     (0.6, Color.FromRgb(200, 50, 255)), (0.8, Color.FromRgb(120, 80, 255)), (1.0, Color.FromRgb(0, 255, 220))),
+                VisualizerColorScheme.Deuteranopia => InterpolateWpfGradient(value,
+                    (0.0, Color.FromRgb(0, 20, 80)), (0.25, Color.FromRgb(0, 80, 180)), (0.5, Color.FromRgb(100, 150, 255)),
+                    (0.7, Color.FromRgb(230, 160, 50)), (0.85, Color.FromRgb(255, 200, 80)), (1.0, Color.FromRgb(255, 240, 180))),
+                VisualizerColorScheme.Protanopia => InterpolateWpfGradient(value,
+                    (0.0, Color.FromRgb(0, 20, 60)), (0.25, Color.FromRgb(0, 80, 160)), (0.5, Color.FromRgb(80, 160, 255)),
+                    (0.7, Color.FromRgb(200, 200, 80)), (0.85, Color.FromRgb(240, 230, 50)), (1.0, Color.FromRgb(255, 255, 180))),
+                VisualizerColorScheme.Tritanopia => InterpolateWpfGradient(value,
+                    (0.0, Color.FromRgb(60, 0, 0)), (0.25, Color.FromRgb(180, 30, 30)), (0.5, Color.FromRgb(255, 80, 80)),
+                    (0.7, Color.FromRgb(180, 200, 200)), (0.85, Color.FromRgb(80, 220, 220)), (1.0, Color.FromRgb(150, 255, 255))),
                 _ => InterpolateWpfGradient(value, // BlueGreen/Federation
                     (0.0, Color.FromRgb(0, 20, 80)), (0.25, Color.FromRgb(0, 80, 180)), (0.5, Color.FromRgb(30, 144, 255)),
                     (0.7, Color.FromRgb(80, 200, 220)), (0.85, Color.FromRgb(150, 230, 200)), (1.0, Color.FromRgb(200, 255, 240)))
@@ -2157,9 +2212,10 @@ namespace PlatypusTools.UI.Views
             
             // Use pre-configured rise/fall speeds (set by SetSensitivity)
             // HD quality: smooth rise/fall with peak hold (like reference pro-grade visualizer)
-            // For externally driven (fullscreen), use faster response for snappier feel
-            double riseMultiplier = _isExternallyDriven ? 1.5 : 1.0;
-            double fallMultiplier = _isExternallyDriven ? 1.3 : 1.0;
+            // For externally driven (fullscreen), use significantly faster response
+            // so the visualization tracks beats tightly despite fewer render frames.
+            double riseMultiplier = _isExternallyDriven ? 2.0 : 1.0;
+            double fallMultiplier = _isExternallyDriven ? 2.5 : 1.0;
             for (int i = 0; i < _barCount; i++)
             {
                 double target = i < processedSpec.Length ? processedSpec[i] * _sensitivity : 0;
@@ -4089,11 +4145,11 @@ namespace PlatypusTools.UI.Views
             {
                 try
                 {
-                    var bitmap = new BitmapImage(new Uri("pack://application:,,,/Assets/KlingonGlowLogo.png", UriKind.Absolute));
-                    _klingonBackgroundBrush = new ImageBrush(bitmap)
+                    var bitmap = Utilities.ImageHelper.LoadFromUri("pack://application:,,,/Assets/KlingonGlowLogo.png");
+                    _klingonBackgroundBrush = bitmap != null ? new ImageBrush(bitmap)
                     {
                         Stretch = Stretch.Uniform  // Keep aspect ratio, fit within bounds
-                    };
+                    } : null;
                 }
                 catch
                 {
@@ -4468,11 +4524,11 @@ namespace PlatypusTools.UI.Views
             {
                 try
                 {
-                    var bitmap = new BitmapImage(new Uri("pack://application:,,,/Assets/FederationLogoTransparent.png", UriKind.Absolute));
-                    _federationBackgroundBrush = new ImageBrush(bitmap)
+                    var bitmap = Utilities.ImageHelper.LoadFromUri("pack://application:,,,/Assets/FederationLogoTransparent.png");
+                    _federationBackgroundBrush = bitmap != null ? new ImageBrush(bitmap)
                     {
                         Stretch = Stretch.Uniform
-                    };
+                    } : null;
                 }
                 catch
                 {
@@ -4819,7 +4875,7 @@ namespace PlatypusTools.UI.Views
             {
                 try
                 {
-                    _lightsaberHiltImage = new BitmapImage(new Uri("pack://application:,,,/Assets/lightsaber.png", UriKind.Absolute));
+                    _lightsaberHiltImage = Utilities.ImageHelper.LoadFromUri("pack://application:,,,/Assets/lightsaber.png");
                 }
                 catch
                 {
@@ -5210,7 +5266,7 @@ namespace PlatypusTools.UI.Views
             {
                 try
                 {
-                    _timeVortexImage = new BitmapImage(new Uri("pack://application:,,,/Assets/TimeVortex.png", UriKind.Absolute));
+                    _timeVortexImage = Utilities.ImageHelper.LoadFromUri("pack://application:,,,/Assets/TimeVortex.png");
                 }
                 catch { _timeVortexImage = null; }
             }
@@ -5219,7 +5275,7 @@ namespace PlatypusTools.UI.Views
             {
                 try
                 {
-                    _tardisImage = new BitmapImage(new Uri("pack://application:,,,/Assets/Tardis.png", UriKind.Absolute));
+                    _tardisImage = Utilities.ImageHelper.LoadFromUri("pack://application:,,,/Assets/Tardis.png");
                 }
                 catch { _tardisImage = null; }
             }
@@ -9598,6 +9654,15 @@ namespace PlatypusTools.UI.Views
                 VisualizerColorScheme.KPopDemonHunters => InterpolateHDGradient(value,
                     new[] { (0.0, new SKColor(15, 0, 30)), (0.2, new SKColor(140, 0, 40)), (0.4, new SKColor(255, 20, 100)),
                             (0.6, new SKColor(200, 50, 255)), (0.8, new SKColor(120, 80, 255)), (1.0, new SKColor(0, 255, 220)) }),
+                VisualizerColorScheme.Deuteranopia => InterpolateHDGradient(value,
+                    new[] { (0.0, new SKColor(0, 20, 80)), (0.25, new SKColor(0, 80, 180)), (0.5, new SKColor(100, 150, 255)),
+                            (0.7, new SKColor(230, 160, 50)), (0.85, new SKColor(255, 200, 80)), (1.0, new SKColor(255, 240, 180)) }),
+                VisualizerColorScheme.Protanopia => InterpolateHDGradient(value,
+                    new[] { (0.0, new SKColor(0, 20, 60)), (0.25, new SKColor(0, 80, 160)), (0.5, new SKColor(80, 160, 255)),
+                            (0.7, new SKColor(200, 200, 80)), (0.85, new SKColor(240, 230, 50)), (1.0, new SKColor(255, 255, 180)) }),
+                VisualizerColorScheme.Tritanopia => InterpolateHDGradient(value,
+                    new[] { (0.0, new SKColor(60, 0, 0)), (0.25, new SKColor(180, 30, 30)), (0.5, new SKColor(255, 80, 80)),
+                            (0.7, new SKColor(180, 200, 200)), (0.85, new SKColor(80, 220, 220)), (1.0, new SKColor(150, 255, 255)) }),
                 _ => InterpolateHDGradient(value, // BlueGreen default
                     new[] { (0.0, new SKColor(0, 20, 80)), (0.25, new SKColor(0, 80, 180)), (0.5, new SKColor(30, 144, 255)),
                             (0.7, new SKColor(80, 200, 220)), (0.85, new SKColor(150, 230, 200)), (1.0, new SKColor(200, 255, 240)) })
@@ -10019,18 +10084,36 @@ namespace PlatypusTools.UI.Views
             float phase = (float)_animationPhase;
             float sens = (float)_sensitivity;
             
-            // Resolution scale factor — thicker lines at fullscreen so they're visible
-            float resScale = Math.Max(1f, h / 350f);
+            // Resolution scale factor — modest scaling so fullscreen lines stay visible but NOT bloated
+            float resScale = Math.Max(1f, Math.Min(1.8f, h / 500f));
             
-            // === Compute energy bands for reactive behavior ===
-            float bassEnergy = 0, midEnergy = 0, trebEnergy = 0, totalEnergy = 0, maxVal = 0;
+            // === Snapshot raw spectrum for instant beat detection ===
+            // _spectrumData = raw FFT updated every audio frame (no smoothing).
+            // _smoothedData = exponentially smoothed (slow decay) — good for smooth motion.
+            // Using raw data for golden detection and beat displacement ensures the
+            // visualizer responds INSTANTLY to volume changes and beat transients.
+            float[] rawSpec = new float[barCount];
+            for (int i = 0; i < barCount; i++)
+                rawSpec[i] = i < _spectrumData.Length ? (float)_spectrumData[i] * sens : 0f;
+            
+            // === Compute energy from RAW spectrum (instant, no smoothing lag) ===
+            float rawBassEnergy = 0, rawTotalEnergy = 0;
             int bassEnd = barCount / 4;
             int midEnd = barCount * 3 / 4;
             for (int i = 0; i < barCount; i++)
             {
+                rawTotalEnergy += rawSpec[i];
+                if (i < bassEnd) rawBassEnergy += rawSpec[i];
+            }
+            rawTotalEnergy /= Math.Max(1, barCount);
+            rawBassEnergy /= Math.Max(1, bassEnd);
+            
+            // === Compute smoothed energy for background effects (smooth motion) ===
+            float bassEnergy = 0, midEnergy = 0, trebEnergy = 0, totalEnergy = 0;
+            for (int i = 0; i < barCount; i++)
+            {
                 float v = (float)_smoothedData[i] * sens;
                 totalEnergy += v;
-                if (v > maxVal) maxVal = v;
                 if (i < bassEnd) bassEnergy += v;
                 else if (i < midEnd) midEnergy += v;
                 else trebEnergy += v;
@@ -10046,8 +10129,13 @@ namespace PlatypusTools.UI.Views
             trebEnergy = Math.Min(trebEnergy * 3f, 1.5f);
             totalEnergy = Math.Min(totalEnergy * 3f, 1.2f);
             
-            // Golden threshold — more generous so beats light up more lines
-            float goldenThreshold = Math.Max(0.25f, maxVal * 0.65f);
+            // Golden mode: use raw bass PEAK (single loudest bin, not average).
+            // A peak drops to near-zero between beats even in loud songs.
+            // Previous approaches (raw average, smoothed average) stayed high → golden stuck.
+            float rawBassPeak = 0;
+            for (int i = 0; i < bassEnd; i++)
+                rawBassPeak = Math.Max(rawBassPeak, rawSpec[i]);
+            bool isGoldenMode = rawBassPeak > 0.45f;
             
             // === Background: pulses warmer on bass hits ===
             using (var bgPaint = new SKPaint())
@@ -10087,17 +10175,49 @@ namespace PlatypusTools.UI.Views
                 canvas.DrawCircle(glowX, glowY, glowR, glowPaint);
             }
             
-            // === MUSIC-REACTIVE flowing wave lines ===
-            // Cap line/point counts for fullscreen performance.  At 1080p the old
-            // formula produced 216 lines × 480 points = 103K path ops per frame,
-            // causing multi-hundred-ms paints that starved the dispatcher and made
-            // the visualizer appear frozen.  80 lines × 240 points ≈ 19K ops — the
-            // same ballpark as the embedded panel — keeps renders under one timer tick.
-            int lineCount = Math.Clamp(h / 5, 30, 80);
-            int pointsPerLine = Math.Clamp(w / 4, 80, 240);
+            // === PARALLEL FLOWING WAVE LINES ===
+            // Design: all rows share the SAME wave shape (like topographic contours).
+            // Tiny row offset (0.02/row) so adjacent waves are nearly identical → parallel flow.
+            // Music sync: wavelength (sine frequency) modulated by energy, amplitude by onset ratio.
+            // Visibility: alpha/thickness varies per-row so some lines "pop" as accent lines.
+            int lineCount, pointsPerLine;
+            if (_isLargeSurface)
+            {
+                lineCount = Math.Clamp(h / 8, 20, 50);
+                pointsPerLine = Math.Clamp(w / 6, 60, 160);
+            }
+            else
+            {
+                lineCount = Math.Clamp(h / 5, 30, 80);
+                pointsPerLine = Math.Clamp(w / 4, 80, 240);
+            }
             
             // Phase speed reacts to energy — waves flow faster on loud parts
-            float phaseSpeed = 1.0f + totalEnergy * 2.5f + bassEnergy * 1.5f;
+            float phaseSpeed = 1.0f + totalEnergy * 2.0f + bassEnergy * 1.0f;
+            
+            // === TRANSIENT DETECTION (frame-to-frame delta) ===
+            // Beat = sudden energy jump → positive delta → big waves.
+            // Between beats = energy dropping → negative delta → small waves.
+            // This NEVER converges because it measures CHANGE, not absolute level.
+            // Failed approaches: raw absolute (saturates), onset ratio (converges in 30s),
+            // slow envelope (still converges). Delta is mathematically immune to convergence.
+            float energyDelta = rawTotalEnergy - _honmoonPrevEnergy;
+            _honmoonPrevEnergy = rawTotalEnergy;
+            
+            // Beat punch: positive delta = beat onset. Decays quickly for snappy response.
+            if (energyDelta > 0)
+                _honmoonBeatDecay = Math.Max(_honmoonBeatDecay, energyDelta * 8f); // instant punch
+            _honmoonBeatDecay *= 0.85f; // fast decay (15% per frame at 22fps ≈ 3 frames to half)
+            float beatPunch = Math.Clamp(_honmoonBeatDecay, 0f, 2f);
+            
+            // Global amplitude: base from raw energy (always shows something) + beat punch for sync
+            float globalBaseAmp = h * 0.008f + rawTotalEnergy * h * 0.06f; // quiet=tiny, loud=medium
+            float globalBeatAmp = beatPunch * h * 0.10f; // beat transient punches waves bigger
+            float globalAmp = globalBaseAmp + globalBeatAmp;
+            
+            // Wavelength modulation: energy changes the sine frequency.
+            // Quiet → long gentle waves (low freq). Loud → tighter peaks (higher freq).
+            float waveFreqMod = 1.0f + totalEnergy * 1.5f;
             
             using (var linePaint = new SKPaint
             {
@@ -10106,134 +10226,82 @@ namespace PlatypusTools.UI.Views
                 StrokeCap = SKStrokeCap.Round,
                 StrokeJoin = SKStrokeJoin.Round
             })
+            using (var wavePath = new SKPath()) // ONE path, Reset() per row — zero per-row allocations
             {
                 for (int row = 0; row < lineCount; row++)
                 {
                     float rowT = (float)row / (lineCount - 1); // 0..1
                     float baseY = rowT * h;
                     
-                    // Map row to a frequency band — each row "owns" a slice of the spectrum
-                    int rowSpecStart = (int)(rowT * (barCount - 1));
-                    rowSpecStart = Math.Clamp(rowSpecStart, 0, barCount - 1);
-                    float rowSpec = (float)_smoothedData[rowSpecStart] * sens;
+                    // Per-row spectrum for brightness/alpha variation (some lines glow more)
+                    int rowSpecIdx = Math.Clamp((int)(rowT * (barCount - 1)), 0, barCount - 1);
+                    float rowRaw = rawSpec[rowSpecIdx];
+                    if (rowSpecIdx > 0 && rowSpecIdx < barCount - 1)
+                        rowRaw = rawSpec[rowSpecIdx - 1] * 0.25f + rawSpec[rowSpecIdx] * 0.5f + rawSpec[rowSpecIdx + 1] * 0.25f;
+                    float rowBrightness = Math.Min(1.0f, rowRaw * 2.5f);
                     
-                    // Blend with neighbors
-                    if (rowSpecStart > 0 && rowSpecStart < _smoothedData.Length - 1)
-                        rowSpec = (float)(_smoothedData[rowSpecStart - 1] * 0.15 + _smoothedData[rowSpecStart] * 0.7 + _smoothedData[rowSpecStart + 1] * 0.15) * sens;
+                    // Per-row amplitude: global beat amp + small per-row variation
+                    float rowAmp = globalAmp * (0.7f + rowBrightness * 0.6f);
                     
-                    float scaledRow = Math.Min(1.5f, rowSpec * 3.0f);
+                    // Line thickness: accent lines (high energy rows) are thicker
+                    linePaint.StrokeWidth = (0.4f + rowBrightness * 1.0f) * resScale;
                     
-                    // Base gentle wave amplitude + LARGE audio-driven amplitude
-                    float baseAmp = h * 0.008f;
-                    float audioAmp = scaledRow * h * 0.22f;
-                    float amplitude = baseAmp + audioAmp;
-                    
-                    // Line thickness: thin when quiet, thick when loud
-                    linePaint.StrokeWidth = (0.6f + scaledRow * 4.0f) * resScale;
-                    
-                    // Golden for peak-energy lines
-                    bool isGolden = rowSpec >= goldenThreshold && rowSpec > 0.05f;
-                    
-                    if (isGolden)
+                    // Color: golden when bass peaks, scheme colors otherwise
+                    if (isGoldenMode)
                     {
-                        byte gAlpha = (byte)Math.Min(255, 180 + scaledRow * 75);
-                        byte gGreen = (byte)Math.Min(255, 180 + scaledRow * 60);
+                        byte gAlpha = (byte)Math.Min(255, 80 + rowBrightness * 175);
+                        byte gGreen = (byte)Math.Min(255, 170 + rowBrightness * 70);
                         linePaint.Color = new SKColor(255, gGreen, 45, gAlpha);
-                        linePaint.StrokeWidth += 2.0f * resScale;
                     }
                     else
                     {
-                        SKColor schemeColor = GetHDColor(Math.Max(0.1, Math.Min(1.0, rowSpec * 2.0)));
-                        byte cAlpha = (byte)Math.Min(255, 60 + scaledRow * 195);
+                        SKColor schemeColor = GetHDColor(Math.Max(0.1, Math.Min(1.0, rowBrightness)));
+                        byte cAlpha = (byte)Math.Min(255, 40 + rowBrightness * 215);
                         linePaint.Color = schemeColor.WithAlpha(cAlpha);
                     }
                     
-                    // Build per-point audio-reactive path
-                    using (var path = new SKPath())
+                    // Build path — PARALLEL contour lines. Reuse single path, Reset() each row.
+                    float rowPhase = row * 0.02f;
+                    wavePath.Reset();
+                    
+                    for (int px = 0; px <= pointsPerLine; px++)
                     {
-                        for (int px = 0; px <= pointsPerLine; px++)
-                        {
-                            float xT = (float)px / pointsPerLine;
-                            float x = xT * w;
-                            
-                            // Sample spectrum at this horizontal position for per-point reactivity
-                            int ptSpecIdx = Math.Clamp((int)(xT * (barCount - 1)), 0, barCount - 1);
-                            float ptSpec = (float)_smoothedData[ptSpecIdx] * sens;
-                            float ptDisplace = ptSpec * h * 0.12f; // Direct spectrum displacement
-                            
-                            // Flowing sine waves — speed modulated by energy
-                            float wave1 = (float)Math.Sin(xT * 4.0 * Math.PI + phase * phaseSpeed * 1.2 + row * 0.28) * amplitude;
-                            float wave2 = (float)Math.Sin(xT * 7.5 * Math.PI + phase * phaseSpeed * 0.75 - row * 0.45) * amplitude * 0.35f;
-                            float wave3 = (float)Math.Sin(xT * 2.0 * Math.PI + phase * phaseSpeed * 0.5 + row * 0.12) * amplitude * 0.55f;
-                            
-                            // Per-point audio displacement — THIS is what makes it sync to every beat
-                            float audioWave = ptDisplace * (float)Math.Sin(xT * Math.PI * 2 + phase * 2.0 + row * 0.5);
-                            
-                            float y = baseY + wave1 + wave2 + wave3 + audioWave;
-                            
-                            if (px == 0) path.MoveTo(x, y);
-                            else path.LineTo(x, y);
-                        }
+                        float xT = (float)px / pointsPerLine;
+                        float x = xT * w;
                         
-                        canvas.DrawPath(path, linePaint);
+                        float wave1 = (float)Math.Sin(xT * 2.5 * Math.PI * waveFreqMod + phase * phaseSpeed * 0.8 + rowPhase) * rowAmp;
+                        float wave2 = (float)Math.Sin(xT * 4.5 * Math.PI * waveFreqMod + phase * phaseSpeed * 0.5 + rowPhase * 1.5) * rowAmp * 0.25f;
+                        float wave3 = (float)Math.Sin(xT * 1.2 * Math.PI + phase * phaseSpeed * 0.3 + rowPhase * 0.5) * rowAmp * 0.4f;
                         
-                        // Glow for golden lines — skip expensive blur on large surfaces
-                        if (isGolden && !_isLargeSurface)
-                        {
-                            using (var glowLinePaint = new SKPaint
-                            {
-                                IsAntialias = true,
-                                Style = SKPaintStyle.Stroke,
-                                StrokeWidth = linePaint.StrokeWidth + 8f * resScale,
-                                Color = new SKColor(255, 200, 60, (byte)Math.Min(255, 40 + scaledRow * 80)),
-                                MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 5f * resScale),
-                                StrokeCap = SKStrokeCap.Round,
-                                StrokeJoin = SKStrokeJoin.Round
-                            })
-                            {
-                                canvas.DrawPath(path, glowLinePaint);
-                            }
-                        }
+                        float y = baseY + wave1 + wave2 + wave3;
+                        
+                        if (px == 0) wavePath.MoveTo(x, y);
+                        else wavePath.LineTo(x, y);
                     }
+                    
+                    canvas.DrawPath(wavePath, linePaint);
                 }
             }
             
-            // === Bass pulse ring — flashes on strong bass hits ===
-            if (bassEnergy > 0.4f)
+            // === Floating golden particles — only during golden mode (fewer at fullscreen) ===
+            if (isGoldenMode)
             {
-                using var ringBlur = _isLargeSurface ? null : SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 8f * resScale);
-                using (var ringPaint = new SKPaint
+                // Use deterministic seed from phase so particles drift smoothly, not jitter.
+                // Reuse _random instead of allocating new Random() every frame.
+                int particleCount = _isLargeSurface ? 3 + (int)(totalEnergy * 10) : 5 + (int)(totalEnergy * 20);
+                using (var particlePaint = new SKPaint { IsAntialias = true })
                 {
-                    IsAntialias = true,
-                    Style = SKPaintStyle.Stroke,
-                    StrokeWidth = 3f * resScale,
-                    Color = new SKColor(255, 200, 60, (byte)Math.Min(255, bassEnergy * 200)),
-                    MaskFilter = ringBlur
-                })
-                {
-                    float ringR = Math.Min(w, h) * 0.15f * bassEnergy;
-                    canvas.DrawCircle(w * 0.5f, h * 0.5f, ringR, ringPaint);
-                }
-            }
-            
-            // === Floating golden particles — more on high energy (fewer at fullscreen) ===
-            var rng = new Random((int)(phase * 600) % 10000);
-            int particleCount = _isLargeSurface ? 5 + (int)(totalEnergy * 25) : 10 + (int)(totalEnergy * 60);
-            using (var particlePaint = new SKPaint { IsAntialias = true })
-            {
-                for (int p = 0; p < particleCount; p++)
-                {
-                    float px = (float)rng.NextDouble() * w;
-                    float py = (float)rng.NextDouble() * h;
-                    
-                    int specIdx = Math.Clamp((int)((py / h) * (barCount - 1)), 0, barCount - 1);
-                    if (_smoothedData[specIdx] * sens < goldenThreshold * 0.5f) continue;
-                    
-                    float size = 1f + (float)rng.NextDouble() * 3f;
-                    byte pAlpha = (byte)(50 + rng.Next(150));
-                    
-                    particlePaint.Color = new SKColor(255, 220, 80, pAlpha);
-                    canvas.DrawCircle(px + (float)Math.Sin(phase + p * 0.5) * 4f, py, size * resScale, particlePaint);
+                    for (int p = 0; p < particleCount; p++)
+                    {
+                        float px = (float)_random.NextDouble() * w;
+                        float py = (float)_random.NextDouble() * h;
+                        
+                        float size = 1f + (float)_random.NextDouble() * 3f;
+                        byte pAlpha = (byte)(50 + _random.Next(150));
+                        
+                        particlePaint.Color = new SKColor(255, 220, 80, pAlpha);
+                        canvas.DrawCircle(px + (float)Math.Sin(phase + p * 0.5) * 4f, py, size * resScale, particlePaint);
+                    }
                 }
             }
             

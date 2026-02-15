@@ -40,8 +40,7 @@ namespace PlatypusTools.UI.Services
             try
             {
                 var userDataFolder = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "PlatypusTools", "WebView2Data");
+                    SettingsManager.DataDirectory, "WebView2Data");
 
                 Directory.CreateDirectory(userDataFolder);
 

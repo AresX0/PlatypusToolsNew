@@ -28,8 +28,7 @@ namespace PlatypusTools.UI.Services
         private ThemeService()
         {
             _themesFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "PlatypusTools", "Themes");
+                SettingsManager.DataDirectory, "Themes");
             
             Directory.CreateDirectory(_themesFolder);
             LoadBuiltInThemes();

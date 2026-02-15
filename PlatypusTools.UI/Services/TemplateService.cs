@@ -56,8 +56,7 @@ namespace PlatypusTools.UI.Services
         private TemplateService()
         {
             _templatesFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "PlatypusTools", "Templates");
+                SettingsManager.DataDirectory, "Templates");
             Directory.CreateDirectory(_templatesFolder);
             LoadTemplates();
         }

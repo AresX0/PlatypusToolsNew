@@ -579,6 +579,12 @@ namespace PlatypusTools.UI.Services
             _settingsFile = Path.Combine(_appFolder, "settings.json");
         }
 
+        /// <summary>
+        /// Gets the application data folder. In portable mode this is next to the exe;
+        /// otherwise it's in %AppData%\PlatypusTools. Use this instead of hardcoding paths.
+        /// </summary>
+        public static string DataDirectory => _appFolder;
+
         private static string AppFolder => _appFolder;
         private static string SettingsFile => _settingsFile;
 

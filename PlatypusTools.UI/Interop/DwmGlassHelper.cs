@@ -192,6 +192,15 @@ namespace PlatypusTools.UI.Interop
 
             try
             {
+                // CRITICAL: Make the WPF composition target truly transparent
+                // Without this, WPF renders an opaque background over the DWM blur
+                var hwndSource = HwndSource.FromHwnd(hwnd);
+                if (hwndSource?.CompositionTarget != null)
+                {
+                    hwndSource.CompositionTarget.BackgroundColor = Colors.Transparent;
+                    SimpleLogger.Debug("DwmGlassHelper.EnableGlass: Set CompositionTarget.BackgroundColor = Transparent");
+                }
+
                 // Extend frame into client area (required for glass)
                 var margins = new MARGINS { Left = -1, Right = -1, Top = -1, Bottom = -1 };
                 DwmExtendFrameIntoClientArea(hwnd, ref margins);
@@ -236,14 +245,24 @@ namespace PlatypusTools.UI.Interop
 
             try
             {
+                // Restore opaque composition target
+                var hwndSource = HwndSource.FromHwnd(hwnd);
+                if (hwndSource?.CompositionTarget != null)
+                {
+                    hwndSource.CompositionTarget.BackgroundColor = Color.FromRgb(0xFF, 0xFF, 0xFF);
+                }
+
                 // Reset margins
                 var margins = new MARGINS { Left = 0, Right = 0, Top = 0, Bottom = 0 };
                 DwmExtendFrameIntoClientArea(hwnd, ref margins);
 
                 if (IsWindows11)
                 {
+                    // Reset both APIs in case either was used
                     int value = DWMSBT_NONE;
                     DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, ref value, sizeof(int));
+                    var accent = new AccentPolicy { AccentState = AccentState.ACCENT_DISABLED };
+                    SetAccentPolicy(hwnd, accent);
                 }
                 else
                 {
@@ -278,9 +297,41 @@ namespace PlatypusTools.UI.Interop
 
         private static bool ApplyWindows11Backdrop(IntPtr hwnd, GlassLevel level, Color? tintColor)
         {
-            // Try using SetWindowCompositionAttribute for better Acrylic effect on Windows 11
-            // DWMWA_SYSTEMBACKDROP_TYPE is more subtle and may not show well in all cases
-            
+            // On Windows 11 22H2+ (build 22621+), use the modern DWMWA_SYSTEMBACKDROP_TYPE API
+            if (WindowsBuildNumber >= 22621)
+            {
+                int backdropType = level switch
+                {
+                    GlassLevel.High => DWMSBT_TRANSIENTWINDOW,   // Acrylic (more transparent)
+                    GlassLevel.Medium => DWMSBT_TRANSIENTWINDOW, // Acrylic
+                    GlassLevel.Low => DWMSBT_MAINWINDOW,         // Mica (subtle)
+                    _ => DWMSBT_TRANSIENTWINDOW
+                };
+
+                SimpleLogger.Debug($"ApplyWindows11Backdrop: Using DWMWA_SYSTEMBACKDROP_TYPE={backdropType} (build {WindowsBuildNumber})");
+
+                int result = DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, ref backdropType, sizeof(int));
+                if (result == 0) // S_OK
+                {
+                    SimpleLogger.Debug("ApplyWindows11Backdrop: DWMWA_SYSTEMBACKDROP_TYPE succeeded");
+                    return true;
+                }
+                SimpleLogger.Warn($"ApplyWindows11Backdrop: DWMWA_SYSTEMBACKDROP_TYPE failed (hr={result}), falling back to AccentPolicy");
+            }
+            // For Windows 11 21H2 (build 22000-22620), try DWMWA_MICA_EFFECT
+            else
+            {
+                int micaValue = 1;
+                int result = DwmSetWindowAttribute(hwnd, DWMWA_MICA_EFFECT, ref micaValue, sizeof(int));
+                if (result == 0)
+                {
+                    SimpleLogger.Debug("ApplyWindows11Backdrop: DWMWA_MICA_EFFECT succeeded");
+                    return true;
+                }
+                SimpleLogger.Warn($"ApplyWindows11Backdrop: DWMWA_MICA_EFFECT failed (hr={result}), falling back to AccentPolicy");
+            }
+
+            // Fallback: Use AccentPolicy (works on Windows 10 1803+, may work on some Win11 builds)
             var accentState = level switch
             {
                 GlassLevel.High => AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND,
@@ -304,7 +355,7 @@ namespace PlatypusTools.UI.Interop
                 gradientColor = (uint)((opacity << 24) | (c.B << 16) | (c.G << 8) | c.R);
             }
 
-            SimpleLogger.Debug($"ApplyWindows11Backdrop: level={level}, accentState={accentState}, gradientColor={gradientColor:X8}");
+            SimpleLogger.Debug($"ApplyWindows11Backdrop: Fallback AccentPolicy, accentState={accentState}, gradientColor={gradientColor:X8}");
 
             var accent = new AccentPolicy
             {

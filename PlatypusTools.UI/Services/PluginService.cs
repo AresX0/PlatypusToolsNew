@@ -131,8 +131,7 @@ namespace PlatypusTools.UI.Services
         private PluginService()
         {
             _pluginsFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "PlatypusTools", "Plugins");
+                SettingsManager.DataDirectory, "Plugins");
             _configFile = Path.Combine(_pluginsFolder, "plugins.json");
             
             Directory.CreateDirectory(_pluginsFolder);

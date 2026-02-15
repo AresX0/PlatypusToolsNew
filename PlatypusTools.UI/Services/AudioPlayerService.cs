@@ -868,8 +868,7 @@ public class AudioPlayerService
     
     // Queue Persistence
     private static readonly string QueueFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "PlatypusTools", "audio_queue.json");
+        SettingsManager.DataDirectory, "audio_queue.json");
     
     /// <summary>
     /// Saves the current queue to a JSON file for persistence across sessions.

@@ -436,8 +436,7 @@ namespace PlatypusTools.UI.Services
         private string GetCacheDirectory()
         {
             return Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "PlatypusTools", "ThumbnailCache");
+                SettingsManager.DataDirectory, "ThumbnailCache");
         }
 
         private async Task SaveToDiskCacheAsync(ThumbnailStrip strip, CancellationToken cancellationToken)

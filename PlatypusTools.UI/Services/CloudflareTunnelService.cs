@@ -36,8 +36,7 @@ public class CloudflareTunnelService : IDisposable
     public event EventHandler<TunnelDiagnostics>? DiagnosticsUpdated;
 
     private static readonly string CloudflaredPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "PlatypusTools", "cloudflared", "cloudflared.exe");
+        SettingsManager.DataDirectory, "cloudflared", "cloudflared.exe");
 
     private static readonly string CloudflaredUrl = 
         "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe";

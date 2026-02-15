@@ -43,8 +43,8 @@ namespace PlatypusTools.UI.Services
         private static GlassThemeService? _instance;
         private GlassLevel _currentLevel = GlassLevel.Off;
         private Window? _currentWindow;
-        private Color _lightTintColor = Color.FromArgb(0xCC, 0xFF, 0xFF, 0xFF);  // White with opacity
-        private Color _darkTintColor = Color.FromArgb(0xCC, 0x20, 0x20, 0x20);   // Dark gray with opacity
+        private Color _lightTintColor = Color.FromArgb(0xA0, 0xC0, 0xD8, 0xF0);  // Blue-tinted glass
+        private Color _darkTintColor = Color.FromArgb(0xA0, 0x10, 0x20, 0x40);   // Dark blue glass
 
         /// <summary>
         /// Gets the singleton instance.

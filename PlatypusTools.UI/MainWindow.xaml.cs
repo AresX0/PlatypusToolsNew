@@ -862,6 +862,12 @@ namespace PlatypusTools.UI
             }
         }
 
+        private void ShowChangelog(object sender, RoutedEventArgs e)
+        {
+            var win = new Views.ChangelogWindow { Owner = this };
+            win.ShowDialog();
+        }
+
         private void ShowAbout(object sender, RoutedEventArgs e)
         {
             var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;

@@ -1,6 +1,11 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     
+    <!-- Import Light.xaml as base for control styles and templates -->
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Light.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+    
     <!--
     ============================================================
     AERO GLASS THEME
@@ -13,38 +18,38 @@
     ============================================================
     -->
     
-    <!-- Glass Effect Colors -->
-    <Color x:Key="GlassTintColorLight">#CCFFFFFF</Color>
-    <Color x:Key="GlassTintColorDark">#CC202020</Color>
+    <!-- Glass Effect Colors (blue-tinted) -->
+    <Color x:Key="GlassTintColorLight">#A0C0D8F0</Color>
+    <Color x:Key="GlassTintColorDark">#A0102040</Color>
     <Color x:Key="GlassAccentColor">#FF0078D4</Color>
-    <Color x:Key="GlassHighlightColor">#40FFFFFF</Color>
-    <Color x:Key="GlassBorderColor">#60FFFFFF</Color>
-    <Color x:Key="GlassShadowColor">#40000000</Color>
+    <Color x:Key="GlassHighlightColor">#30D0E8FF</Color>
+    <Color x:Key="GlassBorderColor">#50A0C4E0</Color>
+    <Color x:Key="GlassShadowColor">#40000020</Color>
     
     <!-- Frosted Glass Brushes -->
     <SolidColorBrush x:Key="GlassTintBrush" Color="{StaticResource GlassTintColorLight}" />
     <SolidColorBrush x:Key="GlassAccentBrush" Color="{StaticResource GlassAccentColor}" />
     <SolidColorBrush x:Key="GlassBorderBrush" Color="{StaticResource GlassBorderColor}" />
     
-    <!-- Glass Highlight Gradient (top shine effect) -->
+    <!-- Glass Highlight Gradient (top shine effect, blue-tinted) -->
     <LinearGradientBrush x:Key="GlassHighlightBrush" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#50FFFFFF" Offset="0"/>
-        <GradientStop Color="#20FFFFFF" Offset="0.4"/>
+        <GradientStop Color="#40D0E8FF" Offset="0"/>
+        <GradientStop Color="#20B0D0F0" Offset="0.4"/>
         <GradientStop Color="#00FFFFFF" Offset="1"/>
     </LinearGradientBrush>
     
-    <!-- Glass Surface Gradient (depth effect) -->
+    <!-- Glass Surface Gradient (depth effect, blue-tinted) -->
     <LinearGradientBrush x:Key="GlassSurfaceBrush" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#40FFFFFF" Offset="0"/>
-        <GradientStop Color="#10FFFFFF" Offset="0.5"/>
-        <GradientStop Color="#20000000" Offset="1"/>
+        <GradientStop Color="#30C0D8F0" Offset="0"/>
+        <GradientStop Color="#10A0C0E0" Offset="0.5"/>
+        <GradientStop Color="#20001030" Offset="1"/>
     </LinearGradientBrush>
     
-    <!-- Semi-transparent backgrounds for layered glass -->
-    <SolidColorBrush x:Key="GlassCardBackgroundLight" Color="#B0FFFFFF" />
-    <SolidColorBrush x:Key="GlassCardBackgroundDark" Color="#B0202020" />
-    <SolidColorBrush x:Key="GlassSidebarBackground" Color="#90FFFFFF" />
-    <SolidColorBrush x:Key="GlassHeaderBackground" Color="#70FFFFFF" />
+    <!-- Semi-transparent backgrounds for layered glass (blue-tinted) -->
+    <SolidColorBrush x:Key="GlassCardBackgroundLight" Color="#A0D8E8F8" />
+    <SolidColorBrush x:Key="GlassCardBackgroundDark" Color="#A0102040" />
+    <SolidColorBrush x:Key="GlassSidebarBackground" Color="#80C8DCF0" />
+    <SolidColorBrush x:Key="GlassHeaderBackground" Color="#60B8D0E8" />
     
     <!-- Text Colors for Glass (ensure contrast) -->
     <SolidColorBrush x:Key="GlassTextPrimaryLight" Color="#FF000000" />
@@ -59,40 +64,40 @@
          versions to allow the glass effect to show through.
          ============================================================ -->
     
-    <!-- Transparent window background for glass effect to show through -->
-    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#40FFFFFF" />
-    <SolidColorBrush x:Key="WindowForegroundBrush" Color="#FF000000" />
+    <!-- Transparent window background for glass effect to show through (blue-tinted) -->
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#30B0D0F0" />
+    <SolidColorBrush x:Key="WindowForegroundBrush" Color="#FF0A1020" />
     
-    <!-- Semi-transparent control backgrounds -->
-    <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#50FFFFFF" />
-    <SolidColorBrush x:Key="ControlForegroundBrush" Color="#FF000000" />
+    <!-- Semi-transparent control backgrounds (blue-tinted) -->
+    <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#40C0D8F0" />
+    <SolidColorBrush x:Key="ControlForegroundBrush" Color="#FF0A1020" />
     
-    <!-- Sidebar and panel backgrounds -->
-    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#70FFFFFF" />
-    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#90FFFFFF" />
-    <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="#50FFFFFF" />
-    <SolidColorBrush x:Key="HeaderBrush" Color="#50FFFFFF" />
-    <SolidColorBrush x:Key="HeaderForegroundBrush" Color="#FF000000" />
+    <!-- Sidebar and panel backgrounds (blue-tinted) -->
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#60B8D0E8" />
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#80C8DCF0" />
+    <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="#50B0C8E0" />
+    <SolidColorBrush x:Key="HeaderBrush" Color="#50B0C8E0" />
+    <SolidColorBrush x:Key="HeaderForegroundBrush" Color="#FF0A1020" />
 
-    <!-- Menu colors for glass -->
-    <SolidColorBrush x:Key="MenuForegroundBrush" Color="#FF000000" />
-    <SolidColorBrush x:Key="MenuBackgroundBrush" Color="#70FFFFFF" />
+    <!-- Menu colors for glass (blue-tinted) -->
+    <SolidColorBrush x:Key="MenuForegroundBrush" Color="#FF0A1020" />
+    <SolidColorBrush x:Key="MenuBackgroundBrush" Color="#60B8D0E8" />
     
-    <!-- Standard theme resource keys -->
-    <SolidColorBrush x:Key="BackgroundBrush" Color="#40FFFFFF" />
-    <SolidColorBrush x:Key="SurfaceBrush" Color="#50FFFFFF" />
-    <SolidColorBrush x:Key="SurfaceVariantBrush" Color="#60FFFFFF" />
-    <SolidColorBrush x:Key="ForegroundBrush" Color="#FF000000" />
-    <SolidColorBrush x:Key="ForegroundDimBrush" Color="#FF606060" />
-    <SolidColorBrush x:Key="CardBackground" Color="#90FFFFFF" />
-    <SolidColorBrush x:Key="BorderBrush" Color="#60FFFFFF" />
+    <!-- Standard theme resource keys (blue-tinted) -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="#30B0D0F0" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#40C0D8F0" />
+    <SolidColorBrush x:Key="SurfaceVariantBrush" Color="#50C8E0F8" />
+    <SolidColorBrush x:Key="ForegroundBrush" Color="#FF0A1020" />
+    <SolidColorBrush x:Key="ForegroundDimBrush" Color="#FF405060" />
+    <SolidColorBrush x:Key="CardBackground" Color="#80C8DCF0" />
+    <SolidColorBrush x:Key="BorderBrush" Color="#50A0C4E0" />
     <SolidColorBrush x:Key="PrimaryBrush" Color="#FF0078D4" />
     <SolidColorBrush x:Key="AccentBrush" Color="#FF0078D4" />
-    <SolidColorBrush x:Key="TextPrimary" Color="#FF000000" />
-    <SolidColorBrush x:Key="TextSecondary" Color="#FF404040" />
-    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FF000000" />
-    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FF404040" />
-    <SolidColorBrush x:Key="SecondaryTextBrush" Color="#FF404040" />
+    <SolidColorBrush x:Key="TextPrimary" Color="#FF0A1020" />
+    <SolidColorBrush x:Key="TextSecondary" Color="#FF304060" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FF0A1020" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FF304060" />
+    <SolidColorBrush x:Key="SecondaryTextBrush" Color="#FF304060" />
     
     <!-- Warning/Info box brushes for Glass -->
     <SolidColorBrush x:Key="WarningBackgroundBrush" Color="#E0FFF4E5" />
@@ -108,10 +113,10 @@
     <SolidColorBrush x:Key="ErrorBorderBrush" Color="#FFF44336" />
     <SolidColorBrush x:Key="ErrorForegroundBrush" Color="#FFB71C1C" />
     
-    <!-- Title Bar Brushes (semi-transparent for glass effect) -->
-    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="#50FFFFFF" />
-    <SolidColorBrush x:Key="TitleBarForegroundBrush" Color="#FF000000" />
-    <SolidColorBrush x:Key="TitleBarButtonHoverBrush" Color="#30000000" />
+    <!-- Title Bar Brushes (semi-transparent, blue-tinted) -->
+    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="#40B0C8E0" />
+    <SolidColorBrush x:Key="TitleBarForegroundBrush" Color="#FF0A1020" />
+    <SolidColorBrush x:Key="TitleBarButtonHoverBrush" Color="#30002040" />
     <SolidColorBrush x:Key="TitleBarCloseHoverBrush" Color="#FFE81123" />
 
     <!-- Text Glow Effect for readability on glass -->
@@ -396,5 +401,149 @@
             </GeometryDrawing>
         </DrawingBrush.Drawing>
     </DrawingBrush>
+    
+    <!-- ============================================================
+         IMPLICIT STYLE OVERRIDES FOR GLASS TRANSPARENCY
+         ============================================================
+         These override Light.xaml's implicit styles so controls get
+         semi-transparent blue-tinted backgrounds, allowing DWM blur.
+         ============================================================ -->
+    
+    <!-- Window & Panel backgrounds -->
+    <Style TargetType="TabControl">
+        <Setter Property="Background" Value="#30B0D0F0" />
+        <Setter Property="BorderBrush" Value="#50A0C4E0" />
+    </Style>
+    
+    <Style TargetType="TabItem">
+        <Setter Property="Background" Value="#40C0D8F0" />
+        <Setter Property="Foreground" Value="#FF0A1020" />
+        <Setter Property="BorderBrush" Value="#50A0C4E0" />
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="#80D0E4F8" />
+                <Setter Property="Foreground" Value="#FF0078D4" />
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#60C8DCF0" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <Style TargetType="DataGrid">
+        <Setter Property="Background" Value="#25B0D0F0" />
+        <Setter Property="RowBackground" Value="#18B0D0F0" />
+        <Setter Property="AlternatingRowBackground" Value="#28C0DCF8" />
+        <Setter Property="BorderBrush" Value="#50A0C4E0" />
+        <Setter Property="GridLinesVisibility" Value="Horizontal" />
+        <Setter Property="HorizontalGridLinesBrush" Value="#25A0C4E0" />
+        <Setter Property="Foreground" Value="#FF0A1020" />
+    </Style>
+    
+    <Style TargetType="DataGridCell">
+        <Setter Property="Foreground" Value="#FF0A1020" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="#600078D4" />
+                <Setter Property="Foreground" Value="White" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <Style TargetType="DataGridColumnHeader">
+        <Setter Property="Background" Value="#40C0D8F0" />
+        <Setter Property="Foreground" Value="#FF0A1020" />
+        <Setter Property="BorderBrush" Value="#35A0C4E0" />
+        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    
+    <Style TargetType="ListBox">
+        <Setter Property="Background" Value="#25B0D0F0" />
+        <Setter Property="BorderBrush" Value="#50A0C4E0" />
+        <Setter Property="Foreground" Value="#FF0A1020" />
+    </Style>
+    
+    <Style TargetType="ListBoxItem">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#FF0A1020" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#35C0DCF8" />
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="#600078D4" />
+                <Setter Property="Foreground" Value="White" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <Style TargetType="ListView">
+        <Setter Property="Background" Value="#25B0D0F0" />
+        <Setter Property="BorderBrush" Value="#50A0C4E0" />
+        <Setter Property="Foreground" Value="#FF0A1020" />
+    </Style>
+    
+    <Style TargetType="ListViewItem">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#FF0A1020" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#35C0DCF8" />
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="#600078D4" />
+                <Setter Property="Foreground" Value="White" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <Style TargetType="TextBox">
+        <Setter Property="Background" Value="#70D8E8F8" />
+        <Setter Property="Foreground" Value="#FF0A1020" />
+        <Setter Property="BorderBrush" Value="#50A0C4E0" />
+        <Setter Property="CaretBrush" Value="#FF0A1020" />
+        <Setter Property="Padding" Value="4,3" />
+    </Style>
+    
+    <Style TargetType="ComboBox">
+        <Setter Property="Background" Value="#60C8DCF0" />
+        <Setter Property="Foreground" Value="#FF0A1020" />
+        <Setter Property="BorderBrush" Value="#50A0C4E0" />
+    </Style>
+    
+    <Style TargetType="TreeView">
+        <Setter Property="Background" Value="#25B0D0F0" />
+        <Setter Property="BorderBrush" Value="#50A0C4E0" />
+        <Setter Property="Foreground" Value="#FF0A1020" />
+    </Style>
+    
+    <Style TargetType="TreeViewItem">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#FF0A1020" />
+    </Style>
+    
+    <Style TargetType="Menu">
+        <Setter Property="Background" Value="#60B8D0E8" />
+        <Setter Property="Foreground" Value="#FF0A1020" />
+    </Style>
+    
+    <Style TargetType="MenuItem">
+        <Setter Property="Foreground" Value="#FF0A1020" />
+    </Style>
+    
+    <Style TargetType="ToolBar">
+        <Setter Property="Background" Value="#40B0C8E0" />
+    </Style>
+    
+    <Style TargetType="StatusBar">
+        <Setter Property="Background" Value="#40B0C8E0" />
+        <Setter Property="Foreground" Value="#FF0A1020" />
+    </Style>
+    
+    <Style TargetType="ScrollViewer">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
     
 </ResourceDictionary>

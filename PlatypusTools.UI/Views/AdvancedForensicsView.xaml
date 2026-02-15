@@ -937,8 +937,8 @@
                                     <CheckBox Content="History" IsChecked="{Binding ExtractBrowserHistory}" Margin="10,5"/>
                                     <CheckBox Content="Cookies" IsChecked="{Binding ExtractBrowserCookies}" Margin="10,5"/>
                                     <CheckBox Content="Downloads" IsChecked="{Binding ExtractBrowserDownloads}" Margin="10,5"/>
-                                    <CheckBox Content="Passwords ⚠️" IsChecked="{Binding ExtractBrowserPasswords}" Margin="10,5"
-                                              ToolTip="Warning: Requires elevated privileges and may trigger security warnings"/>
+                                    <CheckBox Content="Saved Logins (metadata only) ⚠️" IsChecked="{Binding ExtractBrowserPasswords}" Margin="10,5"
+                                              ToolTip="Extracts login URLs and usernames only — actual passwords are NOT decrypted for security reasons"/>
                                 </WrapPanel>
                                 <Button Content="🔍 Extract Browser Artifacts" Command="{Binding ScanBrowserArtifactsCommand}"
                                         Height="35" FontSize="12" FontWeight="Bold" 
@@ -1036,6 +1036,18 @@
                                 <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
                                     Take snapshots of registry keys and compare them to detect changes made by malware or suspicious activity.
                                 </TextBlock>
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Snapshots Folder:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBox Grid.Column="1" Text="{Binding RegistrySnapshotFolder, Mode=OneWay}" IsReadOnly="True" 
+                                             Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+                                    <Button Grid.Column="2" Content="📂 Open" Command="{Binding OpenRegistrySnapshotFolderCommand}" 
+                                            MinWidth="70" Margin="5,0,0,0" ToolTip="Open snapshots folder in Explorer"/>
+                                </Grid>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="100"/>

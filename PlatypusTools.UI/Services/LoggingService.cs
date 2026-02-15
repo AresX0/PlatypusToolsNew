@@ -34,8 +34,7 @@ namespace PlatypusTools.UI.Services
         public LoggingService()
         {
             _logDirectory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "PlatypusTools", "Logs");
+                SettingsManager.DataDirectory, "Logs");
             
             Directory.CreateDirectory(_logDirectory);
             _currentLogFile = Path.Combine(_logDirectory, $"platypus_{DateTime.Now:yyyyMMdd}.log");

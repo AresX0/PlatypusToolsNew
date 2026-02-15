@@ -126,26 +126,31 @@
                 <!-- Quick Toggle Buttons (Right side of header) -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
                     <ToggleButton IsChecked="{Binding ShowEqualizer}" 
+                                  AutomationProperties.Name="Toggle Equalizer"
                                   ToolTip="Toggle Equalizer (E)" MinWidth="32" Height="26" Padding="4,2"
                                   Background="Transparent" BorderThickness="1" BorderBrush="#666">
                         <TextBlock Text="🎚️" FontSize="12"/>
                     </ToggleButton>
                     <ToggleButton IsChecked="{Binding ShowFileInfo}" 
                                   Command="{Binding ToggleFileInfoCommand}"
+                                  AutomationProperties.Name="Toggle File Info"
                                   ToolTip="Toggle File Info" MinWidth="32" Height="26" Margin="4,0,0,0" Padding="4,2"
                                   Background="Transparent" BorderThickness="1" BorderBrush="#666">
                         <TextBlock Text="ℹ️" FontSize="12"/>
                     </ToggleButton>
                     <ToggleButton IsChecked="{Binding AutoDjEnabled}" 
                                   Command="{Binding ToggleAutoDjCommand}"
+                                  AutomationProperties.Name="Toggle Auto DJ"
                                   ToolTip="Toggle Auto DJ" MinWidth="32" Height="26" Margin="4,0,0,0" Padding="4,2"
                                   Background="Transparent" BorderThickness="1" BorderBrush="#666">
                         <TextBlock Text="🎧" FontSize="12"/>
                     </ToggleButton>
                     <Button Content="🔲" Command="{Binding ToggleMiniPlayerCommand}"
+                            AutomationProperties.Name="Toggle Mini Player"
                             ToolTip="Toggle Mini Player" MinWidth="32" Height="26" Margin="8,0,0,0" Padding="4,2"
                             Background="Transparent" BorderThickness="1" BorderBrush="#666"/>
                     <Button x:Name="SidebarToggleButton" Content="📌" Click="ToggleSidebar_Click"
+                            AutomationProperties.Name="Toggle Sidebar"
                             ToolTip="Toggle Sidebar (Ctrl+B)" MinWidth="32" Height="26" Margin="4,0,0,0" Padding="4,2"
                             Background="Transparent" BorderThickness="1" BorderBrush="#666"/>
                 </StackPanel>
@@ -227,7 +232,7 @@
                 <!-- Visualizer Controls Bar (Below Visualizer) -->
                 <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" Margin="10,0,10,0" 
                         CornerRadius="0,0,8,8" Padding="10,6">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center">
                         <!-- Visualizer Mode -->
                         <TextBlock Text="Mode:" FontSize="11" VerticalAlignment="Center" Margin="0,0,5,0"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -256,6 +261,7 @@
                         <TextBlock Text="Sens:" FontSize="11" VerticalAlignment="Center" Margin="0,0,3,0"
                                    Foreground="{DynamicResource TextSecondaryBrush}" ToolTip="Visualizer Sensitivity"/>
                         <Slider Value="{Binding VisualizerSensitivity}" Minimum="0.1" Maximum="2.0" 
+                                AutomationProperties.Name="Visualizer Sensitivity"
                                 Width="60" VerticalAlignment="Center" Margin="0,0,10,0"
                                 ToolTip="Sensitivity: Low = Smooth, High = Responsive"/>
                         
@@ -263,16 +269,19 @@
                         <TextBlock Text="Crawl:" FontSize="11" VerticalAlignment="Center" Margin="0,0,3,0"
                                    Foreground="{DynamicResource TextSecondaryBrush}" ToolTip="Star Wars Crawl Speed"/>
                         <Slider Value="{Binding CrawlScrollSpeed}" Minimum="0.25" Maximum="3.0" 
+                                AutomationProperties.Name="Star Wars Crawl Speed"
                                 Width="50" VerticalAlignment="Center" Margin="0,0,10,0"
                                 ToolTip="Star Wars Crawl Speed: 0.25x - 3.0x"/>
                         
                         <!-- Lyrics Overlay Toggle -->
                         <ToggleButton Content="📝 Lyrics" IsChecked="{Binding ShowLyricsOverlay}" 
+                                      AutomationProperties.Name="Toggle Lyrics Overlay"
                                       Padding="6,4" FontSize="11" MinWidth="75" Margin="0,0,10,0"
                                       ToolTip="Show Lyrics on Visualizer"/>
                         
                         <!-- Album Art / Visualizer Toggle -->
                         <ToggleButton IsChecked="{Binding ShowAlbumArtView}" 
+                                      AutomationProperties.Name="Toggle Album Art View"
                                       Padding="6,4" FontSize="11" MinWidth="70" Margin="0,0,10,0"
                                       ToolTip="Show Album Art instead of Visualizer">
                             <StackPanel Orientation="Horizontal">
@@ -311,7 +320,7 @@
                                 <TextBlock Text="Install" FontSize="11"/>
                             </StackPanel>
                         </Button>
-                    </StackPanel>
+                    </WrapPanel>
                 </Border>
             </Grid>
             
@@ -320,7 +329,8 @@
                           Visibility="{Binding IsMiniPlayerMode, Converter={StaticResource InverseBoolToVis}}"/>
             
             <!-- RIGHT: Sidebar with all tabs -->
-            <TabControl x:Name="SidebarTabControl" Grid.Column="2" Margin="0,5,5,5">
+            <TabControl x:Name="SidebarTabControl" Grid.Column="2" Margin="0,5,5,5"
+                        AutomationProperties.Name="Audio Player Sidebar">
                     
                     <!-- Queue Tab -->
                     <TabItem Header="📋 Queue">
@@ -344,16 +354,20 @@
                                     <ComboBox ItemsSource="{Binding QueueSortOptions}" SelectedItem="{Binding QueueSortBy}" Width="90"/>
                                     <TextBlock Text="  Search: " VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="8,0,0,0"/>
                                     <TextBox Text="{Binding QueueSearchQuery, UpdateSourceTrigger=PropertyChanged}" Width="160" VerticalAlignment="Center"
+                                             AutomationProperties.Name="Search Queue"
                                              FontSize="11" Padding="3,2"/>
                                     <Button Content="✕" Width="22" Height="22" Margin="2,0,0,0" FontSize="9" ToolTip="Clear search"
+                                            AutomationProperties.Name="Clear Queue Search"
                                             Command="{Binding ClearQueueSearchCommand}"/>
                                 </StackPanel>
                                 
                                 <!-- Scroll Up Button -->
                                 <Button Grid.Row="2" Content="▲" Height="24" VerticalAlignment="Top" Margin="0,0,0,0"
+                                        AutomationProperties.Name="Scroll Queue Up"
                                         Click="QueueScrollUp_Click" ToolTip="Scroll Up" Panel.ZIndex="1" Opacity="0.8"/>
                                 
                                 <ListBox x:Name="QueueListBox" Grid.Row="2" ItemsSource="{Binding QueueView}" SelectedItem="{Binding SelectedQueueTrack}"
+                                         AutomationProperties.Name="Play Queue"
                                          AllowDrop="True" Margin="0,26,0,26"
                                          PreviewMouseLeftButtonDown="Queue_PreviewMouseLeftButtonDown"
                                          Drop="Queue_Drop"
@@ -400,6 +414,8 @@
                                     <ListBox.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="▶ Play" Command="{Binding PlayTrackCommand}" CommandParameter="{Binding SelectedQueueTrack}"/>
+                                            <MenuItem Header="⏭ Play Next" Command="{Binding PlayNextCommand}" CommandParameter="{Binding SelectedQueueTrack}"/>
+                                            <Separator/>
                                             <MenuItem Header="❌ Remove" Command="{Binding RemoveFromQueueCommand}" CommandParameter="{Binding SelectedQueueTrack}"/>
                                         </ContextMenu>
                                     </ListBox.ContextMenu>
@@ -410,6 +426,7 @@
                                 
                                 <!-- Scroll Down Button -->
                                 <Button Grid.Row="2" Content="▼" Height="24" VerticalAlignment="Bottom"
+                                        AutomationProperties.Name="Scroll Queue Down"
                                         Click="QueueScrollDown_Click" ToolTip="Scroll Down" Panel.ZIndex="1" Opacity="0.8"/>
                                 
                                 <TextBlock Grid.Row="3" Text="{Binding Queue.Count, StringFormat={}{0} tracks}" 
@@ -634,6 +651,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBox Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" 
+                                             AutomationProperties.Name="Search Library"
                                              Padding="6,4" FontSize="11" ToolTip="Search by title, artist, or album"/>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="5,0,0,0">
                                         <Button Content="▶ Play" Command="{Binding PlaySelectedCommand}" FontSize="11"/>
@@ -673,6 +691,7 @@
                                     <DataGrid.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="▶ Play" Command="{Binding PlaySelectedCommand}"/>
+                                            <MenuItem Header="⏭ Play Next" Command="{Binding PlayNextCommand}" CommandParameter="{Binding SelectedLibraryTrack}"/>
                                             <MenuItem Header="➕ Add to Queue" Command="{Binding AddToQueueCommand}" 
                                                       CommandParameter="{Binding SelectedLibraryTrack}"/>
                                             <Separator/>
@@ -1036,6 +1055,7 @@
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="Duration:" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="11"/>
                                         <Slider Value="{Binding FadeOnPauseDurationMs}" Minimum="100" Maximum="2000" 
+                                                AutomationProperties.Name="Fade Duration"
                                                 Width="100" VerticalAlignment="Center"/>
                                         <TextBlock Text="{Binding FadeOnPauseDurationMs, StringFormat={}{0}ms}" 
                                                    VerticalAlignment="Center" Margin="6,0,0,0" FontSize="10"/>
@@ -1055,15 +1075,19 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBox x:Name="StreamUrlTextBox" FontSize="11" Padding="3" 
+                                                 AutomationProperties.Name="Stream URL"
                                                  Text="{Binding StreamUrl, UpdateSourceTrigger=PropertyChanged}"
                                                  ToolTip="Enter stream URL (HTTP radio, YouTube, SoundCloud)"/>
                                         <Button Grid.Column="1" Content="▶" Width="30" Margin="3,0,0,0"
+                                                AutomationProperties.Name="Play Stream"
                                                 Background="#FF4CAF50" Foreground="White" FontSize="14"
                                                 Command="{Binding PlayStreamCommand}" ToolTip="Play stream"/>
                                         <Button Grid.Column="2" Content="⏸" Width="30" Margin="3,0,0,0"
+                                                AutomationProperties.Name="Pause Stream"
                                                 Background="#FF2196F3" Foreground="White" FontSize="14"
                                                 Command="{Binding PauseStreamCommand}" ToolTip="Pause stream"/>
                                         <Button Grid.Column="3" Content="⏹" Width="30" Margin="3,0,0,0"
+                                                AutomationProperties.Name="Stop Stream"
                                                 Background="#FFF44336" Foreground="White" FontSize="14"
                                                 Command="{Binding StopStreamCommand}" ToolTip="Stop stream"/>
                                     </Grid>
@@ -1110,12 +1134,13 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="40"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="40"/>
+                        <ColumnDefinition Width="50"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="{Binding PositionDisplay}" FontSize="10" FontFamily="Consolas"
                                Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                     <Grid Grid.Column="1" Margin="6,0">
                         <Slider x:Name="SeekSlider" Value="{Binding PositionSeconds}" Maximum="{Binding DurationSeconds}"
+                                AutomationProperties.Name="Seek Position"
                                 VerticalAlignment="Center"
                                 MouseMove="SeekSlider_MouseMove" MouseLeave="SeekSlider_MouseLeave"/>
                         <!-- Seek Preview Popup -->
@@ -1131,8 +1156,9 @@
                             </Border>
                         </Popup>
                     </Grid>
-                    <TextBlock Grid.Column="2" Text="{Binding DurationDisplay}" FontSize="10" FontFamily="Consolas"
-                               Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="2" Text="{Binding RemainingDisplay}" FontSize="10" FontFamily="Consolas"
+                               Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"
+                               ToolTip="{Binding DurationDisplay, StringFormat='Total: {0}'}" />
                 </Grid>
                 
                 <!-- Controls Row: Album Art | Track Info | Play Controls | Volume | Status -->
@@ -1174,18 +1200,23 @@
                         <!-- Star Rating (compact) -->
                         <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                             <Button Content="★" Command="{Binding SetRatingCommand}" CommandParameter="1"
+                                    AutomationProperties.Name="Rate 1 Star"
                                     FontSize="12" Background="Transparent" BorderThickness="0" Padding="1" Cursor="Hand"
                                     Foreground="{Binding CurrentTrackRating, Converter={StaticResource RatingToStarColorConverter}, ConverterParameter=1}"/>
                             <Button Content="★" Command="{Binding SetRatingCommand}" CommandParameter="2"
+                                    AutomationProperties.Name="Rate 2 Stars"
                                     FontSize="12" Background="Transparent" BorderThickness="0" Padding="1" Cursor="Hand"
                                     Foreground="{Binding CurrentTrackRating, Converter={StaticResource RatingToStarColorConverter}, ConverterParameter=2}"/>
                             <Button Content="★" Command="{Binding SetRatingCommand}" CommandParameter="3"
+                                    AutomationProperties.Name="Rate 3 Stars"
                                     FontSize="12" Background="Transparent" BorderThickness="0" Padding="1" Cursor="Hand"
                                     Foreground="{Binding CurrentTrackRating, Converter={StaticResource RatingToStarColorConverter}, ConverterParameter=3}"/>
                             <Button Content="★" Command="{Binding SetRatingCommand}" CommandParameter="4"
+                                    AutomationProperties.Name="Rate 4 Stars"
                                     FontSize="12" Background="Transparent" BorderThickness="0" Padding="1" Cursor="Hand"
                                     Foreground="{Binding CurrentTrackRating, Converter={StaticResource RatingToStarColorConverter}, ConverterParameter=4}"/>
                             <Button Content="★" Command="{Binding SetRatingCommand}" CommandParameter="5"
+                                    AutomationProperties.Name="Rate 5 Stars"
                                     FontSize="12" Background="Transparent" BorderThickness="0" Padding="1" Cursor="Hand"
                                     Foreground="{Binding CurrentTrackRating, Converter={StaticResource RatingToStarColorConverter}, ConverterParameter=5}"/>
                         </StackPanel>
@@ -1194,18 +1225,24 @@
                     <!-- Playback Controls (centered) -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Button Content="🔀" Command="{Binding ToggleShuffleCommand}" ToolTip="Shuffle"
+                                AutomationProperties.Name="Toggle Shuffle"
                                 MinWidth="32" Height="32" Margin="2" Padding="4,2"
                                 Opacity="{Binding IsShuffle, Converter={StaticResource BoolToOpacityConverter}, FallbackValue=0.5}"/>
                         <Button Content="⏮" Command="{Binding PreviousCommand}" ToolTip="Previous"
+                                AutomationProperties.Name="Previous Track"
                                 MinWidth="36" Height="36" Margin="2" Padding="4,2"/>
                         <Button Content="{Binding PlayPauseIcon}" Command="{Binding PlayPauseCommand}" 
+                                AutomationProperties.Name="Play or Pause"
                                 ToolTip="Play/Pause" FontSize="16"
                                 MinWidth="44" Height="44" Margin="2" Padding="6,4"/>
                         <Button Content="⏹" Command="{Binding StopCommand}" ToolTip="Stop"
+                                AutomationProperties.Name="Stop Playback"
                                 MinWidth="36" Height="36" Margin="2" Padding="4,2"/>
                         <Button Content="⏭" Command="{Binding NextCommand}" ToolTip="Next"
+                                AutomationProperties.Name="Next Track"
                                 MinWidth="36" Height="36" Margin="2" Padding="4,2"/>
                         <Button Content="{Binding RepeatIcon}" Command="{Binding CycleRepeatCommand}" ToolTip="Repeat Mode"
+                                AutomationProperties.Name="Cycle Repeat Mode"
                                 MinWidth="32" Height="32" Margin="2" Padding="4,2"/>
                     </StackPanel>
                     
@@ -1231,7 +1268,8 @@
                     
                     <!-- Volume -->
                     <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0">
-                        <Button Command="{Binding ToggleMuteCommand}" Width="24" Height="24" Background="Transparent" BorderThickness="0">
+                        <Button Command="{Binding ToggleMuteCommand}" AutomationProperties.Name="Toggle Mute"
+                                Width="24" Height="24" Background="Transparent" BorderThickness="0">
                             <TextBlock FontSize="11">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
@@ -1245,7 +1283,8 @@
                                 </TextBlock.Style>
                             </TextBlock>
                         </Button>
-                        <Slider Value="{Binding Volume}" Maximum="1" Width="80" VerticalAlignment="Center" Margin="3,0"/>
+                        <Slider Value="{Binding Volume}" Maximum="1" Width="80" VerticalAlignment="Center" Margin="3,0"
+                                AutomationProperties.Name="Volume"/>
                         <TextBlock Text="{Binding VolumePercent, StringFormat={}{0}%}" 
                                    VerticalAlignment="Center" FontSize="10" Width="30"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>

@@ -68,6 +68,7 @@
                 <Separator />
                 <MenuItem Header="View Logs..." Click="OpenLogViewer" />
                 <MenuItem Header="Check for Updates..." Click="CheckForUpdates" />
+                <MenuItem Header="View Changelog..." Click="ShowChangelog" />
                 <Separator />
                 <MenuItem Header="About PlatypusTools" Click="ShowAbout" InputGestureText="Shift+F1" />
             </MenuItem>
@@ -85,6 +86,7 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <Button Command="{Binding ToggleThemeCommand}" 
+                            AutomationProperties.Name="Toggle Theme"
                             MinWidth="100" Height="32" Margin="0,0,8,0"
                             BorderThickness="0" FontWeight="SemiBold">
                         <StackPanel Orientation="Horizontal">
@@ -96,6 +98,7 @@
                             Width="90" Height="32"
                             BorderThickness="0" FontWeight="SemiBold"/>
                     <Button x:Name="AutoHideButton" Click="ToggleAutoHideNavigation_Click"
+                            AutomationProperties.Name="Auto-hide Navigation"
                             ToolTip="Auto-hide navigation tabs (Ctrl+H)"
                             Width="36" Height="32" Margin="8,0,0,0" Padding="4,2"
                             BorderThickness="0" FontWeight="SemiBold">

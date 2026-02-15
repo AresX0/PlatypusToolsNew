@@ -44,8 +44,7 @@ public class AudioStreamingService
     
     public AudioStreamingService()
     {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        _stationsPath = Path.Combine(appData, "PlatypusTools", "RadioStations.json");
+        _stationsPath = Path.Combine(SettingsManager.DataDirectory, "RadioStations.json");
         _ = LoadStationsAsync();
     }
     

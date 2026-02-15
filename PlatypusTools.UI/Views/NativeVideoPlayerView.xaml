@@ -95,12 +95,12 @@
                 </Grid.RowDefinitions>
 
                 <!-- Queue Controls -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
-                    <Button Content="+ Add Files" Click="AddToQueue_Click" MinWidth="180" Height="28" Margin="0,0,5,0" Padding="8,2"
+                <WrapPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
+                    <Button Content="+ Add Files" Click="AddToQueue_Click" MinWidth="90" Height="28" Margin="0,0,5,3" Padding="8,2"
                             Background="#FF4CAF50" Foreground="White"/>
-                    <Button Content="Clear" Click="ClearQueue_Click" MinWidth="180" Height="28" Margin="0,0,5,0"/>
-                    <Button Content="🔀" Click="ShuffleQueue_Click" MinWidth="34" Height="28" ToolTip="Shuffle Queue" Padding="4,2"/>
-                </StackPanel>
+                    <Button Content="Clear" Click="ClearQueue_Click" MinWidth="60" Height="28" Margin="0,0,5,3"/>
+                    <Button Content="🔀" Click="ShuffleQueue_Click" MinWidth="34" Height="28" Margin="0,0,5,3" ToolTip="Shuffle Queue" Padding="4,2"/>
+                </WrapPanel>
 
                 <!-- Queue List -->
                 <ListBox x:Name="QueueListBox" Grid.Row="1" Margin="5" 

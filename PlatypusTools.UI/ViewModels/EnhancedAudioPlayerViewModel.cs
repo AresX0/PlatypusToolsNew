@@ -372,6 +372,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             {
                 RaisePropertyChanged(nameof(PositionSeconds));
                 RaisePropertyChanged(nameof(PositionDisplay));
+                RaisePropertyChanged(nameof(RemainingDisplay));
                 UpdateCurrentLyric();
             }
         }
@@ -398,8 +399,20 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     }
     
     public double DurationSeconds => Duration.TotalSeconds;
-    public string PositionDisplay => Position.ToString(@"m\:ss");
-    public string DurationDisplay => Duration.ToString(@"m\:ss");
+    public string PositionDisplay => FormatTimeSpan(Position);
+    public string DurationDisplay => FormatTimeSpan(Duration);
+    public string RemainingDisplay
+    {
+        get
+        {
+            var remaining = Duration - Position;
+            if (remaining < TimeSpan.Zero) remaining = TimeSpan.Zero;
+            return $"-{FormatTimeSpan(remaining)}";
+        }
+    }
+    
+    private static string FormatTimeSpan(TimeSpan ts)
+        => ts.TotalHours >= 1 ? ts.ToString(@"h\:mm\:ss") : ts.ToString(@"m\:ss");
     
     private double _volume = 0.7;
     public double Volume
@@ -795,7 +808,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     {
         try
         {
-            var appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PlatypusTools");
+            var appDataPath = Services.SettingsManager.DataDirectory;
             Directory.CreateDirectory(appDataPath);
             var playlistsPath = Path.Combine(appDataPath, "enhanced_user_playlists.json");
             var json = JsonSerializer.Serialize(UserPlaylists.ToList(), new JsonSerializerOptions { WriteIndented = true });
@@ -808,7 +821,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     {
         try
         {
-            var appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PlatypusTools");
+            var appDataPath = Services.SettingsManager.DataDirectory;
             var playlistsPath = Path.Combine(appDataPath, "enhanced_user_playlists.json");
             if (File.Exists(playlistsPath))
             {
@@ -1507,14 +1520,57 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             };
         }
         
-        // Apply text search filter
+        // Apply text search filter with advanced field syntax
+        // Supports: artist:name, album:name, genre:name, year:2020, title:name
+        // Plain text searches all fields
         if (!string.IsNullOrWhiteSpace(query))
         {
-            filtered = filtered.Where(t =>
-                t.DisplayTitle.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                t.DisplayArtist.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                t.DisplayAlbum.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                t.DisplayGenre.Contains(query, StringComparison.OrdinalIgnoreCase));
+            // Parse field-specific queries (e.g., "artist:beatles year:1969")
+            var fieldPrefixes = new[] { "artist:", "album:", "genre:", "year:", "title:" };
+            bool hasFieldQuery = fieldPrefixes.Any(p => query.Contains(p, StringComparison.OrdinalIgnoreCase));
+            
+            if (hasFieldQuery)
+            {
+                // Extract field:value pairs and plain text
+                var parts = System.Text.RegularExpressions.Regex.Matches(query, @"(\w+):(\S+)|(\S+)")
+                    .Cast<System.Text.RegularExpressions.Match>();
+                    
+                foreach (var part in parts)
+                {
+                    if (!string.IsNullOrEmpty(part.Groups[1].Value))
+                    {
+                        var field = part.Groups[1].Value.ToLowerInvariant();
+                        var val = part.Groups[2].Value;
+                        filtered = field switch
+                        {
+                            "artist" => filtered.Where(t => t.DisplayArtist.Contains(val, StringComparison.OrdinalIgnoreCase)),
+                            "album" => filtered.Where(t => t.DisplayAlbum.Contains(val, StringComparison.OrdinalIgnoreCase)),
+                            "genre" => filtered.Where(t => t.DisplayGenre.Contains(val, StringComparison.OrdinalIgnoreCase)),
+                            "year" => filtered.Where(t => t.Year.ToString() == val),
+                            "title" => filtered.Where(t => t.DisplayTitle.Contains(val, StringComparison.OrdinalIgnoreCase)),
+                            _ => filtered
+                        };
+                    }
+                    else if (!string.IsNullOrEmpty(part.Groups[3].Value))
+                    {
+                        var term = part.Groups[3].Value;
+                        filtered = filtered.Where(t =>
+                            t.DisplayTitle.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                            t.DisplayArtist.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                            t.DisplayAlbum.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                            t.DisplayGenre.Contains(term, StringComparison.OrdinalIgnoreCase));
+                    }
+                }
+            }
+            else
+            {
+                // Simple search across all fields
+                filtered = filtered.Where(t =>
+                    t.DisplayTitle.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    t.DisplayArtist.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    t.DisplayAlbum.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    t.DisplayGenre.Contains(query, StringComparison.OrdinalIgnoreCase));
+            }
         }
         
         // Apply sort order based on browse mode
@@ -1673,7 +1729,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     
     public List<string> ColorSchemes { get; } = new()
     {
-        "Blue-Green", "Rainbow", "Fire", "Purple", "Neon", "Ocean", "Sunset", "Monochrome", "Pip-Boy", "LCARS", "Klingon", "Federation", "K-Pop Demon Hunters"
+        "Blue-Green", "Rainbow", "Fire", "Purple", "Neon", "Ocean", "Sunset", "Monochrome", "Pip-Boy", "LCARS", "Klingon", "Federation", "K-Pop Demon Hunters", "Deuteranopia", "Protanopia", "Tritanopia"
     };
     
     public List<int> DensityOptions { get; } = new() { 16, 24, 32, 48, 64, 72, 96, 128 };
@@ -3084,6 +3140,26 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                 StatusMessage = "Loading library cache...";
                 System.Diagnostics.Debug.WriteLine("[AudioLibrary] Loading cache file...");
                 
+                // Verify integrity hash if available
+                var hashFile = cacheFile + ".sha256";
+                if (File.Exists(hashFile))
+                {
+                    var expectedHash = (await File.ReadAllTextAsync(hashFile)).Trim();
+                    using var hashStream = new FileStream(cacheFile, FileMode.Open, FileAccess.Read, FileShare.Read, 65536);
+                    using var sha256 = System.Security.Cryptography.SHA256.Create();
+                    var actualHashBytes = await sha256.ComputeHashAsync(hashStream);
+                    var actualHash = Convert.ToHexString(actualHashBytes);
+                    if (!string.Equals(expectedHash, actualHash, StringComparison.OrdinalIgnoreCase))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Hash mismatch! Expected: {expectedHash[..16]}..., Got: {actualHash[..16]}...");
+                        StatusMessage = "Library cache integrity check failed - rescan recommended";
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("[AudioLibrary] Cache integrity verified (SHA256 match)");
+                    }
+                }
+                
                 // Use stream-based deserialization for better performance with large files
                 await using var fileStream = new FileStream(cacheFile, FileMode.Open, FileAccess.Read, FileShare.Read, 
                     bufferSize: 65536, useAsync: true); // 64KB buffer for faster reads
@@ -3288,6 +3364,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             var pendingTracks = new System.Collections.Concurrent.ConcurrentBag<AudioTrack>();
             var updateLock = new object();
             var lastUiUpdateTime = DateTime.Now;
+            var scanStartTime = DateTime.Now;
             const int BatchSize = 50; // Add tracks to UI every 50 files for instant population
             
             System.Diagnostics.Debug.WriteLine($"[SCAN] Starting parallel scan with {MaxParallelScans} threads");
@@ -3354,9 +3431,22 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                         {
                             var progress = (int)(currentProcessed * 100.0 / filesToScan.Count);
                             var added = addedFiles;
+                            var elapsed = DateTime.Now - scanStartTime;
+                            var etaText = "";
+                            if (currentProcessed > 10 && elapsed.TotalSeconds > 1)
+                            {
+                                var filesPerSec = currentProcessed / elapsed.TotalSeconds;
+                                var remaining = (filesToScan.Count - currentProcessed) / filesPerSec;
+                                if (remaining > 60)
+                                    etaText = $" ~{remaining / 60:F0}m remaining";
+                                else if (remaining > 5)
+                                    etaText = $" ~{remaining:F0}s remaining";
+                                else
+                                    etaText = " almost done";
+                            }
                             Application.Current?.Dispatcher?.BeginInvoke(() =>
                             {
-                                ScanStatus = $"Scanning: {currentProcessed}/{filesToScan.Count} ({added} tracks)";
+                                ScanStatus = $"Scanning: {currentProcessed}/{filesToScan.Count} ({added} tracks){etaText}";
                                 ScanProgress = progress;
                             });
                             
@@ -3585,6 +3675,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         var newTracks = new ConcurrentBag<AudioTrack>();
         int processedFiles = 0;
         int addedFiles = 0;
+        var rescanStartTime = DateTime.Now;
         
         await Task.Run(() =>
         {
@@ -3616,9 +3707,17 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
                     if (currentProcessed % 50 == 0)
                     {
                         var progress = (int)(currentProcessed * 100.0 / filesToScan.Count);
+                        var rescanElapsed = DateTime.Now - rescanStartTime;
+                        var rescanEtaText = "";
+                        if (currentProcessed > 10 && rescanElapsed.TotalSeconds > 1)
+                        {
+                            var fps = currentProcessed / rescanElapsed.TotalSeconds;
+                            var rem = (filesToScan.Count - currentProcessed) / fps;
+                            rescanEtaText = rem > 60 ? $" ~{rem / 60:F0}m remaining" : rem > 5 ? $" ~{rem:F0}s remaining" : " almost done";
+                        }
                         Application.Current?.Dispatcher?.BeginInvoke(() =>
                         {
-                            ScanStatus = $"Scanning: {currentProcessed}/{filesToScan.Count} ({cachedTracks.Count + addedFiles} total tracks)";
+                            ScanStatus = $"Scanning: {currentProcessed}/{filesToScan.Count} ({cachedTracks.Count + addedFiles} total tracks){rescanEtaText}";
                             ScanProgress = progress;
                         });
                         
@@ -3736,8 +3835,17 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             await using var fileStream = new FileStream(cacheFile, FileMode.Create, FileAccess.Write, FileShare.None,
                 bufferSize: 65536, useAsync: true);
             await JsonSerializer.SerializeAsync(fileStream, _allLibraryTracks);
+            await fileStream.FlushAsync();
             
-            System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Cache saved successfully ({new FileInfo(cacheFile).Length:N0} bytes)");
+            // Compute and save SHA256 hash for integrity verification
+            fileStream.Position = 0;
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var hashBytes = await sha256.ComputeHashAsync(fileStream);
+            var hashHex = Convert.ToHexString(hashBytes);
+            var hashFile = cacheFile + ".sha256";
+            await File.WriteAllTextAsync(hashFile, hashHex);
+            
+            System.Diagnostics.Debug.WriteLine($"[AudioLibrary] Cache saved successfully ({new FileInfo(cacheFile).Length:N0} bytes, hash: {hashHex[..16]}...)");
         }
         catch (Exception ex)
         {

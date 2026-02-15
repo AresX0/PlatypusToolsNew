@@ -14,7 +14,7 @@ namespace PlatypusTools.UI.Services
     /// </summary>
     public static class WorkspaceManager
     {
-        private static string AppFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PlatypusTools");
+        private static string AppFolder => SettingsManager.DataDirectory;
         private static string RecentFile => Path.Combine(AppFolder, "recent_workspaces.json");
 
         public static void EnsureAppFolder() => Directory.CreateDirectory(AppFolder);

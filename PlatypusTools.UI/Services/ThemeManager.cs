@@ -26,6 +26,7 @@ namespace PlatypusTools.UI.Services
         public const string PipBoy = "PipBoy";
         public const string Klingon = "Klingon";
         public const string KPopDemonHunters = "KPopDemonHunters";
+        public const string HighContrast = "HighContrast";
 
         /// <summary>Gets the singleton instance.</summary>
         public static ThemeManager Instance => _instance ??= new ThemeManager();
@@ -199,7 +200,8 @@ namespace PlatypusTools.UI.Services
                    path.Contains("themes\\glass.xaml") ||
                    path.Contains("themes\\pipboy.xaml") ||
                    path.Contains("themes\\klingon.xaml") ||
-                   path.Contains("themes\\kpopdemonhunters.xaml");
+                   path.Contains("themes\\kpopdemonhunters.xaml") ||
+                   path.Contains("themes\\highcontrast.xaml");
         }
 
         /// <summary>
@@ -220,10 +222,17 @@ namespace PlatypusTools.UI.Services
 
                 // Update singleton state
                 Instance._currentTheme = name;
-                Instance._isDarkTheme = name == Dark || name == LCARS || name == PipBoy || name == Klingon || name == KPopDemonHunters; // LCARS, PipBoy, Klingon, KPopDemonHunters are dark-based
+                Instance._isDarkTheme = name == Dark || name == LCARS || name == PipBoy || name == Klingon || name == KPopDemonHunters || name == HighContrast;
                 Instance._isLcarsTheme = name == LCARS;
                 Instance._isPipBoyTheme = name == PipBoy;
                 Instance._isKlingonTheme = name == Klingon;
+
+                // If switching away from Glass, disable glass effects first
+                if (name != Glass && Instance._isGlassEnabled)
+                {
+                    Instance.DisableGlass();
+                    Instance._isGlassEnabled = false;
+                }
 
                 // Remove existing theme dictionaries
                 int removedCount = 0;
@@ -256,6 +265,13 @@ namespace PlatypusTools.UI.Services
                     case KPopDemonHunters:
                         themePath = System.IO.Path.Combine(baseDir, "Themes", "KPopDemonHunters.xaml");
                         break;
+                    case HighContrast:
+                        themePath = System.IO.Path.Combine(baseDir, "Themes", "HighContrast.xaml");
+                        break;
+                    case Glass:
+                        // Glass.xaml is a complete theme (merges Light.xaml internally + glass overlays)
+                        themePath = System.IO.Path.Combine(baseDir, "Themes", "Glass.xaml");
+                        break;
                     case Dark:
                         themePath = System.IO.Path.Combine(baseDir, "Themes", "Dark.xaml");
                         break;
@@ -287,10 +303,23 @@ namespace PlatypusTools.UI.Services
                     SimpleLogger.Error($"ThemeManager: Theme file not found: {themePath}");
                 }
 
-                // Apply Glass theme overlay if enabled (not with LCARS)
-                if (Instance._isGlassEnabled && name != LCARS)
+                // Apply Glass theme overlay if enabled (not with LCARS or Glass — Glass.xaml already includes its own overlay)
+                if (Instance._isGlassEnabled && name != LCARS && name != Glass)
                 {
                     Instance.ApplyGlassResources();
+                }
+
+                // If Glass theme selected, enable glass effects + DWM blur
+                if (name == Glass)
+                {
+                    Instance._isGlassEnabled = true;
+                    // No need to call ApplyGlassResources — Glass.xaml is already the complete theme
+                    if (Instance._mainWindow != null && Instance.IsGlassSupported)
+                    {
+                        var level = Instance._glassLevel == GlassLevel.Off ? GlassLevel.Medium : Instance._glassLevel;
+                        Instance._glassLevel = level;
+                        GlassThemeService.Instance.Apply(Instance._mainWindow, level);
+                    }
                 }
 
                 // Update title bar dark mode
@@ -445,8 +474,7 @@ namespace PlatypusTools.UI.Services
             try
             {
                 var themesDir = System.IO.Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "PlatypusTools", "CustomThemes");
+                    SettingsManager.DataDirectory, "CustomThemes");
                     
                 if (System.IO.Directory.Exists(themesDir))
                 {
@@ -469,8 +497,7 @@ namespace PlatypusTools.UI.Services
         public static string? GetCustomThemePath(string name)
         {
             var themesDir = System.IO.Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "PlatypusTools", "CustomThemes");
+                SettingsManager.DataDirectory, "CustomThemes");
             var safeName = string.Join("_", name.Split(System.IO.Path.GetInvalidFileNameChars()));
             var path = System.IO.Path.Combine(themesDir, $"{safeName}.xaml");
             return System.IO.File.Exists(path) ? path : null;
@@ -485,8 +512,7 @@ namespace PlatypusTools.UI.Services
             try
             {
                 var themesFile = System.IO.Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "PlatypusTools", "themes.json");
+                    SettingsManager.DataDirectory, "themes.json");
                     
                 if (System.IO.File.Exists(themesFile))
                 {
@@ -575,13 +601,17 @@ namespace PlatypusTools.UI.Services
                     return;
                 }
 
-                // Check if Glass resources already loaded
+                // Check if Glass resources already loaded (either as primary theme or overlay)
                 foreach (var md in app.Resources.MergedDictionaries)
                 {
-                    if (md.Source != null && md.Source.OriginalString.Contains("Themes/Glass.xaml"))
+                    if (md.Source != null)
                     {
-                        SimpleLogger.Debug("ApplyGlassResources: Glass.xaml already loaded");
-                        return;  // Already loaded
+                        var src = md.Source.OriginalString.Replace('/', '\\').ToLowerInvariant();
+                        if (src.Contains("themes\\glass.xaml"))
+                        {
+                            SimpleLogger.Debug("ApplyGlassResources: Glass.xaml already loaded");
+                            return;  // Already loaded
+                        }
                     }
                 }
 
@@ -623,9 +653,13 @@ namespace PlatypusTools.UI.Services
                 for (int i = app.Resources.MergedDictionaries.Count - 1; i >= 0; i--)
                 {
                     var md = app.Resources.MergedDictionaries[i];
-                    if (md.Source != null && md.Source.OriginalString.Contains("Themes/Glass.xaml"))
+                    if (md.Source != null)
                     {
-                        app.Resources.MergedDictionaries.RemoveAt(i);
+                        var src = md.Source.OriginalString.Replace('/', '\\').ToLowerInvariant();
+                        if (src.Contains("themes\\glass.xaml"))
+                        {
+                            app.Resources.MergedDictionaries.RemoveAt(i);
+                        }
                     }
                 }
             }

@@ -775,6 +775,9 @@ namespace PlatypusTools.UI.ViewModels
         public ObservableCollection<IOCMatch> IOCMatches { get; } = new();
 
         // ============ REGISTRY DIFF ============
+        public string RegistrySnapshotFolder => Path.Combine(
+            PlatypusTools.UI.Services.SettingsManager.DataDirectory, "RegistrySnapshots");
+
         private string _registrySnapshot1Path = string.Empty;
         public string RegistrySnapshot1Path
         {
@@ -943,6 +946,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand BrowseSnapshot1Command { get; }
         public ICommand BrowseSnapshot2Command { get; }
         public ICommand ExportRegistryDiffCommand { get; }
+        public ICommand OpenRegistrySnapshotFolderCommand { get; }
 
         // PCAP Parser
         public ICommand ParsePcapCommand { get; }
@@ -1070,6 +1074,13 @@ namespace PlatypusTools.UI.ViewModels
             BrowseSnapshot1Command = new RelayCommand(_ => BrowseFile("Registry Snapshot", "JSON|*.json|All files|*.*", s => RegistrySnapshot1Path = s));
             BrowseSnapshot2Command = new RelayCommand(_ => BrowseFile("Registry Snapshot", "JSON|*.json|All files|*.*", s => RegistrySnapshot2Path = s));
             ExportRegistryDiffCommand = new AsyncRelayCommand(ExportRegistryDiffAsync, () => RegistryDiffs.Count > 0);
+            OpenRegistrySnapshotFolderCommand = new RelayCommand(_ =>
+            {
+                var folder = RegistrySnapshotFolder;
+                if (!System.IO.Directory.Exists(folder))
+                    System.IO.Directory.CreateDirectory(folder);
+                System.Diagnostics.Process.Start("explorer.exe", folder);
+            });
 
             // PCAP Parser Commands
             ParsePcapCommand = new AsyncRelayCommand(ParsePcapAsync, () => !IsRunning);
@@ -5101,7 +5112,7 @@ Amcache_CL
                 StatusMessage = "Scanning browser artifacts...";
                 BrowserArtifacts.Clear();
 
-                var service = PlatypusTools.UI.Services.ServiceLocator.BrowserForensics;
+                var service = PlatypusTools.Core.Services.ServiceContainer.GetRequiredService<PlatypusTools.UI.Services.Forensics.BrowserForensicsService>();
                 
                 // Configure the service
                 service.ExtractHistory = ExtractBrowserHistory;
@@ -5230,7 +5241,7 @@ Amcache_CL
                 StatusMessage = "Scanning for IOCs...";
                 IOCMatches.Clear();
 
-                var service = PlatypusTools.UI.Services.ServiceLocator.IOCScanner;
+                var service = PlatypusTools.Core.Services.ServiceContainer.GetRequiredService<PlatypusTools.UI.Services.Forensics.IOCScannerService>();
                 
                 // Configure scan options
                 service.ScanFileHashes = ScanIOCFiles;
@@ -5297,7 +5308,7 @@ Amcache_CL
                     return;
                 }
 
-                var service = PlatypusTools.UI.Services.ServiceLocator.IOCScanner;
+                var service = PlatypusTools.Core.Services.ServiceContainer.GetRequiredService<PlatypusTools.UI.Services.Forensics.IOCScannerService>();
                 
                 // Create a feed entry
                 var feed = new PlatypusTools.UI.Services.Forensics.IOCFeed
@@ -5372,7 +5383,7 @@ Amcache_CL
                 IsRunning = true;
                 StatusMessage = "Taking registry snapshot...";
 
-                var service = PlatypusTools.UI.Services.ServiceLocator.RegistryDiff;
+                var service = PlatypusTools.Core.Services.ServiceContainer.GetRequiredService<PlatypusTools.UI.Services.Forensics.RegistryDiffService>();
                 
                 // Set the hive to snapshot
                 service.ScanHKLM = RegistryHiveFilter == "HKLM" || RegistryHiveFilter == "All";
@@ -5412,7 +5423,7 @@ Amcache_CL
                     return;
                 }
 
-                var service = PlatypusTools.UI.Services.ServiceLocator.RegistryDiff;
+                var service = PlatypusTools.Core.Services.ServiceContainer.GetRequiredService<PlatypusTools.UI.Services.Forensics.RegistryDiffService>();
                 
                 // Load snapshots
                 var snapshot1 = await service.LoadSnapshotAsync(RegistrySnapshot1Path);
@@ -5519,7 +5530,7 @@ Amcache_CL
                     return;
                 }
 
-                var service = PlatypusTools.UI.Services.ServiceLocator.PcapParser;
+                var service = PlatypusTools.Core.Services.ServiceContainer.GetRequiredService<PlatypusTools.UI.Services.Forensics.PcapParserService>();
                 
                 // Configure parsing options
                 service.ExtractHttp = FilterHttpTraffic;

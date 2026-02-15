@@ -28,8 +28,7 @@ namespace PlatypusTools.UI.Services
         public ThumbnailCacheService()
         {
             _diskCachePath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "PlatypusTools", "Cache", "Thumbnails");
+                SettingsManager.DataDirectory, "Cache", "Thumbnails");
             Directory.CreateDirectory(_diskCachePath);
         }
 
