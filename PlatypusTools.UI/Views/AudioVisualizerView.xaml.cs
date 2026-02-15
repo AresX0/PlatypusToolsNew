@@ -10017,50 +10017,69 @@ namespace PlatypusTools.UI.Views
             if (barCount < 2) barCount = 2;
             
             float phase = (float)_animationPhase;
+            float sens = (float)_sensitivity;
             
             // Resolution scale factor — thicker lines at fullscreen so they're visible
-            float resScale = Math.Max(1f, h / 350f);  // 1x at 350px, ~3x at 1080p
+            float resScale = Math.Max(1f, h / 350f);
             
-            // Calculate energy stats from smoothed data
-            float totalEnergy = 0, maxVal = 0;
+            // === Compute energy bands for reactive behavior ===
+            float bassEnergy = 0, midEnergy = 0, trebEnergy = 0, totalEnergy = 0, maxVal = 0;
+            int bassEnd = barCount / 4;
+            int midEnd = barCount * 3 / 4;
             for (int i = 0; i < barCount; i++)
             {
-                float v = (float)_smoothedData[i];
+                float v = (float)_smoothedData[i] * sens;
                 totalEnergy += v;
                 if (v > maxVal) maxVal = v;
+                if (i < bassEnd) bassEnergy += v;
+                else if (i < midEnd) midEnergy += v;
+                else trebEnergy += v;
             }
             totalEnergy /= Math.Max(1, barCount);
+            bassEnergy /= Math.Max(1, bassEnd);
+            midEnergy /= Math.Max(1, midEnd - bassEnd);
+            trebEnergy /= Math.Max(1, barCount - midEnd);
             
-            // Golden threshold: absolute minimum + top 15% of current peak
-            // Much more selective so golden only flashes on strong beats
-            float goldenThreshold = Math.Max(0.7f, maxVal * 0.88f);
+            // Boost energy values for visible reactivity
+            bassEnergy = Math.Min(bassEnergy * 3f, 1.5f);
+            midEnergy = Math.Min(midEnergy * 3f, 1.5f);
+            trebEnergy = Math.Min(trebEnergy * 3f, 1.5f);
+            totalEnergy = Math.Min(totalEnergy * 3f, 1.2f);
             
-            // === Background: deep dark with subtle warm tones ===
+            // Golden threshold — more generous so beats light up more lines
+            float goldenThreshold = Math.Max(0.25f, maxVal * 0.65f);
+            
+            // === Background: pulses warmer on bass hits ===
             using (var bgPaint = new SKPaint())
             {
+                byte bgR = (byte)(18 + bassEnergy * 20);
+                byte bgG = (byte)(12 + bassEnergy * 8);
+                byte bgB = (byte)(28 + midEnergy * 15);
                 bgPaint.Shader = SKShader.CreateRadialGradient(
                     new SKPoint(w * 0.4f, h * 0.5f), Math.Max(w, h) * 0.8f,
                     new SKColor[] {
-                        new SKColor(18, 12, 28),    // Dark purple-brown center
-                        new SKColor(8, 5, 15),      // Near-black mid
-                        new SKColor(3, 2, 6)         // True dark edge
+                        new SKColor(bgR, bgG, bgB),
+                        new SKColor(8, 5, 15),
+                        new SKColor(3, 2, 6)
                     },
                     new float[] { 0f, 0.5f, 1f },
                     SKShaderTileMode.Clamp);
                 canvas.DrawRect(0, 0, w, h, bgPaint);
             }
             
-            // === Subtle warm ground glow (like satellite city lights) ===
+            // === Pulsing ground glow — bass-reactive ===
             using (var glowPaint = new SKPaint { IsAntialias = true })
             {
                 float glowX = w * (0.35f + (float)Math.Sin(phase * 0.1) * 0.1f);
                 float glowY = h * 0.55f;
-                float glowR = Math.Min(w, h) * (0.3f + totalEnergy * 0.15f);
+                float glowR = Math.Min(w, h) * (0.25f + bassEnergy * 0.35f);
+                byte ga1 = (byte)Math.Min(255, 40 + bassEnergy * 160);
+                byte ga2 = (byte)Math.Min(255, 20 + bassEnergy * 80);
                 glowPaint.Shader = SKShader.CreateRadialGradient(
                     new SKPoint(glowX, glowY), glowR,
                     new SKColor[] {
-                        new SKColor(180, 130, 40, (byte)(30 + totalEnergy * 40)),
-                        new SKColor(100, 60, 20, (byte)(15 + totalEnergy * 15)),
+                        new SKColor(180, 130, 40, ga1),
+                        new SKColor(100, 60, 20, ga2),
                         new SKColor(40, 20, 10, 0)
                     },
                     new float[] { 0f, 0.4f, 1f },
@@ -10068,9 +10087,17 @@ namespace PlatypusTools.UI.Views
                 canvas.DrawCircle(glowX, glowY, glowR, glowPaint);
             }
             
-            // === Flowing wave lines ===
-            int lineCount = Math.Max(35, h / 4);
-            int pointsPerLine = Math.Max(100, w / 3);
+            // === MUSIC-REACTIVE flowing wave lines ===
+            // Cap line/point counts for fullscreen performance.  At 1080p the old
+            // formula produced 216 lines × 480 points = 103K path ops per frame,
+            // causing multi-hundred-ms paints that starved the dispatcher and made
+            // the visualizer appear frozen.  80 lines × 240 points ≈ 19K ops — the
+            // same ballpark as the embedded panel — keeps renders under one timer tick.
+            int lineCount = Math.Clamp(h / 5, 30, 80);
+            int pointsPerLine = Math.Clamp(w / 4, 80, 240);
+            
+            // Phase speed reacts to energy — waves flow faster on loud parts
+            float phaseSpeed = 1.0f + totalEnergy * 2.5f + bassEnergy * 1.5f;
             
             using (var linePaint = new SKPaint
             {
@@ -10085,48 +10112,43 @@ namespace PlatypusTools.UI.Views
                     float rowT = (float)row / (lineCount - 1); // 0..1
                     float baseY = rowT * h;
                     
-                    // Map row to spectrum frequency band
-                    int specIdx = (int)(rowT * (barCount - 1));
-                    specIdx = Math.Clamp(specIdx, 0, Math.Min(barCount - 1, _smoothedData.Length - 1));
-                    float specVal = (float)_smoothedData[specIdx];
+                    // Map row to a frequency band — each row "owns" a slice of the spectrum
+                    int rowSpecStart = (int)(rowT * (barCount - 1));
+                    rowSpecStart = Math.Clamp(rowSpecStart, 0, barCount - 1);
+                    float rowSpec = (float)_smoothedData[rowSpecStart] * sens;
                     
-                    // Blend with neighbors for smoother mapping
-                    if (specIdx > 0 && specIdx < _smoothedData.Length - 1)
-                    {
-                        specVal = (float)(_smoothedData[specIdx - 1] * 0.2 + _smoothedData[specIdx] * 0.6 + _smoothedData[specIdx + 1] * 0.2);
-                    }
+                    // Blend with neighbors
+                    if (rowSpecStart > 0 && rowSpecStart < _smoothedData.Length - 1)
+                        rowSpec = (float)(_smoothedData[rowSpecStart - 1] * 0.15 + _smoothedData[rowSpecStart] * 0.7 + _smoothedData[rowSpecStart + 1] * 0.15) * sens;
                     
-                    // Direct linear scaling — _smoothedData already has _sensitivity applied
-                    // by ApplySmoothing(), so we just boost for visual range (no double-application).
-                    // Clamp to 1.0 for color/alpha calculations.
-                    float scaledSpec = Math.Min(1.0f, specVal * 2.5f);
+                    float scaledRow = Math.Min(1.5f, rowSpec * 3.0f);
                     
-                    // Wave amplitude driven by spectrum — scales with resolution
-                    float amplitude = scaledSpec * h * 0.14f + h * 0.003f;
+                    // Base gentle wave amplitude + LARGE audio-driven amplitude
+                    float baseAmp = h * 0.008f;
+                    float audioAmp = scaledRow * h * 0.22f;
+                    float amplitude = baseAmp + audioAmp;
                     
-                    // Line thickness scales with resolution for fullscreen visibility
-                    linePaint.StrokeWidth = (0.8f + scaledSpec * 3.0f) * resScale;
+                    // Line thickness: thin when quiet, thick when loud
+                    linePaint.StrokeWidth = (0.6f + scaledRow * 4.0f) * resScale;
                     
-                    // Determine color: golden for peak lines, color scheme for others
-                    bool isGolden = specVal >= goldenThreshold && specVal > 0.10f;
+                    // Golden for peak-energy lines
+                    bool isGolden = rowSpec >= goldenThreshold && rowSpec > 0.05f;
                     
                     if (isGolden)
                     {
-                        // Golden flowing energy — brighter and wider
-                        byte gAlpha = (byte)(180 + Math.Min(75, scaledSpec * 100));
-                        byte gGreen = (byte)(180 + Math.Min(75, scaledSpec * 75));
+                        byte gAlpha = (byte)Math.Min(255, 180 + scaledRow * 75);
+                        byte gGreen = (byte)Math.Min(255, 180 + scaledRow * 60);
                         linePaint.Color = new SKColor(255, gGreen, 45, gAlpha);
-                        linePaint.StrokeWidth += 1.5f * resScale;
+                        linePaint.StrokeWidth += 2.0f * resScale;
                     }
                     else
                     {
-                        // Color scheme colors with higher base alpha for visibility at bottom
-                        SKColor schemeColor = GetHDColor(Math.Max(0.15, specVal));
-                        byte cAlpha = (byte)(90 + Math.Min(165, scaledSpec * 220));
+                        SKColor schemeColor = GetHDColor(Math.Max(0.1, Math.Min(1.0, rowSpec * 2.0)));
+                        byte cAlpha = (byte)Math.Min(255, 60 + scaledRow * 195);
                         linePaint.Color = schemeColor.WithAlpha(cAlpha);
                     }
                     
-                    // Build the path
+                    // Build per-point audio-reactive path
                     using (var path = new SKPath())
                     {
                         for (int px = 0; px <= pointsPerLine; px++)
@@ -10134,13 +10156,20 @@ namespace PlatypusTools.UI.Views
                             float xT = (float)px / pointsPerLine;
                             float x = xT * w;
                             
-                            // Multi-layered flowing wave
-                            float wave1 = (float)Math.Sin(xT * 4.0 * Math.PI + phase * 1.2 + row * 0.28) * amplitude;
-                            float wave2 = (float)Math.Sin(xT * 7.5 * Math.PI + phase * 0.75 - row * 0.45) * amplitude * 0.35f;
-                            float wave3 = (float)Math.Sin(xT * 2.0 * Math.PI + phase * 0.5 + row * 0.12) * amplitude * 0.55f;
-                            float wave4 = (float)Math.Sin(xT * 11.0 * Math.PI + phase * 1.8 + row * 0.6) * amplitude * 0.15f;
+                            // Sample spectrum at this horizontal position for per-point reactivity
+                            int ptSpecIdx = Math.Clamp((int)(xT * (barCount - 1)), 0, barCount - 1);
+                            float ptSpec = (float)_smoothedData[ptSpecIdx] * sens;
+                            float ptDisplace = ptSpec * h * 0.12f; // Direct spectrum displacement
                             
-                            float y = baseY + wave1 + wave2 + wave3 + wave4;
+                            // Flowing sine waves — speed modulated by energy
+                            float wave1 = (float)Math.Sin(xT * 4.0 * Math.PI + phase * phaseSpeed * 1.2 + row * 0.28) * amplitude;
+                            float wave2 = (float)Math.Sin(xT * 7.5 * Math.PI + phase * phaseSpeed * 0.75 - row * 0.45) * amplitude * 0.35f;
+                            float wave3 = (float)Math.Sin(xT * 2.0 * Math.PI + phase * phaseSpeed * 0.5 + row * 0.12) * amplitude * 0.55f;
+                            
+                            // Per-point audio displacement — THIS is what makes it sync to every beat
+                            float audioWave = ptDisplace * (float)Math.Sin(xT * Math.PI * 2 + phase * 2.0 + row * 0.5);
+                            
+                            float y = baseY + wave1 + wave2 + wave3 + audioWave;
                             
                             if (px == 0) path.MoveTo(x, y);
                             else path.LineTo(x, y);
@@ -10148,16 +10177,16 @@ namespace PlatypusTools.UI.Views
                         
                         canvas.DrawPath(path, linePaint);
                         
-                        // Add glow effect for golden lines
-                        if (isGolden)
+                        // Glow for golden lines — skip expensive blur on large surfaces
+                        if (isGolden && !_isLargeSurface)
                         {
                             using (var glowLinePaint = new SKPaint
                             {
                                 IsAntialias = true,
                                 Style = SKPaintStyle.Stroke,
-                                StrokeWidth = linePaint.StrokeWidth + 6f * resScale,
-                                Color = new SKColor(255, 200, 60, (byte)(30 + specVal * 40)),
-                                MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 4f * resScale),
+                                StrokeWidth = linePaint.StrokeWidth + 8f * resScale,
+                                Color = new SKColor(255, 200, 60, (byte)Math.Min(255, 40 + scaledRow * 80)),
+                                MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 5f * resScale),
                                 StrokeCap = SKStrokeCap.Round,
                                 StrokeJoin = SKStrokeJoin.Round
                             })
@@ -10169,9 +10198,27 @@ namespace PlatypusTools.UI.Views
                 }
             }
             
-            // === Floating golden particles in high-energy areas ===
+            // === Bass pulse ring — flashes on strong bass hits ===
+            if (bassEnergy > 0.4f)
+            {
+                using var ringBlur = _isLargeSurface ? null : SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 8f * resScale);
+                using (var ringPaint = new SKPaint
+                {
+                    IsAntialias = true,
+                    Style = SKPaintStyle.Stroke,
+                    StrokeWidth = 3f * resScale,
+                    Color = new SKColor(255, 200, 60, (byte)Math.Min(255, bassEnergy * 200)),
+                    MaskFilter = ringBlur
+                })
+                {
+                    float ringR = Math.Min(w, h) * 0.15f * bassEnergy;
+                    canvas.DrawCircle(w * 0.5f, h * 0.5f, ringR, ringPaint);
+                }
+            }
+            
+            // === Floating golden particles — more on high energy (fewer at fullscreen) ===
             var rng = new Random((int)(phase * 600) % 10000);
-            int particleCount = 15 + (int)(totalEnergy * 30);
+            int particleCount = _isLargeSurface ? 5 + (int)(totalEnergy * 25) : 10 + (int)(totalEnergy * 60);
             using (var particlePaint = new SKPaint { IsAntialias = true })
             {
                 for (int p = 0; p < particleCount; p++)
@@ -10179,16 +10226,14 @@ namespace PlatypusTools.UI.Views
                     float px = (float)rng.NextDouble() * w;
                     float py = (float)rng.NextDouble() * h;
                     
-                    // Only place particles near high-energy spectrum areas
-                    int specIdx = (int)((py / h) * (barCount - 1));
-                    specIdx = Math.Clamp(specIdx, 0, Math.Min(barCount - 1, _smoothedData.Length - 1));
-                    if (_smoothedData[specIdx] < goldenThreshold * 0.6f) continue;
+                    int specIdx = Math.Clamp((int)((py / h) * (barCount - 1)), 0, barCount - 1);
+                    if (_smoothedData[specIdx] * sens < goldenThreshold * 0.5f) continue;
                     
-                    float size = 1f + (float)rng.NextDouble() * 2.5f;
-                    byte pAlpha = (byte)(40 + rng.Next(120));
+                    float size = 1f + (float)rng.NextDouble() * 3f;
+                    byte pAlpha = (byte)(50 + rng.Next(150));
                     
                     particlePaint.Color = new SKColor(255, 220, 80, pAlpha);
-                    canvas.DrawCircle(px + (float)Math.Sin(phase + p * 0.5) * 3f, py, size, particlePaint);
+                    canvas.DrawCircle(px + (float)Math.Sin(phase + p * 0.5) * 4f, py, size * resScale, particlePaint);
                 }
             }
             
@@ -10198,7 +10243,7 @@ namespace PlatypusTools.UI.Views
             using (var titlePaint = new SKPaint
             {
                 IsAntialias = true,
-                Color = new SKColor(255, 215, 100, (byte)(130 + totalEnergy * 80))
+                Color = new SKColor(255, 215, 100, (byte)Math.Min(255, 130 + totalEnergy * 125))
             })
             {
                 string titleText = "\ud63c \ubb38  \u00b7  H O N M O O N";
@@ -10212,7 +10257,7 @@ namespace PlatypusTools.UI.Views
             using (var subPaint = new SKPaint
             {
                 IsAntialias = true,
-                Color = new SKColor(200, 170, 80, (byte)(70 + totalEnergy * 40))
+                Color = new SKColor(200, 170, 80, (byte)Math.Min(255, 70 + totalEnergy * 80))
             })
             {
                 string subText = "S P I R I T   W A V E S";
@@ -10829,72 +10874,92 @@ namespace PlatypusTools.UI.Views
             
             int barCount = Math.Min(_barCount, _smoothedData.Length);
             if (barCount < 2) barCount = 2;
+            double sens = _sensitivity;
             
-            // Calculate overall energy for golden threshold
-            double totalEnergy = 0;
-            double maxVal = 0;
+            // === Compute energy bands for reactive behavior ===
+            double bassEnergy = 0, midEnergy = 0, totalEnergy = 0, maxVal = 0;
+            int bassEnd = barCount / 4;
+            int midEnd = barCount * 3 / 4;
             for (int i = 0; i < Math.Min(barCount, _smoothedData.Length); i++)
             {
-                double v = _smoothedData[i];
+                double v = _smoothedData[i] * sens;
                 totalEnergy += v;
                 if (v > maxVal) maxVal = v;
+                if (i < bassEnd) bassEnergy += v;
+                else if (i < midEnd) midEnergy += v;
             }
             totalEnergy /= Math.Max(1, barCount);
-            // Golden threshold: absolute minimum + top 15% of current peak
-            double goldenThreshold = Math.Max(0.7, maxVal * 0.88);
+            bassEnergy /= Math.Max(1, bassEnd);
+            midEnergy /= Math.Max(1, midEnd - bassEnd);
+            bassEnergy = Math.Min(bassEnergy * 3.0, 1.5);
+            midEnergy = Math.Min(midEnergy * 3.0, 1.5);
+            totalEnergy = Math.Min(totalEnergy * 3.0, 1.2);
             
-            // Dark background
+            // Golden threshold — generous so beats produce golden flashes
+            double goldenThreshold = Math.Max(0.25, maxVal * 0.65);
+            
+            // Background — pulses on bass
+            byte bgR = (byte)(12 + bassEnergy * 16);
+            byte bgG = (byte)(8 + bassEnergy * 6);
+            byte bgB = (byte)(20 + midEnergy * 12);
             var bg = new System.Windows.Shapes.Rectangle
             {
                 Width = width, Height = height,
                 Fill = new RadialGradientBrush(
-                    Color.FromRgb(12, 8, 20),
+                    Color.FromRgb(bgR, bgG, bgB),
                     Color.FromRgb(3, 2, 5))
             };
             Canvas.SetLeft(bg, 0); Canvas.SetTop(bg, 0);
             canvas.Children.Add(bg);
             
-            // Draw flowing wave lines
-            int lineCount = Math.Max(25, (int)(height / 6));
+            // Draw music-reactive wave lines
+            int lineCount = Math.Max(20, (int)(height / 7));
             double phase = _animationPhase;
-            int samplesPerLine = Math.Max(50, (int)(width / 5));
+            int samplesPerLine = Math.Max(40, (int)(width / 6));
+            
+            // Phase speed reacts to energy — waves flow faster on loud parts
+            double phaseSpeed = 1.0 + totalEnergy * 2.5 + bassEnergy * 1.5;
             
             for (int row = 0; row < lineCount; row++)
             {
                 double rowT = (double)row / (lineCount - 1); // 0 to 1
                 double baseY = rowT * height;
                 
-                // Map this row to a frequency band from the spectrum
+                // Map this row to a frequency band
                 int specIdx = (int)(rowT * (barCount - 1));
                 specIdx = Math.Clamp(specIdx, 0, Math.Min(barCount - 1, _smoothedData.Length - 1));
-                double specVal = _smoothedData[specIdx];
+                double rowSpec = _smoothedData[specIdx] * sens;
                 
-                // Direct linear scaling — _smoothedData already has _sensitivity from ApplySmoothing
-                double scaledSpec = Math.Min(1.0, specVal * 2.5);
+                // Blend neighbors
+                if (specIdx > 0 && specIdx < _smoothedData.Length - 1)
+                    rowSpec = (_smoothedData[specIdx - 1] * 0.15 + _smoothedData[specIdx] * 0.7 + _smoothedData[specIdx + 1] * 0.15) * sens;
                 
-                // Amplitude of the wave is driven by the spectrum value — more reactive
-                double amplitude = scaledSpec * height * 0.14 + 1.5;
+                double scaledRow = Math.Min(1.5, rowSpec * 3.0);
                 
-                // Build polyline points
+                // Base gentle wave + LARGE audio-driven amplitude
+                double baseAmp = height * 0.008;
+                double audioAmp = scaledRow * height * 0.22;
+                double amplitude = baseAmp + audioAmp;
+                
                 var polyline = new System.Windows.Shapes.Polyline
                 {
-                    StrokeThickness = 1.5 + scaledSpec * 3.0,
+                    StrokeThickness = 1.2 + scaledRow * 3.5,
                     StrokeLineJoin = PenLineJoin.Round
                 };
                 
-                // Determine color: golden for peaks, color scheme for others
-                if (specVal >= goldenThreshold && specVal > 0.10)
+                // Golden for peak-energy lines
+                bool isGolden = rowSpec >= goldenThreshold && rowSpec > 0.05;
+                if (isGolden)
                 {
-                    // Golden for top-energy lines
-                    byte gAlpha = (byte)(170 + scaledSpec * 85);
-                    byte gGreen = (byte)(175 + scaledSpec * 60);
+                    byte gAlpha = (byte)Math.Min(255, 180 + scaledRow * 75);
+                    byte gGreen = (byte)Math.Min(255, 180 + scaledRow * 60);
                     polyline.Stroke = new SolidColorBrush(Color.FromArgb(gAlpha, 255, gGreen, 40));
+                    polyline.StrokeThickness += 1.5;
                 }
                 else
                 {
-                    // Use active color scheme with higher base alpha for bottom visibility
-                    var color = GetColorFromScheme(Math.Max(0.15, specVal));
-                    byte cAlpha = (byte)(85 + scaledSpec * 170);
+                    var color = GetColorFromScheme(Math.Max(0.1, Math.Min(1.0, rowSpec * 2.0)));
+                    byte cAlpha = (byte)Math.Min(255, 60 + scaledRow * 195);
                     polyline.Stroke = new SolidColorBrush(Color.FromArgb(cAlpha, color.R, color.G, color.B));
                 }
                 
@@ -10903,12 +10968,20 @@ namespace PlatypusTools.UI.Views
                     double xT = (double)x / samplesPerLine;
                     double px = xT * width;
                     
-                    // Multi-frequency wave: base flow + audio-reactive ripple
-                    double wave1 = Math.Sin(xT * 4.0 * Math.PI + phase * 1.2 + row * 0.3) * amplitude;
-                    double wave2 = Math.Sin(xT * 7.0 * Math.PI + phase * 0.8 - row * 0.5) * amplitude * 0.4;
-                    double wave3 = Math.Sin(xT * 2.0 * Math.PI + phase * 0.5 + row * 0.15) * amplitude * 0.6;
+                    // Per-point spectrum sampling for true music sync
+                    int ptSpecIdx = Math.Clamp((int)(xT * (barCount - 1)), 0, barCount - 1);
+                    double ptSpec = _smoothedData[ptSpecIdx] * sens;
+                    double ptDisplace = ptSpec * height * 0.12;
                     
-                    double py = baseY + wave1 + wave2 + wave3;
+                    // Flowing sine waves — speed modulated by energy
+                    double wave1 = Math.Sin(xT * 4.0 * Math.PI + phase * phaseSpeed * 1.2 + row * 0.3) * amplitude;
+                    double wave2 = Math.Sin(xT * 7.0 * Math.PI + phase * phaseSpeed * 0.8 - row * 0.5) * amplitude * 0.35;
+                    double wave3 = Math.Sin(xT * 2.0 * Math.PI + phase * phaseSpeed * 0.5 + row * 0.15) * amplitude * 0.55;
+                    
+                    // Per-point audio displacement — syncs wave shape to music
+                    double audioWave = ptDisplace * Math.Sin(xT * Math.PI * 2 + phase * 2.0 + row * 0.5);
+                    
+                    double py = baseY + wave1 + wave2 + wave3 + audioWave;
                     polyline.Points.Add(new Point(px, py));
                 }
                 
@@ -10921,7 +10994,7 @@ namespace PlatypusTools.UI.Views
                 Text = "\ud63c \ubb38  \u00b7  H O N M O O N",
                 FontSize = 16,
                 FontFamily = new System.Windows.Media.FontFamily("Malgun Gothic, Segoe UI, Arial"),
-                Foreground = new SolidColorBrush(Color.FromArgb(160, 255, 215, 100)),
+                Foreground = new SolidColorBrush(Color.FromArgb((byte)Math.Min(255, 160 + totalEnergy * 95), 255, 215, 100)),
                 FontWeight = FontWeights.Light
             };
             title.Measure(new System.Windows.Size(width, height));
