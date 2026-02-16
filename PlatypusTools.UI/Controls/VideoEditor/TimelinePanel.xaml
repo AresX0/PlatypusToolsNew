@@ -6,26 +6,19 @@
              xmlns:local="clr-namespace:PlatypusTools.UI.Controls.VideoEditor"
              mc:Ignorable="d"
              d:DesignHeight="200" d:DesignWidth="800"
-             Background="#1E1E1E">
+             Background="{DynamicResource WindowBackgroundBrush}">
     
     <UserControl.Resources>
-        <!-- Shotcut-style timeline colors -->
-        <SolidColorBrush x:Key="TimelineBg" Color="#2D2D2D"/>
-        <SolidColorBrush x:Key="TrackHeaderBg" Color="#383838"/>
-        <SolidColorBrush x:Key="TrackBg" Color="#252525"/>
-        <SolidColorBrush x:Key="TrackBorderBrush" Color="#444444"/>
+        <!-- Semantic clip colors (keep these as local resources - they are unique to the timeline) -->
         <SolidColorBrush x:Key="VideoClipColor" Color="#5B8A5B"/>
         <SolidColorBrush x:Key="AudioClipColor" Color="#5B5B8A"/>
         <SolidColorBrush x:Key="SelectedClipBorder" Color="#FFCC00"/>
         <SolidColorBrush x:Key="PlayheadColor" Color="#FF4444"/>
-        <SolidColorBrush x:Key="TextColor" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="TextColorDim" Color="#BBBBBB"/>
-        <SolidColorBrush x:Key="ButtonHoverBg" Color="#484848"/>
         
-        <!-- Dark toolbar button style with white text -->
+        <!-- Dark toolbar button style using theme resources -->
         <Style x:Key="ToolbarButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="{DynamicResource WindowForegroundBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Width" Value="28"/>
             <Setter Property="Height" Value="24"/>
@@ -41,13 +34,13 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#484848"/>
+                                <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Background" Value="#5A5A5A"/>
+                                <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="contentPresenter" Property="TextBlock.Foreground" Value="#666666"/>
+                                <Setter TargetName="contentPresenter" Property="TextBlock.Foreground" Value="{DynamicResource DisabledForegroundBrush}"/>
                                 <Setter TargetName="border" Property="Opacity" Value="0.5"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -63,66 +56,50 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         
-        <!-- Timeline toolbar (like Shotcut) -->
-        <Border Grid.Row="0" Background="{StaticResource TrackHeaderBg}" 
-                BorderBrush="{StaticResource TrackBorderBrush}" BorderThickness="0,0,0,1"
+        <!-- Timeline toolbar -->
+        <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" 
+                BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="0,0,0,1"
                 Padding="4">
             <StackPanel Orientation="Horizontal">
-                <!-- Menu button -->
                 <Button x:Name="MenuButton" Style="{StaticResource ToolbarButton}" ToolTip="Timeline Menu">
-                    <TextBlock Text="☰" Foreground="White"/>
+                    <TextBlock Text="☰" Foreground="{DynamicResource WindowForegroundBrush}"/>
                 </Button>
-                
-                <!-- Cut -->
                 <Button x:Name="CutButton" Style="{StaticResource ToolbarButton}" ToolTip="Cut (S)" Click="CutButton_Click">
-                    <TextBlock Text="✂" Foreground="White"/>
+                    <TextBlock Text="✂" Foreground="{DynamicResource WindowForegroundBrush}"/>
                 </Button>
-                
-                <!-- Copy -->
                 <Button x:Name="CopyButton" Style="{StaticResource ToolbarButton}" ToolTip="Copy (C)">
-                    <TextBlock Text="📋" Foreground="White"/>
+                    <TextBlock Text="📋" Foreground="{DynamicResource WindowForegroundBrush}"/>
                 </Button>
-                
-                <!-- Paste -->
                 <Button x:Name="PasteButton" Style="{StaticResource ToolbarButton}" ToolTip="Paste">
-                    <TextBlock Text="📄" Foreground="White"/>
+                    <TextBlock Text="📄" Foreground="{DynamicResource WindowForegroundBrush}"/>
                 </Button>
                 
-                <Separator Width="1" Background="{StaticResource TrackBorderBrush}" Margin="4,0"/>
+                <Separator Width="1" Background="{DynamicResource ControlBorderBrush}" Margin="4,0"/>
                 
-                <!-- Append -->
                 <Button x:Name="AppendButton" Style="{StaticResource ToolbarButton}" ToolTip="Append to Track (A)">
-                    <TextBlock Text="➕" Foreground="White"/>
+                    <TextBlock Text="➕" Foreground="{DynamicResource WindowForegroundBrush}"/>
                 </Button>
-                
-                <!-- Remove -->
                 <Button x:Name="RemoveButton" Style="{StaticResource ToolbarButton}" ToolTip="Remove (X)" Click="RemoveButton_Click">
-                    <TextBlock Text="🗑" Foreground="White"/>
+                    <TextBlock Text="🗑" Foreground="{DynamicResource WindowForegroundBrush}"/>
                 </Button>
-                
-                <!-- Lift -->
                 <Button x:Name="LiftButton" Style="{StaticResource ToolbarButton}" ToolTip="Lift (Z)">
-                    <TextBlock Text="⬆" Foreground="White"/>
+                    <TextBlock Text="⬆" Foreground="{DynamicResource WindowForegroundBrush}"/>
                 </Button>
                 
-                <Separator Width="1" Background="{StaticResource TrackBorderBrush}" Margin="4,0"/>
+                <Separator Width="1" Background="{DynamicResource ControlBorderBrush}" Margin="4,0"/>
                 
-                <!-- Insert Track -->
                 <Button x:Name="InsertTrackButton" Style="{StaticResource ToolbarButton}" ToolTip="Insert Track">
-                    <TextBlock Text="🎞" Foreground="White"/>
+                    <TextBlock Text="🎞" Foreground="{DynamicResource WindowForegroundBrush}"/>
                 </Button>
-                
-                <!-- Toggle Ripple -->
                 <ToggleButton x:Name="RippleToggle" Width="28" Height="24"
                               Background="Transparent" BorderThickness="0" ToolTip="Ripple Edit Mode">
-                    <TextBlock Text="🔗" Foreground="White"/>
+                    <TextBlock Text="🔗" Foreground="{DynamicResource WindowForegroundBrush}"/>
                 </ToggleButton>
                 
-                <Separator Width="1" Background="{StaticResource TrackBorderBrush}" Margin="4,0"/>
+                <Separator Width="1" Background="{DynamicResource ControlBorderBrush}" Margin="4,0"/>
                 
-                <!-- Zoom controls -->
                 <Button x:Name="ZoomOutButton" Style="{StaticResource ToolbarButton}" ToolTip="Zoom Out" Click="ZoomOutButton_Click">
-                    <TextBlock Text="➖" Foreground="White"/>
+                    <TextBlock Text="➖" Foreground="{DynamicResource WindowForegroundBrush}"/>
                 </Button>
                 
                 <Slider x:Name="ZoomSlider" Width="100" Minimum="0.1" Maximum="5" Value="1"
@@ -130,11 +107,11 @@
                         ValueChanged="ZoomSlider_ValueChanged"/>
                 
                 <Button x:Name="ZoomInButton" Style="{StaticResource ToolbarButton}" ToolTip="Zoom In" Click="ZoomInButton_Click">
-                    <TextBlock Text="➕" Foreground="White"/>
+                    <TextBlock Text="➕" Foreground="{DynamicResource WindowForegroundBrush}"/>
                 </Button>
                 
                 <Button x:Name="ZoomFitButton" Style="{StaticResource ToolbarButton}" ToolTip="Zoom to Fit" Click="ZoomFitButton_Click">
-                    <TextBlock Text="⬜" Foreground="White"/>
+                    <TextBlock Text="⬜" Foreground="{DynamicResource WindowForegroundBrush}"/>
                 </Button>
             </StackPanel>
         </Border>
@@ -152,13 +129,13 @@
                           HorizontalScrollBarVisibility="Disabled">
                 <Grid>
                     <!-- Spacer to match timeline ruler height -->
-                    <Border Height="30" VerticalAlignment="Top" Background="{StaticResource TrackHeaderBg}"/>
+                    <Border Height="30" VerticalAlignment="Top" Background="{DynamicResource SurfaceBrush}"/>
                     
                     <ItemsControl x:Name="TrackHeaders" ItemsSource="{Binding Tracks}" Margin="0,30,0,0">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="{StaticResource TrackHeaderBg}"
-                                        BorderBrush="{StaticResource TrackBorderBrush}"
+                                <Border Background="{DynamicResource SurfaceBrush}"
+                                        BorderBrush="{DynamicResource ControlBorderBrush}"
                                         BorderThickness="0,0,1,1"
                                         Height="50" Padding="4">
                                 <Grid>
@@ -168,34 +145,31 @@
                                     </Grid.RowDefinitions>
                                     
                                     <TextBlock Text="{Binding Name}" 
-                                               Foreground="{StaticResource TextColor}"
+                                               Foreground="{DynamicResource WindowForegroundBrush}"
                                                FontWeight="Bold" FontSize="11"/>
                                     
                                     <StackPanel Grid.Row="1" Orientation="Horizontal" 
                                                 VerticalAlignment="Center">
-                                        <!-- Mute -->
                                         <ToggleButton Width="20" Height="18"
                                                       IsChecked="{Binding IsMuted}"
                                                       Background="Transparent"
                                                       BorderThickness="0"
                                                       ToolTip="Mute Track">
-                                            <TextBlock Text="🔇" Foreground="White" FontSize="10"/>
+                                            <TextBlock Text="🔇" Foreground="{DynamicResource WindowForegroundBrush}" FontSize="10"/>
                                         </ToggleButton>
-                                        <!-- Hide -->
                                         <ToggleButton Width="20" Height="18"
                                                       IsChecked="{Binding IsHidden}"
                                                       Background="Transparent"
                                                       BorderThickness="0"
                                                       ToolTip="Hide Track">
-                                            <TextBlock Text="👁" Foreground="White" FontSize="10"/>
+                                            <TextBlock Text="👁" Foreground="{DynamicResource WindowForegroundBrush}" FontSize="10"/>
                                         </ToggleButton>
-                                        <!-- Lock -->
                                         <ToggleButton Width="20" Height="18"
                                                       IsChecked="{Binding IsLocked}"
                                                       Background="Transparent"
                                                       BorderThickness="0"
                                                       ToolTip="Lock Track">
-                                            <TextBlock Text="🔒" Foreground="White" FontSize="10"/>
+                                            <TextBlock Text="🔒" Foreground="{DynamicResource WindowForegroundBrush}" FontSize="10"/>
                                         </ToggleButton>
                                     </StackPanel>
                                 </Grid>
@@ -219,7 +193,7 @@
                       AllowDrop="True"
                       Drop="TimelineGrid_Drop"
                       DragOver="TimelineGrid_DragOver"
-                      Background="{StaticResource TimelineBg}">
+                      Background="{DynamicResource ControlBackgroundBrush}">
                     
                     <!-- Context Menu for Timeline -->
                     <Grid.ContextMenu>
@@ -271,7 +245,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Canvas x:Name="TrackCanvas" 
-                                        Background="{StaticResource TrackBg}"
+                                        Background="{DynamicResource ControlBackgroundBrush}"
                                         Height="50"
                                         Tag="{Binding}">
                                     <!-- Clips will be added programmatically -->

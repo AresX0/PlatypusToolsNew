@@ -4,11 +4,31 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PlatypusTools.Core.Services.Abstractions;
 
 namespace PlatypusTools.Core.Services;
 
 public class DiskCleanupService
 {
+    /// <summary>
+    /// Optional IProgressReporter for structured progress reporting (bridges to StatusBar).
+    /// </summary>
+    public IProgressReporter? ProgressReporter { get; set; }
+
+    private void ReportProgress(IProgress<string>? progress, string message, double? percent = null, int? current = null, int? total = null)
+    {
+        progress?.Report(message);
+        if (ProgressReporter != null)
+        {
+            if (current.HasValue && total.HasValue)
+                ProgressReporter.ReportItems(current.Value, total.Value, message);
+            else if (percent.HasValue)
+                ProgressReporter.ReportPercent(percent.Value, message);
+            else
+                ProgressReporter.ReportIndeterminate(message);
+        }
+    }
+
     public async Task<CleanupAnalysisResult> AnalyzeAsync(
         DiskCleanupCategories categories,
         IProgress<string>? progress = null,
@@ -16,61 +36,65 @@ public class DiskCleanupService
     {
         var results = new List<CleanupCategoryResult>();
         
+        int step = 0;
+        int totalSteps = 9; // count of categories we check
+
         if (categories.HasFlag(DiskCleanupCategories.WindowsTempFiles))
         {
-            progress?.Report("Analyzing Windows Temp Files...");
+            ReportProgress(progress, "Analyzing Windows Temp Files...", current: ++step, total: totalSteps);
             results.Add(await AnalyzeFolderAsync("Windows Temp", GetWindowsTempPath(), cancellationToken));
         }
 
         if (categories.HasFlag(DiskCleanupCategories.UserTempFiles))
         {
-            progress?.Report("Analyzing User Temp Files...");
+            ReportProgress(progress, "Analyzing User Temp Files...", current: ++step, total: totalSteps);
             results.Add(await AnalyzeFolderAsync("User Temp", GetUserTempPath(), cancellationToken));
         }
 
         if (categories.HasFlag(DiskCleanupCategories.PrefetchFiles))
         {
-            progress?.Report("Analyzing Prefetch Files...");
+            ReportProgress(progress, "Analyzing Prefetch Files...", current: ++step, total: totalSteps);
             results.Add(await AnalyzeFolderAsync("Prefetch", GetPrefetchPath(), cancellationToken));
         }
 
         if (categories.HasFlag(DiskCleanupCategories.RecycleBin))
         {
-            progress?.Report("Analyzing Recycle Bin...");
+            ReportProgress(progress, "Analyzing Recycle Bin...", current: ++step, total: totalSteps);
             results.Add(await AnalyzeRecycleBinAsync(cancellationToken));
         }
 
         if (categories.HasFlag(DiskCleanupCategories.DownloadsOlderThan30Days))
         {
-            progress?.Report("Analyzing old Downloads...");
+            ReportProgress(progress, "Analyzing old Downloads...", current: ++step, total: totalSteps);
             results.Add(await AnalyzeOldDownloadsAsync(30, cancellationToken));
         }
 
         if (categories.HasFlag(DiskCleanupCategories.WindowsUpdateCache))
         {
-            progress?.Report("Analyzing Windows Update Cache...");
+            ReportProgress(progress, "Analyzing Windows Update Cache...", current: ++step, total: totalSteps);
             results.Add(await AnalyzeFolderAsync("Windows Update Cache", GetUpdateCachePath(), cancellationToken));
         }
 
         if (categories.HasFlag(DiskCleanupCategories.ThumbnailCache))
         {
-            progress?.Report("Analyzing Thumbnail Cache...");
+            ReportProgress(progress, "Analyzing Thumbnail Cache...", current: ++step, total: totalSteps);
             results.Add(await AnalyzeFolderAsync("Thumbnail Cache", GetThumbnailCachePath(), cancellationToken));
         }
 
         if (categories.HasFlag(DiskCleanupCategories.WindowsErrorReports))
         {
-            progress?.Report("Analyzing Windows Error Reports...");
+            ReportProgress(progress, "Analyzing Windows Error Reports...", current: ++step, total: totalSteps);
             results.Add(await AnalyzeFolderAsync("Windows Error Reports", GetErrorReportsPath(), cancellationToken));
         }
 
         if (categories.HasFlag(DiskCleanupCategories.OldLogFiles))
         {
-            progress?.Report("Analyzing Old Log Files...");
+            ReportProgress(progress, "Analyzing Old Log Files...", current: ++step, total: totalSteps);
             results.Add(await AnalyzeLogFilesAsync(cancellationToken));
         }
 
-        progress?.Report("Analysis complete");
+        ReportProgress(progress, "Analysis complete", percent: 100.0);
+        ProgressReporter?.ReportComplete("Disk cleanup analysis complete");
 
         return new CleanupAnalysisResult
         {
@@ -94,7 +118,7 @@ public class DiskCleanupService
         {
             if (category.FileCount == 0) continue;
 
-            progress?.Report($"Cleaning {category.Category}...");
+            ReportProgress(progress, $"Cleaning {category.Category}...");
 
             foreach (var file in category.Files)
             {
@@ -121,7 +145,8 @@ public class DiskCleanupService
             }
         }
 
-        progress?.Report($"Cleanup complete. Freed {FormatBytes(freedSpace)}");
+        ReportProgress(progress, $"Cleanup complete. Freed {FormatBytes(freedSpace)}", percent: 100.0);
+        ProgressReporter?.ReportComplete($"Cleanup complete. Freed {FormatBytes(freedSpace)}");
 
         return new CleanupExecutionResult
         {

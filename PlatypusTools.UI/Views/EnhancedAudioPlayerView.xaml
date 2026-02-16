@@ -580,6 +580,9 @@
                                                             Margin="0,0,5,0" FontSize="11" ToolTip="Return to full library view"/>
                                                     <Button Content="➕ New Playlist" Command="{Binding CreatePlaylistCommand}" 
                                                             Margin="0,0,5,0" FontSize="11"/>
+                                                    <Button Content="✨ Smart Playlist" Click="OpenSmartPlaylistEditor_Click"
+                                                            Margin="0,0,5,0" FontSize="11" ToolTip="Create playlist with rules"
+                                                            Background="#FF9C27B0" Foreground="White"/>
                                                     <Button Content="✏️ Rename" Command="{Binding RenamePlaylistCommand}" 
                                                             Margin="0,0,5,0" FontSize="11"/>
                                                     <Button Content="🗑️ Delete" Command="{Binding DeletePlaylistCommand}" 
@@ -1078,15 +1081,15 @@
                                                  AutomationProperties.Name="Stream URL"
                                                  Text="{Binding StreamUrl, UpdateSourceTrigger=PropertyChanged}"
                                                  ToolTip="Enter stream URL (HTTP radio, YouTube, SoundCloud)"/>
-                                        <Button Grid.Column="1" Content="▶" Width="30" Margin="3,0,0,0"
+                                        <Button Grid.Column="1" Content="▶" MinWidth="36" Padding="4,2" Margin="3,0,0,0"
                                                 AutomationProperties.Name="Play Stream"
                                                 Background="#FF4CAF50" Foreground="White" FontSize="14"
                                                 Command="{Binding PlayStreamCommand}" ToolTip="Play stream"/>
-                                        <Button Grid.Column="2" Content="⏸" Width="30" Margin="3,0,0,0"
+                                        <Button Grid.Column="2" Content="⏸" MinWidth="36" Padding="4,2" Margin="3,0,0,0"
                                                 AutomationProperties.Name="Pause Stream"
                                                 Background="#FF2196F3" Foreground="White" FontSize="14"
                                                 Command="{Binding PauseStreamCommand}" ToolTip="Pause stream"/>
-                                        <Button Grid.Column="3" Content="⏹" Width="30" Margin="3,0,0,0"
+                                        <Button Grid.Column="3" Content="⏹" MinWidth="36" Padding="4,2" Margin="3,0,0,0"
                                                 AutomationProperties.Name="Stop Stream"
                                                 Background="#FFF44336" Foreground="White" FontSize="14"
                                                 Command="{Binding StopStreamCommand}" ToolTip="Stop stream"/>
@@ -1113,6 +1116,56 @@
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
                                     </ListBox>
+                                    
+                                    <!-- Streaming Service Credentials -->
+                                    <Expander Header="🔐 Service Credentials" FontSize="10" Margin="0,8,0,0" IsExpanded="False">
+                                        <StackPanel Margin="4">
+                                            <TextBlock Text="Save login credentials for paid streaming services. Credentials are encrypted and stored locally with Windows DPAPI."
+                                                       FontSize="9" TextWrapping="Wrap" Margin="0,0,0,6"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <Grid Margin="0,2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="70"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="Service:" VerticalAlignment="Center" FontSize="10"/>
+                                                <ComboBox x:Name="StreamCredServiceCombo" Grid.Column="1" FontSize="10" SelectedIndex="0">
+                                                    <ComboBoxItem Content="Spotify" Tag="streaming.spotify"/>
+                                                    <ComboBoxItem Content="Apple Music" Tag="streaming.apple"/>
+                                                    <ComboBoxItem Content="Amazon Music" Tag="streaming.amazon"/>
+                                                    <ComboBoxItem Content="Tidal" Tag="streaming.tidal"/>
+                                                    <ComboBoxItem Content="Deezer" Tag="streaming.deezer"/>
+                                                    <ComboBoxItem Content="Bandcamp" Tag="streaming.bandcamp"/>
+                                                </ComboBox>
+                                            </Grid>
+                                            <Grid Margin="0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="70"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="Username:" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBox x:Name="StreamCredUsername" Grid.Column="1" FontSize="10" Padding="3"/>
+                                            </Grid>
+                                            <Grid Margin="0,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="70"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="Password:" VerticalAlignment="Center" FontSize="10"/>
+                                                <PasswordBox x:Name="StreamCredPassword" Grid.Column="1" FontSize="10" Padding="3"/>
+                                            </Grid>
+                                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                                <Button Content="💾 Save" Click="SaveStreamCredential_Click" 
+                                                        Background="#FF4CAF50" Foreground="White" Padding="8,3" FontSize="10" Margin="0,0,4,0"/>
+                                                <Button Content="🗑 Remove" Click="RemoveStreamCredential_Click"
+                                                        Background="#FFF44336" Foreground="White" Padding="8,3" FontSize="10" Margin="0,0,4,0"/>
+                                                <Button Content="👁 Load" Click="LoadStreamCredential_Click"
+                                                        Background="#FF2196F3" Foreground="White" Padding="8,3" FontSize="10"/>
+                                            </StackPanel>
+                                            <TextBlock x:Name="StreamCredStatus" Text="" FontSize="9" Margin="0,4,0,0"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        </StackPanel>
+                                    </Expander>
                                 </StackPanel>
                             </GroupBox>
                         </StackPanel>

@@ -22,6 +22,7 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
             <!-- Status Message (always visible) -->
@@ -100,6 +101,17 @@
                        Foreground="{DynamicResource WindowForegroundBrush}"
                        ToolTip="Performance Monitor — Toggle in Settings or click to enable/disable"
                        MouseLeftButtonDown="PerformanceMonitor_Click"/>
+
+            <!-- π -->
+            <TextBlock Grid.Column="7"
+                       Text="π"
+                       VerticalAlignment="Center"
+                       Margin="12,0,0,0"
+                       FontSize="8"
+                       Opacity="0.35"
+                       Cursor="Hand"
+                       Foreground="{DynamicResource WindowForegroundBrush}"
+                       MouseLeftButtonDown="Pi_Click"/>
         </Grid>
     </Border>
 </UserControl>

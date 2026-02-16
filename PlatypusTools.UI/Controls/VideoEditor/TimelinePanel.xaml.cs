@@ -200,7 +200,7 @@ namespace PlatypusTools.UI.Controls.VideoEditor
                 Background = new SolidColorBrush(baseColor),
                 BorderBrush = clip.IsSelected
                     ? new SolidColorBrush(Color.FromRgb(0xFF, 0xCC, 0x00))
-                    : new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x44)),
+                    : FindResource("ControlBorderBrush") as Brush ?? new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x44)),
                 BorderThickness = clip.IsSelected ? new Thickness(2) : new Thickness(1),
                 CornerRadius = new CornerRadius(3),
                 Height = 46,
@@ -257,7 +257,7 @@ namespace PlatypusTools.UI.Controls.VideoEditor
             var nameLabel = new TextBlock
             {
                 Text = clip.Name,
-                Foreground = Brushes.White,
+                Foreground = FindResource("WindowForegroundBrush") as Brush ?? Brushes.White,
                 FontSize = 10,
                 Margin = new Thickness(4, 2, 4, 0),
                 TextTrimming = TextTrimming.CharacterEllipsis,
@@ -269,7 +269,7 @@ namespace PlatypusTools.UI.Controls.VideoEditor
             var durationLabel = new TextBlock
             {
                 Text = clip.Duration.ToString(@"m\:ss\.ff"),
-                Foreground = new SolidColorBrush(Color.FromRgb(0xAA, 0xAA, 0xAA)),
+                Foreground = FindResource("ForegroundDimBrush") as Brush ?? new SolidColorBrush(Color.FromRgb(0xAA, 0xAA, 0xAA)),
                 FontSize = 9,
                 Margin = new Thickness(4, 0, 4, 2),
                 VerticalAlignment = VerticalAlignment.Bottom
@@ -370,7 +370,7 @@ namespace PlatypusTools.UI.Controls.VideoEditor
             {
                 border.BorderBrush = clip.IsSelected
                     ? new SolidColorBrush(Color.FromRgb(0xFF, 0xCC, 0x00))
-                    : new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x44));
+                    : FindResource("ControlBorderBrush") as Brush ?? new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x44));
                 border.BorderThickness = clip.IsSelected ? new Thickness(2) : new Thickness(1);
             }
         }

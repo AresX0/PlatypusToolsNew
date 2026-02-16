@@ -10,6 +10,7 @@ using System.Windows.Data;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using LibVLCSharp.Shared;
+using PlatypusTools.UI.ViewModels;
 
 namespace PlatypusTools.UI.Views
 {
@@ -32,7 +33,7 @@ namespace PlatypusTools.UI.Views
     /// <summary>
     /// Represents a video file in the queue
     /// </summary>
-    public class QueueItem : INotifyPropertyChanged
+    public class QueueItem : BindableBase
     {
         private bool _isPlaying;
         private int _index;
@@ -51,9 +52,6 @@ namespace PlatypusTools.UI.Views
             get => _isPlaying;
             set { _isPlaying = value; OnPropertyChanged(nameof(IsPlaying)); }
         }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
     public partial class NativeVideoPlayerView : UserControl

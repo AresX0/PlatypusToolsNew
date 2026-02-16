@@ -235,6 +235,10 @@
                                      Visibility="{Binding VideoConverter, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <controls:LazyTabContent ViewType="{x:Type views:VideoConverterView}" ViewDataContext="{Binding VideoConverter}" />
                             </TabItem>
+                            <TabItem Header="Export Queue"
+                                     Visibility="{Binding ExportQueue, Source={x:Static services:TabVisibilityService.Instance}}">
+                                <views:ExportQueueView/>
+                            </TabItem>
                         </TabControl>
                     </TabItem>
                     

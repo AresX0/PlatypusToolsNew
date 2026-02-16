@@ -92,6 +92,8 @@
                                 <MenuItem Header="Run Now" Command="{Binding RunCommand}" />
                                 <Separator />
                                 <MenuItem Header="Delete" Command="{Binding DeleteCommand}" />
+                                <Separator/>
+                                <MenuItem Header="📋 Copy" Command="ApplicationCommands.Copy"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                 </DataGrid>

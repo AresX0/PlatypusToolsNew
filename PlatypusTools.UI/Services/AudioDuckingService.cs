@@ -1,14 +1,14 @@
 using System;
-using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using NAudio.Wave;
+using PlatypusTools.UI.ViewModels;
 
 namespace PlatypusTools.UI.Services
 {
     /// <summary>
     /// Audio ducking configuration.
     /// </summary>
-    public class DuckingConfig : INotifyPropertyChanged
+    public class DuckingConfig : BindableBase
     {
         private bool _isEnabled = true;
         private float _threshold = -20f; // dB
@@ -90,12 +90,6 @@ namespace PlatypusTools.UI.Services
         /// Reduction as linear gain multiplier.
         /// </summary>
         public float ReductionLinear => (float)Math.Pow(10, _reduction / 20.0);
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 
     /// <summary>
@@ -233,7 +227,7 @@ namespace PlatypusTools.UI.Services
     /// <summary>
     /// Service for managing audio ducking in the application.
     /// </summary>
-    public class AudioDuckingService : INotifyPropertyChanged
+    public class AudioDuckingService : BindableBase
     {
         private static readonly Lazy<AudioDuckingService> _instance = new(() => new AudioDuckingService());
         public static AudioDuckingService Instance => _instance.Value;
@@ -242,7 +236,6 @@ namespace PlatypusTools.UI.Services
         private bool _isDuckingActive;
         private double _currentReduction;
 
-        public event PropertyChangedEventHandler? PropertyChanged;
         public event EventHandler<bool>? DuckingStateChanged;
 
         private AudioDuckingService() { }
@@ -340,11 +333,6 @@ namespace PlatypusTools.UI.Services
                     _globalConfig.ReleaseMs = 400f;
                     break;
             }
-        }
-
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

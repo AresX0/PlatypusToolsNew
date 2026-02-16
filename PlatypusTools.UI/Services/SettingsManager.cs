@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using PlatypusTools.UI.Interop;
+using PlatypusTools.UI.ViewModels;
 
 namespace PlatypusTools.UI.Services
 {
@@ -12,7 +12,7 @@ namespace PlatypusTools.UI.Services
     /// Observable settings class that notifies when tab visibility changes.
     /// This enables immediate UI updates when settings are modified.
     /// </summary>
-    public class AppSettings : INotifyPropertyChanged
+    public class AppSettings : BindableBase
     {
         private string _theme = ThemeManager.Light;
         private bool _checkForUpdatesOnStartup = true;
@@ -20,6 +20,10 @@ namespace PlatypusTools.UI.Services
         private bool _glassEnabled = false;
         private GlassLevel _glassLevel = GlassLevel.Auto;
         private string _language = "en-US";
+
+        // Startup Settings
+        private bool _startWithWindows = false;
+        private bool _startMinimized = false;
         
         // Audio Visualizer Settings
         private bool _visualizerEnabled = true;
@@ -65,6 +69,24 @@ namespace PlatypusTools.UI.Services
         {
             get => _language;
             set { _language = value ?? "en-US"; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets whether the app should start with Windows.
+        /// </summary>
+        public bool StartWithWindows
+        {
+            get => _startWithWindows;
+            set { _startWithWindows = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets whether the app should start minimized.
+        /// </summary>
+        public bool StartMinimized
+        {
+            get => _startMinimized;
+            set { _startMinimized = value; OnPropertyChanged(); }
         }
 
         /// <summary>
@@ -432,13 +454,6 @@ namespace PlatypusTools.UI.Services
         {
             get => _windowState;
             set { _windowState = value; OnPropertyChanged(); }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         // Session-based unlock state (not persisted - resets on app restart)

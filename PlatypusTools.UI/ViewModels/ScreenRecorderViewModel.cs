@@ -1,8 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -15,7 +13,7 @@ namespace PlatypusTools.UI.ViewModels
     /// <summary>
     /// ViewModel for the Screen Recorder view.
     /// </summary>
-    public class ScreenRecorderViewModel : INotifyPropertyChanged, IDisposable
+    public class ScreenRecorderViewModel : BindableBase, IDisposable
     {
         private readonly ScreenRecorderService _recorderService;
         private readonly DispatcherTimer _durationTimer;
@@ -454,17 +452,6 @@ namespace PlatypusTools.UI.ViewModels
         private void OnRecordingProgress(object? sender, string progress)
         {
             AddLogMessage(progress);
-        }
-
-        #endregion
-
-        #region INotifyPropertyChanged
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         #endregion

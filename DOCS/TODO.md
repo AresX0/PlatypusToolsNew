@@ -1,9 +1,9 @@
 # PlatypusTools v3.4.2 - Detailed TODO List
 
 **Branch**: `main`  
-**Last Updated**: February 14, 2026  
-**Current Version**: v3.4.1.5 (released)  
-**Status**: 332/332 original tasks complete | 15 implemented since audit | 11 genuinely remaining  
+**Last Updated**: February 15, 2026  
+**Current Version**: v3.4.1.8 (released)  
+**Status**: 332/332 original tasks complete | 26 verified implemented since audit | 1 partial (Butterchurn) | 0 genuinely remaining  
 **Legend**: ✅ Complete | 🔄 In Progress | ❌ Not Started | 📝 Docs outdated
 
 ---
@@ -32,38 +32,38 @@ Cross-referenced all 34 DOCS files against the actual codebase. Key corrections:
 
 | # | Item | Source Doc | Effort | Description |
 |---|------|-----------|--------|-------------|
-| NEW-001 | Queue Deduplication | AUDIO_PLAYER_FEATURE_MANIFEST | ⭐ | `AddToQueue` in EnhancedAudioPlayerService appends without checking for duplicate paths. Add canonical path check with user toggle. |
-| NEW-002 | Playback Error Auto-Retry | AUDIO_PLAYER_FEATURE_MANIFEST | ⭐⭐ | No auto-retry on playback failure. Add retry logic (3 attempts with backoff) then skip to next track. |
+| ~~NEW-001~~ | ~~Queue Deduplication~~ | ~~AUDIO_PLAYER_FEATURE_MANIFEST~~ | ~~⭐~~ | ✅ **IMPLEMENTED** — `AddToQueue` checks `_preventDuplicates` (defaults true), skips duplicate `FilePath` (case-insensitive). `PreventDuplicates` property exposed. |
+| ~~NEW-002~~ | ~~Playback Error Auto-Retry~~ | ~~AUDIO_PLAYER_FEATURE_MANIFEST~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `MAX_RETRY_ATTEMPTS = 3`, `_retryCount`, exponential backoff (500ms × 2^attempt). After exhausting retries, skips to next track. |
 | ~~NEW-003~~ | ~~Remote Audit Logging~~ | ~~REMOTE_ACCESS_PLAN~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `RemoteAuditLogService.cs` (277 lines): ConcurrentQueue flush timer, JSON serialization, file-based log rotation, event notifications. |
-| NEW-004 | ServiceLocator → DI Migration | DEPENDENCY_INJECTION, TODO_PRIORITY | ⭐⭐⭐ | `ServiceLocator` still used by ~15 ViewModels. Migrate remaining to `ServiceContainer.GetService<T>()`. |
+| ~~NEW-004~~ | ~~ServiceLocator → DI Migration~~ | ~~DEPENDENCY_INJECTION, TODO_PRIORITY~~ | ~~⭐⭐⭐~~ | ✅ **IMPLEMENTED** — 0 active `ServiceLocator.` references remain. All ViewModels use `ServiceContainer.GetService<T>()`. `ServiceLocator.cs` still exists but redirects to `ServiceContainer`. |
 
 #### 🟡 MEDIUM PRIORITY
 
 | # | Item | Source Doc | Effort | Description |
 |---|------|-----------|--------|-------------|
-| NEW-005 | Dynamic Visualizer Quality | AUDIO_PLAYER_FEATURE_MANIFEST | ⭐⭐ | Manual FPS presets exist but no auto-quality reduction when framerate drops below 40 FPS. Add FPS monitoring + auto-downgrade. |
-| NEW-006 | "Play Next" in Enhanced Player | AUDIO_PLAYER_FEATURE_MANIFEST | ⭐ | `PlayNext()` exists in legacy AudioPlayerService but not wired in EnhancedAudioPlayerService/ViewModel. Add context menu "Play Next" to insert track at current+1. |
-| NEW-007 | Library Hash Validation | AUDIO_PLAYER_FEATURE_MANIFEST | ⭐ | SHA256 hash is computed on index save but never verified on load. Add optional integrity check on startup. |
-| NEW-008 | Scan ETA Calculation | AUDIO_PLAYER_FEATURE_MANIFEST | ⭐ | Library scan shows file count but no estimated time remaining. Add ETA based on elapsed time and files processed. |
-| NEW-009 | Advanced Multi-Field Search | AUDIO_PLAYER_FEATURE_MANIFEST | ⭐⭐ | Single search box matches across all fields. Add syntax like `artist:X year:2020 genre:Rock` for targeted queries. |
-| NEW-010 | App Task Scheduler | TODO_PRIORITY | ⭐⭐⭐ | ScheduledTasksService only reads Windows tasks. Add ability to schedule PlatypusTools internal tasks (library rescans, backups, cleanup). |
-| NEW-011 | IP Allowlist for Remote | REMOTE_ACCESS_PLAN | ⭐⭐ | Only CORS origin allowlist exists. Add IP-level filtering middleware for remote server endpoints. |
+| ~~NEW-005~~ | ~~Dynamic Visualizer Quality~~ | ~~AUDIO_PLAYER_FEATURE_MANIFEST~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — FPS monitoring (`_fpsCheckStart`, `_currentFps`), thresholds (LOW=15, HIGH=25), auto quality downgrade/upgrade in AudioVisualizerView.xaml.cs. |
+| ~~NEW-006~~ | ~~"Play Next" in Enhanced Player~~ | ~~AUDIO_PLAYER_FEATURE_MANIFEST~~ | ~~⭐~~ | ✅ **IMPLEMENTED** — `PlayNext(AudioTrack)` in EnhancedAudioPlayerService, `PlayNextCommand` in ViewModel, context menu "⏭ Play Next" in both queue and library DataGrids. |
+| ~~NEW-007~~ | ~~Library Hash Validation~~ | ~~AUDIO_PLAYER_FEATURE_MANIFEST~~ | ~~⭐~~ | ✅ **IMPLEMENTED** — Library cache load reads `.sha256` sidecar file, computes SHA256, compares. On save, writes SHA256 sidecar. |
+| ~~NEW-008~~ | ~~Scan ETA Calculation~~ | ~~AUDIO_PLAYER_FEATURE_MANIFEST~~ | ~~⭐~~ | ✅ **IMPLEMENTED** — Library scan calculates elapsed time, computes ETA from progress ratio, displays `~Xm remaining`, `~Xs remaining`, or `almost done`. |
+| ~~NEW-009~~ | ~~Advanced Multi-Field Search~~ | ~~AUDIO_PLAYER_FEATURE_MANIFEST~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — Parses `artist:`, `album:`, `genre:`, `year:`, `title:`, `path:` prefixes. `LibraryIndexService` full search syntax parser with AND-combination. |
+| ~~NEW-010~~ | ~~App Task Scheduler~~ | ~~TODO_PRIORITY~~ | ~~⭐⭐⭐~~ | ✅ **IMPLEMENTED** — `AppTaskSchedulerService.cs`: Full internal scheduler with `ScheduledTask`, `ScheduledTaskType` enums. UI in ScheduledTasksView/ViewModel. Started in App.xaml.cs. |
+| ~~NEW-011~~ | ~~IP Allowlist for Remote~~ | ~~REMOTE_ACCESS_PLAN~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `PlatypusRemoteServer.cs`: `_ipAllowlist`, `IpAllowlistEnabled`, `AddToAllowlist()`, `RemoveFromAllowlist()`, `SaveIpAllowlist()`, `LoadIpAllowlist()`. Supports IP and CIDR ranges. |
 | ~~NEW-012~~ | ~~Progress Reporting Consolidation (OPT-008)~~ | ~~TODO_PRIORITY~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `IProgressReporter.cs` (223 lines): Full interface with `Report`, `ReportPercent`, `ReportItems`, `ReportIndeterminate`, plus `ProgressInfo` class. Services still need migration to use it. |
 
 #### 🟢 LOW PRIORITY / NICE-TO-HAVE
 
 | # | Item | Source Doc | Effort | Description |
 |---|------|-----------|--------|-------------|
-| NEW-013 | Accessibility: AutomationProperties | AUDIO_PLAYER_FEATURE_MANIFEST | ⭐⭐ | No `AutomationProperties.Name` on controls. Add for screen reader (NVDA/JAWS) support. |
-| NEW-014 | Accessibility: High Contrast Theme | AUDIO_PLAYER_FEATURE_MANIFEST | ⭐⭐ | No dedicated high-contrast theme. Create one that respects Windows HC settings. |
-| NEW-015 | Accessibility: Color-Blind Palettes | AUDIO_PLAYER_FEATURE_MANIFEST | ⭐ | No deuteranopia/protanopia-safe color schemes for visualizer. |
-| NEW-016 | Butterchurn/ProjectM Integration | PROJECTM_INTEGRATION_PLAN | ⭐⭐⭐ | Current Milkdrop mode is custom SkiaSharp — not real Winamp preset compatible. Butterchurn via WebView2 would enable 130k+ presets. |
+| ~~NEW-013~~ | ~~Accessibility: AutomationProperties~~ | ~~AUDIO_PLAYER_FEATURE_MANIFEST~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — Extensive `AutomationProperties.Name` usage in EnhancedAudioPlayerView.xaml (20+ controls) and SettingsWindow.xaml (10+ controls). |
+| ~~NEW-014~~ | ~~Accessibility: High Contrast Theme~~ | ~~AUDIO_PLAYER_FEATURE_MANIFEST~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `HighContrast.xaml` theme added in v3.4.1.8. |
+| ~~NEW-015~~ | ~~Accessibility: Color-Blind Palettes~~ | ~~AUDIO_PLAYER_FEATURE_MANIFEST~~ | ~~⭐~~ | ✅ **IMPLEMENTED** — `VisualizerColorScheme` enum includes `Deuteranopia`, `Protanopia`, `Tritanopia` with dedicated color gradients. Selectable in ViewModel. |
+| NEW-016 | Butterchurn/ProjectM Integration | PROJECTM_INTEGRATION_PLAN | ⭐⭐⭐ | 🔄 **PARTIAL** — `ButterchurnVisualizerService.cs` created with preset scanning, category management, auto-change timer, and WebView2 availability check. Custom SkiaSharp Milkdrop engine exists. Full WebView2 Butterchurn integration pending. |
 | ~~NEW-017~~ | ~~Tailscale Remote Option~~ | ~~REMOTE_ACCESS_PLAN~~ | ~~⭐~~ | ✅ **IMPLEMENTED** — `TailscaleHelper.cs` (211 lines): Install path detection, active adapter check via `NetworkInterface`, Tailscale IP resolution. |
-| NEW-018 | BitmapImage → ImageHelper Migration | TODO_PRIORITY (PERF-001) | ⭐⭐ | ~20 files still use manual `new BitmapImage()` instead of `ImageHelper.LoadFromFile()`. Remaining: EnhancedAudioPlayerVM, VideoEditorView, NativeImageEditView, PdfToolsVM, etc. |
-| NEW-019 | INotifyPropertyChanged → BindableBase | TODO_PRIORITY (CONS-001) | ⭐⭐ | ~12 model classes still implement INPC manually. `BindableModel` base class exists but not yet adopted. |
-| NEW-020 | Nullable Enable + Fix Warnings | TODO_PRIORITY (QUAL-002) | ⭐⭐⭐ | `<Nullable>enable</Nullable>` not enabled. ~37 build warnings remain. |
-| NEW-021 | Watch Folders for Audio Player | AUDIO_PLAYER_FEATURE_MANIFEST | ⭐⭐ | FileWatcherService exists but not wired to auto-import new audio files into the library. |
-| NEW-022 | Long Path Support (>260 chars) | AUDIO_PLAYER_FEATURE_MANIFEST | ⭐ | Windows long path support not explicitly enabled. May fail with deep nested folders. |
+| ~~NEW-018~~ | ~~BitmapImage → ImageHelper Migration~~ | ~~TODO_PRIORITY (PERF-001)~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `new BitmapImage(` only appears inside `ImageHelper.cs` itself (4 occurrences). All other files use `ImageHelper.LoadFromFile/Stream/Uri/Thumbnail`. |
+| ~~NEW-019~~ | ~~INotifyPropertyChanged → BindableBase~~ | ~~TODO_PRIORITY (CONS-001)~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — All 12 classes migrated: PerformanceMonitorService, QueueItem, TransitionItem, ScreenRecorderViewModel, TabVisibilityService, AppSettings, LocalizationService, DuckingConfig, AudioDuckingService, PeakMeterData, ExportJob (→BindableModel), ExportQueueService (→BindableModel). |
+| ~~NEW-020~~ | ~~Nullable Enable + Fix Warnings~~ | ~~TODO_PRIORITY (QUAL-002)~~ | ~~⭐⭐⭐~~ | ✅ **IMPLEMENTED** — `<Nullable>enable</Nullable>` in all csproj files (UI, Core, Remote.Server, Remote.Client). |
+| ~~NEW-021~~ | ~~Watch Folders for Audio Player~~ | ~~AUDIO_PLAYER_FEATURE_MANIFEST~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `FileWatcherService.cs` + `WatchFolders` collection in EnhancedAudioPlayerViewModel with `AddWatchFolderCommand`, `StartWatchingFolder()`, `LoadWatchFoldersAsync()` — auto-imports new audio files. |
+| ~~NEW-022~~ | ~~Long Path Support (>260 chars)~~ | ~~AUDIO_PLAYER_FEATURE_MANIFEST~~ | ~~⭐~~ | ✅ **IMPLEMENTED** — `app.manifest` has `<longPathAware>true</longPathAware>`. `SafeFileEnumerator.cs` uses enumeration options that handle long paths. |
 
 ---
 
@@ -93,23 +93,23 @@ These are net-new ideas that don't appear in any existing planning documents.
 | # | Feature | Effort | Description |
 |---|---------|--------|-------------|
 | ~~IDEA-001~~ | ~~**Drag-and-Drop Between Tabs**~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `CrossTabDragDropService.cs` (186 lines): WPF `DragDrop.DoDragDrop`, custom data format, registered drop targets, event args. |
-| IDEA-002 | **Global Search / Spotlight** | ⭐⭐ | Ctrl+K search across ALL tabs — find files, settings, tools, recent items in one place (extends Command Palette). |
-| IDEA-003 | **System Tray / Mini Mode** | ⭐⭐ | Minimize to system tray with tooltip showing now-playing. Right-click tray menu for play/pause/next. |
+| ~~IDEA-002~~ | ~~**Global Search / Spotlight**~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `CommandPaletteWindow.xaml` + Ctrl+K binding in MainWindow. Searches across all tabs: files, settings, tools, recent items. |
+| ~~IDEA-003~~ | ~~**System Tray / Mini Mode**~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `SystemTrayService.cs`: TaskbarIcon integration, `MinimizeToTray` setting, right-click context menu (play/pause/next/show/exit), now-playing tooltip. |
 | ~~IDEA-004~~ | ~~**Export/Share Report**~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `ReportExportService.cs` (195 lines): SaveFileDialog, HTML/CSV/TXT generation, toast notification on completion. |
 | ~~IDEA-005~~ | ~~**Dashboard / Home Tab**~~ | ~~⭐⭐⭐~~ | ✅ **IMPLEMENTED** — `DashboardView.xaml` (190 lines) + `DashboardViewModel.cs` (273 lines): Greeting, quick actions, disk usage, recent files, server status. Wired into MainWindow.xaml. |
-| IDEA-006 | **Undo Anywhere** | ⭐⭐ | Global undo for destructive operations (file moves, renames, wipes). UndoRedoService exists — wire to more tools. |
+| ~~IDEA-006~~ | ~~**Undo Anywhere**~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `UndoRedoService` wired to DuplicateFileView, RebootAnalyzerView, PluginManagerView, LogViewerView + 3-4 original views. Backup before delete, RecordBatch for multi-file ops. Ctrl+Z/Ctrl+Y global. |
 | ~~IDEA-007~~ | ~~**Batch Job Queue**~~ | ~~⭐⭐⭐~~ | ✅ **IMPLEMENTED** — `BatchJobQueueService.cs` (375 lines) + View/ViewModel: Semaphore-based queue, concurrent execution, pause/resume, observable collection. Wired into MainWindow.xaml. |
 
 ### 🟡 MEDIUM VALUE — Quality & Polish
 
 | # | Feature | Effort | Description |
 |---|---------|--------|-------------|
-| IDEA-008 | **Notification Center** | ⭐⭐ | Toast notifications for completed operations (conversion done, scan complete). ToastNotificationService exists — add persistent notification center panel. |
-| IDEA-009 | **Session Restore** | ⭐ | Remember which tabs were open and their state across app restarts (partially exists for tab visibility). |
+| ~~IDEA-008~~ | ~~**Notification Center**~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `NotificationHistory` ObservableCollection, `StatusBarControl` popup panel with persistent notification list. Toast notifications displayed on completion. |
+| ~~IDEA-009~~ | ~~**Session Restore**~~ | ~~⭐~~ | ✅ **IMPLEMENTED** — `RestoreLastSession` setting saves/restores open tabs + window position across app restarts. |
 | IDEA-010 | **Keyboard Navigation Audit** | ⭐⭐ | Full Tab-order audit, visible focus indicators, consistent Enter/Escape behavior across all views. |
 | ~~IDEA-011~~ | ~~**Context Menu Standardization**~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `StandardContextMenuService.cs` (170 lines): Builds ContextMenu with Copy Path, Copy File Name, Open File, Open Folder. Services need wiring to remaining DataGrids. |
 | ~~IDEA-012~~ | ~~**Performance Monitor**~~ | ~~⭐~~ | ✅ **IMPLEMENTED** — `PerformanceMonitorService.cs` (167 lines): DispatcherTimer-based CPU/memory/FPS sampling. Needs wiring to status bar widget. |
-| IDEA-013 | **Update Changelog Viewer** | ⭐ | When update is available, show the changelog diff (what's new) before downloading. |
+| ~~IDEA-013~~ | ~~**Update Changelog Viewer**~~ | ~~⭐~~ | ✅ **IMPLEMENTED** — `ChangelogWindow` + `UpdateViewModel.ChangelogText`. Shows what's new before downloading update. |
 
 ### 🟢 LOW VALUE / EXPERIMENTAL
 
@@ -118,9 +118,9 @@ These are net-new ideas that don't appear in any existing planning documents.
 | ~~IDEA-014~~ | ~~**AI Image Description**~~ | ~~⭐⭐⭐~~ | ✅ **IMPLEMENTED** — `ImageDescriptionService.cs` (333 lines): EXIF metadata extraction, file-characteristic analysis, alt-text generation, batch support. Not ONNX — uses heuristic approach. |
 | ~~IDEA-015~~ | ~~**Music Mood Detection**~~ | ~~⭐⭐⭐~~ | ✅ **IMPLEMENTED** — `MusicMoodService.cs` (284 lines): FFT spectrum band-energy analysis (bass/mid/treble), heuristic mood classification across 10 categories. |
 | ~~IDEA-016~~ | ~~**Multi-Window Support**~~ | ~~⭐⭐⭐~~ | ✅ **IMPLEMENTED** — `DetachableTabService.cs` (188 lines): Creates `FloatingTabWindow`, tracks detached windows, supports re-dock with events. |
-| IDEA-017 | **Portable Mode** | ⭐ | Detect if running from USB/portable drive and store settings alongside exe instead of AppData. |
+| ~~IDEA-017~~ | ~~**Portable Mode**~~ | ~~⭐~~ | ✅ **IMPLEMENTED** — `IsPortableMode` with `portable.marker` file detection. Stores settings alongside exe when marker present. |
 | ~~IDEA-018~~ | ~~**Serilog Structured Logging**~~ | ~~⭐⭐~~ | ✅ **IMPLEMENTED** — `StructuredLogger.cs` (267 lines): ConcurrentQueue pipeline, JSON output, file rotation by size, multiple sinks, log levels. Custom implementation (not Serilog NuGet). |
-| IDEA-019 | **Health Check API** | ⭐ | `/api/health` endpoint on the remote server for monitoring (uptime, version, disk space). |
+| ~~IDEA-019~~ | ~~**Health Check API**~~ | ~~⭐~~ | ✅ **IMPLEMENTED** — `GET /health` + `GET /api/health/detailed` endpoints on remote server. Returns uptime, version, disk space, memory usage. |
 
 ---
 

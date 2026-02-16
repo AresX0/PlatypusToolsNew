@@ -339,6 +339,7 @@ namespace PlatypusTools.Core.Services
         WebService,
         RemoteDesktop,
         Email,
+        StreamingService,
         Other
     }
 

@@ -719,6 +719,15 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             var trackIds = playlist.TrackIds ?? new List<string>();
             tracks = _allLibraryTracks.Where(t => trackIds.Contains(t.Id));
         }
+        else if (playlist.Type == PlaylistType.Smart && !string.IsNullOrEmpty(playlist.SmartPlaylistQuery))
+        {
+            // Smart playlist with rules engine
+            var ruleSet = PlatypusTools.Core.Models.Audio.SmartPlaylistRuleSet.FromJson(playlist.SmartPlaylistQuery);
+            if (ruleSet != null)
+                tracks = PlatypusTools.Core.Services.SmartPlaylistService.Instance.EvaluateRules(ruleSet, _allLibraryTracks);
+            else
+                tracks = Array.Empty<AudioTrack>();
+        }
         else
         {
             tracks = playlist.Type switch
@@ -768,6 +777,28 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             _ = SaveUserPlaylistsAsync();
             StatusMessage = $"Created playlist: {name}";
         }
+    }
+
+    /// <summary>
+    /// Get all library tracks for smart playlist preview.
+    /// </summary>
+    public List<AudioTrack> GetAllLibraryTracks() => new(_allLibraryTracks);
+
+    /// <summary>
+    /// Create a smart playlist from a rule set.
+    /// </summary>
+    public void CreateSmartPlaylist(string name, PlatypusTools.Core.Models.Audio.SmartPlaylistRuleSet ruleSet)
+    {
+        var playlist = new Playlist
+        {
+            Name = name,
+            Type = PlaylistType.Smart,
+            IsSmartPlaylist = true,
+            SmartPlaylistQuery = ruleSet.ToJson()
+        };
+        SmartPlaylists.Add(playlist);
+        _ = SaveUserPlaylistsAsync();
+        StatusMessage = $"Created smart playlist: {name} ({ruleSet.Rules.Count} rules)";
     }
     
     private void DeletePlaylist()

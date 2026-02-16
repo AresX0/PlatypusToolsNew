@@ -142,6 +142,37 @@
                             </StackPanel>
                         </GroupBox>
                         
+                        <GroupBox Header="Language" Margin="0,0,0,16">
+                            <StackPanel Margin="8">
+                                <TextBlock Text="Application language:" Margin="0,0,0,4"/>
+                                <ComboBox x:Name="LanguageCombo" Width="200" HorizontalAlignment="Left"
+                                          AutomationProperties.Name="Application Language">
+                                    <ComboBoxItem Content="English (US)" Tag="en-US"/>
+                                    <ComboBoxItem Content="English (UK)" Tag="en-GB"/>
+                                    <ComboBoxItem Content="Español" Tag="es-ES"/>
+                                    <ComboBoxItem Content="Français" Tag="fr-FR"/>
+                                    <ComboBoxItem Content="Deutsch" Tag="de-DE"/>
+                                    <ComboBoxItem Content="Italiano" Tag="it-IT"/>
+                                    <ComboBoxItem Content="Português (BR)" Tag="pt-BR"/>
+                                    <ComboBoxItem Content="日本語" Tag="ja-JP"/>
+                                    <ComboBoxItem Content="한국어" Tag="ko-KR"/>
+                                    <ComboBoxItem Content="中文 (简体)" Tag="zh-CN"/>
+                                    <ComboBoxItem Content="中文 (繁體)" Tag="zh-TW"/>
+                                    <ComboBoxItem Content="Русский" Tag="ru-RU"/>
+                                    <ComboBoxItem Content="العربية" Tag="ar-SA"/>
+                                    <ComboBoxItem Content="हिन्दी" Tag="hi-IN"/>
+                                    <ComboBoxItem Content="Nederlands" Tag="nl-NL"/>
+                                    <ComboBoxItem Content="Polski" Tag="pl-PL"/>
+                                    <ComboBoxItem Content="Türkçe" Tag="tr-TR"/>
+                                    <ComboBoxItem Content="Tiếng Việt" Tag="vi-VN"/>
+                                    <ComboBoxItem Content="ไทย" Tag="th-TH"/>
+                                    <ComboBoxItem Content="Svenska" Tag="sv-SE"/>
+                                </ComboBox>
+                                <TextBlock Text="↳ Restart may be required for full language change" 
+                                           FontSize="11" Foreground="{DynamicResource ForegroundDimBrush}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
                         <GroupBox Header="Logging">
                             <StackPanel Margin="8">
                                 <CheckBox x:Name="EnableLoggingCheck" Content="Enable application logging" IsChecked="True" Margin="0,4"/>
@@ -244,21 +275,61 @@
                     <StackPanel x:Name="KeyboardPanel" Visibility="Collapsed">
                         <TextBlock Text="Keyboard Shortcuts" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
                         
+                        <TextBlock Text="Double-click a shortcut cell to reassign. Press the new key combination, then press Enter to confirm or Escape to cancel."
+                                   FontSize="11" Foreground="{DynamicResource ForegroundDimBrush}" Margin="0,0,0,8" TextWrapping="Wrap"/>
+                        
+                        <!-- Search/Filter -->
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="150"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Search:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBox x:Name="ShortcutSearchBox" Grid.Column="1" 
+                                     TextChanged="ShortcutSearch_TextChanged"
+                                     AutomationProperties.Name="Search Shortcuts"/>
+                            <TextBlock Text="Category:" Grid.Column="2" VerticalAlignment="Center" Margin="16,0,8,0"/>
+                            <ComboBox x:Name="ShortcutCategoryFilter" Grid.Column="3" 
+                                      SelectionChanged="ShortcutCategoryFilter_Changed"
+                                      AutomationProperties.Name="Filter by Category">
+                                <ComboBoxItem Content="All" IsSelected="True"/>
+                                <ComboBoxItem Content="File"/>
+                                <ComboBoxItem Content="Edit"/>
+                                <ComboBoxItem Content="View"/>
+                                <ComboBoxItem Content="Tools"/>
+                                <ComboBoxItem Content="Audio"/>
+                                <ComboBoxItem Content="Help"/>
+                            </ComboBox>
+                        </Grid>
+                        
                         <DataGrid x:Name="ShortcutsGrid" AutoGenerateColumns="False" 
                                   CanUserAddRows="False" CanUserDeleteRows="False"
                                   CanUserResizeColumns="True" CanUserSortColumns="True"
-                                  Height="300">
+                                  IsReadOnly="True"
+                                  SelectionMode="Single" SelectionUnit="FullRow"
+                                  Height="350" 
+                                  MouseDoubleClick="ShortcutsGrid_MouseDoubleClick"
+                                  PreviewKeyDown="ShortcutsGrid_PreviewKeyDown">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Command" Binding="{Binding Name}" Width="200" IsReadOnly="True" CanUserResize="True" MinWidth="100"/>
+                                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="80"/>
+                                <DataGridTextColumn Header="Command" Binding="{Binding Name}" Width="200" CanUserResize="True" MinWidth="100"/>
                                 <DataGridTextColumn Header="Shortcut" Binding="{Binding Shortcut}" Width="150" CanUserResize="True" MinWidth="80"/>
-                                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" IsReadOnly="True" CanUserResize="True" MinWidth="100"/>
+                                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" CanUserResize="True" MinWidth="100"/>
                             </DataGrid.Columns>
                         </DataGrid>
                         
+                        <TextBlock Text="Double-click a command to assign a new shortcut, then press the key combination."
+                                   FontSize="10" Foreground="{DynamicResource ForegroundDimBrush}" Margin="0,4,0,0"/>
+                        <TextBlock x:Name="ShortcutConflictText" Text="" Foreground="{DynamicResource ErrorForegroundBrush}" 
+                                   FontSize="11" Margin="0,4,0,0"/>
+                        
                         <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                            <Button Content="Reset to Defaults" Margin="0,0,8,0" Click="ResetShortcuts_Click"/>
-                            <Button Content="Import..." Margin="0,0,8,0"/>
-                            <Button Content="Export..."/>
+                            <Button Content="Reset to Defaults" Margin="0,0,8,0" Click="ResetShortcuts_Click"
+                                    Background="#FFF44336" Foreground="White" Padding="12,6"/>
+                            <Button Content="Import..." Margin="0,0,8,0" Click="ImportShortcuts_Click" Padding="12,6"/>
+                            <Button Content="Export..." Click="ExportShortcuts_Click" Padding="12,6"/>
                         </StackPanel>
                     </StackPanel>
                     
@@ -333,7 +404,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.1.8"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.1.9"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="Gray" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
@@ -887,6 +958,18 @@
                                     <TextBlock Grid.Column="1" Text="ExifTool" FontWeight="SemiBold"/>
                                     <TextBlock x:Name="DepExifToolInfo" Grid.Column="2" Text="Checking..." Foreground="Gray"/>
                                     <Button x:Name="DepExifToolBtn" Grid.Column="3" Content="Install" MinWidth="180" Click="DepInstallExifTool_Click"/>
+                                </Grid>
+                                <Grid Margin="0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="30"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="DepYtDlpStatus" Text="⏳" FontSize="14"/>
+                                    <TextBlock Grid.Column="1" Text="yt-dlp" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="DepYtDlpInfo" Grid.Column="2" Text="Checking..." Foreground="Gray"/>
+                                    <Button x:Name="DepYtDlpBtn" Grid.Column="3" Content="Install" MinWidth="180" Click="DepInstallYtDlp_Click"/>
                                 </Grid>
                                 <Grid Margin="0,8">
                                     <Grid.ColumnDefinitions>

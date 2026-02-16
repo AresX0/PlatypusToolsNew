@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using PlatypusTools.Core.Models;
 
 namespace PlatypusTools.Core.Services.Video
 {
@@ -40,7 +40,7 @@ namespace PlatypusTools.Core.Services.Video
     /// <summary>
     /// Represents a single export job in the queue.
     /// </summary>
-    public class ExportJob : INotifyPropertyChanged
+    public class ExportJob : BindableModel
     {
         private string _id = Guid.NewGuid().ToString();
         private string _name = string.Empty;
@@ -195,12 +195,6 @@ namespace PlatypusTools.Core.Services.Video
             }
             return $"{size:0.##} {sizes[order]}";
         }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 
     #endregion
@@ -208,7 +202,7 @@ namespace PlatypusTools.Core.Services.Video
     /// <summary>
     /// Service for managing export queue with batch rendering support.
     /// </summary>
-    public class ExportQueueService : INotifyPropertyChanged
+    public class ExportQueueService : BindableModel
     {
         private static readonly Lazy<ExportQueueService> _instance = new(() => new ExportQueueService());
         public static ExportQueueService Instance => _instance.Value;
@@ -220,7 +214,6 @@ namespace PlatypusTools.Core.Services.Video
         private int _maxConcurrentJobs = 1;
         private readonly object _lock = new();
 
-        public event PropertyChangedEventHandler? PropertyChanged;
         public event EventHandler<ExportJob>? JobStarted;
         public event EventHandler<ExportJob>? JobCompleted;
         public event EventHandler<ExportJob>? JobFailed;
@@ -595,10 +588,5 @@ namespace PlatypusTools.Core.Services.Video
         }
 
         #endregion
-
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 }

@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using PlatypusTools.Core.Models.Video;
+using PlatypusTools.UI.ViewModels;
 
 namespace PlatypusTools.UI.Views
 {
@@ -358,10 +359,8 @@ namespace PlatypusTools.UI.Views
         }
     }
 
-    public class TransitionItem : INotifyPropertyChanged
+    public class TransitionItem : BindableBase
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-
         public string Name { get; }
         public string Icon { get; }
         public TransitionCategory Category { get; }
@@ -375,9 +374,9 @@ namespace PlatypusTools.UI.Views
             set
             {
                 _isSelected = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BorderBrush)));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Background)));
+                OnPropertyChanged(nameof(IsSelected));
+                OnPropertyChanged(nameof(BorderBrush));
+                OnPropertyChanged(nameof(Background));
             }
         }
 

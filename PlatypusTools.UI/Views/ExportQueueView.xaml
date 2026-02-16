@@ -1,0 +1,175 @@
+<UserControl x:Class="PlatypusTools.UI.Views.ExportQueueView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             Background="{DynamicResource WindowBackgroundBrush}"
+             Foreground="{DynamicResource WindowForegroundBrush}">
+
+    <UserControl.DataContext>
+        <vm:ExportQueueViewModel/>
+    </UserControl.DataContext>
+
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+            <TextBlock Text="🎬 Export Queue" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding SummaryText}" Margin="16,0,0,0" VerticalAlignment="Center"
+                       Foreground="{DynamicResource ForegroundDimBrush}" FontSize="12"/>
+        </StackPanel>
+
+        <!-- Controls -->
+        <Grid Grid.Row="1" Margin="0,0,0,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Action Buttons -->
+            <WrapPanel Grid.Column="0">
+                <Button Content="▶ Start" Click="StartProcessing_Click" Padding="12,6" Margin="0,2,8,2" MinWidth="90"
+                        Background="#FF4CAF50" Foreground="White" FontWeight="SemiBold"/>
+                <Button Content="⏹ Stop" Click="StopProcessing_Click" Padding="12,6" Margin="0,2,8,2" MinWidth="80"
+                        Background="#FFF44336" Foreground="White" FontWeight="SemiBold"/>
+                <Button Content="🧹 Clear Finished" Click="ClearFinished_Click" Padding="12,6" Margin="0,2,8,2" MinWidth="110"
+                        Background="#FF9C27B0" Foreground="White" FontWeight="SemiBold"/>
+                <Button Content="📁 Add Files" Click="AddFiles_Click" Padding="12,6" Margin="0,2,8,2" MinWidth="90"
+                        Background="#FF2196F3" Foreground="White" FontWeight="SemiBold"/>
+            </WrapPanel>
+
+            <!-- Scheduling -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <CheckBox Content="Schedule:" IsChecked="{Binding IsSchedulingEnabled}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <TextBox x:Name="ScheduleTimeBox" Width="140" Margin="0,0,8,0" VerticalContentAlignment="Center"
+                         Text="{Binding ScheduledTime, StringFormat='yyyy-MM-dd HH:mm'}"
+                         IsEnabled="{Binding IsSchedulingEnabled}"/>
+                <Button Content="⏰ Schedule" Click="ScheduleExport_Click" Padding="8,4" MinWidth="80"
+                        Background="#FFFF9800" Foreground="White" FontWeight="SemiBold"
+                        IsEnabled="{Binding IsSchedulingEnabled}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
+        <!-- Job Queue DataGrid -->
+        <DataGrid Grid.Row="3" x:Name="ExportJobsGrid" ItemsSource="{Binding Jobs}" 
+                  AutoGenerateColumns="False" IsReadOnly="True"
+                  CanUserAddRows="False" CanUserDeleteRows="False"
+                  SelectionMode="Single" HeadersVisibility="Column"
+                  Background="{DynamicResource ControlBackgroundBrush}"
+                  RowBackground="{DynamicResource ControlBackgroundBrush}"
+                  AlternatingRowBackground="{DynamicResource WindowBackgroundBrush}"
+                  BorderBrush="{DynamicResource ControlBorderBrush}"
+                  GridLinesVisibility="Horizontal"
+                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                  VirtualizingStackPanel.IsVirtualizing="True"
+                  VirtualizingStackPanel.VirtualizationMode="Recycling">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" MinWidth="180">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                            <Setter Property="ToolTip" Value="{Binding Name}"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Preset" Binding="{Binding PresetName}" Width="120"/>
+                <DataGridTextColumn Header="Priority" Binding="{Binding Priority}" Width="70"/>
+                <DataGridTextColumn Header="Status" Binding="{Binding StatusMessage}" Width="100"/>
+                <DataGridTemplateColumn Header="Progress" Width="160" MinWidth="120">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Grid Margin="4,2">
+                                <ProgressBar Value="{Binding Progress, Mode=OneWay}" Minimum="0" Maximum="100" Height="18"
+                                             Background="#33808080" Foreground="{DynamicResource AccentBrush}"/>
+                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11">
+                                    <Run Text="{Binding Progress, StringFormat={}{0:F1}, Mode=OneWay}"/><Run Text="%"/>
+                                </TextBlock>
+                            </Grid>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Pass" Binding="{Binding PassText}" Width="70"/>
+                <DataGridTextColumn Header="ETA" Binding="{Binding ETAText}" Width="100"/>
+                <DataGridTextColumn Header="Size" Binding="{Binding OutputFileSizeText}" Width="80"/>
+                <DataGridTextColumn Header="Duration" Binding="{Binding Duration, StringFormat='hh\\:mm\\:ss'}" Width="80"/>
+                <DataGridTemplateColumn Header="Actions" Width="220" MinWidth="220">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="▲" Width="28" Margin="2,0" ToolTip="Move Up"
+                                        Click="MoveUp_Click" Tag="{Binding}"
+                                        Background="#FF2196F3" Foreground="White" FontSize="11" Padding="2"/>
+                                <Button Content="▼" Width="28" Margin="2,0" ToolTip="Move Down"
+                                        Click="MoveDown_Click" Tag="{Binding}"
+                                        Background="#FF2196F3" Foreground="White" FontSize="11" Padding="2"/>
+                                <Button Content="Cancel" Width="55" Margin="4,0,2,0"
+                                        Click="CancelJob_Click" Tag="{Binding}"
+                                        Background="#FFF44336" Foreground="White" FontSize="11" Padding="4,2"/>
+                                <Button Content="Remove" Width="58" Margin="2,0"
+                                        Click="RemoveJob_Click" Tag="{Binding}"
+                                        Background="#FF9C27B0" Foreground="White" FontSize="11" Padding="4,2"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Preset Picker Panel -->
+        <GroupBox Grid.Row="4" Header="Add Export Job" Margin="0,8,0,0">
+            <Grid Margin="8,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Source:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <TextBox x:Name="SourcePathBox" Grid.Column="1" Margin="0,0,8,0" VerticalContentAlignment="Center"/>
+                <TextBlock Text="Output:" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <TextBox x:Name="OutputPathBox" Grid.Column="3" Margin="0,0,8,0" VerticalContentAlignment="Center"/>
+                <ComboBox x:Name="PresetCombo" Grid.Column="4" Width="180" Margin="0,0,8,0"
+                          ItemsSource="{Binding AllPresets}" DisplayMemberPath="Name"
+                          SelectedIndex="0"/>
+                <ComboBox x:Name="PriorityCombo" Grid.Column="5" Width="80" Margin="0,0,8,0" SelectedIndex="1">
+                    <ComboBoxItem Content="Low"/>
+                    <ComboBoxItem Content="Normal"/>
+                    <ComboBoxItem Content="High"/>
+                    <ComboBoxItem Content="Critical"/>
+                </ComboBox>
+                <Button Content="Add to Queue" Grid.Column="6" Click="AddToQueue_Click" Padding="12,4"
+                        Background="#FF4CAF50" Foreground="White" FontWeight="SemiBold"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Status Bar -->
+        <StatusBar Grid.Row="5" Margin="0,4,0,0">
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusMessage}"/>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Processing..." Margin="0,0,8,0"
+                               Visibility="{Binding IsProcessing, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                    <ProgressBar Width="100" Height="16" IsIndeterminate="True"
+                                 Visibility="{Binding IsProcessing, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                </StackPanel>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</UserControl>

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using PlatypusTools.Core.Services;
+using PlatypusTools.UI.Services;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -315,17 +316,24 @@ namespace PlatypusTools.UI.ViewModels
             {
                 if (Directory.Exists(_logDirectory))
                 {
+                    var ops = new System.Collections.Generic.List<FileOperation>();
                     foreach (var file in Directory.GetFiles(_logDirectory, "*.log"))
                     {
                         try
                         {
+                            var backupPath = Path.Combine(Path.GetTempPath(), "PlatypusTools_Undo", Path.GetFileName(file));
+                            Directory.CreateDirectory(Path.GetDirectoryName(backupPath)!);
+                            File.Copy(file, backupPath, overwrite: true);
                             File.Delete(file);
+                            ops.Add(new FileOperation { Type = OperationType.Delete, OriginalPath = file, BackupPath = backupPath });
                         }
                         catch
                         {
                             // Some files may be locked
                         }
                     }
+                    if (ops.Count > 0)
+                        UndoRedoService.Instance.RecordBatch(ops, $"Clear {ops.Count} log files");
                 }
 
                 LogEntries.Clear();

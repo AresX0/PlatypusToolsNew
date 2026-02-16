@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using PlatypusTools.Core.Services.Abstractions;
 
 namespace PlatypusTools.Core.Services
 {
@@ -27,8 +28,23 @@ namespace PlatypusTools.Core.Services
         public event EventHandler<string>? StatusChanged;
         public event EventHandler<double>? ProgressChanged;
 
-        private void ReportStatus(string status) => StatusChanged?.Invoke(this, status);
-        private void ReportProgress(double percent) => ProgressChanged?.Invoke(this, percent);
+        /// <summary>
+        /// Optional IProgressReporter for unified progress reporting.
+        /// When set, progress/status is reported through this as well as legacy events.
+        /// </summary>
+        public IProgressReporter? ProgressReporter { get; set; }
+
+        private void ReportStatus(string status)
+        {
+            StatusChanged?.Invoke(this, status);
+            ProgressReporter?.ReportIndeterminate(status);
+        }
+
+        private void ReportProgress(double percent)
+        {
+            ProgressChanged?.Invoke(this, percent);
+            ProgressReporter?.ReportPercent(percent);
+        }
 
         /// <summary>
         /// Lists files and directories in the specified remote path.

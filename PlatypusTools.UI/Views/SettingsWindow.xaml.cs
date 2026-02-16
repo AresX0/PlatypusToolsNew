@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
@@ -103,6 +104,30 @@ namespace PlatypusTools.UI.Views
                 // Restore last session (IDEA-009)
                 if (RestoreLastSessionCheck != null)
                     RestoreLastSessionCheck.IsChecked = settings?.RestoreLastSession ?? true;
+
+                // Start with Windows
+                if (StartWithWindowsCheck != null)
+                    StartWithWindowsCheck.IsChecked = settings?.StartWithWindows ?? false;
+
+                // Start minimized
+                if (StartMinimizedCheck != null)
+                    StartMinimizedCheck.IsChecked = settings?.StartMinimized ?? false;
+
+                // Language
+                if (LanguageCombo != null)
+                {
+                    var lang = settings?.Language ?? "en-US";
+                    foreach (System.Windows.Controls.ComboBoxItem item in LanguageCombo.Items)
+                    {
+                        if (item.Tag?.ToString() == lang)
+                        {
+                            LanguageCombo.SelectedItem = item;
+                            break;
+                        }
+                    }
+                    if (LanguageCombo.SelectedItem == null && LanguageCombo.Items.Count > 0)
+                        LanguageCombo.SelectedIndex = 0;
+                }
 
                 // Load keyboard shortcuts
                 LoadKeyboardShortcuts();
@@ -253,6 +278,8 @@ namespace PlatypusTools.UI.Views
                 BarCountValueText.Text = value.ToString();
         }
 
+        private System.Collections.Generic.List<ShortcutDisplayItem>? _allShortcuts;
+
         private void LoadKeyboardShortcuts()
         {
             try
@@ -260,24 +287,182 @@ namespace PlatypusTools.UI.Views
                 var shortcuts = KeyboardShortcutService.Instance;
                 if (shortcuts?.Shortcuts == null || ShortcutsGrid == null) return;
 
-                var shortcutList = new System.Collections.Generic.List<ShortcutDisplayItem>();
+                _allShortcuts = new System.Collections.Generic.List<ShortcutDisplayItem>();
                 foreach (var kvp in shortcuts.Shortcuts)
                 {
                     if (kvp.Value != null)
                     {
-                        shortcutList.Add(new ShortcutDisplayItem
+                        var category = kvp.Key.Contains('.') ? kvp.Key.Split('.')[0] : "Other";
+                        _allShortcuts.Add(new ShortcutDisplayItem
                         {
-                            Name = kvp.Key,
-                            Shortcut = kvp.Value.ToString() ?? "",
+                            CommandId = kvp.Key,
+                            Name = kvp.Key.Contains('.') ? kvp.Key.Split('.')[1] : kvp.Key,
+                            Category = category,
+                            Shortcut = shortcuts.GetShortcutDisplayString(kvp.Key) ?? "",
                             Description = GetShortcutDescription(kvp.Key)
                         });
                     }
                 }
-                ShortcutsGrid.ItemsSource = shortcutList;
+                _allShortcuts.Sort((a, b) => string.Compare(a.Category + a.Name, b.Category + b.Name, StringComparison.Ordinal));
+                ShortcutsGrid.ItemsSource = _allShortcuts;
             }
             catch (System.Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error loading shortcuts: {ex.Message}");
+            }
+        }
+
+        private void FilterShortcutsList()
+        {
+            if (_allShortcuts == null || ShortcutsGrid == null) return;
+            var search = ShortcutSearchBox?.Text?.Trim() ?? "";
+            var category = (ShortcutCategoryFilter?.SelectedItem as System.Windows.Controls.ComboBoxItem)?.Content?.ToString() ?? "All";
+            
+            var filtered = _allShortcuts.Where(s =>
+                (category == "All" || s.Category.Equals(category, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(search) || 
+                 s.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                 s.Shortcut.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                 s.Description.Contains(search, StringComparison.OrdinalIgnoreCase))
+            ).ToList();
+            ShortcutsGrid.ItemsSource = filtered;
+        }
+
+        private void ShortcutSearch_TextChanged(object sender, TextChangedEventArgs e) => FilterShortcutsList();
+        private void ShortcutCategoryFilter_Changed(object sender, SelectionChangedEventArgs e) => FilterShortcutsList();
+
+        private bool _isCapturingShortcut = false;
+        private ShortcutDisplayItem? _editingShortcut = null;
+
+        private void ShortcutsGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            // Find which row was double-clicked
+            if (ShortcutsGrid.SelectedItem is ShortcutDisplayItem item)
+            {
+                _isCapturingShortcut = true;
+                _editingShortcut = item;
+                if (ShortcutConflictText != null)
+                    ShortcutConflictText.Text = $"⌨ Press new key combination for '{item.Name}'... (Escape to cancel)";
+
+                // Keep keyboard focus on the DataGrid so PreviewKeyDown fires.
+                e.Handled = true;
+                Dispatcher.BeginInvoke(new Action(() => ShortcutsGrid.Focus()), 
+                    System.Windows.Threading.DispatcherPriority.Input);
+            }
+        }
+
+        private void ShortcutsGrid_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (!_isCapturingShortcut || _editingShortcut == null) return;
+
+            e.Handled = true;
+
+            // Ignore modifier-only presses
+            if (e.Key == System.Windows.Input.Key.LeftCtrl || e.Key == System.Windows.Input.Key.RightCtrl ||
+                e.Key == System.Windows.Input.Key.LeftAlt || e.Key == System.Windows.Input.Key.RightAlt ||
+                e.Key == System.Windows.Input.Key.LeftShift || e.Key == System.Windows.Input.Key.RightShift ||
+                e.Key == System.Windows.Input.Key.LWin || e.Key == System.Windows.Input.Key.RWin ||
+                e.Key == System.Windows.Input.Key.System)
+                return;
+
+            if (e.Key == System.Windows.Input.Key.Escape)
+            {
+                _isCapturingShortcut = false;
+                _editingShortcut = null;
+                if (ShortcutConflictText != null) ShortcutConflictText.Text = "";
+                return;
+            }
+
+            var key = e.Key == System.Windows.Input.Key.System ? e.SystemKey : e.Key;
+            var modifiers = System.Windows.Input.Keyboard.Modifiers;
+
+            try
+            {
+                var gesture = new System.Windows.Input.KeyGesture(key, modifiers);
+                var conflict = KeyboardShortcutService.Instance.GetConflictingCommand(_editingShortcut.CommandId, gesture);
+
+                if (conflict != null)
+                {
+                    if (ShortcutConflictText != null)
+                        ShortcutConflictText.Text = $"\u26a0 Conflict with '{conflict}'. Press a different combination or Escape.";
+                    return;
+                }
+
+                KeyboardShortcutService.Instance.SetShortcut(_editingShortcut.CommandId, gesture);
+                _editingShortcut.Shortcut = KeyboardShortcutService.Instance.GetShortcutDisplayString(_editingShortcut.CommandId) ?? "";
+                ShortcutsGrid.Items.Refresh();
+
+                if (ShortcutConflictText != null)
+                    ShortcutConflictText.Text = $"\u2705 Shortcut set: {_editingShortcut.Shortcut}";
+            }
+            catch
+            {
+                if (ShortcutConflictText != null)
+                    ShortcutConflictText.Text = "Invalid key combination. Try a different one.";
+                return;
+            }
+
+            _isCapturingShortcut = false;
+            _editingShortcut = null;
+        }
+
+        private void ImportShortcuts_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "JSON Files|*.json", Title = "Import Shortcuts" };
+            if (dlg.ShowDialog() == true)
+            {
+                try
+                {
+                    var json = System.IO.File.ReadAllText(dlg.FileName);
+                    var data = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(json);
+                    if (data != null)
+                    {
+                        foreach (var (cmdId, info) in data)
+                        {
+                            if (info.TryGetValue("Key", out var keyStr) && info.TryGetValue("Modifiers", out var modStr))
+                            {
+                                if (Enum.TryParse<System.Windows.Input.Key>(keyStr, out var key) &&
+                                    Enum.TryParse<System.Windows.Input.ModifierKeys>(modStr, out var mods))
+                                {
+                                    KeyboardShortcutService.Instance.SetShortcut(cmdId, new System.Windows.Input.KeyGesture(key, mods));
+                                }
+                            }
+                        }
+                        LoadKeyboardShortcuts();
+                        MessageBox.Show("Shortcuts imported successfully.", "Import", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    MessageBox.Show($"Error importing shortcuts: {ex.Message}", "Import Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void ExportShortcuts_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.SaveFileDialog { Filter = "JSON Files|*.json", Title = "Export Shortcuts", FileName = "shortcuts.json" };
+            if (dlg.ShowDialog() == true)
+            {
+                try
+                {
+                    var data = new Dictionary<string, Dictionary<string, string>>();
+                    foreach (var kvp in KeyboardShortcutService.Instance.Shortcuts)
+                    {
+                        data[kvp.Key] = new Dictionary<string, string>
+                        {
+                            ["Key"] = kvp.Value.Key.ToString(),
+                            ["Modifiers"] = kvp.Value.Modifiers.ToString()
+                        };
+                    }
+                    var json = System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                    System.IO.File.WriteAllText(dlg.FileName, json);
+                    MessageBox.Show("Shortcuts exported successfully.", "Export", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (System.Exception ex)
+                {
+                    MessageBox.Show($"Error exporting shortcuts: {ex.Message}", "Export Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
@@ -476,7 +661,8 @@ namespace PlatypusTools.UI.Views
                 MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (result == MessageBoxResult.Yes)
             {
-                // Reset shortcuts logic
+                KeyboardShortcutService.Instance.ResetToDefaults();
+                LoadKeyboardShortcuts();
                 MessageBox.Show("Shortcuts reset to defaults.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
@@ -968,7 +1154,25 @@ namespace PlatypusTools.UI.Views
 
             // Session restore (IDEA-009)
             settings.RestoreLastSession = RestoreLastSessionCheck.IsChecked == true;
-            
+
+            // Start with Windows
+            settings.StartWithWindows = StartWithWindowsCheck.IsChecked == true;
+            ApplyStartWithWindows(settings.StartWithWindows);
+
+            // Start minimized
+            settings.StartMinimized = StartMinimizedCheck.IsChecked == true;
+
+            // Language
+            if (LanguageCombo?.SelectedItem is System.Windows.Controls.ComboBoxItem langItem && langItem.Tag != null)
+            {
+                var newLang = langItem.Tag.ToString() ?? "en-US";
+                if (newLang != settings.Language)
+                {
+                    settings.Language = newLang;
+                    try { Services.LocalizationService.Instance.SetLanguage(newLang); } catch { }
+                }
+            }
+
             // Save audio visualizer settings
             SaveVisualizerSettings(settings);
             
@@ -1133,6 +1337,35 @@ namespace PlatypusTools.UI.Views
             catch (System.Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error updating admin mode flag: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Adds or removes the application from the Windows startup registry key.
+        /// </summary>
+        private void ApplyStartWithWindows(bool enable)
+        {
+            try
+            {
+                const string keyName = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+                const string valueName = "PlatypusTools";
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(keyName, true);
+                if (key == null) return;
+
+                if (enable)
+                {
+                    var exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+                    if (!string.IsNullOrEmpty(exePath))
+                        key.SetValue(valueName, $"\"{exePath}\"");
+                }
+                else
+                {
+                    key.DeleteValue(valueName, false);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error setting startup registry: {ex.Message}");
             }
         }
         
@@ -1325,9 +1558,11 @@ namespace PlatypusTools.UI.Views
             {
                 DepFFmpegStatus.Text = "⏳";
                 DepExifToolStatus.Text = "⏳";
+                DepYtDlpStatus.Text = "⏳";
                 DepWebView2Status.Text = "⏳";
                 DepFFmpegInfo.Text = "Checking...";
                 DepExifToolInfo.Text = "Checking...";
+                DepYtDlpInfo.Text = "Checking...";
                 DepWebView2Info.Text = "Checking...";
                 
                 var result = await _depChecker.CheckAllDependenciesAsync();
@@ -1362,6 +1597,22 @@ namespace PlatypusTools.UI.Views
                     DepExifToolInfo.Text = "Not found - required for metadata";
                     DepExifToolBtn.IsEnabled = true;
                     DepExifToolBtn.Content = "Install";
+                }
+                
+                // yt-dlp
+                if (result.YtDlpInstalled)
+                {
+                    DepYtDlpStatus.Text = "✅";
+                    DepYtDlpInfo.Text = "Installed";
+                    DepYtDlpBtn.IsEnabled = false;
+                    DepYtDlpBtn.Content = "Installed";
+                }
+                else
+                {
+                    DepYtDlpStatus.Text = "❌";
+                    DepYtDlpInfo.Text = "Not found - required for streaming audio";
+                    DepYtDlpBtn.IsEnabled = true;
+                    DepYtDlpBtn.Content = "Install";
                 }
                 
                 // WebView2
@@ -1446,6 +1697,34 @@ namespace PlatypusTools.UI.Views
             catch (Exception ex)
             {
                 MessageBox.Show($"Error installing ExifTool: {ex.Message}\n\nPlease install manually.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                await LoadDependencyStatusAsync();
+            }
+        }
+        
+        private async void DepInstallYtDlp_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                DepYtDlpBtn.IsEnabled = false;
+                DepYtDlpBtn.Content = "Installing...";
+                DepYtDlpStatus.Text = "⏳";
+                
+                var success = await DownloadAndInstallYtDlpAsync();
+                
+                if (success)
+                {
+                    MessageBox.Show("yt-dlp installed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("yt-dlp installation failed. Please install manually from https://github.com/yt-dlp/yt-dlp", "Installation Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                
+                await LoadDependencyStatusAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error installing yt-dlp: {ex.Message}\n\nPlease install manually.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 await LoadDependencyStatusAsync();
             }
         }
@@ -1579,6 +1858,28 @@ namespace PlatypusTools.UI.Views
             
             try { File.Delete(zipPath); } catch { }
             try { Directory.Delete(extractPath, true); } catch { }
+            
+            return File.Exists(destPath);
+        }
+        
+        private async Task<bool> DownloadAndInstallYtDlpAsync()
+        {
+            var toolsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools");
+            if (!Directory.Exists(toolsPath)) Directory.CreateDirectory(toolsPath);
+            
+            var destPath = Path.Combine(toolsPath, "yt-dlp.exe");
+            const string ytdlpUrl = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";
+            
+            using var client = new HttpClient();
+            client.Timeout = TimeSpan.FromMinutes(5);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("PlatypusTools/1.0");
+            
+            var response = await client.GetAsync(ytdlpUrl);
+            if (!response.IsSuccessStatusCode) return false;
+            
+            await using var fs = new FileStream(destPath, FileMode.Create);
+            await response.Content.CopyToAsync(fs);
+            fs.Close();
             
             return File.Exists(destPath);
         }
@@ -2258,7 +2559,9 @@ namespace PlatypusTools.UI.Views
     
     public class ShortcutDisplayItem
     {
+        public string CommandId { get; set; } = "";
         public string Name { get; set; } = "";
+        public string Category { get; set; } = "";
         public string Shortcut { get; set; } = "";
         public string Description { get; set; } = "";
     }

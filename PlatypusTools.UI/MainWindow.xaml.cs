@@ -18,6 +18,17 @@ namespace PlatypusTools.UI
         private WindowStyle _previousWindowStyle;
         private ResizeMode _previousResizeMode;
         private Rect _previousBounds;
+
+        // Konami code easter egg: Up Up Down Down Left Right Left Right B A
+        private static readonly System.Windows.Input.Key[] _konamiCode = new[]
+        {
+            System.Windows.Input.Key.Up, System.Windows.Input.Key.Up,
+            System.Windows.Input.Key.Down, System.Windows.Input.Key.Down,
+            System.Windows.Input.Key.Left, System.Windows.Input.Key.Right,
+            System.Windows.Input.Key.Left, System.Windows.Input.Key.Right,
+            System.Windows.Input.Key.B, System.Windows.Input.Key.A
+        };
+        private int _konamiIndex = 0;
         
         public MainWindow()
         {
@@ -472,6 +483,73 @@ namespace PlatypusTools.UI
                 ExitFullScreen();
                 e.Handled = true;
             }
+
+            // Konami code detection (runs alongside other shortcuts)
+            TrackKonamiCode(e.Key);
+        }
+
+        /// <summary>
+        /// Tracks the Konami code sequence. When complete, opens the Web Browser tab
+        /// and navigates to theplatypuses.com.
+        /// </summary>
+        private void TrackKonamiCode(System.Windows.Input.Key key)
+        {
+            if (key == _konamiCode[_konamiIndex])
+            {
+                _konamiIndex++;
+                if (_konamiIndex >= _konamiCode.Length)
+                {
+                    _konamiIndex = 0;
+                    ActivateKonamiEasterEgg();
+                }
+            }
+            else
+            {
+                // Reset, but check if current key starts a new sequence
+                _konamiIndex = key == _konamiCode[0] ? 1 : 0;
+            }
+        }
+
+        /// <summary>
+        /// Konami code easter egg: switches to the Web Browser tab and navigates to theplatypuses.com.
+        /// </summary>
+        private void ActivateKonamiEasterEgg()
+        {
+            try
+            {
+                // Find the Tools top-level tab and select it
+                foreach (TabItem topTab in MainTabControl.Items)
+                {
+                    if (topTab.Header?.ToString()?.Contains("Tools") == true)
+                    {
+                        // Ensure tab is visible (may have been hidden in settings)
+                        topTab.Visibility = Visibility.Visible;
+                        MainTabControl.SelectedItem = topTab;
+
+                        // Find the Web Browser sub-tab inside Tools
+                        if (topTab.Content is TabControl toolsTabs)
+                        {
+                            foreach (TabItem subTab in toolsTabs.Items)
+                            {
+                                if (subTab.Header?.ToString()?.Contains("Web Browser") == true)
+                                {
+                                    subTab.Visibility = Visibility.Visible;
+                                    toolsTabs.SelectedItem = subTab;
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+
+                // Navigate the browser to the URL
+                if (DataContext is ViewModels.MainWindowViewModel vm)
+                {
+                    vm.SimpleBrowser.NavigateToUrl("https://theplatypuses.com");
+                }
+            }
+            catch { /* easter egg should never crash the app */ }
         }
 
         /// <summary>

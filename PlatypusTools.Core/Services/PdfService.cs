@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using PdfSharpCore.Pdf;
 using PdfSharpCore.Pdf.IO;
 using PdfSharpCore.Drawing;
+using PlatypusTools.Core.Services.Abstractions;
 
 namespace PlatypusTools.Core.Services;
 
@@ -18,6 +19,11 @@ public class PdfService
     /// Progress event for tracking PDF operations.
     /// </summary>
     public event EventHandler<PdfProgressEventArgs>? ProgressChanged;
+
+    /// <summary>
+    /// Optional IProgressReporter for structured progress reporting (bridges to StatusBar).
+    /// </summary>
+    public IProgressReporter? ProgressReporter { get; set; }
 
     /// <summary>
     /// Merges multiple PDF files into a single PDF document.
@@ -413,6 +419,7 @@ public class PdfService
     {
         double percentage = total > 0 ? (double)current / total * 100 : 0;
         ProgressChanged?.Invoke(this, new PdfProgressEventArgs(current, total, percentage, message));
+        ProgressReporter?.ReportItems(current, total, message);
     }
 
     /// <summary>

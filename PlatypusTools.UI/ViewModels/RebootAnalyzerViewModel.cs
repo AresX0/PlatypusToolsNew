@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using PlatypusTools.Core.Services;
+using PlatypusTools.UI.Services;
 using static PlatypusTools.Core.Services.RebootAnalyzerService;
 
 namespace PlatypusTools.UI.ViewModels
@@ -305,7 +306,7 @@ namespace PlatypusTools.UI.ViewModels
                 return;
 
             var result = MessageBox.Show(
-                $"Are you sure you want to delete this crash dump?\n\n{SelectedDump.FileName}\n\nThis action cannot be undone.",
+                $"Are you sure you want to delete this crash dump?\n\n{SelectedDump.FileName}\n\nYou can undo this with Ctrl+Z.",
                 "Confirm Delete",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
@@ -314,7 +315,12 @@ namespace PlatypusTools.UI.ViewModels
             {
                 try
                 {
+                    // Backup to temp before deleting so undo is possible
+                    var backupPath = Path.Combine(Path.GetTempPath(), "PlatypusTools_Undo", Path.GetFileName(SelectedDump.FilePath));
+                    Directory.CreateDirectory(Path.GetDirectoryName(backupPath)!);
+                    File.Copy(SelectedDump.FilePath, backupPath, overwrite: true);
                     File.Delete(SelectedDump.FilePath);
+                    UndoRedoService.Instance.RecordDeleteWithToast(SelectedDump.FilePath, backupPath);
                     var toRemove = SelectedDump;
                     SelectedDump = null;
                     CrashDumps.Remove(toRemove);

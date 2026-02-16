@@ -113,6 +113,7 @@
             <DataGrid.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Copy" Command="{Binding CopySelectedCommand}"/>
+                    <MenuItem Header="Select All" Command="ApplicationCommands.SelectAll"/>
                 </ContextMenu>
             </DataGrid.ContextMenu>
         </DataGrid>

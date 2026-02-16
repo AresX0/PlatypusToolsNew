@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Resources;
-using System.Runtime.CompilerServices;
 using System.Threading;
+using PlatypusTools.UI.ViewModels;
 
 namespace PlatypusTools.UI.Services
 {
@@ -13,7 +12,7 @@ namespace PlatypusTools.UI.Services
     /// Service for managing application localization.
     /// Provides dynamic language switching and string resource access.
     /// </summary>
-    public sealed class LocalizationService : INotifyPropertyChanged
+    public sealed class LocalizationService : BindableBase
     {
         private static readonly Lazy<LocalizationService> _instance = new(() => new LocalizationService());
         public static LocalizationService Instance => _instance.Value;
@@ -49,7 +48,6 @@ namespace PlatypusTools.UI.Services
             { "sv-SE", "Svenska" }
         };
 
-        public event PropertyChangedEventHandler? PropertyChanged;
         public event EventHandler? LanguageChanged;
 
         private LocalizationService()
@@ -215,11 +213,6 @@ namespace PlatypusTools.UI.Services
             {
                 return false;
             }
-        }
-
-        private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 

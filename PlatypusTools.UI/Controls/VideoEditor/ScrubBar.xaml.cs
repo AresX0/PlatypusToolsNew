@@ -254,7 +254,7 @@ namespace PlatypusTools.UI.Controls.VideoEditor
                     Y1 = ActualHeight - 15,
                     X2 = x,
                     Y2 = ActualHeight,
-                    Stroke = new SolidColorBrush(Color.FromRgb(0x66, 0x66, 0x66)),
+                    Stroke = FindResource("ForegroundDimBrush") as Brush ?? new SolidColorBrush(Color.FromRgb(0x66, 0x66, 0x66)),
                     StrokeThickness = 1
                 };
                 ScrubCanvas.Children.Add(tickLine);
@@ -266,7 +266,7 @@ namespace PlatypusTools.UI.Controls.VideoEditor
                 var label = new TextBlock
                 {
                     Text = timecode,
-                    Foreground = new SolidColorBrush(Color.FromRgb(0xAA, 0xAA, 0xAA)),
+                    Foreground = FindResource("ForegroundDimBrush") as Brush ?? new SolidColorBrush(Color.FromRgb(0xAA, 0xAA, 0xAA)),
                     FontSize = 10,
                     FontFamily = new FontFamily("Consolas")
                 };
@@ -289,7 +289,7 @@ namespace PlatypusTools.UI.Controls.VideoEditor
                             Y1 = ActualHeight - 8,
                             X2 = minorX,
                             Y2 = ActualHeight,
-                            Stroke = new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x44)),
+                            Stroke = FindResource("ControlBorderBrush") as Brush ?? new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x44)),
                             StrokeThickness = 1
                         };
                         ScrubCanvas.Children.Add(minorTick);

@@ -207,6 +207,7 @@ namespace PlatypusTools.UI.ViewModels
                     {
                         var destPath = Path.Combine(PluginsFolder, Path.GetFileName(file));
                         File.Copy(file, destPath, overwrite: true);
+                        UndoRedoService.Instance.RecordCopy(file, destPath);
                         installed++;
                     }
                     catch (Exception ex)
@@ -247,7 +248,12 @@ namespace PlatypusTools.UI.ViewModels
                     if (Path.GetFileNameWithoutExtension(file).Contains(SelectedPlugin.Id, StringComparison.OrdinalIgnoreCase) ||
                         Path.GetFileNameWithoutExtension(file).Contains(SelectedPlugin.Name.Replace(" ", ""), StringComparison.OrdinalIgnoreCase))
                     {
+                        // Backup before deleting so undo is possible
+                        var backupPath = Path.Combine(Path.GetTempPath(), "PlatypusTools_Undo", Path.GetFileName(file));
+                        Directory.CreateDirectory(Path.GetDirectoryName(backupPath)!);
+                        File.Copy(file, backupPath, overwrite: true);
                         File.Delete(file);
+                        UndoRedoService.Instance.RecordDeleteWithToast(file, backupPath);
                         Status = $"Plugin '{SelectedPlugin.Name}' uninstalled";
                         RefreshPlugins();
                         return;

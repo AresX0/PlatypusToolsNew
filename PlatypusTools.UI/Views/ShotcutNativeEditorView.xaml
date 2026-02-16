@@ -7,7 +7,7 @@
              xmlns:converters="clr-namespace:PlatypusTools.UI.Converters"
              mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="1200"
-             Background="#1E1E1E"
+             Background="{DynamicResource WindowBackgroundBrush}"
              Loaded="UserControl_Loaded">
     
     <UserControl.Resources>
@@ -15,6 +15,7 @@
         <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
         <converters:BoolToFavoriteIconConverter x:Key="BoolToFavoriteIconConverter"/>
         
+        <!-- Local fallback brushes (unused - body uses DynamicResource theme keys directly) -->
         <SolidColorBrush x:Key="PanelBg" Color="#252525"/>
         <SolidColorBrush x:Key="HeaderBg" Color="#2D2D2D"/>
         <SolidColorBrush x:Key="BorderColor" Color="#3D3D3D"/>
@@ -24,11 +25,11 @@
         <SolidColorBrush x:Key="ButtonBg" Color="#3D3D3D"/>
         <SolidColorBrush x:Key="ButtonHoverBg" Color="#4D4D4D"/>
         
-        <!-- Dark theme button style -->
+        <!-- Theme-aware button style -->
         <Style x:Key="DarkButton" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource ButtonBg}"/>
-            <Setter Property="Foreground" Value="#FFFFFF"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource WindowForegroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="8,4"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -45,13 +46,13 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="{StaticResource ButtonHoverBg}"/>
+                                <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Background" Value="{StaticResource AccentColor}"/>
+                                <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="contentPresenter" Property="TextBlock.Foreground" Value="#888888"/>
+                                <Setter TargetName="contentPresenter" Property="TextBlock.Foreground" Value="{DynamicResource DisabledForegroundBrush}"/>
                                 <Setter TargetName="border" Property="Opacity" Value="0.6"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -69,21 +70,21 @@
         </Style>
         
         <Style x:Key="PanelHeader" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource HeaderBg}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}"/>
             <Setter Property="BorderThickness" Value="0,0,0,1"/>
             <Setter Property="Padding" Value="8,4"/>
         </Style>
         
         <Style x:Key="PanelHeaderText" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource WindowForegroundBrush}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontSize" Value="11"/>
         </Style>
         
         <!-- Dark RadioButton style with white text -->
         <Style x:Key="DarkRadioButton" TargetType="RadioButton">
-            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="{DynamicResource WindowForegroundBrush}"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -95,15 +96,15 @@
                             <ContentPresenter VerticalAlignment="Center">
                                 <ContentPresenter.Resources>
                                     <Style TargetType="TextBlock">
-                                        <Setter Property="Foreground" Value="#FFFFFF"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource WindowForegroundBrush}"/>
                                     </Style>
                                 </ContentPresenter.Resources>
                             </ContentPresenter>
                         </StackPanel>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="radio" Property="Fill" Value="#4488FF"/>
-                                <Setter TargetName="radio" Property="Stroke" Value="#4488FF"/>
+                                <Setter TargetName="radio" Property="Fill" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="radio" Property="Stroke" Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -115,12 +116,12 @@
         <Style TargetType="ListBox" x:Key="DarkListBox">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource WindowForegroundBrush}"/>
         </Style>
         
         <Style TargetType="ListBoxItem">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource WindowForegroundBrush}"/>
             <Setter Property="Padding" Value="4"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -131,10 +132,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#3D3D3D"/>
+                                <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="#4488FF"/>
+                                <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -179,120 +180,120 @@
         </Grid.RowDefinitions>
         
         <!-- Top Toolbar (like Shotcut) -->
-        <Border Grid.Row="0" Background="{StaticResource HeaderBg}" 
-                BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1"
+        <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" 
+                BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="0,0,0,1"
                 Padding="4" MaxHeight="80">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <WrapPanel Orientation="Horizontal">
                     <!-- Row 1: File & Edit Operations -->
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="OpenFile_Click">
-                        <TextBlock Text="📁 Open" Foreground="White"/>
+                        <TextBlock Text="📁 Open" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="SaveProject_Click">
-                        <TextBlock Text="💾 Save" Foreground="White"/>
+                        <TextBlock Text="💾 Save" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
-                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,4"/>
+                    <Separator Width="1" Background="{DynamicResource ControlBorderBrush}" Margin="8,4"/>
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="Undo_Click" ToolTip="Undo (Ctrl+Z)">
-                        <TextBlock Text="↩ Undo" Foreground="White"/>
+                        <TextBlock Text="↩ Undo" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="Redo_Click" ToolTip="Redo (Ctrl+Y)">
-                        <TextBlock Text="↪ Redo" Foreground="White"/>
+                        <TextBlock Text="↪ Redo" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
-                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,4"/>
+                    <Separator Width="1" Background="{DynamicResource ControlBorderBrush}" Margin="8,4"/>
                     
                     <!-- Advanced Edits -->
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="RollingEdit_Click" ToolTip="Rolling Edit — adjust edit point between clips">
-                        <TextBlock Text="↔ Roll" Foreground="White"/>
+                        <TextBlock Text="↔ Roll" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="SlipEdit_Click" ToolTip="Slip Edit — shift source under clip">
-                        <TextBlock Text="⇄ Slip" Foreground="White"/>
+                        <TextBlock Text="⇄ Slip" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="SlideEdit_Click" ToolTip="Slide Edit — move clip, adjust neighbors">
-                        <TextBlock Text="⇔ Slide" Foreground="White"/>
+                        <TextBlock Text="⇔ Slide" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
-                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,4"/>
+                    <Separator Width="1" Background="{DynamicResource ControlBorderBrush}" Margin="8,4"/>
                     
                     <!-- Clip Operations -->
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="ReversePlayback_Click" ToolTip="Toggle reverse playback">
-                        <TextBlock Text="⏪ Rev" Foreground="White"/>
+                        <TextBlock Text="⏪ Rev" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="CopyKeyframes_Click" ToolTip="Copy clip filters">
-                        <TextBlock Text="📋 Copy" Foreground="White"/>
+                        <TextBlock Text="📋 Copy" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="PasteKeyframes_Click" ToolTip="Paste filters to clip">
-                        <TextBlock Text="📌 Paste" Foreground="White"/>
+                        <TextBlock Text="📌 Paste" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
-                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,4"/>
+                    <Separator Width="1" Background="{DynamicResource ControlBorderBrush}" Margin="8,4"/>
                     
                     <!-- Text/Title & Recording -->
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="AddTextTitle_Click" ToolTip="Text/Title generator">
-                        <TextBlock Text="🔤 Title" Foreground="White"/>
+                        <TextBlock Text="🔤 Title" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="VoiceOverRecord_Click" ToolTip="Record voice-over">
-                        <TextBlock Text="🎙️ VO" Foreground="White"/>
+                        <TextBlock Text="🎙️ VO" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="AddChapterMarker_Click" ToolTip="Add chapter marker at playhead">
-                        <TextBlock Text="📑 Ch" Foreground="White"/>
+                        <TextBlock Text="📑 Ch" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
-                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,4"/>
+                    <Separator Width="1" Background="{DynamicResource ControlBorderBrush}" Margin="8,4"/>
                     
                     <!-- Speed & Effects -->
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="SpeedRamping_Click" ToolTip="Clip speed ramping">
-                        <TextBlock Text="⚡ Speed" Foreground="White"/>
+                        <TextBlock Text="⚡ Speed" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="FreezeFrame_Click" ToolTip="Insert freeze frame at playhead">
-                        <TextBlock Text="❄ Freeze" Foreground="White"/>
+                        <TextBlock Text="❄ Freeze" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="SnapToNearestEdit_Click" ToolTip="Snap playhead to nearest edit">
-                        <TextBlock Text="🧲 Snap" Foreground="White"/>
+                        <TextBlock Text="🧲 Snap" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="TimeRemap_Click" ToolTip="Time remap / speed curves">
-                        <TextBlock Text="⏱ Remap" Foreground="White"/>
+                        <TextBlock Text="⏱ Remap" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="ExternalMonitor_Click" ToolTip="External preview monitor (second screen)">
-                        <TextBlock Text="🖥 Monitor" Foreground="White"/>
+                        <TextBlock Text="🖥 Monitor" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
-                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,4"/>
+                    <Separator Width="1" Background="{DynamicResource ControlBorderBrush}" Margin="8,4"/>
                     
                     <!-- Playback Controls -->
                     <Button Style="{StaticResource IconButton}" Margin="2,2" Click="ShuttleReverse_Click" ToolTip="Shuttle Reverse (J)">
-                        <TextBlock Text="⏪" Foreground="White" FontSize="12"/>
+                        <TextBlock Text="⏪" Foreground="{DynamicResource WindowForegroundBrush}" FontSize="12"/>
                     </Button>
                     <Button Style="{StaticResource IconButton}" Margin="2,2" Click="JogBackward_Click" ToolTip="Jog -1 frame">
-                        <TextBlock Text="⏮" Foreground="White" FontSize="12"/>
+                        <TextBlock Text="⏮" Foreground="{DynamicResource WindowForegroundBrush}" FontSize="12"/>
                     </Button>
                     <Button Style="{StaticResource IconButton}" Margin="2,2" Click="ShuttlePause_Click" ToolTip="Pause (K)">
-                        <TextBlock Text="⏸" Foreground="White" FontSize="12"/>
+                        <TextBlock Text="⏸" Foreground="{DynamicResource WindowForegroundBrush}" FontSize="12"/>
                     </Button>
                     <Button Style="{StaticResource IconButton}" Margin="2,2" Click="JogForward_Click" ToolTip="Jog +1 frame">
-                        <TextBlock Text="⏭" Foreground="White" FontSize="12"/>
+                        <TextBlock Text="⏭" Foreground="{DynamicResource WindowForegroundBrush}" FontSize="12"/>
                     </Button>
                     <Button Style="{StaticResource IconButton}" Margin="2,2" Click="ShuttleForward_Click" ToolTip="Shuttle Forward (L)">
-                        <TextBlock Text="⏩" Foreground="White" FontSize="12"/>
+                        <TextBlock Text="⏩" Foreground="{DynamicResource WindowForegroundBrush}" FontSize="12"/>
                     </Button>
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="SetLoopRegion_Click" ToolTip="Toggle loop region (In/Out)">
-                        <TextBlock Text="🔁 Loop" Foreground="White"/>
+                        <TextBlock Text="🔁 Loop" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
-                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,4"/>
+                    <Separator Width="1" Background="{DynamicResource ControlBorderBrush}" Margin="8,4"/>
                     
                     <!-- Preview & Export -->
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="GenerateProxy_Click" ToolTip="Generate proxy media">
-                        <TextBlock Text="🎞 Proxy" Foreground="White"/>
+                        <TextBlock Text="🎞 Proxy" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="SetPreviewScale_Click" ToolTip="Preview scaling">
-                        <TextBlock x:Name="PreviewScaleLabel" Text="📐 100%" Foreground="White"/>
+                        <TextBlock x:Name="PreviewScaleLabel" Text="📐 100%" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
                     <Button Style="{StaticResource DarkButton}" Margin="4,2" Click="RenderPreview_Click" ToolTip="Quick render preview">
-                        <TextBlock Text="👁 Preview" Foreground="White"/>
+                        <TextBlock Text="👁 Preview" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
-                    <Separator Width="1" Background="{StaticResource BorderColor}" Margin="8,4"/>
+                    <Separator Width="1" Background="{DynamicResource ControlBorderBrush}" Margin="8,4"/>
                     <Button Padding="12,4" 
-                            Background="{StaticResource AccentColor}"
+                            Background="{DynamicResource AccentBrush}"
                             BorderThickness="0"
                             Style="{StaticResource DarkButton}"
                             Margin="4,2"
                             Click="Export_Click">
-                        <TextBlock Text="📤 Export" Foreground="White"/>
+                        <TextBlock Text="📤 Export" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </Button>
                 </WrapPanel>
             </ScrollViewer>
@@ -309,8 +310,8 @@
             </Grid.ColumnDefinitions>
             
             <!-- Left Panel: Playlist/Media Bin (like Shotcut) -->
-            <Border x:Name="LeftPanel" Grid.Column="0" Background="{StaticResource PanelBg}"
-                    BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,1,0">
+            <Border x:Name="LeftPanel" Grid.Column="0" Background="{DynamicResource ControlBackgroundBrush}"
+                    BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="0,0,1,0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -333,20 +334,20 @@
                     <!-- Playlist content -->
                     <Grid Grid.Row="1">
                         <!-- Toolbar -->
-                        <Border Background="{StaticResource HeaderBg}" 
+                        <Border Background="{DynamicResource SurfaceBrush}" 
                                 VerticalAlignment="Top" Height="28">
                             <StackPanel Orientation="Horizontal" Margin="4,0">
                                 <Button Style="{StaticResource IconButton}" ToolTip="Add Files"
                                         Click="AddToPlaylist_Click">
-                                    <TextBlock Text="➕" Foreground="White"/>
+                                    <TextBlock Text="➕" Foreground="{DynamicResource WindowForegroundBrush}"/>
                                 </Button>
                                 <Button Style="{StaticResource IconButton}" ToolTip="Remove Selected"
                                         Click="RemoveFromPlaylist_Click">
-                                    <TextBlock Text="➖" Foreground="White"/>
+                                    <TextBlock Text="➖" Foreground="{DynamicResource WindowForegroundBrush}"/>
                                 </Button>
                                 <Button Style="{StaticResource IconButton}" ToolTip="Add to Timeline"
                                         Click="AddToTimeline_Click" Margin="8,0,0,0">
-                                    <TextBlock Text="▶" Foreground="White"/>
+                                    <TextBlock Text="▶" Foreground="{DynamicResource WindowForegroundBrush}"/>
                                 </Button>
                             </StackPanel>
                         </Border>
@@ -381,7 +382,7 @@
                                         </Grid.ColumnDefinitions>
                                         
                                         <!-- Thumbnail -->
-                                        <Border Grid.Column="0" Background="#333333" 
+                                        <Border Grid.Column="0" Background="{DynamicResource ControlBackgroundBrush}" 
                                                 Width="56" Height="32" CornerRadius="2">
                                             <Image Source="{Binding Thumbnail}" 
                                                    Stretch="UniformToFill"/>
@@ -390,11 +391,11 @@
                                         <!-- Info -->
                                         <StackPanel Grid.Column="1" Margin="8,0,0,0">
                                             <TextBlock Text="{Binding Name}" 
-                                                       Foreground="#FFFFFF"
+                                                       Foreground="{DynamicResource WindowForegroundBrush}"
                                                        TextTrimming="CharacterEllipsis"
                                                        FontSize="11"/>
                                             <TextBlock Text="{Binding DurationText}" 
-                                                       Foreground="#AAAAAA"
+                                                       Foreground="{DynamicResource ForegroundDimBrush}"
                                                        FontSize="10"/>
                                         </StackPanel>
                                     </Grid>
@@ -408,7 +409,7 @@
             <!-- Splitter -->
             <GridSplitter x:Name="LeftSplitter" Grid.Column="1" Width="5" 
                           HorizontalAlignment="Stretch" 
-                          Background="{StaticResource BorderColor}"/>
+                          Background="{DynamicResource ControlBorderBrush}"/>
             
             <!-- Center: Video Player -->
             <controls:VideoPlayerPanel x:Name="VideoPlayer" Grid.Column="2"/>
@@ -416,11 +417,11 @@
             <!-- Splitter -->
             <GridSplitter x:Name="RightSplitter" Grid.Column="3" Width="5" 
                           HorizontalAlignment="Stretch" 
-                          Background="{StaticResource BorderColor}"/>
+                          Background="{DynamicResource ControlBorderBrush}"/>
             
             <!-- Right Panel: Properties/Filters -->
-            <Border x:Name="RightPanel" Grid.Column="4" Background="{StaticResource PanelBg}"
-                    BorderBrush="{StaticResource BorderColor}" BorderThickness="1,0,0,0">
+            <Border x:Name="RightPanel" Grid.Column="4" Background="{DynamicResource ControlBackgroundBrush}"
+                    BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1,0,0,0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -445,7 +446,7 @@
                                   Visibility="{Binding IsChecked, ElementName=PropertiesTab, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel x:Name="PropertiesPanel" Margin="8">
                             <TextBlock Text="No clip selected" 
-                                       Foreground="#999999"
+                                       Foreground="{DynamicResource ForegroundDimBrush}"
                                        HorizontalAlignment="Center"
                                        Margin="0,20,0,0"/>
                         </StackPanel>
@@ -459,35 +460,35 @@
                             <Grid Margin="0,0,0,8">
                                 <TextBox x:Name="FilterSearchBox"
                                          Text="{Binding FilterSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                         Background="#2B2F37" Foreground="White"
-                                         BorderBrush="#4B5058" Padding="24,6,6,6"/>
+                                         Background="{DynamicResource ControlBackgroundBrush}" Foreground="{DynamicResource WindowForegroundBrush}"
+                                         BorderBrush="{DynamicResource ControlBorderBrush}" Padding="24,6,6,6"/>
                                 <TextBlock Text="🔍" IsHitTestVisible="False" 
                                            VerticalAlignment="Center" Margin="6,0,0,0"
-                                           Foreground="#6B7280"/>
+                                           Foreground="{DynamicResource ForegroundDimBrush}"/>
                             </Grid>
                             
                             <!-- Filter Categories -->
-                            <TextBlock Text="Categories" Foreground="#9CA3AF" FontSize="11" Margin="0,0,0,4"/>
+                            <TextBlock Text="Categories" Foreground="{DynamicResource ForegroundDimBrush}" FontSize="11" Margin="0,0,0,4"/>
                             <WrapPanel Margin="0,0,0,8">
                                 <RadioButton Content="All" GroupName="FilterCat" IsChecked="True"
-                                             Foreground="White" Margin="0,0,8,4"/>
+                                             Foreground="{DynamicResource WindowForegroundBrush}" Margin="0,0,8,4"/>
                                 <RadioButton Content="Color" GroupName="FilterCat"
-                                             Foreground="White" Margin="0,0,8,4"/>
+                                             Foreground="{DynamicResource WindowForegroundBrush}" Margin="0,0,8,4"/>
                                 <RadioButton Content="Blur" GroupName="FilterCat"
-                                             Foreground="White" Margin="0,0,8,4"/>
+                                             Foreground="{DynamicResource WindowForegroundBrush}" Margin="0,0,8,4"/>
                                 <RadioButton Content="Stylize" GroupName="FilterCat"
-                                             Foreground="White" Margin="0,0,8,4"/>
+                                             Foreground="{DynamicResource WindowForegroundBrush}" Margin="0,0,8,4"/>
                                 <RadioButton Content="Transform" GroupName="FilterCat"
-                                             Foreground="White" Margin="0,0,8,4"/>
+                                             Foreground="{DynamicResource WindowForegroundBrush}" Margin="0,0,8,4"/>
                                 <RadioButton Content="Audio" GroupName="FilterCat"
-                                             Foreground="White" Margin="0,0,8,4"/>
+                                             Foreground="{DynamicResource WindowForegroundBrush}" Margin="0,0,8,4"/>
                             </WrapPanel>
                             
                             <!-- Available Filters List -->
-                            <TextBlock Text="Available Filters" Foreground="#9CA3AF" FontSize="11" Margin="0,0,0,4"/>
+                            <TextBlock Text="Available Filters" Foreground="{DynamicResource ForegroundDimBrush}" FontSize="11" Margin="0,0,0,4"/>
                             <ListBox x:Name="FiltersList" 
                                      ItemsSource="{Binding FilteredShotcutFilters}"
-                                     Background="#2B2F37" BorderBrush="#4B5058"
+                                     Background="{DynamicResource ControlBackgroundBrush}" BorderBrush="{DynamicResource ControlBorderBrush}"
                                      MaxHeight="200" Margin="0,0,0,8">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
@@ -508,12 +509,12 @@
                                             <TextBlock Grid.Column="1" Text="{Binding Icon}" 
                                                        FontSize="12" VerticalAlignment="Center"/>
                                             <StackPanel Grid.Column="2" Margin="4,0" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Name}" Foreground="White" FontSize="11"/>
+                                                <TextBlock Text="{Binding Name}" Foreground="{DynamicResource WindowForegroundBrush}" FontSize="11"/>
                                             </StackPanel>
                                             <Button Grid.Column="3" Content="+" 
                                                     Command="{Binding DataContext.ApplyShotcutFilterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}"
-                                                    Background="#3B82F6" Foreground="White"
+                                                    Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource WindowForegroundBrush}"
                                                     BorderThickness="0" 
                                                     FontWeight="Bold" Cursor="Hand"
                                                     ToolTip="Add filter to clip"/>
@@ -523,14 +524,14 @@
                             </ListBox>
                             
                             <!-- Applied Filters -->
-                            <TextBlock Text="Applied Filters" Foreground="#9CA3AF" FontSize="11" Margin="0,8,0,4"/>
+                            <TextBlock Text="Applied Filters" Foreground="{DynamicResource ForegroundDimBrush}" FontSize="11" Margin="0,8,0,4"/>
                             <ItemsControl ItemsSource="{Binding SelectedClip.Filters}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Background="#3B3F47" CornerRadius="4" Margin="0,2" Padding="6">
+                                        <Border Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="4" Margin="0,2" Padding="6">
                                             <DockPanel>
                                                 <Button DockPanel.Dock="Right" Content="✕"
-                                                        Background="Transparent" Foreground="#EF4444"
+                                                        Background="Transparent" Foreground="{DynamicResource ErrorForegroundBrush}"
                                                         BorderThickness="0" Cursor="Hand" FontSize="10"
                                                         Command="{Binding DataContext.RemoveShotcutFilterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                         CommandParameter="{Binding}"/>
@@ -540,7 +541,7 @@
                                                 </ToggleButton>
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="{Binding Icon}" FontSize="10" Margin="0,0,4,0"/>
-                                                    <TextBlock Text="{Binding Name}" Foreground="White" FontSize="10"/>
+                                                    <TextBlock Text="{Binding Name}" Foreground="{DynamicResource WindowForegroundBrush}" FontSize="10"/>
                                                 </StackPanel>
                                             </DockPanel>
                                         </Border>
@@ -549,7 +550,7 @@
                             </ItemsControl>
                             
                             <TextBlock Text="Select a clip to add filters" 
-                                       Foreground="#666666" FontSize="10" FontStyle="Italic"
+                                       Foreground="{DynamicResource ForegroundDimBrush}" FontSize="10" FontStyle="Italic"
                                        HorizontalAlignment="Center" Margin="0,16,0,0"
                                        Visibility="{Binding HasSelectedClip, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
                         </StackPanel>
@@ -561,7 +562,7 @@
         <!-- Splitter -->
         <GridSplitter x:Name="TimelineSplitter" Grid.Row="2" Height="5" 
                       HorizontalAlignment="Stretch" 
-                      Background="{StaticResource BorderColor}"/>
+                      Background="{DynamicResource ControlBorderBrush}"/>
         
         <!-- Bottom: Timeline -->
         <controls:TimelinePanel x:Name="Timeline" Grid.Row="3"

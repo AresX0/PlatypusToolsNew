@@ -1,23 +1,20 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows;
+using PlatypusTools.UI.ViewModels;
 
 namespace PlatypusTools.UI.Services
 {
     /// <summary>
     /// Service that provides tab visibility state and notifies the UI when visibility changes.
-    /// Implements INotifyPropertyChanged for WPF binding support.
+    /// Inherits BindableBase for WPF binding support.
     /// </summary>
-    public class TabVisibilityService : INotifyPropertyChanged
+    public class TabVisibilityService : BindableBase
     {
         private static TabVisibilityService? _instance;
         public static TabVisibilityService Instance => _instance ??= new TabVisibilityService();
 
         private Dictionary<string, Visibility> _tabVisibility = new();
-        
-        public event PropertyChangedEventHandler? PropertyChanged;
         
         /// <summary>
         /// Event raised when any tab's visibility changes.
@@ -92,6 +89,7 @@ namespace PlatypusTools.UI.Services
         public Visibility Upscaler => GetVisibility("Multimedia.Video.Upscaler");
         public Visibility VideoCombiner => GetVisibility("Multimedia.Video.VideoCombiner");
         public Visibility VideoConverter => GetVisibility("Multimedia.Video.VideoConverter");
+        public Visibility ExportQueue => GetVisibility("Multimedia.Video.ExportQueue");
         public Visibility MediaLibrary => GetVisibility("Multimedia.MediaLibrary");
         public Visibility ExternalTools => GetVisibility("Multimedia.ExternalTools");
 
@@ -159,10 +157,5 @@ namespace PlatypusTools.UI.Services
 
         // FileManagement - Robocopy
         public Visibility Robocopy => GetVisibility("FileManagement.Robocopy");
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 }

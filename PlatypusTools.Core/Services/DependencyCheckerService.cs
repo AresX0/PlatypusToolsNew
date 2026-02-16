@@ -14,9 +14,10 @@ namespace PlatypusTools.Core.Services
 
             result.FFmpegInstalled = await CheckFFmpegAsync();
             result.ExifToolInstalled = await CheckExifToolAsync();
+            result.YtDlpInstalled = await CheckYtDlpAsync();
             result.WebView2Installed = CheckWebView2();
 
-            result.AllDependenciesMet = result.FFmpegInstalled && result.ExifToolInstalled && result.WebView2Installed;
+            result.AllDependenciesMet = result.FFmpegInstalled && result.ExifToolInstalled && result.YtDlpInstalled && result.WebView2Installed;
 
             return result;
         }
@@ -147,8 +148,53 @@ namespace PlatypusTools.Core.Services
             }
         }
 
+        private async Task<bool> CheckYtDlpAsync()
+        {
+            try
+            {
+                var paths = new[]
+                {
+                    "yt-dlp",
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "yt-dlp.exe")
+                };
+
+                foreach (var path in paths)
+                {
+                    try
+                    {
+                        var psi = new ProcessStartInfo
+                        {
+                            FileName = path,
+                            Arguments = "--version",
+                            RedirectStandardOutput = true,
+                            UseShellExecute = false,
+                            CreateNoWindow = true
+                        };
+
+                        using var process = Process.Start(psi);
+                        if (process != null)
+                        {
+                            await process.WaitForExitAsync();
+                            if (process.ExitCode == 0)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                    catch { }
+                }
+
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public string GetFFmpegDownloadUrl() => "https://ffmpeg.org/download.html";
         public string GetExifToolDownloadUrl() => "https://exiftool.org/";
+        public string GetYtDlpDownloadUrl() => "https://github.com/yt-dlp/yt-dlp/releases";
         public string GetWebView2DownloadUrl() => "https://developer.microsoft.com/en-us/microsoft-edge/webview2/";
     }
 
@@ -156,6 +202,7 @@ namespace PlatypusTools.Core.Services
     {
         public bool FFmpegInstalled { get; set; }
         public bool ExifToolInstalled { get; set; }
+        public bool YtDlpInstalled { get; set; }
         public bool WebView2Installed { get; set; }
         public bool AllDependenciesMet { get; set; }
 
@@ -164,6 +211,7 @@ namespace PlatypusTools.Core.Services
             var missing = new System.Collections.Generic.List<string>();
             if (!FFmpegInstalled) missing.Add("FFmpeg (for video operations)");
             if (!ExifToolInstalled) missing.Add("ExifTool (for metadata editing)");
+            if (!YtDlpInstalled) missing.Add("yt-dlp (for streaming audio)");
             if (!WebView2Installed) missing.Add("WebView2 Runtime (for help system)");
 
             if (missing.Count == 0)

@@ -1,8 +1,7 @@
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Windows.Threading;
+using PlatypusTools.UI.ViewModels;
 
 namespace PlatypusTools.UI.Services
 {
@@ -10,7 +9,7 @@ namespace PlatypusTools.UI.Services
     /// Monitors application performance metrics: CPU usage, memory, and FPS.
     /// Singleton service that updates the status bar with live stats. (IDEA-012)
     /// </summary>
-    public class PerformanceMonitorService : INotifyPropertyChanged, IDisposable
+    public class PerformanceMonitorService : BindableBase, IDisposable
     {
         private static PerformanceMonitorService? _instance;
         public static PerformanceMonitorService Instance => _instance ??= new PerformanceMonitorService();
@@ -151,11 +150,6 @@ namespace PlatypusTools.UI.Services
                 // Ignore errors during monitoring
             }
         }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        private void OnPropertyChanged([CallerMemberName] string? name = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         public void Dispose()
         {

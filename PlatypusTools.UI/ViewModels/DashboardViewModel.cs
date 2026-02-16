@@ -30,6 +30,9 @@ namespace PlatypusTools.UI.ViewModels
             _refreshTimer.Tick += async (s, e) => await RefreshAsync();
             _refreshTimer.Start();
 
+            // Load widget customization preferences
+            LoadWidgetPrefs();
+
             // Initial load
             _ = RefreshAsync();
         }
@@ -129,6 +132,63 @@ namespace PlatypusTools.UI.ViewModels
         {
             get => _undoCount;
             set => SetProperty(ref _undoCount, value);
+        }
+
+        // Widget Visibility
+        private bool _showQuickActions = true;
+        public bool ShowQuickActions
+        {
+            get => _showQuickActions;
+            set { if (SetProperty(ref _showQuickActions, value)) SaveWidgetPrefs(); }
+        }
+
+        private bool _showNowPlaying = true;
+        public bool ShowNowPlaying
+        {
+            get => _showNowPlaying;
+            set { if (SetProperty(ref _showNowPlaying, value)) SaveWidgetPrefs(); }
+        }
+
+        private bool _showDiskUsage = true;
+        public bool ShowDiskUsage
+        {
+            get => _showDiskUsage;
+            set { if (SetProperty(ref _showDiskUsage, value)) SaveWidgetPrefs(); }
+        }
+
+        private bool _showSystemStatus = true;
+        public bool ShowSystemStatus
+        {
+            get => _showSystemStatus;
+            set { if (SetProperty(ref _showSystemStatus, value)) SaveWidgetPrefs(); }
+        }
+
+        private bool _showRemoteServer = true;
+        public bool ShowRemoteServer
+        {
+            get => _showRemoteServer;
+            set { if (SetProperty(ref _showRemoteServer, value)) SaveWidgetPrefs(); }
+        }
+
+        private bool _showUndoStack = true;
+        public bool ShowUndoStack
+        {
+            get => _showUndoStack;
+            set { if (SetProperty(ref _showUndoStack, value)) SaveWidgetPrefs(); }
+        }
+
+        private bool _showKeyboardShortcuts = true;
+        public bool ShowKeyboardShortcuts
+        {
+            get => _showKeyboardShortcuts;
+            set { if (SetProperty(ref _showKeyboardShortcuts, value)) SaveWidgetPrefs(); }
+        }
+
+        private bool _isCustomizePanelOpen;
+        public bool IsCustomizePanelOpen
+        {
+            get => _isCustomizePanelOpen;
+            set => SetProperty(ref _isCustomizePanelOpen, value);
         }
 
         #endregion
@@ -254,6 +314,56 @@ namespace PlatypusTools.UI.ViewModels
             {
                 Services.ToastNotificationService.Instance.ShowSuccess(
                     "You're running the latest version.", "Update Check");
+            }
+        }
+
+        private void SaveWidgetPrefs()
+        {
+            try
+            {
+                var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                var folder = Path.Combine(appData, "PlatypusTools");
+                Directory.CreateDirectory(folder);
+                var path = Path.Combine(folder, "dashboard_widgets.json");
+                var json = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    ShowQuickActions,
+                    ShowNowPlaying,
+                    ShowDiskUsage,
+                    ShowSystemStatus,
+                    ShowRemoteServer,
+                    ShowUndoStack,
+                    ShowKeyboardShortcuts
+                });
+                File.WriteAllText(path, json);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error saving widget prefs: {ex.Message}");
+            }
+        }
+
+        private void LoadWidgetPrefs()
+        {
+            try
+            {
+                var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                var path = Path.Combine(appData, "PlatypusTools", "dashboard_widgets.json");
+                if (!File.Exists(path)) return;
+                var json = File.ReadAllText(path);
+                var doc = System.Text.Json.JsonDocument.Parse(json);
+                var root = doc.RootElement;
+                if (root.TryGetProperty("ShowQuickActions", out var v1)) _showQuickActions = v1.GetBoolean();
+                if (root.TryGetProperty("ShowNowPlaying", out var v2)) _showNowPlaying = v2.GetBoolean();
+                if (root.TryGetProperty("ShowDiskUsage", out var v3)) _showDiskUsage = v3.GetBoolean();
+                if (root.TryGetProperty("ShowSystemStatus", out var v4)) _showSystemStatus = v4.GetBoolean();
+                if (root.TryGetProperty("ShowRemoteServer", out var v5)) _showRemoteServer = v5.GetBoolean();
+                if (root.TryGetProperty("ShowUndoStack", out var v6)) _showUndoStack = v6.GetBoolean();
+                if (root.TryGetProperty("ShowKeyboardShortcuts", out var v7)) _showKeyboardShortcuts = v7.GetBoolean();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading widget prefs: {ex.Message}");
             }
         }
 

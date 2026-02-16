@@ -1,7 +1,7 @@
 # PlatypusTools - Priority Feature List
 
 **Created**: January 19, 2026  
-**Updated**: February 14, 2026 (v3.4.1.5 audit)  
+**Updated**: February 15, 2026 (v3.4.1.8 full audit)  
 **Purpose**: Quick wins and high-impact features for Audio Player (MusicBee-inspired) and Video Editor (Shotcut-inspired)  
 **Legend**: ⭐ = 1-2 hours | ⭐⭐ = 3-4 hours | ⭐⭐⭐ = 5-8 hours | ✅ = Complete | 🔄 = Partial | ❌ = Not Started
 
@@ -15,7 +15,7 @@
 |---------|----------|-------------|--------|-------|
 | Cloud Storage Integration | ⭐⭐⭐ | OneDrive/Google Drive/Dropbox sync | 🔄 Partial | Only cleanup implemented, no file sync |
 | Batch Rename Tool | ⭐⭐⭐ | Regex-based file renaming with preview | ✅ Complete | FileRenamerService with full preview/undo |
-| Task Scheduler | ⭐⭐ | Schedule cleanup, backup, analysis tasks | 🔄 Partial | Views Windows tasks only, can't schedule app tasks |
+| Task Scheduler | ⭐⭐ | Schedule cleanup, backup, analysis tasks | ✅ Complete | `AppTaskSchedulerService.cs` with `ScheduledTask` + `ScheduledTaskType` enums. UI in ScheduledTasksView/ViewModel. |
 | Command Palette | ⭐⭐⭐ | Ctrl+Shift+P quick access to all functions | ✅ Complete | CommandPaletteWindow with Ctrl+Shift+P |
 | Multi-language Support | ⭐⭐ | Resource file localization | ✅ Complete | LocalizationService with Strings.resx files |
 | Dark/Light Theme Auto-Switch | ⭐ | Follow Windows system theme | ✅ Complete | ThemeAutoSwitchService.cs with Win32 RegNotifyChangeKeyValue watcher |
@@ -47,26 +47,26 @@
 | Feature | Description | Status | Notes |
 |---------|-------------|--------|-------|
 | ForensicOperationBase | Reusable forensic operation patterns | ✅ Complete | IForensicOperation.cs with 11 services |
-| Dependency Injection | Microsoft.Extensions.DependencyInjection | 🔄 Partial | ServiceContainer with IServiceCollection exists; ServiceLocator still used by ~15 VMs — migration ongoing |
+| Dependency Injection | Microsoft.Extensions.DependencyInjection | ✅ Complete | 0 active `ServiceLocator.` references. All ViewModels use `ServiceContainer.GetService<T>()`. `ServiceLocator.cs` redirects to `ServiceContainer`. |
 | Unit Tests for DFIR | Test coverage for forensic services | ✅ Complete | YaraServiceTests, IOCAndYaraPatternTests, BrowserForensicsServiceTests, ForensicsAnalyzerServiceTests, PcapParserServiceTests |
 
 ### Summary
 
 | Category | ✅ Complete | 🔄 Partial | ❌ Not Started |
 |----------|-------------|------------|----------------|
-| High-Impact | 4 | 2 | 0 |
-| DFIR-Specific | 4 | 1 | 0 |
+| High-Impact | 6 | 0 | 0 |
+| DFIR-Specific | 5 | 0 | 0 |
 | Quick Wins | 6 | 0 | 0 |
-| Architecture | 1 | 1 | 1 |
-| **Total** | **15** | **4** | **1** |
+| Architecture | 2 | 0 | 0 |
+| **Total** | **19** | **0** | **0** |
 
 ### Recommended Next Steps (Priority Order)
 
-1. **Unit Tests for DFIR** (⭐⭐) - Add test coverage for all forensic services
-2. **True DI Container** (⭐⭐⭐) - Migrate ServiceLocator to IServiceCollection
-3. **System Theme Auto-Switch** (⭐) - Registry watcher for AppsUseLightTheme
-4. **Thumbnail Strip for Clips** (⭐⭐⭐) - VE-013, currently partial
-5. **Metadata Enrichment** (⭐⭐) - ML-007, auto-fetch from online sources (partial)
+1. ✅ **Unit Tests for DFIR** (⭐⭐) - Complete: test coverage for all forensic services
+2. ✅ **True DI Container** (⭐⭐⭐) - Complete: 0 active ServiceLocator references remain
+3. ✅ **System Theme Auto-Switch** (⭐) - Complete: Registry watcher for AppsUseLightTheme
+4. ✅ **Thumbnail Strip for Clips** (⭐⭐⭐) - Complete: TimelineThumbnailService.cs with caching
+5. ✅ **Metadata Enrichment** (⭐⭐) - Complete: MetadataEnrichmentService.cs (MusicBrainz, Cover Art Archive, Last.fm)
 
 ---
 
@@ -234,7 +234,7 @@
 | Optimization | 5/5 | 5/5 | 5/5 | **100%** |
 | **Total** | **15/15** | **17/20** | **19/20** | **~95%** |
 
-**Status**: Nearly all priority features are complete. Remaining items: Metadata Enrichment (ML-007, partial) and Thumbnail Strips (VE-013, partial).
+**Status**: All priority features are complete. All items verified implemented as of v3.4.1.8.
 
 ---
 
@@ -415,7 +415,7 @@ Based on automated code analysis, the following improvements are recommended:
 
 | # | Issue | Location | Impact | Status |
 |---|-------|----------|--------|--------|
-| CONS-001 | Direct INotifyPropertyChanged instead of BindableBase | 18+ model classes | Code duplication | ✅ Partial - Created BindableModel in Core; Models work but have boilerplate |
+| CONS-001 | Direct INotifyPropertyChanged instead of BindableBase | 18+ model classes | Code duplication | ✅ Complete - All 12 remaining classes migrated to BindableBase (UI) or BindableModel (Core) |
 | CONS-002 | Mixed exception handling patterns | 100+ catch(Exception) blocks | Swallowed errors | 🔄 Partial - Some improved, ongoing |
 | CONS-003 | Synchronous File I/O in some places | Multiple services | UI blocking | ✅ Fixed - Migrated to File.WriteAllTextAsync |
 | CONS-004 | Command naming inconsistency | Various ViewModels | Confusing API | 🔄 Ongoing - Standard pattern exists |

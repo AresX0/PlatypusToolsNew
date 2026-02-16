@@ -5,17 +5,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="40" d:DesignWidth="800"
-             Background="#1E1E1E"
+             Background="{DynamicResource WindowBackgroundBrush}"
              MouseLeftButtonDown="OnMouseLeftButtonDown"
              MouseLeftButtonUp="OnMouseLeftButtonUp"
              MouseMove="OnMouseMove"
              SizeChanged="OnSizeChanged">
     
     <UserControl.Resources>
-        <!-- Shotcut-style colors -->
-        <SolidColorBrush x:Key="ScrubBarBackground" Color="#2D2D2D"/>
-        <SolidColorBrush x:Key="ScrubBarTick" Color="#666666"/>
-        <SolidColorBrush x:Key="ScrubBarTimecode" Color="#AAAAAA"/>
+        <!-- Keep in/out/playhead colors as local resources - they are semantic -->
         <SolidColorBrush x:Key="PlayheadColor" Color="#FF4444"/>
         <SolidColorBrush x:Key="InPointColor" Color="#44FF44"/>
         <SolidColorBrush x:Key="OutPointColor" Color="#FF4444"/>
@@ -24,7 +21,7 @@
     
     <Grid>
         <!-- Main scrub area -->
-        <Canvas x:Name="ScrubCanvas" Background="{StaticResource ScrubBarBackground}">
+        <Canvas x:Name="ScrubCanvas" Background="{DynamicResource SurfaceBrush}">
             <!-- Loop region -->
             <Rectangle x:Name="LoopRegion" 
                        Fill="{StaticResource LoopRegionColor}" 

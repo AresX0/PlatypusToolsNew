@@ -72,6 +72,8 @@
                             <MenuItem Header="Load Details" Command="{Binding LoadDetailsCommand}" CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                             <Separator />
                             <MenuItem Header="Open File Location" />
+                            <Separator/>
+                            <MenuItem Header="📋 Copy" Command="ApplicationCommands.Copy"/>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                 </DataGrid>

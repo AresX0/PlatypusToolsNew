@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using PlatypusTools.Core.Models.Audio;
+using PlatypusTools.Core.Services;
 using PlatypusTools.UI.Services;
 using PlatypusTools.UI.ViewModels;
 
@@ -349,6 +350,39 @@ public partial class EnhancedAudioPlayerView : UserControl
         }
     }
     
+    #endregion
+
+    #region Smart Playlist Editor
+
+    private void OpenSmartPlaylistEditor_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var editor = new SmartPlaylistEditorWindow
+            {
+                Owner = Window.GetWindow(this)
+            };
+
+            // Provide tracks for preview if available
+            if (DataContext is ViewModels.EnhancedAudioPlayerViewModel vm)
+            {
+                editor.PreviewTracks = vm.GetAllLibraryTracks();
+            }
+
+            if (editor.ShowDialog() == true && editor.ResultRuleSet != null)
+            {
+                if (DataContext is ViewModels.EnhancedAudioPlayerViewModel viewModel)
+                {
+                    viewModel.CreateSmartPlaylist(editor.PlaylistName, editor.ResultRuleSet);
+                }
+            }
+        }
+        catch (System.Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error opening smart playlist editor: {ex.Message}");
+        }
+    }
+
     #endregion
     
     private void EnterFullscreenVisualizer()
@@ -1361,6 +1395,128 @@ public partial class EnhancedAudioPlayerView : UserControl
             StrokeThickness = 1.5
         };
         canvas.Children.Add(line);
+    }
+    
+    #endregion
+    
+    #region Streaming Credentials
+    
+    private string? GetSelectedCredentialKey()
+    {
+        if (StreamCredServiceCombo?.SelectedItem is ComboBoxItem item)
+            return item.Tag?.ToString();
+        return null;
+    }
+    
+    private string GetSelectedServiceName()
+    {
+        if (StreamCredServiceCombo?.SelectedItem is ComboBoxItem item)
+            return item.Content?.ToString() ?? "Service";
+        return "Service";
+    }
+    
+    private void SaveStreamCredential_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var key = GetSelectedCredentialKey();
+            if (string.IsNullOrEmpty(key))
+            {
+                StreamCredStatus.Text = "⚠ Select a service first.";
+                return;
+            }
+            
+            var username = StreamCredUsername?.Text?.Trim();
+            var password = StreamCredPassword?.Password;
+            
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                StreamCredStatus.Text = "⚠ Username and password are required.";
+                return;
+            }
+            
+            var serviceName = GetSelectedServiceName();
+            CredentialManagerService.Instance.SaveCredential(
+                key, username, password,
+                $"{serviceName} streaming credentials",
+                CredentialType.StreamingService);
+            
+            StreamCredUsername!.Text = "";
+            StreamCredPassword!.Password = "";
+            StreamCredStatus.Text = $"✅ {serviceName} credentials saved securely.";
+            StreamCredStatus.Foreground = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50));
+        }
+        catch (Exception ex)
+        {
+            StreamCredStatus.Text = $"❌ Error: {ex.Message}";
+            StreamCredStatus.Foreground = new SolidColorBrush(Color.FromRgb(0xF4, 0x43, 0x36));
+        }
+    }
+    
+    private void RemoveStreamCredential_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var key = GetSelectedCredentialKey();
+            if (string.IsNullOrEmpty(key))
+            {
+                StreamCredStatus.Text = "⚠ Select a service first.";
+                return;
+            }
+            
+            var serviceName = GetSelectedServiceName();
+            bool removed = CredentialManagerService.Instance.DeleteCredential(key);
+            if (removed)
+            {
+                StreamCredStatus.Text = $"🗑 {serviceName} credentials removed.";
+                StreamCredStatus.Foreground = new SolidColorBrush(Color.FromRgb(0xFF, 0x98, 0x00));
+            }
+            else
+            {
+                StreamCredStatus.Text = $"ℹ No saved credentials for {serviceName}.";
+                StreamCredStatus.Foreground = (Brush?)FindResource("TextSecondaryBrush") 
+                    ?? new SolidColorBrush(Colors.Gray);
+            }
+        }
+        catch (Exception ex)
+        {
+            StreamCredStatus.Text = $"❌ Error: {ex.Message}";
+            StreamCredStatus.Foreground = new SolidColorBrush(Color.FromRgb(0xF4, 0x43, 0x36));
+        }
+    }
+    
+    private void LoadStreamCredential_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var key = GetSelectedCredentialKey();
+            if (string.IsNullOrEmpty(key))
+            {
+                StreamCredStatus.Text = "⚠ Select a service first.";
+                return;
+            }
+            
+            var serviceName = GetSelectedServiceName();
+            var credential = CredentialManagerService.Instance.GetCredential(key);
+            if (credential != null)
+            {
+                StreamCredUsername.Text = credential.Username;
+                StreamCredPassword.Password = CredentialManagerService.Instance.GetPassword(key) ?? "";
+                StreamCredStatus.Text = $"✅ {serviceName} credentials loaded.";
+                StreamCredStatus.Foreground = new SolidColorBrush(Color.FromRgb(0x21, 0x96, 0xF3));
+            }
+            else
+            {
+                StreamCredStatus.Text = $"ℹ No saved credentials for {serviceName}.";
+                StreamCredStatus.Foreground = (Brush?)FindResource("TextSecondaryBrush") 
+                    ?? new SolidColorBrush(Colors.Gray);
+            }
+        }
+        catch (Exception ex)
+        {
+            StreamCredStatus.Text = $"❌ Error: {ex.Message}";
+            StreamCredStatus.Foreground = new SolidColorBrush(Color.FromRgb(0xF4, 0x43, 0x36));
+        }
     }
     
     #endregion

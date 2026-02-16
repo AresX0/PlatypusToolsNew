@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NAudio.Wave;
+using PlatypusTools.UI.ViewModels;
 
 namespace PlatypusTools.UI.Services
 {
     /// <summary>
     /// Audio peak meter data for visualization.
     /// </summary>
-    public class PeakMeterData : INotifyPropertyChanged
+    public class PeakMeterData : BindableBase
     {
         private float _leftPeak;
         private float _rightPeak;
@@ -141,12 +141,6 @@ namespace PlatypusTools.UI.Services
         {
             if (linear <= 0) return -96.0;
             return 20.0 * Math.Log10(linear);
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 
