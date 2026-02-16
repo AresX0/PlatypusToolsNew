@@ -221,37 +221,12 @@ namespace PlatypusTools.UI.Controls
 
         private void Pi_Click(object sender, MouseButtonEventArgs e)
         {
-            try
+            // Open in default browser - WebView2 can't write to Program Files
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
-                var wnd = new Window
-                {
-                    Title = "π",
-                    Width = 660,
-                    Height = 400,
-                    WindowStartupLocation = WindowStartupLocation.CenterScreen,
-                    Background = System.Windows.Media.Brushes.Black,
-                    ResizeMode = ResizeMode.CanResize
-                };
-
-                var wv = new Microsoft.Web.WebView2.Wpf.WebView2();
-                wnd.Content = wv;
-                wnd.Loaded += async (s, ev) =>
-                {
-                    await wv.EnsureCoreWebView2Async();
-                    wv.CoreWebView2.Navigate("https://open.spotify.com/embed/show/5dJA1aqxZeh5Wma6DEfLRP/video?utm_source=generator");
-                };
-                wnd.Closed += (s, ev) => { wv.Dispose(); };
-                wnd.Show();
-            }
-            catch
-            {
-                // Fallback: open in browser
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = "https://open.spotify.com/show/5dJA1aqxZeh5Wma6DEfLRP",
-                    UseShellExecute = true
-                });
-            }
+                FileName = "https://open.spotify.com/show/5dJA1aqxZeh5Wma6DEfLRP",
+                UseShellExecute = true
+            });
         }
     }
 
