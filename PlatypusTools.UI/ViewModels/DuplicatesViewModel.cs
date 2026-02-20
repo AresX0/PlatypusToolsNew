@@ -19,12 +19,14 @@ namespace PlatypusTools.UI.ViewModels
         private CancellationTokenSource? _scanCancellationTokenSource;
         private readonly ImageSimilarityService _similarityService;
         private readonly VideoSimilarityService _videoSimilarityService;
+        private readonly AudioSimilarityService _audioSimilarityService;
 
         public DuplicatesViewModel()
         {
             Groups = new ObservableCollection<DuplicateGroupViewModel>();
             SimilarImageGroups = new ObservableCollection<SimilarImageGroupViewModel>();
             SimilarVideoGroups = new ObservableCollection<SimilarVideoGroupViewModel>();
+            SimilarAudioGroups = new ObservableCollection<SimilarAudioGroupViewModel>();
             UseRecycleBin = true; // default to safe operation
             _similarityService = new ImageSimilarityService();
             _similarityService.ProgressChanged += (s, p) => 
@@ -48,12 +50,24 @@ namespace PlatypusTools.UI.ViewModels
                 });
             };
             
+            _audioSimilarityService = new AudioSimilarityService();
+            _audioSimilarityService.ProgressChanged += (s, p) =>
+            {
+                _ = App.Current?.Dispatcher.InvokeAsync(() =>
+                {
+                    StatusMessage = $"{p.CurrentPhase} {p.CurrentFile} ({p.ProcessedFiles}/{p.TotalFiles})";
+                    ScanProgress = p.ProgressPercent;
+                    StatusBarViewModel.Instance.UpdateProgress(p.ProgressPercent, StatusMessage);
+                });
+            };
+            
             BrowseCommand = new RelayCommand(_ => Browse());
             ScanCommand = new RelayCommand(async _ => await ScanAsync(), _ => !IsScanning && !IsDeleting);
             ScanSimilarCommand = new RelayCommand(async _ => await ScanSimilarAsync(), _ => !IsScanning && !IsDeleting);
             ScanSimilarVideosCommand = new RelayCommand(async _ => await ScanSimilarVideosAsync(), _ => !IsScanning && !IsDeleting);
+            ScanSimilarAudioCommand = new RelayCommand(async _ => await ScanSimilarAudioAsync(), _ => !IsScanning && !IsDeleting);
             CancelScanCommand = new RelayCommand(_ => CancelScan(), _ => IsScanning);
-            DeleteSelectedCommand = new RelayCommand(_ => DeleteSelected(), _ => !IsDeleting && (Groups.Any(g => g.Files.Any(f => f.IsSelected)) || SimilarImageGroups.Any(g => g.Images.Any(i => i.IsSelected)) || SimilarVideoGroups.Any(g => g.Videos.Any(v => v.IsSelected))));
+            DeleteSelectedCommand = new RelayCommand(_ => DeleteSelected(), _ => !IsDeleting && (Groups.Any(g => g.Files.Any(f => f.IsSelected)) || SimilarImageGroups.Any(g => g.Images.Any(i => i.IsSelected)) || SimilarVideoGroups.Any(g => g.Videos.Any(v => v.IsSelected)) || SimilarAudioGroups.Any(g => g.AudioFiles.Any(a => a.IsSelected))));
 
             OpenFileCommand = new RelayCommand(obj => OpenFile(obj as string));
             OpenFolderCommand = new RelayCommand(obj => OpenFolder(obj as string));
@@ -77,6 +91,8 @@ namespace PlatypusTools.UI.ViewModels
         
         public ObservableCollection<SimilarVideoGroupViewModel> SimilarVideoGroups { get; }
         
+        public ObservableCollection<SimilarAudioGroupViewModel> SimilarAudioGroups { get; }
+        
         private int _similarityThreshold = 90;
         public int SimilarityThreshold 
         { 
@@ -89,6 +105,13 @@ namespace PlatypusTools.UI.ViewModels
         { 
             get => _videoSimilarityThreshold; 
             set { _videoSimilarityThreshold = value; RaisePropertyChanged(); } 
+        }
+        
+        private int _audioSimilarityThreshold = 85;
+        public int AudioSimilarityThreshold 
+        { 
+            get => _audioSimilarityThreshold; 
+            set { _audioSimilarityThreshold = value; RaisePropertyChanged(); } 
         }
         
         private bool _showSimilarImages = false;
@@ -105,10 +128,17 @@ namespace PlatypusTools.UI.ViewModels
             set { _showSimilarVideos = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(ShowDuplicatesGrid)); } 
         }
         
+        private bool _showSimilarAudio = false;
+        public bool ShowSimilarAudio 
+        { 
+            get => _showSimilarAudio; 
+            set { _showSimilarAudio = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(ShowDuplicatesGrid)); } 
+        }
+        
         /// <summary>
-        /// Shows the duplicates grid when neither similar images nor videos mode is active.
+        /// Shows the duplicates grid when no similarity mode is active.
         /// </summary>
-        public bool ShowDuplicatesGrid => !_showSimilarImages && !_showSimilarVideos;
+        public bool ShowDuplicatesGrid => !_showSimilarImages && !_showSimilarVideos && !_showSimilarAudio;
         
         private double _scanProgress = 0;
         public double ScanProgress 
@@ -140,6 +170,7 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand ScanCommand { get; }
         public ICommand ScanSimilarCommand { get; }
         public ICommand ScanSimilarVideosCommand { get; }
+        public ICommand ScanSimilarAudioCommand { get; }
         public ICommand CancelScanCommand { get; }
         public ICommand DeleteSelectedCommand { get; }
         public ICommand OpenFileCommand { get; }
@@ -279,16 +310,20 @@ namespace PlatypusTools.UI.ViewModels
 
             IsScanning = true;
             ShowSimilarImages = true;
+            ShowSimilarVideos = false;
+            ShowSimilarAudio = false;
             StatusMessage = "Scanning for similar images...";
             ScanProgress = 0;
             
             StatusBarViewModel.Instance.StartOperation("Scanning for similar images...", isCancellable: true);
             SimilarImageGroups.Clear();
             SimilarVideoGroups.Clear();
+            SimilarAudioGroups.Clear();
             Groups.Clear();
             ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
             ((RelayCommand)ScanSimilarCommand).RaiseCanExecuteChanged();
             ((RelayCommand)ScanSimilarVideosCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)ScanSimilarAudioCommand).RaiseCanExecuteChanged();
             ((RelayCommand)CancelScanCommand).RaiseCanExecuteChanged();
 
             try
@@ -330,6 +365,7 @@ namespace PlatypusTools.UI.ViewModels
                 ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
                 ((RelayCommand)ScanSimilarCommand).RaiseCanExecuteChanged();
                 ((RelayCommand)ScanSimilarVideosCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)ScanSimilarAudioCommand).RaiseCanExecuteChanged();
                 ((RelayCommand)CancelScanCommand).RaiseCanExecuteChanged();
             }
         }
@@ -350,16 +386,19 @@ namespace PlatypusTools.UI.ViewModels
             IsScanning = true;
             ShowSimilarImages = false;
             ShowSimilarVideos = true;
+            ShowSimilarAudio = false;
             StatusMessage = "Scanning for similar videos...";
             ScanProgress = 0;
             
             StatusBarViewModel.Instance.StartOperation("Scanning for similar videos...", isCancellable: true);
             SimilarImageGroups.Clear();
             SimilarVideoGroups.Clear();
+            SimilarAudioGroups.Clear();
             Groups.Clear();
             ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
             ((RelayCommand)ScanSimilarCommand).RaiseCanExecuteChanged();
             ((RelayCommand)ScanSimilarVideosCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)ScanSimilarAudioCommand).RaiseCanExecuteChanged();
             ((RelayCommand)CancelScanCommand).RaiseCanExecuteChanged();
 
             try
@@ -401,6 +440,82 @@ namespace PlatypusTools.UI.ViewModels
                 ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
                 ((RelayCommand)ScanSimilarCommand).RaiseCanExecuteChanged();
                 ((RelayCommand)ScanSimilarVideosCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)ScanSimilarAudioCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)CancelScanCommand).RaiseCanExecuteChanged();
+            }
+        }
+
+        private async Task ScanSimilarAudioAsync()
+        {
+            if (IsScanning) return;
+            if (string.IsNullOrWhiteSpace(FolderPath) || !Directory.Exists(FolderPath))
+            {
+                StatusMessage = "Please select a valid folder";
+                return;
+            }
+
+            _scanCancellationTokenSource?.Cancel();
+            _scanCancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = _scanCancellationTokenSource.Token;
+
+            IsScanning = true;
+            ShowSimilarImages = false;
+            ShowSimilarVideos = false;
+            ShowSimilarAudio = true;
+            StatusMessage = "Scanning for similar sounds...";
+            ScanProgress = 0;
+            
+            StatusBarViewModel.Instance.StartOperation("Scanning for similar sounds...", isCancellable: true);
+            SimilarImageGroups.Clear();
+            SimilarVideoGroups.Clear();
+            SimilarAudioGroups.Clear();
+            Groups.Clear();
+            ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)ScanSimilarCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)ScanSimilarVideosCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)ScanSimilarAudioCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)CancelScanCommand).RaiseCanExecuteChanged();
+
+            try
+            {
+                var groups = await _audioSimilarityService.FindSimilarAudioAsync(
+                    new[] { FolderPath }, 
+                    AudioSimilarityThreshold, 
+                    true, 
+                    cancellationToken);
+                
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    foreach (var g in groups)
+                    {
+                        SimilarAudioGroups.Add(new SimilarAudioGroupViewModel(g));
+                    }
+                    
+                    StatusMessage = $"Found {SimilarAudioGroups.Count} similar audio groups ({SimilarAudioGroups.Sum(g => g.AudioFiles.Count)} total files)";
+                }
+                else
+                {
+                    StatusMessage = "Scan canceled";
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                StatusMessage = "Scan canceled";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error scanning: {ex.Message}";
+            }
+            finally
+            {
+                IsScanning = false;
+                ScanProgress = 100;
+                StatusBarViewModel.Instance.CompleteOperation(StatusMessage);
+                ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)ScanSimilarCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)ScanSimilarVideosCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)ScanSimilarAudioCommand).RaiseCanExecuteChanged();
                 ((RelayCommand)CancelScanCommand).RaiseCanExecuteChanged();
             }
         }
@@ -566,8 +681,10 @@ namespace PlatypusTools.UI.ViewModels
             var imageFiles = SimilarImageGroups.SelectMany(g => g.Images).Where(i => i.IsSelected).Select(i => i.FilePath).ToList();
             // Handle similar videos
             var videoFiles = SimilarVideoGroups.SelectMany(g => g.Videos).Where(v => v.IsSelected).Select(v => v.FilePath).ToList();
+            // Handle similar audio
+            var audioFiles = SimilarAudioGroups.SelectMany(g => g.AudioFiles).Where(a => a.IsSelected).Select(a => a.FilePath).ToList();
             
-            var allFiles = files.Concat(imageFiles).Concat(videoFiles).ToList();
+            var allFiles = files.Concat(imageFiles).Concat(videoFiles).Concat(audioFiles).ToList();
             if (allFiles.Count == 0) return;
             
             if (DryRun)
@@ -608,6 +725,7 @@ namespace PlatypusTools.UI.ViewModels
             filesToDelete.AddRange(Groups.SelectMany(g => g.Files).Where(f => f.IsSelected).Select(f => f.Path));
             filesToDelete.AddRange(SimilarImageGroups.SelectMany(g => g.Images).Where(i => i.IsSelected).Select(i => i.FilePath));
             filesToDelete.AddRange(SimilarVideoGroups.SelectMany(g => g.Videos).Where(v => v.IsSelected).Select(v => v.FilePath));
+            filesToDelete.AddRange(SimilarAudioGroups.SelectMany(g => g.AudioFiles).Where(a => a.IsSelected).Select(a => a.FilePath));
             
             if (filesToDelete.Count == 0) return;
             
@@ -723,12 +841,29 @@ namespace PlatypusTools.UI.ViewModels
                 }
             }
             
-            StatusMessage = $"Deleted {deletedCount} file(s). {Groups.Count} duplicate groups, {SimilarImageGroups.Count} similar image groups, {SimilarVideoGroups.Count} similar video groups remaining.";
+            // Process similar audio groups
+            foreach (var group in SimilarAudioGroups.ToList())
+            {
+                var audiosToRemove = group.AudioFiles.Where(a => deletedPaths.Contains(a.FilePath)).ToList();
+                foreach (var audio in audiosToRemove)
+                {
+                    group.AudioFiles.Remove(audio);
+                }
+                
+                // If group has 0 or 1 audio files remaining, remove the group
+                if (group.AudioFiles.Count <= 1)
+                {
+                    SimilarAudioGroups.Remove(group);
+                }
+            }
+            
+            StatusMessage = $"Deleted {deletedCount} file(s). {Groups.Count} duplicate groups, {SimilarImageGroups.Count} similar image groups, {SimilarVideoGroups.Count} similar video groups, {SimilarAudioGroups.Count} similar audio groups remaining.";
             StatusBarViewModel.Instance.UpdateProgress(0, StatusMessage);
             ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
             ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
             ((RelayCommand)ScanSimilarCommand).RaiseCanExecuteChanged();
             ((RelayCommand)ScanSimilarVideosCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)ScanSimilarAudioCommand).RaiseCanExecuteChanged();
         }
     }
 }

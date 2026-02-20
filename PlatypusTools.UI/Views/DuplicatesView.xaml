@@ -32,6 +32,8 @@
                     ToolTip="Find visually similar images using perceptual hashing" Background="#FF2196F3" Foreground="White"/>
             <Button Content="🎬 Similar Videos" Command="{Binding ScanSimilarVideosCommand}" MinWidth="110" Margin="4,2,0,2"
                     ToolTip="Find similar videos by comparing key frames (requires FFmpeg)" Background="#FF9C27B0" Foreground="White"/>
+            <Button Content="🎵 Similar Sounds" Command="{Binding ScanSimilarAudioCommand}" MinWidth="110" Margin="4,2,0,2"
+                    ToolTip="Find acoustically similar audio files using audio fingerprinting (requires FFmpeg)" Background="#FFFF9800" Foreground="White"/>
             <Button Content="❌ Cancel" Command="{Binding CancelScanCommand}" MinWidth="80" Margin="4,2,0,2"
                     Background="#FFF44336" Foreground="White"/>
             <Button Content="📦 Staging" Command="{Binding ToggleStagingCommand}" MinWidth="80" Margin="4,2,0,2"/>
@@ -61,6 +63,21 @@
                     TickFrequency="5" IsSnapToTickEnabled="True"
                     VerticalAlignment="Center" />
             <TextBlock Text="{Binding VideoSimilarityThreshold, StringFormat={}{0}%}" 
+                       VerticalAlignment="Center" Margin="8,0,0,0" Width="40" />
+            <ProgressBar Width="200" Height="16" Margin="16,0,0,0"
+                         Value="{Binding ScanProgress}" Minimum="0" Maximum="100"
+                         Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}" />
+        </StackPanel>
+        
+        <!-- Similarity Threshold Slider for Audio -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8" 
+                    Visibility="{Binding ShowSimilarAudio, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Audio Similarity Threshold:</TextBlock>
+            <Slider Width="150" Minimum="50" Maximum="100" 
+                    Value="{Binding AudioSimilarityThreshold}" 
+                    TickFrequency="5" IsSnapToTickEnabled="True"
+                    VerticalAlignment="Center" />
+            <TextBlock Text="{Binding AudioSimilarityThreshold, StringFormat={}{0}%}" 
                        VerticalAlignment="Center" Margin="8,0,0,0" Width="40" />
             <ProgressBar Width="200" Height="16" Margin="16,0,0,0"
                          Value="{Binding ScanProgress}" Minimum="0" Maximum="100"
@@ -226,6 +243,69 @@
                                                         <TextBlock Text="{Binding Dimensions}" FontSize="10" Foreground="Gray" />
                                                     </StackPanel>
                                                     <TextBlock Text="{Binding FrameRateText}" FontSize="10" Foreground="Gray" />
+                                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                        <Button Content="Open" MinWidth="55" FontSize="10" Padding="4,2"
+                                                                Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                                                CommandParameter="{Binding FilePath}" />
+                                                        <Button Content="Folder" MinWidth="55" FontSize="10" Padding="4,2" Margin="4,0,0,0"
+                                                                Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                                                CommandParameter="{Binding FilePath}" />
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Similar Audio Grid View -->
+        <ScrollViewer Grid.Row="4" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                      Visibility="{Binding ShowSimilarAudio, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <ItemsControl ItemsSource="{Binding SimilarAudioGroups}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="#CCCCCC" BorderThickness="1" Margin="0,0,0,8" Padding="8" CornerRadius="4" Background="#F9F9F9">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" Margin="0,0,0,8" />
+                                <ItemsControl ItemsSource="{Binding AudioFiles}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1" Margin="4" Padding="8" CornerRadius="4" Width="220" Background="{DynamicResource ControlBackgroundBrush}">
+                                                <StackPanel>
+                                                    <CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Right" Margin="0,0,0,4" />
+                                                    <TextBlock Text="🎵" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,4" />
+                                                    <TextBlock Text="{Binding DisplayTitle}" TextTrimming="CharacterEllipsis" 
+                                                               FontSize="11" FontWeight="SemiBold" ToolTip="{Binding FilePath}" />
+                                                    <TextBlock Text="{Binding FileName}" TextTrimming="CharacterEllipsis" 
+                                                               FontSize="10" Foreground="Gray" ToolTip="{Binding FilePath}" 
+                                                               Visibility="{Binding Artist, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                        <TextBlock Text="{Binding SimilarityText}" FontSize="10" Foreground="Green" FontWeight="Bold" />
+                                                        <TextBlock Text=" | " FontSize="10" Foreground="Gray" />
+                                                        <TextBlock Text="{Binding FileSizeText}" FontSize="10" Foreground="Gray" />
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                        <TextBlock Text="{Binding Duration}" FontSize="10" Foreground="Gray" />
+                                                        <TextBlock Text=" | " FontSize="10" Foreground="Gray" />
+                                                        <TextBlock Text="{Binding BitrateText}" FontSize="10" Foreground="Gray" />
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                        <TextBlock Text="{Binding SampleRateText}" FontSize="10" Foreground="Gray" />
+                                                        <TextBlock Text=" | " FontSize="10" Foreground="Gray" />
+                                                        <TextBlock Text="{Binding ChannelInfo}" FontSize="10" Foreground="Gray" />
+                                                        <TextBlock Text=" | " FontSize="10" Foreground="Gray" />
+                                                        <TextBlock Text="{Binding Codec}" FontSize="10" Foreground="Gray" />
+                                                    </StackPanel>
                                                     <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                                                         <Button Content="Open" MinWidth="55" FontSize="10" Padding="4,2"
                                                                 Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
