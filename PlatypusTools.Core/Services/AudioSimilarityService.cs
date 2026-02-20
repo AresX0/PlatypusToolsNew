@@ -11,6 +11,22 @@ using System.Threading.Tasks;
 namespace PlatypusTools.Core.Services
 {
     /// <summary>
+    /// Scan mode for audio similarity detection.
+    /// </summary>
+    public enum AudioScanMode
+    {
+        /// <summary>
+        /// Fast mode: analyze only a 15-second sample from the middle of each audio file.
+        /// </summary>
+        Fast,
+        
+        /// <summary>
+        /// Thorough mode: analyze the entire audio file with multiple sample points.
+        /// </summary>
+        Thorough
+    }
+
+    /// <summary>
     /// Represents a group of acoustically similar audio files.
     /// </summary>
     public class SimilarAudioGroup
@@ -95,7 +111,23 @@ namespace PlatypusTools.Core.Services
             ".aiff", ".aif", ".ape", ".wv", ".mka", ".ac3", ".dts"
         };
 
+        private readonly MediaFingerprintCacheService? _cacheService;
+
         public event EventHandler<AudioSimilarityScanProgress>? ProgressChanged;
+
+        /// <summary>
+        /// Raised when a log-worthy event occurs during scanning (errors, timeouts, cache hits, etc.).
+        /// </summary>
+        public event EventHandler<string>? LogMessage;
+
+        /// <summary>
+        /// Creates a new AudioSimilarityService with optional cache support.
+        /// </summary>
+        /// <param name="cacheService">Optional cache service for storing fingerprints.</param>
+        public AudioSimilarityService(MediaFingerprintCacheService? cacheService = null)
+        {
+            _cacheService = cacheService;
+        }
 
         /// <summary>
         /// Number of sample points to extract for comparison.
@@ -106,6 +138,21 @@ namespace PlatypusTools.Core.Services
         /// Duration tolerance in percent for considering audio files as potentially similar.
         /// </summary>
         public double DurationTolerancePercent { get; set; } = 5;
+
+        /// <summary>
+        /// Scan mode for speed vs. accuracy tradeoff.
+        /// </summary>
+        public AudioScanMode ScanMode { get; set; } = AudioScanMode.Fast;
+
+        /// <summary>
+        /// Duration in seconds to sample in Fast mode (default 15 seconds).
+        /// </summary>
+        public double FastScanDuration { get; set; } = 15;
+
+        /// <summary>
+        /// Timeout in seconds for analyzing a single file. Files that take longer will be skipped.
+        /// </summary>
+        public int FileAnalysisTimeoutSeconds { get; set; } = 20;
 
         /// <summary>
         /// Finds groups of acoustically similar audio files in the specified paths.
@@ -130,8 +177,12 @@ namespace PlatypusTools.Core.Services
             if (audioFiles.Count < 2)
                 return new List<SimilarAudioGroup>();
 
+            // Sort files by filename similarity - group similar names together for priority scanning
+            audioFiles = PrioritizeByFilenameSimilarity(audioFiles);
+
             // Phase 1: Extract metadata and audio fingerprints
-            progress.CurrentPhase = "Analyzing audio files...";
+            var modeText = ScanMode == AudioScanMode.Fast ? "(Fast mode)" : "(Thorough mode)";
+            progress.CurrentPhase = $"Analyzing audio files {modeText}...";
             var audioData = new Dictionary<string, AudioAnalysisData>();
 
             foreach (var file in audioFiles)
@@ -144,7 +195,82 @@ namespace PlatypusTools.Core.Services
 
                 try
                 {
-                    var data = await AnalyzeAudioAsync(file, cancellationToken);
+                    AudioAnalysisData? data = null;
+
+                    // Check cache first
+                    if (_cacheService != null)
+                    {
+                        var cached = await _cacheService.GetAudioFingerprintAsync(file, ScanMode);
+                        if (cached != null)
+                        {
+                            LogMessage?.Invoke(this, $"[CACHE HIT] {Path.GetFileName(file)}");
+                            data = new AudioAnalysisData
+                            {
+                                DurationSeconds = cached.DurationSeconds,
+                                SampleRate = cached.SampleRate,
+                                Channels = cached.Channels,
+                                BitRate = cached.BitRate,
+                                Codec = cached.Codec,
+                                Title = cached.Title,
+                                Artist = cached.Artist,
+                                CombinedHash = cached.CombinedHash,
+                                SpectralHashes = cached.SpectralHashes,
+                                RmsLevels = cached.RmsLevels
+                            };
+                        }
+                    }
+
+                    // Analyze if not cached
+                    if (data == null)
+                    {
+                        // Apply per-file timeout to prevent freezing on problematic files
+                        CancellationTokenSource? timeoutCts = null;
+                        CancellationTokenSource? linkedCts = null;
+                        var timedOut = false;
+                        
+                        try
+                        {
+#pragma warning disable CA2000 // Dispose objects before losing scope - properly disposed in finally block
+                            timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(FileAnalysisTimeoutSeconds));
+                            linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+#pragma warning restore CA2000
+                            data = await AnalyzeAudioAsync(file, linkedCts.Token);
+                        }
+                        catch (OperationCanceledException) when (timeoutCts?.IsCancellationRequested == true && !cancellationToken.IsCancellationRequested)
+                        {
+                            // File analysis timed out, skip this file
+                            var sizeMB = new FileInfo(file).Length / (1024.0 * 1024.0);
+                            LogMessage?.Invoke(this, $"[TIMEOUT] {Path.GetFileName(file)} ({sizeMB:F1} MB) - exceeded {FileAnalysisTimeoutSeconds}s limit, skipped. FFmpeg may be hanging on this file format.");
+                            timedOut = true;
+                        }
+                        finally
+                        {
+                            linkedCts?.Dispose();
+                            timeoutCts?.Dispose();
+                        }
+
+                        if (timedOut) continue;
+
+                        // Store in cache
+                        if (data != null && _cacheService != null)
+                        {
+                            var cacheEntry = new CachedAudioFingerprint
+                            {
+                                DurationSeconds = data.DurationSeconds,
+                                SampleRate = data.SampleRate,
+                                Channels = data.Channels,
+                                BitRate = data.BitRate,
+                                Codec = data.Codec,
+                                Title = data.Title,
+                                Artist = data.Artist,
+                                CombinedHash = data.CombinedHash,
+                                SpectralHashes = data.SpectralHashes,
+                                RmsLevels = data.RmsLevels
+                            };
+                            await _cacheService.StoreAudioFingerprintAsync(file, ScanMode, cacheEntry);
+                        }
+                    }
+
                     if (data != null)
                     {
                         audioData[file] = data;
@@ -153,6 +279,8 @@ namespace PlatypusTools.Core.Services
                 catch
                 {
                     // Skip files that can't be analyzed
+                    var sizeMB = new FileInfo(file).Length / (1024.0 * 1024.0);
+                    LogMessage?.Invoke(this, $"[ERROR] {Path.GetFileName(file)} ({sizeMB:F1} MB) - analysis failed, skipped");
                 }
             }
 
@@ -240,6 +368,58 @@ namespace PlatypusTools.Core.Services
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Prioritizes files by filename similarity - files with similar names are grouped together
+        /// so they are compared first, improving chances of finding matches early.
+        /// </summary>
+        private List<string> PrioritizeByFilenameSimilarity(List<string> files)
+        {
+            if (files.Count < 2)
+                return files;
+
+            // Extract normalized base names (without extension, lowercase, common words removed)
+            var fileInfos = files.Select(f => new
+            {
+                Path = f,
+                BaseName = NormalizeFilename(Path.GetFileNameWithoutExtension(f))
+            }).ToList();
+
+            // Group files by their normalized name prefix (first 10 chars or full name if shorter)
+            var groups = fileInfos
+                .GroupBy(f => f.BaseName.Length >= 10 ? f.BaseName.Substring(0, 10) : f.BaseName)
+                .OrderByDescending(g => g.Count()) // Put groups with more potential duplicates first
+                .SelectMany(g => g.Select(f => f.Path))
+                .ToList();
+
+            return groups;
+        }
+
+        /// <summary>
+        /// Normalizes a filename for similarity comparison - removes common words, numbers, and extra chars.
+        /// </summary>
+        private string NormalizeFilename(string filename)
+        {
+            // Convert to lowercase
+            var normalized = filename.ToLowerInvariant();
+
+            // Remove common suffixes like (1), (2), _copy, -copy, etc.
+            normalized = System.Text.RegularExpressions.Regex.Replace(normalized, @"[\s_-]*\(\d+\)$", "");
+            normalized = System.Text.RegularExpressions.Regex.Replace(normalized, @"[\s_-]+copy[\s_-]*\d*$", "");
+            normalized = System.Text.RegularExpressions.Regex.Replace(normalized, @"[\s_-]+\d+$", "");
+            
+            // Remove common audio quality tags
+            normalized = System.Text.RegularExpressions.Regex.Replace(normalized, @"[\s_-]*(320|256|192|128|64)(kbps|kbs)?[\s_-]*", "");
+            normalized = System.Text.RegularExpressions.Regex.Replace(normalized, @"[\s_-]*(flac|mp3|aac|wav|ogg)[\s_-]*", "");
+            
+            // Normalize spaces/underscores/hyphens to single underscore
+            normalized = System.Text.RegularExpressions.Regex.Replace(normalized, @"[\s_-]+", "_");
+            
+            // Remove leading/trailing underscores
+            normalized = normalized.Trim('_');
+
+            return normalized;
         }
 
         private bool AreDurationsSimilar(double duration1, double duration2)
@@ -361,7 +541,11 @@ namespace PlatypusTools.Core.Services
             if (string.IsNullOrEmpty(ffprobe) || string.IsNullOrEmpty(ffmpeg))
                 return null;
 
-            // Get audio metadata using ffprobe
+            var fileName = Path.GetFileName(filePath);
+            var fileSizeMB = new FileInfo(filePath).Length / (1024.0 * 1024.0);
+
+            // Phase 1: Get audio metadata using ffprobe
+            LogMessage?.Invoke(this, $"[PROBE] {fileName} ({fileSizeMB:F1} MB) - reading metadata...");
             var probeArgs = $"-v quiet -print_format json -show_format -show_streams \"{filePath}\"";
             var psi = new ProcessStartInfo(ffprobe, probeArgs)
             {
@@ -376,27 +560,45 @@ namespace PlatypusTools.Core.Services
                 using var p = Process.Start(psi);
                 if (p == null) return null;
 
-                var jsonOutput = await p.StandardOutput.ReadToEndAsync(cancellationToken);
-                await p.WaitForExitAsync(cancellationToken);
-
-                if (!string.IsNullOrEmpty(jsonOutput))
+                try
                 {
-                    ParseProbeOutput(jsonOutput, data);
+                    var jsonOutput = await p.StandardOutput.ReadToEndAsync(cancellationToken);
+                    await p.WaitForExitAsync(cancellationToken);
+
+                    if (!string.IsNullOrEmpty(jsonOutput))
+                    {
+                        ParseProbeOutput(jsonOutput, data);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    TryKillProcess(p);
+                    throw;
                 }
             }
-            catch
+            catch (OperationCanceledException)
             {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                LogMessage?.Invoke(this, $"[ERROR] {fileName} - ffprobe failed: {ex.Message}");
                 return null;
             }
 
             if (data.DurationSeconds <= 0)
+            {
+                LogMessage?.Invoke(this, $"[SKIP] {fileName} - could not determine duration");
                 return null;
+            }
 
-            // Extract audio fingerprint data (RMS levels at sample points)
+            // Phase 2: Extract RMS levels
+            LogMessage?.Invoke(this, $"[RMS] {fileName} - extracting RMS levels (duration: {TimeSpan.FromSeconds(data.DurationSeconds):hh\\:mm\\:ss})...");
             var rmsLevels = await ExtractRmsLevelsAsync(filePath, ffmpeg, data.DurationSeconds, cancellationToken);
             data.RmsLevels = rmsLevels;
 
-            // Calculate spectral hashes from audio segments
+            // Phase 3: Calculate spectral hashes
+            LogMessage?.Invoke(this, $"[SPECTRAL] {fileName} - computing spectral hashes...");
             var spectralHashes = await ExtractSpectralHashesAsync(filePath, ffmpeg, data.DurationSeconds, cancellationToken);
             data.SpectralHashes = spectralHashes;
 
@@ -412,6 +614,16 @@ namespace PlatypusTools.Core.Services
             }
 
             return data;
+        }
+
+        private static void TryKillProcess(Process? p)
+        {
+            try
+            {
+                if (p != null && !p.HasExited)
+                    p.Kill(entireProcessTree: true);
+            }
+            catch { }
         }
 
         private void ParseProbeOutput(string json, AudioAnalysisData data)
@@ -481,15 +693,32 @@ namespace PlatypusTools.Core.Services
         {
             var rmsLevels = new List<double>();
             
-            // Sample at evenly spaced points throughout the audio
-            var samplePoints = SamplePointCount;
-            var interval = duration / (samplePoints + 1);
+            double startTime;
+            double sampleDuration;
+            int samplePoints;
+
+            if (ScanMode == AudioScanMode.Fast)
+            {
+                // Fast mode: only sample from a 15-second segment in the middle
+                sampleDuration = Math.Min(FastScanDuration, duration);
+                startTime = Math.Max(0, (duration - sampleDuration) / 2);
+                samplePoints = Math.Min(8, SamplePointCount / 4); // Fewer sample points in fast mode
+            }
+            else
+            {
+                // Thorough mode: sample across entire duration
+                startTime = 0;
+                sampleDuration = duration;
+                samplePoints = SamplePointCount;
+            }
+
+            var interval = sampleDuration / (samplePoints + 1);
             
             for (int i = 1; i <= samplePoints; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 
-                var timestamp = interval * i;
+                var timestamp = startTime + (interval * i);
                 var rms = await GetRmsAtTimestampAsync(filePath, ffmpeg, timestamp, cancellationToken);
                 rmsLevels.Add(rms);
             }
@@ -516,17 +745,29 @@ namespace PlatypusTools.Core.Services
                 using var p = Process.Start(psi);
                 if (p == null) return 0;
 
-                var output = await p.StandardError.ReadToEndAsync(cancellationToken);
-                await p.WaitForExitAsync(cancellationToken);
-
-                // Parse mean_volume from output
-                // Example: mean_volume: -20.5 dB
-                var match = System.Text.RegularExpressions.Regex.Match(output, @"mean_volume:\s*(-?\d+\.?\d*)\s*dB");
-                if (match.Success && double.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var db))
+                try
                 {
-                    // Normalize dB to 0-1 range (assuming -60dB to 0dB range)
-                    return Math.Max(0, Math.Min(1, (db + 60) / 60));
+                    var output = await p.StandardError.ReadToEndAsync(cancellationToken);
+                    await p.WaitForExitAsync(cancellationToken);
+
+                    // Parse mean_volume from output
+                    // Example: mean_volume: -20.5 dB
+                    var match = System.Text.RegularExpressions.Regex.Match(output, @"mean_volume:\s*(-?\d+\.?\d*)\s*dB");
+                    if (match.Success && double.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var db))
+                    {
+                        // Normalize dB to 0-1 range (assuming -60dB to 0dB range)
+                        return Math.Max(0, Math.Min(1, (db + 60) / 60));
+                    }
                 }
+                catch (OperationCanceledException)
+                {
+                    TryKillProcess(p);
+                    throw;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch
             {
@@ -540,15 +781,32 @@ namespace PlatypusTools.Core.Services
         {
             var hashes = new List<ulong>();
             
-            // Extract fewer spectral samples (they're more expensive)
-            var samplePoints = Math.Min(8, SamplePointCount / 4);
-            var interval = duration / (samplePoints + 1);
+            double startTime;
+            double sampleDuration;
+            int samplePoints;
+
+            if (ScanMode == AudioScanMode.Fast)
+            {
+                // Fast mode: only sample from a 15-second segment in the middle
+                sampleDuration = Math.Min(FastScanDuration, duration);
+                startTime = Math.Max(0, (duration - sampleDuration) / 2);
+                samplePoints = Math.Min(4, SamplePointCount / 8); // Even fewer spectral samples in fast mode
+            }
+            else
+            {
+                // Thorough mode: sample across entire duration
+                startTime = 0;
+                sampleDuration = duration;
+                samplePoints = Math.Min(8, SamplePointCount / 4);
+            }
+
+            var interval = sampleDuration / (samplePoints + 1);
             
             for (int i = 1; i <= samplePoints; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 
-                var timestamp = interval * i;
+                var timestamp = startTime + (interval * i);
                 var hash = await GetSpectralHashAtTimestampAsync(filePath, ffmpeg, timestamp, cancellationToken);
                 hashes.Add(hash);
             }
@@ -575,15 +833,27 @@ namespace PlatypusTools.Core.Services
                 using var p = Process.Start(psi);
                 if (p == null) return 0;
 
-                using var ms = new MemoryStream();
-                await p.StandardOutput.BaseStream.CopyToAsync(ms, cancellationToken);
-                await p.WaitForExitAsync(cancellationToken);
+                try
+                {
+                    using var ms = new MemoryStream();
+                    await p.StandardOutput.BaseStream.CopyToAsync(ms, cancellationToken);
+                    await p.WaitForExitAsync(cancellationToken);
 
-                var samples = ms.ToArray();
-                if (samples.Length < 64) return 0;
+                    var samples = ms.ToArray();
+                    if (samples.Length < 64) return 0;
 
-                // Simple hash from audio samples
-                return ComputeAudioHash(samples);
+                    // Simple hash from audio samples
+                    return ComputeAudioHash(samples);
+                }
+                catch (OperationCanceledException)
+                {
+                    TryKillProcess(p);
+                    throw;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch
             {

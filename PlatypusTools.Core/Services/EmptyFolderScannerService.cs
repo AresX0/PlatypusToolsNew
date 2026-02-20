@@ -68,6 +68,14 @@ namespace PlatypusTools.Core.Services
         /// </summary>
         public bool IgnoreJunkFiles { get; set; } = true;
 
+        /// <summary>
+        /// Gets or sets whether to include folders that are "empty branches" - 
+        /// folders that only contain other empty folders (recursively).
+        /// When true, a folder with only empty subfolders is also considered empty.
+        /// Default is false.
+        /// </summary>
+        public bool IncludeEmptyBranches { get; set; } = false;
+
         public event Action<string>? ProgressChanged;
         public event Action<int>? FolderScanned;
 
@@ -92,6 +100,9 @@ namespace PlatypusTools.Core.Services
                         .OrderByDescending(d => d.Split(Path.DirectorySeparatorChar).Length)
                         .ToList();
 
+                    // Track which folders are empty (for IncludeEmptyBranches mode)
+                    var emptySet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
                     foreach (var dir in sortedDirs)
                     {
                         if (cancellationToken.IsCancellationRequested)
@@ -104,8 +115,23 @@ namespace PlatypusTools.Core.Services
                             FolderScanned?.Invoke(scanned);
                         }
 
+                        bool isEmpty = false;
+
                         if (IsEmptyFolder(dir))
                         {
+                            // Truly empty folder (no files, no subdirs)
+                            isEmpty = true;
+                        }
+                        else if (IncludeEmptyBranches)
+                        {
+                            // Check if this folder is an "empty branch" -
+                            // contains only empty subfolders and optionally junk files
+                            isEmpty = IsEmptyBranch(dir, emptySet);
+                        }
+
+                        if (isEmpty)
+                        {
+                            emptySet.Add(dir);
                             var info = new DirectoryInfo(dir);
                             emptyFolders.Add(new EmptyFolderInfo
                             {
@@ -237,6 +263,59 @@ namespace PlatypusTools.Core.Services
                 return true;
 
             return false;
+        }
+
+        /// <summary>
+        /// Checks if a folder is an "empty branch" - meaning it only contains:
+        /// - Empty subfolders (already tracked in emptySet)
+        /// - Optionally junk files (if IgnoreJunkFiles is true)
+        /// </summary>
+        private bool IsEmptyBranch(string path, HashSet<string> emptySet)
+        {
+            try
+            {
+                // Check files first
+                var files = Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly);
+                if (files.Length > 0)
+                {
+                    if (IgnoreJunkFiles)
+                    {
+                        // If any file is not junk, this is not an empty branch
+                        bool allFilesAreJunk = files.All(f => IsJunkFile(Path.GetFileName(f)));
+                        if (!allFilesAreJunk)
+                            return false;
+                    }
+                    else
+                    {
+                        // Any file means not empty
+                        return false;
+                    }
+                }
+
+                // Check subdirectories - ALL must be in emptySet
+                var subDirs = Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly);
+                if (subDirs.Length == 0)
+                {
+                    // No subdirs - this would have been caught by IsEmptyFolder
+                    // but we're here, so there must be junk files only
+                    return true;
+                }
+
+                // All subdirectories must be marked as empty
+                foreach (var subDir in subDirs)
+                {
+                    if (!emptySet.Contains(subDir))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task<int> DeleteFoldersAsync(

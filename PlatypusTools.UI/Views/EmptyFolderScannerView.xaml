@@ -38,8 +38,12 @@
             <Button Content="Select None" Command="{Binding SelectNoneCommand}" Padding="12,4" Margin="0,0,16,0" />
             <CheckBox Content="Ignore junk files (Thumbs.db, desktop.ini, etc.)" 
                       IsChecked="{Binding IgnoreJunkFiles}" 
-                      VerticalAlignment="Center"
+                      VerticalAlignment="Center" Margin="0,0,16,0"
                       ToolTip="When checked, folders containing only system junk files will be treated as empty" />
+            <CheckBox Content="Include empty branches (unlimited depth)" 
+                      IsChecked="{Binding IncludeEmptyBranches}" 
+                      VerticalAlignment="Center"
+                      ToolTip="When checked, folders that contain only empty subfolders (recursively) will also be included. Scans unlimited subfolder depth." />
         </StackPanel>
         
         <!-- GridSplitter for resizing -->

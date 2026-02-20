@@ -20,6 +20,7 @@ namespace PlatypusTools.UI.ViewModels
         private readonly ImageSimilarityService _similarityService;
         private readonly VideoSimilarityService _videoSimilarityService;
         private readonly AudioSimilarityService _audioSimilarityService;
+        private readonly MediaFingerprintCacheService _fingerprintCacheService;
 
         public DuplicatesViewModel()
         {
@@ -28,6 +29,11 @@ namespace PlatypusTools.UI.ViewModels
             SimilarVideoGroups = new ObservableCollection<SimilarVideoGroupViewModel>();
             SimilarAudioGroups = new ObservableCollection<SimilarAudioGroupViewModel>();
             UseRecycleBin = true; // default to safe operation
+
+            // Initialize fingerprint cache service for faster subsequent scans
+            _fingerprintCacheService = new MediaFingerprintCacheService();
+            _ = _fingerprintCacheService.InitializeAsync();
+
             _similarityService = new ImageSimilarityService();
             _similarityService.ProgressChanged += (s, p) => 
             {
@@ -39,7 +45,7 @@ namespace PlatypusTools.UI.ViewModels
                 });
             };
             
-            _videoSimilarityService = new VideoSimilarityService();
+            _videoSimilarityService = new VideoSimilarityService(_fingerprintCacheService);
             _videoSimilarityService.ProgressChanged += (s, p) =>
             {
                 _ = App.Current?.Dispatcher.InvokeAsync(() =>
@@ -49,8 +55,9 @@ namespace PlatypusTools.UI.ViewModels
                     StatusBarViewModel.Instance.UpdateProgress(p.ProgressPercent, StatusMessage);
                 });
             };
+            _videoSimilarityService.LogMessage += (s, msg) => AddScanLogEntry(msg);
             
-            _audioSimilarityService = new AudioSimilarityService();
+            _audioSimilarityService = new AudioSimilarityService(_fingerprintCacheService);
             _audioSimilarityService.ProgressChanged += (s, p) =>
             {
                 _ = App.Current?.Dispatcher.InvokeAsync(() =>
@@ -60,6 +67,7 @@ namespace PlatypusTools.UI.ViewModels
                     StatusBarViewModel.Instance.UpdateProgress(p.ProgressPercent, StatusMessage);
                 });
             };
+            _audioSimilarityService.LogMessage += (s, msg) => AddScanLogEntry(msg);
             
             BrowseCommand = new RelayCommand(_ => Browse());
             ScanCommand = new RelayCommand(async _ => await ScanAsync(), _ => !IsScanning && !IsDeleting);
@@ -67,6 +75,8 @@ namespace PlatypusTools.UI.ViewModels
             ScanSimilarVideosCommand = new RelayCommand(async _ => await ScanSimilarVideosAsync(), _ => !IsScanning && !IsDeleting);
             ScanSimilarAudioCommand = new RelayCommand(async _ => await ScanSimilarAudioAsync(), _ => !IsScanning && !IsDeleting);
             CancelScanCommand = new RelayCommand(_ => CancelScan(), _ => IsScanning);
+            ToggleScanLogCommand = new RelayCommand(_ => ShowScanLog = !ShowScanLog);
+            ClearScanLogCommand = new RelayCommand(_ => ScanLog = string.Empty);
             DeleteSelectedCommand = new RelayCommand(_ => DeleteSelected(), _ => !IsDeleting && (Groups.Any(g => g.Files.Any(f => f.IsSelected)) || SimilarImageGroups.Any(g => g.Images.Any(i => i.IsSelected)) || SimilarVideoGroups.Any(g => g.Videos.Any(v => v.IsSelected)) || SimilarAudioGroups.Any(g => g.AudioFiles.Any(a => a.IsSelected))));
 
             OpenFileCommand = new RelayCommand(obj => OpenFile(obj as string));
@@ -113,6 +123,32 @@ namespace PlatypusTools.UI.ViewModels
             get => _audioSimilarityThreshold; 
             set { _audioSimilarityThreshold = value; RaisePropertyChanged(); } 
         }
+        
+        private Core.Services.AudioScanMode _audioScanMode = Core.Services.AudioScanMode.Fast;
+        public Core.Services.AudioScanMode AudioScanMode 
+        { 
+            get => _audioScanMode; 
+            set { _audioScanMode = value; RaisePropertyChanged(); } 
+        }
+        
+        private Core.Services.VideoScanMode _videoScanMode = Core.Services.VideoScanMode.Fast;
+        public Core.Services.VideoScanMode VideoScanMode 
+        { 
+            get => _videoScanMode; 
+            set { _videoScanMode = value; RaisePropertyChanged(); } 
+        }
+        
+        /// <summary>
+        /// Gets available audio scan modes for UI binding.
+        /// </summary>
+        public IEnumerable<Core.Services.AudioScanMode> AudioScanModes => 
+            Enum.GetValues(typeof(Core.Services.AudioScanMode)).Cast<Core.Services.AudioScanMode>();
+        
+        /// <summary>
+        /// Gets available video scan modes for UI binding.
+        /// </summary>
+        public IEnumerable<Core.Services.VideoScanMode> VideoScanModes => 
+            Enum.GetValues(typeof(Core.Services.VideoScanMode)).Cast<Core.Services.VideoScanMode>();
         
         private bool _showSimilarImages = false;
         public bool ShowSimilarImages 
@@ -165,6 +201,15 @@ namespace PlatypusTools.UI.ViewModels
 
         private string _statusMessage = string.Empty;
         public string StatusMessage { get => _statusMessage; set { _statusMessage = value; RaisePropertyChanged(); } }
+
+        private string _scanLog = string.Empty;
+        public string ScanLog { get => _scanLog; set { _scanLog = value; RaisePropertyChanged(); } }
+
+        private bool _showScanLog = false;
+        public bool ShowScanLog { get => _showScanLog; set { _showScanLog = value; RaisePropertyChanged(); } }
+
+        public ICommand ToggleScanLogCommand { get; }
+        public ICommand ClearScanLogCommand { get; }
 
         public ICommand BrowseCommand { get; }
         public ICommand ScanCommand { get; }
@@ -294,6 +339,16 @@ namespace PlatypusTools.UI.ViewModels
             _scanCancellationTokenSource?.Cancel();
             StatusMessage = "Canceling...";
         }
+
+        private void AddScanLogEntry(string message)
+        {
+            var timestamp = DateTime.Now.ToString("HH:mm:ss");
+            var entry = $"[{timestamp}] {message}";
+            _ = App.Current?.Dispatcher.InvokeAsync(() =>
+            {
+                ScanLog = string.IsNullOrEmpty(ScanLog) ? entry : ScanLog + Environment.NewLine + entry;
+            });
+        }
         
         private async Task ScanSimilarAsync()
         {
@@ -387,10 +442,11 @@ namespace PlatypusTools.UI.ViewModels
             ShowSimilarImages = false;
             ShowSimilarVideos = true;
             ShowSimilarAudio = false;
-            StatusMessage = "Scanning for similar videos...";
+            var modeText = VideoScanMode == Core.Services.VideoScanMode.Fast ? "(Fast mode)" : "(Thorough mode)";
+            StatusMessage = $"Scanning for similar videos {modeText}...";
             ScanProgress = 0;
             
-            StatusBarViewModel.Instance.StartOperation("Scanning for similar videos...", isCancellable: true);
+            StatusBarViewModel.Instance.StartOperation($"Scanning for similar videos {modeText}...", isCancellable: true);
             SimilarImageGroups.Clear();
             SimilarVideoGroups.Clear();
             SimilarAudioGroups.Clear();
@@ -403,6 +459,10 @@ namespace PlatypusTools.UI.ViewModels
 
             try
             {
+                // Set the scan mode before scanning
+                _videoSimilarityService.ScanMode = VideoScanMode;
+                AddScanLogEntry($"Starting video similarity scan - {modeText} in {FolderPath}");
+                
                 var groups = await _videoSimilarityService.FindSimilarVideosAsync(
                     new[] { FolderPath }, 
                     VideoSimilarityThreshold, 
@@ -416,7 +476,8 @@ namespace PlatypusTools.UI.ViewModels
                         SimilarVideoGroups.Add(new SimilarVideoGroupViewModel(g));
                     }
                     
-                    StatusMessage = $"Found {SimilarVideoGroups.Count} similar video groups ({SimilarVideoGroups.Sum(g => g.Videos.Count)} total videos)";
+                    StatusMessage = $"Found {SimilarVideoGroups.Count} similar video groups ({SimilarVideoGroups.Sum(g => g.Videos.Count)} total files)";
+                    AddScanLogEntry($"Scan complete: {SimilarVideoGroups.Count} groups found ({SimilarVideoGroups.Sum(g => g.Videos.Count)} files)");
                 }
                 else
                 {
@@ -462,10 +523,11 @@ namespace PlatypusTools.UI.ViewModels
             ShowSimilarImages = false;
             ShowSimilarVideos = false;
             ShowSimilarAudio = true;
-            StatusMessage = "Scanning for similar sounds...";
+            var modeText = AudioScanMode == Core.Services.AudioScanMode.Fast ? "(Fast mode)" : "(Thorough mode)";
+            StatusMessage = $"Scanning for similar sounds {modeText}...";
             ScanProgress = 0;
             
-            StatusBarViewModel.Instance.StartOperation("Scanning for similar sounds...", isCancellable: true);
+            StatusBarViewModel.Instance.StartOperation($"Scanning for similar sounds {modeText}...", isCancellable: true);
             SimilarImageGroups.Clear();
             SimilarVideoGroups.Clear();
             SimilarAudioGroups.Clear();
@@ -478,6 +540,10 @@ namespace PlatypusTools.UI.ViewModels
 
             try
             {
+                // Set the scan mode before scanning
+                _audioSimilarityService.ScanMode = AudioScanMode;
+                AddScanLogEntry($"Starting audio similarity scan - {modeText} in {FolderPath}");
+                
                 var groups = await _audioSimilarityService.FindSimilarAudioAsync(
                     new[] { FolderPath }, 
                     AudioSimilarityThreshold, 
@@ -492,6 +558,7 @@ namespace PlatypusTools.UI.ViewModels
                     }
                     
                     StatusMessage = $"Found {SimilarAudioGroups.Count} similar audio groups ({SimilarAudioGroups.Sum(g => g.AudioFiles.Count)} total files)";
+                    AddScanLogEntry($"Scan complete: {SimilarAudioGroups.Count} groups found ({SimilarAudioGroups.Sum(g => g.AudioFiles.Count)} files)");
                 }
                 else
                 {

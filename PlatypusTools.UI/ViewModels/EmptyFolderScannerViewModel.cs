@@ -95,6 +95,17 @@ namespace PlatypusTools.UI.ViewModels
             set { _ignoreJunkFiles = value; RaisePropertyChanged(); }
         }
 
+        private bool _includeEmptyBranches = false;
+        /// <summary>
+        /// When true, folders containing only empty subfolders (recursively) are also treated as empty.
+        /// This enables unlimited depth scanning for "empty branch" folders.
+        /// </summary>
+        public bool IncludeEmptyBranches
+        {
+            get => _includeEmptyBranches;
+            set { _includeEmptyBranches = value; RaisePropertyChanged(); }
+        }
+
         public ObservableCollection<EmptyFolderItemViewModel> EmptyFolders { get; }
 
         public ICommand BrowseCommand { get; }
@@ -129,12 +140,15 @@ namespace PlatypusTools.UI.ViewModels
                 IsScanning = true;
                 EmptyFolders.Clear();
                 Progress = 0;
-                StatusMessage = "Scanning for empty folders...";
-                StatusBarViewModel.Instance.StartOperation("Scanning for empty folders...", isCancellable: true);
+                StatusMessage = IncludeEmptyBranches 
+                    ? "Scanning for empty folders and branches..." 
+                    : "Scanning for empty folders...";
+                StatusBarViewModel.Instance.StartOperation(StatusMessage, isCancellable: true);
                 _cts = new CancellationTokenSource();
 
                 // Apply settings to scanner
                 _scanner.IgnoreJunkFiles = IgnoreJunkFiles;
+                _scanner.IncludeEmptyBranches = IncludeEmptyBranches;
 
                 _scanner.ProgressChanged += msg => _ = Application.Current?.Dispatcher.InvokeAsync(() => StatusMessage = msg);
                 _scanner.FolderScanned += count => _ = Application.Current?.Dispatcher.InvokeAsync(() => Progress = count);
