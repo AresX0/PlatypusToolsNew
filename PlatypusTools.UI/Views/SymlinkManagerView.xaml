@@ -1,0 +1,136 @@
+<UserControl x:Class="PlatypusTools.UI.Views.SymlinkManagerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignHeight="700" d:DesignWidth="1200">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Scan -->
+        <GroupBox Header="Scan for Links" Grid.Row="0" Margin="0,0,0,4">
+            <WrapPanel Margin="8">
+                <TextBlock Text="Directory:" VerticalAlignment="Center" Width="70" />
+                <TextBox Text="{Binding ScanPath, UpdateSourceTrigger=PropertyChanged}" Width="400" Margin="0,0,8,0" />
+                <Button Content="Browse" Command="{Binding BrowseScanPathCommand}" MinWidth="70" Margin="0,0,8,0" />
+                <Button Content="Scan" Command="{Binding ScanCommand}" MinWidth="80" FontWeight="Bold"
+                        Background="#FF4CAF50" Foreground="White" Margin="0,0,8,0" />
+                <CheckBox Content="Include subdirectories" IsChecked="{Binding IncludeSubdirectories}" VerticalAlignment="Center" />
+            </WrapPanel>
+        </GroupBox>
+
+        <!-- Create Link -->
+        <GroupBox Header="Create Link" Grid.Row="1" Margin="0,0,0,4">
+            <Grid Margin="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <WrapPanel Grid.Row="0" Margin="0,0,0,4">
+                    <TextBlock Text="Link Path:" VerticalAlignment="Center" Width="80" />
+                    <TextBox Text="{Binding NewLinkPath, UpdateSourceTrigger=PropertyChanged}" Width="400" Margin="0,0,8,0" />
+                    <Button Content="Browse..." Command="{Binding BrowseLinkPathCommand}" MinWidth="70" />
+                </WrapPanel>
+
+                <WrapPanel Grid.Row="1" Margin="0,0,0,4">
+                    <TextBlock Text="Target:" VerticalAlignment="Center" Width="80" />
+                    <TextBox Text="{Binding NewTargetPath, UpdateSourceTrigger=PropertyChanged}" Width="400" Margin="0,0,8,0" />
+                    <Button Content="Browse..." Command="{Binding BrowseTargetPathCommand}" MinWidth="70" />
+                </WrapPanel>
+
+                <WrapPanel Grid.Row="2">
+                    <TextBlock Text="Type:" VerticalAlignment="Center" Width="80" />
+                    <ComboBox SelectedItem="{Binding SelectedLinkType}" Width="120" Margin="0,0,8,0">
+                        <ComboBoxItem Content="SymbolicLink" IsSelected="True" />
+                        <ComboBoxItem Content="HardLink" />
+                        <ComboBoxItem Content="Junction" />
+                    </ComboBox>
+                    <Button Content="Create Link" Command="{Binding CreateLinkCommand}" MinWidth="90" FontWeight="Bold"
+                            Background="#FF4CAF50" Foreground="White" />
+                </WrapPanel>
+            </Grid>
+        </GroupBox>
+
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch"
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows" />
+
+        <!-- Links List -->
+        <GroupBox Header="Found Links" Grid.Row="3">
+            <DataGrid ItemsSource="{Binding Links}" SelectedItem="{Binding SelectedLink}"
+                      AutoGenerateColumns="False" IsReadOnly="True"
+                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="90" />
+                    <DataGridTextColumn Header="Link Path" Binding="{Binding Path}" Width="*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                <Setter Property="ToolTip" Value="{Binding Path}" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Target" Binding="{Binding Target}" Width="*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                <Setter Property="ToolTip" Value="{Binding Target}" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTemplateColumn Header="Valid" Width="60">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding IsValid}" HorizontalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsValid}" Value="True">
+                                                    <Setter Property="Foreground" Value="Green" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsValid}" Value="False">
+                                                    <Setter Property="Foreground" Value="Red" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Actions" Width="250" MinWidth="250">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="Copy Path" Command="{Binding DataContext.CopyPathCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}" MinWidth="70" Margin="0,0,4,0"
+                                            Background="#FF2196F3" Foreground="White" />
+                                    <Button Content="Copy Target" Command="{Binding DataContext.CopyTargetCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}" MinWidth="80" Margin="0,0,4,0"
+                                            Background="#FF9C27B0" Foreground="White" />
+                                    <Button Content="Delete" Command="{Binding DataContext.DeleteLinkCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}" MinWidth="60"
+                                            Background="#FFF44336" Foreground="White" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+
+        <!-- Status -->
+        <StatusBar Grid.Row="4">
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusMessage}" />
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</UserControl>

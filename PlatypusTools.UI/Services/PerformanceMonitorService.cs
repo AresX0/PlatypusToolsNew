@@ -88,6 +88,9 @@ namespace PlatypusTools.UI.Services
                 Interval = TimeSpan.FromSeconds(1)
             };
             _timer.Tick += Timer_Tick;
+
+            // Enable by default so users see CPU/RAM in status bar
+            IsEnabled = true;
         }
 
         private void Start()

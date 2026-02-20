@@ -156,6 +156,21 @@
                              Visibility="{Binding CloudSync, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:CloudSyncView}" />
                     </TabItem>
+                    <TabItem Header="File Diff"
+                             AutomationProperties.Name="File Diff"
+                             Visibility="{Binding FileDiff, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:FileDiffView}" ViewDataContext="{Binding FileDiff}" />
+                    </TabItem>
+                    <TabItem Header="Bulk File Mover"
+                             AutomationProperties.Name="Bulk File Mover"
+                             Visibility="{Binding BulkFileMover, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:BulkFileMoverView}" ViewDataContext="{Binding BulkFileMover}" />
+                    </TabItem>
+                    <TabItem Header="Symlink Manager"
+                             AutomationProperties.Name="Symlink Manager"
+                             Visibility="{Binding SymlinkManager, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:SymlinkManagerView}" ViewDataContext="{Binding SymlinkManager}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
 
@@ -174,6 +189,10 @@
                             <TabItem Header="Audio Trim"
                                      Visibility="{Binding AudioTrim, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <controls:LazyTabContent ViewType="{x:Type views:NativeAudioTrimView}" />
+                            </TabItem>
+                            <TabItem Header="Audio Transcription"
+                                     Visibility="{Binding AudioTranscription, Source={x:Static services:TabVisibilityService.Instance}}">
+                                <controls:LazyTabContent ViewType="{x:Type views:AudioTranscriptionView}" ViewDataContext="{Binding AudioTranscription}" />
                             </TabItem>
                         </TabControl>
                     </TabItem>
@@ -239,6 +258,14 @@
                                      Visibility="{Binding ExportQueue, Source={x:Static services:TabVisibilityService.Instance}}">
                                 <views:ExportQueueView/>
                             </TabItem>
+                            <TabItem Header="Video Metadata"
+                                     Visibility="{Binding VideoMetadata, Source={x:Static services:TabVisibilityService.Instance}}">
+                                <controls:LazyTabContent ViewType="{x:Type views:VideoMetadataView}" ViewDataContext="{Binding VideoMetadata}" />
+                            </TabItem>
+                            <TabItem Header="GIF Maker"
+                                     Visibility="{Binding GifMaker, Source={x:Static services:TabVisibilityService.Instance}}">
+                                <controls:LazyTabContent ViewType="{x:Type views:GifMakerView}" ViewDataContext="{Binding GifMaker}" />
+                            </TabItem>
                         </TabControl>
                     </TabItem>
                     
@@ -302,6 +329,18 @@
                     </TabItem>
                     <TabItem Header="📋 Job Queue">
                         <views:BatchJobQueueView/>
+                    </TabItem>
+                    <TabItem Header="Scheduled Backup"
+                             Visibility="{Binding ScheduledBackup, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:ScheduledBackupView}" ViewDataContext="{Binding ScheduledBackup}" />
+                    </TabItem>
+                    <TabItem Header="Environment Variables"
+                             Visibility="{Binding EnvironmentVariableManager, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:EnvironmentVariableManagerView}" ViewDataContext="{Binding EnvironmentVariableManager}" />
+                    </TabItem>
+                    <TabItem Header="Windows Services"
+                             Visibility="{Binding WindowsServiceManager, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:WindowsServiceManagerView}" ViewDataContext="{Binding WindowsServiceManager}" />
                     </TabItem>
                 </TabControl>
             </TabItem>
@@ -421,6 +460,10 @@
                     <TabItem Header="Intune Packager"
                              Visibility="{Binding IntunePackager, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:IntunePackagerView}" ViewDataContext="{Binding IntunePackager}" />
+                    </TabItem>
+                    <TabItem Header="Clipboard History"
+                             Visibility="{Binding ClipboardHistory, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:ClipboardHistoryView}" ViewDataContext="{Binding ClipboardHistory}" />
                     </TabItem>
                 </TabControl>
             </TabItem>

@@ -157,5 +157,25 @@ namespace PlatypusTools.UI.Services
 
         // FileManagement - Robocopy
         public Visibility Robocopy => GetVisibility("FileManagement.Robocopy");
+
+        // FileManagement - New
+        public Visibility FileDiff => GetVisibility("FileManagement.FileDiff");
+        public Visibility BulkFileMover => GetVisibility("FileManagement.BulkFileMover");
+        public Visibility SymlinkManager => GetVisibility("FileManagement.SymlinkManager");
+
+        // Multimedia - Audio - New
+        public Visibility AudioTranscription => GetVisibility("Multimedia.Audio.AudioTranscription");
+
+        // Multimedia - Video - New
+        public Visibility VideoMetadata => GetVisibility("Multimedia.Video.VideoMetadata");
+        public Visibility GifMaker => GetVisibility("Multimedia.Video.GifMaker");
+
+        // System - New
+        public Visibility ScheduledBackup => GetVisibility("System.ScheduledBackup");
+        public Visibility EnvironmentVariableManager => GetVisibility("System.EnvironmentVariableManager");
+        public Visibility WindowsServiceManager => GetVisibility("System.WindowsServiceManager");
+
+        // Tools - New
+        public Visibility ClipboardHistory => GetVisibility("Tools.ClipboardHistory");
     }
 }

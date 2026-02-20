@@ -667,12 +667,16 @@ namespace PlatypusTools.UI.Services
                 new("FileManagement.Duplicates", "Duplicates", "FileManagement"),
                 new("FileManagement.EmptyFolderScanner", "Empty Folder Scanner", "FileManagement"),
                 new("FileManagement.Robocopy", "Robocopy", "FileManagement"),
+                new("FileManagement.FileDiff", "File Diff", "FileManagement"),
+                new("FileManagement.BulkFileMover", "Bulk File Mover", "FileManagement"),
+                new("FileManagement.SymlinkManager", "Symlink Manager", "FileManagement"),
 
                 new("Multimedia", "🎬 Multimedia", null),
                 new("Multimedia.Audio", "🎵 Audio", "Multimedia"),
                 new("Multimedia.Audio.AudioPlayer", "Audio Player", "Multimedia.Audio"),
                 new("Multimedia.Audio.EnhancedAudioPlayer", "Enhanced Player", "Multimedia.Audio"),
                 new("Multimedia.Audio.AudioTrim", "Audio Trim", "Multimedia.Audio"),
+                new("Multimedia.Audio.AudioTranscription", "Audio Transcription", "Multimedia.Audio"),
                 new("Multimedia.Image", "🖼️ Image", "Multimedia"),
                 new("Multimedia.Image.ImageEdit", "Image Edit", "Multimedia.Image"),
                 new("Multimedia.Image.ImageConverter", "Image Converter", "Multimedia.Image"),
@@ -688,6 +692,8 @@ namespace PlatypusTools.UI.Services
                 new("Multimedia.Video.VideoCombiner", "Video Combiner", "Multimedia.Video"),
                 new("Multimedia.Video.VideoConverter", "Video Converter", "Multimedia.Video"),
                 new("Multimedia.Video.ScreenRecorder", "Screen Recorder", "Multimedia.Video"),
+                new("Multimedia.Video.VideoMetadata", "Video Metadata", "Multimedia.Video"),
+                new("Multimedia.Video.GifMaker", "GIF Maker", "Multimedia.Video"),
                 new("Multimedia.MediaLibrary", "📚 Media Library", "Multimedia"),
                 new("Multimedia.ExternalTools", "🔧 External Tools", "Multimedia"),
 
@@ -700,6 +706,9 @@ namespace PlatypusTools.UI.Services
                 new("System.RegistryCleaner", "Registry Cleaner", "System"),
                 new("System.ScheduledTasks", "Scheduled Tasks", "System"),
                 new("System.SystemRestore", "System Restore", "System"),
+                new("System.ScheduledBackup", "Scheduled Backup", "System"),
+                new("System.EnvironmentVariableManager", "Env Variables", "System"),
+                new("System.WindowsServiceManager", "Windows Services", "System"),
 
                 new("Security", "🔒 Security", null),
                 new("Security.FolderHider", "Folder Hider", "Security"),
@@ -744,6 +753,7 @@ namespace PlatypusTools.UI.Services
                 new("Tools.SimpleBrowser", "Simple Browser", "Tools"),
                 new("Tools.PlexBackup", "Plex Backup", "Tools"),
                 new("Tools.IntunePackager", "Intune Packager", "Tools"),
+                new("Tools.ClipboardHistory", "Clipboard History", "Tools"),
             };
         }
     }

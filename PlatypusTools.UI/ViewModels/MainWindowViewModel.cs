@@ -72,6 +72,16 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<HashScannerViewModel> _hashScanner = new(() => new HashScannerViewModel());
         private readonly Lazy<AdSecurityAnalyzerViewModel> _adSecurityAnalyzer = new(() => new AdSecurityAnalyzerViewModel());
         private readonly Lazy<CveSearchViewModel> _cveSearch = new(() => new CveSearchViewModel());
+        private readonly Lazy<FileDiffViewModel> _fileDiff = new(() => new FileDiffViewModel());
+        private readonly Lazy<BulkFileMoverViewModel> _bulkFileMover = new(() => new BulkFileMoverViewModel());
+        private readonly Lazy<SymlinkManagerViewModel> _symlinkManager = new(() => new SymlinkManagerViewModel());
+        private readonly Lazy<AudioTranscriptionViewModel> _audioTranscription = new(() => new AudioTranscriptionViewModel());
+        private readonly Lazy<VideoMetadataViewModel> _videoMetadata = new(() => new VideoMetadataViewModel());
+        private readonly Lazy<GifMakerViewModel> _gifMaker = new(() => new GifMakerViewModel());
+        private readonly Lazy<ScheduledBackupViewModel> _scheduledBackup = new(() => new ScheduledBackupViewModel());
+        private readonly Lazy<EnvironmentVariableManagerViewModel> _envVarManager = new(() => new EnvironmentVariableManagerViewModel());
+        private readonly Lazy<WindowsServiceManagerViewModel> _windowsServiceManager = new(() => new WindowsServiceManagerViewModel());
+        private readonly Lazy<ClipboardHistoryViewModel> _clipboardHistory = new(() => new ClipboardHistoryViewModel());
         
         #endregion
 
@@ -171,6 +181,16 @@ namespace PlatypusTools.UI.ViewModels
         public HashScannerViewModel HashScanner => _hashScanner.Value;
         public AdSecurityAnalyzerViewModel AdSecurityAnalyzer => _adSecurityAnalyzer.Value;
         public CveSearchViewModel CveSearch => _cveSearch.Value;
+        public FileDiffViewModel FileDiff => _fileDiff.Value;
+        public BulkFileMoverViewModel BulkFileMover => _bulkFileMover.Value;
+        public SymlinkManagerViewModel SymlinkManager => _symlinkManager.Value;
+        public AudioTranscriptionViewModel AudioTranscription => _audioTranscription.Value;
+        public VideoMetadataViewModel VideoMetadata => _videoMetadata.Value;
+        public GifMakerViewModel GifMaker => _gifMaker.Value;
+        public ScheduledBackupViewModel ScheduledBackup => _scheduledBackup.Value;
+        public EnvironmentVariableManagerViewModel EnvironmentVariableManager => _envVarManager.Value;
+        public WindowsServiceManagerViewModel WindowsServiceManager => _windowsServiceManager.Value;
+        public ClipboardHistoryViewModel ClipboardHistory => _clipboardHistory.Value;
         
         #endregion
 
