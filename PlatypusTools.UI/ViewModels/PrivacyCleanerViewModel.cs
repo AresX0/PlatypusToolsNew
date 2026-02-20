@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Threading;
 using PlatypusTools.Core.Services;
 
 namespace PlatypusTools.UI.ViewModels;
@@ -12,6 +13,7 @@ namespace PlatypusTools.UI.ViewModels;
 public class PrivacyCleanerViewModel : BindableBase
 {
     private readonly PrivacyCleanerService _privacyCleanerService;
+    private DispatcherTimer? _exclusionTimer;
     
     // Browsers
     private bool _browserChrome = true;
@@ -56,6 +58,17 @@ public class PrivacyCleanerViewModel : BindableBase
         CancelCommand = new RelayCommand(_ => Cancel(), _ => IsAnalyzing || IsCleaning);
         SelectAllItemsCommand = new RelayCommand(_ => SelectAllItems());
         SelectNoneItemsCommand = new RelayCommand(_ => SelectNoneItems());
+
+        // Excluded folders commands
+        AddExcludedFolderCommand = new RelayCommand(_ => AddExcludedFolder());
+        RemoveExcludedFolderCommand = new RelayCommand(_ => RemoveExcludedFolder(), _ => SelectedExcludedFolder != null);
+        CleanExcludedNowCommand = new RelayCommand(_ => CleanExcludedFoldersNow());
+        ToggleExclusionTimerCommand = new RelayCommand(_ => ToggleExclusionTimer());
+
+        // Load excluded folders from settings
+        ExcludedFolders = new ObservableCollection<string>();
+        LoadExcludedFolders();
+        InitializeExclusionTimer();
     }
 
     private void SelectAllItems()
@@ -370,6 +383,190 @@ public class PrivacyCleanerViewModel : BindableBase
         }
         return $"{len:0.##} {sizes[order]}";
     }
+
+    #region Recent Files Exclusion
+
+    public ObservableCollection<string> ExcludedFolders { get; }
+
+    private string? _selectedExcludedFolder;
+    public string? SelectedExcludedFolder
+    {
+        get => _selectedExcludedFolder;
+        set { _selectedExcludedFolder = value; RaisePropertyChanged(); }
+    }
+
+    private bool _exclusionTimerRunning;
+    public bool ExclusionTimerRunning
+    {
+        get => _exclusionTimerRunning;
+        set { _exclusionTimerRunning = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(ExclusionTimerStatus)); }
+    }
+
+    public string ExclusionTimerStatus => ExclusionTimerRunning
+        ? $"Auto-clean ON (every {Services.SettingsManager.Current.RecentExclusionIntervalMinutes} min)"
+        : "Auto-clean OFF";
+
+    private string _exclusionLog = "";
+    public string ExclusionLog
+    {
+        get => _exclusionLog;
+        set { _exclusionLog = value; RaisePropertyChanged(); }
+    }
+
+    public ICommand AddExcludedFolderCommand { get; }
+    public ICommand RemoveExcludedFolderCommand { get; }
+    public ICommand CleanExcludedNowCommand { get; }
+    public ICommand ToggleExclusionTimerCommand { get; }
+
+    private void LoadExcludedFolders()
+    {
+        ExcludedFolders.Clear();
+        var settings = Services.SettingsManager.Current;
+        if (settings.RecentExcludedFolders != null)
+        {
+            foreach (var folder in settings.RecentExcludedFolders)
+                ExcludedFolders.Add(folder);
+        }
+    }
+
+    private void SaveExcludedFolders()
+    {
+        var settings = Services.SettingsManager.Current;
+        settings.RecentExcludedFolders = ExcludedFolders.ToList();
+        Services.SettingsManager.Save(settings);
+    }
+
+    private void AddExcludedFolder()
+    {
+        using var dlg = new System.Windows.Forms.FolderBrowserDialog
+        {
+            Description = "Select a folder to exclude from Windows Recent list",
+            UseDescriptionForTitle = true
+        };
+        if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            var path = dlg.SelectedPath;
+            if (!ExcludedFolders.Contains(path, StringComparer.OrdinalIgnoreCase))
+            {
+                ExcludedFolders.Add(path);
+                SaveExcludedFolders();
+                AddExclusionLogEntry($"Added: {path}");
+                // Immediately clean entries for this folder
+                CleanRecentForFolders(new[] { path });
+            }
+        }
+    }
+
+    private void RemoveExcludedFolder()
+    {
+        if (SelectedExcludedFolder != null)
+        {
+            var removed = SelectedExcludedFolder;
+            ExcludedFolders.Remove(SelectedExcludedFolder);
+            SaveExcludedFolders();
+            AddExclusionLogEntry($"Removed: {removed}");
+        }
+    }
+
+    private void CleanExcludedFoldersNow()
+    {
+        if (ExcludedFolders.Count == 0)
+        {
+            AddExclusionLogEntry("No excluded folders configured");
+            return;
+        }
+        CleanRecentForFolders(ExcludedFolders);
+    }
+
+    private void CleanRecentForFolders(System.Collections.Generic.IEnumerable<string> folders)
+    {
+        try
+        {
+            var results = RecentCleaner.RemoveRecentShortcuts(folders, dryRun: false, includeSubDirs: true);
+            if (results.Count > 0)
+            {
+                AddExclusionLogEntry($"Removed {results.Count} recent entries:");
+                foreach (var r in results.Take(20))
+                {
+                    AddExclusionLogEntry($"  Removed: {Path.GetFileName(r.Path)} → {r.Target}");
+                }
+                if (results.Count > 20)
+                    AddExclusionLogEntry($"  ... and {results.Count - 20} more");
+            }
+            else
+            {
+                AddExclusionLogEntry("No matching recent entries found");
+            }
+        }
+        catch (Exception ex)
+        {
+            AddExclusionLogEntry($"Error: {ex.Message}");
+        }
+    }
+
+    private void InitializeExclusionTimer()
+    {
+        var settings = Services.SettingsManager.Current;
+        if (settings.RecentExclusionEnabled && ExcludedFolders.Count > 0)
+        {
+            StartExclusionTimer();
+        }
+    }
+
+    private void ToggleExclusionTimer()
+    {
+        if (ExclusionTimerRunning)
+        {
+            StopExclusionTimer();
+        }
+        else
+        {
+            if (ExcludedFolders.Count == 0)
+            {
+                AddExclusionLogEntry("Add at least one folder before enabling auto-clean");
+                return;
+            }
+            StartExclusionTimer();
+        }
+    }
+
+    private void StartExclusionTimer()
+    {
+        var settings = Services.SettingsManager.Current;
+        var interval = TimeSpan.FromMinutes(settings.RecentExclusionIntervalMinutes);
+
+        _exclusionTimer?.Stop();
+        _exclusionTimer = new DispatcherTimer { Interval = interval };
+        _exclusionTimer.Tick += (_, _) => CleanExcludedFoldersNow();
+        _exclusionTimer.Start();
+
+        ExclusionTimerRunning = true;
+        settings.RecentExclusionEnabled = true;
+        Services.SettingsManager.Save(settings);
+        AddExclusionLogEntry($"Auto-clean started (every {settings.RecentExclusionIntervalMinutes} min)");
+
+        // Run immediately on start
+        CleanExcludedFoldersNow();
+    }
+
+    private void StopExclusionTimer()
+    {
+        _exclusionTimer?.Stop();
+        _exclusionTimer = null;
+        ExclusionTimerRunning = false;
+
+        var settings = Services.SettingsManager.Current;
+        settings.RecentExclusionEnabled = false;
+        Services.SettingsManager.Save(settings);
+        AddExclusionLogEntry("Auto-clean stopped");
+    }
+
+    private void AddExclusionLogEntry(string message)
+    {
+        ExclusionLog = $"[{DateTime.Now:HH:mm:ss}] {message}\n{ExclusionLog}";
+    }
+
+    #endregion
 }
 
 /// <summary>

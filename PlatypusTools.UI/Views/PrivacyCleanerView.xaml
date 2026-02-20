@@ -12,6 +12,7 @@
             <RowDefinition Height="5"/>
             <RowDefinition Height="2*" MinHeight="100"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Selection and Options -->
@@ -159,8 +160,62 @@
             </GroupBox>
         </Grid>
 
+        <!-- Recent Files Exclusion -->
+        <Expander Grid.Row="3" Header="🛡️ Recent Files Exclusion — Auto-remove files from Explorer's Recent list" 
+                  Margin="0,5,0,5" IsExpanded="False" FontWeight="Bold">
+            <Border BorderBrush="#FF9C27B0" BorderThickness="1" CornerRadius="4" Padding="8" Margin="0,5,0,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Left: Excluded Folders List -->
+                    <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                        <TextBlock Text="Excluded Folders" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,5"/>
+                        <ListBox ItemsSource="{Binding ExcludedFolders}" 
+                                 SelectedItem="{Binding SelectedExcludedFolder}"
+                                 Height="120" Margin="0,0,0,5"
+                                 ToolTip="Files from these folders (and subfolders) will be removed from the Recent list">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" ToolTip="{Binding}"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="➕ Add Folder" Command="{Binding AddExcludedFolderCommand}" 
+                                    Padding="8,4" Margin="0,0,5,0" FontWeight="Normal"
+                                    Background="#FF4CAF50" Foreground="White"/>
+                            <Button Content="➖ Remove" Command="{Binding RemoveExcludedFolderCommand}" 
+                                    Padding="8,4" Margin="0,0,5,0" FontWeight="Normal"
+                                    Background="#FFF44336" Foreground="White"/>
+                            <Button Content="🧹 Clean Now" Command="{Binding CleanExcludedNowCommand}" 
+                                    Padding="8,4" Margin="0,0,5,0" FontWeight="Normal"
+                                    Background="#FF2196F3" Foreground="White"/>
+                            <Button Content="{Binding ExclusionTimerStatus}" Command="{Binding ToggleExclusionTimerCommand}" 
+                                    Padding="8,4" FontWeight="Normal"
+                                    Background="#FF9C27B0" Foreground="White"
+                                    ToolTip="Toggle automatic cleaning on a timer"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Right: Log -->
+                    <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                        <TextBlock Text="Activity Log" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding ExclusionLog, Mode=OneWay}" 
+                                 IsReadOnly="True" Height="150" 
+                                 VerticalScrollBarVisibility="Auto" 
+                                 HorizontalScrollBarVisibility="Auto"
+                                 TextWrapping="NoWrap" FontFamily="Consolas" FontSize="11" FontWeight="Normal"
+                                 Background="#FF1E1E1E" Foreground="#FFD4D4D4"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Expander>
+
         <!-- Status Bar -->
-        <Border Grid.Row="3" Background="{DynamicResource WarningBackgroundBrush}" BorderBrush="{DynamicResource WarningBorderBrush}" BorderThickness="2" Padding="10">
+        <Border Grid.Row="4" Background="{DynamicResource WarningBackgroundBrush}" BorderBrush="{DynamicResource WarningBorderBrush}" BorderThickness="2" Padding="10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

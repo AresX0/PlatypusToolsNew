@@ -562,6 +562,40 @@ namespace PlatypusTools.UI.Services
         /// The string parameter is the tab key that changed.
         /// </summary>
         public event EventHandler<string>? TabVisibilityChanged;
+
+        // ======================== Recent Files Exclusion ========================
+
+        private List<string> _recentExcludedFolders = new();
+        private bool _recentExclusionEnabled = false;
+        private int _recentExclusionIntervalMinutes = 5;
+
+        /// <summary>
+        /// Folders whose files should be automatically removed from Windows Recent list.
+        /// Files in these folders and their subfolders will be cleaned periodically.
+        /// </summary>
+        public List<string> RecentExcludedFolders
+        {
+            get => _recentExcludedFolders;
+            set { _recentExcludedFolders = value ?? new(); OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Whether automatic Recent exclusion is enabled (background timer).
+        /// </summary>
+        public bool RecentExclusionEnabled
+        {
+            get => _recentExclusionEnabled;
+            set { _recentExclusionEnabled = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// How often (in minutes) to scan and clean Recent entries for excluded folders.
+        /// </summary>
+        public int RecentExclusionIntervalMinutes
+        {
+            get => _recentExclusionIntervalMinutes;
+            set { _recentExclusionIntervalMinutes = Math.Clamp(value, 1, 60); OnPropertyChanged(); }
+        }
     }
 
     public static class SettingsManager
