@@ -183,6 +183,36 @@ namespace PlatypusTools.UI.ViewModels
             set { _scanProgress = value; RaisePropertyChanged(); } 
         }
 
+        private int _scanThreadCount = 0;
+        /// <summary>
+        /// Number of threads for parallel hashing. 0 = auto (use all CPU cores).
+        /// </summary>
+        public int ScanThreadCount 
+        { 
+            get => _scanThreadCount; 
+            set { _scanThreadCount = Math.Max(0, Math.Min(value, Environment.ProcessorCount * 2)); RaisePropertyChanged(); RaisePropertyChanged(nameof(ScanThreadCountDisplay)); } 
+        }
+        
+        /// <summary>
+        /// Display text for the thread count slider.
+        /// </summary>
+        public string ScanThreadCountDisplay => ScanThreadCount == 0 ? $"Auto ({Environment.ProcessorCount})" : ScanThreadCount.ToString();
+
+        /// <summary>
+        /// Maximum allowed thread count for UI slider binding.
+        /// </summary>
+        public int MaxThreadCount => Environment.ProcessorCount * 2;
+
+        private int _ffmpegTimeoutSeconds = 20;
+        /// <summary>
+        /// Per-file FFmpeg timeout in seconds. Files exceeding this are skipped.
+        /// </summary>
+        public int FfmpegTimeoutSeconds 
+        { 
+            get => _ffmpegTimeoutSeconds; 
+            set { _ffmpegTimeoutSeconds = Math.Max(5, Math.Min(value, 300)); RaisePropertyChanged(); } 
+        }
+
         public StagingViewModel Staging { get; } = new StagingViewModel();
 
         private bool _stagingVisible = false;
@@ -298,7 +328,8 @@ namespace PlatypusTools.UI.ViewModels
                                 Groups.Add(new DuplicateGroupViewModel(g));
                             }
                         });
-                    });
+                    },
+                    threadCount: ScanThreadCount);
                 
                 if (!cancellationToken.IsCancellationRequested)
                 {
@@ -461,7 +492,8 @@ namespace PlatypusTools.UI.ViewModels
             {
                 // Set the scan mode before scanning
                 _videoSimilarityService.ScanMode = VideoScanMode;
-                AddScanLogEntry($"Starting video similarity scan - {modeText} in {FolderPath}");
+                _videoSimilarityService.FileAnalysisTimeoutSeconds = FfmpegTimeoutSeconds;
+                AddScanLogEntry($"Starting video similarity scan - {modeText} in {FolderPath} (timeout: {FfmpegTimeoutSeconds}s)");
                 
                 var groups = await _videoSimilarityService.FindSimilarVideosAsync(
                     new[] { FolderPath }, 
@@ -542,7 +574,8 @@ namespace PlatypusTools.UI.ViewModels
             {
                 // Set the scan mode before scanning
                 _audioSimilarityService.ScanMode = AudioScanMode;
-                AddScanLogEntry($"Starting audio similarity scan - {modeText} in {FolderPath}");
+                _audioSimilarityService.FileAnalysisTimeoutSeconds = FfmpegTimeoutSeconds;
+                AddScanLogEntry($"Starting audio similarity scan - {modeText} in {FolderPath} (timeout: {FfmpegTimeoutSeconds}s)");
                 
                 var groups = await _audioSimilarityService.FindSimilarAudioAsync(
                     new[] { FolderPath }, 

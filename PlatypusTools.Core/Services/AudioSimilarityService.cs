@@ -562,8 +562,12 @@ namespace PlatypusTools.Core.Services
 
                 try
                 {
-                    var jsonOutput = await p.StandardOutput.ReadToEndAsync(cancellationToken);
+                    // Read both pipes concurrently to prevent deadlock
+                    var stdoutTask = p.StandardOutput.ReadToEndAsync(cancellationToken);
+                    var stderrTask = p.StandardError.ReadToEndAsync(cancellationToken);
                     await p.WaitForExitAsync(cancellationToken);
+                    var jsonOutput = await stdoutTask;
+                    await stderrTask;
 
                     if (!string.IsNullOrEmpty(jsonOutput))
                     {
@@ -747,8 +751,12 @@ namespace PlatypusTools.Core.Services
 
                 try
                 {
-                    var output = await p.StandardError.ReadToEndAsync(cancellationToken);
+                    // Read both pipes concurrently to prevent deadlock
+                    var stdoutDrain = p.StandardOutput.ReadToEndAsync(cancellationToken);
+                    var stderrTask = p.StandardError.ReadToEndAsync(cancellationToken);
                     await p.WaitForExitAsync(cancellationToken);
+                    await stdoutDrain;
+                    var output = await stderrTask;
 
                     // Parse mean_volume from output
                     // Example: mean_volume: -20.5 dB
@@ -836,8 +844,11 @@ namespace PlatypusTools.Core.Services
                 try
                 {
                     using var ms = new MemoryStream();
+                    // Read stdout (raw audio) and drain stderr concurrently to prevent deadlock
+                    var stderrDrain = p.StandardError.ReadToEndAsync(cancellationToken);
                     await p.StandardOutput.BaseStream.CopyToAsync(ms, cancellationToken);
                     await p.WaitForExitAsync(cancellationToken);
+                    await stderrDrain;
 
                     var samples = ms.ToArray();
                     if (samples.Length < 64) return 0;

@@ -395,8 +395,12 @@ namespace PlatypusTools.Core.Services
 
                 try
                 {
-                    var jsonOutput = await p.StandardOutput.ReadToEndAsync(cancellationToken);
+                    // Read both pipes concurrently to prevent deadlock
+                    var stdoutTask = p.StandardOutput.ReadToEndAsync(cancellationToken);
+                    var stderrTask = p.StandardError.ReadToEndAsync(cancellationToken);
                     await p.WaitForExitAsync(cancellationToken);
+                    var jsonOutput = await stdoutTask;
+                    await stderrTask;
 
                     if (!string.IsNullOrEmpty(jsonOutput))
                     {
@@ -567,7 +571,12 @@ namespace PlatypusTools.Core.Services
                     {
                         try
                         {
+                            // Drain both pipes to prevent deadlock, then wait
+                            var stdoutDrain = p.StandardOutput.ReadToEndAsync(cancellationToken);
+                            var stderrDrain = p.StandardError.ReadToEndAsync(cancellationToken);
                             await p.WaitForExitAsync(cancellationToken);
+                            await stdoutDrain;
+                            await stderrDrain;
                         }
                         catch (OperationCanceledException)
                         {

@@ -54,6 +54,27 @@
                       Width="90" VerticalAlignment="Center" Margin="0,0,16,0"
                       ToolTip="Fast: Analyze 15-second sample from middle. Thorough: Analyze entire audio file." />
         </StackPanel>
+
+        <!-- Performance Controls -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+            <TextBlock VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold">Performance:</TextBlock>
+            <TextBlock VerticalAlignment="Center" Margin="0,0,4,0">⚡ Threads:</TextBlock>
+            <Slider Width="120" Minimum="0" Maximum="{Binding MaxThreadCount}" 
+                    Value="{Binding ScanThreadCount}" 
+                    TickFrequency="1" IsSnapToTickEnabled="True"
+                    VerticalAlignment="Center"
+                    ToolTip="Number of threads for parallel hashing. 0 = auto (use all CPU cores). Higher = faster scan but more CPU/disk usage." />
+            <TextBlock Text="{Binding ScanThreadCountDisplay}" 
+                       VerticalAlignment="Center" Margin="4,0,0,0" Width="55" />
+            <TextBlock VerticalAlignment="Center" Margin="12,0,4,0">⏱ FFmpeg Timeout:</TextBlock>
+            <Slider Width="100" Minimum="5" Maximum="120" 
+                    Value="{Binding FfmpegTimeoutSeconds}" 
+                    TickFrequency="5" IsSnapToTickEnabled="True"
+                    VerticalAlignment="Center"
+                    ToolTip="Per-file timeout in seconds for FFmpeg analysis. Files exceeding this are skipped. Increase if valid files are being skipped." />
+            <TextBlock Text="{Binding FfmpegTimeoutSeconds, StringFormat={}{0}s}" 
+                       VerticalAlignment="Center" Margin="4,0,0,0" Width="30" />
+        </StackPanel>
         
         <!-- Similarity Threshold Slider for Images -->
         <StackPanel Orientation="Horizontal" Margin="0,0,0,8" 

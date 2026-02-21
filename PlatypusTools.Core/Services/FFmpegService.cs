@@ -81,22 +81,31 @@ namespace PlatypusTools.Core.Services
             p.OutputDataReceived += (_, e) => { if (e.Data != null) { stdout.AppendLine(e.Data); progress?.Report(e.Data); } };
             p.ErrorDataReceived += (_, e) => { if (e.Data != null) { stderr.AppendLine(e.Data); progress?.Report(e.Data); } };
 
+            // Create a linked token that enforces both user cancellation and timeout
+            using var timeoutCts = new CancellationTokenSource(timeoutMs);
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+
             try
             {
                 p.Start();
                 p.BeginOutputReadLine();
                 p.BeginErrorReadLine();
 
-                await p.WaitForExitAsync(cancellationToken);
+                await p.WaitForExitAsync(linkedCts.Token);
+            }
+            catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+            {
+                try { if (!p.HasExited) p.Kill(entireProcessTree: true); } catch { }
+                return new FFmpegResult { ExitCode = -5, StdOut = stdout.ToString(), StdErr = stderr.ToString() + $"\nTimed out after {timeoutMs}ms" };
             }
             catch (OperationCanceledException)
             {
-                try { if (!p.HasExited) p.Kill(); } catch { }
+                try { if (!p.HasExited) p.Kill(entireProcessTree: true); } catch { }
                 return new FFmpegResult { ExitCode = -4, StdOut = stdout.ToString(), StdErr = stderr.ToString() + "\nCanceled" };
             }
             catch (Exception ex)
             {
-                try { if (!p.HasExited) p.Kill(); } catch { }
+                try { if (!p.HasExited) p.Kill(entireProcessTree: true); } catch { }
                 return new FFmpegResult { ExitCode = -99, StdErr = ex.ToString() };
             }
 

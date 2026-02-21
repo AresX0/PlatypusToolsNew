@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,6 +23,11 @@ namespace PlatypusTools.Core.Services
         private const int BatchSize = 300;
 
         /// <summary>
+        /// Default thread count for parallel hashing (0 = use Environment.ProcessorCount).
+        /// </summary>
+        public static int DefaultThreadCount { get; set; } = 0;
+
+        /// <summary>
         /// Find duplicate files (synchronous version for backward compatibility).
         /// </summary>
         public static IEnumerable<DuplicateGroup> FindDuplicates(IEnumerable<string> paths, bool recurse = true)
@@ -38,12 +44,14 @@ namespace PlatypusTools.Core.Services
         /// <param name="onProgress">Progress callback (current, total, message).</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <param name="onBatchProcessed">Callback when a batch of duplicates is found.</param>
+        /// <param name="threadCount">Number of threads for parallel hashing (0 = auto, 1 = single-threaded).</param>
         public static async Task<List<DuplicateGroup>> FindDuplicatesAsync(
             IEnumerable<string> paths,
             bool recurse = true,
             Action<int, int, string>? onProgress = null,
             CancellationToken cancellationToken = default,
-            Action<List<DuplicateGroup>>? onBatchProcessed = null)
+            Action<List<DuplicateGroup>>? onBatchProcessed = null,
+            int threadCount = 0)
         {
             return await Task.Run(async () =>
             {
@@ -111,64 +119,65 @@ namespace PlatypusTools.Core.Services
                 var potentialDuplicates = sizeGroups.Where(g => g.Value.Count > 1).ToList();
                 var filesToHash = potentialDuplicates.Sum(g => g.Value.Count);
 
-                onProgress?.Invoke(0, filesToHash, $"Hashing {filesToHash} potential duplicates...");
+                // Determine effective thread count
+                var effectiveThreads = threadCount > 0 ? threadCount : (DefaultThreadCount > 0 ? DefaultThreadCount : Environment.ProcessorCount);
+                effectiveThreads = Math.Max(1, Math.Min(effectiveThreads, Environment.ProcessorCount * 2));
 
-                // Second pass: Hash files in batches
-                var hashDict = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+                onProgress?.Invoke(0, filesToHash, $"Hashing {filesToHash} potential duplicates ({effectiveThreads} threads)...");
+
+                // Flatten all files to hash into a single list
+                var allFilesToHash = potentialDuplicates.SelectMany(g => g.Value).ToList();
+
+                // Second pass: Hash files in parallel
+                var hashDict = new ConcurrentDictionary<string, ConcurrentBag<string>>(StringComparer.OrdinalIgnoreCase);
                 var hashed = 0;
                 var batchDuplicates = new List<DuplicateGroup>();
+                var lastBatchReport = 0;
 
-                foreach (var sizeGroup in potentialDuplicates)
+                await Parallel.ForEachAsync(allFilesToHash, new ParallelOptions
                 {
-                    if (cancellationToken.IsCancellationRequested) break;
-
-                    foreach (var f in sizeGroup.Value)
+                    MaxDegreeOfParallelism = effectiveThreads,
+                    CancellationToken = cancellationToken
+                }, async (f, ct) =>
+                {
+                    try
                     {
-                        if (cancellationToken.IsCancellationRequested) break;
+                        using var sha = SHA256.Create();
+                        using var s = File.OpenRead(f);
+                        var hash = BitConverter.ToString(sha.ComputeHash(s)).Replace("-", string.Empty);
 
-                        try
+                        hashDict.GetOrAdd(hash, _ => new ConcurrentBag<string>()).Add(f);
+                    }
+                    catch { }
+
+                    var current = Interlocked.Increment(ref hashed);
+                    if (current - Volatile.Read(ref lastBatchReport) >= BatchSize)
+                    {
+                        Interlocked.Exchange(ref lastBatchReport, current);
+                        onProgress?.Invoke(current, filesToHash, $"Hashing: {current}/{filesToHash} ({effectiveThreads} threads)");
+
+                        // Check for new duplicates in this batch
+                        var newDuplicates = hashDict
+                            .Where(kv => kv.Value.Count > 1)
+                            .Select(kv => new DuplicateGroup { Hash = kv.Key, Files = new List<string>(kv.Value) })
+                            .ToList();
+
+                        if (newDuplicates.Count > batchDuplicates.Count)
                         {
-                            using var sha = SHA256.Create();
-                            using var s = File.OpenRead(f);
-                            var hash = BitConverter.ToString(sha.ComputeHash(s)).Replace("-", string.Empty);
-
-                            if (!hashDict.TryGetValue(hash, out var list))
-                            {
-                                list = new List<string>();
-                                hashDict[hash] = list;
-                            }
-                            list.Add(f);
-                        }
-                        catch { }
-
-                        hashed++;
-                        if (hashed % BatchSize == 0)
-                        {
-                            onProgress?.Invoke(hashed, filesToHash, $"Hashing: {hashed}/{filesToHash}");
-
-                            // Check for new duplicates in this batch
-                            var newDuplicates = hashDict
-                                .Where(kv => kv.Value.Count > 1)
-                                .Select(kv => new DuplicateGroup { Hash = kv.Key, Files = new List<string>(kv.Value) })
-                                .ToList();
-
-                            if (newDuplicates.Count > batchDuplicates.Count)
-                            {
-                                onBatchProcessed?.Invoke(newDuplicates);
-                                batchDuplicates = newDuplicates;
-                            }
-
-                            await Task.Delay(1); // Yield to UI
+                            onBatchProcessed?.Invoke(newDuplicates);
+                            batchDuplicates = newDuplicates;
                         }
                     }
-                }
+
+                    await ValueTask.CompletedTask; // Satisfy async lambda
+                });
 
                 var result = hashDict
                     .Where(kv => kv.Value.Count > 1)
-                    .Select(kv => new DuplicateGroup { Hash = kv.Key, Files = kv.Value })
+                    .Select(kv => new DuplicateGroup { Hash = kv.Key, Files = new List<string>(kv.Value) })
                     .ToList();
 
-                onProgress?.Invoke(filesToHash, filesToHash, $"Found {result.Count} duplicate groups");
+                onProgress?.Invoke(filesToHash, filesToHash, $"Found {result.Count} duplicate groups ({effectiveThreads} threads)");
                 return result;
             }, cancellationToken);
         }
