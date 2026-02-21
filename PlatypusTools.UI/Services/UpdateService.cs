@@ -16,7 +16,8 @@ namespace PlatypusTools.UI.Services
         private static UpdateService? _instance;
         public static UpdateService Instance => _instance ??= new UpdateService();
 
-        private readonly HttpClient _httpClient;
+        private readonly HttpClient _apiClient;
+        private readonly HttpClient _downloadClient;
         private readonly string _owner = "AresX0";
         private readonly string _repo = "PlatypusToolsNew";
         private readonly string _currentVersion;
@@ -24,8 +25,9 @@ namespace PlatypusTools.UI.Services
 
         public UpdateService()
         {
-            // Use shared HttpClient from factory
-            _httpClient = HttpClientFactory.Api;
+            // Use Api client (15s timeout) for version checks, Download client (30min timeout) for MSI downloads
+            _apiClient = HttpClientFactory.Api;
+            _downloadClient = HttpClientFactory.Download;
             
             // Get current version from assembly
             var assembly = System.Reflection.Assembly.GetExecutingAssembly();
@@ -58,7 +60,7 @@ namespace PlatypusTools.UI.Services
             try
             {
                 var url = $"https://api.github.com/repos/{_owner}/{_repo}/releases/latest";
-                var response = await _httpClient.GetStringAsync(url, ct);
+                var response = await _apiClient.GetStringAsync(url, ct);
                 
                 using var doc = JsonDocument.Parse(response);
                 var root = doc.RootElement;
@@ -129,7 +131,7 @@ namespace PlatypusTools.UI.Services
 
                 var filePath = Path.Combine(_downloadPath, info.FileName);
 
-                using var response = await _httpClient.GetAsync(info.DownloadUrl, 
+                using var response = await _downloadClient.GetAsync(info.DownloadUrl, 
                     HttpCompletionOption.ResponseHeadersRead, ct);
                 
                 response.EnsureSuccessStatusCode();
