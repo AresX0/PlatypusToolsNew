@@ -915,6 +915,41 @@ Based on remaining work and user value, here are the **recommended next features
 
 ---
 
+## 🔧 Deferred Technical Debt (Added v3.4.2.8)
+
+Items identified during code quality audit that are safe to defer. None are bugs — all are architectural improvements.
+
+### Code-Behind Views Needing MVVM Conversion
+
+These 6 views have significant code-behind logic instead of using proper ViewModel bindings. They work correctly but don't follow the MVVM pattern used by the rest of the app. Each conversion is estimated at 4-8 hours.
+
+| # | View | Code-Behind Lines | Notes |
+|---|------|-------------------|-------|
+| DEBT-001 | `NativeAudioTrimView.xaml.cs` | ~400 | Audio trimming logic in code-behind |
+| DEBT-002 | `NativeImageEditView.xaml.cs` | ~500 | Image editing with SkiaSharp in code-behind |
+| DEBT-003 | `NativeVideoPlayerView.xaml.cs` | ~350 | Video player controls in code-behind |
+| DEBT-004 | `ShotcutNativeEditorView.xaml.cs` | ~600 | Video editor timeline in code-behind |
+| DEBT-005 | `WindowsUpdateRepairView.xaml.cs` | ~300 | Windows Update repair logic in code-behind |
+| DEBT-006 | `LocalTerminalView.xaml.cs` | ~250 | Terminal emulator in code-behind |
+
+### Audio Visualizer Placeholders
+
+| # | Item | File | Notes |
+|---|------|------|-------|
+| DEBT-007 | FFT Spectrum uses simplified data | `AudioVisualizerService.cs` | Uses NAudio FFT — works but not a full spectral analyzer. Enhancement would use proper windowing functions. |
+| DEBT-008 | Audio waveform rendering placeholder | `TimelinePanel.cs` | Waveform overlay on video timeline is approximate. Would need FFmpeg audio extraction for per-frame accuracy. |
+
+### Minor Code Quality Items
+
+| # | Item | Files | Notes |
+|---|------|-------|-------|
+| DEBT-009 | Empty catch blocks | Various | ~15 instances of `catch { }` — all intentional (file cleanup, optional operations). Could add logging. |
+| DEBT-010 | `ConvertBack()` stubs | Various converters | Standard WPF pattern — `NotImplementedException` in one-way converters. Never called at runtime. |
+| DEBT-011 | Butterchurn/ProjectM integration | `ButterchurnVisualizerService.cs` | Partial — preset scanning works, WebView2 Butterchurn rendering not complete. Custom SkiaSharp Milkdrop engine exists as fallback. |
+
+---
+
 *Last verified: February 12, 2026*
+*Deferred items added: v3.4.2.8 code quality audit*
 
 

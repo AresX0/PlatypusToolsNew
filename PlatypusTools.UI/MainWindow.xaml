@@ -154,7 +154,7 @@
                     <TabItem Header="☁ Cloud Sync"
                              AutomationProperties.Name="Cloud Sync"
                              Visibility="{Binding CloudSync, Source={x:Static services:TabVisibilityService.Instance}}">
-                        <controls:LazyTabContent ViewType="{x:Type views:CloudSyncView}" />
+                        <controls:LazyTabContent ViewType="{x:Type views:CloudSyncView}" ViewDataContext="{Binding CloudSync}" />
                     </TabItem>
                     <TabItem Header="File Diff"
                              AutomationProperties.Name="File Diff"

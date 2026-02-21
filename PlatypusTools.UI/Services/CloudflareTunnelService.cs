@@ -70,8 +70,7 @@ public class CloudflareTunnelService : IDisposable
             var dir = Path.GetDirectoryName(CloudflaredPath)!;
             Directory.CreateDirectory(dir);
 
-            using var httpClient = new HttpClient();
-            httpClient.Timeout = TimeSpan.FromMinutes(5);
+            var httpClient = HttpClientFactory.Download;
             
             var response = await httpClient.GetAsync(CloudflaredUrl, HttpCompletionOption.ResponseHeadersRead);
             response.EnsureSuccessStatusCode();

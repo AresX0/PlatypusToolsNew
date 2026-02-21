@@ -581,9 +581,56 @@ namespace PlatypusTools.Core.Services
 
         private async Task<(int ItemsProcessed, long BytesProcessed, string Message)> RunLibrarySyncAsync(ScheduledAppTask task)
         {
-            // This would integrate with LibrarySyncService
-            await Task.Delay(100); // Placeholder
-            return (0, 0, "Library sync requires configured sync profile");
+            var sourcePath = task.Parameters.GetValueOrDefault("SourcePath") ?? string.Empty;
+            var destPath = task.Parameters.GetValueOrDefault("DestinationPath") ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(sourcePath) || string.IsNullOrWhiteSpace(destPath))
+                return (0, 0, "Library sync requires SourcePath and DestinationPath parameters");
+
+            if (!Directory.Exists(sourcePath))
+                return (0, 0, $"Source path not found: {sourcePath}");
+
+            if (!Directory.Exists(destPath))
+            {
+                try { Directory.CreateDirectory(destPath); }
+                catch (Exception ex) { return (0, 0, $"Cannot create destination: {ex.Message}"); }
+            }
+
+            var profile = new LibrarySyncService.SyncProfile
+            {
+                Name = task.Name,
+                Locations = new List<LibrarySyncService.LibraryLocation>
+                {
+                    new() { Name = "Primary", Path = sourcePath, IsPrimary = true },
+                    new() { Name = "Backup", Path = destPath, IsPrimary = false }
+                },
+                Mode = Enum.TryParse<LibrarySyncService.SyncMode>(
+                    task.Parameters.GetValueOrDefault("SyncMode"), true, out var mode) ? mode : LibrarySyncService.SyncMode.Mirror,
+                ConflictPolicy = Enum.TryParse<LibrarySyncService.ConflictPolicy>(
+                    task.Parameters.GetValueOrDefault("ConflictPolicy"), true, out var policy) ? policy : LibrarySyncService.ConflictPolicy.KeepNewest,
+                DeleteOrphans = task.Parameters.GetValueOrDefault("DeleteOrphans") == "true"
+            };
+
+            try
+            {
+                using var cts = new CancellationTokenSource(TimeSpan.FromHours(2));
+                var result = await LibrarySyncService.Instance.SyncAsync(profile, cts.Token);
+
+                var totalFiles = result.FilesCopied + result.FilesUpdated + result.FilesDeleted + result.FilesSkipped;
+                var message = result.Success
+                    ? $"Sync complete: {result.FilesCopied} copied, {result.FilesUpdated} updated, {result.FilesDeleted} deleted, {result.FilesSkipped} skipped ({result.BytesTransferred / 1024 / 1024} MB)"
+                    : $"Sync finished with errors: {string.Join("; ", result.ErrorMessages.Take(3))}";
+
+                return (totalFiles, result.BytesTransferred, message);
+            }
+            catch (OperationCanceledException)
+            {
+                return (0, 0, "Library sync timed out after 2 hours");
+            }
+            catch (Exception ex)
+            {
+                return (0, 0, $"Library sync failed: {ex.Message}");
+            }
         }
 
         private async Task<(int ItemsProcessed, long BytesProcessed, string Message)> RunCacheCleanAsync(ScheduledAppTask task)

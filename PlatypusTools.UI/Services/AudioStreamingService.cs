@@ -689,9 +689,7 @@ public class AudioStreamingService
             
             // Download latest yt-dlp release
             const string ytdlpUrl = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";
-            using var client = new HttpClient();
-            client.Timeout = TimeSpan.FromMinutes(5);
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("PlatypusTools/1.0");
+            var client = HttpClientFactory.Download;
             
             using var response = await client.GetAsync(ytdlpUrl, ct);
             if (!response.IsSuccessStatusCode)

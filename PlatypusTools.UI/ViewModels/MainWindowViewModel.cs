@@ -82,6 +82,7 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<EnvironmentVariableManagerViewModel> _envVarManager = new(() => new EnvironmentVariableManagerViewModel());
         private readonly Lazy<WindowsServiceManagerViewModel> _windowsServiceManager = new(() => new WindowsServiceManagerViewModel());
         private readonly Lazy<ClipboardHistoryViewModel> _clipboardHistory = new(() => new ClipboardHistoryViewModel());
+        private readonly Lazy<CloudSyncViewModel> _cloudSync = new(() => new CloudSyncViewModel());
         
         #endregion
 
@@ -191,6 +192,7 @@ namespace PlatypusTools.UI.ViewModels
         public EnvironmentVariableManagerViewModel EnvironmentVariableManager => _envVarManager.Value;
         public WindowsServiceManagerViewModel WindowsServiceManager => _windowsServiceManager.Value;
         public ClipboardHistoryViewModel ClipboardHistory => _clipboardHistory.Value;
+        public CloudSyncViewModel CloudSync => _cloudSync.Value;
         
         #endregion
 

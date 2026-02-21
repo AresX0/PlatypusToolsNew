@@ -430,6 +430,18 @@
                                 <Button Content="👤 Remove Priv Roles" Command="{Binding RemovePrivRoleMembersCommand}" 
                                         MinWidth="150" Margin="5" Background="#FF673AB7" Foreground="White"
                                         ToolTip="Remove all members from privileged roles" />
+                                <Button Content="🗑 Remove App Owners" Command="{Binding RemoveAppOwnersCommand}" 
+                                        MinWidth="160" Margin="5" Background="#FF795548" Foreground="White"
+                                        ToolTip="Export &amp; remove owners from risky applications" />
+                                <Button Content="🚫 Disable CA Policies" Command="{Binding DisableCaPoliciesCommand}" 
+                                        MinWidth="160" Margin="5" Background="#FF607D8B" Foreground="White"
+                                        ToolTip="Disable all Conditional Access policies during IR" />
+                                <Button Content="🛡️ Deploy IR CA" Command="{Binding DeployIrCaPoliciesCommand}" 
+                                        MinWidth="140" Margin="5" Background="#FF00BCD4" Foreground="White"
+                                        ToolTip="Deploy IR Conditional Access policy templates (report-only)" />
+                                <Button Content="📤 Export Synced Users" Command="{Binding ExportSyncedUsersCommand}" 
+                                        MinWidth="160" Margin="5" Background="#FF3F51B5" Foreground="White"
+                                        ToolTip="Export synced users for conversion to cloud-only" />
                             </WrapPanel>
 
                             <!-- Warning -->

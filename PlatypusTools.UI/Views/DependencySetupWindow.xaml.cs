@@ -254,8 +254,7 @@ namespace PlatypusTools.UI.Views
             var zipPath = Path.Combine(Path.GetTempPath(), "ffmpeg.zip");
             var extractPath = Path.Combine(Path.GetTempPath(), "ffmpeg_extract");
             
-            using var client = new HttpClient();
-            client.Timeout = TimeSpan.FromMinutes(10);
+            var client = HttpClientFactory.Download;
             
             // Download
             var response = await client.GetAsync(ffmpegUrl);
@@ -301,8 +300,7 @@ namespace PlatypusTools.UI.Views
             var zipPath = Path.Combine(Path.GetTempPath(), "exiftool.zip");
             var extractPath = Path.Combine(Path.GetTempPath(), "exiftool_extract");
             
-            using var client = new HttpClient();
-            client.Timeout = TimeSpan.FromMinutes(5);
+            var client = HttpClientFactory.Download;
             
             // Download
             var response = await client.GetAsync(exifToolUrl);
@@ -338,8 +336,7 @@ namespace PlatypusTools.UI.Views
             // Download WebView2 bootstrapper
             var webView2Url = "https://go.microsoft.com/fwlink/p/?LinkId=2124703";
             
-            using var client = new HttpClient();
-            client.Timeout = TimeSpan.FromMinutes(2);
+            var client = HttpClientFactory.Download;
             
             var response = await client.GetAsync(webView2Url);
             if (!response.IsSuccessStatusCode) return false;

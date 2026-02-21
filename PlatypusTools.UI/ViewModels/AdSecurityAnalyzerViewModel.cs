@@ -94,6 +94,12 @@ namespace PlatypusTools.UI.ViewModels
             RemovePrivRoleMembersCommand = new RelayCommand(async _ => await RemovePrivRoleMembersAsync(), _ => !IsAnalyzing && IsEntraConnected);
             RemoveAdminCountCommand = new RelayCommand(async _ => await RemoveAdminCountAsync(), _ => !IsAnalyzing && IsDomainDiscovered);
 
+            // Additional Entra IR commands
+            RemoveAppOwnersCommand = new RelayCommand(async _ => await RemoveAppOwnersAsync(), _ => !IsAnalyzing && IsEntraConnected);
+            DisableCaPoliciesCommand = new RelayCommand(async _ => await DisableCaPoliciesAsync(), _ => !IsAnalyzing && IsEntraConnected);
+            DeployIrCaPoliciesCommand = new RelayCommand(async _ => await DeployIrCaPoliciesAsync(), _ => !IsAnalyzing && IsEntraConnected);
+            ExportSyncedUsersCommand = new RelayCommand(async _ => await ExportSyncedUsersAsync(), _ => !IsAnalyzing && IsEntraConnected);
+
             // Attack Path Detection commands
             RunAttackPathScanCommand = new RelayCommand(async _ => await RunAttackPathScanAsync(), _ => !IsAnalyzing && IsDomainDiscovered);
             AuditLapsCommand = new RelayCommand(async _ => await AuditLapsAsync(), _ => !IsAnalyzing && IsDomainDiscovered);
@@ -753,6 +759,12 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand RevokeAllTokensCommand { get; }
         public ICommand RemovePrivRoleMembersCommand { get; }
         public ICommand RemoveAdminCountCommand { get; }
+
+        // Additional Entra IR Commands
+        public ICommand RemoveAppOwnersCommand { get; }
+        public ICommand DisableCaPoliciesCommand { get; }
+        public ICommand DeployIrCaPoliciesCommand { get; }
+        public ICommand ExportSyncedUsersCommand { get; }
 
         // Attack Path Detection Commands
         public ICommand RunAttackPathScanCommand { get; }
@@ -2358,6 +2370,193 @@ namespace PlatypusTools.UI.ViewModels
             catch (Exception ex)
             {
                 AppendLog($"Error removing role members: {ex.Message}");
+                Status = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        /// <summary>
+        /// Remove owners from risky/malicious applications
+        /// </summary>
+        private async Task RemoveAppOwnersAsync()
+        {
+            if (!IsEntraConnected)
+            {
+                AppendLog("Not connected to Entra ID. Connect first.");
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = "Exporting and removing app owners...";
+
+            try
+            {
+                // First export owners for backup
+                var exportDir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "PlatypusTools", "EntraExports");
+                Directory.CreateDirectory(exportDir);
+                var exportPath = Path.Combine(exportDir, $"AppOwners_{DateTime.Now:yyyyMMdd_HHmmss}.json");
+
+                var exportResult = await _entraIdService.ExportAppOwnersAsync(exportPath);
+                if (exportResult.Success)
+                {
+                    AppendLog($"Exported {exportResult.ExportedCount} app/SP owner records to {exportPath}");
+
+                    // Now remove owners
+                    var removedCount = await _entraIdService.RemoveAppOwnersFromExportAsync(
+                        exportPath, RemediationWhatIf);
+
+                    AppendLog(RemediationWhatIf
+                        ? $"[WhatIf] Would remove {removedCount} app owner assignments"
+                        : $"Removed {removedCount} app owner assignments");
+                    Status = $"App owners: {removedCount} removed, backup at {exportPath}";
+                }
+                else
+                {
+                    AppendLog($"Failed to export app owners: {exportResult.ErrorMessage}");
+                    Status = "App owners export failed";
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error removing app owners: {ex.Message}");
+                Status = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        /// <summary>
+        /// Disable all Conditional Access policies during IR
+        /// </summary>
+        private async Task DisableCaPoliciesAsync()
+        {
+            if (!IsEntraConnected)
+            {
+                AppendLog("Not connected to Entra ID. Connect first.");
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = "Disabling Conditional Access policies...";
+
+            try
+            {
+                // Exempt any IR policies we deployed
+                var exemptIds = new List<string>();
+
+                var count = await _entraIdService.DisableConditionalAccessPoliciesAsync(
+                    exemptIds, RemediationWhatIf);
+
+                AppendLog(RemediationWhatIf
+                    ? $"[WhatIf] Would disable {count} CA policies"
+                    : $"Disabled {count} CA policies");
+                Status = $"CA policy disable complete: {count} policies";
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error disabling CA policies: {ex.Message}");
+                Status = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        /// <summary>
+        /// Deploy IR Conditional Access policy templates
+        /// </summary>
+        private async Task DeployIrCaPoliciesAsync()
+        {
+            if (!IsEntraConnected)
+            {
+                AppendLog("Not connected to Entra ID. Connect first.");
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = "Deploying IR Conditional Access policies...";
+
+            try
+            {
+                var exemptedList = ExemptedUsers.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(u => u.Trim()).ToList();
+
+                var options = new IrCaPolicyDeploymentOptions
+                {
+                    BreakglassAccountUpns = exemptedList,
+                    WhatIf = RemediationWhatIf,
+                    EnablePolicies = false // Report-only mode by default
+                };
+
+                var results = await _entraIdService.DeployIrCaPoliciesAsync(options);
+
+                foreach (var r in results)
+                {
+                    AppendLog($"  {r.Status}: {r.TemplateName} — {r.Message}");
+                }
+
+                var created = results.Count(r => r.Status == "Created" || r.Status == "WhatIf");
+                AppendLog($"IR CA policy deployment complete: {created}/{results.Count} policies");
+                Status = $"IR CA policies deployed: {created}/{results.Count}";
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error deploying IR CA policies: {ex.Message}");
+                Status = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsAnalyzing = false;
+            }
+        }
+
+        /// <summary>
+        /// Export synced users and optionally disable directory sync
+        /// </summary>
+        private async Task ExportSyncedUsersAsync()
+        {
+            if (!IsEntraConnected)
+            {
+                AppendLog("Not connected to Entra ID. Connect first.");
+                return;
+            }
+
+            IsAnalyzing = true;
+            Status = "Exporting synced users...";
+
+            try
+            {
+                var exportDir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "PlatypusTools", "EntraExports");
+                Directory.CreateDirectory(exportDir);
+                var exportPath = Path.Combine(exportDir, $"SyncedUsers_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
+
+                var result = await _entraIdService.ExportSyncedUsersAsync(
+                    exportPath, disableSync: false, whatIf: RemediationWhatIf);
+
+                if (result.Success || result.ExportedSuccessfully)
+                {
+                    AppendLog($"Exported {result.SyncedUserCount} synced users to {result.ExportFilePath}");
+                    Status = $"Synced users exported: {result.SyncedUserCount} users";
+                }
+                else
+                {
+                    AppendLog($"Export failed: {result.ErrorMessage}");
+                    Status = "Synced users export failed";
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Error exporting synced users: {ex.Message}");
                 Status = $"Error: {ex.Message}";
             }
             finally

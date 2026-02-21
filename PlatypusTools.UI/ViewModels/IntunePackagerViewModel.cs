@@ -387,8 +387,7 @@ public class IntunePackagerViewModel : BindableBase
             // Download to app directory
             var targetPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ToolExeName);
 
-            using var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("PlatypusTools/1.0");
+            var httpClient = HttpClientFactory.Download;
             
             var response = await httpClient.GetAsync(GitHubReleaseUrl, HttpCompletionOption.ResponseHeadersRead);
             response.EnsureSuccessStatusCode();
