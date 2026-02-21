@@ -84,19 +84,35 @@ namespace PlatypusTools.UI.Services
                     HtmlUrl = root.GetProperty("html_url").GetString() ?? ""
                 };
 
-                // Find installer asset
+                // Find installer asset - prefer MSI over standalone EXE
                 if (root.TryGetProperty("assets", out var assets))
                 {
+                    // First pass: look for MSI installer
                     foreach (var asset in assets.EnumerateArray())
                     {
                         var name = asset.GetProperty("name").GetString() ?? "";
-                        if (name.EndsWith(".msi", StringComparison.OrdinalIgnoreCase) ||
-                            name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                        if (name.EndsWith(".msi", StringComparison.OrdinalIgnoreCase))
                         {
                             updateInfo.DownloadUrl = asset.GetProperty("browser_download_url").GetString() ?? "";
                             updateInfo.FileName = name;
                             updateInfo.FileSize = asset.GetProperty("size").GetInt64();
                             break;
+                        }
+                    }
+
+                    // Fallback: if no MSI found, look for EXE
+                    if (string.IsNullOrEmpty(updateInfo.DownloadUrl))
+                    {
+                        foreach (var asset in assets.EnumerateArray())
+                        {
+                            var name = asset.GetProperty("name").GetString() ?? "";
+                            if (name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                            {
+                                updateInfo.DownloadUrl = asset.GetProperty("browser_download_url").GetString() ?? "";
+                                updateInfo.FileName = name;
+                                updateInfo.FileSize = asset.GetProperty("size").GetInt64();
+                                break;
+                            }
                         }
                     }
                 }
@@ -174,14 +190,29 @@ namespace PlatypusTools.UI.Services
         {
             try
             {
-                // Use msiexec.exe explicitly to avoid "No application is associated" errors
-                var psi = new System.Diagnostics.ProcessStartInfo
+                System.Diagnostics.ProcessStartInfo psi;
+
+                if (installerPath.EndsWith(".msi", StringComparison.OrdinalIgnoreCase))
                 {
-                    FileName = "msiexec.exe",
-                    Arguments = $"/i \"{installerPath}\"",
-                    UseShellExecute = true,
-                    Verb = "runas" // Request admin elevation for MSI installation
-                };
+                    // Use msiexec.exe for MSI installers
+                    psi = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "msiexec.exe",
+                        Arguments = $"/i \"{installerPath}\"",
+                        UseShellExecute = true,
+                        Verb = "runas" // Request admin elevation for MSI installation
+                    };
+                }
+                else
+                {
+                    // Launch EXE directly
+                    psi = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = installerPath,
+                        UseShellExecute = true,
+                        Verb = "runas"
+                    };
+                }
 
                 System.Diagnostics.Process.Start(psi);
 
