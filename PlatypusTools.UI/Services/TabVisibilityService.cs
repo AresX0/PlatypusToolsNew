@@ -174,8 +174,18 @@ namespace PlatypusTools.UI.Services
         public Visibility ScheduledBackup => GetVisibility("System.ScheduledBackup");
         public Visibility EnvironmentVariableManager => GetVisibility("System.EnvironmentVariableManager");
         public Visibility WindowsServiceManager => GetVisibility("System.WindowsServiceManager");
+        public Visibility DiskHealth => GetVisibility("System.DiskHealth");
+        public Visibility WifiPassword => GetVisibility("System.WifiPassword");
+        public Visibility RemoteDashboard => GetVisibility("System.RemoteDashboard");
+
+        // Security - New
+        public Visibility FileIntegrity => GetVisibility("Security.FileIntegrity");
+        public Visibility CertificateManager => GetVisibility("Security.CertificateManager");
 
         // Tools - New
         public Visibility ClipboardHistory => GetVisibility("Tools.ClipboardHistory");
+        public Visibility QrCode => GetVisibility("Tools.QrCode");
+        public Visibility ColorPicker => GetVisibility("Tools.ColorPicker");
+        public Visibility BulkChecksum => GetVisibility("Tools.BulkChecksum");
     }
 }

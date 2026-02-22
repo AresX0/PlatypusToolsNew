@@ -21,30 +21,55 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Library Path Configuration -->
-            <GroupBox Header="📁 Primary Library Location" Grid.Row="0" Margin="0,0,0,8">
+            <!-- Library Folders -->
+            <GroupBox Header="📁 Library Folders" Grid.Row="0" Margin="0,0,0,8">
                 <Grid Margin="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0">Library Path:</TextBlock>
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding PrimaryLibraryPath, UpdateSourceTrigger=PropertyChanged}" 
-                             VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <Button Grid.Row="0" Grid.Column="2" Content="Browse..." Command="{Binding BrowseLibraryPathCommand}" 
-                            MinWidth="180" Margin="0,0,4,0"/>
-                    <Button Grid.Row="0" Grid.Column="3" Content="Set" Command="{Binding SetLibraryPathCommand}" 
-                            MinWidth="180" FontWeight="Bold"/>
+                    <!-- Action Buttons -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+                        <Button Content="📁 Add Folder" Command="{Binding AddLibraryFolderCommand}" 
+                                MinWidth="120" Margin="0,0,6,0"
+                                Background="#FF4CAF50" Foreground="White"/>
+                        <Button Content="🗑 Remove Selected" Command="{Binding RemoveLibraryFolderCommand}" 
+                                MinWidth="130" Margin="0,0,6,0"
+                                Background="#FFF44336" Foreground="White"/>
+                        <Button Content="🔄 Refresh" Command="{Binding RefreshLibraryCommand}" 
+                                MinWidth="100" Margin="0,0,8,0"
+                                Background="#FF2196F3" Foreground="White"/>
+                        <TextBlock VerticalAlignment="Center" FontStyle="Italic" Foreground="Gray" 
+                                   Text="{Binding LibraryInfo}"/>
+                    </StackPanel>
 
-                    <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding LibraryInfo}" 
-                               Margin="0,4,0,0" FontStyle="Italic" Foreground="Gray"/>
+                    <!-- Folder List -->
+                    <ListBox Grid.Row="1" ItemsSource="{Binding LibraryFolders}" 
+                             SelectedItem="{Binding SelectedLibraryFolder}"
+                             MinHeight="50" MaxHeight="140"
+                             Background="{DynamicResource SurfaceBrush}" BorderThickness="1">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Margin="2">
+                                    <TextBlock Text="📂" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis" 
+                                               ToolTip="{Binding}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- Legacy single path entry (hidden if folders exist) -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,6,0,0">
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,6,0" Foreground="Gray">Quick add path:</TextBlock>
+                        <TextBox Text="{Binding PrimaryLibraryPath, UpdateSourceTrigger=PropertyChanged}" 
+                                 Width="300" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <Button Content="Set" Command="{Binding SetLibraryPathCommand}" 
+                                MinWidth="60" FontWeight="Bold"/>
+                    </StackPanel>
                 </Grid>
             </GroupBox>
 

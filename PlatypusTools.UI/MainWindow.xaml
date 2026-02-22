@@ -342,6 +342,18 @@
                              Visibility="{Binding WindowsServiceManager, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:WindowsServiceManagerView}" ViewDataContext="{Binding WindowsServiceManager}" />
                     </TabItem>
+                    <TabItem Header="💽 Disk Health"
+                             Visibility="{Binding DiskHealth, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:DiskHealthView}" ViewDataContext="{Binding DiskHealth}" />
+                    </TabItem>
+                    <TabItem Header="📶 WiFi Passwords"
+                             Visibility="{Binding WifiPassword, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:WifiPasswordView}" ViewDataContext="{Binding WifiPassword}" />
+                    </TabItem>
+                    <TabItem Header="🌐 Remote Dashboard"
+                             Visibility="{Binding RemoteDashboard, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:RemoteDashboardView}" ViewDataContext="{Binding RemoteDashboard}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
 
@@ -385,6 +397,14 @@
                     <TabItem Header="🔍 CVE Search"
                              Visibility="{Binding CveSearch, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:CveSearchView}" ViewDataContext="{Binding CveSearch}" />
+                    </TabItem>
+                    <TabItem Header="🛡️ File Integrity Monitor"
+                             Visibility="{Binding FileIntegrity, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:FileIntegrityView}" ViewDataContext="{Binding FileIntegrity}" />
+                    </TabItem>
+                    <TabItem Header="🔐 Certificate Manager"
+                             Visibility="{Binding CertificateManager, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:CertificateManagerView}" ViewDataContext="{Binding CertificateManager}" />
                     </TabItem>
                 </TabControl>
             </TabItem>
@@ -464,6 +484,18 @@
                     <TabItem Header="Clipboard History"
                              Visibility="{Binding ClipboardHistory, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:ClipboardHistoryView}" ViewDataContext="{Binding ClipboardHistory}" />
+                    </TabItem>
+                    <TabItem Header="📱 QR Code Generator"
+                             Visibility="{Binding QrCode, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:QrCodeView}" ViewDataContext="{Binding QrCode}" />
+                    </TabItem>
+                    <TabItem Header="🎨 Color Picker"
+                             Visibility="{Binding ColorPicker, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:ColorPickerView}" ViewDataContext="{Binding ColorPicker}" />
+                    </TabItem>
+                    <TabItem Header="🔢 Bulk Checksum"
+                             Visibility="{Binding BulkChecksum, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:BulkChecksumView}" ViewDataContext="{Binding BulkChecksum}" />
                     </TabItem>
                 </TabControl>
             </TabItem>

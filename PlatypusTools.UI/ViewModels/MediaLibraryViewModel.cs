@@ -86,6 +86,8 @@ namespace PlatypusTools.UI.ViewModels
             // New library management commands
             BrowseLibraryPathCommand = new RelayCommand(_ => BrowseLibraryPath());
             SetLibraryPathCommand = new RelayCommand(async _ => await SetLibraryPathAsync(), _ => !string.IsNullOrWhiteSpace(PrimaryLibraryPath));
+            AddLibraryFolderCommand = new RelayCommand(_ => AddLibraryFolder());
+            RemoveLibraryFolderCommand = new RelayCommand(_ => RemoveSelectedLibraryFolder(), _ => SelectedLibraryFolder != null);
             ScanForMediaCommand = new RelayCommand(async _ => await ScanForMediaAsync(), _ => !IsScanning && !string.IsNullOrWhiteSpace(ScanPath));
             BrowseScanPathCommand = new RelayCommand(_ => BrowseScanPath());
             CopyToLibraryCommand = new RelayCommand(async _ => await CopySelectedToLibraryAsync(), _ => !IsScanning && SelectedItemsCount > 0);
@@ -101,6 +103,7 @@ namespace PlatypusTools.UI.ViewModels
         public ObservableCollection<MediaItemViewModel> MediaItems { get; } = new();
         public ObservableCollection<MediaItemViewModel> ScannedItems { get; } = new();
         public ObservableCollection<MediaDuplicateGroupViewModel> DuplicateGroups { get; } = new();
+        public ObservableCollection<string> LibraryFolders { get; } = new();
 
         #region Original Properties
 
@@ -185,6 +188,19 @@ namespace PlatypusTools.UI.ViewModels
         private string _libraryInfo = string.Empty;
         public string LibraryInfo { get => _libraryInfo; set => SetProperty(ref _libraryInfo, value); }
 
+        private string? _selectedLibraryFolder;
+        public string? SelectedLibraryFolder
+        {
+            get => _selectedLibraryFolder;
+            set
+            {
+                if (SetProperty(ref _selectedLibraryFolder, value))
+                {
+                    ((RelayCommand)RemoveLibraryFolderCommand).RaiseCanExecuteChanged();
+                }
+            }
+        }
+
         #endregion
 
         #region Commands
@@ -200,6 +216,8 @@ namespace PlatypusTools.UI.ViewModels
         // New commands
         public ICommand BrowseLibraryPathCommand { get; }
         public ICommand SetLibraryPathCommand { get; }
+        public ICommand AddLibraryFolderCommand { get; }
+        public ICommand RemoveLibraryFolderCommand { get; }
         public ICommand ScanForMediaCommand { get; }
         public ICommand BrowseScanPathCommand { get; }
         public ICommand CopyToLibraryCommand { get; }
@@ -366,6 +384,19 @@ namespace PlatypusTools.UI.ViewModels
                     if (settings != null)
                     {
                         PrimaryLibraryPath = settings.PrimaryLibraryPath ?? string.Empty;
+                        if (settings.LibraryFolders != null)
+                        {
+                            foreach (var folder in settings.LibraryFolders)
+                            {
+                                if (!string.IsNullOrWhiteSpace(folder))
+                                    LibraryFolders.Add(folder);
+                            }
+                        }
+                        // Migrate: if we have a PrimaryLibraryPath but no folders, add it
+                        if (LibraryFolders.Count == 0 && !string.IsNullOrWhiteSpace(PrimaryLibraryPath))
+                        {
+                            LibraryFolders.Add(PrimaryLibraryPath);
+                        }
                     }
                 }
             }
@@ -386,7 +417,11 @@ namespace PlatypusTools.UI.ViewModels
                 }
 
                 var settingsPath = Path.Combine(settingsDir, "media_library_settings.json");
-                var settings = new MediaLibrarySettings { PrimaryLibraryPath = PrimaryLibraryPath };
+                var settings = new MediaLibrarySettings 
+                { 
+                    PrimaryLibraryPath = PrimaryLibraryPath,
+                    LibraryFolders = LibraryFolders.ToList()
+                };
                 var json = System.Text.Json.JsonSerializer.Serialize(settings);
                 await File.WriteAllTextAsync(settingsPath, json);
             }
@@ -417,6 +452,13 @@ namespace PlatypusTools.UI.ViewModels
 
             try
             {
+                // Add to folder list if not already present
+                var normalized = Path.GetFullPath(PrimaryLibraryPath);
+                if (!LibraryFolders.Any(f => string.Equals(Path.GetFullPath(f), normalized, StringComparison.OrdinalIgnoreCase)))
+                {
+                    LibraryFolders.Add(normalized);
+                }
+
                 await _mediaLibraryService.SetPrimaryLibraryPathAsync(PrimaryLibraryPath);
                 await SaveSettingsAsync();
                 StatusMessage = $"Library path set to: {PrimaryLibraryPath}";
@@ -426,6 +468,43 @@ namespace PlatypusTools.UI.ViewModels
             {
                 StatusMessage = $"Error setting library path: {ex.Message}";
             }
+        }
+
+        private void AddLibraryFolder()
+        {
+            using var dialog = new System.Windows.Forms.FolderBrowserDialog();
+            dialog.Description = "Add Library Folder";
+            dialog.UseDescriptionForTitle = true;
+
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                var normalized = Path.GetFullPath(dialog.SelectedPath);
+                if (!LibraryFolders.Any(f => string.Equals(Path.GetFullPath(f), normalized, StringComparison.OrdinalIgnoreCase)))
+                {
+                    LibraryFolders.Add(normalized);
+                    
+                    // Set as primary if first folder
+                    if (LibraryFolders.Count == 1)
+                        PrimaryLibraryPath = normalized;
+                    
+                    _ = SaveSettingsAsync();
+                    StatusMessage = $"Added folder: {normalized}";
+                }
+                else
+                {
+                    StatusMessage = "Folder already in library";
+                }
+            }
+        }
+
+        private void RemoveSelectedLibraryFolder()
+        {
+            if (SelectedLibraryFolder == null) return;
+
+            LibraryFolders.Remove(SelectedLibraryFolder);
+            SelectedLibraryFolder = null;
+            _ = SaveSettingsAsync();
+            StatusMessage = "Folder removed from library";
         }
 
         private void BrowseScanPath()
@@ -604,7 +683,7 @@ namespace PlatypusTools.UI.ViewModels
 
         private async Task RefreshLibraryAsync()
         {
-            if (string.IsNullOrWhiteSpace(PrimaryLibraryPath))
+            if (LibraryFolders.Count == 0 && string.IsNullOrWhiteSpace(PrimaryLibraryPath))
                 return;
 
             _scanCancellationTokenSource?.Cancel();
@@ -623,15 +702,25 @@ namespace PlatypusTools.UI.ViewModels
 
             try
             {
-                await _mediaLibraryService.LoadConfigAsync(PrimaryLibraryPath);
-                await _mediaLibraryService.RefreshLibraryAsync(progress, ct);
+                var allEntries = new System.Collections.Generic.List<MediaLibraryEntry>();
+                var foldersToScan = LibraryFolders.Count > 0 
+                    ? LibraryFolders.ToList() 
+                    : new System.Collections.Generic.List<string> { PrimaryLibraryPath };
 
-                var entries = _mediaLibraryService.GetLibraryEntries();
+                foreach (var folder in foldersToScan)
+                {
+                    if (!Directory.Exists(folder)) continue;
+
+                    StatusMessage = $"Scanning {folder}...";
+                    await _mediaLibraryService.LoadConfigAsync(folder);
+                    await _mediaLibraryService.RefreshLibraryAsync(progress, ct);
+                    allEntries.AddRange(_mediaLibraryService.GetLibraryEntries());
+                }
 
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     MediaItems.Clear();
-                    foreach (var entry in entries)
+                    foreach (var entry in allEntries)
                     {
                         MediaItems.Add(new MediaItemViewModel
                         {
@@ -646,9 +735,9 @@ namespace PlatypusTools.UI.ViewModels
 
                 TotalFiles = MediaItems.Count;
                 
-                long totalSize = entries.Sum(e => e.Size);
-                LibraryInfo = $"{TotalFiles} files • {FormatBytes(totalSize)}";
-                StatusMessage = $"Library contains {TotalFiles} media files";
+                long totalSize = allEntries.Sum(e => e.Size);
+                LibraryInfo = $"{TotalFiles} files • {FormatBytes(totalSize)} across {foldersToScan.Count} folder(s)";
+                StatusMessage = $"Library contains {TotalFiles} media files from {foldersToScan.Count} folder(s)";
             }
             catch (OperationCanceledException)
             {
@@ -774,5 +863,6 @@ namespace PlatypusTools.UI.ViewModels
     internal class MediaLibrarySettings
     {
         public string? PrimaryLibraryPath { get; set; }
+        public System.Collections.Generic.List<string>? LibraryFolders { get; set; }
     }
 }

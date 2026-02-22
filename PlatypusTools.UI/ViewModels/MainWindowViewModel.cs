@@ -83,6 +83,14 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<WindowsServiceManagerViewModel> _windowsServiceManager = new(() => new WindowsServiceManagerViewModel());
         private readonly Lazy<ClipboardHistoryViewModel> _clipboardHistory = new(() => new ClipboardHistoryViewModel());
         private readonly Lazy<CloudSyncViewModel> _cloudSync = new(() => new CloudSyncViewModel());
+        private readonly Lazy<DiskHealthViewModel> _diskHealth = new(() => new DiskHealthViewModel());
+        private readonly Lazy<QrCodeViewModel> _qrCode = new(() => new QrCodeViewModel());
+        private readonly Lazy<FileIntegrityViewModel> _fileIntegrity = new(() => new FileIntegrityViewModel());
+        private readonly Lazy<CertificateManagerViewModel> _certificateManager = new(() => new CertificateManagerViewModel());
+        private readonly Lazy<ColorPickerViewModel> _colorPicker = new(() => new ColorPickerViewModel());
+        private readonly Lazy<BulkChecksumViewModel> _bulkChecksum = new(() => new BulkChecksumViewModel());
+        private readonly Lazy<WifiPasswordViewModel> _wifiPassword = new(() => new WifiPasswordViewModel());
+        private readonly Lazy<RemoteDashboardViewModel> _remoteDashboard = new(() => new RemoteDashboardViewModel());
         
         #endregion
 
@@ -193,6 +201,14 @@ namespace PlatypusTools.UI.ViewModels
         public WindowsServiceManagerViewModel WindowsServiceManager => _windowsServiceManager.Value;
         public ClipboardHistoryViewModel ClipboardHistory => _clipboardHistory.Value;
         public CloudSyncViewModel CloudSync => _cloudSync.Value;
+        public DiskHealthViewModel DiskHealth => _diskHealth.Value;
+        public QrCodeViewModel QrCode => _qrCode.Value;
+        public FileIntegrityViewModel FileIntegrity => _fileIntegrity.Value;
+        public CertificateManagerViewModel CertificateManager => _certificateManager.Value;
+        public ColorPickerViewModel ColorPicker => _colorPicker.Value;
+        public BulkChecksumViewModel BulkChecksum => _bulkChecksum.Value;
+        public WifiPasswordViewModel WifiPassword => _wifiPassword.Value;
+        public RemoteDashboardViewModel RemoteDashboard => _remoteDashboard.Value;
         
         #endregion
 

@@ -18,6 +18,13 @@ class PlatypusRemote {
         this.streamLibraryIndex = -1; // Index in library for next/prev in stream mode
         this.streamQueue = []; // Mobile-only queue for stream mode
         this.streamQueueIndex = -1; // Current position in stream queue
+        this.sleepTimer = null; // Sleep timer interval
+        this.sleepTimerEnd = null; // When sleep timer expires
+        this.systemInfoLoaded = false; // Track if system info was loaded
+        this.touchStartX = 0; // Swipe gesture tracking
+        this.touchStartY = 0;
+        this.videoLibrary = []; // Video library cache
+        this.videoLibraryLoaded = false; // Track if video library was loaded
         
         this.init();
     }
@@ -26,6 +33,9 @@ class PlatypusRemote {
         this.bindElements();
         this.bindEvents();
         this.bindStreamAudioEvents();
+        this.bindKeyboardShortcuts();
+        this.bindSwipeGestures();
+        this.bindSleepTimer();
         this.setupInstallPrompt();
         await this.connect();
     }
@@ -66,7 +76,25 @@ class PlatypusRemote {
             streamAudio: document.getElementById('streamAudio'),
             // Mode buttons
             controlModeBtn: document.getElementById('controlModeBtn'),
-            streamModeBtn: document.getElementById('streamModeBtn')
+            streamModeBtn: document.getElementById('streamModeBtn'),
+            // Sleep timer
+            sleepTimerSelect: document.getElementById('sleepTimerSelect'),
+            sleepTimerLabel: document.getElementById('sleepTimerLabel'),
+            sleepTimerCountdown: document.getElementById('sleepTimerCountdown'),
+            // System info
+            systemInfo: document.getElementById('systemInfo'),
+            // Video
+            videoSearch: document.getElementById('videoSearch'),
+            videoSearchBtn: document.getElementById('videoSearchBtn'),
+            videoGrid: document.getElementById('videoGrid'),
+            videoFolderCount: document.getElementById('videoFolderCount'),
+            videoFileCount: document.getElementById('videoFileCount'),
+            videoFolderList: document.getElementById('videoFolderList'),
+            videoRescanBtn: document.getElementById('videoRescanBtn'),
+            videoPlayerModal: document.getElementById('videoPlayerModal'),
+            videoPlayer: document.getElementById('videoPlayer'),
+            videoPlayerTitle: document.getElementById('videoPlayerTitle'),
+            videoPlayerClose: document.getElementById('videoPlayerClose')
         };
     }
 
@@ -139,6 +167,26 @@ class PlatypusRemote {
         }
         if (this.elements.streamModeBtn) {
             this.elements.streamModeBtn.addEventListener('click', () => this.setMode('stream'));
+        }
+
+        // Video search
+        if (this.elements.videoSearchBtn) {
+            this.elements.videoSearchBtn.addEventListener('click', () => this.searchVideoLibrary());
+        }
+        if (this.elements.videoSearch) {
+            this.elements.videoSearch.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.searchVideoLibrary();
+            });
+        }
+
+        // Video rescan
+        if (this.elements.videoRescanBtn) {
+            this.elements.videoRescanBtn.addEventListener('click', () => this.rescanVideoLibrary());
+        }
+
+        // Video player close
+        if (this.elements.videoPlayerClose) {
+            this.elements.videoPlayerClose.addEventListener('click', () => this.closeVideoPlayer());
         }
     }
 
@@ -667,6 +715,16 @@ class PlatypusRemote {
         if (tabId === 'queueTab') {
             this.renderQueue();
         }
+
+        // Load system info when switching to system tab
+        if (tabId === 'systemTab' && !this.systemInfoLoaded) {
+            this.loadSystemInfo();
+        }
+
+        // Load video library when switching to videos tab
+        if (tabId === 'videosTab' && !this.videoLibraryLoaded) {
+            this.loadVideoLibrary();
+        }
     }
 
     // Install Banner (PWA)
@@ -960,6 +1018,520 @@ class PlatypusRemote {
             audio.load(); // Reset the element
         }
         this.isStreaming = false;
+    }
+
+    // === KEYBOARD SHORTCUTS ===
+    bindKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Don't trigger when typing in input fields
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+
+            switch (e.key) {
+                case ' ':
+                case 'k':
+                    e.preventDefault();
+                    this.playPause();
+                    break;
+                case 'ArrowRight':
+                    if (e.shiftKey) {
+                        this.next();
+                    } else {
+                        // Seek forward 10s
+                        if (this.mode === 'stream') {
+                            const audio = this.elements.streamAudio;
+                            if (audio) audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10);
+                        } else if (this.nowPlaying) {
+                            this.seek(Math.min(this.nowPlaying.durationSeconds, (this.nowPlaying.positionSeconds || 0) + 10));
+                        }
+                    }
+                    e.preventDefault();
+                    break;
+                case 'ArrowLeft':
+                    if (e.shiftKey) {
+                        this.previous();
+                    } else {
+                        // Seek back 10s
+                        if (this.mode === 'stream') {
+                            const audio = this.elements.streamAudio;
+                            if (audio) audio.currentTime = Math.max(0, audio.currentTime - 10);
+                        } else if (this.nowPlaying) {
+                            this.seek(Math.max(0, (this.nowPlaying.positionSeconds || 0) - 10));
+                        }
+                    }
+                    e.preventDefault();
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    this.adjustVolume(5);
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    this.adjustVolume(-5);
+                    break;
+                case 'm':
+                    e.preventDefault();
+                    this.toggleMute();
+                    break;
+                case 's':
+                    e.preventDefault();
+                    this.toggleShuffle();
+                    break;
+                case 'r':
+                    e.preventDefault();
+                    this.toggleRepeat();
+                    break;
+                case '1':
+                    this.switchTab('nowPlayingTab');
+                    break;
+                case '2':
+                    this.switchTab('libraryTab');
+                    break;
+                case '3':
+                    this.switchTab('queueTab');
+                    break;
+                case '4':
+                    this.switchTab('videosTab');
+                    break;
+                case '5':
+                    this.switchTab('systemTab');
+                    break;
+            }
+        });
+    }
+
+    adjustVolume(delta) {
+        const current = parseInt(this.elements.volumeSlider.value) || 70;
+        const newVol = Math.max(0, Math.min(100, current + delta));
+        this.elements.volumeSlider.value = newVol;
+        this.elements.volumeValue.textContent = `${newVol}%`;
+        this.setVolume(newVol / 100);
+    }
+
+    toggleMute() {
+        const slider = this.elements.volumeSlider;
+        if (parseInt(slider.value) > 0) {
+            this._savedVolume = parseInt(slider.value);
+            slider.value = 0;
+            this.elements.volumeValue.textContent = '0%';
+            this.setVolume(0);
+        } else {
+            const restore = this._savedVolume || 70;
+            slider.value = restore;
+            this.elements.volumeValue.textContent = `${restore}%`;
+            this.setVolume(restore / 100);
+        }
+    }
+
+    // === SWIPE GESTURES ===
+    bindSwipeGestures() {
+        const nowPlayingTab = document.getElementById('nowPlayingTab');
+        if (!nowPlayingTab) return;
+
+        nowPlayingTab.addEventListener('touchstart', (e) => {
+            this.touchStartX = e.changedTouches[0].screenX;
+            this.touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        nowPlayingTab.addEventListener('touchend', (e) => {
+            const deltaX = e.changedTouches[0].screenX - this.touchStartX;
+            const deltaY = e.changedTouches[0].screenY - this.touchStartY;
+
+            // Only handle horizontal swipes (ignore vertical scrolls)
+            if (Math.abs(deltaX) > 80 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+                if (deltaX > 0) {
+                    this.previous(); // Swipe right = previous
+                } else {
+                    this.next(); // Swipe left = next
+                }
+            }
+        }, { passive: true });
+    }
+
+    // === SLEEP TIMER ===
+    bindSleepTimer() {
+        const select = this.elements.sleepTimerSelect;
+        if (!select) return;
+
+        select.addEventListener('change', () => {
+            const minutes = parseInt(select.value);
+            if (minutes > 0) {
+                this.startSleepTimer(minutes);
+            } else {
+                this.cancelSleepTimer();
+            }
+        });
+    }
+
+    startSleepTimer(minutes) {
+        this.cancelSleepTimer(); // Clear any existing timer
+        this.sleepTimerEnd = Date.now() + minutes * 60 * 1000;
+
+        this.sleepTimer = setInterval(() => {
+            const remaining = this.sleepTimerEnd - Date.now();
+            if (remaining <= 0) {
+                this.cancelSleepTimer();
+                this.sleepTimerTriggered();
+                return;
+            }
+            const mins = Math.floor(remaining / 60000);
+            const secs = Math.floor((remaining % 60000) / 1000);
+            if (this.elements.sleepTimerCountdown) {
+                this.elements.sleepTimerCountdown.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+            if (this.elements.sleepTimerLabel) {
+                this.elements.sleepTimerLabel.textContent = 'Sleeping in';
+            }
+        }, 1000);
+    }
+
+    cancelSleepTimer() {
+        if (this.sleepTimer) {
+            clearInterval(this.sleepTimer);
+            this.sleepTimer = null;
+        }
+        this.sleepTimerEnd = null;
+        if (this.elements.sleepTimerCountdown) this.elements.sleepTimerCountdown.textContent = '';
+        if (this.elements.sleepTimerLabel) this.elements.sleepTimerLabel.textContent = 'Sleep Timer';
+        if (this.elements.sleepTimerSelect) this.elements.sleepTimerSelect.value = '0';
+    }
+
+    sleepTimerTriggered() {
+        // Pause both local and remote playback
+        this.pause();
+        if (this.mode === 'stream') {
+            this.stopStreaming();
+        }
+        if (this.elements.sleepTimerLabel) this.elements.sleepTimerLabel.textContent = '💤 Paused by sleep timer';
+    }
+
+    // === SYSTEM INFO ===
+    async loadSystemInfo() {
+        if (!this.elements.systemInfo) return;
+
+        this.elements.systemInfo.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading system info...</p></div>';
+
+        try {
+            // Fetch both health endpoints
+            const [healthRes, detailedRes] = await Promise.all([
+                fetch('/health'),
+                fetch('/api/health/detailed').catch(() => null)
+            ]);
+
+            if (!healthRes.ok) throw new Error('Health endpoint unavailable');
+            const health = await healthRes.json();
+            const detailed = detailedRes?.ok ? await detailedRes.json() : null;
+
+            this.systemInfoLoaded = true;
+            this.renderSystemInfo(health, detailed);
+        } catch (error) {
+            console.error('Failed to load system info:', error);
+            this.elements.systemInfo.innerHTML = '<div class="no-content"><p>🖥️ Unable to load system info</p><p style="font-size:0.85rem;margin-top:8px;">Server may not support health endpoint</p></div>';
+        }
+    }
+
+    renderSystemInfo(health, detailed) {
+        if (!this.elements.systemInfo) return;
+
+        let html = '';
+
+        // Server Status card
+        html += `<div class="sys-card">
+            <h3>🦆 PlatypusTools Server</h3>
+            <div class="sys-row"><span class="label">Status</span><span class="value" style="color:var(--success)">● ${health.status}</span></div>
+            <div class="sys-row"><span class="label">Version</span><span class="value">${health.version || 'N/A'}</span></div>
+            <div class="sys-row"><span class="label">Uptime</span><span class="value">${health.uptime?.display || 'N/A'}</span></div>
+            <div class="sys-row"><span class="label">Port</span><span class="value">${health.server?.port || 'N/A'}</span></div>
+        </div>`;
+
+        // Now Playing card
+        if (health.audio) {
+            html += `<div class="sys-card">
+                <h3>🎵 Audio Status</h3>
+                <div class="sys-row"><span class="label">Playing</span><span class="value">${health.audio.playing ? '▶ Yes' : '⏸ No'}</span></div>
+                ${health.audio.title ? `<div class="sys-row"><span class="label">Track</span><span class="value">${this.escapeHtml(health.audio.title)}</span></div>` : ''}
+                ${health.audio.artist ? `<div class="sys-row"><span class="label">Artist</span><span class="value">${this.escapeHtml(health.audio.artist)}</span></div>` : ''}
+            </div>`;
+        }
+
+        // Memory card
+        if (health.memory) {
+            const memUsed = health.memory.workingSetMB || 0;
+            const memPeak = health.memory.peakWorkingSetMB || 0;
+            html += `<div class="sys-card">
+                <h3>💾 Memory</h3>
+                <div class="sys-row"><span class="label">Working Set</span><span class="value">${memUsed} MB</span></div>
+                <div class="sys-row"><span class="label">Peak</span><span class="value">${memPeak} MB</span></div>
+                <div class="sys-row"><span class="label">GC Memory</span><span class="value">${health.memory.gcTotalMemoryMB || 0} MB</span></div>
+            </div>`;
+        }
+
+        // System card
+        if (health.system) {
+            html += `<div class="sys-card">
+                <h3>🖥️ System</h3>
+                <div class="sys-row"><span class="label">OS</span><span class="value">${health.system.os || 'N/A'}</span></div>
+                <div class="sys-row"><span class="label">CPU Cores</span><span class="value">${health.system.processors || 'N/A'}</span></div>
+                <div class="sys-row"><span class="label">.NET</span><span class="value">${health.system.dotnetVersion || 'N/A'}</span></div>
+                <div class="sys-row"><span class="label">Architecture</span><span class="value">${health.system.is64Bit ? '64-bit' : '32-bit'}</span></div>
+            </div>`;
+        }
+
+        // Drives card (from detailed endpoint)
+        if (detailed?.drives?.length) {
+            html += `<div class="sys-card"><h3>💿 Drives</h3>`;
+            for (const drive of detailed.drives) {
+                const usedGB = (drive.totalGB || 0) - (drive.freeGB || 0);
+                const pct = drive.totalGB > 0 ? Math.round((usedGB / drive.totalGB) * 100) : 0;
+                const meterClass = pct > 90 ? 'danger' : pct > 75 ? 'warn' : 'ok';
+                html += `<div class="sys-row"><span class="label">${drive.name} (${drive.format})</span><span class="value">${drive.freeGB} / ${drive.totalGB} GB free</span></div>
+                    <div class="sys-meter"><div class="sys-meter-fill ${meterClass}" style="width:${pct}%"></div></div>`;
+            }
+            html += `</div>`;
+        }
+
+        // Process details (from detailed endpoint)
+        if (detailed?.process) {
+            html += `<div class="sys-card">
+                <h3>⚙️ Process</h3>
+                <div class="sys-row"><span class="label">PID</span><span class="value">${detailed.process.id}</span></div>
+                <div class="sys-row"><span class="label">Threads</span><span class="value">${detailed.process.threads}</span></div>
+                <div class="sys-row"><span class="label">Handles</span><span class="value">${detailed.process.handles}</span></div>
+                <div class="sys-row"><span class="label">CPU Time</span><span class="value">${detailed.process.totalProcessorTimeSec}s</span></div>
+            </div>`;
+        }
+
+        // Tailscale status
+        if (health.tailscale) {
+            const tsColor = health.tailscale.connected ? 'var(--success)' : 'var(--text-secondary)';
+            html += `<div class="sys-card">
+                <h3>🔒 Tailscale</h3>
+                <div class="sys-row"><span class="label">Installed</span><span class="value">${health.tailscale.installed ? 'Yes' : 'No'}</span></div>
+                <div class="sys-row"><span class="label">Connected</span><span class="value" style="color:${tsColor}">${health.tailscale.connected ? '● Connected' : '○ Not Connected'}</span></div>
+                ${health.tailscale.ip ? `<div class="sys-row"><span class="label">IP</span><span class="value">${health.tailscale.ip}</span></div>` : ''}
+                ${health.tailscale.remoteUrl ? `<div class="sys-row"><span class="label">URL</span><span class="value" style="font-size:0.8rem;word-break:break-all">${health.tailscale.remoteUrl}</span></div>` : ''}
+            </div>`;
+        }
+
+        // Refresh button
+        html += `<div style="text-align:center;padding:16px 0;">
+            <button id="refreshSystemBtn" style="padding:10px 24px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.9rem;">🔄 Refresh</button>
+        </div>`;
+
+        this.elements.systemInfo.innerHTML = html;
+
+        // Bind refresh
+        document.getElementById('refreshSystemBtn')?.addEventListener('click', () => {
+            this.systemInfoLoaded = false;
+            this.loadSystemInfo();
+        });
+    }
+
+    // ===== VIDEO LIBRARY METHODS =====
+
+    async loadVideoLibrary() {
+        try {
+            this.elements.videoGrid.innerHTML = '<div class="no-content"><div class="spinner"></div><p>Loading video library...</p></div>';
+
+            const [libraryRes, foldersRes] = await Promise.all([
+                fetch('/api/video/library'),
+                fetch('/api/video/folders')
+            ]);
+
+            if (libraryRes.ok) {
+                this.videoLibrary = await libraryRes.json();
+            }
+
+            let folders = [];
+            if (foldersRes.ok) {
+                folders = await foldersRes.json();
+            }
+
+            this.videoLibraryLoaded = true;
+            this.elements.videoFolderCount.textContent = folders.length;
+            this.elements.videoFileCount.textContent = this.videoLibrary.length;
+
+            // Render folder list
+            if (this.elements.videoFolderList) {
+                if (folders.length === 0) {
+                    this.elements.videoFolderList.innerHTML = '<div class="folder-item" style="color: var(--text-secondary); font-style: italic;">No folders configured — add folders in Media Library tab</div>';
+                } else {
+                    this.elements.videoFolderList.innerHTML = folders.map(f =>
+                        `<div class="folder-item"><span>📂</span> ${this.escapeHtml(f)}</div>`
+                    ).join('');
+                }
+            }
+
+            this.renderVideoGrid(this.videoLibrary);
+        } catch (err) {
+            console.error('Failed to load video library:', err);
+            this.elements.videoGrid.innerHTML = '<div class="no-content"><p>❌ Failed to load video library</p></div>';
+        }
+    }
+
+    async searchVideoLibrary() {
+        const query = this.elements.videoSearch?.value?.trim();
+        if (!query) {
+            this.renderVideoGrid(this.videoLibrary);
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/video/search?q=${encodeURIComponent(query)}`);
+            if (res.ok) {
+                const results = await res.json();
+                this.renderVideoGrid(results);
+            }
+        } catch (err) {
+            console.error('Video search failed:', err);
+        }
+    }
+
+    async rescanVideoLibrary() {
+        try {
+            this.elements.videoRescanBtn.textContent = '⏳ Scanning...';
+            this.elements.videoRescanBtn.disabled = true;
+
+            await fetch('/api/video/rescan', { method: 'POST' });
+
+            // Reload library after rescan
+            this.videoLibraryLoaded = false;
+            await this.loadVideoLibrary();
+        } catch (err) {
+            console.error('Video rescan failed:', err);
+        } finally {
+            this.elements.videoRescanBtn.textContent = '🔄 Rescan';
+            this.elements.videoRescanBtn.disabled = false;
+        }
+    }
+
+    renderVideoGrid(videos) {
+        if (!videos || videos.length === 0) {
+            this.elements.videoGrid.innerHTML = `<div class="no-content">
+                <p>🎬 No videos found</p>
+                <p style="font-size: 0.85rem; margin-top: 8px;">Add folders in the Media Library tab, then click Rescan</p>
+            </div>`;
+            return;
+        }
+
+        let html = '';
+        for (const video of videos) {
+            const duration = this.formatVideoTime(video.durationSeconds);
+            const size = video.fileSizeMB || '';
+            const resolution = video.resolution || '';
+            const thumbSrc = video.thumbnailBase64
+                ? `data:image/jpeg;base64,${video.thumbnailBase64}`
+                : null;
+
+            html += `<div class="video-card" data-path="${this.escapeHtml(video.filePath)}" onclick="platypusRemote.playVideo('${this.escapeJs(video.filePath)}', '${this.escapeJs(video.fileName)}')">
+                <div class="video-thumb">
+                    ${thumbSrc
+                        ? `<img src="${thumbSrc}" alt="" loading="lazy">`
+                        : '<span style="font-size:2.5rem;opacity:0.4">🎬</span>'
+                    }
+                    <div class="play-overlay">▶️</div>
+                    ${duration ? `<span class="video-duration-badge">${duration}</span>` : ''}
+                </div>
+                <div class="video-meta">
+                    <div class="video-title" title="${this.escapeHtml(video.fileName)}">${this.escapeHtml(video.title || video.fileName)}</div>
+                    <div class="video-info">
+                        ${resolution ? `<span>${resolution}</span>` : ''}
+                        ${size ? `<span>${size}</span>` : ''}
+                    </div>
+                </div>
+            </div>`;
+        }
+        this.elements.videoGrid.innerHTML = html;
+
+        // Lazy-load thumbnails for items that don't have them
+        this.lazyLoadVideoThumbnails(videos);
+    }
+
+    async lazyLoadVideoThumbnails(videos) {
+        for (const video of videos) {
+            if (video.thumbnailBase64) continue; // Already has thumbnail
+
+            try {
+                const res = await fetch(`/api/video/thumbnail?path=${encodeURIComponent(video.filePath)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.thumbnail) {
+                        video.thumbnailBase64 = data.thumbnail;
+                        // Update the card's thumbnail
+                        const card = this.elements.videoGrid.querySelector(`[data-path="${CSS.escape(video.filePath)}"]`);
+                        if (card) {
+                            const thumbDiv = card.querySelector('.video-thumb');
+                            if (thumbDiv) {
+                                const existingImg = thumbDiv.querySelector('img');
+                                if (existingImg) {
+                                    existingImg.src = `data:image/jpeg;base64,${data.thumbnail}`;
+                                } else {
+                                    const span = thumbDiv.querySelector('span:not(.video-duration-badge):not(.play-overlay)');
+                                    if (span) {
+                                        const img = document.createElement('img');
+                                        img.src = `data:image/jpeg;base64,${data.thumbnail}`;
+                                        img.alt = '';
+                                        img.loading = 'lazy';
+                                        span.replaceWith(img);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch { /* ignore thumbnail errors */ }
+        }
+    }
+
+    playVideo(filePath, title) {
+        if (!filePath) return;
+
+        const streamUrl = `/api/stream?path=${encodeURIComponent(filePath)}`;
+        const video = this.elements.videoPlayer;
+        const modal = this.elements.videoPlayerModal;
+
+        this.elements.videoPlayerTitle.textContent = title || 'Video';
+        video.src = streamUrl;
+        modal.classList.add('active');
+        video.play().catch(() => {}); // Autoplay may be blocked
+
+        // Handle Escape key to close
+        this._videoEscHandler = (e) => {
+            if (e.key === 'Escape') this.closeVideoPlayer();
+        };
+        document.addEventListener('keydown', this._videoEscHandler);
+    }
+
+    closeVideoPlayer() {
+        const video = this.elements.videoPlayer;
+        const modal = this.elements.videoPlayerModal;
+
+        video.pause();
+        video.src = '';
+        modal.classList.remove('active');
+
+        if (this._videoEscHandler) {
+            document.removeEventListener('keydown', this._videoEscHandler);
+            this._videoEscHandler = null;
+        }
+    }
+
+    formatVideoTime(seconds) {
+        if (!seconds || seconds <= 0) return '';
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+
+    escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    escapeJs(str) {
+        if (!str) return '';
+        return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
     }
 }
 

@@ -12,11 +12,13 @@ namespace PlatypusTools.UI.Services.RemoteServer;
 public class PlatypusHub : Hub
 {
     private readonly IAudioServiceBridge _audioService;
+    private readonly IVideoServiceBridge _videoService;
     private readonly RemoteAuditLogService _auditLog = RemoteAuditLogService.Instance;
 
-    public PlatypusHub(IAudioServiceBridge audioService)
+    public PlatypusHub(IAudioServiceBridge audioService, IVideoServiceBridge videoService)
     {
         _audioService = audioService;
+        _videoService = videoService;
     }
 
     private string ClientIp => Context.GetHttpContext()?.Connection?.RemoteIpAddress?.ToString() ?? "unknown";
@@ -178,6 +180,37 @@ public class PlatypusHub : Hub
         _auditLog.LogAction(Context.ConnectionId, ClientIp, "AddToQueue", $"File: {filePath}");
         await _audioService.AddToQueueAsync(filePath);
         await BroadcastQueue();
+    }
+
+    // ---- Video Library Methods ----
+
+    /// <summary>
+    /// Get the video library listing.
+    /// </summary>
+    public async Task GetVideoLibrary()
+    {
+        _auditLog.LogAction(Context.ConnectionId, ClientIp, "GetVideoLibrary");
+        var library = await _videoService.GetVideoLibraryAsync();
+        await Clients.Caller.SendAsync("videoLibrary", library);
+    }
+
+    /// <summary>
+    /// Search the video library.
+    /// </summary>
+    public async Task SearchVideoLibrary(string query)
+    {
+        _auditLog.LogAction(Context.ConnectionId, ClientIp, "SearchVideoLibrary", $"Query: {query}");
+        var results = await _videoService.SearchVideoLibraryAsync(query);
+        await Clients.Caller.SendAsync("videoLibrary", results);
+    }
+
+    /// <summary>
+    /// Get a video thumbnail.
+    /// </summary>
+    public async Task GetVideoThumbnail(string filePath)
+    {
+        var thumbnail = await _videoService.GetVideoThumbnailAsync(filePath);
+        await Clients.Caller.SendAsync("videoThumbnail", new { filePath, thumbnail });
     }
 
     private async Task BroadcastNowPlaying()

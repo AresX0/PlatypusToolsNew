@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -281,6 +283,9 @@ public class PlatypusRemoteServer : IDisposable
                             EnhancedAudioPlayerService.Instance,
                             this
                         ));
+
+                        // Register video service bridge
+                        services.AddSingleton<IVideoServiceBridge>(sp => new VideoServiceBridge());
                     });
                     webBuilder.Configure(app =>
                     {
@@ -538,9 +543,16 @@ public class PlatypusRemoteServer : IDisposable
                                     return;
                                 }
 
-                                // Security: Only allow audio files
+                                // Security: Only allow audio and video files
                                 var ext = Path.GetExtension(filePath).ToLowerInvariant();
-                                var allowedExtensions = new[] { ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma" };
+                                var allowedExtensions = new[]
+                                {
+                                    // Audio
+                                    ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma",
+                                    // Video
+                                    ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm",
+                                    ".mpeg", ".mpg", ".m4v", ".3gp", ".ts", ".m2ts"
+                                };
                                 if (!allowedExtensions.Contains(ext))
                                 {
                                     context.Response.StatusCode = 403;
@@ -550,6 +562,7 @@ public class PlatypusRemoteServer : IDisposable
                                 // Get content type
                                 var contentType = ext switch
                                 {
+                                    // Audio types
                                     ".mp3" => "audio/mpeg",
                                     ".flac" => "audio/flac",
                                     ".wav" => "audio/wav",
@@ -557,6 +570,18 @@ public class PlatypusRemoteServer : IDisposable
                                     ".m4a" => "audio/mp4",
                                     ".aac" => "audio/aac",
                                     ".wma" => "audio/x-ms-wma",
+                                    // Video types
+                                    ".mp4" => "video/mp4",
+                                    ".mkv" => "video/x-matroska",
+                                    ".avi" => "video/x-msvideo",
+                                    ".mov" => "video/quicktime",
+                                    ".wmv" => "video/x-ms-wmv",
+                                    ".flv" => "video/x-flv",
+                                    ".webm" => "video/webm",
+                                    ".mpeg" or ".mpg" => "video/mpeg",
+                                    ".m4v" => "video/mp4",
+                                    ".3gp" => "video/3gpp",
+                                    ".ts" or ".m2ts" => "video/mp2t",
                                     _ => "application/octet-stream"
                                 };
 
@@ -602,6 +627,54 @@ public class PlatypusRemoteServer : IDisposable
 
                             // SignalR hub for real-time updates
                             endpoints.MapHub<PlatypusHub>("/hub/platypus");
+
+                            // Video Library API
+                            endpoints.MapGet("/api/video/library", async context =>
+                            {
+                                var videoBridge = context.RequestServices.GetRequiredService<IVideoServiceBridge>();
+                                var library = await videoBridge.GetVideoLibraryAsync();
+                                await context.Response.WriteAsJsonAsync(library);
+                            });
+
+                            endpoints.MapGet("/api/video/search", async context =>
+                            {
+                                var query = context.Request.Query["q"].ToString();
+                                var videoBridge = context.RequestServices.GetRequiredService<IVideoServiceBridge>();
+                                var results = await videoBridge.SearchVideoLibraryAsync(query);
+                                await context.Response.WriteAsJsonAsync(results);
+                            });
+
+                            endpoints.MapGet("/api/video/folders", async context =>
+                            {
+                                var videoBridge = context.RequestServices.GetRequiredService<IVideoServiceBridge>();
+                                var folders = await videoBridge.GetVideoFoldersAsync();
+                                await context.Response.WriteAsJsonAsync(folders);
+                            });
+
+                            endpoints.MapPost("/api/video/rescan", async context =>
+                            {
+                                var videoBridge = context.RequestServices.GetRequiredService<IVideoServiceBridge>();
+                                await videoBridge.RescanLibraryAsync();
+                                context.Response.StatusCode = 204;
+                            });
+
+                            endpoints.MapGet("/api/video/thumbnail", async context =>
+                            {
+                                var filePath = context.Request.Query["path"].ToString();
+                                if (string.IsNullOrEmpty(filePath))
+                                {
+                                    context.Response.StatusCode = 400;
+                                    return;
+                                }
+                                var videoBridge = context.RequestServices.GetRequiredService<IVideoServiceBridge>();
+                                var thumbnail = await videoBridge.GetVideoThumbnailAsync(filePath);
+                                if (thumbnail == null)
+                                {
+                                    context.Response.StatusCode = 404;
+                                    return;
+                                }
+                                await context.Response.WriteAsJsonAsync(new { thumbnail });
+                            });
                         });
                     });
                 })
@@ -751,3 +824,5 @@ public class RemoteClientInfo
     public string UserAgent { get; set; } = string.Empty;
     public DateTime ConnectedAt { get; set; } = DateTime.UtcNow;
 }
+
+

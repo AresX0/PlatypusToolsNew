@@ -1,0 +1,135 @@
+<UserControl x:Class="PlatypusTools.UI.Views.QrCodeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignHeight="700" d:DesignWidth="1200">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="📱 QR Code Generator" FontSize="16" FontWeight="Bold" Margin="0,0,0,8" />
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="300" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="350" MinWidth="250" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Input Area -->
+            <TabControl Grid.Column="0" SelectedIndex="{Binding SelectedTabIndex}">
+                <!-- Text/URL Tab -->
+                <TabItem Header="📝 Text / URL">
+                    <StackPanel Margin="8">
+                        <TextBlock Text="Enter text or URL:" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True" TextWrapping="Wrap" Height="120"
+                                 VerticalScrollBarVisibility="Auto" />
+                        <Button Content="Generate QR Code" Command="{Binding GenerateCommand}"
+                                Margin="0,8,0,0" Padding="16,6"
+                                Background="#FF4CAF50" Foreground="White" HorizontalAlignment="Left" />
+                    </StackPanel>
+                </TabItem>
+
+                <!-- WiFi Tab -->
+                <TabItem Header="📶 WiFi">
+                    <StackPanel Margin="8">
+                        <TextBlock Text="SSID (Network Name):" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding WifiSsid, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+                        <TextBlock Text="Password:" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding WifiPassword, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <TextBlock Text="Auth Type:" VerticalAlignment="Center" Width="70" />
+                            <ComboBox Width="100" SelectedItem="{Binding WifiAuthType}">
+                                <ComboBoxItem Content="WPA" IsSelected="True" />
+                                <ComboBoxItem Content="WEP" />
+                                <ComboBoxItem Content="nopass" />
+                            </ComboBox>
+                            <CheckBox Content="Hidden Network" IsChecked="{Binding WifiHidden}" Margin="16,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <Button Content="Generate WiFi QR" Command="{Binding GenerateWifiCommand}"
+                                Padding="16,6" Background="#FF2196F3" Foreground="White" HorizontalAlignment="Left" />
+                    </StackPanel>
+                </TabItem>
+
+                <!-- vCard Tab -->
+                <TabItem Header="👤 Contact">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="8">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <StackPanel Width="200" Margin="0,0,16,0">
+                                    <TextBlock Text="First Name:" Margin="0,0,0,4" />
+                                    <TextBox Text="{Binding VCardFirstName, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                                <StackPanel Width="200">
+                                    <TextBlock Text="Last Name:" Margin="0,0,0,4" />
+                                    <TextBox Text="{Binding VCardLastName, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                            </StackPanel>
+                            <TextBlock Text="Phone:" Margin="0,0,0,4" />
+                            <TextBox Text="{Binding VCardPhone, UpdateSourceTrigger=PropertyChanged}" Width="200" HorizontalAlignment="Left" Margin="0,0,0,8" />
+                            <TextBlock Text="Email:" Margin="0,0,0,4" />
+                            <TextBox Text="{Binding VCardEmail, UpdateSourceTrigger=PropertyChanged}" Width="300" HorizontalAlignment="Left" Margin="0,0,0,8" />
+                            <TextBlock Text="Organization:" Margin="0,0,0,4" />
+                            <TextBox Text="{Binding VCardOrganization, UpdateSourceTrigger=PropertyChanged}" Width="300" HorizontalAlignment="Left" Margin="0,0,0,8" />
+                            <Button Content="Generate Contact QR" Command="{Binding GenerateVCardCommand}"
+                                    Padding="16,6" Background="#FF9C27B0" Foreground="White" HorizontalAlignment="Left" />
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- Settings Tab -->
+                <TabItem Header="⚙️ Settings">
+                    <StackPanel Margin="8">
+                        <TextBlock Text="Pixels Per Module:" Margin="0,0,0,4" />
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <Slider Value="{Binding PixelsPerModule}" Minimum="5" Maximum="50" Width="200"
+                                    TickFrequency="5" IsSnapToTickEnabled="True" />
+                            <TextBlock Text="{Binding PixelsPerModule}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="Dark Color (Hex):" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding DarkColor}" Width="100" HorizontalAlignment="Left" Margin="0,0,0,12" />
+                        <TextBlock Text="Light Color (Hex):" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding LightColor}" Width="100" HorizontalAlignment="Left" />
+                    </StackPanel>
+                </TabItem>
+            </TabControl>
+
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center"
+                          Background="#CCCCCC" Cursor="SizeWE" />
+
+            <!-- QR Code Preview -->
+            <GroupBox Grid.Column="2" Header="QR Code Preview" Margin="4,0,0,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Border Background="White" CornerRadius="4" Padding="8" Margin="4"
+                            HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Image Source="{Binding QrImageSource}" MaxWidth="300" MaxHeight="300"
+                               RenderOptions.BitmapScalingMode="NearestNeighbor" />
+                    </Border>
+
+                    <StackPanel Grid.Row="1" Margin="4">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,4">
+                            <Button Content="📋 Copy" Command="{Binding CopyCommand}" Padding="12,4" Margin="4,0"
+                                    Background="#FF2196F3" Foreground="White" />
+                            <Button Content="💾 Save" Command="{Binding SaveCommand}" Padding="12,4" Margin="4,0"
+                                    Background="#FF4CAF50" Foreground="White" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+        </Grid>
+
+        <!-- Status Bar -->
+        <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" Margin="0,4,0,0"
+                   Foreground="#FFB0B0B0" FontSize="11" />
+    </Grid>
+</UserControl>
