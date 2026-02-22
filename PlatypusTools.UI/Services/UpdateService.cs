@@ -398,13 +398,33 @@ namespace PlatypusTools.UI.Services
 
                 if (installerPath.EndsWith(".msi", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Use msiexec.exe for MSI installers
+                    // Copy MSI to a shared location accessible by the elevated Windows Installer service.
+                    // Error 2503 occurs when msiexec (running as SYSTEM) can't access files in the user's %TEMP%.
+                    var sharedDir = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                        "PlatypusTools", "Updates");
+                    Directory.CreateDirectory(sharedDir);
+                    var sharedMsiPath = Path.Combine(sharedDir, Path.GetFileName(installerPath));
+                    
+                    try
+                    {
+                        File.Copy(installerPath, sharedMsiPath, overwrite: true);
+                        SimpleLogger.Info($"Copied MSI to shared location: {sharedMsiPath}");
+                    }
+                    catch (Exception copyEx)
+                    {
+                        SimpleLogger.Error($"Failed to copy MSI to shared location, using original path: {copyEx.Message}");
+                        sharedMsiPath = installerPath; // Fallback to original path
+                    }
+
+                    // Launch the .msi file directly via the shell rather than calling msiexec.exe.
+                    // This lets Windows handle elevation properly and avoids error 2503 where
+                    // msiexec launched with Verb="runas" loses the installer service context.
                     psi = new System.Diagnostics.ProcessStartInfo
                     {
-                        FileName = "msiexec.exe",
-                        Arguments = $"/i \"{installerPath}\"",
+                        FileName = sharedMsiPath,
                         UseShellExecute = true,
-                        Verb = "runas" // Request admin elevation for MSI installation
+                        Verb = "runas" // Request admin elevation via UAC
                     };
                 }
                 else

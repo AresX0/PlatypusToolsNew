@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 
 namespace PlatypusTools.Core.Services
@@ -16,8 +17,12 @@ namespace PlatypusTools.Core.Services
             result.ExifToolInstalled = await CheckExifToolAsync();
             result.YtDlpInstalled = await CheckYtDlpAsync();
             result.WebView2Installed = CheckWebView2();
+            result.TailscaleInstalled = CheckTailscale();
+            result.CloudflaredInstalled = CheckCloudflared();
 
-            result.AllDependenciesMet = result.FFmpegInstalled && result.ExifToolInstalled && result.YtDlpInstalled && result.WebView2Installed;
+            result.AllDependenciesMet = result.FFmpegInstalled && result.ExifToolInstalled 
+                && result.YtDlpInstalled && result.WebView2Installed;
+            // Note: Tailscale and cloudflared are optional remote access tools, not required for AllDependenciesMet
 
             return result;
         }
@@ -196,6 +201,90 @@ namespace PlatypusTools.Core.Services
         public string GetExifToolDownloadUrl() => "https://exiftool.org/";
         public string GetYtDlpDownloadUrl() => "https://github.com/yt-dlp/yt-dlp/releases";
         public string GetWebView2DownloadUrl() => "https://developer.microsoft.com/en-us/microsoft-edge/webview2/";
+        public string GetTailscaleDownloadUrl() => "https://tailscale.com/download/windows";
+        public string GetCloudflaredDownloadUrl() => "https://github.com/cloudflare/cloudflared/releases";
+
+        private bool CheckTailscale()
+        {
+            try
+            {
+                // Check common install paths
+                var paths = new[]
+                {
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Tailscale"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Tailscale"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Tailscale")
+                };
+
+                if (paths.Any(Directory.Exists))
+                    return true;
+
+                // Also check if Tailscale network adapter exists
+                try
+                {
+                    return NetworkInterface.GetAllNetworkInterfaces()
+                        .Any(ni => ni.Name.Contains("Tailscale", StringComparison.OrdinalIgnoreCase));
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool CheckCloudflared()
+        {
+            try
+            {
+                // Check app data path (where PlatypusTools installs it)
+                var appDataPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "PlatypusTools", "cloudflared", "cloudflared.exe");
+                if (File.Exists(appDataPath))
+                    return true;
+
+                // Check common install paths
+                var paths = new[]
+                {
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "cloudflared", "cloudflared.exe"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "cloudflared", "cloudflared.exe"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "cloudflared", "cloudflared.exe")
+                };
+
+                if (paths.Any(File.Exists))
+                    return true;
+
+                // Check system PATH
+                try
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "cloudflared",
+                        Arguments = "--version",
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+                    using var process = Process.Start(psi);
+                    if (process != null)
+                    {
+                        process.WaitForExit(5000);
+                        return process.ExitCode == 0;
+                    }
+                }
+                catch { }
+
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 
     public class DependencyCheckResult
@@ -204,6 +293,8 @@ namespace PlatypusTools.Core.Services
         public bool ExifToolInstalled { get; set; }
         public bool YtDlpInstalled { get; set; }
         public bool WebView2Installed { get; set; }
+        public bool TailscaleInstalled { get; set; }
+        public bool CloudflaredInstalled { get; set; }
         public bool AllDependenciesMet { get; set; }
 
         public string GetMissingDependenciesMessage()
@@ -213,6 +304,8 @@ namespace PlatypusTools.Core.Services
             if (!ExifToolInstalled) missing.Add("ExifTool (for metadata editing)");
             if (!YtDlpInstalled) missing.Add("yt-dlp (for streaming audio)");
             if (!WebView2Installed) missing.Add("WebView2 Runtime (for help system)");
+            if (!TailscaleInstalled) missing.Add("Tailscale (optional - for secure remote access)");
+            if (!CloudflaredInstalled) missing.Add("cloudflared (optional - for Cloudflare tunnel remote access)");
 
             if (missing.Count == 0)
                 return "All dependencies are installed.";

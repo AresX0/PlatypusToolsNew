@@ -82,6 +82,30 @@ namespace PlatypusTools.UI.Views
                 WebView2InstallBtn.Content = "Install";
             }
             
+            // Update Tailscale status (optional)
+            if (_lastResult.TailscaleInstalled)
+            {
+                TailscaleStatus.Text = "✅";
+            }
+            else
+            {
+                TailscaleStatus.Text = "⬜";
+            }
+            
+            // Update cloudflared status (optional)
+            if (_lastResult.CloudflaredInstalled)
+            {
+                CloudflaredStatus.Text = "✅";
+                CloudflaredInstallBtn.IsEnabled = false;
+                CloudflaredInstallBtn.Content = "Installed";
+            }
+            else
+            {
+                CloudflaredStatus.Text = "⬜";
+                CloudflaredInstallBtn.IsEnabled = true;
+                CloudflaredInstallBtn.Content = "Install";
+            }
+            
             // Update status message
             if (_lastResult.AllDependenciesMet)
             {
@@ -207,6 +231,52 @@ namespace PlatypusTools.UI.Views
                 FileName = "https://developer.microsoft.com/en-us/microsoft-edge/webview2/",
                 UseShellExecute = true
             });
+        }
+        
+        private void OpenTailscaleSite_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://tailscale.com/download/windows",
+                UseShellExecute = true
+            });
+        }
+        
+        private void OpenCloudflaredSite_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://github.com/cloudflare/cloudflared/releases",
+                UseShellExecute = true
+            });
+        }
+        
+        private async void InstallCloudflared_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                CloudflaredInstallBtn.IsEnabled = false;
+                CloudflaredInstallBtn.Content = "Installing...";
+                CloudflaredStatus.Text = "⏳";
+                
+                var success = await CloudflareTunnelService.Instance.InstallAsync();
+                
+                if (success)
+                {
+                    MessageBox.Show("cloudflared installed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("cloudflared installation failed. Please install manually from GitHub.", "Installation Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                
+                await CheckDependenciesAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error installing cloudflared: {ex.Message}\n\nPlease install manually.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                await CheckDependenciesAsync();
+            }
         }
         
         private void OpenToolsFolder_Click(object sender, RoutedEventArgs e)

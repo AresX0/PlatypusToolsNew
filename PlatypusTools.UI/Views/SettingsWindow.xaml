@@ -404,7 +404,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.3.2"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.3.3"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="Gray" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
@@ -985,6 +985,35 @@
                                     <TextBlock x:Name="DepWebView2Info" Grid.Column="2" Text="Checking..." Foreground="Gray"/>
                                     <Button x:Name="DepWebView2Btn" Grid.Column="3" Content="Install" MinWidth="180" Click="DepInstallWebView2_Click"/>
                                 </Grid>
+                                
+                                <!-- Remote Access Tools Header -->
+                                <TextBlock Text="Remote Access Tools (Optional)" FontWeight="SemiBold" Foreground="#FF9C27B0" Margin="0,16,0,4"/>
+                                
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="30"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="DepTailscaleStatus" Text="⏳" FontSize="14"/>
+                                    <TextBlock Grid.Column="1" Text="Tailscale" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="DepTailscaleInfo" Grid.Column="2" Text="Checking..." Foreground="Gray"/>
+                                    <Button x:Name="DepTailscaleBtn" Grid.Column="3" Content="Download ↗" MinWidth="180" Click="DepOpenTailscaleSite_Click"/>
+                                </Grid>
+                                <Grid Margin="0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="30"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="DepCloudflaredStatus" Text="⏳" FontSize="14"/>
+                                    <TextBlock Grid.Column="1" Text="cloudflared" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="DepCloudflaredInfo" Grid.Column="2" Text="Checking..." Foreground="Gray"/>
+                                    <Button x:Name="DepCloudflaredBtn" Grid.Column="3" Content="Install" MinWidth="180" Click="DepInstallCloudflared_Click"/>
+                                </Grid>
+                                
                                 <Button Content="🔄 Refresh Status" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="DepRefresh_Click"/>
                             </StackPanel>
                         </GroupBox>
@@ -1014,6 +1043,14 @@
                                 <StackPanel Orientation="Horizontal" Margin="0,8">
                                     <Button Content="WebView2 Runtime ↗" MinWidth="180" Click="DepOpenWebView2Site_Click"/>
                                     <TextBlock Text="Help system, browser features" VerticalAlignment="Center" Foreground="Gray" Margin="12,0,0,0"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,8">
+                                    <Button Content="Tailscale Website ↗" MinWidth="180" Click="DepOpenTailscaleSite_Click"/>
+                                    <TextBlock Text="Secure remote access (optional)" VerticalAlignment="Center" Foreground="Gray" Margin="12,0,0,0"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,8">
+                                    <Button Content="cloudflared Releases ↗" MinWidth="180" Click="DepOpenCloudflaredSite_Click"/>
+                                    <TextBlock Text="Cloudflare tunnel remote access (optional)" VerticalAlignment="Center" Foreground="Gray" Margin="12,0,0,0"/>
                                 </StackPanel>
                                 <Button Content="📁 Open Tools Folder" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="DepOpenToolsFolder_Click"/>
                             </StackPanel>

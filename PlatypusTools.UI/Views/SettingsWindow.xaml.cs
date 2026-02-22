@@ -1631,6 +1631,34 @@ namespace PlatypusTools.UI.Views
                     DepWebView2Btn.Content = "Install";
                 }
                 
+                // Tailscale (optional)
+                if (result.TailscaleInstalled)
+                {
+                    DepTailscaleStatus.Text = "✅";
+                    DepTailscaleInfo.Text = "Installed";
+                }
+                else
+                {
+                    DepTailscaleStatus.Text = "⬜";
+                    DepTailscaleInfo.Text = "Not installed (optional - for secure remote access)";
+                }
+                
+                // cloudflared (optional)
+                if (result.CloudflaredInstalled)
+                {
+                    DepCloudflaredStatus.Text = "✅";
+                    DepCloudflaredInfo.Text = "Installed";
+                    DepCloudflaredBtn.IsEnabled = false;
+                    DepCloudflaredBtn.Content = "Installed";
+                }
+                else
+                {
+                    DepCloudflaredStatus.Text = "⬜";
+                    DepCloudflaredInfo.Text = "Not installed (optional - for Cloudflare tunnel)";
+                    DepCloudflaredBtn.IsEnabled = true;
+                    DepCloudflaredBtn.Content = "Install";
+                }
+                
                 // Load setting
                 ShowDependencyPromptCheck.IsChecked = !SettingsManager.Current.HasSeenDependencyPrompt;
             }
@@ -1773,6 +1801,44 @@ namespace PlatypusTools.UI.Views
             Process.Start(new ProcessStartInfo { FileName = "https://developer.microsoft.com/en-us/microsoft-edge/webview2/", UseShellExecute = true });
         }
         
+        private void DepOpenTailscaleSite_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo { FileName = "https://tailscale.com/download/windows", UseShellExecute = true });
+        }
+        
+        private void DepOpenCloudflaredSite_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo { FileName = "https://github.com/cloudflare/cloudflared/releases", UseShellExecute = true });
+        }
+        
+        private async void DepInstallCloudflared_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                DepCloudflaredBtn.IsEnabled = false;
+                DepCloudflaredBtn.Content = "Installing...";
+                DepCloudflaredStatus.Text = "⏳";
+                
+                var success = await DownloadAndInstallCloudflaredAsync();
+                
+                if (success)
+                {
+                    MessageBox.Show("cloudflared installed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("cloudflared installation failed. Please install manually from GitHub.", "Installation Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                
+                await LoadDependencyStatusAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error installing cloudflared: {ex.Message}\n\nPlease install manually.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                await LoadDependencyStatusAsync();
+            }
+        }
+        
         private void DepOpenToolsFolder_Click(object sender, RoutedEventArgs e)
         {
             var toolsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools");
@@ -1897,6 +1963,11 @@ namespace PlatypusTools.UI.Views
             Process.Start(new ProcessStartInfo { FileName = installerPath, UseShellExecute = true });
             
             return true;
+        }
+        
+        private async Task<bool> DownloadAndInstallCloudflaredAsync()
+        {
+            return await CloudflareTunnelService.Instance.InstallAsync();
         }
         
         #endregion

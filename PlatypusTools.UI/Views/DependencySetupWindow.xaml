@@ -101,6 +101,55 @@
                     </Grid>
                 </Border>
                 
+                <!-- Optional Tools Separator -->
+                <TextBlock Text="Optional Remote Access Tools" FontSize="14" FontWeight="SemiBold" 
+                           Foreground="#FF9C27B0" Margin="0,12,0,8"/>
+                
+                <!-- Tailscale -->
+                <Border x:Name="TailscaleCard" Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="16" Margin="0,0,0,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock x:Name="TailscaleStatus" Text="⏳" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Text="Tailscale VPN" FontSize="16" FontWeight="SemiBold"/>
+                                <TextBlock Text="(Optional)" Foreground="Gray" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="Used for: Secure remote access via mesh VPN network" 
+                                       Foreground="Gray" TextWrapping="Wrap" Margin="24,4,0,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <Button x:Name="TailscaleDownloadBtn" Content="Download ↗" MinWidth="100" Click="OpenTailscaleSite_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                
+                <!-- cloudflared -->
+                <Border x:Name="CloudflaredCard" Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="16" Margin="0,0,0,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock x:Name="CloudflaredStatus" Text="⏳" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Text="cloudflared" FontSize="16" FontWeight="SemiBold"/>
+                                <TextBlock Text="(Optional)" Foreground="Gray" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="Used for: Cloudflare Tunnel secure external access without port forwarding" 
+                                       Foreground="Gray" TextWrapping="Wrap" Margin="24,4,0,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <Button x:Name="CloudflaredInstallBtn" Content="Install" MinWidth="100" Click="InstallCloudflared_Click"/>
+                            <Button x:Name="CloudflaredManualBtn" Content="Manual ↗" MinWidth="100" Margin="0,4,0,0" Click="OpenCloudflaredSite_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                
                 <!-- Manual Install Info -->
                 <Border Background="#2D2D30" CornerRadius="8" Padding="16" Margin="0,8,0,0">
                     <StackPanel>
@@ -115,6 +164,10 @@
                             <Run Text="• ExifTool: Place exiftool.exe in Tools\exiftool_files\ folder"/>
                             <LineBreak/>
                             <Run Text="• WebView2: Run the installer from Microsoft"/>
+                            <LineBreak/>
+                            <Run Text="• Tailscale: Download and install from tailscale.com"/>
+                            <LineBreak/>
+                            <Run Text="• cloudflared: Click Install or download from GitHub releases"/>
                         </TextBlock>
                         <Button Content="Open Tools Folder" MinWidth="120" HorizontalAlignment="Left" Margin="0,12,0,0" Click="OpenToolsFolder_Click"/>
                     </StackPanel>
