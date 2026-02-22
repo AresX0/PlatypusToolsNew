@@ -23,6 +23,11 @@ namespace PlatypusTools.UI.Services
         private readonly string _currentVersion;
         private readonly string _downloadPath;
 
+        // Valid MSI magic bytes: D0 CF 11 E0 (OLE Compound File)
+        private static readonly byte[] MsiMagicBytes = { 0xD0, 0xCF, 0x11, 0xE0 };
+        // Valid EXE magic bytes: MZ
+        private static readonly byte[] ExeMagicBytes = { 0x4D, 0x5A };
+
         public UpdateService()
         {
             // Use Api client (15s timeout) for version checks, Download client (30min timeout) for MSI downloads
@@ -128,53 +133,147 @@ namespace PlatypusTools.UI.Services
         }
 
         /// <summary>
-        /// Downloads the update file.
+        /// Downloads the update file with validation.
+        /// Uses a temp file strategy: downloads to .downloading file, validates, then renames.
         /// </summary>
         public async Task<string?> DownloadUpdateAsync(UpdateInfo info, CancellationToken ct = default)
         {
             if (string.IsNullOrEmpty(info.DownloadUrl))
             {
+                SimpleLogger.Error("Download URL is empty — cannot download update.");
                 return null;
             }
 
             try
             {
-                // Ensure download directory exists
+                // Ensure download directory exists and clean up stale .downloading files
                 if (!Directory.Exists(_downloadPath))
                 {
                     Directory.CreateDirectory(_downloadPath);
                 }
+                CleanupStaleDownloads();
 
-                var filePath = Path.Combine(_downloadPath, info.FileName);
+                var finalPath = Path.Combine(_downloadPath, info.FileName);
+                var tempPath = finalPath + ".downloading";
+
+                // Delete any previous partial download
+                if (File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
+
+                // Delete any previous completed download of the same file
+                if (File.Exists(finalPath))
+                {
+                    File.Delete(finalPath);
+                }
+
+                SimpleLogger.Info($"Downloading update from: {info.DownloadUrl}");
+                SimpleLogger.Info($"Expected file size: {info.FileSize:N0} bytes");
 
                 using var response = await _downloadClient.GetAsync(info.DownloadUrl, 
                     HttpCompletionOption.ResponseHeadersRead, ct);
                 
                 response.EnsureSuccessStatusCode();
 
+                // Validate content type - GitHub should return application/octet-stream
+                var contentType = response.Content.Headers.ContentType?.MediaType ?? "";
+                if (contentType.Contains("text/html", StringComparison.OrdinalIgnoreCase))
+                {
+                    SimpleLogger.Error($"Server returned HTML instead of binary data (Content-Type: {contentType}). Download URL may be invalid.");
+                    return null;
+                }
+
                 var totalBytes = response.Content.Headers.ContentLength ?? info.FileSize;
                 var bytesRead = 0L;
 
-                await using var contentStream = await response.Content.ReadAsStreamAsync(ct);
-                await using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
-
-                var buffer = new byte[81920]; // 80KB buffer
-                int read;
-
-                while ((read = await contentStream.ReadAsync(buffer, 0, buffer.Length, ct)) > 0)
+                // Download to temp file first
+                await using (var contentStream = await response.Content.ReadAsStreamAsync(ct))
+                await using (var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, 
+                    bufferSize: 262144)) // 256KB file buffer for better write performance
                 {
-                    await fileStream.WriteAsync(buffer, 0, read, ct);
-                    bytesRead += read;
+                    var buffer = new byte[262144]; // 256KB read buffer (larger = fewer syscalls for 300MB+ files)
+                    int read;
 
-                    if (totalBytes > 0)
+                    while ((read = await contentStream.ReadAsync(buffer, 0, buffer.Length, ct)) > 0)
                     {
-                        var progress = (bytesRead * 100.0) / totalBytes;
-                        DownloadProgress?.Invoke(this, progress);
+                        await fileStream.WriteAsync(buffer, 0, read, ct);
+                        bytesRead += read;
+
+                        if (totalBytes > 0)
+                        {
+                            var progress = (bytesRead * 100.0) / totalBytes;
+                            DownloadProgress?.Invoke(this, progress);
+                        }
+                    }
+
+                    // Flush to ensure all bytes are written to disk
+                    await fileStream.FlushAsync(ct);
+                }
+
+                SimpleLogger.Info($"Download complete: {bytesRead:N0} bytes written to temp file");
+
+                // === POST-DOWNLOAD VALIDATION ===
+
+                // 1. Verify file exists and has content
+                if (!File.Exists(tempPath))
+                {
+                    SimpleLogger.Error("Downloaded temp file does not exist after download.");
+                    return null;
+                }
+
+                var actualSize = new FileInfo(tempPath).Length;
+                SimpleLogger.Info($"Temp file size on disk: {actualSize:N0} bytes");
+
+                // 2. Verify file size matches expected (with 1% tolerance for content-encoding differences)
+                if (info.FileSize > 0)
+                {
+                    var sizeDifference = Math.Abs(actualSize - info.FileSize);
+                    var toleranceBytes = (long)(info.FileSize * 0.01); // 1% tolerance
+                    if (sizeDifference > toleranceBytes)
+                    {
+                        SimpleLogger.Error($"Downloaded file size mismatch! Expected: {info.FileSize:N0}, Got: {actualSize:N0}, Difference: {sizeDifference:N0} bytes");
+                        TryDeleteFile(tempPath);
+                        return null;
                     }
                 }
 
-                SimpleLogger.Info($"Update downloaded: {filePath}");
-                return filePath;
+                // 3. Verify file has zero size check
+                if (actualSize == 0)
+                {
+                    SimpleLogger.Error("Downloaded file is empty (0 bytes).");
+                    TryDeleteFile(tempPath);
+                    return null;
+                }
+
+                // 4. Validate file magic bytes (MSI or EXE header)
+                var validationError = ValidateFileHeader(tempPath, info.FileName);
+                if (validationError != null)
+                {
+                    SimpleLogger.Error(validationError);
+                    TryDeleteFile(tempPath);
+                    return null;
+                }
+
+                // === VALIDATION PASSED — Rename temp file to final name ===
+                File.Move(tempPath, finalPath, overwrite: true);
+                SimpleLogger.Info($"Update validated and saved: {finalPath} ({actualSize:N0} bytes)");
+                return finalPath;
+            }
+            catch (OperationCanceledException)
+            {
+                SimpleLogger.Info("Update download was cancelled by user.");
+                return null;
+            }
+            catch (HttpRequestException ex)
+            {
+                SimpleLogger.Error($"Network error downloading update: {ex.Message}");
+                return null;
+            }
+            catch (IOException ex)
+            {
+                SimpleLogger.Error($"File I/O error downloading update: {ex.Message}");
+                return null;
             }
             catch (Exception ex)
             {
@@ -184,12 +283,117 @@ namespace PlatypusTools.UI.Services
         }
 
         /// <summary>
+        /// Validates the file header bytes match the expected file type.
+        /// Returns null if valid, or an error message string if invalid.
+        /// </summary>
+        private static string? ValidateFileHeader(string filePath, string fileName)
+        {
+            try
+            {
+                var headerBytes = new byte[4];
+                using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                var bytesRead = fs.Read(headerBytes, 0, 4);
+                
+                if (bytesRead < 4)
+                {
+                    return $"File too small to validate header (only {bytesRead} bytes read).";
+                }
+
+                if (fileName.EndsWith(".msi", StringComparison.OrdinalIgnoreCase))
+                {
+                    // MSI files must start with OLE Compound File magic: D0 CF 11 E0
+                    if (headerBytes[0] != MsiMagicBytes[0] || headerBytes[1] != MsiMagicBytes[1] ||
+                        headerBytes[2] != MsiMagicBytes[2] || headerBytes[3] != MsiMagicBytes[3])
+                    {
+                        var actualHeader = BitConverter.ToString(headerBytes);
+                        return $"Downloaded MSI has invalid header: {actualHeader} (expected D0-CF-11-E0). File may be corrupt or an HTML error page.";
+                    }
+                }
+                else if (fileName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                {
+                    // EXE files must start with MZ
+                    if (headerBytes[0] != ExeMagicBytes[0] || headerBytes[1] != ExeMagicBytes[1])
+                    {
+                        var actualHeader = BitConverter.ToString(headerBytes);
+                        return $"Downloaded EXE has invalid header: {actualHeader} (expected 4D-5A / 'MZ'). File may be corrupt or an HTML error page.";
+                    }
+                }
+
+                return null; // Valid
+            }
+            catch (Exception ex)
+            {
+                return $"Error validating file header: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Removes stale .downloading temp files from the update directory.
+        /// </summary>
+        private void CleanupStaleDownloads()
+        {
+            try
+            {
+                foreach (var file in Directory.GetFiles(_downloadPath, "*.downloading"))
+                {
+                    TryDeleteFile(file);
+                }
+            }
+            catch
+            {
+                // Non-critical — ignore cleanup errors
+            }
+        }
+
+        /// <summary>
+        /// Safely attempts to delete a file, ignoring errors.
+        /// </summary>
+        private static void TryDeleteFile(string path)
+        {
+            try
+            {
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+            }
+            catch
+            {
+                // Ignore — temp file cleanup is best-effort
+            }
+        }
+
+        /// <summary>
         /// Launches the installer and optionally closes the application.
+        /// Validates the installer file before launching.
         /// </summary>
         public void LaunchInstaller(string installerPath, bool closeApp = true)
         {
             try
             {
+                // Pre-install validation: ensure the file exists
+                if (!File.Exists(installerPath))
+                {
+                    throw new FileNotFoundException($"Installer file not found: {installerPath}");
+                }
+
+                // Pre-install validation: ensure the file is not empty
+                var fileSize = new FileInfo(installerPath).Length;
+                if (fileSize == 0)
+                {
+                    throw new InvalidOperationException("Installer file is empty (0 bytes). Please re-download the update.");
+                }
+
+                // Pre-install validation: check file header
+                var headerError = ValidateFileHeader(installerPath, Path.GetFileName(installerPath));
+                if (headerError != null)
+                {
+                    SimpleLogger.Error($"Pre-install validation failed: {headerError}");
+                    throw new InvalidOperationException($"Installer file appears corrupt: {headerError}\nPlease re-download the update.");
+                }
+
+                SimpleLogger.Info($"Launching installer: {installerPath} ({fileSize:N0} bytes)");
+
                 System.Diagnostics.ProcessStartInfo psi;
 
                 if (installerPath.EndsWith(".msi", StringComparison.OrdinalIgnoreCase))

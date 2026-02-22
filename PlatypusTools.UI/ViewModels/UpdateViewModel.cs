@@ -190,23 +190,25 @@ namespace PlatypusTools.UI.ViewModels
             {
                 IsDownloading = true;
                 DownloadProgress = 0;
-                StatusMessage = "Downloading update...";
+                StatusMessage = $"Downloading update ({UpdateAvailable.FileSizeDisplay})...";
 
                 var filePath = await _updateService.DownloadUpdateAsync(UpdateAvailable);
                 
                 if (!string.IsNullOrEmpty(filePath))
                 {
                     DownloadedFilePath = filePath;
-                    StatusMessage = "Download complete. Ready to install.";
+                    StatusMessage = "Download complete and verified. Ready to install.";
                 }
                 else
                 {
-                    StatusMessage = "Download failed.";
+                    StatusMessage = "Download failed — file may be corrupt or network error. Try again.";
+                    DownloadedFilePath = string.Empty;
                 }
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Error downloading update: {ex.Message}";
+                StatusMessage = $"Download error: {ex.Message}";
+                DownloadedFilePath = string.Empty;
             }
             finally
             {
@@ -218,6 +220,14 @@ namespace PlatypusTools.UI.ViewModels
         {
             if (string.IsNullOrEmpty(DownloadedFilePath)) return;
 
+            // Verify the file still exists before prompting
+            if (!System.IO.File.Exists(DownloadedFilePath))
+            {
+                StatusMessage = "Downloaded file no longer exists. Please download again.";
+                DownloadedFilePath = string.Empty;
+                return;
+            }
+
             var result = System.Windows.MessageBox.Show(
                 "The application will close to install the update. Continue?",
                 "Install Update",
@@ -226,7 +236,29 @@ namespace PlatypusTools.UI.ViewModels
 
             if (result == System.Windows.MessageBoxResult.Yes)
             {
-                _updateService.LaunchInstaller(DownloadedFilePath, closeApp: true);
+                try
+                {
+                    _updateService.LaunchInstaller(DownloadedFilePath, closeApp: true);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    // Validation failed — show user-friendly error
+                    System.Windows.MessageBox.Show(
+                        $"The installer file appears to be corrupt:\n\n{ex.Message}\n\nPlease try downloading the update again.",
+                        "Install Error",
+                        System.Windows.MessageBoxButton.OK,
+                        System.Windows.MessageBoxImage.Error);
+                    StatusMessage = "Installer validation failed. Please re-download.";
+                    DownloadedFilePath = string.Empty;
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show(
+                        $"Error launching installer:\n\n{ex.Message}",
+                        "Install Error",
+                        System.Windows.MessageBoxButton.OK,
+                        System.Windows.MessageBoxImage.Error);
+                }
             }
         }
 
