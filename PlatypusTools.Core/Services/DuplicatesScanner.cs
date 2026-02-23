@@ -120,8 +120,9 @@ namespace PlatypusTools.Core.Services
                 var filesToHash = potentialDuplicates.Sum(g => g.Value.Count);
 
                 // Determine effective thread count
-                var effectiveThreads = threadCount > 0 ? threadCount : (DefaultThreadCount > 0 ? DefaultThreadCount : Environment.ProcessorCount);
-                effectiveThreads = Math.Max(1, Math.Min(effectiveThreads, Environment.ProcessorCount * 2));
+                var maxThreads = Math.Max(1, (int)(Environment.ProcessorCount * 0.75));
+                var effectiveThreads = threadCount > 0 ? threadCount : (DefaultThreadCount > 0 ? DefaultThreadCount : maxThreads);
+                effectiveThreads = Math.Max(1, Math.Min(effectiveThreads, maxThreads));
 
                 onProgress?.Invoke(0, filesToHash, $"Hashing {filesToHash} potential duplicates ({effectiveThreads} threads)...");
 

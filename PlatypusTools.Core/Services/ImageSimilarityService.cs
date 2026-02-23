@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -81,19 +82,24 @@ namespace PlatypusTools.Core.Services
                 return new List<SimilarImageGroup>();
 
             // Calculate hashes for all images
-            var imageHashes = new Dictionary<string, (string pHash, string dHash, int width, int height, long size)>();
+            var imageHashes = new ConcurrentDictionary<string, (string pHash, string dHash, int width, int height, long size)>();
+            var maxThreads = Math.Max(1, (int)(Environment.ProcessorCount * 0.75));
+            var processedCount = 0;
             
-            foreach (var file in imageFiles)
+            await Parallel.ForEachAsync(imageFiles, new ParallelOptions
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                
+                MaxDegreeOfParallelism = maxThreads,
+                CancellationToken = cancellationToken
+            }, async (file, ct) =>
+            {
+                var currentProcessed = Interlocked.Increment(ref processedCount);
                 progress.CurrentFile = Path.GetFileName(file);
-                progress.ProcessedFiles++;
+                progress.ProcessedFiles = currentProcessed;
                 ProgressChanged?.Invoke(this, progress);
                 
                 try
                 {
-                    var (pHash, dHash, width, height) = await Task.Run(() => ComputeImageHashes(file), cancellationToken);
+                    var (pHash, dHash, width, height) = await Task.Run(() => ComputeImageHashes(file), ct);
                     var size = new FileInfo(file).Length;
                     imageHashes[file] = (pHash, dHash, width, height, size);
                 }
@@ -101,7 +107,7 @@ namespace PlatypusTools.Core.Services
                 {
                     // Skip files that can't be processed
                 }
-            }
+            });
 
             // Find similar images
             var groups = new List<SimilarImageGroup>();

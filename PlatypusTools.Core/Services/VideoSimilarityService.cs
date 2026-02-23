@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -149,14 +150,19 @@ namespace PlatypusTools.Core.Services
             // Phase 1: Extract metadata and frame hashes for all videos
             var modeText = ScanMode == VideoScanMode.Fast ? "(Fast mode)" : "(Thorough mode)";
             progress.CurrentPhase = $"Extracting video information {modeText}...";
-            var videoData = new Dictionary<string, VideoAnalysisData>();
+            var videoData = new ConcurrentDictionary<string, VideoAnalysisData>();
+            var maxThreads = Math.Max(1, (int)(Environment.ProcessorCount * 0.75));
+            var processedCount = 0;
 
-            foreach (var file in videoFiles)
+            await Parallel.ForEachAsync(videoFiles, new ParallelOptions
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
+                MaxDegreeOfParallelism = maxThreads,
+                CancellationToken = cancellationToken
+            }, async (file, ct) =>
+            {
+                var currentProcessed = Interlocked.Increment(ref processedCount);
                 progress.CurrentFile = Path.GetFileName(file);
-                progress.ProcessedFiles++;
+                progress.ProcessedFiles = currentProcessed;
                 ProgressChanged?.Invoke(this, progress);
 
                 try
@@ -186,7 +192,7 @@ namespace PlatypusTools.Core.Services
                             var ffmpeg = FFmpegService.FindFfmpeg();
                             if (ffmpeg != null)
                             {
-                                data.Thumbnail = await ExtractThumbnailAsync(file, ffmpeg, data.DurationSeconds / 2, cancellationToken);
+                                data.Thumbnail = await ExtractThumbnailAsync(file, ffmpeg, data.DurationSeconds / 2, ct);
                             }
                         }
                     }
@@ -203,11 +209,11 @@ namespace PlatypusTools.Core.Services
                         {
 #pragma warning disable CA2000 // Dispose objects before losing scope - properly disposed in finally block
                             timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(FileAnalysisTimeoutSeconds));
-                            linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+                            linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);
 #pragma warning restore CA2000
                             data = await AnalyzeVideoAsync(file, linkedCts.Token);
                         }
-                        catch (OperationCanceledException) when (timeoutCts?.IsCancellationRequested == true && !cancellationToken.IsCancellationRequested)
+                        catch (OperationCanceledException) when (timeoutCts?.IsCancellationRequested == true && !ct.IsCancellationRequested)
                         {
                             // File analysis timed out, skip this file
                             var sizeMB = new FileInfo(file).Length / (1024.0 * 1024.0);
@@ -220,7 +226,7 @@ namespace PlatypusTools.Core.Services
                             timeoutCts?.Dispose();
                         }
 
-                        if (timedOut) continue;
+                        if (timedOut) return;
 
                         // Store in cache (without thumbnail)
                         if (data != null && _cacheService != null)
@@ -250,7 +256,7 @@ namespace PlatypusTools.Core.Services
                     var sizeMB = new FileInfo(file).Length / (1024.0 * 1024.0);
                     LogMessage?.Invoke(this, $"[ERROR] {Path.GetFileName(file)} ({sizeMB:F1} MB) - analysis failed, skipped");
                 }
-            }
+            });
 
             // Phase 2: Group similar videos
             progress.CurrentPhase = "Comparing videos...";

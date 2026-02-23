@@ -21,6 +21,10 @@ namespace PlatypusTools.UI.ViewModels
         private readonly VideoSimilarityService _videoSimilarityService;
         private readonly AudioSimilarityService _audioSimilarityService;
         private readonly MediaFingerprintCacheService _fingerprintCacheService;
+        private long _lastProgressTicks;
+        private long _lastLogTicks;
+        private static readonly long ProgressThrottleTicks = TimeSpan.FromMilliseconds(150).Ticks;
+        private static readonly long LogThrottleTicks = TimeSpan.FromMilliseconds(250).Ticks;
 
         public DuplicatesViewModel()
         {
@@ -37,6 +41,10 @@ namespace PlatypusTools.UI.ViewModels
             _similarityService = new ImageSimilarityService();
             _similarityService.ProgressChanged += (s, p) => 
             {
+                var now = DateTime.UtcNow.Ticks;
+                if (now - Interlocked.Read(ref _lastProgressTicks) < ProgressThrottleTicks && p.ProgressPercent < 100)
+                    return;
+                Interlocked.Exchange(ref _lastProgressTicks, now);
                 _ = App.Current?.Dispatcher.InvokeAsync(() =>
                 {
                     StatusMessage = $"Processing: {p.CurrentFile} ({p.ProcessedFiles}/{p.TotalFiles})";
@@ -48,6 +56,10 @@ namespace PlatypusTools.UI.ViewModels
             _videoSimilarityService = new VideoSimilarityService(_fingerprintCacheService);
             _videoSimilarityService.ProgressChanged += (s, p) =>
             {
+                var now = DateTime.UtcNow.Ticks;
+                if (now - Interlocked.Read(ref _lastProgressTicks) < ProgressThrottleTicks && p.ProgressPercent < 100)
+                    return;
+                Interlocked.Exchange(ref _lastProgressTicks, now);
                 _ = App.Current?.Dispatcher.InvokeAsync(() =>
                 {
                     StatusMessage = $"{p.CurrentPhase} {p.CurrentFile} ({p.ProcessedFiles}/{p.TotalFiles})";
@@ -60,6 +72,10 @@ namespace PlatypusTools.UI.ViewModels
             _audioSimilarityService = new AudioSimilarityService(_fingerprintCacheService);
             _audioSimilarityService.ProgressChanged += (s, p) =>
             {
+                var now = DateTime.UtcNow.Ticks;
+                if (now - Interlocked.Read(ref _lastProgressTicks) < ProgressThrottleTicks && p.ProgressPercent < 100)
+                    return;
+                Interlocked.Exchange(ref _lastProgressTicks, now);
                 _ = App.Current?.Dispatcher.InvokeAsync(() =>
                 {
                     StatusMessage = $"{p.CurrentPhase} {p.CurrentFile} ({p.ProcessedFiles}/{p.TotalFiles})";
@@ -183,25 +199,27 @@ namespace PlatypusTools.UI.ViewModels
             set { _scanProgress = value; RaisePropertyChanged(); } 
         }
 
+        private static readonly int MaxCpuThreads = Math.Max(1, (int)(Environment.ProcessorCount * 0.75));
+
         private int _scanThreadCount = 0;
         /// <summary>
-        /// Number of threads for parallel hashing. 0 = auto (use all CPU cores).
+        /// Number of threads for parallel hashing. 0 = auto (75% of CPU cores).
         /// </summary>
         public int ScanThreadCount 
         { 
             get => _scanThreadCount; 
-            set { _scanThreadCount = Math.Max(0, Math.Min(value, Environment.ProcessorCount * 2)); RaisePropertyChanged(); RaisePropertyChanged(nameof(ScanThreadCountDisplay)); } 
+            set { _scanThreadCount = Math.Max(0, Math.Min(value, MaxCpuThreads)); RaisePropertyChanged(); RaisePropertyChanged(nameof(ScanThreadCountDisplay)); } 
         }
         
         /// <summary>
         /// Display text for the thread count slider.
         /// </summary>
-        public string ScanThreadCountDisplay => ScanThreadCount == 0 ? $"Auto ({Environment.ProcessorCount})" : ScanThreadCount.ToString();
+        public string ScanThreadCountDisplay => ScanThreadCount == 0 ? $"Auto ({MaxCpuThreads})" : ScanThreadCount.ToString();
 
         /// <summary>
         /// Maximum allowed thread count for UI slider binding.
         /// </summary>
-        public int MaxThreadCount => Environment.ProcessorCount * 2;
+        public int MaxThreadCount => MaxCpuThreads;
 
         private int _ffmpegTimeoutSeconds = 20;
         /// <summary>
@@ -309,7 +327,11 @@ namespace PlatypusTools.UI.ViewModels
                     recurse: true,
                     onProgress: (current, total, message) =>
                     {
-                        App.Current?.Dispatcher?.Invoke(() =>
+                        var now = DateTime.UtcNow.Ticks;
+                        if (now - Interlocked.Read(ref _lastProgressTicks) < ProgressThrottleTicks && current < total)
+                            return;
+                        Interlocked.Exchange(ref _lastProgressTicks, now);
+                        _ = App.Current?.Dispatcher?.InvokeAsync(() =>
                         {
                             StatusMessage = message;
                             if (total > 0)
@@ -320,7 +342,7 @@ namespace PlatypusTools.UI.ViewModels
                     onBatchProcessed: (batchGroups) =>
                     {
                         // Update UI with intermediate results
-                        App.Current?.Dispatcher?.Invoke(() =>
+                        _ = App.Current?.Dispatcher?.InvokeAsync(() =>
                         {
                             Groups.Clear();
                             foreach (var g in batchGroups)
@@ -371,8 +393,12 @@ namespace PlatypusTools.UI.ViewModels
             StatusMessage = "Canceling...";
         }
 
-        private void AddScanLogEntry(string message)
+        private void AddScanLogEntry(string message, bool force = false)
         {
+            var now = DateTime.UtcNow.Ticks;
+            if (!force && now - Interlocked.Read(ref _lastLogTicks) < LogThrottleTicks)
+                return;
+            Interlocked.Exchange(ref _lastLogTicks, now);
             var timestamp = DateTime.Now.ToString("HH:mm:ss");
             var entry = $"[{timestamp}] {message}";
             _ = App.Current?.Dispatcher.InvokeAsync(() =>
@@ -414,11 +440,11 @@ namespace PlatypusTools.UI.ViewModels
 
             try
             {
-                var groups = await _similarityService.FindSimilarImagesAsync(
+                var groups = await Task.Run(() => _similarityService.FindSimilarImagesAsync(
                     new[] { FolderPath }, 
                     SimilarityThreshold, 
                     true, 
-                    cancellationToken);
+                    cancellationToken));
                 
                 if (!cancellationToken.IsCancellationRequested)
                 {
@@ -493,13 +519,13 @@ namespace PlatypusTools.UI.ViewModels
                 // Set the scan mode before scanning
                 _videoSimilarityService.ScanMode = VideoScanMode;
                 _videoSimilarityService.FileAnalysisTimeoutSeconds = FfmpegTimeoutSeconds;
-                AddScanLogEntry($"Starting video similarity scan - {modeText} in {FolderPath} (timeout: {FfmpegTimeoutSeconds}s)");
+                AddScanLogEntry($"Starting video similarity scan - {modeText} in {FolderPath} (timeout: {FfmpegTimeoutSeconds}s)", force: true);
                 
-                var groups = await _videoSimilarityService.FindSimilarVideosAsync(
+                var groups = await Task.Run(() => _videoSimilarityService.FindSimilarVideosAsync(
                     new[] { FolderPath }, 
                     VideoSimilarityThreshold, 
                     true, 
-                    cancellationToken);
+                    cancellationToken));
                 
                 if (!cancellationToken.IsCancellationRequested)
                 {
@@ -509,7 +535,7 @@ namespace PlatypusTools.UI.ViewModels
                     }
                     
                     StatusMessage = $"Found {SimilarVideoGroups.Count} similar video groups ({SimilarVideoGroups.Sum(g => g.Videos.Count)} total files)";
-                    AddScanLogEntry($"Scan complete: {SimilarVideoGroups.Count} groups found ({SimilarVideoGroups.Sum(g => g.Videos.Count)} files)");
+                    AddScanLogEntry($"Scan complete: {SimilarVideoGroups.Count} groups found ({SimilarVideoGroups.Sum(g => g.Videos.Count)} files)", force: true);
                 }
                 else
                 {
@@ -575,13 +601,13 @@ namespace PlatypusTools.UI.ViewModels
                 // Set the scan mode before scanning
                 _audioSimilarityService.ScanMode = AudioScanMode;
                 _audioSimilarityService.FileAnalysisTimeoutSeconds = FfmpegTimeoutSeconds;
-                AddScanLogEntry($"Starting audio similarity scan - {modeText} in {FolderPath} (timeout: {FfmpegTimeoutSeconds}s)");
+                AddScanLogEntry($"Starting audio similarity scan - {modeText} in {FolderPath} (timeout: {FfmpegTimeoutSeconds}s)", force: true);
                 
-                var groups = await _audioSimilarityService.FindSimilarAudioAsync(
+                var groups = await Task.Run(() => _audioSimilarityService.FindSimilarAudioAsync(
                     new[] { FolderPath }, 
                     AudioSimilarityThreshold, 
                     true, 
-                    cancellationToken);
+                    cancellationToken));
                 
                 if (!cancellationToken.IsCancellationRequested)
                 {
@@ -591,7 +617,7 @@ namespace PlatypusTools.UI.ViewModels
                     }
                     
                     StatusMessage = $"Found {SimilarAudioGroups.Count} similar audio groups ({SimilarAudioGroups.Sum(g => g.AudioFiles.Count)} total files)";
-                    AddScanLogEntry($"Scan complete: {SimilarAudioGroups.Count} groups found ({SimilarAudioGroups.Sum(g => g.AudioFiles.Count)} files)");
+                    AddScanLogEntry($"Scan complete: {SimilarAudioGroups.Count} groups found ({SimilarAudioGroups.Sum(g => g.AudioFiles.Count)} files)", force: true);
                 }
                 else
                 {
@@ -622,50 +648,185 @@ namespace PlatypusTools.UI.ViewModels
 
         private void SelectNewest()
         {
-            foreach (var g in Groups)
+            if (ShowSimilarImages)
             {
-                var chosen = g.Files.OrderByDescending(f => File.GetLastWriteTimeUtc(f.Path)).FirstOrDefault();
-                foreach (var f in g.Files) f.IsSelected = f == chosen;
+                foreach (var g in SimilarImageGroups)
+                {
+                    var chosen = g.Images.OrderByDescending(f => File.GetLastWriteTimeUtc(f.FilePath)).FirstOrDefault();
+                    foreach (var f in g.Images) f.IsSelected = f == chosen;
+                }
+            }
+            else if (ShowSimilarVideos)
+            {
+                foreach (var g in SimilarVideoGroups)
+                {
+                    var chosen = g.Videos.OrderByDescending(f => File.GetLastWriteTimeUtc(f.FilePath)).FirstOrDefault();
+                    foreach (var f in g.Videos) f.IsSelected = f == chosen;
+                }
+            }
+            else if (ShowSimilarAudio)
+            {
+                foreach (var g in SimilarAudioGroups)
+                {
+                    var chosen = g.AudioFiles.OrderByDescending(f => File.GetLastWriteTimeUtc(f.FilePath)).FirstOrDefault();
+                    foreach (var f in g.AudioFiles) f.IsSelected = f == chosen;
+                }
+            }
+            else
+            {
+                foreach (var g in Groups)
+                {
+                    var chosen = g.Files.OrderByDescending(f => File.GetLastWriteTimeUtc(f.Path)).FirstOrDefault();
+                    foreach (var f in g.Files) f.IsSelected = f == chosen;
+                }
             }
             ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
         }
 
         private void SelectOldest()
         {
-            foreach (var g in Groups)
+            if (ShowSimilarImages)
             {
-                var chosen = g.Files.OrderBy(f => File.GetLastWriteTimeUtc(f.Path)).FirstOrDefault();
-                foreach (var f in g.Files) f.IsSelected = f == chosen;
+                foreach (var g in SimilarImageGroups)
+                {
+                    var chosen = g.Images.OrderBy(f => File.GetLastWriteTimeUtc(f.FilePath)).FirstOrDefault();
+                    foreach (var f in g.Images) f.IsSelected = f == chosen;
+                }
+            }
+            else if (ShowSimilarVideos)
+            {
+                foreach (var g in SimilarVideoGroups)
+                {
+                    var chosen = g.Videos.OrderBy(f => File.GetLastWriteTimeUtc(f.FilePath)).FirstOrDefault();
+                    foreach (var f in g.Videos) f.IsSelected = f == chosen;
+                }
+            }
+            else if (ShowSimilarAudio)
+            {
+                foreach (var g in SimilarAudioGroups)
+                {
+                    var chosen = g.AudioFiles.OrderBy(f => File.GetLastWriteTimeUtc(f.FilePath)).FirstOrDefault();
+                    foreach (var f in g.AudioFiles) f.IsSelected = f == chosen;
+                }
+            }
+            else
+            {
+                foreach (var g in Groups)
+                {
+                    var chosen = g.Files.OrderBy(f => File.GetLastWriteTimeUtc(f.Path)).FirstOrDefault();
+                    foreach (var f in g.Files) f.IsSelected = f == chosen;
+                }
             }
             ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
         }
 
         private void SelectLargest()
         {
-            foreach (var g in Groups)
+            if (ShowSimilarImages)
             {
-                var chosen = g.Files.OrderByDescending(f => new FileInfo(f.Path).Length).FirstOrDefault();
-                foreach (var f in g.Files) f.IsSelected = f == chosen;
+                foreach (var g in SimilarImageGroups)
+                {
+                    var chosen = g.Images.OrderByDescending(f => f.FileSize).FirstOrDefault();
+                    foreach (var f in g.Images) f.IsSelected = f == chosen;
+                }
+            }
+            else if (ShowSimilarVideos)
+            {
+                foreach (var g in SimilarVideoGroups)
+                {
+                    var chosen = g.Videos.OrderByDescending(f => f.FileSize).FirstOrDefault();
+                    foreach (var f in g.Videos) f.IsSelected = f == chosen;
+                }
+            }
+            else if (ShowSimilarAudio)
+            {
+                foreach (var g in SimilarAudioGroups)
+                {
+                    var chosen = g.AudioFiles.OrderByDescending(f => f.FileSize).FirstOrDefault();
+                    foreach (var f in g.AudioFiles) f.IsSelected = f == chosen;
+                }
+            }
+            else
+            {
+                foreach (var g in Groups)
+                {
+                    var chosen = g.Files.OrderByDescending(f => new FileInfo(f.Path).Length).FirstOrDefault();
+                    foreach (var f in g.Files) f.IsSelected = f == chosen;
+                }
             }
             ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
         }
 
         private void SelectSmallest()
         {
-            foreach (var g in Groups)
+            if (ShowSimilarImages)
             {
-                var chosen = g.Files.OrderBy(f => new FileInfo(f.Path).Length).FirstOrDefault();
-                foreach (var f in g.Files) f.IsSelected = f == chosen;
+                foreach (var g in SimilarImageGroups)
+                {
+                    var chosen = g.Images.OrderBy(f => f.FileSize).FirstOrDefault();
+                    foreach (var f in g.Images) f.IsSelected = f == chosen;
+                }
+            }
+            else if (ShowSimilarVideos)
+            {
+                foreach (var g in SimilarVideoGroups)
+                {
+                    var chosen = g.Videos.OrderBy(f => f.FileSize).FirstOrDefault();
+                    foreach (var f in g.Videos) f.IsSelected = f == chosen;
+                }
+            }
+            else if (ShowSimilarAudio)
+            {
+                foreach (var g in SimilarAudioGroups)
+                {
+                    var chosen = g.AudioFiles.OrderBy(f => f.FileSize).FirstOrDefault();
+                    foreach (var f in g.AudioFiles) f.IsSelected = f == chosen;
+                }
+            }
+            else
+            {
+                foreach (var g in Groups)
+                {
+                    var chosen = g.Files.OrderBy(f => new FileInfo(f.Path).Length).FirstOrDefault();
+                    foreach (var f in g.Files) f.IsSelected = f == chosen;
+                }
             }
             ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
         }
 
         private void KeepOnePerGroup()
         {
-            foreach (var g in Groups)
+            if (ShowSimilarImages)
             {
-                var keep = g.Files.FirstOrDefault();
-                foreach (var f in g.Files) f.IsSelected = f != keep;
+                foreach (var g in SimilarImageGroups)
+                {
+                    var keep = g.Images.FirstOrDefault();
+                    foreach (var f in g.Images) f.IsSelected = f != keep;
+                }
+            }
+            else if (ShowSimilarVideos)
+            {
+                foreach (var g in SimilarVideoGroups)
+                {
+                    var keep = g.Videos.FirstOrDefault();
+                    foreach (var f in g.Videos) f.IsSelected = f != keep;
+                }
+            }
+            else if (ShowSimilarAudio)
+            {
+                foreach (var g in SimilarAudioGroups)
+                {
+                    var keep = g.AudioFiles.FirstOrDefault();
+                    foreach (var f in g.AudioFiles) f.IsSelected = f != keep;
+                }
+            }
+            else
+            {
+                foreach (var g in Groups)
+                {
+                    var keep = g.Files.FirstOrDefault();
+                    foreach (var f in g.Files) f.IsSelected = f != keep;
+                }
             }
             ((RelayCommand)DeleteSelectedCommand).RaiseCanExecuteChanged();
         }

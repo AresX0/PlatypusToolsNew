@@ -48,7 +48,7 @@ namespace PlatypusTools.Core.Services
         /// </summary>
         public ForensicsAnalyzerService()
         {
-            _maxDegreeOfParallelism = Environment.ProcessorCount;
+            _maxDegreeOfParallelism = Math.Max(1, (int)(Environment.ProcessorCount * 0.75));
         }
 
         /// <summary>

@@ -20,7 +20,8 @@ namespace PlatypusTools.UI.Services
 
         private readonly ConcurrentDictionary<string, WeakReference<BitmapSource>> _memoryCache = new();
         private readonly string _diskCachePath;
-        private readonly SemaphoreSlim _loadSemaphore = new(Environment.ProcessorCount);
+        private static readonly int MaxCpuThreads = Math.Max(1, (int)(Environment.ProcessorCount * 0.75));
+        private readonly SemaphoreSlim _loadSemaphore = new(MaxCpuThreads);
         
         public int DefaultThumbnailSize { get; set; } = 150;
         public int MaxMemoryCacheSize { get; set; } = 1000;
@@ -88,7 +89,7 @@ namespace PlatypusTools.UI.Services
 
             await Parallel.ForEachAsync(paths, new ParallelOptions
             {
-                MaxDegreeOfParallelism = Environment.ProcessorCount,
+                MaxDegreeOfParallelism = MaxCpuThreads,
                 CancellationToken = cancellationToken
             }, async (path, ct) =>
             {

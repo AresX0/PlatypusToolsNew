@@ -304,9 +304,9 @@ namespace PlatypusTools.Core.Services.AI
                 args.Add(language);
             }
 
-            // Use more threads for faster processing
+            // Use up to 75% of CPU threads for processing
             args.Add("-t");
-            args.Add(Math.Max(4, Environment.ProcessorCount - 2).ToString());
+            args.Add(Math.Max(4, (int)(Environment.ProcessorCount * 0.75)).ToString());
 
             return string.Join(" ", args);
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -183,14 +184,19 @@ namespace PlatypusTools.Core.Services
             // Phase 1: Extract metadata and audio fingerprints
             var modeText = ScanMode == AudioScanMode.Fast ? "(Fast mode)" : "(Thorough mode)";
             progress.CurrentPhase = $"Analyzing audio files {modeText}...";
-            var audioData = new Dictionary<string, AudioAnalysisData>();
+            var audioData = new ConcurrentDictionary<string, AudioAnalysisData>();
+            var maxThreads = Math.Max(1, (int)(Environment.ProcessorCount * 0.75));
+            var processedCount = 0;
 
-            foreach (var file in audioFiles)
+            await Parallel.ForEachAsync(audioFiles, new ParallelOptions
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
+                MaxDegreeOfParallelism = maxThreads,
+                CancellationToken = cancellationToken
+            }, async (file, ct) =>
+            {
+                var currentProcessed = Interlocked.Increment(ref processedCount);
                 progress.CurrentFile = Path.GetFileName(file);
-                progress.ProcessedFiles++;
+                progress.ProcessedFiles = currentProcessed;
                 ProgressChanged?.Invoke(this, progress);
 
                 try
@@ -232,11 +238,11 @@ namespace PlatypusTools.Core.Services
                         {
 #pragma warning disable CA2000 // Dispose objects before losing scope - properly disposed in finally block
                             timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(FileAnalysisTimeoutSeconds));
-                            linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+                            linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);
 #pragma warning restore CA2000
                             data = await AnalyzeAudioAsync(file, linkedCts.Token);
                         }
-                        catch (OperationCanceledException) when (timeoutCts?.IsCancellationRequested == true && !cancellationToken.IsCancellationRequested)
+                        catch (OperationCanceledException) when (timeoutCts?.IsCancellationRequested == true && !ct.IsCancellationRequested)
                         {
                             // File analysis timed out, skip this file
                             var sizeMB = new FileInfo(file).Length / (1024.0 * 1024.0);
@@ -249,7 +255,7 @@ namespace PlatypusTools.Core.Services
                             timeoutCts?.Dispose();
                         }
 
-                        if (timedOut) continue;
+                        if (timedOut) return;
 
                         // Store in cache
                         if (data != null && _cacheService != null)
@@ -282,7 +288,7 @@ namespace PlatypusTools.Core.Services
                     var sizeMB = new FileInfo(file).Length / (1024.0 * 1024.0);
                     LogMessage?.Invoke(this, $"[ERROR] {Path.GetFileName(file)} ({sizeMB:F1} MB) - analysis failed, skipped");
                 }
-            }
+            });
 
             // Phase 2: Group similar audio files
             progress.CurrentPhase = "Comparing audio files...";
