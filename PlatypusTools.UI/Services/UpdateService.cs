@@ -417,12 +417,13 @@ namespace PlatypusTools.UI.Services
                         sharedMsiPath = installerPath; // Fallback to original path
                     }
 
-                    // Launch the .msi file directly via the shell rather than calling msiexec.exe.
-                    // This lets Windows handle elevation properly and avoids error 2503 where
-                    // msiexec launched with Verb="runas" loses the installer service context.
+                    // Launch the MSI via msiexec.exe with elevation.
+                    // The MSI has been copied to a shared ProgramData location to avoid
+                    // error 2503 where msiexec (SYSTEM) can't access user %TEMP%.
                     psi = new System.Diagnostics.ProcessStartInfo
                     {
-                        FileName = sharedMsiPath,
+                        FileName = "msiexec.exe",
+                        Arguments = $"/i \"{sharedMsiPath}\"",
                         UseShellExecute = true,
                         Verb = "runas" // Request admin elevation via UAC
                     };

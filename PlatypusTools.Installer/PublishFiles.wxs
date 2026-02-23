@@ -1397,6 +1397,9 @@
       <Component Id="CMP_WinRT_Runtime_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_WinRT_Runtime_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\WinRT.Runtime.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_WpfAnimatedGif_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_WpfAnimatedGif_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\WpfAnimatedGif.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_wpfgfx_cor3_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_wpfgfx_cor3_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\wpfgfx_cor3.dll" KeyPath="yes" />
       </Component>
@@ -5395,6 +5398,7 @@
       <ComponentRef Id="CMP_WindowsBase_dll" />
       <ComponentRef Id="CMP_WindowsFormsIntegration_dll" />
       <ComponentRef Id="CMP_WinRT_Runtime_dll" />
+      <ComponentRef Id="CMP_WpfAnimatedGif_dll" />
       <ComponentRef Id="CMP_wpfgfx_cor3_dll" />
       <ComponentRef Id="CMP_XmpCore_dll" />
       <ComponentRef Id="CMP_Assets_KlingonFont_ttf" />
