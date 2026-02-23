@@ -1,6 +1,7 @@
 <Window x:Class="PlatypusTools.UI.Views.DependencySetupWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:gif="http://wpfanimatedgif.codeplex.com"
         Title="PlatypusTools - Dependency Setup" Height="550" Width="650"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource WindowBackgroundBrush}"
@@ -15,11 +16,15 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
-        <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <TextBlock Text="🔧 Welcome to PlatypusTools!" FontSize="24" FontWeight="Bold" Margin="0,0,0,8"/>
+        <!-- Header with Platypus -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20" HorizontalAlignment="Center">
+            <Image gif:ImageBehavior.AnimatedSource="pack://application:,,,/Assets/platypus-loading.gif"
+                   Width="100" Height="100" 
+                   Margin="0,0,0,8"
+                   HorizontalAlignment="Center"/>
+            <TextBlock Text="Welcome to PlatypusTools!" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,8"/>
             <TextBlock Text="Some features require external tools to work properly. You can install them now or later from Settings." 
-                       TextWrapping="Wrap" Foreground="Gray"/>
+                       TextWrapping="Wrap" Foreground="Gray" HorizontalAlignment="Center" TextAlignment="Center"/>
         </StackPanel>
         
         <!-- Status Message -->

@@ -67,6 +67,22 @@ a, .btn-link {
         content: "An error has occurred."
     }
 
+.loading-container {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    inset: 0;
+    background: #121212;
+}
+
+.loading-platypus {
+    width: 160px;
+    height: 160px;
+    object-fit: contain;
+}
+
 .loading-progress {
     position: absolute;
     display: block;
@@ -94,7 +110,10 @@ a, .btn-link {
     position: absolute;
     text-align: center;
     font-weight: bold;
-    inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
+    inset: auto 0 auto 0;
+    margin-top: 8px;
+    color: #bb86fc;
+    font-size: 14px;
 }
 
     .loading-progress-text:after {

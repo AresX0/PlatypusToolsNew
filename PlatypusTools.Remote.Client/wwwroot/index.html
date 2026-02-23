@@ -13,18 +13,21 @@
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="PlatypusTools.Remote.Client.styles.css" rel="stylesheet" />
     <link href="manifest.webmanifest" rel="manifest" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180.png" />
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Platypus" />
     <script type="importmap"></script>
 </head>
 
 <body>
     <div id="app">
-        <svg class="loading-progress">
-            <circle r="40%" cx="50%" cy="50%" />
-            <circle r="40%" cx="50%" cy="50%" />
-        </svg>
-        <div class="loading-progress-text"></div>
+        <div class="loading-container">
+            <img src="platypus-loading.gif" alt="Loading..." class="loading-platypus" />
+            <div class="loading-progress-text"></div>
+        </div>
     </div>
 
     <div id="blazor-error-ui">
