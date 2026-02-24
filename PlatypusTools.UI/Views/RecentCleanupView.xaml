@@ -17,7 +17,6 @@
         
         <!-- Target Directories -->
         <GroupBox Header="Target Directories to Match Against" Grid.Row="0" Margin="0,0,0,8">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Grid Margin="5">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -26,39 +25,38 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 
-                <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding TargetDirs, UpdateSourceTrigger=PropertyChanged}" 
-                         ToolTip="Semicolon-separated directories to match shortcuts against"/>
-                <Button Grid.Row="0" Grid.Column="1" Content="Browse..." Command="{Binding BrowseCommand}" MinWidth="180" Margin="8,0,0,0"/>
-                <Button Grid.Row="0" Grid.Column="2" Content="Clear" Command="{Binding ClearTargetDirsCommand}" MinWidth="180" Margin="5,0,0,0"/>
+                <ListBox Grid.Row="0" Grid.Column="0" ItemsSource="{Binding TargetDirectoryList}" 
+                         SelectedItem="{Binding SelectedTargetDirectory}" 
+                         Height="80" SelectionMode="Single"
+                         ToolTip="Directories to match shortcuts against — add multiple directories using the buttons"/>
+                <StackPanel Grid.Row="0" Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
+                    <Button Content="Add..." Command="{Binding AddTargetDirCommand}" MinWidth="100" Margin="0,0,0,5"/>
+                    <Button Content="Remove" Command="{Binding RemoveTargetDirCommand}" MinWidth="100" Margin="0,0,0,5"/>
+                    <Button Content="Clear All" Command="{Binding ClearTargetDirsCommand}" MinWidth="100"/>
+                </StackPanel>
                 
-                <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Text="Enter directories whose shortcuts should be found and removed from Recent, Favorites, and Start Menu" 
+                <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="Enter directories whose shortcuts should be found and removed from Recent, Favorites, and Start Menu" 
                            Foreground="Gray" FontStyle="Italic" Margin="0,5,0,0"/>
             </Grid>
-            </ScrollViewer>
         </GroupBox>
         
         <!-- Exclusion Directories -->
         <GroupBox Header="Directories to Exclude" Grid.Row="1" Margin="0,0,0,8">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Grid Margin="5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 
                 <ListBox Grid.Column="0" ItemsSource="{Binding ExclusionDirs}" SelectedItem="{Binding SelectedExclusionDir}" 
                          Height="80" SelectionMode="Single"/>
                 <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
-                    <Button Content="Add..." Command="{Binding AddExclusionCommand}" MinWidth="180" Margin="0,0,0,5"/>
-                    <Button Content="Remove" Command="{Binding RemoveExclusionCommand}" MinWidth="180"/>
+                    <Button Content="Add..." Command="{Binding AddExclusionCommand}" MinWidth="100" Margin="0,0,0,5"/>
+                    <Button Content="Remove" Command="{Binding RemoveExclusionCommand}" MinWidth="100"/>
                 </StackPanel>
             </Grid>
-            </ScrollViewer>
         </GroupBox>
         
         <!-- Options and Actions -->
@@ -78,6 +76,36 @@
             <Button Content="🔄 Refresh Explorer" Command="{Binding RefreshExplorerCommand}" MinWidth="130" Margin="0,2,8,2"
                     ToolTip="Restart Explorer to refresh the Recent view" 
                     Background="#FF2196F3" Foreground="White" FontWeight="Bold"/>
+            <Separator Margin="4,2"/>
+            <Button Command="{Binding ToggleBlockerCommand}" MinWidth="140" Margin="0,2,8,2"
+                    ToolTip="Start/stop real-time monitoring — instantly removes new Recent items from blocked directories while PlatypusTools is running"
+                    Foreground="White" FontWeight="Bold">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Content" Value="🛡️ Start Blocker"/>
+                        <Setter Property="Background" Value="#FF009688"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsBlockerActive}" Value="True">
+                                <Setter Property="Content" Value="⏹️ Stop Blocker"/>
+                                <Setter Property="Background" Value="#FFF44336"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            <Separator Margin="4,2"/>
+            <ComboBox ItemsSource="{Binding ScheduleFrequencyOptions}" SelectedItem="{Binding SelectedScheduleFrequency}"
+                      Width="90" Margin="0,2,4,2" VerticalAlignment="Center"
+                      ToolTip="Frequency for scheduled task"/>
+            <Button Content="📅 Schedule (In-App)" Command="{Binding ScheduleCleanupCommand}" MinWidth="120" Margin="0,2,8,2"
+                    ToolTip="Schedule cleanup within PlatypusTools (runs while app is open)" 
+                    Background="#FFFF9800" Foreground="White" FontWeight="Bold"/>
+            <Button Content="🖥️ Windows Task" Command="{Binding CreateWindowsTaskCommand}" MinWidth="120" Margin="0,2,4,2"
+                    ToolTip="Create a Windows Scheduled Task that runs even when PlatypusTools is closed (requires admin)" 
+                    Background="#FF795548" Foreground="White" FontWeight="Bold"/>
+            <Button Content="❌ Remove Task" Command="{Binding RemoveWindowsTaskCommand}" MinWidth="100" Margin="0,2,8,2"
+                    ToolTip="Remove the Windows Scheduled Task"
+                    Visibility="{Binding WindowsTaskExists, Converter={StaticResource BoolToVisibilityConverter}}"/>
         </WrapPanel>
         
         <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" VerticalAlignment="Bottom" Margin="0,30,0,0" FontWeight="SemiBold"/>
@@ -128,6 +156,8 @@
                 <TextBlock>
                     <Run Text="Found: "/><Run Text="{Binding Results.Count, Mode=OneWay}" FontWeight="Bold"/>
                     <Run Text=" shortcuts | Selected: "/><Run Text="{Binding SelectedCount, Mode=OneWay}" FontWeight="Bold"/>
+                    <Run Text=" | "/><Run Text="{Binding BlockerStatusText, Mode=OneWay}" FontWeight="Bold"/>
+                    <Run Text=" | "/><Run Text="{Binding WindowsTaskStatusText, Mode=OneWay}"/>
                 </TextBlock>
             </StatusBarItem>
         </StatusBar>

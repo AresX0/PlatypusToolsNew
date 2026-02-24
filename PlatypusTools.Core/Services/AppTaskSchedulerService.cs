@@ -52,6 +52,7 @@ namespace PlatypusTools.Core.Services
             DuplicateScan,
             MetadataUpdate,
             CacheClean,
+            RecentCleanup,
             Custom
         }
 
@@ -395,6 +396,12 @@ namespace PlatypusTools.Core.Services
                     task.Description = "Clean application cache and thumbnails";
                     task.Schedule = TaskScheduleType.Daily;
                     break;
+
+                case TaskType.RecentCleanup:
+                    task.Name = "Recent Items Cleanup";
+                    task.Description = "Remove recent shortcuts pointing to files in specified directories";
+                    task.Schedule = TaskScheduleType.Daily;
+                    break;
             }
 
             return task;
@@ -486,6 +493,9 @@ namespace PlatypusTools.Core.Services
 
                 case TaskType.SystemAudit:
                     return await RunSystemAuditAsync(task);
+
+                case TaskType.RecentCleanup:
+                    return await RunRecentCleanupAsync(task);
 
                 default:
                     return (0, 0, "Task type not implemented");
@@ -652,6 +662,28 @@ namespace PlatypusTools.Core.Services
             // This would integrate with SystemAuditService
             await Task.Delay(100);
             return (0, 0, "System audit completed");
+        }
+
+        private async Task<(int ItemsProcessed, long BytesProcessed, string Message)> RunRecentCleanupAsync(ScheduledAppTask task)
+        {
+            var targetDirs = task.Parameters.GetValueOrDefault("TargetDirectories", "");
+            if (string.IsNullOrWhiteSpace(targetDirs))
+                return (0, 0, "No target directories specified for recent cleanup");
+
+            var dirs = targetDirs.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(d => d.Trim())
+                .Where(d => !string.IsNullOrEmpty(d))
+                .ToArray();
+
+            if (dirs.Length == 0)
+                return (0, 0, "No valid target directories specified");
+
+            var includeSubDirs = task.Parameters.GetValueOrDefault("IncludeSubDirs", "true") == "true";
+
+            var results = await Task.Run(() =>
+                RecentCleaner.RemoveRecentShortcuts(dirs, dryRun: false, includeSubDirs: includeSubDirs));
+
+            return (results.Count, 0, $"Removed {results.Count} recent shortcuts for {dirs.Length} target director{(dirs.Length == 1 ? "y" : "ies")}");
         }
 
         private async Task<(int Items, long Bytes)> CleanFolderAsync(string path, TimeSpan olderThan)

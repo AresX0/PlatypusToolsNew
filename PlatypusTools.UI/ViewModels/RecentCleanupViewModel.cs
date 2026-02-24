@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows;
+using static PlatypusTools.Core.Services.AppTaskSchedulerService;
+using System.Diagnostics;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -14,18 +16,51 @@ namespace PlatypusTools.UI.ViewModels
     {
         public ObservableCollection<RecentMatchSelectable> Results { get; } = new ObservableCollection<RecentMatchSelectable>();
         public ObservableCollection<string> ExclusionDirs { get; } = new ObservableCollection<string>();
+        public ObservableCollection<string> TargetDirectoryList { get; } = new ObservableCollection<string>();
 
-        private string _targetDirs = "";
-        public string TargetDirs 
-        { 
-            get => _targetDirs; 
-            set 
-            { 
-                _targetDirs = value; 
-                RaisePropertyChanged(); 
-                ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
-            } 
+        private string _selectedTargetDirectory = "";
+        public string SelectedTargetDirectory
+        {
+            get => _selectedTargetDirectory;
+            set { _selectedTargetDirectory = value; RaisePropertyChanged(); }
         }
+
+        /// <summary>
+        /// Computed property: joins TargetDirectoryList with semicolons for backward compatibility.
+        /// Setting this parses the semicolon-separated string into the list.
+        /// </summary>
+        public string TargetDirs
+        {
+            get => string.Join(";", TargetDirectoryList);
+            set
+            {
+                TargetDirectoryList.Clear();
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    foreach (var dir in value.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                                              .Select(d => d.Trim())
+                                              .Where(d => !string.IsNullOrEmpty(d)))
+                    {
+                        if (!TargetDirectoryList.Contains(dir, StringComparer.OrdinalIgnoreCase))
+                            TargetDirectoryList.Add(dir);
+                    }
+                }
+                RaiseTargetDirsChanged();
+            }
+        }
+
+        private void RaiseTargetDirsChanged()
+        {
+            RaisePropertyChanged(nameof(TargetDirs));
+            RaisePropertyChanged(nameof(HasTargetDirs));
+            ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)ScheduleCleanupCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)ToggleBlockerCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)CreateWindowsTaskCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)RemoveTargetDirCommand)?.RaiseCanExecuteChanged();
+        }
+
+        public bool HasTargetDirs => TargetDirectoryList.Count > 0;
 
         private bool _dryRun = true;
         public bool DryRun { get => _dryRun; set { _dryRun = value; RaisePropertyChanged(); } }
@@ -52,16 +87,49 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand SelectNoneCommand { get; }
         public ICommand ClearAllRecentCommand { get; }
         public ICommand RefreshExplorerCommand { get; }
+        public ICommand ScheduleCleanupCommand { get; }
+        public ICommand ToggleBlockerCommand { get; }
+        public ICommand CreateWindowsTaskCommand { get; }
+        public ICommand RemoveWindowsTaskCommand { get; }
+        public ICommand AddTargetDirCommand { get; }
+        public ICommand RemoveTargetDirCommand { get; }
 
         private string _statusMessage = "Ready. Enter target directories or click 'Scan All Recent' to see all recent items.";
         public string StatusMessage { get => _statusMessage; set { _statusMessage = value; RaisePropertyChanged(); } }
 
+        private string _selectedScheduleFrequency = "Daily";
+        public string SelectedScheduleFrequency { get => _selectedScheduleFrequency; set { _selectedScheduleFrequency = value; RaisePropertyChanged(); } }
+
+        public string[] ScheduleFrequencyOptions { get; } = new[] { "Once", "Hourly", "Daily", "Weekly", "Monthly", "On Startup" };
+
+        private bool _isBlockerActive;
+        public bool IsBlockerActive
+        {
+            get => _isBlockerActive;
+            set { _isBlockerActive = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(BlockerStatusText)); }
+        }
+
+        public string BlockerStatusText => IsBlockerActive 
+            ? $"🛡️ Blocker ON ({RecentBlockerService.Instance.BlockedDirectories.Count} dirs, {RecentBlockerService.Instance.BlockedCount} blocked)" 
+            : "🔓 Blocker OFF";
+
+        private bool _windowsTaskExists;
+        public bool WindowsTaskExists
+        {
+            get => _windowsTaskExists;
+            set { _windowsTaskExists = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(WindowsTaskStatusText)); }
+        }
+
+        public string WindowsTaskStatusText => WindowsTaskExists 
+            ? "✅ Windows Task active" 
+            : "No Windows Task";
+
         public RecentCleanupViewModel()
         {
-            ScanCommand = new RelayCommand(async _ => await Scan(), _ => !string.IsNullOrWhiteSpace(TargetDirs));
+            ScanCommand = new RelayCommand(async _ => await Scan(), _ => TargetDirectoryList.Count > 0);
             ScanAllRecentCommand = new RelayCommand(async _ => await ScanAllRecent());
             BrowseCommand = new RelayCommand(_ => Browse());
-            ClearTargetDirsCommand = new RelayCommand(_ => { TargetDirs = ""; });
+            ClearTargetDirsCommand = new RelayCommand(_ => { TargetDirectoryList.Clear(); });
             AddExclusionCommand = new RelayCommand(_ => AddExclusion());
             RemoveExclusionCommand = new RelayCommand(_ => RemoveExclusion(), _ => !string.IsNullOrEmpty(SelectedExclusionDir));
             RemoveSelectedCommand = new RelayCommand(async _ => await RemoveSelected(), _ => Results.Any(r => r.IsSelected));
@@ -69,6 +137,42 @@ namespace PlatypusTools.UI.ViewModels
             SelectNoneCommand = new RelayCommand(_ => SelectNone(), _ => Results.Any(r => r.IsSelected));
             ClearAllRecentCommand = new RelayCommand(async _ => await ClearAllRecent());
             RefreshExplorerCommand = new RelayCommand(_ => RefreshExplorer());
+            ScheduleCleanupCommand = new RelayCommand(_ => ScheduleCleanup(), _ => TargetDirectoryList.Count > 0);
+            ToggleBlockerCommand = new RelayCommand(_ => ToggleBlocker(), _ => TargetDirectoryList.Count > 0 || IsBlockerActive);
+            CreateWindowsTaskCommand = new RelayCommand(_ => CreateWindowsTask(), _ => TargetDirectoryList.Count > 0);
+            RemoveWindowsTaskCommand = new RelayCommand(_ => RemoveWindowsTask());
+            AddTargetDirCommand = new RelayCommand(_ => AddTargetDir());
+            RemoveTargetDirCommand = new RelayCommand(_ => RemoveTargetDir(), _ => !string.IsNullOrEmpty(SelectedTargetDirectory));
+
+            // When the list changes, update computed properties
+            TargetDirectoryList.CollectionChanged += (s, e) => RaiseTargetDirsChanged();
+
+            // Sync blocker state
+            _isBlockerActive = RecentBlockerService.Instance.IsRunning;
+            _windowsTaskExists = RecentBlockerService.Instance.WindowsScheduledTaskExists();
+
+            // If blocker has saved blocked dirs and was configured, auto-start
+            if (RecentBlockerService.Instance.BlockedDirectories.Count > 0)
+            {
+                // Populate TargetDirectoryList from saved blocker config
+                if (TargetDirectoryList.Count == 0)
+                {
+                    foreach (var dir in RecentBlockerService.Instance.BlockedDirectories)
+                    {
+                        if (!TargetDirectoryList.Contains(dir, StringComparer.OrdinalIgnoreCase))
+                            TargetDirectoryList.Add(dir);
+                    }
+                }
+            }
+
+            RecentBlockerService.Instance.ItemBlocked += (s, e) =>
+            {
+                Application.Current?.Dispatcher?.InvokeAsync(() =>
+                {
+                    RaisePropertyChanged(nameof(BlockerStatusText));
+                    StatusMessage = $"🛡️ Blocked: {Path.GetFileName(e.ShortcutPath)} → {e.TargetPath}";
+                });
+            };
         }
 
         private void SelectAll()
@@ -105,12 +209,36 @@ namespace PlatypusTools.UI.ViewModels
 
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                if (string.IsNullOrWhiteSpace(TargetDirs))
-                    TargetDirs = dialog.SelectedPath;
-                else
-                    TargetDirs += ";" + dialog.SelectedPath;
-                
-                ((RelayCommand)ScanCommand).RaiseCanExecuteChanged();
+                if (!TargetDirectoryList.Contains(dialog.SelectedPath, StringComparer.OrdinalIgnoreCase))
+                {
+                    TargetDirectoryList.Add(dialog.SelectedPath);
+                }
+            }
+        }
+
+        private void AddTargetDir()
+        {
+            using var dialog = new System.Windows.Forms.FolderBrowserDialog
+            {
+                Description = "Select directory to add to target list",
+                ShowNewFolderButton = false
+            };
+
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                if (!TargetDirectoryList.Contains(dialog.SelectedPath, StringComparer.OrdinalIgnoreCase))
+                {
+                    TargetDirectoryList.Add(dialog.SelectedPath);
+                }
+            }
+        }
+
+        private void RemoveTargetDir()
+        {
+            if (!string.IsNullOrEmpty(SelectedTargetDirectory))
+            {
+                TargetDirectoryList.Remove(SelectedTargetDirectory);
+                SelectedTargetDirectory = "";
             }
         }
 
@@ -479,6 +607,186 @@ namespace PlatypusTools.UI.ViewModels
             {
                 StatusMessage = $"Error restarting Explorer: {ex.Message}";
             }
+        }
+
+        private void ScheduleCleanup()
+        {
+            if (string.IsNullOrWhiteSpace(TargetDirs))
+            {
+                StatusMessage = "Error: Please enter or browse to target directories first";
+                return;
+            }
+
+            var dirs = TargetDirs.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                                 .Select(d => d.Trim())
+                                 .Where(d => !string.IsNullOrEmpty(d))
+                                 .ToArray();
+
+            if (dirs.Length == 0)
+            {
+                StatusMessage = "Error: No valid directories specified";
+                return;
+            }
+
+            // Map UI frequency to TaskScheduleType
+            var scheduleType = SelectedScheduleFrequency switch
+            {
+                "Once" => TaskScheduleType.Once,
+                "Hourly" => TaskScheduleType.Hourly,
+                "Daily" => TaskScheduleType.Daily,
+                "Weekly" => TaskScheduleType.Weekly,
+                "Monthly" => TaskScheduleType.Monthly,
+                "On Startup" => TaskScheduleType.OnStartup,
+                _ => TaskScheduleType.Daily
+            };
+
+            var dirList = string.Join("; ", dirs.Select(d => Path.GetFileName(d.TrimEnd(Path.DirectorySeparatorChar))));
+            var result = MessageBox.Show(
+                $"Create a scheduled task to automatically remove recent shortcuts for:\n\n" +
+                $"Directories: {string.Join("; ", dirs)}\n" +
+                $"Frequency: {SelectedScheduleFrequency}\n" +
+                $"Include Subdirectories: {(IncludeSubDirs ? "Yes" : "No")}\n\n" +
+                $"The task will run while PlatypusTools is open.\n\n" +
+                $"Continue?",
+                "Schedule Recent Cleanup",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            try
+            {
+                var task = new ScheduledAppTask
+                {
+                    Name = $"Recent Cleanup: {dirList}",
+                    Description = $"Remove recent shortcuts pointing to files in: {string.Join("; ", dirs)}",
+                    Type = TaskType.RecentCleanup,
+                    Schedule = scheduleType,
+                    IsEnabled = true,
+                    Parameters = new System.Collections.Generic.Dictionary<string, string>
+                    {
+                        { "TargetDirectories", string.Join(";", dirs) },
+                        { "IncludeSubDirs", IncludeSubDirs.ToString().ToLower() }
+                    }
+                };
+
+                AppTaskSchedulerService.Instance.AddTask(task);
+                StatusMessage = $"✅ Scheduled {SelectedScheduleFrequency.ToLower()} recent cleanup for {dirs.Length} director{(dirs.Length == 1 ? "y" : "ies")}. Task will run while PlatypusTools is open.";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error creating scheduled task: {ex.Message}";
+            }
+        }
+
+        private void ToggleBlocker()
+        {
+            if (IsBlockerActive)
+            {
+                // Stop the blocker
+                RecentBlockerService.Instance.Stop();
+                IsBlockerActive = false;
+                StatusMessage = "🔓 Real-time Recent blocker stopped.";
+                ((RelayCommand)ToggleBlockerCommand).RaiseCanExecuteChanged();
+                return;
+            }
+
+            // Start the blocker with current target dirs
+            var dirs = TargetDirs.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                                 .Select(d => d.Trim())
+                                 .Where(d => !string.IsNullOrEmpty(d))
+                                 .ToArray();
+
+            if (dirs.Length == 0)
+            {
+                StatusMessage = "Error: Enter target directories to block first";
+                return;
+            }
+
+            RecentBlockerService.Instance.SetBlockedDirectories(dirs);
+            RecentBlockerService.Instance.SetIncludeSubDirs(IncludeSubDirs);
+            RecentBlockerService.Instance.Start();
+
+            var initialCleaned = 0; // Already cleaned in Start()
+            IsBlockerActive = RecentBlockerService.Instance.IsRunning;
+
+            if (IsBlockerActive)
+            {
+                StatusMessage = $"🛡️ Real-time blocker active! Files from {dirs.Length} director{(dirs.Length == 1 ? "y" : "ies")} will never appear in Recent. " +
+                    $"(Cleaned {RecentBlockerService.Instance.BlockedCount} existing items)";
+            }
+            else
+            {
+                StatusMessage = "Error: Could not start the real-time blocker.";
+            }
+
+            ((RelayCommand)ToggleBlockerCommand).RaiseCanExecuteChanged();
+        }
+
+        private void CreateWindowsTask()
+        {
+            var dirs = TargetDirs.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                                 .Select(d => d.Trim())
+                                 .Where(d => !string.IsNullOrEmpty(d))
+                                 .ToArray();
+
+            if (dirs.Length == 0)
+            {
+                StatusMessage = "Error: Enter target directories first";
+                return;
+            }
+
+            // Map UI frequency to schtasks frequency
+            var schtasksFrequency = SelectedScheduleFrequency switch
+            {
+                "Once" => "DAILY",   // schtasks doesn't have "once" in the same way, default to daily
+                "Hourly" => "HOURLY",
+                "Daily" => "DAILY",
+                "Weekly" => "WEEKLY",
+                "Monthly" => "MONTHLY",
+                "On Startup" => "ONLOGON",
+                _ => "DAILY"
+            };
+
+            var result = MessageBox.Show(
+                $"Create a Windows Scheduled Task to automatically clean recent items?\n\n" +
+                $"Directories to block:\n" +
+                $"{string.Join("\n", dirs.Select(d => "  • " + d))}\n\n" +
+                $"Frequency: {SelectedScheduleFrequency}\n" +
+                $"Include Subdirectories: {(IncludeSubDirs ? "Yes" : "No")}\n\n" +
+                $"This runs even when PlatypusTools is closed.\n" +
+                $"Requires administrator privileges.",
+                "Create Windows Scheduled Task",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            var (success, message) = RecentBlockerService.Instance.CreateWindowsScheduledTask(
+                dirs, IncludeSubDirs, schtasksFrequency);
+
+            WindowsTaskExists = RecentBlockerService.Instance.WindowsScheduledTaskExists();
+
+            if (success)
+                StatusMessage = $"✅ {message}";
+            else
+                StatusMessage = $"❌ {message}";
+        }
+
+        private void RemoveWindowsTask()
+        {
+            var result = MessageBox.Show(
+                "Remove the Windows Scheduled Task for recent cleanup?\n\n" +
+                "Files from blocked directories will no longer be automatically cleaned when PlatypusTools is closed.",
+                "Remove Windows Scheduled Task",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            var (success, message) = RecentBlockerService.Instance.RemoveWindowsScheduledTask();
+            WindowsTaskExists = RecentBlockerService.Instance.WindowsScheduledTaskExists();
+            StatusMessage = success ? $"✅ {message}" : $"❌ {message}";
         }
     }
 
