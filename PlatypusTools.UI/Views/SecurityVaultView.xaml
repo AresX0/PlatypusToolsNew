@@ -1,0 +1,1053 @@
+<UserControl x:Class="PlatypusTools.UI.Views.SecurityVaultView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:PlatypusTools.UI.Views"
+             mc:Ignorable="d" d:DesignHeight="800" d:DesignWidth="1400">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <local:InverseBoolConverter x:Key="InverseBoolConverter"/>
+        <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis"/>
+        <Style x:Key="PasswordStrengthBar" TargetType="ProgressBar">
+            <Setter Property="Height" Value="8"/>
+            <Setter Property="Maximum" Value="4"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="8">
+        <!-- LOCKED STATE: Login / Create Vault -->
+        <Grid Visibility="{Binding IsLocked, Converter={StaticResource BoolToVis}}">
+            <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Background="#FF1E1E1E" CornerRadius="12" Padding="40" MinWidth="420">
+                <StackPanel>
+                    <TextBlock Text="🔐 PlatypusTools Vault" FontSize="24" FontWeight="Bold"
+                               Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                    <TextBlock Text="Your passwords, secured." Foreground="#FFAAAAAA" FontSize="13"
+                               HorizontalAlignment="Center" Margin="0,0,0,24"/>
+
+                    <!-- If vault exists: unlock (hidden when MFA is pending) -->
+                    <StackPanel Visibility="{Binding VaultExists, Converter={StaticResource BoolToVis}}"
+                                x:Name="UnlockPanel">
+                        <TextBlock Text="Master Password" Foreground="#FFCCCCCC" Margin="0,0,0,4"/>
+                        <PasswordBox x:Name="MasterPasswordBox" FontSize="14" Padding="6"
+                                     PasswordChanged="MasterPasswordBox_PasswordChanged"/>
+                        <Button Content="🔓 Unlock Vault" Command="{Binding UnlockVaultCommand}"
+                                Background="#FF4CAF50" Foreground="White" FontSize="14" FontWeight="SemiBold"
+                                Padding="12,8" Margin="0,16,0,0" Cursor="Hand"/>
+                    </StackPanel>
+
+                    <!-- MFA Verification (shown after password validated, when MFA is enabled) -->
+                    <StackPanel Visibility="{Binding MfaRequired, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="🔐 Multi-Factor Authentication" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+
+                        <!-- TOTP Code Entry (shown when TOTP or Both required) -->
+                        <StackPanel Visibility="{Binding MfaRequiresTotp, Converter={StaticResource BoolToVis}}"
+                                    Margin="0,0,0,8">
+                            <TextBlock Text="Enter 6-digit code from your authenticator app"
+                                       Foreground="#FFCCCCCC" Margin="0,0,0,4" FontSize="12"/>
+                            <TextBox Text="{Binding MfaCodeInput, UpdateSourceTrigger=PropertyChanged}"
+                                     FontSize="20" FontFamily="Consolas" Padding="8" MaxLength="6"
+                                     HorizontalContentAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- Windows Hello Button (shown when WindowsHello or Both required) -->
+                        <StackPanel Visibility="{Binding MfaRequiresWindowsHello, Converter={StaticResource BoolToVis}}"
+                                    Margin="0,0,0,8">
+                            <Button Content="{Binding WindowsHelloVerified, Converter={x:Static local:WindowsHelloButtonConverter.Instance}}"
+                                    Command="{Binding VerifyMfaCommand}"
+                                    Background="#FF2196F3" Foreground="White" FontSize="14"
+                                    Padding="12,8" Cursor="Hand" IsEnabled="{Binding WindowsHelloVerified, Converter={StaticResource InverseBoolConverter}}"/>
+                            <TextBlock Text="✅ Windows Hello verified" Foreground="#FF4CAF50" FontSize="12"
+                                       HorizontalAlignment="Center" Margin="0,4,0,0"
+                                       Visibility="{Binding WindowsHelloVerified, Converter={StaticResource BoolToVis}}"/>
+                        </StackPanel>
+
+                        <!-- Verify / Cancel Buttons -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,0">
+                            <Button Content="✅ Verify" Command="{Binding VerifyMfaCommand}"
+                                    Background="#FF4CAF50" Foreground="White" FontSize="14" FontWeight="SemiBold"
+                                    Padding="16,8" Margin="0,0,8,0" Cursor="Hand"/>
+                            <Button Content="Cancel" Command="{Binding CancelMfaCommand}"
+                                    Padding="16,8" FontSize="14" Cursor="Hand"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- If no vault: create -->
+                    <StackPanel Visibility="{Binding VaultExists, Converter={StaticResource BoolToVis}}"
+                                x:Name="CreateVaultPanel">
+                        <!-- This panel is shown when VaultExists is FALSE. We handle this in code-behind -->
+                    </StackPanel>
+
+                    <!-- Create vault (only when no vault exists) -->
+                    <StackPanel x:Name="CreatePanel" Visibility="Collapsed">
+                        <TextBlock Text="Create a new vault" Foreground="#FFCCCCCC" FontSize="14"
+                                   HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                        <TextBlock Text="Master Password" Foreground="#FFCCCCCC" Margin="0,0,0,4"/>
+                        <PasswordBox x:Name="NewPasswordBox" FontSize="14" Padding="6"
+                                     PasswordChanged="NewPasswordBox_PasswordChanged"/>
+                        <TextBlock Text="Confirm Password" Foreground="#FFCCCCCC" Margin="0,8,0,4"/>
+                        <PasswordBox x:Name="ConfirmPasswordBox" FontSize="14" Padding="6"
+                                     PasswordChanged="ConfirmPasswordBox_PasswordChanged"/>
+                        <Button Content="🔒 Create Vault" Command="{Binding CreateVaultCommand}"
+                                Background="#FF2196F3" Foreground="White" FontSize="14" FontWeight="SemiBold"
+                                Padding="12,8" Margin="0,16,0,0" Cursor="Hand"/>
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding StatusText}" Foreground="#FFFF9800" FontSize="12"
+                               HorizontalAlignment="Center" Margin="0,12,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- UNLOCKED STATE: Full vault UI -->
+        <Grid Visibility="{Binding IsUnlocked, Converter={StaticResource BoolToVis}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>  <!-- Top bar -->
+                <RowDefinition Height="*"/>     <!-- Main content -->
+                <RowDefinition Height="Auto"/>  <!-- Status bar -->
+            </Grid.RowDefinitions>
+
+            <!-- Top Bar: Search + Actions -->
+            <Grid Grid.Row="0" Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Add buttons -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <Button Content="➕ Login" Command="{Binding AddLoginCommand}"
+                            Background="#FF4CAF50" Foreground="White" Padding="8,4" Margin="0,0,4,0"/>
+                    <Button Content="💳 Card" Command="{Binding AddCardCommand}"
+                            Background="#FF9C27B0" Foreground="White" Padding="8,4" Margin="0,0,4,0"/>
+                    <Button Content="👤 Identity" Command="{Binding AddIdentityCommand}"
+                            Background="#FF2196F3" Foreground="White" Padding="8,4" Margin="0,0,4,0"/>
+                    <Button Content="📝 Note" Command="{Binding AddSecureNoteCommand}"
+                            Background="#FFFF9800" Foreground="White" Padding="8,4" Margin="0,0,4,0"/>
+                    <Border Width="1" Background="#FF555555" Margin="8,2"/>
+                    <Button Content="📁 Folder" Command="{Binding AddFolderCommand}"
+                            Padding="8,4" Margin="0,0,4,0"/>
+                </StackPanel>
+
+                <!-- Search -->
+                <TextBox Grid.Column="1" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                         VerticalContentAlignment="Center" Padding="8,4" Margin="8,0"
+                         FontSize="13">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox">
+                            <Style.Triggers>
+                                <Trigger Property="Text" Value="">
+                                    <Setter Property="Background">
+                                        <Setter.Value>
+                                            <VisualBrush Stretch="None" AlignmentX="Left">
+                                                <VisualBrush.Visual>
+                                                    <TextBlock Text="  🔍 Search vault..." Foreground="#FF999999" FontSize="13"
+                                                               VerticalAlignment="Center" Margin="6,0"/>
+                                                </VisualBrush.Visual>
+                                            </VisualBrush>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
+
+                <!-- Right actions -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Content="🔒 Lock" Command="{Binding LockVaultCommand}"
+                            Background="#FFF44336" Foreground="White" Padding="8,4" Margin="0,0,4,0"/>
+                    <Button Content="🔄 Sync" Command="{Binding SyncNowCommand}"
+                            Background="#FF2196F3" Foreground="White" Padding="8,4"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Main Content: Left sidebar + Center list + Right detail -->
+            <TabControl Grid.Row="1">
+                <!-- 🔑 VAULT TAB -->
+                <TabItem Header="🔑 Vault">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="180" MinWidth="120"/>
+                            <ColumnDefinition Width="5"/>
+                            <ColumnDefinition Width="*" MinWidth="200"/>
+                            <ColumnDefinition Width="5"/>
+                            <ColumnDefinition Width="380" MinWidth="280"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Left Sidebar: Filters + Folders -->
+                        <Border Grid.Column="0" BorderBrush="#FF444444" BorderThickness="0,0,1,0" Padding="4">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                    <TextBlock Text="FILTERS" FontWeight="Bold" Foreground="#FF888888" FontSize="11" Margin="4,4,4,8"/>
+                                    <ListBox ItemsSource="{Binding ItemTypeFilters}"
+                                             SelectedItem="{Binding SelectedItemTypeFilter}"
+                                             BorderThickness="0" Background="Transparent" Padding="0">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" Padding="6,3" FontSize="12"/>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+
+                                    <DockPanel Margin="4,16,4,8">
+                                        <TextBlock Text="FOLDERS" FontWeight="Bold" Foreground="#FF888888" FontSize="11" VerticalAlignment="Center"/>
+                                        <Button Content="✕" FontSize="9" Padding="4,1" Margin="6,0,0,0"
+                                                Background="Transparent" Foreground="#FF888888" BorderThickness="0"
+                                                ToolTip="Clear folder filter (show all items)"
+                                                Visibility="{Binding SelectedFolder, Converter={StaticResource NullToVisibilityConverter}}"
+                                                Command="{Binding ClearFolderFilterCommand}" HorizontalAlignment="Left"/>
+                                    </DockPanel>
+                                    <ListBox ItemsSource="{Binding Folders}"
+                                             SelectedItem="{Binding SelectedFolder}"
+                                             BorderThickness="0" Background="Transparent" Padding="0">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Margin="4,2">
+                                                    <TextBlock Text="📁 " FontSize="12"/>
+                                                    <TextBlock Text="{Binding Name}" FontSize="12"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+
+                                    <!-- Item counts -->
+                                    <Border Margin="4,16,4,0" Padding="4" Background="#FF2A2A2A" CornerRadius="4">
+                                        <StackPanel>
+                                            <TextBlock FontSize="11" Foreground="#FFAAAAAA">
+                                                <Run Text="Total: "/><Run Text="{Binding TotalItemCount, Mode=OneWay}"/>
+                                            </TextBlock>
+                                            <TextBlock FontSize="11" Foreground="#FFAAAAAA">
+                                                <Run Text="Logins: "/><Run Text="{Binding LoginCount, Mode=OneWay}"/>
+                                            </TextBlock>
+                                            <TextBlock FontSize="11" Foreground="#FFAAAAAA">
+                                                <Run Text="Cards: "/><Run Text="{Binding CardCount, Mode=OneWay}"/>
+                                            </TextBlock>
+                                            <TextBlock FontSize="11" Foreground="#FFAAAAAA">
+                                                <Run Text="Identities: "/><Run Text="{Binding IdentityCount, Mode=OneWay}"/>
+                                            </TextBlock>
+                                            <TextBlock FontSize="11" Foreground="#FFAAAAAA">
+                                                <Run Text="Notes: "/><Run Text="{Binding NoteCount, Mode=OneWay}"/>
+                                            </TextBlock>
+                                            <TextBlock FontSize="11" Foreground="#FFAAAAAA">
+                                                <Run Text="⭐ Favorites: "/><Run Text="{Binding FavoriteCount, Mode=OneWay}"/>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Border>
+
+                        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"
+                                      Background="#FF333333" Cursor="SizeWE"/>
+
+                        <!-- Center: Item List -->
+                        <ListBox Grid.Column="2" ItemsSource="{Binding FilteredItems}"
+                                 SelectedItem="{Binding SelectedItem}" BorderThickness="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="8,6" Margin="0,1" CornerRadius="4">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="🔑"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Type}" Value="Card">
+                                                                <Setter Property="Text" Value="💳"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Type}" Value="Identity">
+                                                                <Setter Property="Text" Value="👤"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Type}" Value="SecureNote">
+                                                                <Setter Property="Text" Value="📝"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding Login.Username}" FontSize="11"
+                                                           Foreground="#FF999999" TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="2" Text="⭐" FontSize="14"
+                                                       VerticalAlignment="Center"
+                                                       Visibility="{Binding Favorite, Converter={StaticResource BoolToVis}}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch"
+                                      Background="#FF333333" Cursor="SizeWE"/>
+
+                        <!-- Right: Item Detail Panel -->
+                        <ScrollViewer Grid.Column="4" VerticalScrollBarVisibility="Auto" Padding="8">
+                            <StackPanel>
+                                <!-- No item selected -->
+                                <TextBlock Text="Select an item to view details"
+                                           Foreground="#FF888888" FontSize="14" HorizontalAlignment="Center"
+                                           Margin="0,40,0,0">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsItemSelected}" Value="False">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+
+                                <!-- Item detail (when selected) -->
+                                <StackPanel Visibility="{Binding IsItemSelected, Converter={StaticResource BoolToVis}}">
+                                    <!-- Name -->
+                                    <TextBlock Text="Name" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                    <TextBox Text="{Binding SelectedItem.Name, UpdateSourceTrigger=PropertyChanged}"
+                                             FontSize="14" Padding="6" Margin="0,0,0,12"/>
+
+                                    <!-- LOGIN FIELDS -->
+                                    <StackPanel Visibility="{Binding IsLoginItem, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="Username" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding SelectedItem.Login.Username, UpdateSourceTrigger=PropertyChanged}"
+                                                     FontSize="13" Padding="6"/>
+                                            <Button Grid.Column="1" Content="📋" Command="{Binding CopyUsernameCommand}"
+                                                    ToolTip="Copy Username" Width="32" Margin="4,0,0,0"/>
+                                        </Grid>
+
+                                        <TextBlock Text="Password" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding SelectedItem.Login.Password, UpdateSourceTrigger=PropertyChanged}"
+                                                     FontSize="13" Padding="6"/>
+                                            <Button Grid.Column="1" Content="📋" Command="{Binding CopyPasswordCommand}"
+                                                    ToolTip="Copy Password" Width="32" Margin="4,0,0,0"/>
+                                            <Button Grid.Column="2" Content="🔗" Command="{Binding LaunchUriCommand}"
+                                                    ToolTip="Launch URI" Width="32" Margin="4,0,0,0"/>
+                                        </Grid>
+
+                                        <!-- TOTP -->
+                                        <TextBlock Text="Authenticator Key (TOTP)" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBox Text="{Binding SelectedItem.Login.TotpSecret, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontSize="13" Padding="6" Margin="0,0,0,4"/>
+                                        <Grid Margin="0,0,0,12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" FontSize="22" FontWeight="Bold" FontFamily="Consolas"
+                                                       VerticalAlignment="Center"
+                                                       Text="{Binding SelectedItemTotpCode}"/>
+                                            <TextBlock Grid.Column="1" FontSize="14" Foreground="#FFFF9800"
+                                                       VerticalAlignment="Center" Margin="8,0">
+                                                <Run Text="{Binding TotpRemainingSeconds, Mode=OneWay}"/><Run Text="s"/>
+                                            </TextBlock>
+                                            <Button Grid.Column="2" Content="📋" Command="{Binding CopyTotpCommand}"
+                                                    ToolTip="Copy TOTP Code" Width="32"/>
+                                        </Grid>
+
+                                        <!-- URIs -->
+                                        <TextBlock Text="URIs" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <ItemsControl ItemsSource="{Binding ItemUris}" Margin="0,0,0,4">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBox Text="{Binding Uri, UpdateSourceTrigger=PropertyChanged}"
+                                                             FontSize="12" Padding="4" Margin="0,0,0,2"/>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                            <Button Content="+ URI" Command="{Binding AddUriCommand}"
+                                                    Padding="6,2" FontSize="11" Margin="0,0,4,0"/>
+                                            <Button Content="- URI" Command="{Binding RemoveUriCommand}"
+                                                    Padding="6,2" FontSize="11"/>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- CARD FIELDS -->
+                                    <StackPanel Visibility="{Binding IsCardItem, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="Cardholder Name" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBox Text="{Binding SelectedItem.Card.CardholderName, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontSize="13" Padding="6" Margin="0,0,0,8"/>
+
+                                        <TextBlock Text="Card Number" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding SelectedItem.Card.Number, UpdateSourceTrigger=PropertyChanged}"
+                                                     FontSize="13" Padding="6"/>
+                                            <Button Grid.Column="1" Content="📋" Command="{Binding CopyCardNumberCommand}"
+                                                    ToolTip="Copy Card Number" Width="32" Margin="4,0,0,0"/>
+                                        </Grid>
+
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="80"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Margin="0,0,4,0">
+                                                <TextBlock Text="Exp Month" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                                <TextBox Text="{Binding SelectedItem.Card.ExpMonth, UpdateSourceTrigger=PropertyChanged}"
+                                                         FontSize="13" Padding="6"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Margin="4,0,4,0">
+                                                <TextBlock Text="Exp Year" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                                <TextBox Text="{Binding SelectedItem.Card.ExpYear, UpdateSourceTrigger=PropertyChanged}"
+                                                         FontSize="13" Padding="6"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="CVV" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBox Grid.Column="0" Text="{Binding SelectedItem.Card.Code, UpdateSourceTrigger=PropertyChanged}"
+                                                             FontSize="13" Padding="6"/>
+                                                    <Button Grid.Column="1" Content="📋" Command="{Binding CopyCardCvvCommand}"
+                                                            Width="28" Margin="2,0,0,0"/>
+                                                </Grid>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <TextBlock Text="Brand" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <ComboBox IsEditable="True" Text="{Binding SelectedItem.Card.Brand, UpdateSourceTrigger=PropertyChanged}"
+                                                  FontSize="13" Padding="4" Margin="0,0,0,8">
+                                            <ComboBoxItem Content="Visa"/>
+                                            <ComboBoxItem Content="Mastercard"/>
+                                            <ComboBoxItem Content="American Express"/>
+                                            <ComboBoxItem Content="Discover"/>
+                                            <ComboBoxItem Content="Diners Club"/>
+                                            <ComboBoxItem Content="JCB"/>
+                                            <ComboBoxItem Content="UnionPay"/>
+                                            <ComboBoxItem Content="Other"/>
+                                        </ComboBox>
+                                    </StackPanel>
+
+                                    <!-- IDENTITY FIELDS -->
+                                    <StackPanel Visibility="{Binding IsIdentityItem, Converter={StaticResource BoolToVis}}">
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="80"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Margin="0,0,4,0">
+                                                <TextBlock Text="Title" Foreground="#FF888888" FontSize="11"/>
+                                                <ComboBox IsEditable="True" Text="{Binding SelectedItem.Identity.Title, UpdateSourceTrigger=PropertyChanged}"
+                                                          Padding="4">
+                                                    <ComboBoxItem Content="Mr"/>
+                                                    <ComboBoxItem Content="Mrs"/>
+                                                    <ComboBoxItem Content="Ms"/>
+                                                    <ComboBoxItem Content="Mx"/>
+                                                    <ComboBoxItem Content="Dr"/>
+                                                </ComboBox>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Margin="4,0,4,0">
+                                                <TextBlock Text="First Name" Foreground="#FF888888" FontSize="11"/>
+                                                <TextBox Text="{Binding SelectedItem.Identity.FirstName, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2" Margin="4,0,4,0">
+                                                <TextBlock Text="Middle" Foreground="#FF888888" FontSize="11"/>
+                                                <TextBox Text="{Binding SelectedItem.Identity.MiddleName, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="3" Margin="4,0,0,0">
+                                                <TextBlock Text="Last Name" Foreground="#FF888888" FontSize="11"/>
+                                                <TextBox Text="{Binding SelectedItem.Identity.LastName, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <TextBlock Text="Email" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBox Text="{Binding SelectedItem.Identity.Email, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontSize="13" Padding="6" Margin="0,0,0,8"/>
+
+                                        <TextBlock Text="Phone" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBox Text="{Binding SelectedItem.Identity.Phone, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontSize="13" Padding="6" Margin="0,0,0,8"/>
+
+                                        <TextBlock Text="Company" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBox Text="{Binding SelectedItem.Identity.Company, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontSize="13" Padding="6" Margin="0,0,0,8"/>
+
+                                        <TextBlock Text="Address" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBox Text="{Binding SelectedItem.Identity.Address1, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontSize="12" Padding="4" Margin="0,0,0,2"/>
+                                        <TextBox Text="{Binding SelectedItem.Identity.Address2, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontSize="12" Padding="4" Margin="0,0,0,2"/>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="80"/>
+                                                <ColumnDefinition Width="100"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding SelectedItem.Identity.City, UpdateSourceTrigger=PropertyChanged}"
+                                                     FontSize="12" Padding="4" Margin="0,0,4,0"/>
+                                            <TextBox Grid.Column="1" Text="{Binding SelectedItem.Identity.State, UpdateSourceTrigger=PropertyChanged}"
+                                                     FontSize="12" Padding="4" Margin="0,0,4,0"/>
+                                            <TextBox Grid.Column="2" Text="{Binding SelectedItem.Identity.PostalCode, UpdateSourceTrigger=PropertyChanged}"
+                                                     FontSize="12" Padding="4"/>
+                                        </Grid>
+
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Margin="0,0,4,0">
+                                                <TextBlock Text="SSN" Foreground="#FF888888" FontSize="11"/>
+                                                <TextBox Text="{Binding SelectedItem.Identity.Ssn, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Margin="4,0,4,0">
+                                                <TextBlock Text="Passport #" Foreground="#FF888888" FontSize="11"/>
+                                                <TextBox Text="{Binding SelectedItem.Identity.PassportNumber, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2" Margin="4,0,0,0">
+                                                <TextBlock Text="License #" Foreground="#FF888888" FontSize="11"/>
+                                                <TextBox Text="{Binding SelectedItem.Identity.LicenseNumber, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <!-- NOTES (all types) -->
+                                    <TextBlock Text="Notes" Foreground="#FF888888" FontSize="11" Margin="0,4,0,2"/>
+                                    <TextBox Text="{Binding SelectedItem.Notes, UpdateSourceTrigger=PropertyChanged}"
+                                             TextWrapping="Wrap" AcceptsReturn="True" MinHeight="60" MaxHeight="120"
+                                             FontSize="12" Padding="6" Margin="0,0,0,8"
+                                             VerticalScrollBarVisibility="Auto"/>
+
+                                    <!-- Custom Fields -->
+                                    <TextBlock Text="Custom Fields" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                    <ItemsControl ItemsSource="{Binding ItemCustomFields}" Margin="0,0,0,4">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0,0,0,2">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="120"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBox Grid.Column="0" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                                                             Padding="4" Margin="0,0,4,0" FontSize="12"/>
+                                                    <TextBox Grid.Column="1" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
+                                                             Padding="4" FontSize="12"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                        <Button Content="+ Field" Command="{Binding AddCustomFieldCommand}"
+                                                Padding="6,2" FontSize="11" Margin="0,0,4,0"/>
+                                        <Button Content="- Field" Command="{Binding RemoveCustomFieldCommand}"
+                                                Padding="6,2" FontSize="11"/>
+                                    </StackPanel>
+
+                                    <!-- Favorite + Save + Delete -->
+                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                        <Button Content="⭐ Favorite" Command="{Binding ToggleFavoriteCommand}"
+                                                Padding="8,4" Margin="0,0,8,0"/>
+                                        <Button Content="💾 Save" Command="{Binding SaveItemCommand}"
+                                                Background="#FF4CAF50" Foreground="White"
+                                                Padding="12,4" Margin="0,0,8,0" FontWeight="SemiBold"/>
+                                        <Button Content="🗑️ Delete" Command="{Binding DeleteItemCommand}"
+                                                Background="#FFF44336" Foreground="White"
+                                                Padding="8,4"/>
+                                    </StackPanel>
+
+                                    <!-- Meta info -->
+                                    <TextBlock FontSize="10" Foreground="#FF666666" Margin="0,12,0,0">
+                                        <Run Text="Created: "/><Run Text="{Binding SelectedItem.CreatedAt, StringFormat=g, Mode=OneWay}"/>
+                                        <Run Text="  |  Modified: "/><Run Text="{Binding SelectedItem.ModifiedAt, StringFormat=g, Mode=OneWay}"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </TabItem>
+
+                <!-- 🔐 AUTHENTICATOR TAB -->
+                <TabItem Header="🔐 Authenticator">
+                    <Grid Margin="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Add authenticator entry -->
+                        <Border Grid.Row="0" Padding="12" Margin="0,0,0,8" Background="#FF2A2A2A" CornerRadius="6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="1.5*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                    <TextBlock Text="Issuer" Foreground="#FFAAAAAA" FontSize="11"/>
+                                    <TextBox Text="{Binding NewAuthIssuer, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                                    <TextBlock Text="Account" Foreground="#FFAAAAAA" FontSize="11"/>
+                                    <TextBox Text="{Binding NewAuthAccount, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Margin="0,0,8,0">
+                                    <TextBlock Text="Secret Key or otpauth:// URI" Foreground="#FFAAAAAA" FontSize="11"/>
+                                    <TextBox Text="{Binding NewAuthSecret, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
+                                </StackPanel>
+                                <Button Grid.Column="3" Content="➕ Add" Command="{Binding AddAuthEntryCommand}"
+                                        Background="#FF4CAF50" Foreground="White" Padding="12,4"
+                                        VerticalAlignment="Bottom" Margin="0,0,0,0"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Authenticator list -->
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding AuthenticatorEntries}"
+                                  SelectedItem="{Binding SelectedAuthEntry}"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  CanUserAddRows="False" CanUserDeleteRows="False"
+                                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                  FontSize="13">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Issuer" Binding="{Binding Issuer}" Width="150"/>
+                                <DataGridTextColumn Header="Account" Binding="{Binding AccountName}" Width="200"/>
+                                <DataGridTemplateColumn Header="Code" Width="150">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock FontFamily="Consolas" FontSize="20" FontWeight="Bold"
+                                                       VerticalAlignment="Center"
+                                                       Text="{Binding Secret, Converter={x:Static local:TotpCodeConverter.Instance}}"
+                                                       x:Name="CodeBlock"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Timer" Width="60">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock FontSize="14" Foreground="#FFFF9800"
+                                                       Text="{Binding DataContext.TotpRemainingSeconds, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat={}{0}s}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Actions" Width="200">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Content="📋 Copy" Padding="6,2" Margin="0,0,4,0"
+                                                        Command="{Binding DataContext.CopyAuthCodeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                                <Button Content="🗑️ Delete" Padding="6,2"
+                                                        Background="#FFF44336" Foreground="White"
+                                                        Command="{Binding DataContext.DeleteAuthEntryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <!-- 🔑 GENERATOR TAB -->
+                <TabItem Header="🔑 Generator">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8">
+                        <StackPanel MaxWidth="600" HorizontalAlignment="Left" Margin="16">
+                            <TextBlock Text="Password Generator" FontSize="18" FontWeight="Bold" Margin="0,0,0,16"/>
+
+                            <!-- Generated password display -->
+                            <Border Background="#FF1E1E1E" CornerRadius="6" Padding="12" Margin="0,0,0,12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" Text="{Binding GeneratedPassword}" IsReadOnly="True"
+                                             FontFamily="Consolas" FontSize="16" Background="Transparent"
+                                             BorderThickness="0" VerticalAlignment="Center"
+                                             Foreground="#FF00E676"/>
+                                    <Button Grid.Column="1" Content="📋" Command="{Binding CopyGeneratedPasswordCommand}"
+                                            ToolTip="Copy" Width="36" Height="36" FontSize="16" Margin="4,0"/>
+                                    <Button Grid.Column="2" Content="🔄" Command="{Binding GeneratePasswordCommand}"
+                                            ToolTip="Regenerate" Width="36" Height="36" FontSize="16"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Strength indicator -->
+                            <ProgressBar Value="{Binding GeneratedPasswordStrength}" Style="{StaticResource PasswordStrengthBar}"/>
+                            <TextBlock Text="{Binding GeneratedPasswordStrengthLabel}" FontSize="12"
+                                       Margin="0,2,0,16" HorizontalAlignment="Center"/>
+
+                            <!-- Password mode -->
+                            <StackPanel Margin="0,0,0,16">
+                                <RadioButton Content="Password" IsChecked="{Binding GenUsePassphrase, Converter={x:Static local:InverseBoolConverter.Instance}}"
+                                             GroupName="GenMode" FontSize="13" Margin="0,0,0,4"
+                                             x:Name="PasswordModeRadio"/>
+                                <RadioButton Content="Passphrase" IsChecked="{Binding GenUsePassphrase}"
+                                             GroupName="GenMode" FontSize="13"/>
+                            </StackPanel>
+
+                            <!-- Password options -->
+                            <StackPanel x:Name="PasswordOptions">
+                                <TextBlock FontSize="12" Margin="0,0,0,4">
+                                    <Run Text="Length: "/><Run Text="{Binding GenLength, Mode=OneWay}"/>
+                                </TextBlock>
+                                <Slider Minimum="8" Maximum="128" Value="{Binding GenLength}"
+                                        TickFrequency="1" IsSnapToTickEnabled="True" Margin="0,0,0,12"/>
+
+                                <CheckBox Content="A-Z (Uppercase)" IsChecked="{Binding GenUppercase}" Margin="0,0,0,4"/>
+                                <CheckBox Content="a-z (Lowercase)" IsChecked="{Binding GenLowercase}" Margin="0,0,0,4"/>
+                                <CheckBox Content="0-9 (Numbers)" IsChecked="{Binding GenNumbers}" Margin="0,0,0,4"/>
+                                <CheckBox Content="!@#$%... (Special)" IsChecked="{Binding GenSpecial}" Margin="0,0,0,4"/>
+                                <CheckBox Content="Avoid ambiguous characters (0O1lI)" IsChecked="{Binding GenAvoidAmbiguous}" Margin="0,0,0,12"/>
+                            </StackPanel>
+
+                            <!-- Passphrase options -->
+                            <StackPanel x:Name="PassphraseOptions">
+                                <TextBlock FontSize="12" Margin="0,0,0,4">
+                                    <Run Text="Number of Words: "/><Run Text="{Binding GenNumWords, Mode=OneWay}"/>
+                                </TextBlock>
+                                <Slider Minimum="3" Maximum="10" Value="{Binding GenNumWords}"
+                                        TickFrequency="1" IsSnapToTickEnabled="True" Margin="0,0,0,8"/>
+
+                                <TextBlock Text="Word Separator" FontSize="12" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding GenWordSeparator, UpdateSourceTrigger=PropertyChanged}"
+                                         Width="60" HorizontalAlignment="Left" Padding="4" Margin="0,0,0,12"/>
+                            </StackPanel>
+
+                            <!-- Apply to selected item -->
+                            <Button Content="Apply to Selected Login" Command="{Binding ApplyGeneratedPasswordCommand}"
+                                    Background="#FF2196F3" Foreground="White" Padding="12,8" FontSize="13"
+                                    HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- 🛡️ HEALTH TAB -->
+                <TabItem Header="🛡️ Vault Health">
+                    <Grid Margin="16">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Header + Scan button -->
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+                            <TextBlock Text="Vault Health Report" FontSize="18" FontWeight="Bold"
+                                       VerticalAlignment="Center" Margin="0,0,16,0"/>
+                            <Button Content="🔍 Run Health Check" Command="{Binding RunHealthCheckCommand}"
+                                    Background="#FF2196F3" Foreground="White" Padding="12,6"/>
+                        </StackPanel>
+
+                        <!-- Summary cards -->
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,16">
+                            <Border Background="#FF1B5E20" CornerRadius="8" Padding="16,12" Margin="0,0,12,0" MinWidth="140">
+                                <StackPanel>
+                                    <TextBlock Text="Total Passwords" Foreground="#FF81C784" FontSize="11"/>
+                                    <TextBlock Text="{Binding HealthTotalPasswords}" FontSize="28" FontWeight="Bold" Foreground="White"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Background="#FFE65100" CornerRadius="8" Padding="16,12" Margin="0,0,12,0" MinWidth="140">
+                                <StackPanel>
+                                    <TextBlock Text="Weak Passwords" Foreground="#FFFFCC80" FontSize="11"/>
+                                    <TextBlock Text="{Binding HealthWeakCount}" FontSize="28" FontWeight="Bold" Foreground="White"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Background="#FFB71C1C" CornerRadius="8" Padding="16,12" MinWidth="140">
+                                <StackPanel>
+                                    <TextBlock Text="Reused Passwords" Foreground="#FFEF9A9A" FontSize="11"/>
+                                    <TextBlock Text="{Binding HealthReusedCount}" FontSize="28" FontWeight="Bold" Foreground="White"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Detail tabs -->
+                        <TabControl Grid.Row="2">
+                            <TabItem Header="⚠️ Weak Passwords">
+                                <DataGrid ItemsSource="{Binding HealthWeakItems}" AutoGenerateColumns="False"
+                                          IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200"/>
+                                        <DataGridTextColumn Header="Username" Binding="{Binding Login.Username}" Width="200"/>
+                                        <DataGridTextColumn Header="URI" Binding="{Binding Login.Uris[0].Uri}" Width="*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </TabItem>
+                            <TabItem Header="🔄 Reused Passwords">
+                                <DataGrid ItemsSource="{Binding HealthReusedItems}" AutoGenerateColumns="False"
+                                          IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200"/>
+                                        <DataGridTextColumn Header="Username" Binding="{Binding Login.Username}" Width="200"/>
+                                        <DataGridTextColumn Header="URI" Binding="{Binding Login.Uris[0].Uri}" Width="*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </TabItem>
+                        </TabControl>
+                    </Grid>
+                </TabItem>
+
+                <!-- 🔐 MFA SETTINGS TAB -->
+                <TabItem Header="🔐 MFA">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8">
+                        <StackPanel MaxWidth="600" HorizontalAlignment="Left" Margin="16">
+                            <TextBlock Text="Multi-Factor Authentication" FontSize="18" FontWeight="Bold" Margin="0,0,0,8"/>
+                            <TextBlock Text="Add an extra layer of security to your vault. When enabled, you'll need both your master password and a second factor to unlock."
+                                       Foreground="#FFAAAAAA" FontSize="13" TextWrapping="Wrap" Margin="0,0,0,16"/>
+
+                            <!-- MFA Status -->
+                            <Border Background="#FF2A2A2A" CornerRadius="8" Padding="16" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <TextBlock Text="Current Status" FontWeight="SemiBold" FontSize="14" Margin="0,0,0,8"/>
+                                    <TextBlock Text="{Binding MfaStatusText}" Foreground="#FFCCCCCC" FontSize="13" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- TOTP Authenticator App Section -->
+                            <Border Background="#FF2A2A2A" CornerRadius="8" Padding="16" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="📱 Authenticator App (TOTP)" FontWeight="SemiBold" FontSize="14"/>
+                                            <TextBlock Text="Use Google Authenticator, Microsoft Authenticator, Authy, or any TOTP app."
+                                                       Foreground="#FFAAAAAA" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <Button Content="➕ Enable" Command="{Binding SetupTotpMfaCommand}"
+                                                    Background="#FF4CAF50" Foreground="White" Padding="12,6"
+                                                    Visibility="{Binding IsTotpMfaEnabled, Converter={StaticResource InverseBoolToVis}}"/>
+                                            <Button Content="🗑️ Remove" Command="{Binding RemoveTotpMfaCommand}"
+                                                    Background="#FFF44336" Foreground="White" Padding="12,6"
+                                                    Visibility="{Binding IsTotpMfaEnabled, Converter={StaticResource BoolToVis}}"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- TOTP Setup Panel (shown during setup) -->
+                                    <StackPanel Visibility="{Binding IsMfaSetupVisible, Converter={StaticResource BoolToVis}}"
+                                                Margin="0,8,0,0">
+                                        <Border Background="#FF1A237E" CornerRadius="6" Padding="12" Margin="0,0,0,12">
+                                            <StackPanel>
+                                                <TextBlock Text="Step 1: Scan the QR code with your authenticator app"
+                                                           Foreground="White" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                                <Image Source="{Binding MfaQrCodeImage}" MaxWidth="200" MaxHeight="200"
+                                                       HorizontalAlignment="Left" Margin="0,0,0,8"
+                                                       RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                                                <TextBlock Text="Or manually enter this key:" Foreground="#FFB3B3FF" FontSize="12"/>
+                                                <TextBox Text="{Binding MfaTotpSetupSecret, Mode=OneWay}" IsReadOnly="True"
+                                                         FontFamily="Consolas" FontSize="13" Padding="6" Margin="0,4,0,0"
+                                                         Background="#FF0D1B3E" Foreground="White" BorderBrush="#FF3949AB"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <TextBlock Text="Step 2: Enter the 6-digit code to verify" Foreground="#FFCCCCCC"
+                                                   FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding MfaSetupVerifyCode, UpdateSourceTrigger=PropertyChanged}"
+                                                     FontSize="20" FontFamily="Consolas" Padding="8" MaxLength="6"
+                                                     HorizontalContentAlignment="Center" Margin="0,0,8,0"/>
+                                            <Button Grid.Column="1" Content="✅ Verify &amp; Enable" Command="{Binding FinalizeTotpSetupCommand}"
+                                                    Background="#FF4CAF50" Foreground="White" Padding="16,8"
+                                                    FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        </Grid>
+                                        <TextBlock Text="{Binding MfaStatusText}" Foreground="#FFFF9800" FontSize="12"
+                                                   Margin="0,8,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Windows Hello / FIDO2 Section -->
+                            <Border Background="#FF2A2A2A" CornerRadius="8" Padding="16" Margin="0,0,0,16">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="🔑 Windows Hello / FIDO2" FontWeight="SemiBold" FontSize="14"/>
+                                        <TextBlock Text="Use PIN, fingerprint, face recognition, or a FIDO2 security key."
+                                                   Foreground="#FFAAAAAA" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                        <TextBlock Foreground="#FFFF9800" FontSize="11" Margin="0,4,0,0"
+                                                   Visibility="{Binding IsWindowsHelloAvailable, Converter={StaticResource InverseBoolToVis}}">
+                                            ⚠ Windows Hello is not available on this device.
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <Button Content="➕ Enable" Command="{Binding SetupWindowsHelloMfaCommand}"
+                                                Background="#FF4CAF50" Foreground="White" Padding="12,6"
+                                                Visibility="{Binding IsWindowsHelloMfaEnabled, Converter={StaticResource InverseBoolToVis}}"
+                                                IsEnabled="{Binding IsWindowsHelloAvailable}"/>
+                                        <Button Content="🗑️ Remove" Command="{Binding RemoveWindowsHelloMfaCommand}"
+                                                Background="#FFF44336" Foreground="White" Padding="12,6"
+                                                Visibility="{Binding IsWindowsHelloMfaEnabled, Converter={StaticResource BoolToVis}}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Security Info -->
+                            <Border Background="#FF1A237E" CornerRadius="6" Padding="12">
+                                <StackPanel>
+                                    <TextBlock Text="🔒 How MFA protects your vault" FontWeight="Bold" Foreground="White" Margin="0,0,0,4"/>
+                                    <TextBlock TextWrapping="Wrap" Foreground="#FFB3B3FF" FontSize="12">
+                                        When MFA is enabled, unlocking your vault requires both your master password AND a second factor (authenticator code or Windows Hello). Your TOTP secret is encrypted with your master password — it never leaves your device unencrypted.
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- ☁️ SYNC TAB -->
+                <TabItem Header="☁️ Cloud Sync">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8">
+                        <StackPanel MaxWidth="600" HorizontalAlignment="Left" Margin="16">
+                            <TextBlock Text="Cloud Sync" FontSize="18" FontWeight="Bold" Margin="0,0,0,8"/>
+                            <TextBlock Text="Sync your encrypted vault across devices using OneDrive or Google Drive."
+                                       Foreground="#FFAAAAAA" FontSize="13" TextWrapping="Wrap" Margin="0,0,0,24"/>
+
+                            <!-- Current sync status -->
+                            <Border Background="#FF2A2A2A" CornerRadius="8" Padding="16" Margin="0,0,0,24">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Provider:" Foreground="#FFAAAAAA" FontSize="13" Margin="0,0,0,4"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SyncProviderName}" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,4"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Account:" Foreground="#FFAAAAAA" FontSize="13" Margin="0,0,0,4"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SyncAccountEmail}" FontSize="13" Margin="0,0,0,4"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Last Sync:" Foreground="#FFAAAAAA" FontSize="13" Margin="0,0,0,4"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding LastSyncTime}" FontSize="13" Margin="0,0,0,4"/>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Status:" Foreground="#FFAAAAAA" FontSize="13"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SyncStatus}" FontSize="13" TextWrapping="Wrap"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Sign in buttons -->
+                            <TextBlock Text="Connect Account" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,12"/>
+
+                            <Button Command="{Binding SignInMicrosoftCommand}" Padding="12,10" Margin="0,0,0,8"
+                                    HorizontalContentAlignment="Left" Cursor="Hand">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="☁️" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <StackPanel>
+                                        <TextBlock Text="Sign in with Microsoft" FontWeight="SemiBold" FontSize="13"/>
+                                        <TextBlock Text="Sync via OneDrive" Foreground="#FFAAAAAA" FontSize="11"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Command="{Binding SignInGoogleCommand}" Padding="12,10" Margin="0,0,0,8"
+                                    HorizontalContentAlignment="Left" Cursor="Hand">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🔵" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <StackPanel>
+                                        <TextBlock Text="Sign in with Google" FontWeight="SemiBold" FontSize="13"/>
+                                        <TextBlock Text="Sync via Google Drive" Foreground="#FFAAAAAA" FontSize="11"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Button>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                                <Button Content="🔄 Sync Now" Command="{Binding SyncNowCommand}"
+                                        Background="#FF2196F3" Foreground="White" Padding="12,8"
+                                        Margin="0,0,8,0" FontWeight="SemiBold"/>
+                                <Button Content="🚪 Disconnect" Command="{Binding SignOutCloudCommand}"
+                                        Background="#FFF44336" Foreground="White" Padding="12,8"/>
+                            </StackPanel>
+
+                            <!-- Security info -->
+                            <Border Background="#FF1A237E" CornerRadius="6" Padding="12" Margin="0,24,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="🔒 Your data is always encrypted" FontWeight="Bold" Foreground="White" Margin="0,0,0,4"/>
+                                    <TextBlock TextWrapping="Wrap" Foreground="#FFB3B3FF" FontSize="12">
+                                        Your vault is encrypted with AES-256 before it leaves your device.
+                                        Only the encrypted file is uploaded to the cloud. Your master password
+                                        never leaves your device and is never stored anywhere.
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Import / Export -->
+                            <TextBlock Text="Import &amp; Export" FontSize="15" FontWeight="SemiBold" Margin="0,24,0,12"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="📥 Import" Command="{Binding ImportVaultCommand}"
+                                        Padding="12,6" Margin="0,0,8,0"/>
+                                <Button Content="📤 Export" Command="{Binding ExportVaultCommand}"
+                                        Padding="12,6"/>
+                            </StackPanel>
+                            <TextBlock Text="Export as unencrypted JSON for backup, or encrypted vault file."
+                                       Foreground="#FF888888" FontSize="11" Margin="0,4,0,0"/>
+
+                            <!-- Change master password -->
+                            <TextBlock Text="Security" FontSize="15" FontWeight="SemiBold" Margin="0,24,0,12"/>
+                            <Border Background="#FF2A2A2A" CornerRadius="6" Padding="12">
+                                <StackPanel>
+                                    <TextBlock Text="Change Master Password" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                    <TextBlock Text="New Password" Foreground="#FFAAAAAA" FontSize="11" Margin="0,0,0,2"/>
+                                    <PasswordBox x:Name="ChangePwBox" FontSize="13" Padding="4" Margin="0,0,0,4"
+                                                 PasswordChanged="ChangePwBox_PasswordChanged"/>
+                                    <TextBlock Text="Confirm New Password" Foreground="#FFAAAAAA" FontSize="11" Margin="0,0,0,2"/>
+                                    <PasswordBox x:Name="ConfirmChangePwBox" FontSize="13" Padding="4" Margin="0,0,0,8"
+                                                 PasswordChanged="ConfirmChangePwBox_PasswordChanged"/>
+                                    <Button Content="Change Password" Command="{Binding ChangeMasterPasswordCommand}"
+                                            Background="#FFFF9800" Foreground="White" Padding="12,6"
+                                            HorizontalAlignment="Left"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+
+            <!-- Status bar -->
+            <StatusBar Grid.Row="2" Margin="0,4,0,0">
+                <TextBlock Text="{Binding StatusText}" FontSize="12"/>
+            </StatusBar>
+        </Grid>
+    </Grid>
+</UserControl>

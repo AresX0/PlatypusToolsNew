@@ -21,9 +21,21 @@ namespace PlatypusTools.Core.Services
         private GraphServiceClient? _graphClient;
         private string? _tenantId;
 
-        public EntraIdSecurityService(IProgress<string>? progress = null)
+        /// <summary>
+        /// Client ID used for Graph API authentication.
+        /// Defaults to the well-known Microsoft Graph PowerShell client ID if not specified.
+        /// </summary>    
+        private readonly string _graphClientId;
+
+        /// <summary>
+        /// Well-known Microsoft Graph PowerShell client ID. Public, not tenant-specific.
+        /// </summary>
+        public const string DefaultGraphClientId = "14d82eec-204b-4c2f-b7e8-296a70dab67e";
+
+        public EntraIdSecurityService(IProgress<string>? progress = null, string? graphClientId = null)
         {
             _progress = progress;
+            _graphClientId = string.IsNullOrWhiteSpace(graphClientId) ? DefaultGraphClientId : graphClientId;
         }
 
         #region Authentication
@@ -42,7 +54,7 @@ namespace PlatypusTools.Core.Services
                 var options = new InteractiveBrowserCredentialOptions
                 {
                     TenantId = tenantId,
-                    ClientId = "14d82eec-204b-4c2f-b7e8-296a70dab67e", // Microsoft Graph PowerShell client ID
+                    ClientId = _graphClientId,
                     AuthorityHost = AzureAuthorityHosts.AzurePublicCloud,
                     RedirectUri = new Uri("http://localhost")
                 };
@@ -83,7 +95,7 @@ namespace PlatypusTools.Core.Services
                 var options = new DeviceCodeCredentialOptions
                 {
                     TenantId = tenantId,
-                    ClientId = "14d82eec-204b-4c2f-b7e8-296a70dab67e",
+                    ClientId = _graphClientId,
                     DeviceCodeCallback = (code, cancellation) =>
                     {
                         _progress?.Report(code.Message);

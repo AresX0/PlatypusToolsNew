@@ -21,6 +21,7 @@ Logs/
 # Configuration files (user-specific)
 # ===================
 *_Config.json
+entra-config.json
 
 # ===================
 # Scan data files

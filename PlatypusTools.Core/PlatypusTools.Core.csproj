@@ -30,7 +30,7 @@
     <PackageReference Include="QRCoder" Version="1.6.0" />
   </ItemGroup>
   <PropertyGroup>
-    <Version>3.4.3.7</Version>
+    <Version>3.4.3.8</Version>
     <Authors>PlatypusUtils</Authors>
   </PropertyGroup>
 </Project>

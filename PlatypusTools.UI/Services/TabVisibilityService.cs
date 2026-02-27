@@ -181,6 +181,7 @@ namespace PlatypusTools.UI.Services
         // Security - New
         public Visibility FileIntegrity => GetVisibility("Security.FileIntegrity");
         public Visibility CertificateManager => GetVisibility("Security.CertificateManager");
+        public Visibility SecurityVault => GetVisibility("Security.SecurityVault");
 
         // Tools - New
         public Visibility ClipboardHistory => GetVisibility("Tools.ClipboardHistory");

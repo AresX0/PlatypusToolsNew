@@ -10,6 +10,7 @@ using System.Windows.Input;
 using Microsoft.Win32;
 using PlatypusTools.Core.Models;
 using PlatypusTools.Core.Services;
+using PlatypusTools.UI.Services;
 
 namespace PlatypusTools.UI.ViewModels
 {
@@ -28,7 +29,9 @@ namespace PlatypusTools.UI.ViewModels
         {
             _analysisService = new AdSecurityAnalysisService(new Progress<string>(msg => AppendLog(msg)));
             _databaseService = new AdSecurityDatabaseService();
-            _entraIdService = new EntraIdSecurityService(new Progress<string>(msg => AppendLog(msg)));
+            _entraIdService = new EntraIdSecurityService(
+                new Progress<string>(msg => AppendLog(msg)),
+                EntraConfigService.Instance.GetGraphClientId());
 
             // Initialize collections
             PrivilegedMembers = new ObservableCollection<AdPrivilegedMember>();

@@ -476,19 +476,144 @@
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
             background: var(--bg-secondary); border-top: 1px solid var(--bg-surface);
-            display: flex; justify-content: space-around; padding: 8px 0;
-            padding-bottom: calc(8px + var(--safe-area-bottom));
+            display: flex; justify-content: space-evenly; padding: 4px 0;
+            padding-bottom: calc(4px + var(--safe-area-bottom));
+            overflow-x: auto; -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+            z-index: 100;
         }
+        .bottom-nav::-webkit-scrollbar { display: none; }
         .nav-item {
-            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
             background: none; border: none; color: var(--text-secondary); cursor: pointer;
-            padding: 8px 16px; font-size: 0.75rem;
+            padding: 4px 6px; font-size: 0.65rem; flex-shrink: 0; min-width: 0;
         }
-        .nav-item .icon { font-size: 1.4rem; }
+        .nav-item .icon { font-size: 1.2rem; }
         .nav-item.active { color: var(--accent); }
 
         .no-content { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
         .audio-player { display: none; }
+
+        /* Vault Styles */
+        .vault-subtab {
+            padding: 8px 16px; border: none; border-radius: 6px 6px 0 0;
+            background: transparent; color: var(--text-secondary); cursor: pointer;
+            font-size: 0.85rem; border-bottom: 2px solid transparent;
+        }
+        .vault-subtab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .vault-item {
+            display: flex; align-items: center; gap: 12px; padding: 12px;
+            border-radius: 8px; background: var(--bg-secondary); margin-bottom: 6px; cursor: pointer;
+            transition: background 0.15s;
+        }
+        .vault-item:hover { background: var(--bg-surface); }
+        .vault-item .vi-icon { font-size: 1.5rem; flex-shrink: 0; }
+        .vault-item .vi-info { flex: 1; min-width: 0; }
+        .vault-item .vi-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .vault-item .vi-sub { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .vault-item .vi-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .vault-item .vi-actions button {
+            padding: 6px 8px; border: none; border-radius: 4px;
+            background: var(--bg-surface); color: white; cursor: pointer; font-size: 0.85rem;
+        }
+        .auth-entry {
+            display: flex; align-items: center; gap: 12px; padding: 12px;
+            border-radius: 8px; background: var(--bg-secondary); margin-bottom: 6px;
+        }
+        .auth-entry .ae-code {
+            font-family: monospace; font-size: 1.6rem; font-weight: 700; letter-spacing: 4px;
+            color: var(--accent); cursor: pointer; min-width: 140px;
+        }
+        .auth-entry .ae-info { flex: 1; min-width: 0; }
+        .auth-entry .ae-issuer { font-weight: 600; font-size: 0.9rem; }
+        .auth-entry .ae-account { font-size: 0.8rem; color: var(--text-secondary); }
+        .auth-entry .ae-timer {
+            width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--bg-surface);
+            display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;
+        }
+        .vault-field { margin-bottom: 12px; }
+        .vault-field label { display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px; }
+        .vault-field input, .vault-field textarea, .vault-field select {
+            width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--bg-surface);
+            background: var(--bg-secondary); color: white; font-size: 0.9rem; box-sizing: border-box;
+        }
+        .vault-field textarea { min-height: 80px; resize: vertical; }
+
+        /* Photos Gallery Styles */
+        .photos-toolbar {
+            display: flex; gap: 8px; padding: 12px; align-items: center; flex-wrap: wrap;
+            background: var(--bg-secondary); border-bottom: 1px solid var(--bg-surface);
+        }
+        .photos-toolbar select, .photos-toolbar input {
+            padding: 8px 12px; border-radius: 8px; border: 1px solid var(--bg-surface);
+            background: var(--bg-primary); color: white; font-size: 0.85rem;
+        }
+        .photos-toolbar select { min-width: 140px; max-width: 220px; }
+        .photos-toolbar input[type="search"] { flex: 1; min-width: 120px; }
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 6px; padding: 8px; overflow-y: auto; flex: 1;
+        }
+        .photo-card {
+            position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden;
+            background: var(--bg-secondary); cursor: pointer; transition: transform 0.15s;
+        }
+        .photo-card:hover { transform: scale(1.03); }
+        .photo-card img {
+            width: 100%; height: 100%; object-fit: cover;
+            background: var(--bg-surface);
+        }
+        .photo-card .pc-name {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            padding: 4px 6px; font-size: 0.7rem;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .photo-card .pc-placeholder {
+            width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; color: var(--text-secondary); background: var(--bg-surface);
+        }
+        .photos-pager {
+            display: flex; justify-content: center; align-items: center; gap: 12px;
+            padding: 12px; background: var(--bg-secondary); border-top: 1px solid var(--bg-surface);
+        }
+        .photos-pager button {
+            padding: 8px 16px; border-radius: 8px; border: none;
+            background: var(--accent); color: white; cursor: pointer; font-size: 0.85rem;
+        }
+        .photos-pager button:disabled { opacity: 0.4; cursor: default; }
+        .photos-status {
+            font-size: 0.8rem; color: var(--text-secondary); text-align: center; padding: 4px;
+        }
+        /* Lightbox */
+        .photo-lightbox {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.95); z-index: 1000; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+        .photo-lightbox.active { display: flex; }
+        .photo-lightbox img {
+            max-width: 95vw; max-height: 85vh; object-fit: contain; border-radius: 4px;
+        }
+        .photo-lightbox .lb-close {
+            position: absolute; top: 12px; right: 16px;
+            font-size: 1.5rem; background: none; border: none; color: white; cursor: pointer;
+            padding: 8px; z-index: 1;
+        }
+        .photo-lightbox .lb-nav {
+            position: absolute; top: 50%; transform: translateY(-50%); font-size: 2rem;
+            background: rgba(0,0,0,0.5); border: none; color: white; cursor: pointer;
+            padding: 16px 12px; border-radius: 8px;
+        }
+        .photo-lightbox .lb-prev { left: 8px; }
+        .photo-lightbox .lb-next { right: 8px; }
+        .photo-lightbox .lb-info {
+            position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.7); padding: 8px 16px; border-radius: 8px;
+            font-size: 0.85rem; color: white; text-align: center; max-width: 90vw;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
 
         /* Mode Selector */
         .mode-selector {
@@ -906,7 +1031,186 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Vault Tab -->
+            <div class="tab-panel" id="vaultTab">
+                <!-- Vault Locked State -->
+                <div id="vaultLocked" style="display:flex; flex:1; align-items:center; justify-content:center;">
+                    <div style="text-align:center; max-width:340px; padding:20px;">
+                        <div style="font-size:3rem; margin-bottom:16px;">🔐</div>
+                        <h2 style="margin:0 0 8px;">Security Vault</h2>
+                        <p style="color:var(--text-secondary); margin-bottom:20px;">Enter your master password to unlock</p>
+                        <div id="vaultNoVault" style="display:none; color:var(--text-secondary); padding:20px;">
+                            <p>No vault found. Create a vault in the PlatypusTools desktop app first.</p>
+                        </div>
+                        <form id="vaultUnlockForm" style="display:flex; flex-direction:column; gap:12px;">
+                            <input type="password" id="vaultMasterPw" placeholder="Master Password"
+                                   style="padding:12px 16px; border-radius:8px; border:1px solid var(--bg-surface); background:var(--bg-primary); color:white; font-size:1rem;">
+                            <button type="submit" style="padding:12px 16px; border-radius:8px; border:none; background:var(--accent); color:white; font-size:1rem; cursor:pointer; font-weight:600;">
+                                Unlock
+                            </button>
+                            <p id="vaultError" style="color:#f44336; display:none; margin:0; font-size:0.85rem;"></p>
+                        </form>
+                        <!-- MFA Verification Form (shown after password verified, when MFA is enabled) -->
+                        <form id="vaultMfaForm" style="display:none; flex-direction:column; gap:12px;">
+                            <div style="font-size:1.5rem; margin-bottom:4px;">🔐</div>
+                            <p style="color:var(--text-secondary); margin:0 0 4px; font-size:0.9rem;">Enter the 6-digit code from your authenticator app</p>
+                            <input type="text" id="vaultMfaCode" placeholder="000000" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
+                                   style="padding:14px 16px; border-radius:8px; border:1px solid var(--bg-surface); background:var(--bg-primary); color:white; font-size:1.5rem; text-align:center; font-family:monospace; letter-spacing:8px;">
+                            <button type="submit" style="padding:12px 16px; border-radius:8px; border:none; background:var(--accent); color:white; font-size:1rem; cursor:pointer; font-weight:600;">
+                                Verify
+                            </button>
+                            <button type="button" onclick="window.platypusRemote.cancelMfa()" style="padding:10px 16px; border-radius:8px; border:1px solid var(--bg-surface); background:transparent; color:var(--text-secondary); font-size:0.9rem; cursor:pointer;">
+                                Cancel
+                            </button>
+                            <p id="vaultMfaError" style="color:#f44336; display:none; margin:0; font-size:0.85rem;"></p>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Vault Unlocked State -->
+                <div id="vaultUnlocked" style="display:none; flex:1; flex-direction:column;">
+                    <!-- Vault Header -->
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--bg-surface);">
+                        <h3 style="margin:0; font-size:1rem;">🔓 Vault</h3>
+                        <div style="display:flex; gap:8px;">
+                            <button id="vaultAddBtn" onclick="window.platypusRemote.showAddItemForm()" style="padding:6px 12px; border-radius:6px; border:none; background:var(--accent); color:white; cursor:pointer; font-size:0.85rem;">+ Add</button>
+                            <button id="vaultLockBtn" onclick="window.platypusRemote.lockVault()" style="padding:6px 12px; border-radius:6px; border:none; background:#f44336; color:white; cursor:pointer; font-size:0.85rem;">🔒 Lock</button>
+                        </div>
+                    </div>
+
+                    <!-- Vault Search & Filters -->
+                    <div style="padding:8px 16px; display:flex; gap:8px; flex-wrap:wrap;">
+                        <input type="text" id="vaultSearch" placeholder="Search vault..."
+                               style="flex:1; min-width:150px; padding:8px 12px; border-radius:8px; border:1px solid var(--bg-surface); background:var(--bg-primary); color:white; font-size:0.9rem;"
+                               oninput="window.platypusRemote.filterVaultItems()">
+                        <select id="vaultTypeFilter" onchange="window.platypusRemote.filterVaultItems()"
+                                style="padding:8px 12px; border-radius:8px; border:1px solid var(--bg-surface); background:var(--bg-primary); color:white; font-size:0.85rem;">
+                            <option value="">All Types</option>
+                            <option value="login">Logins</option>
+                            <option value="securenote">Notes</option>
+                            <option value="card">Cards</option>
+                            <option value="identity">Identities</option>
+                            <option value="favorites">Favorites</option>
+                        </select>
+                        <select id="vaultFolderFilter" onchange="window.platypusRemote.filterVaultItems()"
+                                style="padding:8px 12px; border-radius:8px; border:1px solid var(--bg-surface); background:var(--bg-primary); color:white; font-size:0.85rem;">
+                            <option value="">All Folders</option>
+                            <option value="none">No Folder</option>
+                        </select>
+                    </div>
+
+                    <!-- Sub-tabs: Items / Authenticator / Generator -->
+                    <div style="display:flex; gap:4px; padding:4px 16px; border-bottom:1px solid var(--bg-surface);">
+                        <button class="vault-subtab active" data-subtab="items" onclick="window.platypusRemote.switchVaultSubtab('items')">Items</button>
+                        <button class="vault-subtab" data-subtab="authenticator" onclick="window.platypusRemote.switchVaultSubtab('authenticator')">Authenticator</button>
+                        <button class="vault-subtab" data-subtab="generator" onclick="window.platypusRemote.switchVaultSubtab('generator')">Generator</button>
+                    </div>
+
+                    <!-- Items list -->
+                    <div id="vaultItemsPanel" class="vault-subpanel active" style="flex:1; overflow-y:auto;">
+                        <div id="vaultItemsList" style="padding:8px;"></div>
+                    </div>
+
+                    <!-- Authenticator panel -->
+                    <div id="vaultAuthPanel" class="vault-subpanel" style="flex:1; overflow-y:auto; display:none;">
+                        <div style="padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+                            <h4 style="margin:0;">TOTP Codes</h4>
+                            <button onclick="window.platypusRemote.showAddAuthForm()" style="padding:6px 12px; border-radius:6px; border:none; background:var(--accent); color:white; cursor:pointer; font-size:0.85rem;">+ Add</button>
+                        </div>
+                        <div id="vaultAuthList" style="padding:0 8px 8px;"></div>
+                        <!-- QR Scanner -->
+                        <div id="qrScannerContainer" style="display:none; padding:16px; text-align:center;">
+                            <p style="margin:0 0 8px;">Point camera at QR code</p>
+                            <video id="qrVideo" style="width:100%; max-width:300px; border-radius:8px; background:#000;"></video>
+                            <canvas id="qrCanvas" style="display:none;"></canvas>
+                            <div style="margin-top:8px; display:flex; gap:8px; justify-content:center;">
+                                <button onclick="window.platypusRemote.stopQrScanner()" style="padding:8px 16px; border-radius:6px; border:none; background:#f44336; color:white; cursor:pointer;">Cancel</button>
+                            </div>
+                        </div>
+                        <!-- Manual OTP URI entry -->
+                        <div id="addAuthForm" style="display:none; padding:16px;">
+                            <h4 style="margin:0 0 12px;">Add Authenticator</h4>
+                            <div style="display:flex; flex-direction:column; gap:10px;">
+                                <button onclick="window.platypusRemote.startQrScanner()" style="padding:10px; border-radius:8px; border:1px dashed var(--bg-surface); background:transparent; color:var(--accent); cursor:pointer; font-size:0.9rem;">📷 Scan QR Code</button>
+                                <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem;">— or enter manually —</div>
+                                <input type="text" id="authOtpUri" placeholder="otpauth://totp/..."
+                                       style="padding:10px 14px; border-radius:8px; border:1px solid var(--bg-surface); background:var(--bg-primary); color:white; font-size:0.9rem;">
+                                <div style="display:flex; gap:8px;">
+                                    <button onclick="window.platypusRemote.addAuthFromUri()" style="flex:1; padding:10px; border-radius:8px; border:none; background:var(--accent); color:white; cursor:pointer;">Add</button>
+                                    <button onclick="window.platypusRemote.hideAddAuthForm()" style="padding:10px 16px; border-radius:8px; border:1px solid var(--bg-surface); background:transparent; color:var(--text-secondary); cursor:pointer;">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Generator panel -->
+                    <div id="vaultGenPanel" class="vault-subpanel" style="flex:1; overflow-y:auto; display:none; padding:16px;">
+                        <h4 style="margin:0 0 12px;">Password Generator</h4>
+                        <div style="display:flex; flex-direction:column; gap:12px;">
+                            <div style="background:var(--bg-surface); padding:16px; border-radius:8px; font-family:monospace; font-size:1.1rem; word-break:break-all; text-align:center; min-height:50px; display:flex; align-items:center; justify-content:center;" id="generatedPwDisplay">
+                                Click Generate
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <button onclick="window.platypusRemote.generatePassword()" style="flex:1; padding:10px; border-radius:8px; border:none; background:var(--accent); color:white; cursor:pointer; font-weight:600;">Generate</button>
+                                <button onclick="window.platypusRemote.copyGeneratedPassword()" style="padding:10px 16px; border-radius:8px; border:none; background:var(--bg-surface); color:white; cursor:pointer;">📋 Copy</button>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <label style="min-width:60px; font-size:0.85rem;">Length:</label>
+                                <input type="range" id="genLength" min="8" max="64" value="20" oninput="document.getElementById('genLengthVal').textContent=this.value" style="flex:1;">
+                                <span id="genLengthVal" style="min-width:24px; text-align:center;">20</span>
+                            </div>
+                            <div style="display:flex; flex-wrap:wrap; gap:12px;">
+                                <label style="font-size:0.85rem;"><input type="checkbox" id="genUpper" checked> Uppercase</label>
+                                <label style="font-size:0.85rem;"><input type="checkbox" id="genLower" checked> Lowercase</label>
+                                <label style="font-size:0.85rem;"><input type="checkbox" id="genNumbers" checked> Numbers</label>
+                                <label style="font-size:0.85rem;"><input type="checkbox" id="genSpecial" checked> Special</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item detail / edit overlay -->
+                    <div id="vaultItemDetail" style="display:none; position:absolute; top:0; left:0; right:0; bottom:0; background:var(--bg-primary); z-index:10; overflow-y:auto; padding:16px;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Photos Tab -->
+            <div class="tab-panel" id="photosTab">
+                <div class="photos-toolbar" id="photosToolbar">
+                    <select id="photosFolderSelect">
+                        <option value="">All Folders</option>
+                    </select>
+                    <input type="search" id="photosSearch" placeholder="Search images...">
+                    <button onclick="window.platypusRemote.loadPhotos()" style="padding:8px 12px; border-radius:8px; border:none; background:var(--accent); color:white; cursor:pointer; font-size:0.85rem;">🔄</button>
+                </div>
+                <div id="photosLoading" style="display:none; text-align:center; padding:40px;">
+                    <div class="spinner"></div>
+                    <p style="color:var(--text-secondary); margin-top:12px;">Loading images...</p>
+                </div>
+                <div id="photosEmpty" style="display:none; text-align:center; padding:40px;">
+                    <div style="font-size:3rem; margin-bottom:12px;">🖼️</div>
+                    <h3 style="margin:0 0 8px;">No Images Found</h3>
+                    <p style="color:var(--text-secondary); font-size:0.85rem;">Add folders in the Media Library tab of PlatypusTools to browse photos here</p>
+                </div>
+                <div class="photos-grid" id="photosGrid"></div>
+                <div class="photos-status" id="photosStatus"></div>
+                <div class="photos-pager" id="photosPager" style="display:none;">
+                    <button id="photosPrevBtn" disabled>&laquo; Previous</button>
+                    <span id="photosPageInfo" style="color:var(--text-secondary); font-size:0.85rem;"></span>
+                    <button id="photosNextBtn" disabled>Next &raquo;</button>
+                </div>
+            </div>
         </div>
+    </div>
+
+    <!-- Photos Lightbox -->
+    <div class="photo-lightbox" id="photoLightbox">
+        <button class="lb-close" id="lbClose">&times;</button>
+        <button class="lb-nav lb-prev" id="lbPrev">&lsaquo;</button>
+        <button class="lb-nav lb-next" id="lbNext">&rsaquo;</button>
+        <img id="lbImage" src="" alt="">
+        <div class="lb-info" id="lbInfo"></div>
     </div>
 
     <!-- Bottom Navigation -->
@@ -930,6 +1234,14 @@
         <button class="nav-item" data-tab="systemTab">
             <span class="icon">🖥️</span>
             <span>System</span>
+        </button>
+        <button class="nav-item" data-tab="vaultTab">
+            <span class="icon">🔐</span>
+            <span>Vault</span>
+        </button>
+        <button class="nav-item" data-tab="photosTab">
+            <span class="icon">🖼️</span>
+            <span>Photos</span>
         </button>
     </nav>
 

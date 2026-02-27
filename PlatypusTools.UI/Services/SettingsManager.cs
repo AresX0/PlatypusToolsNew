@@ -768,6 +768,7 @@ namespace PlatypusTools.UI.Services
                 new("Security.AdvancedForensics.Results", "Results", "Security.AdvancedForensics"),
                 new("Security.AdSecurityAnalyzer", "AD Security Analyzer", "Security"),
                 new("Security.CveSearch", "CVE Search", "Security"),
+                new("Security.SecurityVault", "Security Vault", "Security"),
 
                 new("Metadata", "📋 Metadata", null),
 

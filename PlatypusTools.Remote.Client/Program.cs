@@ -21,9 +21,14 @@ var clientId = builder.Configuration["AzureAd:ClientId"] ?? "00000000-0000-0000-
 builder.Services.AddMsalAuthentication(options =>
 {
     builder.Configuration.Bind("AzureAd", options.ProviderOptions.Authentication);
-    // The scope format is: api://{ClientId}/access_as_user
+    // The scope format is: api://{ApiScopeId}/access_as_user
     // This must match the scope you exposed in Azure Portal -> Expose an API
-    options.ProviderOptions.DefaultAccessTokenScopes.Add($"api://76919ec8-544f-431e-89e9-4ba4e7a36a44/access_as_user");
+    // The ApiScopeId comes from appsettings.json or defaults to the ClientId
+    var apiScopeId = builder.Configuration["AzureAd:ApiScopeId"] ?? clientId;
+    if (apiScopeId != "00000000-0000-0000-0000-000000000000" && !string.IsNullOrEmpty(apiScopeId))
+    {
+        options.ProviderOptions.DefaultAccessTokenScopes.Add($"api://{apiScopeId}/access_as_user");
+    }
     options.ProviderOptions.LoginMode = "redirect";
 });
 

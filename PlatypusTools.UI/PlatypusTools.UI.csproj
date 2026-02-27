@@ -25,15 +25,20 @@
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>PlatypusTools.UI</RootNamespace>
-    <Version>3.4.3.7</Version>
+    <Version>3.4.3.8</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
+    <PackageReference Include="Google.Apis.Drive.v3" Version="1.73.0.4045" />
+    <PackageReference Include="Google.Apis.Oauth2.v2" Version="1.68.0.1869" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.67.2" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3719.77" />
     <!-- LibVLCSharp for universal video playback (plays any format without external dependencies) -->
     <PackageReference Include="LibVLCSharp" Version="3.9.5" />
     <PackageReference Include="LibVLCSharp.WPF" Version="3.9.5" />
     <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="Otp.NET" Version="1.4.0" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23" />
     <!-- SkiaSharp for high-performance HD audio visualizer rendering -->

@@ -404,7 +404,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.3.7"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.3.8"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="Gray" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
@@ -716,6 +716,61 @@
                                              IsEnabled="{Binding IsChecked, ElementName=RemoteServerEnabledCheck}"/>
                                     <TextBlock Grid.Column="2" Text="(default: 47392)" Foreground="Gray" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                 </Grid>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Entra ID / App Registration -->
+                        <GroupBox Header="🔐 Entra ID App Registration" Margin="0,0,0,16">
+                            <StackPanel Margin="8">
+                                <TextBlock Text="Configure your Azure AD app registration for authenticated remote access. These values are stored locally and never committed to source control." 
+                                           TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,12"/>
+                                
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="140"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Text="Client ID:" VerticalAlignment="Center" Margin="0,4"
+                                               ToolTip="Application (client) ID from Azure Portal → App registrations → Your app → Overview"/>
+                                    <TextBox x:Name="EntraClientIdBox" Grid.Column="1" Margin="0,4" 
+                                             FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
+                                             ToolTip="e.g. 12345678-abcd-1234-abcd-123456789abc"/>
+
+                                    <TextBlock Grid.Row="1" Text="Tenant ID:" VerticalAlignment="Center" Margin="0,4"
+                                               ToolTip="Directory (tenant) ID. Use 'common' for multi-tenant."/>
+                                    <TextBox x:Name="EntraTenantIdBox" Grid.Row="1" Grid.Column="1" Margin="0,4" 
+                                             FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
+                                             Text="common"
+                                             ToolTip="Use 'common' for multi-tenant or enter your specific tenant ID"/>
+
+                                    <TextBlock Grid.Row="2" Text="API Scope ID:" VerticalAlignment="Center" Margin="0,4"
+                                               ToolTip="The API scope ID from Azure Portal → Expose an API. Often same as Client ID."/>
+                                    <TextBox x:Name="EntraApiScopeIdBox" Grid.Row="2" Grid.Column="1" Margin="0,4" 
+                                             FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
+                                             ToolTip="Leave empty to use Client ID as scope. Format: api://{this-value}/access_as_user"/>
+
+                                    <TextBlock Grid.Row="3" Text="Graph Client ID:" VerticalAlignment="Center" Margin="0,4"
+                                               ToolTip="Optional: Custom client ID for Microsoft Graph operations. Leave empty for the default MS Graph PowerShell ID."/>
+                                    <TextBox x:Name="EntraGraphClientIdBox" Grid.Row="3" Grid.Column="1" Margin="0,4" 
+                                             FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
+                                             ToolTip="Leave empty to use the well-known MS Graph PowerShell client ID (14d82eec-...)"/>
+                                </Grid>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                    <Button x:Name="SaveEntraConfigBtn" Content="💾 Save Entra Config" MinWidth="140" 
+                                            Click="SaveEntraConfig_Click" Background="#FF4CAF50" Foreground="White" Margin="0,0,8,0"/>
+                                    <TextBlock x:Name="EntraConfigStatus" VerticalAlignment="Center" Foreground="Gray" FontStyle="Italic"/>
+                                </StackPanel>
+
+                                <TextBlock Margin="0,8,0,0" TextWrapping="Wrap" Foreground="Gray" FontSize="11"
+                                           Text="💡 See DOCS/ENTRA_ID_SETUP.md for instructions on creating your app registration in Azure Portal."/>
                             </StackPanel>
                         </GroupBox>
 
@@ -1087,6 +1142,17 @@
                                 <Button Content="Clear Recent Files" MinWidth="190" HorizontalAlignment="Left" Margin="0,4" Click="ClearRecent_Click"/>
                                 <Button Content="Clear Cache" MinWidth="190" HorizontalAlignment="Left" Margin="0,4" Click="ClearCache_Click"/>
                                 <Button Content="Reset All Settings" MinWidth="190" HorizontalAlignment="Left" Margin="0,8" Click="ResetAll_Click"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="🔒 Security Vault" Margin="0,12,0,0">
+                            <StackPanel Margin="8">
+                                <TextBlock Text="If you forgot your master password, you can delete and recreate the vault database. This permanently destroys all saved passwords, TOTP entries, and authenticator keys." 
+                                           TextWrapping="Wrap" Margin="0,0,0,8" Foreground="#FFE57373"/>
+                                <Button Content="🗑️ Reset Vault Database" MinWidth="190" HorizontalAlignment="Left" 
+                                        Background="#FFF44336" Foreground="White" FontWeight="Bold"
+                                        Click="ResetVaultDatabase_Click"
+                                        ToolTip="Delete the encrypted vault file and start fresh with a new master password"/>
                             </StackPanel>
                         </GroupBox>
                         

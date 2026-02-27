@@ -286,6 +286,14 @@ public class PlatypusRemoteServer : IDisposable
 
                         // Register video service bridge
                         services.AddSingleton<IVideoServiceBridge>(sp => new VideoServiceBridge());
+
+                        // Register vault service bridge
+                        services.AddSingleton<IVaultServiceBridge>(sp => new VaultServiceBridge(
+                            new Vault.EncryptedVaultService()
+                        ));
+
+                        // Register image browser bridge
+                        services.AddSingleton<IImageBrowserBridge>(sp => new ImageBrowserBridge());
                     });
                     webBuilder.Configure(app =>
                     {
@@ -675,6 +683,309 @@ public class PlatypusRemoteServer : IDisposable
                                 }
                                 await context.Response.WriteAsJsonAsync(new { thumbnail });
                             });
+
+                            // ── Photos API endpoints ──
+
+                            endpoints.MapGet("/api/photos/folders", async context =>
+                            {
+                                var imgBridge = context.RequestServices.GetRequiredService<IImageBrowserBridge>();
+                                var folders = await imgBridge.GetImageFoldersAsync();
+                                await context.Response.WriteAsJsonAsync(folders);
+                            });
+
+                            endpoints.MapGet("/api/photos", async context =>
+                            {
+                                var imgBridge = context.RequestServices.GetRequiredService<IImageBrowserBridge>();
+                                var folder = context.Request.Query["folder"].ToString();
+                                int.TryParse(context.Request.Query["page"], out var page);
+                                int.TryParse(context.Request.Query["pageSize"], out var pageSize);
+                                if (pageSize <= 0 || pageSize > 200) pageSize = 50;
+                                var search = context.Request.Query["q"].ToString();
+                                var result = await imgBridge.GetImagesAsync(
+                                    string.IsNullOrEmpty(folder) ? null : folder,
+                                    page, pageSize,
+                                    string.IsNullOrEmpty(search) ? null : search);
+                                await context.Response.WriteAsJsonAsync(result);
+                            });
+
+                            endpoints.MapGet("/api/photos/thumbnail", async context =>
+                            {
+                                var filePath = context.Request.Query["path"].ToString();
+                                if (string.IsNullOrEmpty(filePath))
+                                {
+                                    context.Response.StatusCode = 400;
+                                    return;
+                                }
+                                int.TryParse(context.Request.Query["size"], out var size);
+                                if (size <= 0) size = 200;
+                                var imgBridge = context.RequestServices.GetRequiredService<IImageBrowserBridge>();
+                                var bytes = await imgBridge.GetThumbnailBytesAsync(filePath, size);
+                                if (bytes == null)
+                                {
+                                    context.Response.StatusCode = 404;
+                                    return;
+                                }
+                                context.Response.ContentType = "image/jpeg";
+                                context.Response.Headers["Cache-Control"] = "public, max-age=86400";
+                                await context.Response.Body.WriteAsync(bytes);
+                            });
+
+                            endpoints.MapGet("/api/photos/full", async context =>
+                            {
+                                var filePath = context.Request.Query["path"].ToString();
+                                if (string.IsNullOrEmpty(filePath))
+                                {
+                                    context.Response.StatusCode = 400;
+                                    return;
+                                }
+                                var imgBridge = context.RequestServices.GetRequiredService<IImageBrowserBridge>();
+                                var bytes = await imgBridge.GetFullImageBytesAsync(filePath);
+                                if (bytes == null)
+                                {
+                                    context.Response.StatusCode = 404;
+                                    return;
+                                }
+                                var ext = System.IO.Path.GetExtension(filePath).ToLowerInvariant();
+                                context.Response.ContentType = ext switch
+                                {
+                                    ".png" => "image/png",
+                                    ".gif" => "image/gif",
+                                    ".webp" => "image/webp",
+                                    ".bmp" => "image/bmp",
+                                    ".ico" => "image/x-icon",
+                                    ".tiff" => "image/tiff",
+                                    _ => "image/jpeg"
+                                };
+                                context.Response.Headers["Cache-Control"] = "public, max-age=3600";
+                                await context.Response.Body.WriteAsync(bytes);
+                            });
+
+                            endpoints.MapGet("/api/photos/info", async context =>
+                            {
+                                var filePath = context.Request.Query["path"].ToString();
+                                if (string.IsNullOrEmpty(filePath))
+                                {
+                                    context.Response.StatusCode = 400;
+                                    return;
+                                }
+                                var imgBridge = context.RequestServices.GetRequiredService<IImageBrowserBridge>();
+                                var info = imgBridge.GetImageInfo(filePath);
+                                if (info == null)
+                                {
+                                    context.Response.StatusCode = 404;
+                                    return;
+                                }
+                                await context.Response.WriteAsJsonAsync(info);
+                            });
+
+                            endpoints.MapGet("/api/photos/cache", async context =>
+                            {
+                                var imgBridge = context.RequestServices.GetRequiredService<IImageBrowserBridge>();
+                                await context.Response.WriteAsJsonAsync(imgBridge.GetCacheStats());
+                            });
+
+                            endpoints.MapPost("/api/photos/cache/clear", async context =>
+                            {
+                                var imgBridge = context.RequestServices.GetRequiredService<IImageBrowserBridge>();
+                                imgBridge.ClearCache();
+                                context.Response.StatusCode = 204;
+                            });
+
+                            // ── Vault API endpoints ──
+
+                            endpoints.MapGet("/api/vault/status", async context =>
+                            {
+                                var vault = context.RequestServices.GetRequiredService<IVaultServiceBridge>();
+                                await context.Response.WriteAsJsonAsync(vault.GetStatus());
+                            });
+
+                            endpoints.MapPost("/api/vault/unlock", async context =>
+                            {
+                                var vault = context.RequestServices.GetRequiredService<IVaultServiceBridge>();
+                                var body = await System.Text.Json.JsonSerializer.DeserializeAsync<UnlockRequest>(
+                                    context.Request.Body, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                if (body?.MasterPassword == null)
+                                {
+                                    context.Response.StatusCode = 400;
+                                    await context.Response.WriteAsJsonAsync(new { error = "Master password required" });
+                                    return;
+                                }
+                                var ok = await vault.UnlockAsync(body.MasterPassword);
+                                if (!ok)
+                                {
+                                    context.Response.StatusCode = 401;
+                                    await context.Response.WriteAsJsonAsync(new { error = "Invalid master password" });
+                                    return;
+                                }
+                                await context.Response.WriteAsJsonAsync(vault.GetStatus());
+                            });
+
+                            endpoints.MapPost("/api/vault/lock", async context =>
+                            {
+                                var vault = context.RequestServices.GetRequiredService<IVaultServiceBridge>();
+                                vault.Lock();
+                                context.Response.StatusCode = 204;
+                            });
+
+                            endpoints.MapPost("/api/vault/mfa/verify", async context =>
+                            {
+                                var vault = context.RequestServices.GetRequiredService<IVaultServiceBridge>();
+                                if (!vault.IsMfaPending)
+                                {
+                                    context.Response.StatusCode = 400;
+                                    await context.Response.WriteAsJsonAsync(new { error = "No MFA verification pending" });
+                                    return;
+                                }
+                                var body = await System.Text.Json.JsonSerializer.DeserializeAsync<MfaVerifyRequest>(
+                                    context.Request.Body, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                if (string.IsNullOrWhiteSpace(body?.Code))
+                                {
+                                    context.Response.StatusCode = 400;
+                                    await context.Response.WriteAsJsonAsync(new { error = "MFA code required" });
+                                    return;
+                                }
+                                if (!vault.VerifyMfa(body.Code.Trim()))
+                                {
+                                    context.Response.StatusCode = 401;
+                                    await context.Response.WriteAsJsonAsync(new { error = "Invalid MFA code" });
+                                    return;
+                                }
+                                await context.Response.WriteAsJsonAsync(vault.GetStatus());
+                            });
+
+                            endpoints.MapPost("/api/vault/mfa/cancel", async context =>
+                            {
+                                var vault = context.RequestServices.GetRequiredService<IVaultServiceBridge>();
+                                vault.CancelMfa();
+                                await context.Response.WriteAsJsonAsync(vault.GetStatus());
+                            });
+
+                            endpoints.MapGet("/api/vault/items", async context =>
+                            {
+                                var vault = context.RequestServices.GetRequiredService<IVaultServiceBridge>();
+                                if (!vault.IsUnlocked) { context.Response.StatusCode = 401; return; }
+                                var search = context.Request.Query["q"].ToString();
+                                var folderId = context.Request.Query["folderId"].ToString();
+                                var type = context.Request.Query["type"].ToString();
+                                var items = vault.GetItems(
+                                    string.IsNullOrEmpty(search) ? null : search,
+                                    string.IsNullOrEmpty(folderId) ? null : folderId,
+                                    string.IsNullOrEmpty(type) ? null : type);
+                                await context.Response.WriteAsJsonAsync(items);
+                            });
+
+                            endpoints.MapGet("/api/vault/items/{id}", async context =>
+                            {
+                                var vault = context.RequestServices.GetRequiredService<IVaultServiceBridge>();
+                                if (!vault.IsUnlocked) { context.Response.StatusCode = 401; return; }
+                                var id = context.Request.RouteValues["id"]?.ToString();
+                                if (id == null) { context.Response.StatusCode = 400; return; }
+                                var item = vault.GetItem(id);
+                                if (item == null) { context.Response.StatusCode = 404; return; }
+                                await context.Response.WriteAsJsonAsync(item);
+                            });
+
+                            endpoints.MapPost("/api/vault/items", async context =>
+                            {
+                                var vault = context.RequestServices.GetRequiredService<IVaultServiceBridge>();
+                                if (!vault.IsUnlocked) { context.Response.StatusCode = 401; return; }
+                                var dto = await System.Text.Json.JsonSerializer.DeserializeAsync<VaultItemDto>(
+                                    context.Request.Body, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                if (dto == null) { context.Response.StatusCode = 400; return; }
+                                var result = await vault.AddItemAsync(dto);
+                                context.Response.StatusCode = 201;
+                                await context.Response.WriteAsJsonAsync(result);
+                            });
+
+                            endpoints.MapPut("/api/vault/items/{id}", async context =>
+                            {
+                                var vault = context.RequestServices.GetRequiredService<IVaultServiceBridge>();
+                                if (!vault.IsUnlocked) { context.Response.StatusCode = 401; return; }
+                                var id = context.Request.RouteValues["id"]?.ToString();
+                                if (id == null) { context.Response.StatusCode = 400; return; }
+                                var dto = await System.Text.Json.JsonSerializer.DeserializeAsync<VaultItemDto>(
+                                    context.Request.Body, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                if (dto == null) { context.Response.StatusCode = 400; return; }
+                                var result = await vault.UpdateItemAsync(id, dto);
+                                if (result == null) { context.Response.StatusCode = 404; return; }
+                                await context.Response.WriteAsJsonAsync(result);
+                            });
+
+                            endpoints.MapDelete("/api/vault/items/{id}", async context =>
+                            {
+                                var vault = context.RequestServices.GetRequiredService<IVaultServiceBridge>();
+                                if (!vault.IsUnlocked) { context.Response.StatusCode = 401; return; }
+                                var id = context.Request.RouteValues["id"]?.ToString();
+                                if (id == null) { context.Response.StatusCode = 400; return; }
+                                var ok = await vault.DeleteItemAsync(id);
+                                context.Response.StatusCode = ok ? 204 : 404;
+                            });
+
+                            endpoints.MapGet("/api/vault/folders", async context =>
+                            {
+                                var vault = context.RequestServices.GetRequiredService<IVaultServiceBridge>();
+                                if (!vault.IsUnlocked) { context.Response.StatusCode = 401; return; }
+                                await context.Response.WriteAsJsonAsync(vault.GetFolders());
+                            });
+
+                            endpoints.MapGet("/api/vault/totp/{id}", async context =>
+                            {
+                                var vault = context.RequestServices.GetRequiredService<IVaultServiceBridge>();
+                                if (!vault.IsUnlocked) { context.Response.StatusCode = 401; return; }
+                                var id = context.Request.RouteValues["id"]?.ToString();
+                                if (id == null) { context.Response.StatusCode = 400; return; }
+                                var code = vault.GetTotpCode(id);
+                                if (code == null) { context.Response.StatusCode = 404; return; }
+                                await context.Response.WriteAsJsonAsync(new { code, remaining = Vault.TotpService.GetRemainingSeconds() });
+                            });
+
+                            endpoints.MapGet("/api/vault/authenticator", async context =>
+                            {
+                                var vault = context.RequestServices.GetRequiredService<IVaultServiceBridge>();
+                                if (!vault.IsUnlocked) { context.Response.StatusCode = 401; return; }
+                                await context.Response.WriteAsJsonAsync(vault.GetAuthenticatorEntries());
+                            });
+
+                            endpoints.MapPost("/api/vault/authenticator", async context =>
+                            {
+                                var vault = context.RequestServices.GetRequiredService<IVaultServiceBridge>();
+                                if (!vault.IsUnlocked) { context.Response.StatusCode = 401; return; }
+                                var body = await System.Text.Json.JsonSerializer.DeserializeAsync<AddAuthRequest>(
+                                    context.Request.Body, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                if (body?.OtpAuthUri == null) { context.Response.StatusCode = 400; return; }
+                                var result = await vault.AddAuthenticatorEntryAsync(body.OtpAuthUri);
+                                if (result == null)
+                                {
+                                    context.Response.StatusCode = 400;
+                                    await context.Response.WriteAsJsonAsync(new { error = "Invalid OTP Auth URI" });
+                                    return;
+                                }
+                                context.Response.StatusCode = 201;
+                                await context.Response.WriteAsJsonAsync(result);
+                            });
+
+                            endpoints.MapDelete("/api/vault/authenticator/{id}", async context =>
+                            {
+                                var vault = context.RequestServices.GetRequiredService<IVaultServiceBridge>();
+                                if (!vault.IsUnlocked) { context.Response.StatusCode = 401; return; }
+                                var id = context.Request.RouteValues["id"]?.ToString();
+                                if (id == null) { context.Response.StatusCode = 400; return; }
+                                var ok = await vault.DeleteAuthenticatorEntryAsync(id);
+                                context.Response.StatusCode = ok ? 204 : 404;
+                            });
+
+                            endpoints.MapGet("/api/vault/generate", async context =>
+                            {
+                                var vault = context.RequestServices.GetRequiredService<IVaultServiceBridge>();
+                                int.TryParse(context.Request.Query["length"], out var length);
+                                if (length < 8 || length > 128) length = 20;
+                                var upper = context.Request.Query["upper"] != "false";
+                                var lower = context.Request.Query["lower"] != "false";
+                                var numbers = context.Request.Query["numbers"] != "false";
+                                var special = context.Request.Query["special"] != "false";
+                                var password = vault.GeneratePassword(length, upper, lower, numbers, special);
+                                await context.Response.WriteAsJsonAsync(new { password });
+                            });
                         });
                     });
                 })
@@ -823,6 +1134,24 @@ public class RemoteClientInfo
     public string IpAddress { get; set; } = string.Empty;
     public string UserAgent { get; set; } = string.Empty;
     public DateTime ConnectedAt { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Request body for vault unlock.</summary>
+internal class UnlockRequest
+{
+    public string? MasterPassword { get; set; }
+}
+
+/// <summary>Request body for adding an authenticator entry via OTP Auth URI.</summary>
+internal class AddAuthRequest
+{
+    public string? OtpAuthUri { get; set; }
+}
+
+/// <summary>Request body for MFA code verification.</summary>
+internal class MfaVerifyRequest
+{
+    public string? Code { get; set; }
 }
 
 

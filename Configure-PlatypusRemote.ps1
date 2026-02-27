@@ -114,6 +114,37 @@ if ($PublicUrl) {
 $clientJson | ConvertTo-Json -Depth 10 | Set-Content $clientConfig -Encoding UTF8
 Write-Host "  Updated: $clientConfig" -ForegroundColor Gray
 
+# Also write the runtime entra-config.json for the installed app
+Write-Host "Updating runtime Entra config..." -ForegroundColor Green
+
+$entraConfigPaths = @(
+    # AppData location (normal install)
+    (Join-Path $env:APPDATA "PlatypusTools\entra-config.json"),
+    # Portable mode location (next to exe, if publish folder exists)
+    (Join-Path $projectRoot "publish\PlatypusData\entra-config.json")
+)
+
+$entraConfig = @{
+    ClientId = $ClientId
+    TenantId = $TenantId
+    ApiScopeId = $ClientId
+    GraphClientId = ""
+}
+
+$entraJson = $entraConfig | ConvertTo-Json -Depth 5
+
+foreach ($entraPath in $entraConfigPaths) {
+    try {
+        $entraDir = Split-Path $entraPath -Parent
+        if (-not (Test-Path $entraDir)) { New-Item -ItemType Directory -Path $entraDir -Force | Out-Null }
+        Set-Content -Path $entraPath -Value $entraJson -Encoding UTF8
+        Write-Host "  Updated: $entraPath" -ForegroundColor Gray
+    }
+    catch {
+        Write-Host "  Skipped: $entraPath ($($_.Exception.Message))" -ForegroundColor DarkGray
+    }
+}
+
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Green
 Write-Host "  Configuration Complete!" -ForegroundColor Green

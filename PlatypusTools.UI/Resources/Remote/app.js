@@ -25,6 +25,12 @@ class PlatypusRemote {
         this.touchStartY = 0;
         this.videoLibrary = []; // Video library cache
         this.videoLibraryLoaded = false; // Track if video library was loaded
+        this.vaultItems = []; // Cached vault items
+        this.vaultFolders = []; // Cached vault folders
+        this.vaultUnlocked = false;
+        this.vaultAuthRefreshInterval = null; // TOTP refresh timer
+        this.generatedPassword = '';
+        this.qrStream = null; // Camera stream for QR scanner
         
         this.init();
     }
@@ -187,6 +193,18 @@ class PlatypusRemote {
         // Video player close
         if (this.elements.videoPlayerClose) {
             this.elements.videoPlayerClose.addEventListener('click', () => this.closeVideoPlayer());
+        }
+
+        // Vault unlock form
+        const vaultForm = document.getElementById('vaultUnlockForm');
+        if (vaultForm) {
+            vaultForm.addEventListener('submit', (e) => this.unlockVault(e));
+        }
+
+        // Vault MFA form
+        const mfaForm = document.getElementById('vaultMfaForm');
+        if (mfaForm) {
+            mfaForm.addEventListener('submit', (e) => this.verifyMfa(e));
         }
     }
 
@@ -725,6 +743,16 @@ class PlatypusRemote {
         if (tabId === 'videosTab' && !this.videoLibraryLoaded) {
             this.loadVideoLibrary();
         }
+
+        // Load vault status when switching to vault tab
+        if (tabId === 'vaultTab') {
+            this.loadVaultStatus();
+        }
+
+        // Load photos when switching to photos tab
+        if (tabId === 'photosTab' && !this.photosLoaded) {
+            this.initPhotos();
+        }
     }
 
     // Install Banner (PWA)
@@ -1094,6 +1122,12 @@ class PlatypusRemote {
                     break;
                 case '5':
                     this.switchTab('systemTab');
+                    break;
+                case '6':
+                    this.switchTab('vaultTab');
+                    break;
+                case '7':
+                    this.switchTab('photosTab');
                     break;
             }
         });
@@ -1532,6 +1566,758 @@ class PlatypusRemote {
     escapeJs(str) {
         if (!str) return '';
         return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+
+    // ── Vault Methods ──
+
+    async loadVaultStatus() {
+        try {
+            const res = await fetch('/api/vault/status');
+            const status = await res.json();
+            this.vaultUnlocked = status.isUnlocked;
+            if (status.mfaPending) {
+                // Password verified but MFA pending — show MFA form
+                document.getElementById('vaultLocked').style.display = 'flex';
+                document.getElementById('vaultUnlocked').style.display = 'none';
+                document.getElementById('vaultNoVault').style.display = 'none';
+                document.getElementById('vaultUnlockForm').style.display = 'none';
+                document.getElementById('vaultMfaForm').style.display = 'flex';
+            } else if (status.isUnlocked) {
+                document.getElementById('vaultLocked').style.display = 'none';
+                document.getElementById('vaultUnlocked').style.display = 'flex';
+                document.getElementById('vaultMfaForm').style.display = 'none';
+                await this.loadVaultItems();
+                await this.loadVaultFolders();
+            } else {
+                document.getElementById('vaultLocked').style.display = 'flex';
+                document.getElementById('vaultUnlocked').style.display = 'none';
+                document.getElementById('vaultMfaForm').style.display = 'none';
+                document.getElementById('vaultNoVault').style.display = status.vaultExists ? 'none' : 'block';
+                document.getElementById('vaultUnlockForm').style.display = status.vaultExists ? 'flex' : 'none';
+            }
+        } catch { }
+    }
+
+    async unlockVault(e) {
+        if (e) e.preventDefault();
+        const pw = document.getElementById('vaultMasterPw').value;
+        if (!pw) return;
+        const errEl = document.getElementById('vaultError');
+        errEl.style.display = 'none';
+        try {
+            const res = await fetch('/api/vault/unlock', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ masterPassword: pw })
+            });
+            if (res.ok) {
+                const status = await res.json();
+                document.getElementById('vaultMasterPw').value = '';
+                if (status.mfaPending) {
+                    // Password correct, MFA required — show MFA form
+                    document.getElementById('vaultUnlockForm').style.display = 'none';
+                    document.getElementById('vaultMfaForm').style.display = 'flex';
+                    document.getElementById('vaultMfaCode').value = '';
+                    document.getElementById('vaultMfaCode').focus();
+                } else {
+                    this.vaultUnlocked = true;
+                    await this.loadVaultStatus();
+                }
+            } else {
+                const err = await res.json();
+                errEl.textContent = err.error || 'Unlock failed';
+                errEl.style.display = 'block';
+            }
+        } catch (ex) {
+            errEl.textContent = 'Connection error';
+            errEl.style.display = 'block';
+        }
+    }
+
+    async verifyMfa(e) {
+        if (e) e.preventDefault();
+        const code = document.getElementById('vaultMfaCode').value.trim();
+        if (!code) return;
+        const errEl = document.getElementById('vaultMfaError');
+        errEl.style.display = 'none';
+        try {
+            const res = await fetch('/api/vault/mfa/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            });
+            if (res.ok) {
+                this.vaultUnlocked = true;
+                document.getElementById('vaultMfaCode').value = '';
+                document.getElementById('vaultMfaForm').style.display = 'none';
+                await this.loadVaultStatus();
+            } else {
+                const err = await res.json();
+                errEl.textContent = err.error || 'Invalid code';
+                errEl.style.display = 'block';
+                document.getElementById('vaultMfaCode').value = '';
+                document.getElementById('vaultMfaCode').focus();
+            }
+        } catch {
+            errEl.textContent = 'Connection error';
+            errEl.style.display = 'block';
+        }
+    }
+
+    async cancelMfa() {
+        try {
+            await fetch('/api/vault/mfa/cancel', { method: 'POST' });
+        } catch { }
+        document.getElementById('vaultMfaForm').style.display = 'none';
+        document.getElementById('vaultMfaCode').value = '';
+        document.getElementById('vaultMfaError').style.display = 'none';
+        document.getElementById('vaultUnlockForm').style.display = 'flex';
+    }
+
+    async lockVault() {
+        await fetch('/api/vault/lock', { method: 'POST' });
+        this.vaultUnlocked = false;
+        this.vaultItems = [];
+        this.vaultFolders = [];
+        if (this.vaultAuthRefreshInterval) {
+            clearInterval(this.vaultAuthRefreshInterval);
+            this.vaultAuthRefreshInterval = null;
+        }
+        this.stopQrScanner();
+        this.loadVaultStatus();
+    }
+
+    async loadVaultItems() {
+        try {
+            const search = document.getElementById('vaultSearch')?.value || '';
+            const type = document.getElementById('vaultTypeFilter')?.value || '';
+            const folderId = document.getElementById('vaultFolderFilter')?.value || '';
+            const params = new URLSearchParams();
+            if (search) params.set('q', search);
+            if (type) params.set('type', type);
+            if (folderId) params.set('folderId', folderId);
+            const res = await fetch(`/api/vault/items?${params}`);
+            if (res.ok) {
+                this.vaultItems = await res.json();
+                this.renderVaultItems();
+            }
+        } catch { }
+    }
+
+    async loadVaultFolders() {
+        try {
+            const res = await fetch('/api/vault/folders');
+            if (res.ok) {
+                this.vaultFolders = await res.json();
+                const sel = document.getElementById('vaultFolderFilter');
+                // Preserve current selection
+                const cur = sel.value;
+                // Remove old folder options (keep first 2: All, No Folder)
+                while (sel.options.length > 2) sel.remove(2);
+                this.vaultFolders.forEach(f => {
+                    const opt = document.createElement('option');
+                    opt.value = f.id;
+                    opt.textContent = `${f.name} (${f.itemCount})`;
+                    sel.appendChild(opt);
+                });
+                sel.value = cur;
+            }
+        } catch { }
+    }
+
+    filterVaultItems() {
+        this.loadVaultItems();
+    }
+
+    renderVaultItems() {
+        const list = document.getElementById('vaultItemsList');
+        if (!list) return;
+        if (this.vaultItems.length === 0) {
+            list.innerHTML = '<div class="no-content"><p>No items found</p></div>';
+            return;
+        }
+        const typeIcons = { 1: '🔑', 2: '📝', 3: '💳', 4: '👤' };
+        list.innerHTML = this.vaultItems.map(item => {
+            const icon = typeIcons[item.type] || '🔑';
+            const fav = item.favorite ? '⭐ ' : '';
+            let sub = '';
+            if (item.type === 1) sub = item.username || (item.uris && item.uris[0]) || '';
+            else if (item.type === 3) sub = item.cardBrand ? `${item.cardBrand} •••• ${item.cardLast4 || ''}` : '';
+            else if (item.type === 4) sub = item.identityName || item.identityEmail || '';
+            return `<div class="vault-item" onclick="window.platypusRemote.showItemDetail('${item.id}')">
+                <span class="vi-icon">${icon}</span>
+                <div class="vi-info">
+                    <div class="vi-name">${fav}${this.escapeHtml(item.name)}</div>
+                    <div class="vi-sub">${this.escapeHtml(sub)}</div>
+                </div>
+                <div class="vi-actions">
+                    ${item.type === 1 && item.username ? `<button onclick="event.stopPropagation(); window.platypusRemote.copyText('${this.escapeJs(item.username)}', 'Username')" title="Copy username">👤</button>` : ''}
+                    ${item.hasTotp ? `<button onclick="event.stopPropagation(); window.platypusRemote.copyTotp('${item.id}')" title="Copy TOTP">🔢</button>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    async showItemDetail(id) {
+        try {
+            const res = await fetch(`/api/vault/items/${id}`);
+            if (!res.ok) return;
+            const item = await res.json();
+            const detail = document.getElementById('vaultItemDetail');
+            const typeNames = { 1: 'Login', 2: 'Secure Note', 3: 'Card', 4: 'Identity' };
+            let html = `<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                <h3 style="margin:0;">${this.escapeHtml(item.name)}</h3>
+                <button onclick="document.getElementById('vaultItemDetail').style.display='none'" style="padding:8px; border:none; background:transparent; color:white; font-size:1.2rem; cursor:pointer;">✕</button>
+            </div>
+            <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:16px;">${typeNames[item.type] || 'Item'}${item.favorite ? ' ⭐' : ''}</div>`;
+
+            if (item.type === 1) {
+                // Login
+                if (item.username) html += this.vaultDetailField('Username', item.username);
+                if (item.password) html += this.vaultDetailField('Password', item.password, true);
+                if (item.uris?.length) html += this.vaultDetailField('URL', item.uris.join(', '));
+                if (item.hasTotp) html += `<div class="vault-field"><label>TOTP Code</label><div style="display:flex; gap:8px; align-items:center;">
+                    <span id="detailTotp" style="font-family:monospace; font-size:1.4rem; letter-spacing:3px; color:var(--accent);">------</span>
+                    <button onclick="window.platypusRemote.copyTotp('${item.id}')" style="padding:4px 8px; border:none; border-radius:4px; background:var(--bg-surface); color:white; cursor:pointer;">📋</button>
+                </div></div>`;
+                this.refreshDetailTotp(item.id);
+            } else if (item.type === 3) {
+                // Card
+                if (item.cardholderName) html += this.vaultDetailField('Cardholder', item.cardholderName);
+                if (item.cardNumber) html += this.vaultDetailField('Number', item.cardNumber, true);
+                if (item.cardExpMonth || item.cardExpYear) html += this.vaultDetailField('Expires', `${item.cardExpMonth || '??'}/${item.cardExpYear || '??'}`);
+                if (item.cardCode) html += this.vaultDetailField('CVV', item.cardCode, true);
+                if (item.cardBrand) html += this.vaultDetailField('Brand', item.cardBrand);
+            } else if (item.type === 4) {
+                // Identity
+                if (item.identityName) html += this.vaultDetailField('Name', item.identityName);
+                if (item.identityEmail) html += this.vaultDetailField('Email', item.identityEmail);
+            }
+
+            if (item.notes) html += this.vaultDetailField('Notes', item.notes);
+
+            detail.innerHTML = html;
+            detail.style.display = 'block';
+        } catch { }
+    }
+
+    vaultDetailField(label, value, secret = false) {
+        const display = secret ? '••••••••' : this.escapeHtml(value);
+        const toggleId = `vf_${Math.random().toString(36).substr(2, 6)}`;
+        return `<div class="vault-field">
+            <label>${label}</label>
+            <div style="display:flex; align-items:center; gap:8px; background:var(--bg-secondary); padding:8px 12px; border-radius:6px;">
+                <span id="${toggleId}" style="flex:1; font-family:${secret ? 'monospace' : 'inherit'}; word-break:break-all;">${display}</span>
+                ${secret ? `<button onclick="const el=document.getElementById('${toggleId}'); el.textContent = el.textContent === '••••••••' ? '${this.escapeJs(value)}' : '••••••••';" style="padding:4px 6px; border:none; border-radius:4px; background:transparent; color:var(--text-secondary); cursor:pointer;">👁</button>` : ''}
+                <button onclick="window.platypusRemote.copyText('${this.escapeJs(value)}', '${label}')" style="padding:4px 6px; border:none; border-radius:4px; background:transparent; color:var(--text-secondary); cursor:pointer;">📋</button>
+            </div>
+        </div>`;
+    }
+
+    async refreshDetailTotp(itemId) {
+        try {
+            const res = await fetch(`/api/vault/totp/${itemId}`);
+            if (res.ok) {
+                const data = await res.json();
+                const el = document.getElementById('detailTotp');
+                if (el) el.textContent = data.code;
+            }
+        } catch { }
+    }
+
+    async copyTotp(itemId) {
+        try {
+            const res = await fetch(`/api/vault/totp/${itemId}`);
+            if (res.ok) {
+                const data = await res.json();
+                await navigator.clipboard.writeText(data.code);
+                this.showToast('TOTP code copied');
+            }
+        } catch { }
+    }
+
+    async copyText(text, label) {
+        try {
+            await navigator.clipboard.writeText(text);
+            this.showToast(`${label || 'Text'} copied`);
+        } catch { }
+    }
+
+    showToast(msg) {
+        // Simple toast notification
+        let toast = document.getElementById('vaultToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'vaultToast';
+            toast.style.cssText = 'position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:#333; color:white; padding:10px 20px; border-radius:8px; z-index:1000; font-size:0.85rem; opacity:0; transition:opacity 0.3s;';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        setTimeout(() => toast.style.opacity = '0', 2000);
+    }
+
+    // ── Add Item Form ──
+
+    showAddItemForm() {
+        const detail = document.getElementById('vaultItemDetail');
+        detail.innerHTML = `<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+            <h3 style="margin:0;">Add Item</h3>
+            <button onclick="document.getElementById('vaultItemDetail').style.display='none'" style="padding:8px; border:none; background:transparent; color:white; font-size:1.2rem; cursor:pointer;">✕</button>
+        </div>
+        <div class="vault-field">
+            <label>Type</label>
+            <select id="addItemType" onchange="window.platypusRemote.updateAddItemFields()">
+                <option value="1">Login</option>
+                <option value="2">Secure Note</option>
+                <option value="3">Card</option>
+                <option value="4">Identity</option>
+            </select>
+        </div>
+        <div class="vault-field">
+            <label>Name</label>
+            <input type="text" id="addItemName" placeholder="Item name">
+        </div>
+        <div id="addItemTypeFields"></div>
+        <div class="vault-field">
+            <label>Folder</label>
+            <select id="addItemFolder">
+                <option value="">No Folder</option>
+                ${this.vaultFolders.map(f => `<option value="${f.id}">${this.escapeHtml(f.name)}</option>`).join('')}
+            </select>
+        </div>
+        <div class="vault-field">
+            <label>Notes</label>
+            <textarea id="addItemNotes" placeholder="Optional notes"></textarea>
+        </div>
+        <button onclick="window.platypusRemote.saveNewItem()" style="width:100%; padding:12px; border-radius:8px; border:none; background:var(--accent); color:white; cursor:pointer; font-weight:600; font-size:1rem;">Save</button>`;
+        this.updateAddItemFields();
+        detail.style.display = 'block';
+    }
+
+    updateAddItemFields() {
+        const type = document.getElementById('addItemType')?.value;
+        const container = document.getElementById('addItemTypeFields');
+        if (!container) return;
+        if (type === '1') {
+            container.innerHTML = `<div class="vault-field"><label>Username</label><input type="text" id="addItemUsername" placeholder="Username or email"></div>
+                <div class="vault-field"><label>Password</label><div style="display:flex; gap:6px;"><input type="password" id="addItemPassword" placeholder="Password" style="flex:1;">
+                <button onclick="window.platypusRemote.fillGeneratedPw()" style="padding:8px; border:none; border-radius:6px; background:var(--bg-surface); color:white; cursor:pointer;" title="Generate">🎲</button></div></div>
+                <div class="vault-field"><label>URL</label><input type="url" id="addItemUri" placeholder="https://example.com"></div>`;
+        } else if (type === '3') {
+            container.innerHTML = `<div class="vault-field"><label>Cardholder Name</label><input type="text" id="addItemCardName"></div>
+                <div class="vault-field"><label>Card Number</label><input type="text" id="addItemCardNumber"></div>
+                <div style="display:flex; gap:8px;"><div class="vault-field" style="flex:1;"><label>Exp Month</label><input type="text" id="addItemCardExpM" placeholder="MM"></div>
+                <div class="vault-field" style="flex:1;"><label>Exp Year</label><input type="text" id="addItemCardExpY" placeholder="YYYY"></div>
+                <div class="vault-field" style="flex:1;"><label>CVV</label><input type="password" id="addItemCardCvv"></div></div>`;
+        } else {
+            container.innerHTML = '';
+        }
+    }
+
+    async fillGeneratedPw() {
+        try {
+            const res = await fetch('/api/vault/generate?length=20');
+            if (res.ok) {
+                const data = await res.json();
+                const el = document.getElementById('addItemPassword');
+                if (el) { el.type = 'text'; el.value = data.password; }
+            }
+        } catch { }
+    }
+
+    async saveNewItem() {
+        const type = parseInt(document.getElementById('addItemType')?.value || '1');
+        const name = document.getElementById('addItemName')?.value?.trim();
+        if (!name) { this.showToast('Name is required'); return; }
+
+        const item = { type, name, folderId: document.getElementById('addItemFolder')?.value || null, notes: document.getElementById('addItemNotes')?.value || null };
+        if (type === 1) {
+            item.username = document.getElementById('addItemUsername')?.value || null;
+            item.password = document.getElementById('addItemPassword')?.value || null;
+            const uri = document.getElementById('addItemUri')?.value;
+            if (uri) item.uris = [uri];
+        } else if (type === 3) {
+            item.cardholderName = document.getElementById('addItemCardName')?.value || null;
+            item.cardNumber = document.getElementById('addItemCardNumber')?.value || null;
+            item.cardExpMonth = document.getElementById('addItemCardExpM')?.value || null;
+            item.cardExpYear = document.getElementById('addItemCardExpY')?.value || null;
+            item.cardCode = document.getElementById('addItemCardCvv')?.value || null;
+        }
+
+        try {
+            const res = await fetch('/api/vault/items', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(item)
+            });
+            if (res.ok) {
+                document.getElementById('vaultItemDetail').style.display = 'none';
+                this.showToast('Item saved');
+                await this.loadVaultItems();
+            }
+        } catch { this.showToast('Save failed'); }
+    }
+
+    // ── Authenticator ──
+
+    switchVaultSubtab(subtab) {
+        document.querySelectorAll('.vault-subtab').forEach(b => b.classList.toggle('active', b.dataset.subtab === subtab));
+        document.getElementById('vaultItemsPanel').style.display = subtab === 'items' ? 'block' : 'none';
+        document.getElementById('vaultAuthPanel').style.display = subtab === 'authenticator' ? 'block' : 'none';
+        document.getElementById('vaultGenPanel').style.display = subtab === 'generator' ? 'block' : 'none';
+
+        if (subtab === 'authenticator') this.loadAuthenticator();
+        if (subtab === 'generator') this.generatePassword();
+    }
+
+    async loadAuthenticator() {
+        try {
+            const res = await fetch('/api/vault/authenticator');
+            if (!res.ok) return;
+            const entries = await res.json();
+            this.renderAuthenticator(entries);
+            // Auto-refresh every 1s
+            if (this.vaultAuthRefreshInterval) clearInterval(this.vaultAuthRefreshInterval);
+            this.vaultAuthRefreshInterval = setInterval(() => this.loadAuthenticator(), 1000);
+        } catch { }
+    }
+
+    renderAuthenticator(entries) {
+        const list = document.getElementById('vaultAuthList');
+        if (!list) return;
+        if (entries.length === 0) {
+            list.innerHTML = '<div class="no-content"><p>No authenticator entries</p><p style="font-size:0.85rem; color:var(--text-secondary);">Tap + Add to scan a QR code or enter a secret</p></div>';
+            return;
+        }
+        list.innerHTML = entries.map(e => {
+            const pct = (e.remainingSeconds / e.period) * 100;
+            const color = e.remainingSeconds <= 5 ? '#f44336' : 'var(--accent)';
+            return `<div class="auth-entry">
+                <div class="ae-code" onclick="window.platypusRemote.copyText('${e.code}', 'TOTP code')" style="color:${color};">${e.code.replace(/(.{3})/g, '$1 ').trim()}</div>
+                <div class="ae-info">
+                    <div class="ae-issuer">${this.escapeHtml(e.issuer)}</div>
+                    <div class="ae-account">${this.escapeHtml(e.accountName)}</div>
+                </div>
+                <div class="ae-timer" style="border-color:${color};">${e.remainingSeconds}</div>
+            </div>`;
+        }).join('');
+    }
+
+    showAddAuthForm() {
+        document.getElementById('addAuthForm').style.display = 'block';
+    }
+
+    hideAddAuthForm() {
+        document.getElementById('addAuthForm').style.display = 'none';
+        document.getElementById('authOtpUri').value = '';
+        this.stopQrScanner();
+    }
+
+    async addAuthFromUri() {
+        const uri = document.getElementById('authOtpUri')?.value?.trim();
+        if (!uri) { this.showToast('Enter an otpauth:// URI'); return; }
+        try {
+            const res = await fetch('/api/vault/authenticator', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ otpAuthUri: uri })
+            });
+            if (res.ok) {
+                this.hideAddAuthForm();
+                this.showToast('Authenticator entry added');
+                this.loadAuthenticator();
+            } else {
+                const err = await res.json();
+                this.showToast(err.error || 'Invalid URI');
+            }
+        } catch { this.showToast('Failed to add entry'); }
+    }
+
+    // ── QR Scanner ──
+
+    async startQrScanner() {
+        const container = document.getElementById('qrScannerContainer');
+        const video = document.getElementById('qrVideo');
+        const canvas = document.getElementById('qrCanvas');
+        if (!container || !video || !canvas) return;
+
+        try {
+            this.qrStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' }
+            });
+            video.srcObject = this.qrStream;
+            await video.play();
+            container.style.display = 'block';
+
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const scan = async () => {
+                if (!this.qrStream) return;
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+                    // Try native BarcodeDetector API first (Chrome on Android, Safari)
+                    if ('BarcodeDetector' in window) {
+                        try {
+                            const det = new BarcodeDetector({ formats: ['qr_code'] });
+                            const barcodes = await det.detect(canvas);
+                            if (barcodes.length > 0) {
+                                const val = barcodes[0].rawValue;
+                                if (val.startsWith('otpauth://')) {
+                                    this.handleQrResult(val);
+                                    return;
+                                }
+                            }
+                        } catch { }
+                    }
+                }
+                if (this.qrStream) requestAnimationFrame(scan);
+            };
+            requestAnimationFrame(scan);
+        } catch (err) {
+            this.showToast('Camera access denied or unavailable');
+        }
+    }
+
+    stopQrScanner() {
+        if (this.qrStream) {
+            this.qrStream.getTracks().forEach(t => t.stop());
+            this.qrStream = null;
+        }
+        const container = document.getElementById('qrScannerContainer');
+        if (container) container.style.display = 'none';
+    }
+
+    async handleQrResult(uri) {
+        this.stopQrScanner();
+        try {
+            const res = await fetch('/api/vault/authenticator', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ otpAuthUri: uri })
+            });
+            if (res.ok) {
+                this.hideAddAuthForm();
+                this.showToast('Authenticator entry added from QR code');
+                this.loadAuthenticator();
+            } else {
+                const err = await res.json();
+                this.showToast(err.error || 'Invalid QR code');
+            }
+        } catch { this.showToast('Failed to add from QR'); }
+    }
+
+    // ── Password Generator ──
+
+    async generatePassword() {
+        const length = document.getElementById('genLength')?.value || 20;
+        const upper = document.getElementById('genUpper')?.checked !== false;
+        const lower = document.getElementById('genLower')?.checked !== false;
+        const numbers = document.getElementById('genNumbers')?.checked !== false;
+        const special = document.getElementById('genSpecial')?.checked !== false;
+        try {
+            const res = await fetch(`/api/vault/generate?length=${length}&upper=${upper}&lower=${lower}&numbers=${numbers}&special=${special}`);
+            if (res.ok) {
+                const data = await res.json();
+                this.generatedPassword = data.password;
+                const display = document.getElementById('generatedPwDisplay');
+                if (display) display.textContent = data.password;
+            }
+        } catch { }
+    }
+
+    async copyGeneratedPassword() {
+        if (this.generatedPassword) {
+            await navigator.clipboard.writeText(this.generatedPassword);
+            this.showToast('Password copied');
+        }
+    }
+
+    escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // ── Photos Gallery ──
+
+    async initPhotos() {
+        this.photosPage = 0;
+        this.photosPageSize = 60;
+        this.photosImages = [];
+        this.photosLightboxIndex = -1;
+
+        // Setup folder dropdown
+        try {
+            const resp = await fetch('/api/photos/folders');
+            if (resp.ok) {
+                const folders = await resp.json();
+                const select = document.getElementById('photosFolderSelect');
+                // Keep "All Folders" option
+                select.innerHTML = '<option value="">All Folders</option>';
+                folders.forEach(f => {
+                    const opt = document.createElement('option');
+                    opt.value = f;
+                    // Show last folder name for readability
+                    opt.textContent = f.split(/[\\/]/).filter(Boolean).pop() || f;
+                    opt.title = f;
+                    select.appendChild(opt);
+                });
+            }
+        } catch { }
+
+        // Setup event listeners
+        const folderSel = document.getElementById('photosFolderSelect');
+        folderSel.addEventListener('change', () => { this.photosPage = 0; this.loadPhotos(); });
+
+        const searchInput = document.getElementById('photosSearch');
+        let searchTimeout;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => { this.photosPage = 0; this.loadPhotos(); }, 400);
+        });
+
+        document.getElementById('photosPrevBtn').addEventListener('click', () => {
+            if (this.photosPage > 0) { this.photosPage--; this.loadPhotos(); }
+        });
+        document.getElementById('photosNextBtn').addEventListener('click', () => {
+            this.photosPage++; this.loadPhotos();
+        });
+
+        // Lightbox controls
+        document.getElementById('lbClose').addEventListener('click', () => this.closeLightbox());
+        document.getElementById('lbPrev').addEventListener('click', () => this.lightboxNav(-1));
+        document.getElementById('lbNext').addEventListener('click', () => this.lightboxNav(1));
+        document.getElementById('photoLightbox').addEventListener('click', (e) => {
+            if (e.target.id === 'photoLightbox') this.closeLightbox();
+        });
+
+        // Keyboard nav for lightbox
+        document.addEventListener('keydown', (e) => {
+            if (!document.getElementById('photoLightbox').classList.contains('active')) return;
+            if (e.key === 'Escape') this.closeLightbox();
+            if (e.key === 'ArrowLeft') this.lightboxNav(-1);
+            if (e.key === 'ArrowRight') this.lightboxNav(1);
+        });
+
+        this.photosLoaded = true;
+        await this.loadPhotos();
+    }
+
+    async loadPhotos() {
+        const grid = document.getElementById('photosGrid');
+        const loading = document.getElementById('photosLoading');
+        const empty = document.getElementById('photosEmpty');
+        const pager = document.getElementById('photosPager');
+        const status = document.getElementById('photosStatus');
+
+        grid.style.display = 'none';
+        empty.style.display = 'none';
+        pager.style.display = 'none';
+        loading.style.display = 'block';
+        status.textContent = '';
+
+        try {
+            const folder = document.getElementById('photosFolderSelect').value;
+            const search = document.getElementById('photosSearch').value;
+            const params = new URLSearchParams({
+                page: this.photosPage,
+                pageSize: this.photosPageSize
+            });
+            if (folder) params.set('folder', folder);
+            if (search) params.set('q', search);
+
+            const resp = await fetch(`/api/photos?${params}`);
+            if (!resp.ok) throw new Error('Failed to load photos');
+            const data = await resp.json();
+
+            this.photosImages = data.images || [];
+
+            loading.style.display = 'none';
+
+            if (this.photosImages.length === 0) {
+                empty.style.display = 'block';
+                return;
+            }
+
+            grid.innerHTML = '';
+            grid.style.display = 'grid';
+
+            this.photosImages.forEach((img, idx) => {
+                const card = document.createElement('div');
+                card.className = 'photo-card';
+                card.innerHTML = `<div class="pc-placeholder">🖼️</div><div class="pc-name">${this.escapeHtml(img.fileName)}</div>`;
+                card.addEventListener('click', () => this.openLightbox(idx));
+
+                // Lazy load thumbnail
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            observer.disconnect();
+                            const imgEl = document.createElement('img');
+                            imgEl.loading = 'lazy';
+                            imgEl.src = `/api/photos/thumbnail?path=${encodeURIComponent(img.filePath)}&size=200`;
+                            imgEl.alt = img.fileName;
+                            imgEl.onload = () => {
+                                const placeholder = card.querySelector('.pc-placeholder');
+                                if (placeholder) placeholder.remove();
+                                card.insertBefore(imgEl, card.firstChild);
+                            };
+                            imgEl.onerror = () => { /* keep placeholder */ };
+                        }
+                    });
+                }, { rootMargin: '200px' });
+                observer.observe(card);
+
+                grid.appendChild(card);
+            });
+
+            // Update pager
+            const totalPages = data.totalPages || 1;
+            status.textContent = `${data.totalCount} images`;
+
+            if (totalPages > 1) {
+                pager.style.display = 'flex';
+                document.getElementById('photosPageInfo').textContent = `Page ${data.page + 1} of ${totalPages}`;
+                document.getElementById('photosPrevBtn').disabled = data.page <= 0;
+                document.getElementById('photosNextBtn').disabled = data.page >= totalPages - 1;
+            }
+        } catch (err) {
+            loading.style.display = 'none';
+            empty.style.display = 'block';
+            console.error('Photos load error:', err);
+        }
+    }
+
+    openLightbox(index) {
+        this.photosLightboxIndex = index;
+        const img = this.photosImages[index];
+        if (!img) return;
+
+        const lb = document.getElementById('photoLightbox');
+        const lbImg = document.getElementById('lbImage');
+        const lbInfo = document.getElementById('lbInfo');
+
+        lbImg.src = `/api/photos/full?path=${encodeURIComponent(img.filePath)}`;
+        lbInfo.textContent = `${img.fileName}  ·  ${img.fileSize}`;
+        lb.classList.add('active');
+
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
+    }
+
+    closeLightbox() {
+        document.getElementById('photoLightbox').classList.remove('active');
+        document.getElementById('lbImage').src = '';
+        document.body.style.overflow = '';
+    }
+
+    lightboxNav(delta) {
+        const newIdx = this.photosLightboxIndex + delta;
+        if (newIdx < 0 || newIdx >= this.photosImages.length) return;
+        this.openLightbox(newIdx);
     }
 }
 

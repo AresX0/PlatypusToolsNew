@@ -780,6 +780,47 @@ namespace PlatypusTools.UI.Views
                 MessageBox.Show("Settings reset to defaults.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
+
+        private void ResetVaultDatabase_Click(object sender, RoutedEventArgs e)
+        {
+            var result = MessageBox.Show(
+                "⚠️ This will PERMANENTLY DELETE your entire vault database including:\n\n" +
+                "• All saved passwords and logins\n" +
+                "• All TOTP / authenticator entries\n" +
+                "• All secure notes and cards\n" +
+                "• All identity records\n\n" +
+                "This action CANNOT be undone.\n\n" +
+                "Are you sure you want to reset the vault?",
+                "Reset Vault Database",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            // Double-confirm for safety
+            var confirm = MessageBox.Show(
+                "FINAL CONFIRMATION\n\nType 'Yes' to confirm you want to permanently destroy the vault.",
+                "Confirm Vault Deletion",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Stop);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            try
+            {
+                var vaultService = new Services.Vault.EncryptedVaultService();
+                vaultService.DeleteVault();
+                MessageBox.Show(
+                    "Vault database has been deleted.\n\nYou can create a new vault with a new master password from the Security Vault tab.",
+                    "Vault Reset Complete",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to reset vault: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
         
         private void InstallKlingonFont_Click(object sender, RoutedEventArgs e)
         {
@@ -1986,12 +2027,73 @@ namespace PlatypusTools.UI.Views
                 if (RemoteServerPortBox != null)
                     RemoteServerPortBox.Text = settings.RemoteServerPort.ToString();
                 
+                // Load Entra ID config from data directory
+                LoadEntraConfig();
+                
                 UpdateRemoteServerStatus();
                 UpdateRemoteServerUrl();
             }
             catch (System.Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error loading Remote Control settings: {ex.Message}");
+            }
+        }
+
+        private void LoadEntraConfig()
+        {
+            try
+            {
+                var config = EntraConfigService.Instance.Load();
+                if (EntraClientIdBox != null) EntraClientIdBox.Text = config.ClientId;
+                if (EntraTenantIdBox != null) EntraTenantIdBox.Text = string.IsNullOrWhiteSpace(config.TenantId) ? "common" : config.TenantId;
+                if (EntraApiScopeIdBox != null) EntraApiScopeIdBox.Text = config.ApiScopeId;
+                if (EntraGraphClientIdBox != null) EntraGraphClientIdBox.Text = config.GraphClientId;
+
+                if (EntraConfigStatus != null)
+                {
+                    EntraConfigStatus.Text = EntraConfigService.Instance.IsConfigured()
+                        ? "✅ Configured"
+                        : "⚠️ Not configured — enter your app registration details";
+                    EntraConfigStatus.Foreground = EntraConfigService.Instance.IsConfigured()
+                        ? new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50))
+                        : new SolidColorBrush(Color.FromRgb(0xFF, 0x98, 0x00));
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading Entra config: {ex.Message}");
+            }
+        }
+
+        private void SaveEntraConfig_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var config = new EntraConfig
+                {
+                    ClientId = EntraClientIdBox?.Text?.Trim() ?? "",
+                    TenantId = EntraTenantIdBox?.Text?.Trim() ?? "common",
+                    ApiScopeId = EntraApiScopeIdBox?.Text?.Trim() ?? "",
+                    GraphClientId = EntraGraphClientIdBox?.Text?.Trim() ?? ""
+                };
+
+                EntraConfigService.Instance.Save(config);
+
+                if (EntraConfigStatus != null)
+                {
+                    EntraConfigStatus.Text = "✅ Saved successfully";
+                    EntraConfigStatus.Foreground = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50));
+                }
+
+                System.Diagnostics.Debug.WriteLine($"Entra config saved to: {EntraConfigService.Instance.ConfigFilePath}");
+            }
+            catch (System.Exception ex)
+            {
+                if (EntraConfigStatus != null)
+                {
+                    EntraConfigStatus.Text = $"❌ Error: {ex.Message}";
+                    EntraConfigStatus.Foreground = new SolidColorBrush(Color.FromRgb(0xF4, 0x43, 0x36));
+                }
             }
         }
         

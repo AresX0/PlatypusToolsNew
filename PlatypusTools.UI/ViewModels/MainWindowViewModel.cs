@@ -91,6 +91,7 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<BulkChecksumViewModel> _bulkChecksum = new(() => new BulkChecksumViewModel());
         private readonly Lazy<WifiPasswordViewModel> _wifiPassword = new(() => new WifiPasswordViewModel());
         private readonly Lazy<RemoteDashboardViewModel> _remoteDashboard = new(() => new RemoteDashboardViewModel());
+        private readonly Lazy<SecurityVaultViewModel> _securityVault = new(() => new SecurityVaultViewModel());
         
         #endregion
 
@@ -209,6 +210,7 @@ namespace PlatypusTools.UI.ViewModels
         public BulkChecksumViewModel BulkChecksum => _bulkChecksum.Value;
         public WifiPasswordViewModel WifiPassword => _wifiPassword.Value;
         public RemoteDashboardViewModel RemoteDashboard => _remoteDashboard.Value;
+        public SecurityVaultViewModel SecurityVault => _securityVault.Value;
         
         #endregion
 

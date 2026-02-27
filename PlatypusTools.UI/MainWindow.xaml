@@ -406,6 +406,10 @@
                              Visibility="{Binding CertificateManager, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:CertificateManagerView}" ViewDataContext="{Binding CertificateManager}" />
                     </TabItem>
+                    <TabItem Header="🔐 Security Vault"
+                             Visibility="{Binding SecurityVault, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:SecurityVaultView}" ViewDataContext="{Binding SecurityVault}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
 
