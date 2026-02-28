@@ -2108,6 +2108,8 @@ namespace PlatypusTools.UI.Views
                 if (EntraTenantIdBox != null) EntraTenantIdBox.Text = string.IsNullOrWhiteSpace(config.TenantId) ? "common" : config.TenantId;
                 if (EntraApiScopeIdBox != null) EntraApiScopeIdBox.Text = config.ApiScopeId;
                 if (EntraGraphClientIdBox != null) EntraGraphClientIdBox.Text = config.GraphClientId;
+                if (EntraIdAuthEnabledCheck != null) EntraIdAuthEnabledCheck.IsChecked = config.EntraIdAuthEnabled;
+                if (EntraIdAllowedEmailsBox != null) EntraIdAllowedEmailsBox.Text = config.EntraIdAllowedEmails;
 
                 if (EntraConfigStatus != null)
                 {
@@ -2135,6 +2137,8 @@ namespace PlatypusTools.UI.Views
                 config.TenantId = EntraTenantIdBox?.Text?.Trim() ?? "common";
                 config.ApiScopeId = EntraApiScopeIdBox?.Text?.Trim() ?? "";
                 config.GraphClientId = EntraGraphClientIdBox?.Text?.Trim() ?? "";
+                config.EntraIdAuthEnabled = EntraIdAuthEnabledCheck?.IsChecked == true;
+                config.EntraIdAllowedEmails = EntraIdAllowedEmailsBox?.Text?.Trim() ?? "";
 
                 EntraConfigService.Instance.Save(config);
 

@@ -49,7 +49,7 @@
                      Key="Software\PlatypusTools" 
                      Name="Version" 
                      Type="string" 
-                     Value="3.4.3.10" />
+                     Value="4.0.0.1" />
     </Component>
   </Fragment>
 
@@ -105,6 +105,11 @@
 
       <Component Id="FontOverseerBold" Directory="AppFontsFolder" Guid="F6A7B8C9-D0E1-4F5A-9B0C-5D6E7F8A9B0C">
         <File Id="OverseerBold.otf" Source="..\PlatypusTools.UI\Assets\Overseer Bold.otf" KeyPath="yes" />
+      </Component>
+
+      <!-- Remote Setup Script - standalone configuration wizard -->
+      <Component Id="SetupScript" Directory="INSTALLFOLDER" Guid="A7B8C9D0-E1F2-4A5B-9C0D-6E7F8A9B0C1D">
+        <File Id="Setup_PlatypusRemote.ps1" Source="..\Setup-PlatypusRemote.ps1" KeyPath="yes" />
       </Component>
     </ComponentGroup>
   </Fragment>

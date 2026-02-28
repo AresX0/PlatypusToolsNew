@@ -410,7 +410,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 4.0.0.1"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 4.0.0.2"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
@@ -767,7 +767,7 @@
                         <!-- Entra ID / App Registration -->
                         <GroupBox Header="🔐 Entra ID App Registration" Margin="0,0,0,16">
                             <StackPanel Margin="8">
-                                <TextBlock Text="Configure your Azure AD app registration for authenticated remote access. These values are stored locally and never committed to source control." 
+                                <TextBlock Text="Authenticate Platypus Remote users via Microsoft Entra ID (Azure AD). When enabled, users must sign in with their Microsoft account before accessing the remote webapp. All values are stored locally and never committed to source control." 
                                            TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,12"/>
                                 
                                 <CheckBox x:Name="EntraIdAuthEnabledCheck" Content="Enable Entra ID authentication for webapp" 
@@ -776,7 +776,7 @@
                                 
                                 <Grid Margin="0,4">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="140"/>
+                                        <ColumnDefinition Width="160"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -785,38 +785,69 @@
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <TextBlock Text="Client ID:" VerticalAlignment="Center" Margin="0,4"
-                                               ToolTip="Application (client) ID from Azure Portal → App registrations → Your app → Overview"/>
-                                    <TextBox x:Name="EntraClientIdBox" Grid.Column="1" Margin="0,4" 
-                                             FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
-                                             ToolTip="e.g. 12345678-abcd-1234-abcd-123456789abc"/>
+                                    <!-- Row 0: Client ID -->
+                                    <StackPanel VerticalAlignment="Center" Margin="0,4">
+                                        <TextBlock Text="Client ID:" FontWeight="SemiBold"/>
+                                        <TextBlock Text="(Required)" FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="0,4">
+                                        <TextBox x:Name="EntraClientIdBox" FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
+                                                 ToolTip="e.g. 12345678-abcd-1234-abcd-123456789abc"/>
+                                        <TextBlock Text="Azure Portal → App registrations → Your app → Overview → 'Application (client) ID'" 
+                                                   FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                    </StackPanel>
 
-                                    <TextBlock Grid.Row="1" Text="Tenant ID:" VerticalAlignment="Center" Margin="0,4"
-                                               ToolTip="Directory (tenant) ID. Use 'common' for multi-tenant."/>
-                                    <TextBox x:Name="EntraTenantIdBox" Grid.Row="1" Grid.Column="1" Margin="0,4" 
-                                             FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
-                                             Text="common"
-                                             ToolTip="Use 'common' for multi-tenant or enter your specific tenant ID"/>
+                                    <!-- Row 1: Tenant ID -->
+                                    <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="0,4">
+                                        <TextBlock Text="Tenant ID:" FontWeight="SemiBold"/>
+                                        <TextBlock Text="(Required)" FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,4">
+                                        <TextBox x:Name="EntraTenantIdBox" FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
+                                                 Text="common"
+                                                 ToolTip="Use 'common' for multi-tenant or enter your specific tenant ID"/>
+                                        <TextBlock Text="Azure Portal → App registrations → Your app → Overview → 'Directory (tenant) ID'. Use 'common' to allow any Microsoft account." 
+                                                   FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                    </StackPanel>
 
-                                    <TextBlock Grid.Row="2" Text="API Scope ID:" VerticalAlignment="Center" Margin="0,4"
-                                               ToolTip="The API scope ID from Azure Portal → Expose an API. Often same as Client ID."/>
-                                    <TextBox x:Name="EntraApiScopeIdBox" Grid.Row="2" Grid.Column="1" Margin="0,4" 
-                                             FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
-                                             ToolTip="Leave empty to use Client ID as scope. Format: api://{this-value}/access_as_user"/>
+                                    <!-- Row 2: API Scope ID -->
+                                    <StackPanel Grid.Row="2" VerticalAlignment="Center" Margin="0,4">
+                                        <TextBlock Text="API Scope ID:" FontWeight="SemiBold"/>
+                                        <TextBlock Text="(Usually = Client ID)" FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,4">
+                                        <TextBox x:Name="EntraApiScopeIdBox" FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
+                                                 ToolTip="Leave empty to use Client ID. Format: api://{this-value}/access_as_user"/>
+                                        <TextBlock Text="Azure Portal → App registrations → Your app → Expose an API → 'Application ID URI'. Usually api://{ClientId}. Leave blank to auto-use Client ID." 
+                                                   FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                    </StackPanel>
 
-                                    <TextBlock Grid.Row="3" Text="Graph Client ID:" VerticalAlignment="Center" Margin="0,4"
-                                               ToolTip="Optional: Custom client ID for Microsoft Graph operations. Leave empty for the default MS Graph PowerShell ID."/>
-                                    <TextBox x:Name="EntraGraphClientIdBox" Grid.Row="3" Grid.Column="1" Margin="0,4" 
-                                             FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
-                                             ToolTip="Leave empty to use the well-known MS Graph PowerShell client ID (14d82eec-...)"/>
+                                    <!-- Row 3: Graph Client ID -->
+                                    <StackPanel Grid.Row="3" VerticalAlignment="Center" Margin="0,4">
+                                        <TextBlock Text="Graph Client ID:" FontWeight="SemiBold"/>
+                                        <TextBlock Text="(Optional — advanced)" FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="3" Grid.Column="1" Margin="0,4">
+                                        <TextBox x:Name="EntraGraphClientIdBox" FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
+                                                 ToolTip="Leave empty to use the well-known MS Graph PowerShell client ID (14d82eec-...)"/>
+                                        <TextBlock Text="Only needed if you have a separate app registration for Microsoft Graph API calls. Leave blank to use the default MS Graph PowerShell client ID." 
+                                                   FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                    </StackPanel>
 
-                                    <TextBlock Grid.Row="4" Text="Allowed Emails:" VerticalAlignment="Center" Margin="0,4"
-                                               ToolTip="Optional: Comma-separated list of allowed emails or @domains. Only used when Entra ID auth is enabled. Leave empty to allow all."/>
-                                    <TextBox x:Name="EntraIdAllowedEmailsBox" Grid.Row="4" Grid.Column="1" Margin="0,4" 
-                                             FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
-                                             ToolTip="e.g. user@company.com,@company.com — leave empty to allow all authenticated users"/>
+                                    <!-- Row 4: Allowed Emails -->
+                                    <StackPanel Grid.Row="4" VerticalAlignment="Center" Margin="0,4">
+                                        <TextBlock Text="Allowed Emails:" FontWeight="SemiBold"/>
+                                        <TextBlock Text="(Optional)" FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="4" Grid.Column="1" Margin="0,4">
+                                        <TextBox x:Name="EntraIdAllowedEmailsBox" FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
+                                                 ToolTip="e.g. user@company.com,@company.com — leave empty to allow all"/>
+                                        <TextBlock Text="Comma-separated list of email addresses or @domains that are allowed to sign in. Leave empty to allow anyone with a valid Microsoft account." 
+                                                   FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                    </StackPanel>
                                 </Grid>
 
                                 <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
@@ -825,15 +856,39 @@
                                     <TextBlock x:Name="EntraConfigStatus" VerticalAlignment="Center" Foreground="{DynamicResource SecondaryTextBrush}" FontStyle="Italic"/>
                                 </StackPanel>
 
-                                <TextBlock Margin="0,8,0,0" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"
-                                           Text="💡 See DOCS/ENTRA_ID_SETUP.md for instructions on creating your app registration in Azure Portal."/>
+                                <!-- Quick Setup Guide -->
+                                <GroupBox Header="📋 Quick Setup Guide" Margin="0,12,0,0">
+                                    <StackPanel Margin="6">
+                                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11">
+                                            <Run FontWeight="SemiBold">Step 1:</Run><Run> Go to </Run><Run FontWeight="SemiBold" Foreground="#2196F3">portal.azure.com</Run><Run> → search "App registrations" → click "+ New registration"</Run>
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,3,0,0">
+                                            <Run FontWeight="SemiBold">Step 2:</Run><Run> Name it "Platypus Remote", select account type → click Register</Run>
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,3,0,0">
+                                            <Run FontWeight="SemiBold">Step 3:</Run><Run> Copy the "Application (client) ID" → paste above as </Run><Run FontWeight="SemiBold">Client ID</Run>
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,3,0,0">
+                                            <Run FontWeight="SemiBold">Step 4:</Run><Run> Copy the "Directory (tenant) ID" → paste above as </Run><Run FontWeight="SemiBold">Tenant ID</Run><Run> (or keep "common")</Run>
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,3,0,0">
+                                            <Run FontWeight="SemiBold">Step 5:</Run><Run> In your app, go to "Expose an API" → Set Application ID URI → Add scope "access_as_user"</Run>
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,3,0,0">
+                                            <Run FontWeight="SemiBold">Step 6:</Run><Run> Go to "Authentication" → Add platform → Single-page application → Add redirect URI: </Run><Run FontFamily="Consolas">https://localhost:47392/authentication/login-callback</Run>
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,6,0,0">
+                                            <Run>📖 For the full walkthrough with screenshots, open Help → Authentication section, or see DOCS/ENTRA_ID_SETUP.md</Run>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </GroupBox>
                             </StackPanel>
                         </GroupBox>
 
                         <!-- Cloudflare Zero Trust -->
                         <GroupBox Header="🛡️ Cloudflare Zero Trust" Margin="0,0,0,16">
                             <StackPanel Margin="8">
-                                <TextBlock Text="Protect the remote control webapp with Cloudflare Access. When enabled, all API requests must include a valid CF Access JWT. Users authenticate through your Cloudflare Zero Trust login page." 
+                                <TextBlock Text="Protect the remote control webapp with Cloudflare Access. Users must authenticate through Cloudflare's login page before reaching PlatypusTools. Requires a Cloudflare Tunnel and a Cloudflare account (free tier works)." 
                                            TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,12"/>
                                 
                                 <CheckBox x:Name="CfZeroTrustEnabledCheck" Content="Enable Cloudflare Zero Trust authentication" 
@@ -851,23 +906,41 @@
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <TextBlock Text="Team Domain:" VerticalAlignment="Center" Margin="0,4"
-                                               ToolTip="Your Cloudflare Zero Trust team name (e.g. 'mycompany' for mycompany.cloudflareaccess.com)"/>
-                                    <TextBox x:Name="CfTeamDomainBox" Grid.Column="1" Margin="0,4" 
-                                             FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
-                                             ToolTip="e.g. mycompany (not the full URL, just the team name)"/>
+                                    <!-- Row 0: Team Domain -->
+                                    <StackPanel VerticalAlignment="Center" Margin="0,4">
+                                        <TextBlock Text="Team Domain:" FontWeight="SemiBold"/>
+                                        <TextBlock Text="(Required)" FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="0,4">
+                                        <TextBox x:Name="CfTeamDomainBox" FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
+                                                 ToolTip="e.g. mycompany (not the full URL, just the team name)"/>
+                                        <TextBlock Text="Your team name from the Zero Trust dashboard. If your login URL is mycompany.cloudflareaccess.com, enter just 'mycompany'. Found at: one.dash.cloudflare.com → Settings → Custom Pages → Team domain." 
+                                                   FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                    </StackPanel>
 
-                                    <TextBlock Grid.Row="1" Text="Application AUD:" VerticalAlignment="Center" Margin="0,4"
-                                               ToolTip="The Application Audience (AUD) tag from Zero Trust → Access → Applications → your app → Overview"/>
-                                    <TextBox x:Name="CfAudienceBox" Grid.Row="1" Grid.Column="1" Margin="0,4" 
-                                             FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
-                                             ToolTip="64-character hex string from your Cloudflare Access application"/>
+                                    <!-- Row 1: Application AUD -->
+                                    <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="0,4">
+                                        <TextBlock Text="Application AUD:" FontWeight="SemiBold"/>
+                                        <TextBlock Text="(Required)" FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,4">
+                                        <TextBox x:Name="CfAudienceBox" FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
+                                                 ToolTip="64-character hex string from your Cloudflare Access application"/>
+                                        <TextBlock Text="one.dash.cloudflare.com → Access → Applications → click your app → Overview tab → 'Application Audience (AUD) Tag'. It's a long hex string like 32a4f8c..." 
+                                                   FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                    </StackPanel>
 
-                                    <TextBlock Grid.Row="2" Text="Allowed Emails:" VerticalAlignment="Center" Margin="0,4"
-                                               ToolTip="Optional: Comma-separated list of emails or @domains. Leave empty to allow all authenticated users."/>
-                                    <TextBox x:Name="CfAllowedEmailsBox" Grid.Row="2" Grid.Column="1" Margin="0,4" 
-                                             FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
-                                             ToolTip="e.g. user@company.com,@company.com — leave empty to allow all"/>
+                                    <!-- Row 2: Allowed Emails -->
+                                    <StackPanel Grid.Row="2" VerticalAlignment="Center" Margin="0,4">
+                                        <TextBlock Text="Allowed Emails:" FontWeight="SemiBold"/>
+                                        <TextBlock Text="(Optional)" FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,4">
+                                        <TextBox x:Name="CfAllowedEmailsBox" FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
+                                                 ToolTip="e.g. user@company.com,@company.com — leave empty to allow all"/>
+                                        <TextBlock Text="Comma-separated list of emails or @domain patterns. This is an extra layer ON TOP of Cloudflare's own access policies. Leave empty to allow all users who pass Cloudflare login." 
+                                                   FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                    </StackPanel>
                                 </Grid>
 
                                 <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
@@ -876,8 +949,32 @@
                                     <TextBlock x:Name="CfZeroTrustStatus" VerticalAlignment="Center" Foreground="{DynamicResource SecondaryTextBrush}" FontStyle="Italic"/>
                                 </StackPanel>
 
-                                <TextBlock Margin="0,8,0,0" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"
-                                           Text="💡 Requires a Cloudflare Tunnel (cloudflared) running + an Access Application configured in the Zero Trust dashboard. The server must be restarted after changing these settings."/>
+                                <!-- Quick Setup Guide -->
+                                <GroupBox Header="📋 Quick Setup Guide" Margin="0,12,0,0">
+                                    <StackPanel Margin="6">
+                                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11">
+                                            <Run FontWeight="SemiBold">Step 1:</Run><Run> Go to </Run><Run FontWeight="SemiBold" Foreground="#2196F3">one.dash.cloudflare.com</Run><Run> (create a free account if needed)</Run>
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,3,0,0">
+                                            <Run FontWeight="SemiBold">Step 2:</Run><Run> If prompted, create a team name (e.g. "platypus") — this becomes your Team Domain</Run>
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,3,0,0">
+                                            <Run FontWeight="SemiBold">Step 3:</Run><Run> Go to Access → Applications → Add application → Self-hosted</Run>
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,3,0,0">
+                                            <Run FontWeight="SemiBold">Step 4:</Run><Run> Set Application domain to your tunnel URL (e.g. platypus.yourdomain.com)</Run>
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,3,0,0">
+                                            <Run FontWeight="SemiBold">Step 5:</Run><Run> Create an Access Policy → Allow → Include → Login Methods → select an identity provider</Run>
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,3,0,0">
+                                            <Run FontWeight="SemiBold">Step 6:</Run><Run> After creating the app, copy the </Run><Run FontWeight="SemiBold">Application Audience (AUD) Tag</Run><Run> from the app overview page → paste above</Run>
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,6,0,0">
+                                            <Run>📖 For the full walkthrough, open Help → Authentication section, or see DOCS/CLOUDFLARE_TUNNEL_SETUP.md</Run>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </GroupBox>
                             </StackPanel>
                         </GroupBox>
 

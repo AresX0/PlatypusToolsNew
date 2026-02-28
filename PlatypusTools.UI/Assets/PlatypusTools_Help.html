@@ -148,7 +148,7 @@
 <header>
     <h1>🦆 PlatypusTools</h1>
     <p>Advanced File Management &amp; Media Tools Suite</p>
-    <div class="version">Version 4.0.0.1.1 | Built with .NET 10 / WPF</div>
+    <div class="version">Version 4.0.0.2.2.1 | Built with .NET 10 / WPF</div>
 </header>
 
 <div class="container">
@@ -1669,6 +1669,189 @@ ingress:
     <div class="warning">
         <strong>Important:</strong> All authentication settings are stored in <code>%APPDATA%/PlatypusTools/entra-config.json</code>. This file contains sensitive configuration — ensure it is not shared or committed to version control.
     </div>
+
+    <h3>📘 Step-by-Step: Set Up Entra ID Authentication (Beginner Guide)</h3>
+    <p>This guide walks you through setting up Azure/Entra ID authentication from scratch. You do <strong>NOT</strong> need an Azure subscription — app registrations are free with any Microsoft account.</p>
+
+    <h4>Part A: Create an App Registration in Azure Portal</h4>
+    <ol>
+        <li>Open a web browser and go to <strong><a href="https://portal.azure.com" target="_blank">portal.azure.com</a></strong></li>
+        <li>Sign in with your Microsoft account (Outlook, Hotmail, work/school account — any Microsoft account works)</li>
+        <li>In the search bar at the top, type <strong>"App registrations"</strong> and click the result under Services</li>
+        <li>Click the <strong>+ New registration</strong> button at the top</li>
+        <li>Fill in the form:
+            <ul>
+                <li><strong>Name</strong>: Type <code>Platypus Remote</code> (or any name you like)</li>
+                <li><strong>Supported account types</strong>: Choose <em>"Accounts in any organizational directory and personal Microsoft accounts"</em> if you want anyone with a Microsoft account to be able to sign in. Choose <em>"Accounts in this organizational directory only"</em> if only people in your organization should access it.</li>
+                <li><strong>Redirect URI</strong>: Leave this blank for now (we'll add it next)</li>
+            </ul>
+        </li>
+        <li>Click <strong>Register</strong></li>
+        <li>You're now on the app's <strong>Overview</strong> page. You need two values from here:
+            <ul>
+                <li><strong>Application (client) ID</strong> — a GUID like <code>12345678-abcd-1234-abcd-123456789abc</code>. Copy this — it goes in the <strong>Client ID</strong> field in PlatypusTools Settings.</li>
+                <li><strong>Directory (tenant) ID</strong> — another GUID. Copy this — it goes in the <strong>Tenant ID</strong> field (or keep "common" if you want any Microsoft account to work).</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h4>Part B: Set Up Authentication (Redirect URIs)</h4>
+    <ol>
+        <li>In the left sidebar of your new app, click <strong>Authentication</strong></li>
+        <li>Click <strong>+ Add a platform</strong></li>
+        <li>Select <strong>Single-page application</strong></li>
+        <li>In the <strong>Redirect URIs</strong> box, enter: <code>https://localhost:47392/authentication/login-callback</code></li>
+        <li>Click <strong>Configure</strong></li>
+        <li>If you're using a Cloudflare Tunnel with a custom domain, click <strong>+ Add URI</strong> and also add: <code>https://platypus.yourdomain.com/authentication/login-callback</code> (replace with your actual domain)</li>
+        <li>Scroll down to <strong>Advanced settings</strong>. Set <strong>"Allow public client flows"</strong> to <strong>Yes</strong></li>
+        <li>Click <strong>Save</strong> at the top</li>
+    </ol>
+
+    <h4>Part C: Expose an API (Create the Scope)</h4>
+    <ol>
+        <li>In the left sidebar, click <strong>Expose an API</strong></li>
+        <li>Next to <strong>Application ID URI</strong>, click <strong>Set</strong></li>
+        <li>Accept the default (it will be <code>api://your-client-id</code>) and click <strong>Save</strong></li>
+        <li>Click <strong>+ Add a scope</strong></li>
+        <li>Fill in:
+            <ul>
+                <li><strong>Scope name</strong>: <code>access_as_user</code></li>
+                <li><strong>Who can consent</strong>: <em>Admins and users</em></li>
+                <li><strong>Admin consent display name</strong>: <code>Access Platypus Remote</code></li>
+                <li><strong>Admin consent description</strong>: <code>Allows the app to access Platypus Remote on behalf of the user</code></li>
+                <li><strong>User consent display name</strong>: <code>Access Platypus Remote</code></li>
+                <li><strong>User consent description</strong>: <code>Allow the app to control your Platypus media player</code></li>
+                <li><strong>State</strong>: <em>Enabled</em></li>
+            </ul>
+        </li>
+        <li>Click <strong>Add scope</strong></li>
+    </ol>
+
+    <h4>Part D: Add API Permissions</h4>
+    <ol>
+        <li>In the left sidebar, click <strong>API permissions</strong></li>
+        <li>Click <strong>+ Add a permission</strong></li>
+        <li>Select <strong>Microsoft Graph</strong></li>
+        <li>Select <strong>Delegated permissions</strong></li>
+        <li>Check these permissions: <code>openid</code>, <code>profile</code>, <code>email</code>, <code>offline_access</code></li>
+        <li>Click <strong>Add permissions</strong></li>
+        <li>If you see a <strong>"Grant admin consent"</strong> button and you're an admin, click it. Otherwise, users will consent on first login.</li>
+    </ol>
+
+    <h4>Part E: Enter Values in PlatypusTools</h4>
+    <ol>
+        <li>Open PlatypusTools → <strong>Settings</strong> → scroll to <strong>Remote Server</strong> section → <strong>Entra ID App Registration</strong></li>
+        <li>Paste the <strong>Application (client) ID</strong> into the <strong>Client ID</strong> field</li>
+        <li>Paste the <strong>Directory (tenant) ID</strong> into the <strong>Tenant ID</strong> field (or keep "common")</li>
+        <li>Leave <strong>API Scope ID</strong> blank (it auto-uses your Client ID)</li>
+        <li>Leave <strong>Graph Client ID</strong> blank (uses the default)</li>
+        <li>(Optional) Enter email addresses in <strong>Allowed Emails</strong> to restrict who can sign in</li>
+        <li>Check <strong>"Enable Entra ID authentication for webapp"</strong></li>
+        <li>Click <strong>💾 Save Entra Config</strong></li>
+        <li>Restart the Remote Server for changes to take effect</li>
+    </ol>
+
+    <div class="tip">
+        <strong>That's it!</strong> Users visiting your remote webapp will now be prompted to sign in with their Microsoft account. If you also set up a Cloudflare Tunnel, add the tunnel URL to the redirect URIs in step B.6.
+    </div>
+
+    <h3>📘 Step-by-Step: Set Up Cloudflare Zero Trust (Beginner Guide)</h3>
+    <p>This guide shows you how to protect your Platypus Remote server with Cloudflare Zero Trust. Cloudflare acts as a bouncer — anyone trying to access your server has to prove who they are first. You need a Cloudflare account (free) and a domain managed by Cloudflare.</p>
+
+    <h4>Part A: Set Up Cloudflare Account &amp; Team</h4>
+    <ol>
+        <li>Go to <strong><a href="https://one.dash.cloudflare.com" target="_blank">one.dash.cloudflare.com</a></strong> (the Zero Trust dashboard)</li>
+        <li>Sign in with your Cloudflare account (create a free one at <a href="https://dash.cloudflare.com/sign-up" target="_blank">dash.cloudflare.com/sign-up</a> if needed)</li>
+        <li>If this is your first time, you'll be asked to <strong>Create a team name</strong>. Pick something short and memorable, like <code>platypus</code> or <code>myname</code>.
+            <br /><strong>This is your Team Domain.</strong> If you enter "platypus", your login URL will be <code>platypus.cloudflareaccess.com</code>. Copy this name — you'll paste it in PlatypusTools Settings.</li>
+        <li>Choose the <strong>Free</strong> plan (up to 50 users, which is more than enough)</li>
+    </ol>
+
+    <h4>Part B: Set Up a Cloudflare Tunnel (if not done already)</h4>
+    <p>A tunnel lets Cloudflare reach your PC without opening ports on your router.</p>
+    <ol>
+        <li>In PlatypusTools, go to <strong>Settings → Remote Control → External Access</strong></li>
+        <li>Click <strong>📥 Install cloudflared</strong> (downloads the tunnel program)</li>
+        <li>For a <strong>quick test</strong>: Check "Enable Cloudflare Tunnel" with "Quick Tunnel" and click Start Tunnel. You'll get a temporary URL.</li>
+        <li>For a <strong>permanent URL</strong>: You need a domain on Cloudflare. Follow the Named Tunnel instructions:
+            <ul>
+                <li>Click <strong>🔐 Setup Cloudflare Account</strong> to authenticate cloudflared</li>
+                <li>Open PowerShell and run: <code>cloudflared tunnel create platypus-remote</code></li>
+                <li>Configure DNS: <code>cloudflared tunnel route dns platypus-remote platypus.yourdomain.com</code></li>
+                <li>Create a config file and run: <code>cloudflared tunnel run platypus-remote</code></li>
+            </ul>
+        </li>
+    </ol>
+
+    <h4>Part C: Add a Microsoft Identity Provider (Optional)</h4>
+    <p>If you want users to sign in with Microsoft accounts:</p>
+    <ol>
+        <li>In the Zero Trust dashboard, go to <strong>Settings → Authentication</strong></li>
+        <li>Click <strong>Add new</strong> under Login methods</li>
+        <li>Select <strong>Microsoft</strong> (or One-time PIN if you just want email verification)</li>
+        <li>If you chose Microsoft, you'll need:
+            <ul>
+                <li>An Azure app registration (can be the same one from Entra ID setup above, or a separate one)</li>
+                <li>In the Azure app, add this redirect URI: <code>https://YOUR-TEAM-NAME.cloudflareaccess.com/cdn-cgi/access/callback</code></li>
+                <li>Go to <strong>Certificates &amp; secrets</strong> in Azure → create a <strong>New client secret</strong> → copy the <strong>secret value</strong></li>
+                <li>Back in Cloudflare, enter the <strong>Client ID</strong> and <strong>Client Secret</strong></li>
+                <li>Click <strong>Save</strong></li>
+            </ul>
+        </li>
+    </ol>
+
+    <h4>Part D: Create an Access Application</h4>
+    <ol>
+        <li>In the Zero Trust dashboard, go to <strong>Access → Applications</strong></li>
+        <li>Click <strong>Add an application</strong> → choose <strong>Self-hosted</strong></li>
+        <li>Fill in:
+            <ul>
+                <li><strong>Application name</strong>: <code>Platypus Remote</code></li>
+                <li><strong>Session duration</strong>: <code>24 hours</code> (or your preference)</li>
+                <li><strong>Application domain</strong>: your tunnel domain (e.g., <code>platypus.yourdomain.com</code>)</li>
+            </ul>
+        </li>
+        <li>Click <strong>Next</strong></li>
+        <li>Create an <strong>Access Policy</strong>:
+            <ul>
+                <li><strong>Policy name</strong>: <code>Allow My Users</code></li>
+                <li><strong>Action</strong>: Allow</li>
+                <li><strong>Include rule</strong>: Choose "Emails" → enter the email addresses you want to allow, <em>OR</em> choose "Emails ending in" → enter your domain (e.g., <code>@yourdomain.com</code>)</li>
+            </ul>
+        </li>
+        <li>Click <strong>Next</strong> → <strong>Add application</strong></li>
+    </ol>
+
+    <h4>Part E: Get Your Application Audience (AUD) Tag</h4>
+    <ol>
+        <li>In the Zero Trust dashboard, go to <strong>Access → Applications</strong></li>
+        <li>Click on your <strong>Platypus Remote</strong> application</li>
+        <li>On the <strong>Overview</strong> tab, find <strong>Application Audience (AUD) Tag</strong></li>
+        <li>It's a long string of hex characters like <code>32a4f8c7e1b2d3a4f5c6e7b8a9d0c1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8</code></li>
+        <li>Copy this entire string</li>
+    </ol>
+
+    <h4>Part F: Enter Values in PlatypusTools</h4>
+    <ol>
+        <li>Open PlatypusTools → <strong>Settings</strong> → scroll to <strong>Remote Server</strong> → <strong>Cloudflare Zero Trust</strong></li>
+        <li>Check <strong>"Enable Cloudflare Zero Trust authentication"</strong></li>
+        <li>Enter your <strong>Team Domain</strong> (just the name, e.g., <code>platypus</code>, not the full URL)</li>
+        <li>Paste the <strong>Application Audience (AUD) Tag</strong> from step E.4</li>
+        <li>(Optional) Enter <strong>Allowed Emails</strong> to add an extra restriction beyond Cloudflare's own policies</li>
+        <li>Click <strong>💾 Save Zero Trust Config</strong></li>
+        <li>Restart the Remote Server for changes to take effect</li>
+    </ol>
+
+    <div class="tip">
+        <strong>Done!</strong> Now when anyone visits your tunnel URL, Cloudflare will show a login page. Only authenticated users who match your Access Policy can reach PlatypusTools.
+    </div>
+
+    <h3>📘 Standalone Setup Script</h3>
+    <p>If you need to configure Platypus Remote on a computer that doesn't have the build/project directory (for example, you installed PlatypusTools from the MSI), you can use the <strong>Setup-PlatypusRemote.ps1</strong> script. It's included in the project root and works standalone — just copy it to the target computer.</p>
+    <p>The script prompts you interactively for all required values and writes the configuration to <code>%APPDATA%/PlatypusTools/entra-config.json</code>.</p>
+    <p>Run it in PowerShell:</p>
+    <pre><code>.\Setup-PlatypusRemote.ps1</code></pre>
+    <p>It will walk you through each setting with descriptions of what to enter and where to find it.</p>
 </section>
 
 <section id="vault" class="section">
@@ -2796,7 +2979,7 @@ ingress:
 </div>
 
 <footer>
-    <p>PlatypusTools v4.0.0.1.1 | &copy; 2026 PlatypusTools Project | Built with .NET 10 / WPF</p>
+    <p>PlatypusTools v4.0.0.2.2.1 | &copy; 2026 PlatypusTools Project | Built with .NET 10 / WPF</p>
 </footer>
 
 </body>
