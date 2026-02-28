@@ -314,6 +314,7 @@ namespace PlatypusTools.UI.Services
         private bool _cloudflareTunnelEnabled = false;
         private bool _cloudflareTunnelAutoStart = false;
         private string _cloudflareTunnelHostname = "";
+        private string _cloudflareTunnelName = "";
         private bool _cloudflareTunnelUseQuickTunnel = true;
 
         /// <summary>
@@ -342,6 +343,16 @@ namespace PlatypusTools.UI.Services
         {
             get => _cloudflareTunnelHostname;
             set { _cloudflareTunnelHostname = value ?? string.Empty; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Gets or sets the tunnel name (UUID or name from 'cloudflared tunnel create').
+        /// Used with 'cloudflared tunnel run <name>'.
+        /// </summary>
+        public string CloudflareTunnelName
+        {
+            get => _cloudflareTunnelName;
+            set { _cloudflareTunnelName = value ?? string.Empty; OnPropertyChanged(); }
         }
 
         /// <summary>

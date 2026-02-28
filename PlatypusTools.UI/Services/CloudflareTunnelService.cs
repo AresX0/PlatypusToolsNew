@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -182,6 +183,7 @@ public class CloudflareTunnelService : IDisposable
 
     /// <summary>
     /// Starts a named tunnel with a custom hostname (requires Cloudflare account setup).
+    /// Uses modern 'cloudflared tunnel run' with a generated config.yml.
     /// </summary>
     public async Task<bool> StartNamedTunnelAsync(string hostname, int localPort = 47392)
     {
@@ -197,20 +199,31 @@ public class CloudflareTunnelService : IDisposable
             if (!installed) return false;
         }
 
+        // Get the tunnel name from settings
+        var tunnelName = SettingsManager.Current.CloudflareTunnelName;
+
         try
         {
             // Save config for auto-restart
             _lastLocalPort = localPort;
-            _lastTunnelName = hostname;
+            _lastTunnelName = !string.IsNullOrWhiteSpace(tunnelName) ? tunnelName : hostname;
             _useNamedTunnel = true;
             _consecutiveFailures = 0;
             
             _cts = new CancellationTokenSource();
 
+            // Generate config.yml for the tunnel
+            EnsureConfigYml(tunnelName, hostname, localPort);
+
+            var configFile = Path.Combine(UserConfigPath, "config.yml");
+            var args = !string.IsNullOrWhiteSpace(tunnelName)
+                ? $"tunnel --config \"{configFile}\" run {tunnelName}"
+                : $"tunnel --url https://localhost:{localPort} --no-tls-verify --hostname {hostname}";
+
             var psi = new ProcessStartInfo
             {
                 FileName = CloudflaredPath,
-                Arguments = $"tunnel --url https://localhost:{localPort} --no-tls-verify --hostname {hostname}",
+                Arguments = args,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -234,7 +247,7 @@ public class CloudflareTunnelService : IDisposable
 
             CurrentTunnelUrl = $"https://{hostname}";
             Diagnostics.ProcessRunning = true;
-            Log($"Started named tunnel: {CurrentTunnelUrl}");
+            Log($"Started named tunnel: {CurrentTunnelUrl} (name: {tunnelName})");
             TunnelStateChanged?.Invoke(this, true);
             TunnelUrlGenerated?.Invoke(this, CurrentTunnelUrl);
             
@@ -248,6 +261,48 @@ public class CloudflareTunnelService : IDisposable
             Log($"Failed to start tunnel: {ex.Message}");
             Diagnostics.LastError = ex.Message;
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Generates or updates ~/.cloudflared/config.yml with the tunnel settings.
+    /// </summary>
+    private void EnsureConfigYml(string tunnelName, string hostname, int localPort)
+    {
+        if (string.IsNullOrWhiteSpace(tunnelName)) return;
+
+        try
+        {
+            Directory.CreateDirectory(UserConfigPath);
+            var configFile = Path.Combine(UserConfigPath, "config.yml");
+
+            // Find the credentials file (created by 'cloudflared tunnel create')
+            var credentialsFile = "";
+            var credFiles = Directory.GetFiles(UserConfigPath, "*.json");
+            if (credFiles.Length > 0)
+            {
+                // Pick the first JSON file that looks like a credentials file
+                credentialsFile = credFiles.FirstOrDefault(f => 
+                    !Path.GetFileName(f).Equals("config.json", StringComparison.OrdinalIgnoreCase)) ?? credFiles[0];
+            }
+
+            var yaml = $@"tunnel: {tunnelName}
+credentials-file: {credentialsFile.Replace("\\", "/")}
+
+ingress:
+  - hostname: {hostname}
+    service: https://localhost:{localPort}
+    originRequest:
+      noTLSVerify: true
+  - service: http_status:404
+";
+
+            File.WriteAllText(configFile, yaml);
+            Log($"Generated config.yml: tunnel={tunnelName}, hostname={hostname}, port={localPort}");
+        }
+        catch (Exception ex)
+        {
+            Log($"Warning: Could not write config.yml: {ex.Message}");
         }
     }
 
@@ -689,6 +744,7 @@ public class CloudflareTunnelService : IDisposable
     
     /// <summary>
     /// Starts the persistent tunnel as a background process (no admin needed).
+    /// Generates config.yml from saved settings before starting.
     /// </summary>
     public async Task<bool> StartPersistentTunnelAsync()
     {
@@ -703,6 +759,20 @@ public class CloudflareTunnelService : IDisposable
             Log("cloudflared not installed");
             return false;
         }
+        
+        // Generate config.yml from current settings
+        var settings = SettingsManager.Current;
+        var tunnelName = settings.CloudflareTunnelName;
+        var hostname = settings.CloudflareTunnelHostname;
+        var port = settings.RemoteServerPort;
+        
+        if (string.IsNullOrWhiteSpace(tunnelName))
+        {
+            Log("No tunnel name configured. Go to Settings → Cloudflare Tunnel → Named Tunnel and enter your tunnel name.");
+            return false;
+        }
+        
+        EnsureConfigYml(tunnelName, hostname, port);
         
         var configFile = Path.Combine(UserConfigPath, "config.yml");
         if (!File.Exists(configFile))
@@ -816,6 +886,20 @@ public class CloudflareTunnelService : IDisposable
             Log("cloudflared not installed, installing first...");
             await InstallAsync();
         }
+        
+        // Generate config.yml from current settings
+        var settings = SettingsManager.Current;
+        var tunnelName = settings.CloudflareTunnelName;
+        var hostname = settings.CloudflareTunnelHostname;
+        var port = settings.RemoteServerPort;
+        
+        if (string.IsNullOrWhiteSpace(tunnelName))
+        {
+            Log("No tunnel name configured. Go to Settings → Cloudflare Tunnel → Named Tunnel and enter your tunnel name.");
+            return false;
+        }
+        
+        EnsureConfigYml(tunnelName, hostname, port);
         
         var configFile = Path.Combine(UserConfigPath, "config.yml");
         if (!File.Exists(configFile))

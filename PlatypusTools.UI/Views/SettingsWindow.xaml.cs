@@ -1226,6 +1226,9 @@ namespace PlatypusTools.UI.Views
             
             // Last.fm settings are saved via their own button (SaveLastFmCredentials_Click)
             
+            // Save Cloudflare tunnel settings
+            SaveCloudflareSettings();
+            
             SettingsManager.SaveCurrent();
             
             // Refresh tab visibility in the main UI immediately
@@ -2404,8 +2407,10 @@ namespace PlatypusTools.UI.Views
                 CloudflareTunnelEnabledCheck.IsChecked = settings.CloudflareTunnelEnabled;
             if (CloudflareTunnelAutoStartCheck != null)
                 CloudflareTunnelAutoStartCheck.IsChecked = settings.CloudflareTunnelAutoStart;
-            if (CloudflareTunnelHostnameBox != null)
+            if (CloudflareTunnelHostnameBox != null && !string.IsNullOrEmpty(settings.CloudflareTunnelHostname))
                 CloudflareTunnelHostnameBox.Text = settings.CloudflareTunnelHostname;
+            if (CloudflareTunnelNameBox != null && !string.IsNullOrEmpty(settings.CloudflareTunnelName))
+                CloudflareTunnelNameBox.Text = settings.CloudflareTunnelName;
             if (QuickTunnelRadio != null && NamedTunnelRadio != null)
             {
                 if (settings.CloudflareTunnelUseQuickTunnel)
@@ -2423,6 +2428,7 @@ namespace PlatypusTools.UI.Views
                 settings.CloudflareTunnelEnabled = CloudflareTunnelEnabledCheck?.IsChecked ?? false;
                 settings.CloudflareTunnelAutoStart = CloudflareTunnelAutoStartCheck?.IsChecked ?? false;
                 settings.CloudflareTunnelHostname = CloudflareTunnelHostnameBox?.Text ?? "";
+                settings.CloudflareTunnelName = CloudflareTunnelNameBox?.Text ?? "";
                 settings.CloudflareTunnelUseQuickTunnel = QuickTunnelRadio?.IsChecked ?? true;
                 SettingsManager.SaveCurrent();
             }
@@ -2697,9 +2703,16 @@ namespace PlatypusTools.UI.Views
                 else
                 {
                     var hostname = settings.CloudflareTunnelHostname;
-                    if (string.IsNullOrWhiteSpace(hostname) || hostname == "platypus.yourdomain.com")
+                    var tunnelName = settings.CloudflareTunnelName;
+                    if (string.IsNullOrWhiteSpace(hostname))
                     {
-                        MessageBox.Show("Please enter a valid hostname for your named tunnel.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        MessageBox.Show("Please enter a hostname for your named tunnel (e.g., platypus.yourdomain.com).", "Missing Hostname", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                    if (string.IsNullOrWhiteSpace(tunnelName))
+                    {
+                        MessageBox.Show("Please enter a tunnel name (from 'cloudflared tunnel create <name>').\n\nIf you haven't created a tunnel yet:\n1. Click 'Cloudflare Login' first\n2. Run: cloudflared tunnel create <name>\n3. Enter the tunnel name here", 
+                            "Missing Tunnel Name", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
                     }
                     await CloudflareTunnelService.Instance.StartNamedTunnelAsync(hostname, port);

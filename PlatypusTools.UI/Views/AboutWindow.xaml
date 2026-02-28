@@ -43,7 +43,7 @@
                         </Grid.RowDefinitions>
                         
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Version:" FontWeight="Bold"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="VersionText" Text="4.0.0.3"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="VersionText" Text="4.0.0.4"/>
                         
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Build Date:" FontWeight="Bold"/>
                         <TextBlock Grid.Row="1" Grid.Column="1" x:Name="BuildDateText" Text="2026-01-19"/>
