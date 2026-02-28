@@ -274,7 +274,7 @@ public class CloudflareTunnelService : IDisposable
 
             var configFile = Path.Combine(UserConfigPath, "config.yml");
             var args = !string.IsNullOrWhiteSpace(tunnelName)
-                ? $"tunnel --config \"{configFile}\" run {tunnelName}"
+                ? $"tunnel --config \"{configFile}\" run"
                 : $"tunnel --url https://localhost:{localPort} --no-tls-verify --hostname {hostname}";
 
             var resolvedPath = ResolveCloudflaredPath();
@@ -346,7 +346,36 @@ public class CloudflareTunnelService : IDisposable
                     !Path.GetFileName(f).Equals("config.json", StringComparison.OrdinalIgnoreCase)) ?? credFiles[0];
             }
 
-            var yaml = $@"tunnel: {tunnelName}
+            // Use the tunnel UUID from the credentials filename for reliability.
+            // The credentials file is named <tunnel-uuid>.json — using the UUID avoids
+            // case-sensitivity issues with tunnel names (e.g., "PlatyTools" vs "platytools").
+            var tunnelIdentifier = tunnelName;
+            if (!string.IsNullOrEmpty(credentialsFile))
+            {
+                var credFileName = Path.GetFileNameWithoutExtension(credentialsFile);
+                if (Guid.TryParse(credFileName, out var tunnelUuid))
+                {
+                    tunnelIdentifier = tunnelUuid.ToString();
+                    Log($"Using tunnel UUID from credentials file: {tunnelIdentifier}");
+                }
+                else
+                {
+                    // Try reading the TunnelID from inside the JSON credentials file
+                    try
+                    {
+                        var credJson = File.ReadAllText(credentialsFile);
+                        var match = System.Text.RegularExpressions.Regex.Match(credJson, "\"TunnelID\"\\s*:\\s*\"([^\"]+)\"", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                        if (match.Success)
+                        {
+                            tunnelIdentifier = match.Groups[1].Value;
+                            Log($"Using TunnelID from credentials JSON: {tunnelIdentifier}");
+                        }
+                    }
+                    catch { }
+                }
+            }
+
+            var yaml = $@"tunnel: {tunnelIdentifier}
 credentials-file: {credentialsFile.Replace("\\", "/")}
 
 ingress:
