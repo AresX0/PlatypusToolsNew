@@ -479,6 +479,20 @@ public class PlatypusRemoteServer : IDisposable
                             await next();
                         });
 
+                        // ── Remote Desktop WebSocket endpoint ──
+                        app.Use(async (context, next) =>
+                        {
+                            if (context.Request.Path == "/ws/remote-desktop" && context.WebSockets.IsWebSocketRequest)
+                            {
+                                Log("Remote Desktop: client connecting...");
+                                var ws = await context.WebSockets.AcceptWebSocketAsync();
+                                await RemoteDesktop.RemoteDesktopWebSocketHandler.HandleSessionAsync(ws, context.RequestAborted);
+                                Log("Remote Desktop: client disconnected");
+                                return;
+                            }
+                            await next();
+                        });
+
                         app.UseEndpoints(endpoints =>
                         {
                             // Health check — enhanced (IDEA-019)

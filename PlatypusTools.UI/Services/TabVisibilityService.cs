@@ -178,6 +178,7 @@ namespace PlatypusTools.UI.Services
         public Visibility DiskHealth => GetVisibility("System.DiskHealth");
         public Visibility WifiPassword => GetVisibility("System.WifiPassword");
         public Visibility RemoteDashboard => GetVisibility("System.RemoteDashboard");
+        public Visibility RemoteDesktop => GetVisibility("System.RemoteDesktop");
 
         // Security - New
         public Visibility FileIntegrity => GetVisibility("Security.FileIntegrity");

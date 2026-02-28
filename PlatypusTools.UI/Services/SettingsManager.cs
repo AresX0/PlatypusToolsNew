@@ -620,6 +620,59 @@ namespace PlatypusTools.UI.Services
             get => _recentExclusionIntervalMinutes;
             set { _recentExclusionIntervalMinutes = Math.Clamp(value, 1, 60); OnPropertyChanged(); }
         }
+
+        // ======================== Remote Desktop Client Settings ========================
+
+        private string _remoteDesktopHost = "";
+        private int _remoteDesktopPort = 47392;
+        private bool _remoteDesktopUseHttps = true;
+        private int _remoteDesktopQuality = 50;
+        private int _remoteDesktopMaxFps = 15;
+
+        /// <summary>
+        /// Last used remote desktop host address.
+        /// </summary>
+        public string RemoteDesktopHost
+        {
+            get => _remoteDesktopHost;
+            set { _remoteDesktopHost = value ?? ""; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Last used remote desktop port.
+        /// </summary>
+        public int RemoteDesktopPort
+        {
+            get => _remoteDesktopPort;
+            set { _remoteDesktopPort = Math.Clamp(value, 1, 65535); OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Whether to use HTTPS (WSS) for remote desktop connections.
+        /// </summary>
+        public bool RemoteDesktopUseHttps
+        {
+            get => _remoteDesktopUseHttps;
+            set { _remoteDesktopUseHttps = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// JPEG quality for remote desktop streaming (1-100).
+        /// </summary>
+        public int RemoteDesktopQuality
+        {
+            get => _remoteDesktopQuality;
+            set { _remoteDesktopQuality = Math.Clamp(value, 1, 100); OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Maximum FPS for remote desktop streaming.
+        /// </summary>
+        public int RemoteDesktopMaxFps
+        {
+            get => _remoteDesktopMaxFps;
+            set { _remoteDesktopMaxFps = Math.Clamp(value, 1, 60); OnPropertyChanged(); }
+        }
     }
 
     public static class SettingsManager
@@ -768,6 +821,7 @@ namespace PlatypusTools.UI.Services
                 new("System.ScheduledBackup", "Scheduled Backup", "System"),
                 new("System.EnvironmentVariableManager", "Env Variables", "System"),
                 new("System.WindowsServiceManager", "Windows Services", "System"),
+                new("System.RemoteDesktop", "Remote Desktop", "System"),
 
                 new("Security", "🔒 Security", null),
                 new("Security.FolderHider", "Folder Hider", "Security"),

@@ -360,6 +360,10 @@
                              Visibility="{Binding RemoteDashboard, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:RemoteDashboardView}" ViewDataContext="{Binding RemoteDashboard}" />
                     </TabItem>
+                    <TabItem Header="🖥️ Remote Desktop"
+                             Visibility="{Binding RemoteDesktop, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:RemoteDesktopView}" ViewDataContext="{Binding RemoteDesktop}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
 

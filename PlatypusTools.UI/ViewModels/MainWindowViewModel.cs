@@ -93,6 +93,7 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<RemoteDashboardViewModel> _remoteDashboard = new(() => new RemoteDashboardViewModel());
         private readonly Lazy<SecurityVaultViewModel> _securityVault = new(() => new SecurityVaultViewModel());
         private readonly Lazy<MediaHubViewModel> _mediaHub = new(() => new MediaHubViewModel());
+        private readonly Lazy<RemoteDesktopViewModel> _remoteDesktop = new(() => new RemoteDesktopViewModel());
         
         #endregion
 
@@ -213,6 +214,7 @@ namespace PlatypusTools.UI.ViewModels
         public RemoteDashboardViewModel RemoteDashboard => _remoteDashboard.Value;
         public SecurityVaultViewModel SecurityVault => _securityVault.Value;
         public MediaHubViewModel MediaHub => _mediaHub.Value;
+        public RemoteDesktopViewModel RemoteDesktop => _remoteDesktop.Value;
         
         #endregion
 
