@@ -2029,6 +2029,7 @@ namespace PlatypusTools.UI.Views
                 
                 // Load Entra ID config from data directory
                 LoadEntraConfig();
+                LoadCfZeroTrustConfig();
                 
                 UpdateRemoteServerStatus();
                 UpdateRemoteServerUrl();
@@ -2069,13 +2070,12 @@ namespace PlatypusTools.UI.Views
         {
             try
             {
-                var config = new EntraConfig
-                {
-                    ClientId = EntraClientIdBox?.Text?.Trim() ?? "",
-                    TenantId = EntraTenantIdBox?.Text?.Trim() ?? "common",
-                    ApiScopeId = EntraApiScopeIdBox?.Text?.Trim() ?? "",
-                    GraphClientId = EntraGraphClientIdBox?.Text?.Trim() ?? ""
-                };
+                // Load existing config to preserve CF Zero Trust fields
+                var config = EntraConfigService.Instance.Load();
+                config.ClientId = EntraClientIdBox?.Text?.Trim() ?? "";
+                config.TenantId = EntraTenantIdBox?.Text?.Trim() ?? "common";
+                config.ApiScopeId = EntraApiScopeIdBox?.Text?.Trim() ?? "";
+                config.GraphClientId = EntraGraphClientIdBox?.Text?.Trim() ?? "";
 
                 EntraConfigService.Instance.Save(config);
 
@@ -2093,6 +2093,67 @@ namespace PlatypusTools.UI.Views
                 {
                     EntraConfigStatus.Text = $"❌ Error: {ex.Message}";
                     EntraConfigStatus.Foreground = new SolidColorBrush(Color.FromRgb(0xF4, 0x43, 0x36));
+                }
+            }
+        }
+
+        private void LoadCfZeroTrustConfig()
+        {
+            try
+            {
+                var config = EntraConfigService.Instance.Load();
+                if (CfZeroTrustEnabledCheck != null) CfZeroTrustEnabledCheck.IsChecked = config.CloudflareZeroTrustEnabled;
+                if (CfTeamDomainBox != null) CfTeamDomainBox.Text = config.CloudflareTeamDomain;
+                if (CfAudienceBox != null) CfAudienceBox.Text = config.CloudflareAudience;
+                if (CfAllowedEmailsBox != null) CfAllowedEmailsBox.Text = config.CloudflareAllowedEmails;
+
+                if (CfZeroTrustStatus != null)
+                {
+                    var isConfigured = EntraConfigService.Instance.IsCloudflareZeroTrustConfigured();
+                    var hasFields = !string.IsNullOrWhiteSpace(config.CloudflareTeamDomain) && !string.IsNullOrWhiteSpace(config.CloudflareAudience);
+                    CfZeroTrustStatus.Text = isConfigured
+                        ? "✅ Enabled — JWT validation active"
+                        : hasFields
+                            ? "⚠️ Configured but disabled — check the box above to enable"
+                            : "ℹ️ Disabled — fill in settings and enable to protect the webapp";
+                    CfZeroTrustStatus.Foreground = isConfigured
+                        ? new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50))
+                        : new SolidColorBrush(Color.FromRgb(0xFF, 0x98, 0x00));
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading CF Zero Trust config: {ex.Message}");
+            }
+        }
+
+        private void SaveCfZeroTrustConfig_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Load existing config to preserve Entra ID fields
+                var config = EntraConfigService.Instance.Load();
+                config.CloudflareZeroTrustEnabled = CfZeroTrustEnabledCheck?.IsChecked == true;
+                config.CloudflareTeamDomain = CfTeamDomainBox?.Text?.Trim() ?? "";
+                config.CloudflareAudience = CfAudienceBox?.Text?.Trim() ?? "";
+                config.CloudflareAllowedEmails = CfAllowedEmailsBox?.Text?.Trim() ?? "";
+
+                EntraConfigService.Instance.Save(config);
+
+                if (CfZeroTrustStatus != null)
+                {
+                    CfZeroTrustStatus.Text = "✅ Saved — restart server to apply";
+                    CfZeroTrustStatus.Foreground = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50));
+                }
+
+                System.Diagnostics.Debug.WriteLine($"CF Zero Trust config saved");
+            }
+            catch (System.Exception ex)
+            {
+                if (CfZeroTrustStatus != null)
+                {
+                    CfZeroTrustStatus.Text = $"❌ Error: {ex.Message}";
+                    CfZeroTrustStatus.Foreground = new SolidColorBrush(Color.FromRgb(0xF4, 0x43, 0x36));
                 }
             }
         }

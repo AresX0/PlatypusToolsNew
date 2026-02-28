@@ -197,6 +197,21 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand OpenInFreecadCommand { get; }
         public ICommand BrowseFreecadCommand { get; }
 
+        // VLC feature commands
+        public ICommand VlcConvertFormatCommand { get; }
+        public ICommand VlcExtractAudioCommand { get; }
+        public ICommand VlcTakeSnapshotCommand { get; }
+
+        // Audacity feature commands
+        public ICommand AudacityRecordAudioCommand { get; }
+        public ICommand AudacityApplyEffectsCommand { get; }
+        public ICommand AudacityNoiseReductionCommand { get; }
+
+        // GIMP feature commands
+        public ICommand GimpResizeImageCommand { get; }
+        public ICommand GimpColorAdjustmentCommand { get; }
+        public ICommand GimpApplyFiltersCommand { get; }
+
         public MultimediaEditorViewModel()
         {
             BrowseFileCommand = new RelayCommand(_ => BrowseFile());
@@ -221,6 +236,21 @@ namespace PlatypusTools.UI.ViewModels
             EmbedFreecadCommand = new RelayCommand(_ => EmbedFreecadApp(), _ => IsFreecadAvailable);
             OpenInFreecadCommand = new RelayCommand(_ => OpenInFreecad(), _ => IsFreecadAvailable);
             BrowseFreecadCommand = new RelayCommand(_ => BrowseApplication("FreeCAD"));
+
+            // VLC feature commands
+            VlcConvertFormatCommand = new RelayCommand(_ => VlcConvertFormat(), _ => IsVlcAvailable && !string.IsNullOrEmpty(FilePath));
+            VlcExtractAudioCommand = new RelayCommand(_ => VlcExtractAudio(), _ => IsVlcAvailable && !string.IsNullOrEmpty(FilePath));
+            VlcTakeSnapshotCommand = new RelayCommand(_ => VlcTakeSnapshot(), _ => IsVlcAvailable && !string.IsNullOrEmpty(FilePath));
+
+            // Audacity feature commands
+            AudacityRecordAudioCommand = new RelayCommand(_ => AudacityRecordAudio(), _ => IsAudacityAvailable);
+            AudacityApplyEffectsCommand = new RelayCommand(_ => AudacityApplyEffects(), _ => IsAudacityAvailable && !string.IsNullOrEmpty(FilePath));
+            AudacityNoiseReductionCommand = new RelayCommand(_ => AudacityNoiseReduction(), _ => IsAudacityAvailable && !string.IsNullOrEmpty(FilePath));
+
+            // GIMP feature commands
+            GimpResizeImageCommand = new RelayCommand(_ => GimpResizeImage(), _ => IsGimpAvailable && !string.IsNullOrEmpty(FilePath));
+            GimpColorAdjustmentCommand = new RelayCommand(_ => GimpColorAdjustment(), _ => IsGimpAvailable && !string.IsNullOrEmpty(FilePath));
+            GimpApplyFiltersCommand = new RelayCommand(_ => GimpApplyFilters(), _ => IsGimpAvailable && !string.IsNullOrEmpty(FilePath));
 
             AutoDetectApplications();
         }
@@ -986,5 +1016,260 @@ namespace PlatypusTools.UI.ViewModels
                 StatusMessage = $"Error embedding GIMP: {ex.Message}";
             }
         }
+
+        #region VLC Feature Commands
+
+        private void VlcConvertFormat()
+        {
+            if (!IsVlcAvailable || string.IsNullOrEmpty(FilePath) || !File.Exists(FilePath))
+            {
+                StatusMessage = "Select a media file first";
+                return;
+            }
+
+            try
+            {
+                var ext = Path.GetExtension(FilePath).ToLowerInvariant();
+                var outputExt = ext == ".mp4" ? ".mkv" : ".mp4";
+                var outputPath = Path.Combine(
+                    Path.GetDirectoryName(FilePath) ?? "",
+                    Path.GetFileNameWithoutExtension(FilePath) + "_converted" + outputExt);
+
+                // VLC CLI conversion: vlc -I dummy input --sout=#transcode{...}:std{...} vlc://quit
+                var args = $"-I dummy \"{FilePath}\" --sout=#transcode{{vcodec=h264,acodec=mp4a,ab=128,channels=2,samplerate=44100}}:std{{access=file,mux=mp4,dst=\"{outputPath}\"}} vlc://quit";
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = VlcPath,
+                    Arguments = args,
+                    UseShellExecute = false
+                });
+
+                StatusMessage = $"Converting to {outputExt}... Output: {Path.GetFileName(outputPath)}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error converting format: {ex.Message}";
+            }
+        }
+
+        private void VlcExtractAudio()
+        {
+            if (!IsVlcAvailable || string.IsNullOrEmpty(FilePath) || !File.Exists(FilePath))
+            {
+                StatusMessage = "Select a video file first";
+                return;
+            }
+
+            try
+            {
+                var outputPath = Path.Combine(
+                    Path.GetDirectoryName(FilePath) ?? "",
+                    Path.GetFileNameWithoutExtension(FilePath) + "_audio.mp3");
+
+                var args = $"-I dummy \"{FilePath}\" --sout=#transcode{{acodec=mp3,ab=192}}:std{{access=file,mux=raw,dst=\"{outputPath}\"}} vlc://quit";
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = VlcPath,
+                    Arguments = args,
+                    UseShellExecute = false
+                });
+
+                StatusMessage = $"Extracting audio... Output: {Path.GetFileName(outputPath)}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error extracting audio: {ex.Message}";
+            }
+        }
+
+        private void VlcTakeSnapshot()
+        {
+            if (!IsVlcAvailable || string.IsNullOrEmpty(FilePath) || !File.Exists(FilePath))
+            {
+                StatusMessage = "Select a video file first";
+                return;
+            }
+
+            try
+            {
+                var snapshotDir = Path.GetDirectoryName(FilePath) ?? Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+                var args = $"-I dummy \"{FilePath}\" --video-filter=scene --scene-format=png --scene-ratio=24 --scene-prefix=snapshot --scene-path=\"{snapshotDir}\" --stop-time=5 vlc://quit";
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = VlcPath,
+                    Arguments = args,
+                    UseShellExecute = false
+                });
+
+                StatusMessage = $"Taking snapshot... Saving to: {snapshotDir}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error taking snapshot: {ex.Message}";
+            }
+        }
+
+        #endregion
+
+        #region Audacity Feature Commands
+
+        private void AudacityRecordAudio()
+        {
+            if (!IsAudacityAvailable)
+            {
+                StatusMessage = "Audacity not available";
+                return;
+            }
+
+            try
+            {
+                // Launch Audacity fresh for recording (no file argument = starts with empty project)
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = AudacityPath,
+                    UseShellExecute = true
+                });
+
+                StatusMessage = "Audacity opened — click Record (R) to start recording";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error launching Audacity: {ex.Message}";
+            }
+        }
+
+        private void AudacityApplyEffects()
+        {
+            if (!IsAudacityAvailable || string.IsNullOrEmpty(FilePath) || !File.Exists(FilePath))
+            {
+                StatusMessage = "Select an audio file first";
+                return;
+            }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = AudacityPath,
+                    Arguments = $"\"{FilePath}\"",
+                    UseShellExecute = true
+                });
+
+                StatusMessage = $"Opened in Audacity — use Effect menu to apply effects to {Path.GetFileName(FilePath)}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error launching Audacity: {ex.Message}";
+            }
+        }
+
+        private void AudacityNoiseReduction()
+        {
+            if (!IsAudacityAvailable || string.IsNullOrEmpty(FilePath) || !File.Exists(FilePath))
+            {
+                StatusMessage = "Select an audio file first";
+                return;
+            }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = AudacityPath,
+                    Arguments = $"\"{FilePath}\"",
+                    UseShellExecute = true
+                });
+
+                StatusMessage = $"Opened in Audacity — go to Effect > Noise Reduction to clean up {Path.GetFileName(FilePath)}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error launching Audacity: {ex.Message}";
+            }
+        }
+
+        #endregion
+
+        #region GIMP Feature Commands
+
+        private void GimpResizeImage()
+        {
+            if (!IsGimpAvailable || string.IsNullOrEmpty(FilePath) || !File.Exists(FilePath))
+            {
+                StatusMessage = "Select an image file first";
+                return;
+            }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = GimpPath,
+                    Arguments = $"\"{FilePath}\"",
+                    UseShellExecute = true
+                });
+
+                StatusMessage = $"Opened in GIMP — use Image > Scale Image to resize {Path.GetFileName(FilePath)}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error launching GIMP: {ex.Message}";
+            }
+        }
+
+        private void GimpColorAdjustment()
+        {
+            if (!IsGimpAvailable || string.IsNullOrEmpty(FilePath) || !File.Exists(FilePath))
+            {
+                StatusMessage = "Select an image file first";
+                return;
+            }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = GimpPath,
+                    Arguments = $"\"{FilePath}\"",
+                    UseShellExecute = true
+                });
+
+                StatusMessage = $"Opened in GIMP — use Colors menu for brightness, contrast, levels on {Path.GetFileName(FilePath)}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error launching GIMP: {ex.Message}";
+            }
+        }
+
+        private void GimpApplyFilters()
+        {
+            if (!IsGimpAvailable || string.IsNullOrEmpty(FilePath) || !File.Exists(FilePath))
+            {
+                StatusMessage = "Select an image file first";
+                return;
+            }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = GimpPath,
+                    Arguments = $"\"{FilePath}\"",
+                    UseShellExecute = true
+                });
+
+                StatusMessage = $"Opened in GIMP — use Filters menu for blur, sharpen, distort effects on {Path.GetFileName(FilePath)}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error launching GIMP: {ex.Message}";
+            }
+        }
+
+        #endregion
     }
 }

@@ -254,12 +254,12 @@
                                     ToolTip="Open selected file in VLC Media Player for playback and basic editing"/>
                             <Button Content="Embed VLC Here" Command="{Binding EmbedVlcCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
                                     ToolTip="Embed VLC player directly in this tab"/>
-                            <Button Content="Convert Format" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
-                                    ToolTip="Use VLC to convert video/audio format" IsEnabled="False"/>
-                            <Button Content="Extract Audio" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
-                                    ToolTip="Extract audio track from video file" IsEnabled="False"/>
-                            <Button Content="Take Snapshot" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
-                                    ToolTip="Capture frame from video" IsEnabled="False"/>
+                            <Button Content="Convert Format" Command="{Binding VlcConvertFormatCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Use VLC to convert video/audio format (outputs to same folder)"/>
+                            <Button Content="Extract Audio" Command="{Binding VlcExtractAudioCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Extract audio track from video file as MP3"/>
+                            <Button Content="Take Snapshot" Command="{Binding VlcTakeSnapshotCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Capture frames from video as PNG images"/>
                         </WrapPanel>
                     </GroupBox>
 
@@ -353,12 +353,12 @@
                                     ToolTip="Open selected audio file in Audacity for editing"/>
                             <Button Content="Embed Audacity Here" Command="{Binding EmbedAudacityCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
                                     ToolTip="Embed Audacity directly in this tab"/>
-                            <Button Content="Record Audio" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
-                                    ToolTip="Start audio recording in Audacity" IsEnabled="False"/>
-                            <Button Content="Apply Effects" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
-                                    ToolTip="Apply audio effects and filters" IsEnabled="False"/>
-                            <Button Content="Noise Reduction" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
-                                    ToolTip="Remove background noise" IsEnabled="False"/>
+                            <Button Content="Record Audio" Command="{Binding AudacityRecordAudioCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Launch Audacity for audio recording"/>
+                            <Button Content="Apply Effects" Command="{Binding AudacityApplyEffectsCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Open file in Audacity to apply audio effects and filters"/>
+                            <Button Content="Noise Reduction" Command="{Binding AudacityNoiseReductionCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Open file in Audacity for noise reduction (Effect > Noise Reduction)"/>
                         </WrapPanel>
                     </GroupBox>
 
@@ -458,12 +458,12 @@
                                     ToolTip="Open selected image in GIMP for editing"/>
                             <Button Content="Embed GIMP Here" Command="{Binding EmbedGimpCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5" FontWeight="Bold" Background="#FF2196F3" Foreground="White"
                                     ToolTip="Embed GIMP directly in this tab"/>
-                            <Button Content="Resize Image" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
-                                    ToolTip="Resize or scale image" IsEnabled="False"/>
-                            <Button Content="Color Adjustment" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
-                                    ToolTip="Adjust brightness, contrast, saturation" IsEnabled="False"/>
-                            <Button Content="Apply Filters" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
-                                    ToolTip="Apply artistic filters and effects" IsEnabled="False"/>
+                            <Button Content="Resize Image" Command="{Binding GimpResizeImageCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Open in GIMP to resize (Image > Scale Image)"/>
+                            <Button Content="Color Adjustment" Command="{Binding GimpColorAdjustmentCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Open in GIMP for color adjustments (Colors menu)"/>
+                            <Button Content="Apply Filters" Command="{Binding GimpApplyFiltersCommand}" MinWidth="190" Height="40" Margin="0,0,10,5" Padding="5"
+                                    ToolTip="Open in GIMP to apply artistic filters (Filters menu)"/>
                         </WrapPanel>
                     </GroupBox>
 

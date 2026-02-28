@@ -294,6 +294,31 @@ public class PlatypusRemoteServer : IDisposable
 
                         // Register image browser bridge
                         services.AddSingleton<IImageBrowserBridge>(sp => new ImageBrowserBridge());
+
+                        // Register Plex-like feature services
+                        services.AddSingleton<PlatypusTools.Core.Services.PlaylistService>();
+                        services.AddSingleton<PlatypusTools.Core.Services.PlaybackHistoryService>();
+                        services.AddSingleton<PlatypusTools.Core.Services.SubtitleService>();
+                        services.AddSingleton<PlatypusTools.Core.Services.ContentOrganizationService>();
+                        services.AddSingleton<PlatypusTools.Core.Services.TranscodingService>();
+
+                        // Register Cloudflare Zero Trust validator (opt-in, disabled by default)
+                        var entraConfig = EntraConfigService.Instance.Load();
+                        services.AddSingleton(new CloudflareZeroTrustValidator(
+                            entraConfig.CloudflareZeroTrustEnabled,
+                            entraConfig.CloudflareTeamDomain,
+                            entraConfig.CloudflareAudience,
+                            entraConfig.CloudflareAllowedEmails
+                        ));
+
+                        // Register Entra ID token validator (opt-in, disabled by default)
+                        services.AddSingleton(new EntraIdTokenValidator(
+                            entraConfig.EntraIdAuthEnabled,
+                            entraConfig.ClientId,
+                            entraConfig.TenantId,
+                            entraConfig.ApiScopeId,
+                            entraConfig.EntraIdAllowedEmails
+                        ));
                     });
                     webBuilder.Configure(app =>
                     {
@@ -320,6 +345,126 @@ public class PlatypusRemoteServer : IDisposable
                         {
                             context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
                             context.Response.Headers.Append("X-Frame-Options", "DENY");
+                            await next();
+                        });
+
+                        // Cloudflare Zero Trust JWT validation middleware
+                        app.Use(async (context, next) =>
+                        {
+                            var cfValidator = context.RequestServices.GetRequiredService<CloudflareZeroTrustValidator>();
+                            if (cfValidator.IsEnabled)
+                            {
+                                var path = context.Request.Path.Value ?? "/";
+
+                                // Allow health endpoint and static assets without auth
+                                if (path == "/health" || path == "/manifest.json" || path == "/sw.js"
+                                    || path.EndsWith(".png") || path.EndsWith(".ico"))
+                                {
+                                    await next();
+                                    return;
+                                }
+
+                                // Extract the CF Access JWT from header or cookie
+                                var cfJwt = context.Request.Headers["Cf-Access-Jwt-Assertion"].FirstOrDefault()
+                                         ?? context.Request.Cookies["CF_Authorization"];
+
+                                var result = await cfValidator.ValidateTokenAsync(cfJwt);
+
+                                if (!result.IsAuthenticated)
+                                {
+                                    Log($"CF Zero Trust auth failed: {result.ErrorMessage} (IP: {context.Connection.RemoteIpAddress})");
+
+                                    if (result.RequiresStepUp && result.RequiredAuthContext != null)
+                                    {
+                                        // Return 401 with claims challenge for step-up auth
+                                        var claimsRequest = Convert.ToBase64String(
+                                            System.Text.Encoding.UTF8.GetBytes(
+                                                $"{{\"access_token\":{{\"acrs\":{{\"essential\":true,\"value\":\"{result.RequiredAuthContext}\"}}}}}}"));
+                                        context.Response.Headers.Append("WWW-Authenticate",
+                                            $"Bearer error=\"insufficient_claims\", claims=\"{claimsRequest}\"");
+                                    }
+
+                                    context.Response.StatusCode = 401;
+                                    context.Response.ContentType = "application/json";
+                                    await context.Response.WriteAsJsonAsync(new
+                                    {
+                                        error = "unauthorized",
+                                        message = result.ErrorMessage,
+                                        requiresStepUp = result.RequiresStepUp,
+                                        requiredContext = result.RequiredAuthContext
+                                    });
+                                    return;
+                                }
+
+                                // Store authenticated email for downstream use
+                                context.Items["CfEmail"] = result.Email;
+                                context.Items["CfClaims"] = result.Claims;
+                                context.Items["AuthProvider"] = "cloudflare-zero-trust";
+                                Log($"CF Zero Trust: authenticated {result.Email}");
+                            }
+                            await next();
+                        });
+
+                        // Entra ID Bearer token validation middleware
+                        app.Use(async (context, next) =>
+                        {
+                            var entraValidator = context.RequestServices.GetRequiredService<EntraIdTokenValidator>();
+                            if (entraValidator.IsEnabled && !context.Items.ContainsKey("AuthProvider"))
+                            {
+                                var path = context.Request.Path.Value ?? "/";
+
+                                // Allow health endpoint, static assets, and MSAL config without auth
+                                if (path == "/health" || path == "/manifest.json" || path == "/sw.js"
+                                    || path == "/api/auth/config" || path == "/api/auth/status"
+                                    || path.EndsWith(".png") || path.EndsWith(".ico")
+                                    || path.EndsWith(".js") || path.EndsWith(".css")
+                                    || path == "/" || path == "/index.html")
+                                {
+                                    await next();
+                                    return;
+                                }
+
+                                // Extract Bearer token from Authorization header
+                                var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                                string? bearerToken = null;
+                                if (authHeader != null && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    bearerToken = authHeader.Substring(7);
+                                }
+
+                                var entraResult = await entraValidator.ValidateTokenAsync(bearerToken);
+
+                                if (!entraResult.IsAuthenticated)
+                                {
+                                    Log($"Entra ID auth failed: {entraResult.ErrorMessage} (IP: {context.Connection.RemoteIpAddress})");
+
+                                    if (entraResult.RequiresStepUp && entraResult.RequiredAuthContext != null)
+                                    {
+                                        var claimsRequest = Convert.ToBase64String(
+                                            System.Text.Encoding.UTF8.GetBytes(
+                                                $"{{\"access_token\":{{\"acrs\":{{\"essential\":true,\"value\":\"{entraResult.RequiredAuthContext}\"}}}}}}"));
+                                        context.Response.Headers.Append("WWW-Authenticate",
+                                            $"Bearer error=\"insufficient_claims\", claims=\"{claimsRequest}\"");
+                                    }
+
+                                    context.Response.StatusCode = 401;
+                                    context.Response.ContentType = "application/json";
+                                    await context.Response.WriteAsJsonAsync(new
+                                    {
+                                        error = "unauthorized",
+                                        message = entraResult.ErrorMessage,
+                                        provider = "entra-id",
+                                        requiresStepUp = entraResult.RequiresStepUp,
+                                        requiredContext = entraResult.RequiredAuthContext
+                                    });
+                                    return;
+                                }
+
+                                context.Items["CfEmail"] = entraResult.Email;
+                                context.Items["CfClaims"] = entraResult.Claims;
+                                context.Items["AuthProvider"] = "entra-id";
+                                Log($"Entra ID: authenticated {entraResult.Email}");
+                            }
                             await next();
                         });
 
@@ -392,6 +537,47 @@ public class PlatypusRemoteServer : IDisposable
                                         ip = tailscale.TailscaleIp,
                                         remoteUrl = TailscaleHelper.GetRemoteUrl(_port)
                                     }
+                                });
+                            });
+
+                            // Auth status endpoint — lets webapp check authentication state and get MSAL config
+                            endpoints.MapGet("/api/auth/status", async context =>
+                            {
+                                var cfValidator = context.RequestServices.GetRequiredService<CloudflareZeroTrustValidator>();
+                                var entraValidator = context.RequestServices.GetRequiredService<EntraIdTokenValidator>();
+                                var isZeroTrustEnabled = cfValidator.IsEnabled;
+                                var isEntraIdEnabled = entraValidator.IsEnabled;
+                                var email = context.Items.ContainsKey("CfEmail") ? context.Items["CfEmail"]?.ToString() : null;
+                                var provider = context.Items.ContainsKey("AuthProvider") ? context.Items["AuthProvider"]?.ToString() : "none";
+
+                                await context.Response.WriteAsJsonAsync(new
+                                {
+                                    authenticated = !string.IsNullOrEmpty(email),
+                                    email = email,
+                                    zeroTrustEnabled = isZeroTrustEnabled,
+                                    entraIdEnabled = isEntraIdEnabled,
+                                    provider = provider
+                                });
+                            });
+
+                            // Auth config endpoint — provides MSAL.js configuration (no auth required)
+                            endpoints.MapGet("/api/auth/config", async context =>
+                            {
+                                var entraValidator = context.RequestServices.GetRequiredService<EntraIdTokenValidator>();
+                                if (!entraValidator.IsEnabled)
+                                {
+                                    await context.Response.WriteAsJsonAsync(new { enabled = false });
+                                    return;
+                                }
+
+                                var scopeId = string.IsNullOrEmpty(entraValidator.ApiScopeId) ? entraValidator.ClientId : entraValidator.ApiScopeId;
+                                await context.Response.WriteAsJsonAsync(new
+                                {
+                                    enabled = true,
+                                    clientId = entraValidator.ClientId,
+                                    tenantId = entraValidator.TenantId,
+                                    authority = $"https://login.microsoftonline.com/{entraValidator.TenantId}",
+                                    scopes = new[] { $"api://{scopeId}/access_as_user" }
                                 });
                             });
 
@@ -986,6 +1172,284 @@ public class PlatypusRemoteServer : IDisposable
                                 var password = vault.GeneratePassword(length, upper, lower, numbers, special);
                                 await context.Response.WriteAsJsonAsync(new { password });
                             });
+
+                            // ── Playlist API endpoints ──
+
+                            endpoints.MapGet("/api/playlists", async context =>
+                            {
+                                var plSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.PlaylistService>();
+                                var playlists = await plSvc.GetAllAsync();
+                                await context.Response.WriteAsJsonAsync(playlists.Select(p => new
+                                {
+                                    p.Id, p.Name, p.Description, p.IsCollection, type = p.Type.ToString(),
+                                    p.ItemCount, p.TotalDurationSeconds, p.CreatedAt, p.UpdatedAt
+                                }));
+                            });
+
+                            endpoints.MapGet("/api/playlists/{id}", async context =>
+                            {
+                                var id = context.Request.RouteValues["id"]?.ToString();
+                                if (id == null) { context.Response.StatusCode = 400; return; }
+                                var plSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.PlaylistService>();
+                                var playlist = await plSvc.GetByIdAsync(id);
+                                if (playlist == null) { context.Response.StatusCode = 404; return; }
+                                await context.Response.WriteAsJsonAsync(playlist);
+                            });
+
+                            endpoints.MapPost("/api/playlists", async context =>
+                            {
+                                var body = await System.Text.Json.JsonSerializer.DeserializeAsync<CreatePlaylistRequest>(
+                                    context.Request.Body, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                if (body == null || string.IsNullOrWhiteSpace(body.Name)) { context.Response.StatusCode = 400; return; }
+                                var plSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.PlaylistService>();
+                                var playlist = await plSvc.CreateAsync(body.Name, body.Description, body.IsCollection);
+                                context.Response.StatusCode = 201;
+                                await context.Response.WriteAsJsonAsync(playlist);
+                            });
+
+                            endpoints.MapDelete("/api/playlists/{id}", async context =>
+                            {
+                                var id = context.Request.RouteValues["id"]?.ToString();
+                                if (id == null) { context.Response.StatusCode = 400; return; }
+                                var plSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.PlaylistService>();
+                                var ok = await plSvc.DeleteAsync(id);
+                                context.Response.StatusCode = ok ? 204 : 404;
+                            });
+
+                            endpoints.MapPost("/api/playlists/{id}/items", async context =>
+                            {
+                                var id = context.Request.RouteValues["id"]?.ToString();
+                                if (id == null) { context.Response.StatusCode = 400; return; }
+                                var body = await System.Text.Json.JsonSerializer.DeserializeAsync<AddPlaylistItemRequest>(
+                                    context.Request.Body, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                if (body == null || string.IsNullOrWhiteSpace(body.FilePath)) { context.Response.StatusCode = 400; return; }
+                                var plSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.PlaylistService>();
+                                var item = new PlatypusTools.Core.Services.PlaylistItem
+                                {
+                                    FilePath = body.FilePath,
+                                    Title = body.Title ?? System.IO.Path.GetFileNameWithoutExtension(body.FilePath),
+                                    Artist = body.Artist ?? "",
+                                    Album = body.Album ?? "",
+                                    DurationSeconds = body.DurationSeconds
+                                };
+                                var ok = await plSvc.AddItemAsync(id, item);
+                                context.Response.StatusCode = ok ? 201 : 404;
+                            });
+
+                            endpoints.MapDelete("/api/playlists/{id}/items", async context =>
+                            {
+                                var id = context.Request.RouteValues["id"]?.ToString();
+                                var filePath = context.Request.Query["path"].ToString();
+                                if (id == null || string.IsNullOrEmpty(filePath)) { context.Response.StatusCode = 400; return; }
+                                var plSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.PlaylistService>();
+                                var ok = await plSvc.RemoveItemAsync(id, filePath);
+                                context.Response.StatusCode = ok ? 204 : 404;
+                            });
+
+                            // ── Playback History API endpoints ──
+
+                            endpoints.MapGet("/api/history/recent", async context =>
+                            {
+                                var hSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.PlaybackHistoryService>();
+                                int.TryParse(context.Request.Query["count"], out var count);
+                                if (count <= 0) count = 50;
+                                var typeStr = context.Request.Query["type"].ToString();
+                                PlatypusTools.Core.Services.MediaType? typeFilter = null;
+                                if (Enum.TryParse<PlatypusTools.Core.Services.MediaType>(typeStr, true, out var mt))
+                                    typeFilter = mt;
+                                var items = await hSvc.GetRecentAsync(count, typeFilter);
+                                await context.Response.WriteAsJsonAsync(items);
+                            });
+
+                            endpoints.MapGet("/api/history/in-progress", async context =>
+                            {
+                                var hSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.PlaybackHistoryService>();
+                                var typeStr = context.Request.Query["type"].ToString();
+                                PlatypusTools.Core.Services.MediaType? typeFilter = null;
+                                if (Enum.TryParse<PlatypusTools.Core.Services.MediaType>(typeStr, true, out var mt))
+                                    typeFilter = mt;
+                                var items = await hSvc.GetInProgressAsync(typeFilter);
+                                await context.Response.WriteAsJsonAsync(items);
+                            });
+
+                            endpoints.MapGet("/api/history/most-played", async context =>
+                            {
+                                var hSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.PlaybackHistoryService>();
+                                int.TryParse(context.Request.Query["count"], out var count);
+                                if (count <= 0) count = 50;
+                                var items = await hSvc.GetMostPlayedAsync(count);
+                                await context.Response.WriteAsJsonAsync(items);
+                            });
+
+                            endpoints.MapPost("/api/history/record", async context =>
+                            {
+                                var body = await System.Text.Json.JsonSerializer.DeserializeAsync<RecordPlaybackRequest>(
+                                    context.Request.Body, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                if (body == null || string.IsNullOrWhiteSpace(body.FilePath)) { context.Response.StatusCode = 400; return; }
+                                var hSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.PlaybackHistoryService>();
+                                PlatypusTools.Core.Services.MediaType mediaType = PlatypusTools.Core.Services.MediaType.Unknown;
+                                Enum.TryParse(body.MediaType, true, out mediaType);
+                                await hSvc.RecordPlaybackAsync(body.FilePath, body.Title ?? "", body.Artist ?? "", body.Album ?? "",
+                                    mediaType, body.DurationSeconds, body.PositionSeconds,
+                                    body.SeriesName, body.SeasonNumber, body.EpisodeNumber);
+                                context.Response.StatusCode = 204;
+                            });
+
+                            endpoints.MapPost("/api/history/position", async context =>
+                            {
+                                var body = await System.Text.Json.JsonSerializer.DeserializeAsync<UpdatePositionRequest>(
+                                    context.Request.Body, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                if (body == null || string.IsNullOrWhiteSpace(body.FilePath)) { context.Response.StatusCode = 400; return; }
+                                var hSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.PlaybackHistoryService>();
+                                await hSvc.UpdatePositionAsync(body.FilePath, body.PositionSeconds);
+                                context.Response.StatusCode = 204;
+                            });
+
+                            endpoints.MapGet("/api/history/resume", async context =>
+                            {
+                                var filePath = context.Request.Query["path"].ToString();
+                                if (string.IsNullOrEmpty(filePath)) { context.Response.StatusCode = 400; return; }
+                                var hSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.PlaybackHistoryService>();
+                                var position = await hSvc.GetResumePositionAsync(filePath);
+                                await context.Response.WriteAsJsonAsync(new { filePath, resumePositionSeconds = position });
+                            });
+
+                            // ── Subtitle API endpoints ──
+
+                            endpoints.MapGet("/api/subtitles/tracks", async context =>
+                            {
+                                var filePath = context.Request.Query["path"].ToString();
+                                if (string.IsNullOrEmpty(filePath)) { context.Response.StatusCode = 400; return; }
+                                var subSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.SubtitleService>();
+                                var tracks = await subSvc.GetSubtitleTracksAsync(filePath);
+                                await context.Response.WriteAsJsonAsync(tracks);
+                            });
+
+                            endpoints.MapGet("/api/subtitles/content", async context =>
+                            {
+                                var filePath = context.Request.Query["path"].ToString();
+                                if (string.IsNullOrEmpty(filePath)) { context.Response.StatusCode = 400; return; }
+                                int.TryParse(context.Request.Query["track"], out var trackIndex);
+                                var subSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.SubtitleService>();
+                                var tracks = await subSvc.GetSubtitleTracksAsync(filePath);
+                                var track = tracks.FirstOrDefault(t => t.Index == trackIndex);
+                                if (track == null) { context.Response.StatusCode = 404; return; }
+                                var content = await subSvc.GetSubtitleContentAsync(filePath, track);
+                                if (content == null) { context.Response.StatusCode = 404; return; }
+                                context.Response.ContentType = "text/vtt";
+                                await context.Response.WriteAsync(content);
+                            });
+
+                            // ── Content Organization (TV Series hierarchy) ──
+
+                            endpoints.MapGet("/api/content/organized", async context =>
+                            {
+                                var videoBridge = context.RequestServices.GetRequiredService<IVideoServiceBridge>();
+                                var videos = await videoBridge.GetVideoLibraryAsync();
+                                var contentSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.ContentOrganizationService>();
+                                var videoFiles = videos.Select(v => new PlatypusTools.Core.Services.VideoFileInfo
+                                {
+                                    FilePath = v.FilePath,
+                                    DurationSeconds = v.DurationSeconds,
+                                    FileSizeBytes = v.FileSizeBytes,
+                                    ThumbnailBase64 = v.ThumbnailBase64
+                                });
+                                var library = contentSvc.OrganizeContent(videoFiles);
+                                await context.Response.WriteAsJsonAsync(library);
+                            });
+
+                            // ── Transcode API endpoints ──
+
+                            endpoints.MapGet("/api/transcode/check", async context =>
+                            {
+                                var filePath = context.Request.Query["path"].ToString();
+                                if (string.IsNullOrEmpty(filePath)) { context.Response.StatusCode = 400; return; }
+                                var needsTranscode = PlatypusTools.Core.Services.TranscodingService.NeedsTranscoding(filePath);
+                                var transSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.TranscodingService>();
+                                var cached = transSvc.GetCachedTranscode(filePath);
+                                await context.Response.WriteAsJsonAsync(new
+                                {
+                                    needsTranscoding = needsTranscode,
+                                    hasCachedTranscode = cached != null,
+                                    cachedPath = cached
+                                });
+                            });
+
+                            endpoints.MapGet("/api/transcode/stream", async context =>
+                            {
+                                var filePath = context.Request.Query["path"].ToString();
+                                if (string.IsNullOrEmpty(filePath) || !System.IO.File.Exists(filePath))
+                                {
+                                    context.Response.StatusCode = 404;
+                                    return;
+                                }
+
+                                var transSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.TranscodingService>();
+                                var transcodedPath = transSvc.GetCachedTranscode(filePath)
+                                    ?? await transSvc.TranscodeAsync(filePath);
+
+                                if (transcodedPath == null || !System.IO.File.Exists(transcodedPath))
+                                {
+                                    // Fall back to original file
+                                    transcodedPath = filePath;
+                                }
+
+                                // Stream the file with Range support
+                                context.Response.ContentType = "video/mp4";
+                                context.Response.Headers.Append("Accept-Ranges", "bytes");
+                                var fileInfo = new System.IO.FileInfo(transcodedPath);
+                                var fileLength = fileInfo.Length;
+
+                                if (context.Request.Headers.ContainsKey("Range"))
+                                {
+                                    var rangeHeader = context.Request.Headers["Range"].ToString();
+                                    var range = rangeHeader.Replace("bytes=", "").Split('-');
+                                    var start = long.Parse(range[0]);
+                                    var end = range.Length > 1 && !string.IsNullOrEmpty(range[1])
+                                        ? long.Parse(range[1])
+                                        : fileLength - 1;
+
+                                    context.Response.StatusCode = 206;
+                                    context.Response.Headers.Append("Content-Range", $"bytes {start}-{end}/{fileLength}");
+                                    context.Response.Headers.ContentLength = end - start + 1;
+
+                                    using var fs = new FileStream(transcodedPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                                    fs.Seek(start, SeekOrigin.Begin);
+                                    var buffer = new byte[Math.Min(end - start + 1, 64 * 1024)];
+                                    var bytesRemaining = end - start + 1;
+                                    while (bytesRemaining > 0)
+                                    {
+                                        var toRead = (int)Math.Min(buffer.Length, bytesRemaining);
+                                        var bytesRead = await fs.ReadAsync(buffer.AsMemory(0, toRead));
+                                        if (bytesRead == 0) break;
+                                        await context.Response.Body.WriteAsync(buffer.AsMemory(0, bytesRead));
+                                        bytesRemaining -= bytesRead;
+                                    }
+                                }
+                                else
+                                {
+                                    context.Response.Headers.ContentLength = fileLength;
+                                    await context.Response.SendFileAsync(transcodedPath);
+                                }
+                            });
+
+                            endpoints.MapGet("/api/transcode/cache-info", async context =>
+                            {
+                                var transSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.TranscodingService>();
+                                var size = transSvc.GetCacheSize();
+                                await context.Response.WriteAsJsonAsync(new
+                                {
+                                    cacheSizeBytes = size,
+                                    cacheSizeMB = size / (1024.0 * 1024.0)
+                                });
+                            });
+
+                            endpoints.MapPost("/api/transcode/cache/clear", async context =>
+                            {
+                                var transSvc = context.RequestServices.GetRequiredService<PlatypusTools.Core.Services.TranscodingService>();
+                                var freed = transSvc.ClearCache();
+                                await context.Response.WriteAsJsonAsync(new { freedBytes = freed });
+                            });
                         });
                     });
                 })
@@ -1154,4 +1618,42 @@ internal class MfaVerifyRequest
     public string? Code { get; set; }
 }
 
+/// <summary>Request body for creating a playlist or collection.</summary>
+internal class CreatePlaylistRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public bool IsCollection { get; set; }
+}
 
+/// <summary>Request body for adding an item to a playlist.</summary>
+internal class AddPlaylistItemRequest
+{
+    public string FilePath { get; set; } = string.Empty;
+    public string? Title { get; set; }
+    public string? Artist { get; set; }
+    public string? Album { get; set; }
+    public double DurationSeconds { get; set; }
+}
+
+/// <summary>Request body for recording playback history.</summary>
+internal class RecordPlaybackRequest
+{
+    public string FilePath { get; set; } = string.Empty;
+    public string? Title { get; set; }
+    public string? Artist { get; set; }
+    public string? Album { get; set; }
+    public string? MediaType { get; set; }
+    public double DurationSeconds { get; set; }
+    public double PositionSeconds { get; set; }
+    public string? SeriesName { get; set; }
+    public int? SeasonNumber { get; set; }
+    public int? EpisodeNumber { get; set; }
+}
+
+/// <summary>Request body for updating playback position.</summary>
+internal class UpdatePositionRequest
+{
+    public string FilePath { get; set; } = string.Empty;
+    public double PositionSeconds { get; set; }
+}

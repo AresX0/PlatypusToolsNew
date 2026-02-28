@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlatypusTools v3.4.3.9.9.8.7.6.5.4.3.2.1.10.9.8.7.6.3.0.9.9.8.7.6.5.4 - Help Documentation</title>
+    <title>PlatypusTools v4.0 - Help Documentation</title>
     <style>
         :root {
             --primary: #2d5aa8;
@@ -148,7 +148,7 @@
 <header>
     <h1>🦆 PlatypusTools</h1>
     <p>Advanced File Management &amp; Media Tools Suite</p>
-    <div class="version">Version 3.4.3.9.9.8.7.6.5.4.3.2.1.10.9.8.7.6.3.0.9.9.8.7.6.5.4 | Built with .NET 10 / WPF</div>
+    <div class="version">Version 4.0.0.0 | Built with .NET 10 / WPF</div>
 </header>
 
 <div class="container">
@@ -159,7 +159,11 @@
         <li><a href="#file-management">File Management</a></li>
         <li><a href="#robocopy">Robocopy</a></li>
         <li><a href="#multimedia">Multimedia</a></li>
+        <li><a href="#media-features">Media Features</a></li>
         <li><a href="#remote">Remote &amp; Streaming</a></li>
+        <li><a href="#auth">Authentication</a></li>
+        <li><a href="#vault">Vault</a></li>
+        <li><a href="#photos">Photos</a></li>
         <li><a href="#system">System</a></li>
         <li><a href="#security">Security</a></li>
         <li><a href="#forensics">Advanced Forensics</a></li>
@@ -176,7 +180,167 @@
     <h2>Overview</h2>
     <p>PlatypusTools is a powerful, all-in-one Windows system utility that combines file management, multimedia editing, system cleanup, security tools, digital forensics, and metadata editing into a single, modern WPF application.</p>
     
-    <h3>What's New in v3.4</h3>
+    <h3>What's New in v4.0 <span class="new-badge">Major Release</span></h3>
+    <p>Version 4.0 is a major release introducing Plex-style media management, advanced authentication options, a secure password vault, remote photo gallery, and comprehensive API expansion.</p>
+    <ul>
+        <li><strong>Plex-Style Playlists &amp; Collections</strong> <span class="new-badge">New</span> - Full playlist management with create, rename, reorder, and delete
+            <ul>
+                <li>Create manual playlists or auto-curated collections from your library</li>
+                <li>Add/remove items, reorder tracks, set cover art and descriptions</li>
+                <li>Playlist types: Manual, Smart (auto-curated), Recently Added, Most Played, Genre-based</li>
+                <li>Persistent storage at <code>%APPDATA%/PlatypusTools/playlists.json</code></li>
+                <li>Full REST API: <code>GET/POST /api/playlists</code>, <code>GET/DELETE /api/playlists/{id}</code>, <code>POST/DELETE /api/playlists/{id}/items</code></li>
+                <li>Webapp integration: playlist chips in Library tab, create new playlists, filter library by playlist</li>
+            </ul>
+        </li>
+        <li><strong>Playback History &amp; Resume (Continue Watching)</strong> <span class="new-badge">New</span> - Track what you've watched/listened to and resume where you left off
+            <ul>
+                <li><strong>Continue Watching</strong> row in the webapp — shows in-progress media with progress bars</li>
+                <li>Automatic position tracking: periodically saves your playback position (every 10 seconds)</li>
+                <li>Resume from exact position when returning to a track or video</li>
+                <li>Play count tracking — see how many times you've played each item</li>
+                <li>Media type filtering (audio, video, or all)</li>
+                <li>TV series awareness: tracks series name, season number, and episode number</li>
+                <li>"Next unwatched episode" detection — automatically finds the next episode you haven't finished</li>
+                <li>90% completion threshold — items watched past 90% are marked as complete</li>
+                <li>Most Played and Recently Played views</li>
+                <li>Persistent storage at <code>%APPDATA%/PlatypusTools/playback-history.json</code></li>
+                <li>REST API: <code>POST /api/history/record</code>, <code>POST /api/history/position</code>, <code>GET /api/history/resume?file=...</code>, <code>GET /api/history/recent</code>, <code>GET /api/history/in-progress</code>, <code>GET /api/history/most-played</code></li>
+            </ul>
+        </li>
+        <li><strong>TMDb Metadata Enrichment</strong> <span class="new-badge">New</span> - Automatic metadata lookup from The Movie Database
+            <ul>
+                <li>Fetches movie and TV show metadata: titles, descriptions, posters, years, genres</li>
+                <li>Enriches your media library with high-quality poster art and descriptions</li>
+                <li>Configurable via TMDb API key in Settings</li>
+                <li>Extends the existing MetadataEnrichmentService with TMDb as an additional source alongside MusicBrainz, Discogs, and cover art APIs</li>
+            </ul>
+        </li>
+        <li><strong>TV Series &amp; Movie Organization</strong> <span class="new-badge">New</span> - Browse your video library organized by series, seasons, and episodes
+            <ul>
+                <li>Automatic series detection from file naming patterns (e.g., <code>Show Name S01E03</code>)</li>
+                <li>Hierarchical browsing: Series → Seasons → Episodes with episode titles</li>
+                <li>Movie detection and separate movie listing</li>
+                <li>Episode watched/unwatched status with watched checkmarks</li>
+                <li>"Up Next" recommendations based on your viewing history</li>
+                <li>TMDb poster integration for series and season artwork</li>
+                <li>Thumbnail generation via FFmpeg for video files</li>
+                <li>Content Library model with <code>TvSeries</code>, <code>TvSeason</code>, <code>TvEpisode</code>, and <code>MovieItem</code> classes</li>
+            </ul>
+        </li>
+        <li><strong>Video Transcoding via FFmpeg</strong> <span class="new-badge">New</span> - On-the-fly video transcoding for browser-compatible playback
+            <ul>
+                <li>Automatically transcodes incompatible formats (MKV, AVI, WMV, MOV, FLV, TS) to MP4 (H.264 + AAC)</li>
+                <li>Quality presets: Low (480p), Medium (720p), High (1080p), Ultra (4K), Auto (source resolution)</li>
+                <li>Transcoding cache: completed transcodes are cached in <code>%APPDATA%/PlatypusTools/transcode-cache/</code></li>
+                <li>Segment-based transcoding support for streaming partial content while transcoding continues</li>
+                <li>Automatic detection of files that need transcoding via container/codec analysis</li>
+                <li>Progress tracking with percentage and estimated time remaining</li>
+                <li>Uses FFmpeg with <code>libx264</code> video and <code>aac</code> audio codecs, <code>-movflags +faststart</code> for streaming</li>
+            </ul>
+        </li>
+        <li><strong>Subtitle Support</strong> <span class="new-badge">New</span> - Embedded and external subtitle extraction and display
+            <ul>
+                <li>Detect all subtitle tracks in a video file (embedded SRT, ASS/SSA, PGS, etc.)</li>
+                <li>Extract subtitle content from embedded streams via FFmpeg</li>
+                <li>External subtitle file detection (sidecar <code>.srt</code>, <code>.ass</code>, <code>.vtt</code> files)</li>
+                <li>Automatic SRT → WebVTT conversion for browser playback</li>
+                <li>Automatic ASS/SSA → WebVTT conversion with timing and text preservation</li>
+                <li>Subtitle track metadata: language, title, codec, default/forced flags</li>
+                <li>Subtitle selector dropdown in the webapp video player</li>
+                <li>REST API: <code>GET /api/subtitles/tracks?file=...</code>, <code>GET /api/subtitles/content?file=...&amp;index=N</code></li>
+            </ul>
+        </li>
+        <li><strong>Cloudflare Zero Trust Authentication</strong> <span class="new-badge">New</span> - Protect the remote webapp with Cloudflare Access
+            <ul>
+                <li>Opt-in feature (disabled by default) — enable in Settings → Remote Server → Cloudflare Zero Trust</li>
+                <li>Validates Cloudflare Access JWT tokens from <code>Cf-Access-Jwt-Assertion</code> header or <code>CF_Authorization</code> cookie</li>
+                <li>Cryptographic signature verification against Cloudflare's published JWKS endpoint</li>
+                <li>Email-based access control with optional allowed email whitelist</li>
+                <li>Issuer, audience, and token lifetime validation</li>
+                <li>Authentication context (<code>acrs</code> claim) support for step-up authentication</li>
+                <li>1-hour key cache to minimize JWKS fetch overhead</li>
+                <li>Settings fields: Team Domain, Application Audience (AUD), Allowed Emails</li>
+            </ul>
+        </li>
+        <li><strong>Entra ID Direct Authentication</strong> <span class="new-badge">New</span> - Authenticate webapp users directly via Microsoft Entra ID
+            <ul>
+                <li>Opt-in feature (disabled by default) — enable in Settings → Remote Server → Entra ID Authentication</li>
+                <li>OIDC token validation using Microsoft's OpenID Connect discovery endpoint</li>
+                <li>Bearer token authentication — webapp sends <code>Authorization: Bearer &lt;token&gt;</code> on API calls</li>
+                <li>Multi-tenant support: works with single-tenant, multi-tenant, or "common" configurations</li>
+                <li>Email extraction from <code>email</code>, <code>preferred_username</code>, or <code>upn</code> claims</li>
+                <li>Optional email allowlist to restrict which users can access the remote server</li>
+                <li>Automatic JWKS key rotation via <code>ConfigurationManager&lt;OpenIdConnectConfiguration&gt;</code></li>
+                <li>MSAL.js configuration served via <code>GET /api/auth/config</code> (no auth required)</li>
+                <li>Can coexist with Cloudflare Zero Trust — CF is checked first, Entra ID is checked second</li>
+            </ul>
+        </li>
+        <li><strong>Secure Password Vault</strong> <span class="new-badge">New</span> - Encrypted credential storage with TOTP authenticator
+            <ul>
+                <li>AES-256 encrypted vault stored locally at <code>%APPDATA%/PlatypusTools/vault.dat</code></li>
+                <li>Master password unlock with PBKDF2 key derivation</li>
+                <li>MFA support: optional TOTP second factor for vault unlock</li>
+                <li>Full CRUD operations for vault items (passwords, secure notes, API keys)</li>
+                <li>Folder organization for vault items</li>
+                <li>Built-in TOTP authenticator with RFC 6238 compliant code generation</li>
+                <li>Secure password generator with configurable length, character sets, and strength</li>
+                <li>Remote API access: manage vault items from the webapp</li>
+                <li>Auto-lock on inactivity</li>
+            </ul>
+        </li>
+        <li><strong>Remote Photo Gallery</strong> <span class="new-badge">New</span> - Browse and view your photo collection from the webapp
+            <ul>
+                <li>Browse photos by folder with grid thumbnail view</li>
+                <li>Full-resolution image viewing with zoom and pan</li>
+                <li>EXIF metadata display (camera, lens, exposure, GPS, etc.)</li>
+                <li>Thumbnail caching for fast browsing</li>
+                <li>Cache management with size stats and clear button</li>
+                <li>REST API: <code>/api/photos/folders</code>, <code>/api/photos</code>, <code>/api/photos/thumbnail</code>, <code>/api/photos/full</code>, <code>/api/photos/info</code></li>
+            </ul>
+        </li>
+        <li><strong>Authentication Status API</strong> <span class="new-badge">New</span> - <code>GET /api/auth/status</code> returns current auth state
+            <ul>
+                <li>Reports whether Zero Trust and/or Entra ID authentication are enabled</li>
+                <li>Shows authenticated user email and which auth provider was used</li>
+                <li>Webapp checks auth status before connecting — shows a branded login gate if unauthenticated</li>
+            </ul>
+        </li>
+        <li><strong>Expanded API Surface</strong> <span class="new-badge">New</span> - 25+ new REST endpoints for media management
+            <ul>
+                <li>Playlist CRUD: <code>/api/playlists</code> (5 endpoints)</li>
+                <li>Playback history: <code>/api/history/*</code> (6 endpoints)</li>
+                <li>Subtitles: <code>/api/subtitles/*</code> (2 endpoints)</li>
+                <li>Vault management: <code>/api/vault/*</code> (12 endpoints)</li>
+                <li>Photos: <code>/api/photos/*</code> (7 endpoints)</li>
+                <li>Auth: <code>/api/auth/*</code> (2 endpoints)</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>Previous Updates (v3.4)</h3>
+    <ul>
+        <li><strong>Platypus Remote - Mobile Music Control &amp; Streaming</strong> - Control your PC music or stream directly to your phone</li>
+        <li><strong>Active Directory Security Analyzer</strong> - Enterprise security analysis for AD environments</li>
+        <li><strong>Cloud Identity Security</strong> - Entra ID security posture analysis</li>
+        <li><strong>Incident Response Tools</strong> - Emergency remediation capabilities</li>
+        <li><strong>Plex Media Server Backup</strong> - Native Plex backup &amp; restore</li>
+        <li><strong>Intune Win32 Packager</strong> - Create .intunewin packages for Intune</li>
+        <li><strong>FTP/SFTP Client</strong> - Full file transfer client with saved sessions</li>
+        <li><strong>Hash Scanner</strong> - Calculate and verify file hashes</li>
+        <li><strong>Secure Wipe</strong> - Forensic-grade data destruction</li>
+        <li><strong>Cloud Sync Manager</strong> - Sync files between local and cloud providers</li>
+        <li><strong>Built-in Web Browser</strong> - WebView2-based browser with favorites and history</li>
+        <li><strong>Local Terminal</strong> - Embedded shell supporting PowerShell, CMD, Git Bash, WSL</li>
+        <li><strong>SSH/Telnet Client</strong> - Remote terminal with SSH key auth</li>
+        <li><strong>Reboot &amp; Crash Analyzer</strong> - Analyze BSODs and unexpected reboots</li>
+        <li><strong>Windows Update Repair</strong> - SFC, DISM, component reset</li>
+        <li><strong>Audio Visualizer Screensaver</strong> - 22+ visualizations</li>
+        <li><strong>Theme Editor &amp; Plugin Manager</strong> - Custom themes and extensibility</li>
+        <li><strong>Quick Forensics Scanner &amp; CVE Search</strong></li>
+    </ul>
+
+    <h3>What's New in v3.4 (Detailed)</h3>
     <ul>
         <li><strong>Platypus Remote - Mobile Music Control &amp; Streaming</strong> <span class="new-badge">New</span> - Control your PC music or stream directly to your phone
             <ul>
@@ -368,6 +532,22 @@
         <div class="feature-card">
             <h4>🎨 Themes &amp; Plugins <span class="new-badge">New</span></h4>
             <p>Theme Editor, Plugin Manager, customizable UI and extensibility</p>
+        </div>
+        <div class="feature-card">
+            <h4>🔒 Vault <span class="new-badge">New in v4.0</span></h4>
+            <p>Encrypted password vault with TOTP authenticator, MFA, and remote access</p>
+        </div>
+        <div class="feature-card">
+            <h4>📷 Photos <span class="new-badge">New in v4.0</span></h4>
+            <p>Remote photo gallery with thumbnail grid, EXIF metadata, and caching</p>
+        </div>
+        <div class="feature-card">
+            <h4>🎬 Media Features <span class="new-badge">New in v4.0</span></h4>
+            <p>Playlists, Continue Watching, TV series browsing, subtitles, transcoding, TMDb enrichment</p>
+        </div>
+        <div class="feature-card">
+            <h4>🔐 Authentication <span class="new-badge">New in v4.0</span></h4>
+            <p>Cloudflare Zero Trust and Entra ID direct auth for remote webapp</p>
         </div>
     </div>
     
@@ -792,7 +972,14 @@
     <p>Convert videos between different formats and codecs.</p>
     
     <h3>📚 Media Library</h3>
-    <p>Organize and browse your media collection with thumbnail previews.</p>
+    <p>Organize and browse your media collection with thumbnail previews. The Media Library serves as the foundation for the Plex-style features in v4.0.</p>
+    <ul>
+        <li><strong>Library Scanning</strong> — Scan configured folders for audio and video files</li>
+        <li><strong>Thumbnail Generation</strong> — Automatic thumbnail generation for video files via FFmpeg</li>
+        <li><strong>Search &amp; Filter</strong> — Search by title, artist, album, or filename</li>
+        <li><strong>Metadata Display</strong> — Shows embedded metadata (title, artist, album, duration, codec)</li>
+        <li><strong>Remote Access</strong> — Browse and stream your library from the Platypus Remote webapp</li>
+    </ul>
     
     <h3>🔧 External Tools</h3>
     <p>Launch external media applications:</p>
@@ -818,8 +1005,291 @@
     </ul>
 </section>
 
+<section id="media-features" class="section">
+    <h2>🎬 Plex-Style Media Features <span class="new-badge">New in v4.0</span></h2>
+    <p>Version 4.0 introduces a comprehensive set of Plex-inspired media management features. These features work together to provide a rich media server experience — browse TV series by season, track your watch progress, resume playback, manage playlists, and stream with subtitles and transcoding — all through the Platypus Remote webapp or the desktop application.</p>
+
+    <h3>📋 Playlists &amp; Collections</h3>
+    <p>Create and manage playlists to organize your media exactly the way you want.</p>
+    
+    <h4>Playlist Types</h4>
+    <table>
+        <tr><th>Type</th><th>Description</th></tr>
+        <tr><td><strong>Manual</strong></td><td>You add and remove items by hand. Full control over track order.</td></tr>
+        <tr><td><strong>Smart</strong></td><td>Auto-curated based on rules (e.g., genre, year, artist). Automatically updates as your library changes.</td></tr>
+        <tr><td><strong>Recently Added</strong></td><td>Automatically populated with the most recently added items to your library.</td></tr>
+        <tr><td><strong>Most Played</strong></td><td>Populated from your playback history — your most-listened or most-watched items.</td></tr>
+        <tr><td><strong>Genre</strong></td><td>Auto-generated collections grouped by genre metadata.</td></tr>
+    </table>
+
+    <h4>Playlist Properties</h4>
+    <ul>
+        <li><strong>Name &amp; Description</strong> — Give each playlist a title and optional description</li>
+        <li><strong>Cover Art</strong> — Set a custom cover image path for visual browsing</li>
+        <li><strong>Item Count</strong> — Automatically calculated from the items in the playlist</li>
+        <li><strong>Created/Modified Timestamps</strong> — Track when playlists were created and last modified</li>
+        <li><strong>Collection Flag</strong> — Mark a playlist as a "collection" (auto-curated) vs. a manual playlist</li>
+    </ul>
+
+    <h4>Playlist Items</h4>
+    <p>Each item in a playlist stores:</p>
+    <ul>
+        <li><strong>File Path</strong> — Full path to the media file on your PC</li>
+        <li><strong>Title, Artist, Album</strong> — Metadata for display in the UI</li>
+        <li><strong>Duration</strong> — Track length in seconds</li>
+        <li><strong>Sort Order</strong> — Controls the display order within the playlist</li>
+        <li><strong>Date Added</strong> — When the item was added to this specific playlist</li>
+    </ul>
+
+    <h4>Webapp Integration</h4>
+    <p>In the Platypus Remote webapp, playlists appear as horizontal chip buttons at the top of the Library tab:</p>
+    <ul>
+        <li>Tap <strong>All</strong> to see your full library</li>
+        <li>Tap any <strong>playlist chip</strong> to filter the library to that playlist's items</li>
+        <li>Tap the <strong>+ Create</strong> button to create a new playlist (enter a name in the prompt)</li>
+        <li>The active playlist is highlighted with a filled background</li>
+    </ul>
+
+    <h4>REST API Reference</h4>
+    <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+        <tr><td>GET</td><td><code>/api/playlists</code></td><td>Get all playlists</td></tr>
+        <tr><td>GET</td><td><code>/api/playlists/{id}</code></td><td>Get a specific playlist by ID</td></tr>
+        <tr><td>POST</td><td><code>/api/playlists</code></td><td>Create a new playlist. Body: <code>{ "name": "...", "description": "..." }</code></td></tr>
+        <tr><td>DELETE</td><td><code>/api/playlists/{id}</code></td><td>Delete a playlist</td></tr>
+        <tr><td>POST</td><td><code>/api/playlists/{id}/items</code></td><td>Add an item. Body: <code>{ "filePath": "...", "title": "...", "artist": "...", "album": "..." }</code></td></tr>
+        <tr><td>DELETE</td><td><code>/api/playlists/{id}/items</code></td><td>Remove an item. Body: <code>{ "filePath": "..." }</code></td></tr>
+    </table>
+    <div class="tip">
+        <strong>Storage:</strong> Playlists are persisted to <code>%APPDATA%/PlatypusTools/playlists.json</code>. This file is automatically loaded on server startup and saved after every modification.
+    </div>
+
+    <h3>📺 Playback History &amp; Resume (Continue Watching)</h3>
+    <p>PlatypusTools tracks your playback progress so you can pick up exactly where you left off — just like Plex's "Continue Watching" feature.</p>
+
+    <h4>How It Works</h4>
+    <ol>
+        <li><strong>Recording</strong> — When you play a track or video (via the webapp or desktop player), a playback record is created or updated. The record stores the media file path, title, artist, album, media type, and a timestamp.</li>
+        <li><strong>Position Tracking</strong> — While you're playing, the webapp periodically sends your current position (in seconds) to the server via <code>POST /api/history/position</code>. This happens every 10 seconds.</li>
+        <li><strong>Progress Calculation</strong> — The server calculates your progress percentage: <code>position / duration × 100</code>. Items at 90% or above are marked as "complete."</li>
+        <li><strong>Resume</strong> — When you return to a track, the webapp calls <code>GET /api/history/resume?file=...</code> to get the saved position, then seeks to that point automatically.</li>
+    </ol>
+
+    <h4>Playback History Entry Fields</h4>
+    <table>
+        <tr><th>Field</th><th>Description</th></tr>
+        <tr><td><strong>FilePath</strong></td><td>Full path to the media file</td></tr>
+        <tr><td><strong>Title / Artist / Album</strong></td><td>Metadata for display</td></tr>
+        <tr><td><strong>MediaType</strong></td><td>Audio or Video</td></tr>
+        <tr><td><strong>LastPlayedAt</strong></td><td>UTC timestamp of last playback</td></tr>
+        <tr><td><strong>PositionSeconds</strong></td><td>Last known playback position in seconds</td></tr>
+        <tr><td><strong>DurationSeconds</strong></td><td>Total duration of the media file</td></tr>
+        <tr><td><strong>ProgressPercent</strong></td><td>Calculated: <code>(position / duration) × 100</code></td></tr>
+        <tr><td><strong>IsComplete</strong></td><td><code>true</code> when ProgressPercent ≥ 90%</td></tr>
+        <tr><td><strong>PlayCount</strong></td><td>Number of times the item has been played (increments each time)</td></tr>
+        <tr><td><strong>SeriesName</strong></td><td>For TV episodes: the series name</td></tr>
+        <tr><td><strong>SeasonNumber</strong></td><td>For TV episodes: the season number</td></tr>
+        <tr><td><strong>EpisodeNumber</strong></td><td>For TV episodes: the episode number</td></tr>
+    </table>
+
+    <h4>Continue Watching in the Webapp</h4>
+    <p>The webapp's Library tab shows a <strong>"Continue Watching"</strong> row at the top when you have in-progress items. Each item displays:</p>
+    <ul>
+        <li>Track title and artist/album metadata</li>
+        <li>A progress bar showing how far through you are</li>
+        <li>Tap to resume playback from the saved position</li>
+    </ul>
+
+    <h4>Series Tracking</h4>
+    <p>For TV series, the history service can:</p>
+    <ul>
+        <li>Get the full watch history for a specific series: <code>GetSeriesHistoryAsync(seriesName)</code></li>
+        <li>Find the next unwatched episode: <code>GetNextUnwatchedEpisodeAsync(seriesName)</code> — returns the first episode where <code>IsComplete == false</code>, sorted by season and episode number</li>
+    </ul>
+
+    <h4>REST API Reference</h4>
+    <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+        <tr><td>POST</td><td><code>/api/history/record</code></td><td>Record a playback event. Body: <code>{ "filePath", "title", "artist", "album", "durationSeconds", "mediaType" }</code></td></tr>
+        <tr><td>POST</td><td><code>/api/history/position</code></td><td>Update playback position. Body: <code>{ "filePath", "positionSeconds" }</code></td></tr>
+        <tr><td>GET</td><td><code>/api/history/resume?file=...</code></td><td>Get saved resume position for a file (returns seconds)</td></tr>
+        <tr><td>GET</td><td><code>/api/history/recent?count=50&amp;type=...</code></td><td>Get recently played items (optional count and type filter)</td></tr>
+        <tr><td>GET</td><td><code>/api/history/in-progress?type=...</code></td><td>Get items that are partially played (Continue Watching)</td></tr>
+        <tr><td>GET</td><td><code>/api/history/most-played?count=50</code></td><td>Get most-played items, sorted by play count</td></tr>
+    </table>
+    <div class="tip">
+        <strong>Storage:</strong> History is persisted to <code>%APPDATA%/PlatypusTools/playback-history.json</code>.
+    </div>
+
+    <h3>📺 TV Series &amp; Movie Organization</h3>
+    <p>The Content Organization service automatically analyzes your video library and organizes it into a structured hierarchy of TV series, seasons, episodes, and movies.</p>
+
+    <h4>Automatic Detection</h4>
+    <p>Files are classified based on their names and paths:</p>
+    <ul>
+        <li><strong>TV Series</strong> — Detected from patterns like <code>Show Name S01E03.mkv</code>, <code>Show Name - Season 1 - Episode 3.mp4</code>, or folder structures like <code>Show Name/Season 01/Episode 03.mkv</code></li>
+        <li><strong>Movies</strong> — Video files that don't match TV naming patterns are classified as movies</li>
+        <li><strong>Episode Titles</strong> — Extracted from filenames when formatted as <code>S01E03 - Episode Title.mkv</code></li>
+    </ul>
+
+    <h4>Content Library Structure</h4>
+    <pre><code>ContentLibrary
+├── TvSeries[]
+│   ├── Name: "Breaking Bad"
+│   ├── PosterUrl: (from TMDb)
+│   ├── Year: 2008
+│   ├── Description: "A chemistry teacher turned meth manufacturer..."
+│   ├── TmdbId: "1396"
+│   └── Seasons[]
+│       ├── SeasonNumber: 1
+│       ├── PosterUrl: (season artwork)
+│       └── Episodes[]
+│           ├── EpisodeNumber: 1
+│           ├── EpisodeTitle: "Pilot"
+│           ├── FilePath: "D:\TV\Breaking Bad\Season 01\S01E01 - Pilot.mkv"
+│           ├── DurationSeconds: 3480
+│           ├── IsWatched: true
+│           └── ThumbnailBase64: (generated by FFmpeg)
+└── Movies[]
+    ├── Title: "The Matrix"
+    ├── FilePath: "D:\Movies\The Matrix (1999).mkv"
+    ├── PosterUrl: (from TMDb)
+    ├── Year: 1999
+    └── DurationSeconds: 8160</code></pre>
+
+    <h4>Up Next Feature</h4>
+    <p>The "Up Next" feature integrates with Playback History to recommend what to watch next:</p>
+    <ul>
+        <li>For each series, finds the first unwatched or in-progress episode</li>
+        <li>Returns an <strong>UpNextItem</strong> with the series name, episode details, and reason ("Continue watching S01E03" or "Start Season 2")</li>
+        <li>Sorted by most recently watched series first</li>
+    </ul>
+
+    <h3>🎞️ Video Transcoding</h3>
+    <p>Not all video formats are natively playable in web browsers. The Transcoding Service automatically converts incompatible formats to browser-friendly MP4 (H.264 + AAC) using FFmpeg.</p>
+
+    <h4>When Transcoding Happens</h4>
+    <p>Files with the following extensions are automatically flagged for transcoding when streamed via the webapp:</p>
+    <table>
+        <tr><th>Format</th><th>Extension</th><th>Why It Needs Transcoding</th></tr>
+        <tr><td>Matroska</td><td><code>.mkv</code></td><td>Container not supported by most browsers</td></tr>
+        <tr><td>AVI</td><td><code>.avi</code></td><td>Legacy container, no browser support</td></tr>
+        <tr><td>Windows Media</td><td><code>.wmv</code></td><td>Microsoft proprietary format</td></tr>
+        <tr><td>QuickTime</td><td><code>.mov</code></td><td>Limited browser support outside Safari</td></tr>
+        <tr><td>Flash Video</td><td><code>.flv</code></td><td>Deprecated format</td></tr>
+        <tr><td>MPEG Transport</td><td><code>.ts</code></td><td>Broadcast format, limited browser support</td></tr>
+    </table>
+    <p>Files that are already MP4 (<code>.mp4</code>, <code>.m4v</code>) or WebM (<code>.webm</code>) are streamed directly without transcoding.</p>
+
+    <h4>Quality Presets</h4>
+    <table>
+        <tr><th>Preset</th><th>Resolution</th><th>Use Case</th></tr>
+        <tr><td>Low</td><td>854×480</td><td>Mobile data, slow connections</td></tr>
+        <tr><td>Medium</td><td>1280×720</td><td>WiFi streaming, tablets</td></tr>
+        <tr><td>High</td><td>1920×1080</td><td>Desktop/TV viewing</td></tr>
+        <tr><td>Ultra</td><td>3840×2160</td><td>4K displays</td></tr>
+        <tr><td>Auto</td><td>Source resolution</td><td>Preserves original quality (default)</td></tr>
+    </table>
+
+    <h4>Transcoding Cache</h4>
+    <ul>
+        <li>Transcoded files are cached in <code>%APPDATA%/PlatypusTools/transcode-cache/</code></li>
+        <li>Cached files are named by hash of the source path + quality preset</li>
+        <li>Subsequent requests for the same file at the same quality are served instantly from cache</li>
+        <li>The service checks for cached transcodes before starting a new one</li>
+    </ul>
+
+    <h4>Technical Details</h4>
+    <ul>
+        <li>Uses FFmpeg with <code>-c:v libx264 -preset medium -crf 23</code> for video</li>
+        <li>Audio encoded as <code>AAC</code> at 128kbps stereo</li>
+        <li><code>-movflags +faststart</code> flag enables streaming before the full transcode completes</li>
+        <li>Segment-based transcoding available for streaming partial content</li>
+        <li>Progress tracking with percentage calculation from FFmpeg's <code>time=</code> output</li>
+        <li>Content type for transcoded output: <code>video/mp4</code></li>
+    </ul>
+    <div class="warning">
+        <strong>Requirement:</strong> Video transcoding requires FFmpeg to be installed and accessible via PATH or in the Tools folder.
+    </div>
+
+    <h3>💬 Subtitles</h3>
+    <p>The Subtitle Service extracts, converts, and serves subtitles for video playback in the webapp.</p>
+
+    <h4>Supported Subtitle Sources</h4>
+    <ul>
+        <li><strong>Embedded Subtitles</strong> — Extracted from video containers (MKV, MP4, etc.) using FFmpeg. Supports SRT, ASS/SSA, PGS, and other embedded formats.</li>
+        <li><strong>External Subtitle Files</strong> — Sidecar files with the same base name as the video: <code>Movie.srt</code>, <code>Movie.en.srt</code>, <code>Movie.ass</code>, <code>Movie.vtt</code></li>
+    </ul>
+
+    <h4>Subtitle Track Information</h4>
+    <p>Each detected subtitle track provides:</p>
+    <table>
+        <tr><th>Field</th><th>Description</th></tr>
+        <tr><td><strong>Index</strong></td><td>Stream index within the video file</td></tr>
+        <tr><td><strong>Language</strong></td><td>Language code (e.g., "eng", "fra", "jpn")</td></tr>
+        <tr><td><strong>Title</strong></td><td>Track title if set (e.g., "English SDH", "Commentary")</td></tr>
+        <tr><td><strong>Codec</strong></td><td>Subtitle codec (subrip, ass, hdmv_pgs_subtitle, etc.)</td></tr>
+        <tr><td><strong>IsDefault</strong></td><td>Whether this track is flagged as the default subtitle</td></tr>
+        <tr><td><strong>IsForced</strong></td><td>Whether this track contains forced subtitles only</td></tr>
+        <tr><td><strong>IsExternal</strong></td><td>Whether this is an external sidecar file</td></tr>
+        <tr><td><strong>Display Name</strong></td><td>Auto-generated: uses Title, or "Language (codec)", or "Track N"</td></tr>
+    </table>
+
+    <h4>Format Conversion</h4>
+    <p>Browsers require WebVTT format for HTML5 <code>&lt;track&gt;</code> elements. The service automatically converts:</p>
+    <ul>
+        <li><strong>SRT → VTT</strong> — Converts SubRip format: replaces <code>WEBVTT</code> header, converts <code>,</code> to <code>.</code> in timestamps, removes sequence numbers</li>
+        <li><strong>ASS/SSA → VTT</strong> — Converts Advanced SubStation Alpha format: parses <code>[Events]</code> section, extracts timing and text, strips ASS override codes (<code>{\b1}</code>, <code>{\i1}</code>, <code>{\an8}</code>, etc.)</li>
+        <li><strong>VTT</strong> — Served as-is (already browser-compatible)</li>
+    </ul>
+
+    <h4>Webapp Subtitle Selector</h4>
+    <p>When playing a video with subtitles, a subtitle bar appears below the progress bar with a dropdown. Select a subtitle track to enable it, or choose "None" to disable subtitles. The selected subtitle content is fetched from the API, converted to VTT, and applied as a <code>&lt;track&gt;</code> element on the <code>&lt;video&gt;</code> player.</p>
+
+    <h4>REST API Reference</h4>
+    <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+        <tr><td>GET</td><td><code>/api/subtitles/tracks?file=...</code></td><td>List all subtitle tracks for a video file</td></tr>
+        <tr><td>GET</td><td><code>/api/subtitles/content?file=...&amp;index=N</code></td><td>Get subtitle content (converted to VTT) for a specific track</td></tr>
+    </table>
+    <div class="warning">
+        <strong>Requirement:</strong> Subtitle extraction from embedded streams requires FFmpeg. External .srt/.ass/.vtt files work without FFmpeg.
+    </div>
+
+    <h3>🎵 TMDb Metadata Enrichment</h3>
+    <p>The MetadataEnrichmentService has been extended in v4.0 with <strong>TMDb (The Movie Database)</strong> integration. This enriches your video library with professional-quality metadata and artwork.</p>
+
+    <h4>What TMDb Provides</h4>
+    <ul>
+        <li><strong>Movie Metadata</strong> — Title, year, description, genres, runtime, poster URL</li>
+        <li><strong>TV Series Metadata</strong> — Series name, year, description, season/episode details, poster URLs for series and individual seasons</li>
+        <li><strong>Posters &amp; Artwork</strong> — High-resolution poster images displayed in the webapp's series browser and movie grid</li>
+        <li><strong>TMDb IDs</strong> — Stored on <code>TvSeries</code> and <code>MovieItem</code> objects for future cross-referencing</li>
+    </ul>
+
+    <h4>Configuration</h4>
+    <ol>
+        <li>Get a free TMDb API key from <a href="https://www.themoviedb.org/settings/api" target="_blank">themoviedb.org/settings/api</a></li>
+        <li>Enter the API key in PlatypusTools Settings → Remote Server → TMDb API Key</li>
+        <li>The service automatically queries TMDb when organizing your content library</li>
+    </ol>
+
+    <h4>Existing Metadata Sources</h4>
+    <p>TMDb joins the existing metadata enrichment sources that were already available for audio:</p>
+    <ul>
+        <li><strong>MusicBrainz</strong> — Comprehensive music metadata database (title, artist, album, ISRC, etc.)</li>
+        <li><strong>Discogs</strong> — Vinyl and CD release data</li>
+        <li><strong>Cover Art Archive</strong> — Album cover artwork</li>
+        <li><strong>Lyrics APIs</strong> — Song lyrics lookup</li>
+        <li><strong>Audio Analysis</strong> — BPM, key, and other audio fingerprint data</li>
+    </ul>
+    <div class="tip">
+        <strong>Tip:</strong> TMDb enrichment is optional. Your video library will still organize correctly without a TMDb API key — you just won't get posters and descriptions.
+    </div>
+</section>
+
 <section id="remote" class="section">
-    <h2>📱 Remote Control &amp; Streaming <span class="new-badge">New</span></h2>
+    <h2>📱 Remote Control &amp; Streaming</h2>
     <p>Platypus Remote lets you control your PC's music player or stream audio directly to your phone from anywhere. It works as a Progressive Web App (PWA) through your browser — no app store download required.</p>
 
     <h3>Getting Started</h3>
@@ -953,6 +1423,46 @@ ingress:
         <strong>Important:</strong> The default Client IDs in the config files are placeholders. Authentication will not work until you register your own Entra ID app and run <code>Configure-PlatypusRemote.ps1</code>.
     </div>
 
+    <h3>Authentication (Entra ID / Azure AD)</h3>
+    <p>The Remote Server supports <strong>Microsoft Entra ID</strong> (formerly Azure AD) authentication for app registration-based auth. This was the original authentication model included in v3.4. All API endpoints and the SignalR hub require a valid JWT token — nothing is accessible without signing in.</p>
+
+    <h4>How It Works</h4>
+    <ul>
+        <li><strong>Server</strong>: Uses <code>Microsoft.Identity.Web</code> with JWT Bearer authentication. Every API endpoint and the SignalR hub (<code>/hub/platypus</code>) has <code>.RequireAuthorization()</code>.</li>
+        <li><strong>Client (PWA)</strong>: Uses <strong>MSAL</strong> (Microsoft Authentication Library) for Blazor WebAssembly. Users sign in via Microsoft redirect flow, receive a token, and use it for all API calls and real-time connections.</li>
+        <li><strong>Rate Limiting</strong>: Authenticated users are limited to 100 requests per minute (fixed window) to prevent abuse.</li>
+    </ul>
+
+    <h4>Setting Up Entra ID App Registration</h4>
+    <ol>
+        <li>Go to <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank">Azure Portal → App registrations</a></li>
+        <li>Click <strong>New registration</strong></li>
+        <li>Name it (e.g., "PlatypusTools Remote"), set supported account types as needed</li>
+        <li>Set <strong>Redirect URI</strong> to <code>https://localhost:47392/authentication/login-callback</code> (type: Single-page application)</li>
+        <li>After creation, go to <strong>Expose an API</strong>:
+            <ul>
+                <li>Set the Application ID URI (e.g., <code>api://YOUR-CLIENT-ID</code>)</li>
+                <li>Add a scope: <code>access_as_user</code> (admin consent optional)</li>
+            </ul>
+        </li>
+        <li>Note the <strong>Application (client) ID</strong> and <strong>Directory (tenant) ID</strong> from the Overview page</li>
+    </ol>
+
+    <h4>Configuring PlatypusTools</h4>
+    <p>Run the configuration script from the project root:</p>
+    <pre><code>.\Configure-PlatypusRemote.ps1 -ClientId "YOUR-CLIENT-ID"
+
+# Optional: specify tenant (defaults to "common" for multi-tenant)
+.\Configure-PlatypusRemote.ps1 -ClientId "YOUR-CLIENT-ID" -TenantId "YOUR-TENANT-ID"
+
+# Optional: set a public URL (Cloudflare Tunnel or custom domain)
+.\Configure-PlatypusRemote.ps1 -ClientId "YOUR-CLIENT-ID" -PublicUrl "https://platypus.yourdomain.com"</code></pre>
+    <p>This updates both the server (<code>appsettings.json</code>) and client (<code>wwwroot/appsettings.json</code>) configuration files with your app registration credentials.</p>
+
+    <div class="tip">
+        <strong>Important:</strong> The default Client IDs in the config files are placeholders. Authentication will not work until you register your own Entra ID app and run <code>Configure-PlatypusRemote.ps1</code>.
+    </div>
+
     <h3>Troubleshooting Remote</h3>
     <table>
         <tr><th>Problem</th><th>Solution</th></tr>
@@ -964,7 +1474,327 @@ ingress:
         <tr><td>Audio cuts out on phone</td><td>Mobile browsers may suspend background audio. Install the PWA to Home Screen for better background playback support.</td></tr>
         <tr><td>Controls unresponsive</td><td>Check the connection status dot at the top. If red/disconnected, the app will auto-reconnect. Try refreshing the page.</td></tr>
         <tr><td>Can't install PWA on iOS</td><td>Safari doesn't support the install prompt. Use Share → Add to Home Screen instead.</td></tr>
+        <tr><td>Cloudflare Zero Trust blocks access</td><td>Ensure your email is in the allowed list in Settings → CF Zero Trust → Allowed Emails. Check the CF Access application policy in your Cloudflare dashboard.</td></tr>
+        <tr><td>Entra ID token rejected</td><td>Verify Client ID, Tenant ID, and API Scope ID in Settings. Ensure the app registration has correct redirect URIs and exposed scopes.</td></tr>
+        <tr><td>"Authentication required" gate screen</td><td>This appears when auth is enabled but you haven't signed in. For CF Zero Trust, navigate via your CF Access URL. For Entra ID, the MSAL.js login should prompt automatically.</td></tr>
     </table>
+</section>
+
+<section id="auth" class="section">
+    <h2>🔐 Authentication &amp; Access Control <span class="new-badge">New in v4.0</span></h2>
+    <p>Version 4.0 introduces a flexible, layered authentication system for the Platypus Remote server. You can use <strong>Cloudflare Zero Trust</strong>, <strong>Entra ID Direct Authentication</strong>, or both together. All authentication is <strong>opt-in and disabled by default</strong> — the remote server works without authentication when no auth provider is enabled.</p>
+
+    <h3>Authentication Architecture</h3>
+    <h4>Middleware Pipeline Order</h4>
+    <p>The authentication middleware runs in this order on every incoming request:</p>
+    <ol>
+        <li><strong>IP Allowlist</strong> — If configured, blocks requests from non-whitelisted IPs</li>
+        <li><strong>Security Headers</strong> — Adds standard security headers (X-Content-Type-Options, X-Frame-Options, etc.)</li>
+        <li><strong>Cloudflare Zero Trust</strong> — If enabled, validates CF Access JWT tokens. Sets <code>AuthProvider = "CloudflareZeroTrust"</code> on success.</li>
+        <li><strong>Entra ID Bearer Token</strong> — If enabled AND no auth was already established by CF, validates Bearer tokens from the <code>Authorization</code> header. Sets <code>AuthProvider = "EntraId"</code> on success.</li>
+        <li><strong>Static Files / Endpoints</strong> — Normal request processing</li>
+    </ol>
+    <div class="tip">
+        <strong>Priority:</strong> When both auth providers are enabled, Cloudflare Zero Trust is checked first. If CF authenticates the request, Entra ID middleware is skipped. This means CF acts as the primary gatekeeper when both are active.
+    </div>
+
+    <h4>Exempt Endpoints</h4>
+    <p>The following endpoints are always accessible without authentication (even when auth is enabled):</p>
+    <ul>
+        <li><code>/health</code> — Health check endpoint</li>
+        <li><code>/api/auth/config</code> — Returns MSAL.js configuration for the webapp (needed before the user can sign in)</li>
+        <li><code>/api/auth/status</code> — Returns current authentication state</li>
+        <li>Static files (CSS, JS, images, manifest.json, service-worker.js)</li>
+    </ul>
+
+    <h4>Auth Status Endpoint</h4>
+    <p><code>GET /api/auth/status</code> returns:</p>
+    <pre><code>{
+    "authenticated": true,
+    "email": "user@example.com",
+    "zeroTrustEnabled": true,
+    "entraIdEnabled": false,
+    "provider": "CloudflareZeroTrust"
+}</code></pre>
+    <p>The webapp calls this endpoint on startup. If <code>authenticated</code> is <code>false</code> and any auth provider is enabled, it shows a branded login gate screen with a shield icon and instructions.</p>
+
+    <h3>☁️ Cloudflare Zero Trust <span class="new-badge">New</span></h3>
+    <p>Cloudflare Zero Trust (formerly Cloudflare Access) places an identity-aware proxy in front of your remote server. Users must authenticate through Cloudflare's identity provider before their requests reach PlatypusTools.</p>
+
+    <h4>How It Works</h4>
+    <ol>
+        <li>You set up a <strong>Cloudflare Access Application</strong> for your tunnel domain in the Cloudflare Zero Trust dashboard</li>
+        <li>When a user navigates to your tunnel URL, Cloudflare prompts them to sign in (via email OTP, Google, GitHub, Entra ID, or any configured IdP)</li>
+        <li>After successful authentication, Cloudflare adds a signed JWT token to the request:
+            <ul>
+                <li>In the <code>Cf-Access-Jwt-Assertion</code> HTTP header</li>
+                <li>In the <code>CF_Authorization</code> cookie</li>
+            </ul>
+        </li>
+        <li>PlatypusTools validates this JWT:
+            <ul>
+                <li>Fetches Cloudflare's public signing keys from <code>https://&lt;team&gt;.cloudflareaccess.com/cdn-cgi/access/certs</code></li>
+                <li>Verifies the JWT signature using RS256</li>
+                <li>Validates the issuer matches <code>https://&lt;team&gt;.cloudflareaccess.com</code></li>
+                <li>Validates the audience (AUD) matches your application's audience tag</li>
+                <li>Checks token expiration</li>
+                <li>Extracts the user's email from the <code>email</code> claim</li>
+                <li>Optionally checks the email against an allowed list</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h4>Setting Up Cloudflare Zero Trust</h4>
+    <ol>
+        <li>Go to <a href="https://one.dash.cloudflare.com" target="_blank">Cloudflare Zero Trust Dashboard</a></li>
+        <li>Navigate to <strong>Access → Applications → Add an application</strong></li>
+        <li>Choose <strong>Self-hosted</strong></li>
+        <li>Set the application domain to your tunnel URL (e.g., <code>platypus.yourdomain.com</code>)</li>
+        <li>Configure an <strong>Access Policy</strong>:
+            <ul>
+                <li>Allow users by email domain, specific emails, IdP groups, or other criteria</li>
+                <li>Add multiple rules as needed</li>
+            </ul>
+        </li>
+        <li>After creation, note the <strong>Application Audience (AUD) tag</strong> from the application's overview page</li>
+        <li>Note your <strong>Team Domain</strong> (e.g., <code>myteam</code> from <code>myteam.cloudflareaccess.com</code>)</li>
+    </ol>
+
+    <h4>Configuring in PlatypusTools</h4>
+    <ol>
+        <li>Open <strong>Settings → Remote Server → Cloudflare Zero Trust</strong></li>
+        <li>Check <strong>"Enable Cloudflare Zero Trust authentication"</strong></li>
+        <li>Enter your <strong>Team Domain</strong> (just the subdomain, e.g., <code>myteam</code>)</li>
+        <li>Enter the <strong>Application Audience (AUD)</strong> tag from the CF Access application</li>
+        <li>(Optional) Enter <strong>Allowed Emails</strong> — comma-separated list of email addresses that are permitted access. Leave blank to accept any email that passes CF Access.</li>
+        <li>Click <strong>Save</strong></li>
+    </ol>
+
+    <h4>Authentication Context (Step-Up Auth)</h4>
+    <p>The validator supports Cloudflare's <strong>Authentication Context</strong> (<code>acrs</code> claim) for step-up authentication. This allows you to require additional authentication factors for sensitive operations. If a request lacks the required auth context, the server returns a 403 with a <code>RequiresStepUp</code> flag, prompting the client to re-authenticate with stronger factors.</p>
+
+    <h4>Key Caching</h4>
+    <p>Cloudflare's JWKS (JSON Web Key Set) is cached for <strong>1 hour</strong> after each fetch to minimize network overhead. The cache is automatically refreshed on the next validation after expiry.</p>
+
+    <div class="tip">
+        <strong>Tip:</strong> Cloudflare Zero Trust is ideal when you're already using Cloudflare Tunnels to expose PlatypusTools remotely. It adds robust identity verification without any changes to the webapp code.
+    </div>
+
+    <h3>🔑 Entra ID Direct Authentication <span class="new-badge">New</span></h3>
+    <p>Entra ID Direct Authentication validates OAuth 2.0 Bearer tokens issued by Microsoft Entra ID. The webapp uses <strong>MSAL.js</strong> (Microsoft Authentication Library for JavaScript) to sign users in and attach Bearer tokens to every API request.</p>
+
+    <h4>How It Works</h4>
+    <ol>
+        <li>The webapp loads MSAL.js and calls <code>GET /api/auth/config</code> to retrieve the Entra ID configuration (Client ID, Tenant ID, authority URL, scopes)</li>
+        <li>MSAL.js initializes a <code>PublicClientApplication</code> with these settings</li>
+        <li>When the user needs to sign in, MSAL.js opens a popup or redirect to Microsoft's login page</li>
+        <li>After successful sign-in, MSAL.js receives an access token</li>
+        <li>The webapp attaches this token to every API call: <code>Authorization: Bearer &lt;access-token&gt;</code></li>
+        <li>The PlatypusTools server validates the token:
+            <ul>
+                <li>Fetches Microsoft's OIDC discovery document from <code>https://login.microsoftonline.com/{tenantId}/v2.0/.well-known/openid-configuration</code></li>
+                <li>Retrieves the public signing keys from the JWKS endpoint</li>
+                <li>Validates the token signature, issuer, audience, and lifetime</li>
+                <li>Extracts the user's email from <code>email</code>, <code>preferred_username</code>, or <code>upn</code> claims</li>
+                <li>Optionally checks the email against an allowed list</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h4>Setting Up Entra ID Direct Auth</h4>
+    <ol>
+        <li>Create an App Registration in Azure Portal (same as the original Entra ID setup above)</li>
+        <li>Note the <strong>Application (client) ID</strong>, <strong>Directory (tenant) ID</strong>, and the <strong>API Scope ID</strong> (Application ID URI)</li>
+        <li>In PlatypusTools, go to <strong>Settings → Remote Server → Entra ID Authentication</strong></li>
+        <li>Enter the <strong>Client ID</strong>, <strong>Tenant ID</strong>, and <strong>API Scope / Application ID URI</strong></li>
+        <li>Check <strong>"Enable Entra ID authentication for webapp"</strong></li>
+        <li>(Optional) Enter <strong>Allowed Emails</strong> to restrict access to specific users</li>
+        <li>Click <strong>Save</strong></li>
+    </ol>
+
+    <h4>Multi-Tenant Support</h4>
+    <p>The validator supports both single-tenant and multi-tenant configurations:</p>
+    <ul>
+        <li><strong>Single-tenant</strong>: Set the Tenant ID to your Azure AD tenant GUID. Issuer validation is strict.</li>
+        <li><strong>Multi-tenant / Common</strong>: Use <code>common</code> or <code>organizations</code> as the Tenant ID. Issuer validation is relaxed to accept tokens from any tenant.</li>
+    </ul>
+
+    <h4>Accepted Audiences</h4>
+    <p>The validator accepts tokens with any of these audiences:</p>
+    <ul>
+        <li>The Client ID directly (e.g., <code>12345678-1234-1234-1234-123456789012</code>)</li>
+        <li><code>api://CLIENT-ID</code></li>
+        <li><code>api://API-SCOPE-ID</code></li>
+    </ul>
+
+    <h4>Auth Config Endpoint</h4>
+    <p><code>GET /api/auth/config</code> returns (no authentication required):</p>
+    <pre><code>{
+    "enabled": true,
+    "clientId": "12345678-...",
+    "tenantId": "87654321-...",
+    "authority": "https://login.microsoftonline.com/87654321-...",
+    "scopes": ["api://12345678-.../access_as_user"]
+}</code></pre>
+    <p>The webapp uses this to initialize MSAL.js — this endpoint must remain unauthenticated so the client can bootstrap the login flow.</p>
+
+    <div class="tip">
+        <strong>Tip:</strong> Entra ID Direct Authentication is ideal when you want users to sign in with their Microsoft accounts without needing a Cloudflare Access proxy.
+    </div>
+
+    <h3>🔀 Using Both Providers Together</h3>
+    <p>You can enable both Cloudflare Zero Trust and Entra ID simultaneously. In this configuration:</p>
+    <ul>
+        <li>Cloudflare Zero Trust is checked <strong>first</strong> on every request</li>
+        <li>If CF authenticates the user, the <code>AuthProvider</code> is set to <code>"CloudflareZeroTrust"</code> and Entra ID middleware is skipped</li>
+        <li>If CF does not authenticate (e.g., the request doesn't have a CF JWT), the Entra ID middleware runs next</li>
+        <li>If Entra ID authenticates, the <code>AuthProvider</code> is set to <code>"EntraId"</code></li>
+        <li>If neither auth provider authenticates the request, it proceeds as unauthenticated and protected endpoints return 401</li>
+    </ul>
+    <p>This is useful if you have some users accessing via Cloudflare Tunnel (who get CF JWT automatically) and other users accessing locally (who can sign in via MSAL.js).</p>
+
+    <h3>Settings Reference</h3>
+    <table>
+        <tr><th>Setting</th><th>Location</th><th>Description</th></tr>
+        <tr><td>Enable CF Zero Trust</td><td>Settings → Remote Server → CF Zero Trust</td><td>Master enable/disable toggle</td></tr>
+        <tr><td>Team Domain</td><td>Settings → Remote Server → CF Zero Trust</td><td>Your Cloudflare team subdomain</td></tr>
+        <tr><td>Application Audience (AUD)</td><td>Settings → Remote Server → CF Zero Trust</td><td>The AUD tag from CF Access application</td></tr>
+        <tr><td>CF Allowed Emails</td><td>Settings → Remote Server → CF Zero Trust</td><td>Comma-separated email whitelist (optional)</td></tr>
+        <tr><td>Enable Entra ID Auth</td><td>Settings → Remote Server → Entra ID</td><td>Master enable/disable toggle</td></tr>
+        <tr><td>Client ID</td><td>Settings → Remote Server → Entra ID</td><td>Azure app registration client ID</td></tr>
+        <tr><td>Tenant ID</td><td>Settings → Remote Server → Entra ID</td><td>Azure AD tenant ID (or "common")</td></tr>
+        <tr><td>API Scope ID</td><td>Settings → Remote Server → Entra ID</td><td>Application ID URI for scope</td></tr>
+        <tr><td>Entra ID Allowed Emails</td><td>Settings → Remote Server → Entra ID</td><td>Comma-separated email whitelist (optional)</td></tr>
+    </table>
+    <div class="warning">
+        <strong>Important:</strong> All authentication settings are stored in <code>%APPDATA%/PlatypusTools/entra-config.json</code>. This file contains sensitive configuration — ensure it is not shared or committed to version control.
+    </div>
+</section>
+
+<section id="vault" class="section">
+    <h2>🔒 Secure Password Vault <span class="new-badge">New in v4.0</span></h2>
+    <p>PlatypusTools includes a secure, locally-encrypted password vault for storing credentials, secure notes, and API keys. The vault is accessible from both the desktop application and the Platypus Remote webapp.</p>
+
+    <h3>Security Model</h3>
+    <ul>
+        <li><strong>Encryption</strong>: AES-256 encryption with a key derived from your master password using PBKDF2 (Password-Based Key Derivation Function 2)</li>
+        <li><strong>Local Storage</strong>: The encrypted vault file is stored at <code>%APPDATA%/PlatypusTools/vault.dat</code> — your data never leaves your PC</li>
+        <li><strong>Master Password</strong>: Required to unlock the vault. Not stored anywhere — only the derived key is held in memory while the vault is unlocked</li>
+        <li><strong>Auto-Lock</strong>: The vault automatically locks after a configurable period of inactivity</li>
+    </ul>
+
+    <h3>Multi-Factor Authentication (MFA)</h3>
+    <p>The vault supports optional TOTP-based MFA as a second factor for unlocking:</p>
+    <ol>
+        <li>Set up MFA in Settings → Vault Security → Enable MFA</li>
+        <li>Scan the QR code or enter the secret key in your authenticator app (Google Authenticator, Microsoft Authenticator, Authy, etc.)</li>
+        <li>When unlocking the vault, you'll be prompted for your master password <strong>and</strong> a 6-digit TOTP code</li>
+    </ol>
+
+    <h3>Vault Items</h3>
+    <p>Each vault item can store:</p>
+    <ul>
+        <li><strong>Name</strong> — A descriptive name (e.g., "GitHub Account", "AWS Access Key")</li>
+        <li><strong>Username</strong> — Login username or email</li>
+        <li><strong>Password</strong> — Encrypted password</li>
+        <li><strong>URL</strong> — Associated website URL</li>
+        <li><strong>Notes</strong> — Free-form secure notes</li>
+        <li><strong>Folder</strong> — Organize items into folders (e.g., "Work", "Personal", "Finance")</li>
+        <li><strong>Tags</strong> — Additional categorization</li>
+    </ul>
+
+    <h3>Built-in TOTP Authenticator</h3>
+    <p>The vault includes a full TOTP authenticator that generates time-based one-time passwords:</p>
+    <ul>
+        <li>Add TOTP accounts by scanning QR codes or entering secret keys manually</li>
+        <li>RFC 6238 compliant — compatible with Google Authenticator, Microsoft Authenticator, and any TOTP-compatible service</li>
+        <li>Generates 6-digit codes with 30-second refresh intervals</li>
+        <li>TOTP secrets are stored encrypted alongside your vault items</li>
+    </ul>
+
+    <h3>Secure Password Generator</h3>
+    <p>Generate strong passwords directly within the vault:</p>
+    <ul>
+        <li>Configurable length (8-128 characters)</li>
+        <li>Character set options: uppercase, lowercase, digits, special characters</li>
+        <li>Password strength indicator</li>
+        <li>Copy to clipboard with one click</li>
+    </ul>
+
+    <h3>Remote Access via API</h3>
+    <p>The vault is accessible from the Platypus Remote webapp through a full REST API:</p>
+    <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+        <tr><td>GET</td><td><code>/api/vault/status</code></td><td>Check if vault is locked or unlocked</td></tr>
+        <tr><td>POST</td><td><code>/api/vault/unlock</code></td><td>Unlock with master password. Body: <code>{ "password": "..." }</code></td></tr>
+        <tr><td>POST</td><td><code>/api/vault/lock</code></td><td>Lock the vault</td></tr>
+        <tr><td>POST</td><td><code>/api/vault/mfa/verify</code></td><td>Verify TOTP code after password. Body: <code>{ "code": "123456" }</code></td></tr>
+        <tr><td>POST</td><td><code>/api/vault/mfa/cancel</code></td><td>Cancel pending MFA challenge</td></tr>
+        <tr><td>GET</td><td><code>/api/vault/items?folder=...</code></td><td>List all vault items (requires unlocked vault), optional folder filter</td></tr>
+        <tr><td>GET</td><td><code>/api/vault/items/{id}</code></td><td>Get a specific vault item by ID</td></tr>
+        <tr><td>POST</td><td><code>/api/vault/items</code></td><td>Create a new vault item</td></tr>
+        <tr><td>PUT</td><td><code>/api/vault/items/{id}</code></td><td>Update an existing vault item</td></tr>
+        <tr><td>DELETE</td><td><code>/api/vault/items/{id}</code></td><td>Delete a vault item</td></tr>
+        <tr><td>GET</td><td><code>/api/vault/folders</code></td><td>List all folders</td></tr>
+        <tr><td>GET</td><td><code>/api/vault/totp/{id}</code></td><td>Get current TOTP code for an item</td></tr>
+        <tr><td>GET</td><td><code>/api/vault/authenticator</code></td><td>List all TOTP authenticator entries</td></tr>
+        <tr><td>POST</td><td><code>/api/vault/authenticator</code></td><td>Add a new TOTP authenticator entry</td></tr>
+        <tr><td>DELETE</td><td><code>/api/vault/authenticator/{id}</code></td><td>Remove a TOTP authenticator entry</td></tr>
+        <tr><td>GET</td><td><code>/api/vault/generate?length=...&amp;upper=...&amp;digits=...&amp;special=...</code></td><td>Generate a random password</td></tr>
+    </table>
+    <div class="warning">
+        <strong>Security Note:</strong> The vault API only returns data when the vault is unlocked. All <code>/api/vault/items</code> endpoints return 403 if the vault is locked. Always lock the vault when you're done to prevent unauthorized remote access.
+    </div>
+</section>
+
+<section id="photos" class="section">
+    <h2>📷 Remote Photo Gallery <span class="new-badge">New in v4.0</span></h2>
+    <p>Browse and view your photo collection from the Platypus Remote webapp. The photo gallery provides a responsive grid view with thumbnail caching, full-resolution viewing, and EXIF metadata display.</p>
+
+    <h3>Features</h3>
+    <ul>
+        <li><strong>Folder Browsing</strong> — Browse photos organized by their folder structure on your PC</li>
+        <li><strong>Grid Thumbnails</strong> — Fast grid view with pre-generated thumbnails for quick browsing</li>
+        <li><strong>Full Resolution</strong> — Tap any thumbnail to view the full-resolution image with zoom and pan</li>
+        <li><strong>EXIF Metadata</strong> — View detailed photo information:
+            <ul>
+                <li>Camera make and model</li>
+                <li>Lens information</li>
+                <li>Exposure settings (aperture, shutter speed, ISO)</li>
+                <li>GPS coordinates (if embedded)</li>
+                <li>Date taken</li>
+                <li>Image dimensions and file size</li>
+            </ul>
+        </li>
+        <li><strong>Thumbnail Cache</strong> — Thumbnails are cached server-side for fast subsequent loads</li>
+        <li><strong>Cache Management</strong> — View cache size statistics and clear the cache via the API</li>
+    </ul>
+
+    <h3>Supported Formats</h3>
+    <p>JPEG, PNG, GIF, BMP, TIFF, WebP, and other common image formats.</p>
+
+    <h3>REST API Reference</h3>
+    <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+        <tr><td>GET</td><td><code>/api/photos/folders</code></td><td>List photo folders</td></tr>
+        <tr><td>GET</td><td><code>/api/photos?folder=...&amp;page=...&amp;pageSize=...</code></td><td>List photos in a folder (paginated)</td></tr>
+        <tr><td>GET</td><td><code>/api/photos/thumbnail?file=...</code></td><td>Get a thumbnail for a photo</td></tr>
+        <tr><td>GET</td><td><code>/api/photos/full?file=...</code></td><td>Get full-resolution image</td></tr>
+        <tr><td>GET</td><td><code>/api/photos/info?file=...</code></td><td>Get EXIF metadata for a photo</td></tr>
+        <tr><td>GET</td><td><code>/api/photos/cache</code></td><td>Get thumbnail cache statistics</td></tr>
+        <tr><td>POST</td><td><code>/api/photos/cache/clear</code></td><td>Clear the thumbnail cache</td></tr>
+    </table>
+
+    <h3>Setting Up Photo Folders</h3>
+    <ol>
+        <li>Go to <strong>Settings → Remote Server → Photo Folders</strong></li>
+        <li>Add one or more folders containing your photos</li>
+        <li>The remote server will scan these folders and make them available via the API</li>
+        <li>Photos are not copied or moved — they're served directly from their original location</li>
+    </ol>
+    <div class="tip">
+        <strong>Tip:</strong> Point to your existing photo library folders (e.g., <code>D:\Photos</code>, <code>C:\Users\You\Pictures</code>). PlatypusTools serves your photos as-is without modifying them.
+    </div>
 </section>
 
 <section id="system" class="section">
@@ -1966,7 +2796,7 @@ ingress:
 </div>
 
 <footer>
-    <p>PlatypusTools v3.4.3.9.9.8.7.6.5.4.3.2.1.10.9.8.7.6.3.0.9.9.8.7.6.5.4 | © 2026 PlatypusTools Project | Built with .NET 10 / WPF</p>
+    <p>PlatypusTools v4.0.0.0 | &copy; 2026 PlatypusTools Project | Built with .NET 10 / WPF</p>
 </footer>
 
 </body>

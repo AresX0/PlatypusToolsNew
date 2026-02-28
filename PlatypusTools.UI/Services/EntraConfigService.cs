@@ -141,6 +141,37 @@ namespace PlatypusTools.UI.Services
         {
             _cachedConfig = null;
         }
+
+        /// <summary>
+        /// Gets whether Entra ID authentication is configured and enabled for the webapp.
+        /// </summary>
+        public bool IsEntraIdAuthConfigured()
+        {
+            var config = Load();
+            return config.EntraIdAuthEnabled
+                   && !string.IsNullOrWhiteSpace(config.ClientId)
+                   && config.ClientId != GenericClientId;
+        }
+
+        /// <summary>
+        /// Gets whether Cloudflare Zero Trust authentication is configured.
+        /// </summary>
+        public bool IsCloudflareZeroTrustConfigured()
+        {
+            var config = Load();
+            return config.CloudflareZeroTrustEnabled
+                   && !string.IsNullOrWhiteSpace(config.CloudflareTeamDomain)
+                   && !string.IsNullOrWhiteSpace(config.CloudflareAudience);
+        }
+
+        /// <summary>
+        /// Gets the Cloudflare Access certs URL for JWT validation.
+        /// </summary>
+        public string GetCloudflareJwksUrl()
+        {
+            var config = Load();
+            return $"https://{config.CloudflareTeamDomain}.cloudflareaccess.com/cdn-cgi/access/certs";
+        }
     }
 
     /// <summary>
@@ -172,5 +203,44 @@ namespace PlatypusTools.UI.Services
         /// Leave empty to use the well-known Microsoft Graph PowerShell client ID.
         /// </summary>
         public string GraphClientId { get; set; } = "";
+
+        /// <summary>
+        /// Whether Entra ID token authentication is enabled for the webapp.
+        /// When enabled, the webapp uses MSAL.js to sign in and sends Bearer tokens.
+        /// Must be explicitly enabled — disabled by default.
+        /// </summary>
+        public bool EntraIdAuthEnabled { get; set; } = false;
+
+        /// <summary>
+        /// Optional: Comma-separated list of allowed email addresses or domains for Entra ID auth.
+        /// If set, only users whose Entra ID email/UPN matches are allowed.
+        /// Example: "user@company.com,@company.com"
+        /// </summary>
+        public string EntraIdAllowedEmails { get; set; } = "";
+
+        /// <summary>
+        /// Whether Cloudflare Zero Trust authentication is enabled.
+        /// Must be explicitly enabled — disabled by default.
+        /// </summary>
+        public bool CloudflareZeroTrustEnabled { get; set; } = false;
+
+        /// <summary>
+        /// Cloudflare Zero Trust team domain (e.g. "mycompany" for mycompany.cloudflareaccess.com).
+        /// When set, the remote server validates Cf-Access-Jwt-Assertion headers.
+        /// </summary>
+        public string CloudflareTeamDomain { get; set; } = "";
+
+        /// <summary>
+        /// Cloudflare Access Application Audience (AUD) tag.
+        /// Found in Zero Trust dashboard → Access → Applications → your app → Overview.
+        /// </summary>
+        public string CloudflareAudience { get; set; } = "";
+
+        /// <summary>
+        /// Optional: Comma-separated list of allowed email addresses or domains.
+        /// If set, only users whose CF JWT email claim matches are allowed.
+        /// Example: "user@company.com,@company.com"
+        /// </summary>
+        public string CloudflareAllowedEmails { get; set; } = "";
     }
 }

@@ -404,7 +404,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.3.9"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.3.10"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
@@ -628,7 +628,7 @@
                                         <ColumnDefinition Width="100"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="Primary Color:" VerticalAlignment="Center"/>
-                                    <Button x:Name="PrimaryColorButton" Grid.Column="1" Height="30" Background="#1E90FF" ToolTip="Click to change color"/>
+                                    <Button x:Name="PrimaryColorButton" Grid.Column="1" Height="30" Background="#1E90FF" ToolTip="Visualizer primary color" IsHitTestVisible="False"/>
                                 </Grid>
                                 
                                 <Grid Margin="0,8">
@@ -637,7 +637,7 @@
                                         <ColumnDefinition Width="100"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="Background Color:" VerticalAlignment="Center"/>
-                                    <Button x:Name="BackgroundColorButton" Grid.Column="1" Height="30" Background="#0A0E27" ToolTip="Click to change color"/>
+                                    <Button x:Name="BackgroundColorButton" Grid.Column="1" Height="30" Background="#0A0E27" ToolTip="Visualizer background color" IsHitTestVisible="False"/>
                                 </Grid>
                             </StackPanel>
                         </GroupBox>
@@ -725,12 +725,17 @@
                                 <TextBlock Text="Configure your Azure AD app registration for authenticated remote access. These values are stored locally and never committed to source control." 
                                            TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,12"/>
                                 
+                                <CheckBox x:Name="EntraIdAuthEnabledCheck" Content="Enable Entra ID authentication for webapp" 
+                                          Margin="0,0,0,12" FontWeight="SemiBold"
+                                          ToolTip="When enabled, the webapp will prompt users to sign in with Microsoft (MSAL.js). API requests require a valid Bearer token. Disabled by default."/>
+                                
                                 <Grid Margin="0,4">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="140"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
@@ -761,6 +766,12 @@
                                     <TextBox x:Name="EntraGraphClientIdBox" Grid.Row="3" Grid.Column="1" Margin="0,4" 
                                              FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
                                              ToolTip="Leave empty to use the well-known MS Graph PowerShell client ID (14d82eec-...)"/>
+
+                                    <TextBlock Grid.Row="4" Text="Allowed Emails:" VerticalAlignment="Center" Margin="0,4"
+                                               ToolTip="Optional: Comma-separated list of allowed emails or @domains. Only used when Entra ID auth is enabled. Leave empty to allow all."/>
+                                    <TextBox x:Name="EntraIdAllowedEmailsBox" Grid.Row="4" Grid.Column="1" Margin="0,4" 
+                                             FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
+                                             ToolTip="e.g. user@company.com,@company.com — leave empty to allow all authenticated users"/>
                                 </Grid>
 
                                 <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
@@ -771,6 +782,57 @@
 
                                 <TextBlock Margin="0,8,0,0" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"
                                            Text="💡 See DOCS/ENTRA_ID_SETUP.md for instructions on creating your app registration in Azure Portal."/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Cloudflare Zero Trust -->
+                        <GroupBox Header="🛡️ Cloudflare Zero Trust" Margin="0,0,0,16">
+                            <StackPanel Margin="8">
+                                <TextBlock Text="Protect the remote control webapp with Cloudflare Access. When enabled, all API requests must include a valid CF Access JWT. Users authenticate through your Cloudflare Zero Trust login page." 
+                                           TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,12"/>
+                                
+                                <CheckBox x:Name="CfZeroTrustEnabledCheck" Content="Enable Cloudflare Zero Trust authentication" 
+                                          Margin="0,0,0,12" FontWeight="SemiBold"
+                                          ToolTip="When enabled, the remote server requires a valid Cloudflare Access JWT on all API requests. Disabled by default."/>
+                                
+                                <Grid Margin="0,4" IsEnabled="{Binding IsChecked, ElementName=CfZeroTrustEnabledCheck}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="160"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Text="Team Domain:" VerticalAlignment="Center" Margin="0,4"
+                                               ToolTip="Your Cloudflare Zero Trust team name (e.g. 'mycompany' for mycompany.cloudflareaccess.com)"/>
+                                    <TextBox x:Name="CfTeamDomainBox" Grid.Column="1" Margin="0,4" 
+                                             FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
+                                             ToolTip="e.g. mycompany (not the full URL, just the team name)"/>
+
+                                    <TextBlock Grid.Row="1" Text="Application AUD:" VerticalAlignment="Center" Margin="0,4"
+                                               ToolTip="The Application Audience (AUD) tag from Zero Trust → Access → Applications → your app → Overview"/>
+                                    <TextBox x:Name="CfAudienceBox" Grid.Row="1" Grid.Column="1" Margin="0,4" 
+                                             FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
+                                             ToolTip="64-character hex string from your Cloudflare Access application"/>
+
+                                    <TextBlock Grid.Row="2" Text="Allowed Emails:" VerticalAlignment="Center" Margin="0,4"
+                                               ToolTip="Optional: Comma-separated list of emails or @domains. Leave empty to allow all authenticated users."/>
+                                    <TextBox x:Name="CfAllowedEmailsBox" Grid.Row="2" Grid.Column="1" Margin="0,4" 
+                                             FontFamily="Consolas" MaxWidth="400" HorizontalAlignment="Left" MinWidth="340"
+                                             ToolTip="e.g. user@company.com,@company.com — leave empty to allow all"/>
+                                </Grid>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                    <Button x:Name="SaveCfZeroTrustBtn" Content="💾 Save Zero Trust Config" MinWidth="160" 
+                                            Click="SaveCfZeroTrustConfig_Click" Background="#FF4CAF50" Foreground="White" Margin="0,0,8,0"/>
+                                    <TextBlock x:Name="CfZeroTrustStatus" VerticalAlignment="Center" Foreground="{DynamicResource SecondaryTextBrush}" FontStyle="Italic"/>
+                                </StackPanel>
+
+                                <TextBlock Margin="0,8,0,0" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"
+                                           Text="💡 Requires a Cloudflare Tunnel (cloudflared) running + an Access Application configured in the Zero Trust dashboard. The server must be restarted after changing these settings."/>
                             </StackPanel>
                         </GroupBox>
 

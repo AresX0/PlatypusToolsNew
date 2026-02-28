@@ -1,7 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,7 +14,7 @@ namespace PlatypusTools.Core.Services
 {
     /// <summary>
     /// Service for enriching media metadata from online sources.
-    /// Supports MusicBrainz, Discogs, TheAudioDB, and more.
+    /// Supports TMDb (movies/TV), MusicBrainz, Cover Art Archive, lyrics, and AcoustID.
     /// </summary>
     public class MetadataEnrichmentService
     {
@@ -21,10 +26,21 @@ namespace PlatypusTools.Core.Services
             Timeout = TimeSpan.FromSeconds(30)
         };
 
+        private const string TmdbBaseUrl = "https://api.themoviedb.org/3";
+        private const string TmdbImageBaseUrl = "https://image.tmdb.org/t/p";
+
         static MetadataEnrichmentService()
         {
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "PlatypusTools/3.2.0 ( https://github.com/platypustools )");
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "PlatypusTools/3.4.0 ( https://github.com/platypustools )");
         }
+
+        private string? _tmdbApiKey;
+
+        /// <summary>Set the TMDb API key for movie/TV metadata lookups.</summary>
+        public void SetTmdbApiKey(string apiKey) => _tmdbApiKey = apiKey;
+
+        /// <summary>Whether TMDb is configured.</summary>
+        public bool IsTmdbConfigured => !string.IsNullOrEmpty(_tmdbApiKey);
 
         public event EventHandler<MetadataEnrichmentProgress>? ProgressChanged;
 
@@ -32,6 +48,7 @@ namespace PlatypusTools.Core.Services
 
         public class EnrichedMetadata
         {
+            // Common
             public string Title { get; set; } = string.Empty;
             public string Artist { get; set; } = string.Empty;
             public string Album { get; set; } = string.Empty;
@@ -56,6 +73,28 @@ namespace PlatypusTools.Core.Services
             public double Confidence { get; set; }
             public string Source { get; set; } = string.Empty;
             public Dictionary<string, string> AdditionalTags { get; set; } = new();
+
+            // TMDb / Video enrichment
+            public string? Description { get; set; }
+            public string? PosterUrl { get; set; }
+            public string? BackdropUrl { get; set; }
+            public double? Rating { get; set; }
+            public int? VoteCount { get; set; }
+            public string? ReleaseDate { get; set; }
+            public List<string> CastList { get; set; } = new();
+            public string? Director { get; set; }
+            public string? Studio { get; set; }
+            public string? ContentRating { get; set; }
+            public string? TmdbId { get; set; }
+            public string? Network { get; set; }
+
+            // TV Series
+            public string? SeriesName { get; set; }
+            public int? SeasonNumber { get; set; }
+            public int? EpisodeNumber { get; set; }
+            public string? EpisodeTitle { get; set; }
+            public int? TotalSeasons { get; set; }
+            public int? TotalEpisodes { get; set; }
         }
 
         public class MetadataEnrichmentProgress
@@ -550,5 +589,303 @@ namespace PlatypusTools.Core.Services
         }
 
         #endregion
+
+        #region TMDb Movie/TV Metadata
+
+        /// <summary>
+        /// Search TMDb for movie metadata by title and optional year.
+        /// </summary>
+        public async Task<EnrichedMetadata?> SearchTmdbMovieAsync(string title, int? year = null, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrEmpty(_tmdbApiKey)) return null;
+
+            try
+            {
+                var url = $"{TmdbBaseUrl}/search/movie?api_key={_tmdbApiKey}&query={Uri.EscapeDataString(title)}";
+                if (year.HasValue) url += $"&year={year.Value}";
+
+                var response = await _httpClient.GetAsync(url, cancellationToken);
+                if (!response.IsSuccessStatusCode) return null;
+
+                var json = await response.Content.ReadAsStringAsync(cancellationToken);
+                using var doc = JsonDocument.Parse(json);
+
+                if (!doc.RootElement.TryGetProperty("results", out var results) ||
+                    results.GetArrayLength() == 0)
+                    return null;
+
+                var movie = results[0];
+                var movieId = movie.GetProperty("id").GetInt32();
+
+                var metadata = new EnrichedMetadata
+                {
+                    Source = "TMDb",
+                    Confidence = 0.85
+                };
+
+                if (movie.TryGetProperty("title", out var t)) metadata.Title = t.GetString() ?? title;
+                if (movie.TryGetProperty("overview", out var o)) metadata.Description = o.GetString() ?? "";
+                if (movie.TryGetProperty("poster_path", out var pp) && !string.IsNullOrEmpty(pp.GetString()))
+                    metadata.PosterUrl = $"{TmdbImageBaseUrl}/w500{pp.GetString()}";
+                if (movie.TryGetProperty("backdrop_path", out var bp) && !string.IsNullOrEmpty(bp.GetString()))
+                    metadata.BackdropUrl = $"{TmdbImageBaseUrl}/w1280{bp.GetString()}";
+                if (movie.TryGetProperty("vote_average", out var va)) metadata.Rating = va.GetDouble();
+                if (movie.TryGetProperty("vote_count", out var vc)) metadata.VoteCount = vc.GetInt32();
+                if (movie.TryGetProperty("release_date", out var rd))
+                {
+                    metadata.ReleaseDate = rd.GetString();
+                    if (DateTime.TryParse(metadata.ReleaseDate, out var dt)) metadata.Year = dt.Year;
+                }
+                metadata.TmdbId = movieId.ToString();
+
+                // Get credits (cast + director)
+                await EnrichMovieCreditsAsync(movieId, metadata, cancellationToken);
+
+                // Get genres from details
+                await EnrichMovieDetailsAsync(movieId, metadata, cancellationToken);
+
+                return metadata;
+            }
+            catch { return null; }
+        }
+
+        /// <summary>
+        /// Search TMDb for TV show metadata.
+        /// </summary>
+        public async Task<EnrichedMetadata?> SearchTmdbTvShowAsync(string title, int? season = null, int? episode = null, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrEmpty(_tmdbApiKey)) return null;
+
+            try
+            {
+                var url = $"{TmdbBaseUrl}/search/tv?api_key={_tmdbApiKey}&query={Uri.EscapeDataString(title)}";
+
+                var response = await _httpClient.GetAsync(url, cancellationToken);
+                if (!response.IsSuccessStatusCode) return null;
+
+                var json = await response.Content.ReadAsStringAsync(cancellationToken);
+                using var doc = JsonDocument.Parse(json);
+
+                if (!doc.RootElement.TryGetProperty("results", out var results) ||
+                    results.GetArrayLength() == 0)
+                    return null;
+
+                var show = results[0];
+                var showId = show.GetProperty("id").GetInt32();
+
+                var metadata = new EnrichedMetadata
+                {
+                    Source = "TMDb",
+                    Confidence = 0.85
+                };
+
+                if (show.TryGetProperty("name", out var n)) metadata.SeriesName = n.GetString() ?? title;
+                metadata.Title = metadata.SeriesName;
+                if (show.TryGetProperty("overview", out var o)) metadata.Description = o.GetString() ?? "";
+                if (show.TryGetProperty("poster_path", out var pp) && !string.IsNullOrEmpty(pp.GetString()))
+                    metadata.PosterUrl = $"{TmdbImageBaseUrl}/w500{pp.GetString()}";
+                if (show.TryGetProperty("backdrop_path", out var bp) && !string.IsNullOrEmpty(bp.GetString()))
+                    metadata.BackdropUrl = $"{TmdbImageBaseUrl}/w1280{bp.GetString()}";
+                if (show.TryGetProperty("vote_average", out var va)) metadata.Rating = va.GetDouble();
+                if (show.TryGetProperty("vote_count", out var vc)) metadata.VoteCount = vc.GetInt32();
+                if (show.TryGetProperty("first_air_date", out var ad))
+                {
+                    metadata.ReleaseDate = ad.GetString();
+                    if (DateTime.TryParse(metadata.ReleaseDate, out var dt)) metadata.Year = dt.Year;
+                }
+                if (show.TryGetProperty("number_of_seasons", out var ns)) metadata.TotalSeasons = ns.GetInt32();
+                if (show.TryGetProperty("number_of_episodes", out var ne)) metadata.TotalEpisodes = ne.GetInt32();
+                metadata.TmdbId = showId.ToString();
+                metadata.SeasonNumber = season;
+                metadata.EpisodeNumber = episode;
+
+                // Get episode details if specified
+                if (season.HasValue && episode.HasValue)
+                {
+                    await EnrichEpisodeDetailsAsync(showId, season.Value, episode.Value, metadata, cancellationToken);
+                }
+
+                return metadata;
+            }
+            catch { return null; }
+        }
+
+        /// <summary>
+        /// Enrich video metadata by parsing the filename and searching TMDb.
+        /// </summary>
+        public async Task<EnrichedMetadata?> EnrichVideoFileAsync(string filePath, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrEmpty(_tmdbApiKey)) return null;
+
+            var fileName = Path.GetFileNameWithoutExtension(filePath);
+            var parsed = ParseVideoFileName(fileName);
+
+            EnrichedMetadata? metadata;
+            if (parsed.IsTvShow)
+            {
+                metadata = await SearchTmdbTvShowAsync(parsed.CleanTitle, parsed.SeasonNumber, parsed.EpisodeNumber, cancellationToken);
+            }
+            else
+            {
+                metadata = await SearchTmdbMovieAsync(parsed.CleanTitle, parsed.Year, cancellationToken);
+            }
+
+            return metadata;
+        }
+
+        private async Task EnrichMovieCreditsAsync(int movieId, EnrichedMetadata metadata, CancellationToken ct)
+        {
+            try
+            {
+                var url = $"{TmdbBaseUrl}/movie/{movieId}/credits?api_key={_tmdbApiKey}";
+                var response = await _httpClient.GetAsync(url, ct);
+                if (!response.IsSuccessStatusCode) return;
+
+                var json = await response.Content.ReadAsStringAsync(ct);
+                using var doc = JsonDocument.Parse(json);
+
+                if (doc.RootElement.TryGetProperty("cast", out var cast))
+                {
+                    foreach (var member in cast.EnumerateArray().Take(10))
+                    {
+                        if (member.TryGetProperty("name", out var name))
+                            metadata.CastList.Add(name.GetString() ?? "");
+                    }
+                }
+
+                if (doc.RootElement.TryGetProperty("crew", out var crew))
+                {
+                    foreach (var member in crew.EnumerateArray())
+                    {
+                        if (member.TryGetProperty("job", out var job) && job.GetString() == "Director" &&
+                            member.TryGetProperty("name", out var name))
+                        {
+                            metadata.Director = name.GetString();
+                            break;
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private async Task EnrichMovieDetailsAsync(int movieId, EnrichedMetadata metadata, CancellationToken ct)
+        {
+            try
+            {
+                var url = $"{TmdbBaseUrl}/movie/{movieId}?api_key={_tmdbApiKey}";
+                var response = await _httpClient.GetAsync(url, ct);
+                if (!response.IsSuccessStatusCode) return;
+
+                var json = await response.Content.ReadAsStringAsync(ct);
+                using var doc = JsonDocument.Parse(json);
+
+                if (doc.RootElement.TryGetProperty("genres", out var genres))
+                {
+                    var genreNames = new List<string>();
+                    foreach (var g in genres.EnumerateArray())
+                    {
+                        if (g.TryGetProperty("name", out var gn))
+                            genreNames.Add(gn.GetString() ?? "");
+                    }
+                    metadata.Genre = string.Join(", ", genreNames);
+                }
+
+                if (doc.RootElement.TryGetProperty("production_companies", out var companies) &&
+                    companies.GetArrayLength() > 0)
+                {
+                    if (companies[0].TryGetProperty("name", out var cn))
+                        metadata.Studio = cn.GetString();
+                }
+            }
+            catch { }
+        }
+
+        private async Task EnrichEpisodeDetailsAsync(int showId, int season, int episode, EnrichedMetadata metadata, CancellationToken ct)
+        {
+            try
+            {
+                var url = $"{TmdbBaseUrl}/tv/{showId}/season/{season}/episode/{episode}?api_key={_tmdbApiKey}";
+                var response = await _httpClient.GetAsync(url, ct);
+                if (!response.IsSuccessStatusCode) return;
+
+                var json = await response.Content.ReadAsStringAsync(ct);
+                using var doc = JsonDocument.Parse(json);
+
+                if (doc.RootElement.TryGetProperty("name", out var name))
+                    metadata.EpisodeTitle = name.GetString();
+                if (doc.RootElement.TryGetProperty("overview", out var overview))
+                    metadata.Description = overview.GetString() ?? metadata.Description;
+            }
+            catch { }
+        }
+
+        #endregion
+
+        #region Video Filename Parsing
+
+        /// <summary>
+        /// Parse video filename to extract title, year, season/episode info.
+        /// Handles: "Show.Name.S01E02.720p", "Movie.Name.2023.1080p", etc.
+        /// </summary>
+        public static ParsedVideoFileName ParseVideoFileName(string fileName)
+        {
+            var result = new ParsedVideoFileName { OriginalFileName = fileName };
+
+            var cleaned = fileName;
+            cleaned = Regex.Replace(cleaned, @"\.(720|1080|2160|4320)[pi]", "", RegexOptions.IgnoreCase);
+            cleaned = Regex.Replace(cleaned, @"\b(HDTV|WEBRip|WEB-DL|BluRay|BDRip|DVDRip|HDRip|HEVC|x264|x265|AAC|AC3|DTS|FLAC|PROPER|REPACK|INTERNAL)\b", "", RegexOptions.IgnoreCase);
+            cleaned = Regex.Replace(cleaned, @"\[.*?\]", "");
+            cleaned = Regex.Replace(cleaned, @"\(.*?\)", "");
+
+            // TV show pattern: S01E02, 1x02
+            var tvMatch = Regex.Match(fileName, @"[Ss](\d{1,2})[Ee](\d{1,3})");
+            if (!tvMatch.Success)
+                tvMatch = Regex.Match(fileName, @"(\d{1,2})[xX](\d{1,3})");
+
+            if (tvMatch.Success)
+            {
+                result.IsTvShow = true;
+                result.SeasonNumber = int.Parse(tvMatch.Groups[1].Value);
+                result.EpisodeNumber = int.Parse(tvMatch.Groups[2].Value);
+
+                var titlePart = fileName[..tvMatch.Index];
+                titlePart = titlePart.Replace('.', ' ').Replace('_', ' ').Replace('-', ' ').Trim();
+                result.CleanTitle = titlePart;
+            }
+            else
+            {
+                var yearMatch = Regex.Match(cleaned, @"[\.\s_\-]?((?:19|20)\d{2})[\.\s_\-]?");
+                if (yearMatch.Success)
+                {
+                    result.Year = int.Parse(yearMatch.Groups[1].Value);
+                    var titlePart = cleaned[..yearMatch.Index];
+                    titlePart = titlePart.Replace('.', ' ').Replace('_', ' ').Replace('-', ' ').Trim();
+                    result.CleanTitle = titlePart;
+                }
+                else
+                {
+                    result.CleanTitle = cleaned.Replace('.', ' ').Replace('_', ' ').Replace('-', ' ').Trim();
+                }
+            }
+
+            result.CleanTitle = Regex.Replace(result.CleanTitle, @"\s+", " ").Trim();
+            return result;
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Result of parsing a video filename.
+    /// </summary>
+    public class ParsedVideoFileName
+    {
+        public string OriginalFileName { get; set; } = string.Empty;
+        public string CleanTitle { get; set; } = string.Empty;
+        public int? Year { get; set; }
+        public bool IsTvShow { get; set; }
+        public int? SeasonNumber { get; set; }
+        public int? EpisodeNumber { get; set; }
     }
 }

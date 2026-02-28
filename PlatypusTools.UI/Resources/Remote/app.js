@@ -31,12 +31,23 @@ class PlatypusRemote {
         this.vaultAuthRefreshInterval = null; // TOTP refresh timer
         this.generatedPassword = '';
         this.qrStream = null; // Camera stream for QR scanner
+        this.playlists = []; // Cached playlists
+        this.activePlaylist = 'all'; // Currently selected playlist filter
+        this.organizedContent = null; // Cached TV series/movies
+        this.videoViewMode = 'grid'; // 'grid' | 'series' | 'movies'
+        this.seriesDrillPath = []; // Navigation stack for series → season → episode
+        this.currentVideoFilePath = null; // Currently playing video file path
+        this.historyUpdateTimer = null; // Timer for periodic position updates
         
         this.init();
     }
 
     async init() {
         this.bindElements();
+        
+        // Check Cloudflare Zero Trust auth before proceeding
+        if (!await this.checkAuth()) return;
+        
         this.bindEvents();
         this.bindStreamAudioEvents();
         this.bindKeyboardShortcuts();
@@ -44,6 +55,70 @@ class PlatypusRemote {
         this.bindSleepTimer();
         this.setupInstallPrompt();
         await this.connect();
+    }
+
+    // Centralized fetch wrapper that handles 401 responses from CF Zero Trust
+    async apiFetch(url, options = {}) {
+        const response = await fetch(url, options);
+        if (response.status === 401) {
+            const data = await response.json().catch(() => ({}));
+            this.showAuthRequired(data.message || 'Authentication required');
+            throw new Error('Unauthorized');
+        }
+        return response;
+    }
+
+    // Check Cloudflare Zero Trust authentication status
+    async checkAuth() {
+        try {
+            const res = await fetch('/api/auth/status');
+            if (res.status === 401) {
+                // No valid CF Access token — show login message
+                const data = await res.json().catch(() => ({}));
+                this.showAuthRequired(data.message || 'Cloudflare Zero Trust authentication required');
+                return false;
+            }
+            if (res.ok) {
+                const auth = await res.json();
+                if (auth.zeroTrustEnabled && !auth.authenticated) {
+                    this.showAuthRequired('Please authenticate through Cloudflare Access to continue.');
+                    return false;
+                }
+                if (auth.authenticated && auth.email) {
+                    this.authEmail = auth.email;
+                }
+            }
+            return true;
+        } catch (err) {
+            // Network error or server down — let it fall through to normal connect
+            console.warn('Auth check failed (server may be down):', err.message);
+            return true;
+        }
+    }
+
+    // Display authentication-required screen
+    showAuthRequired(message) {
+        const loadingView = this.elements?.loadingView || document.getElementById('loadingView');
+        const mainView = this.elements?.mainView || document.getElementById('mainView');
+        const bottomNav = this.elements?.bottomNav || document.getElementById('bottomNav');
+        
+        if (mainView) mainView.style.display = 'none';
+        if (bottomNav) bottomNav.style.display = 'none';
+        if (loadingView) {
+            loadingView.style.display = 'flex';
+            loadingView.innerHTML = `
+                <div style="text-align:center; padding:40px 20px; max-width:400px;">
+                    <div style="font-size:64px; margin-bottom:20px;">🛡️</div>
+                    <h2 style="margin:0 0 12px; color:#fff;">Authentication Required</h2>
+                    <p style="color:#aaa; margin:0 0 20px; line-height:1.5;">${message}</p>
+                    <p style="color:#888; font-size:13px;">This server is protected by Cloudflare Zero Trust.<br>
+                    You will be redirected to the login page automatically.</p>
+                    <button onclick="location.reload()" 
+                            style="margin-top:20px; padding:12px 32px; background:#2196F3; color:#fff; border:none; border-radius:8px; font-size:15px; cursor:pointer;">
+                        🔄 Retry
+                    </button>
+                </div>`;
+        }
     }
 
     bindElements() {
@@ -100,7 +175,16 @@ class PlatypusRemote {
             videoPlayerModal: document.getElementById('videoPlayerModal'),
             videoPlayer: document.getElementById('videoPlayer'),
             videoPlayerTitle: document.getElementById('videoPlayerTitle'),
-            videoPlayerClose: document.getElementById('videoPlayerClose')
+            videoPlayerClose: document.getElementById('videoPlayerClose'),
+            // Plex-like features
+            continueWatching: document.getElementById('continueWatching'),
+            continueWatchingList: document.getElementById('continueWatchingList'),
+            playlistList: document.getElementById('playlistList'),
+            playlistSection: document.getElementById('playlistSection'),
+            videoViewTabs: document.getElementById('videoViewTabs'),
+            seriesList: document.getElementById('seriesList'),
+            subtitleBar: document.getElementById('subtitleBar'),
+            subtitleSelect: document.getElementById('subtitleSelect')
         };
     }
 
@@ -377,6 +461,8 @@ class PlatypusRemote {
         this.elements.loadingView.style.display = 'none';
         this.elements.mainView.style.display = 'flex';
         if (this.elements.bottomNav) this.elements.bottomNav.style.display = 'flex';
+        // Load Continue Watching on first show
+        this.loadContinueWatching();
     }
 
     showError(message) {
@@ -725,8 +811,9 @@ class PlatypusRemote {
         this.currentTab = tabId;
 
         // Load library data when switching to library tab
-        if (tabId === 'libraryTab' && this.library.length === 0) {
-            this.loadLibrary();
+        if (tabId === 'libraryTab') {
+            if (this.library.length === 0) this.loadLibrary();
+            this.loadPlaylists();
         }
 
         // Re-render queue when switching to queue tab (mode-aware)
@@ -740,8 +827,14 @@ class PlatypusRemote {
         }
 
         // Load video library when switching to videos tab
-        if (tabId === 'videosTab' && !this.videoLibraryLoaded) {
-            this.loadVideoLibrary();
+        if (tabId === 'videosTab') {
+            if (!this.videoLibraryLoaded) this.loadVideoLibrary();
+            if (!this.organizedContent) this.loadOrganizedContent();
+        }
+
+        // Load continue watching when on Now Playing
+        if (tabId === 'nowPlayingTab') {
+            this.loadContinueWatching();
         }
 
         // Load vault status when switching to vault tab
@@ -1516,8 +1609,9 @@ class PlatypusRemote {
         }
     }
 
-    playVideo(filePath, title) {
+    playVideo(filePath, title, seriesInfo) {
         if (!filePath) return;
+        this.currentVideoFilePath = filePath;
 
         const streamUrl = `/api/stream?path=${encodeURIComponent(filePath)}`;
         const video = this.elements.videoPlayer;
@@ -1526,7 +1620,20 @@ class PlatypusRemote {
         this.elements.videoPlayerTitle.textContent = title || 'Video';
         video.src = streamUrl;
         modal.classList.add('active');
-        video.play().catch(() => {}); // Autoplay may be blocked
+
+        // Load resume position
+        this.loadResumePosition(filePath).then(pos => {
+            if (pos > 0) {
+                video.currentTime = pos;
+            }
+            video.play().catch(() => {});
+        });
+
+        // Load subtitle tracks
+        this.loadSubtitleTracks(filePath);
+
+        // Track playback history periodically
+        this.startHistoryTracking(filePath, title, seriesInfo);
 
         // Handle Escape key to close
         this._videoEscHandler = (e) => {
@@ -1539,9 +1646,21 @@ class PlatypusRemote {
         const video = this.elements.videoPlayer;
         const modal = this.elements.videoPlayerModal;
 
+        // Save final position before closing
+        if (this.currentVideoFilePath && video.currentTime > 0) {
+            this.updatePlaybackPosition(this.currentVideoFilePath, video.currentTime);
+        }
+
+        this.stopHistoryTracking();
         video.pause();
         video.src = '';
+
+        // Remove subtitle tracks
+        video.querySelectorAll('track').forEach(t => t.remove());
+        if (this.elements.subtitleBar) this.elements.subtitleBar.style.display = 'none';
+
         modal.classList.remove('active');
+        this.currentVideoFilePath = null;
 
         if (this._videoEscHandler) {
             document.removeEventListener('keydown', this._videoEscHandler);
@@ -2318,6 +2437,445 @@ class PlatypusRemote {
         const newIdx = this.photosLightboxIndex + delta;
         if (newIdx < 0 || newIdx >= this.photosImages.length) return;
         this.openLightbox(newIdx);
+    }
+
+    // ═══════════════════════════════════════════════
+    //  CONTINUE WATCHING / PLAYBACK HISTORY
+    // ═══════════════════════════════════════════════
+
+    async loadContinueWatching() {
+        try {
+            const res = await fetch('/api/history/in-progress');
+            if (!res.ok) return;
+            const items = await res.json();
+            if (!items || items.length === 0) {
+                if (this.elements.continueWatching) this.elements.continueWatching.style.display = 'none';
+                return;
+            }
+            this.renderContinueWatching(items.slice(0, 20));
+        } catch { /* ignore */ }
+    }
+
+    renderContinueWatching(items) {
+        const container = this.elements.continueWatchingList;
+        const section = this.elements.continueWatching;
+        if (!container || !section) return;
+
+        section.style.display = 'block';
+        container.innerHTML = items.map(item => {
+            const progress = item.durationSeconds > 0
+                ? Math.min((item.lastPositionSeconds / item.durationSeconds) * 100, 100)
+                : 0;
+            const remaining = item.durationSeconds - item.lastPositionSeconds;
+            const remText = remaining > 0 ? this.formatVideoTime(remaining) + ' left' : '';
+            const displayTitle = item.episodeNumber
+                ? `S${item.seasonNumber || 0}E${item.episodeNumber} · ${item.title}`
+                : item.title || 'Unknown';
+            return `<div class="cw-card" onclick="platypusRemote.playVideo('${this.escapeJs(item.filePath)}', '${this.escapeJs(item.title || '')}')">
+                <div class="cw-thumb">
+                    <span style="font-size:1.5rem;opacity:0.4">${item.mediaType === 'Audio' ? '🎵' : '🎬'}</span>
+                    <div class="cw-progress"><div class="cw-progress-fill" style="width:${progress}%"></div></div>
+                </div>
+                <div class="cw-info">
+                    <div class="cw-title">${this.escapeHtml(displayTitle)}</div>
+                    <div class="cw-sub">${this.escapeHtml(remText)}</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    async loadResumePosition(filePath) {
+        try {
+            const res = await fetch(`/api/history/resume?path=${encodeURIComponent(filePath)}`);
+            if (!res.ok) return 0;
+            const data = await res.json();
+            return data.resumePositionSeconds || 0;
+        } catch { return 0; }
+    }
+
+    startHistoryTracking(filePath, title, seriesInfo) {
+        this.stopHistoryTracking();
+        const video = this.elements.videoPlayer;
+        // Record initial playback
+        this.recordPlayback(filePath, title, 'Video', video.duration || 0, video.currentTime || 0, seriesInfo);
+        // Update position every 10 seconds
+        this.historyUpdateTimer = setInterval(() => {
+            if (video && !video.paused && this.currentVideoFilePath) {
+                this.updatePlaybackPosition(this.currentVideoFilePath, video.currentTime);
+            }
+        }, 10000);
+        // Record on pause
+        video._onPause = () => {
+            if (this.currentVideoFilePath) {
+                this.updatePlaybackPosition(this.currentVideoFilePath, video.currentTime);
+            }
+        };
+        video._onEnded = () => {
+            if (this.currentVideoFilePath) {
+                this.recordPlayback(this.currentVideoFilePath, title, 'Video',
+                    video.duration || 0, video.duration || 0, seriesInfo);
+            }
+        };
+        video.addEventListener('pause', video._onPause);
+        video.addEventListener('ended', video._onEnded);
+    }
+
+    stopHistoryTracking() {
+        if (this.historyUpdateTimer) {
+            clearInterval(this.historyUpdateTimer);
+            this.historyUpdateTimer = null;
+        }
+        const video = this.elements.videoPlayer;
+        if (video._onPause) { video.removeEventListener('pause', video._onPause); video._onPause = null; }
+        if (video._onEnded) { video.removeEventListener('ended', video._onEnded); video._onEnded = null; }
+    }
+
+    async recordPlayback(filePath, title, mediaType, duration, position, seriesInfo) {
+        try {
+            await fetch('/api/history/record', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    filePath, title, mediaType,
+                    durationSeconds: duration, positionSeconds: position,
+                    seriesName: seriesInfo?.seriesName,
+                    seasonNumber: seriesInfo?.seasonNumber,
+                    episodeNumber: seriesInfo?.episodeNumber
+                })
+            });
+        } catch { /* ignore */ }
+    }
+
+    async updatePlaybackPosition(filePath, position) {
+        try {
+            await fetch('/api/history/position', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filePath, positionSeconds: position })
+            });
+        } catch { /* ignore */ }
+    }
+
+    // ═══════════════════════════════════════════════
+    //  SUBTITLE SUPPORT
+    // ═══════════════════════════════════════════════
+
+    async loadSubtitleTracks(filePath) {
+        const bar = this.elements.subtitleBar;
+        const select = this.elements.subtitleSelect;
+        if (!bar || !select) return;
+
+        // Reset
+        select.innerHTML = '<option value="">Off</option>';
+        bar.style.display = 'none';
+
+        try {
+            const res = await fetch(`/api/subtitles/tracks?path=${encodeURIComponent(filePath)}`);
+            if (!res.ok) return;
+            const tracks = await res.json();
+            if (!tracks || tracks.length === 0) return;
+
+            bar.style.display = 'flex';
+            tracks.forEach(track => {
+                const opt = document.createElement('option');
+                opt.value = track.index;
+                const label = track.language || track.title || `Track ${track.index}`;
+                const extra = track.isForced ? ' (Forced)' : track.isDefault ? ' (Default)' : '';
+                const src = track.isExternal ? ' [External]' : '';
+                opt.textContent = `${label}${extra}${src}`;
+                select.appendChild(opt);
+            });
+
+            // Auto-select default track
+            const defaultTrack = tracks.find(t => t.isDefault);
+            if (defaultTrack) {
+                select.value = defaultTrack.index;
+                this.onSubtitleChange(defaultTrack.index);
+            }
+        } catch { /* ignore */ }
+    }
+
+    async onSubtitleChange(trackIndex) {
+        const video = this.elements.videoPlayer;
+        if (!video || !this.currentVideoFilePath) return;
+
+        // Remove existing tracks
+        video.querySelectorAll('track').forEach(t => t.remove());
+
+        if (!trackIndex && trackIndex !== 0) return;
+
+        try {
+            const vttUrl = `/api/subtitles/content?path=${encodeURIComponent(this.currentVideoFilePath)}&track=${trackIndex}`;
+            const track = document.createElement('track');
+            track.kind = 'subtitles';
+            track.label = 'Subtitles';
+            track.srclang = 'en';
+            track.src = vttUrl;
+            track.default = true;
+            video.appendChild(track);
+            // Activate the track
+            if (video.textTracks.length > 0) {
+                video.textTracks[0].mode = 'showing';
+            }
+        } catch { /* ignore */ }
+    }
+
+    // ═══════════════════════════════════════════════
+    //  TV SERIES / MOVIES BROWSE
+    // ═══════════════════════════════════════════════
+
+    async loadOrganizedContent() {
+        try {
+            const res = await fetch('/api/content/organized');
+            if (!res.ok) return;
+            this.organizedContent = await res.json();
+        } catch { /* ignore */ }
+    }
+
+    switchVideoView(view) {
+        this.videoViewMode = view;
+        this.seriesDrillPath = [];
+
+        // Update tab buttons
+        document.querySelectorAll('.video-view-tab').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.view === view);
+        });
+
+        const grid = this.elements.videoGrid;
+        const series = this.elements.seriesList;
+        const folderBar = document.querySelector('.video-folder-bar');
+
+        if (view === 'grid') {
+            if (grid) grid.style.display = '';
+            if (series) series.style.display = 'none';
+            if (folderBar) folderBar.style.display = '';
+            this.renderVideoGrid(this.videoLibrary);
+        } else if (view === 'series') {
+            if (grid) grid.style.display = 'none';
+            if (series) series.style.display = '';
+            if (folderBar) folderBar.style.display = 'none';
+            this.renderSeriesList();
+        } else if (view === 'movies') {
+            if (grid) grid.style.display = 'none';
+            if (series) series.style.display = '';
+            if (folderBar) folderBar.style.display = 'none';
+            this.renderMoviesList();
+        }
+    }
+
+    renderSeriesList() {
+        const container = this.elements.seriesList;
+        if (!container) return;
+
+        if (!this.organizedContent || !this.organizedContent.tvSeries || this.organizedContent.tvSeries.length === 0) {
+            container.innerHTML = '<div class="no-content"><p>📺 No TV series found</p><p style="font-size:0.85rem;margin-top:8px;">Videos with S01E01 naming patterns will appear here</p></div>';
+            return;
+        }
+
+        const series = this.organizedContent.tvSeries;
+        container.innerHTML = series.map(s => {
+            const seasonCount = s.seasons ? s.seasons.length : 0;
+            const episodeCount = s.seasons ? s.seasons.reduce((sum, sn) => sum + (sn.episodes?.length || 0), 0) : 0;
+            return `<div class="series-card" onclick="platypusRemote.drillIntoSeries('${this.escapeJs(s.name)}')">
+                <div class="series-poster">
+                    ${s.posterUrl ? `<img src="${s.posterUrl}" alt="" loading="lazy">` : '📺'}
+                </div>
+                <div class="series-info">
+                    <div class="series-name">${this.escapeHtml(s.name)}</div>
+                    <div class="series-meta">${seasonCount} season${seasonCount !== 1 ? 's' : ''} · ${episodeCount} episode${episodeCount !== 1 ? 's' : ''}</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    renderMoviesList() {
+        const container = this.elements.seriesList;
+        if (!container) return;
+
+        if (!this.organizedContent || !this.organizedContent.movies || this.organizedContent.movies.length === 0) {
+            container.innerHTML = '<div class="no-content"><p>🎥 No movies found</p><p style="font-size:0.85rem;margin-top:8px;">Standalone video files will appear here</p></div>';
+            return;
+        }
+
+        const movies = this.organizedContent.movies;
+        container.innerHTML = movies.map(m => {
+            return `<div class="series-card" onclick="platypusRemote.playVideo('${this.escapeJs(m.filePath)}', '${this.escapeJs(m.title)}')">
+                <div class="series-poster">
+                    ${m.posterUrl ? `<img src="${m.posterUrl}" alt="" loading="lazy">` : '🎥'}
+                </div>
+                <div class="series-info">
+                    <div class="series-name">${this.escapeHtml(m.title)}</div>
+                    <div class="series-meta">${m.year ? m.year + ' · ' : ''}${m.genre || ''}</div>
+                    ${m.rating ? `<div class="series-badge">⭐ ${m.rating.toFixed(1)}</div>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    drillIntoSeries(seriesName) {
+        const series = this.organizedContent?.tvSeries?.find(s => s.name === seriesName);
+        if (!series) return;
+        this.seriesDrillPath = [seriesName];
+        this.renderSeasonsList(series);
+    }
+
+    renderSeasonsList(series) {
+        const container = this.elements.seriesList;
+        if (!container) return;
+
+        let html = `<div class="drill-header" onclick="platypusRemote.drillBack()">
+            <span class="drill-back">←</span>
+            <span class="drill-title">${this.escapeHtml(series.name)}</span>
+        </div>`;
+
+        if (!series.seasons || series.seasons.length === 0) {
+            html += '<div class="no-content"><p>No seasons found</p></div>';
+        } else if (series.seasons.length === 1) {
+            // Skip season level if only one season
+            this.seriesDrillPath.push(series.seasons[0].seasonNumber);
+            this.renderEpisodeList(series, series.seasons[0]);
+            return;
+        } else {
+            html += series.seasons.map(sn => {
+                const epCount = sn.episodes?.length || 0;
+                return `<div class="season-card" onclick="platypusRemote.drillIntoSeason('${this.escapeJs(series.name)}', ${sn.seasonNumber})">
+                    <h4>Season ${sn.seasonNumber}</h4>
+                    <div class="ep-count">${epCount} episode${epCount !== 1 ? 's' : ''}</div>
+                </div>`;
+            }).join('');
+        }
+        container.innerHTML = html;
+    }
+
+    drillIntoSeason(seriesName, seasonNumber) {
+        const series = this.organizedContent?.tvSeries?.find(s => s.name === seriesName);
+        if (!series) return;
+        const season = series.seasons?.find(sn => sn.seasonNumber === seasonNumber);
+        if (!season) return;
+        this.seriesDrillPath = [seriesName, seasonNumber];
+        this.renderEpisodeList(series, season);
+    }
+
+    renderEpisodeList(series, season) {
+        const container = this.elements.seriesList;
+        if (!container) return;
+
+        let html = `<div class="drill-header" onclick="platypusRemote.drillBack()">
+            <span class="drill-back">←</span>
+            <span class="drill-title">${this.escapeHtml(series.name)} · Season ${season.seasonNumber}</span>
+        </div>`;
+
+        if (!season.episodes || season.episodes.length === 0) {
+            html += '<div class="no-content"><p>No episodes found</p></div>';
+        } else {
+            html += season.episodes.map(ep => {
+                const title = ep.episodeTitle || `Episode ${ep.episodeNumber}`;
+                const watched = ep.isWatched ? ' ep-watched' : '';
+                const resumeBadge = ep.resumePositionSeconds > 0 && !ep.isWatched
+                    ? `<span class="ep-resume-badge">${this.formatVideoTime(ep.resumePositionSeconds)} in</span>`
+                    : '';
+                const seriesInfo = JSON.stringify({
+                    seriesName: series.name,
+                    seasonNumber: season.seasonNumber,
+                    episodeNumber: ep.episodeNumber
+                }).replace(/'/g, "\\'");
+                return `<div class="episode-item${watched}" onclick="platypusRemote.playVideo('${this.escapeJs(ep.filePath)}', '${this.escapeJs(title)}', ${this.escapeHtml(seriesInfo)})">
+                    <div class="ep-number">${ep.episodeNumber}</div>
+                    <div class="ep-info">
+                        <div class="ep-title">${this.escapeHtml(title)}</div>
+                        <div class="ep-meta">${ep.isWatched ? '✅ Watched' : ''} ${resumeBadge}</div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        container.innerHTML = html;
+    }
+
+    drillBack() {
+        if (this.seriesDrillPath.length <= 1) {
+            // Back to series list
+            this.seriesDrillPath = [];
+            this.renderSeriesList();
+        } else {
+            // Back to seasons for this series
+            const seriesName = this.seriesDrillPath[0];
+            this.seriesDrillPath = [seriesName];
+            const series = this.organizedContent?.tvSeries?.find(s => s.name === seriesName);
+            if (series) this.renderSeasonsList(series);
+        }
+    }
+
+    // ═══════════════════════════════════════════════
+    //  PLAYLISTS
+    // ═══════════════════════════════════════════════
+
+    async loadPlaylists() {
+        try {
+            const res = await fetch('/api/playlists');
+            if (!res.ok) return;
+            this.playlists = await res.json();
+            this.renderPlaylistChips();
+        } catch { /* ignore */ }
+    }
+
+    renderPlaylistChips() {
+        const container = this.elements.playlistList;
+        if (!container) return;
+
+        let html = `<div class="playlist-chip ${this.activePlaylist === 'all' ? 'active' : ''}" 
+            data-playlist="all" onclick="platypusRemote.selectPlaylist('all')">All Music</div>`;
+
+        html += this.playlists.map(pl => {
+            const active = this.activePlaylist === pl.id ? 'active' : '';
+            const icon = pl.isCollection ? '📂' : '🎵';
+            return `<div class="playlist-chip ${active}" data-playlist="${pl.id}" 
+                onclick="platypusRemote.selectPlaylist('${this.escapeJs(pl.id)}')">
+                ${icon} ${this.escapeHtml(pl.name)} <span class="pl-count">(${pl.itemCount})</span>
+            </div>`;
+        }).join('');
+
+        container.innerHTML = html;
+    }
+
+    selectPlaylist(id) {
+        this.activePlaylist = id;
+        document.querySelectorAll('.playlist-chip').forEach(c => {
+            c.classList.toggle('active', c.dataset.playlist === id);
+        });
+
+        if (id === 'all') {
+            // Show full library
+            this.renderLibrary(this.library);
+        } else {
+            // Load playlist items and filter library
+            this.loadPlaylistItems(id);
+        }
+    }
+
+    async loadPlaylistItems(playlistId) {
+        try {
+            const res = await fetch(`/api/playlists/${playlistId}`);
+            if (!res.ok) return;
+            const playlist = await res.json();
+            if (playlist.items) {
+                const filePaths = new Set(playlist.items.map(i => i.filePath));
+                const filtered = this.library.filter(item => filePaths.has(item.filePath));
+                this.renderLibrary(filtered);
+            }
+        } catch { /* ignore */ }
+    }
+
+    async createPlaylistPrompt() {
+        const name = prompt('Enter playlist name:');
+        if (!name || !name.trim()) return;
+        try {
+            await fetch('/api/playlists', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name.trim(), description: '', isCollection: false })
+            });
+            await this.loadPlaylists();
+        } catch { /* ignore */ }
     }
 }
 
