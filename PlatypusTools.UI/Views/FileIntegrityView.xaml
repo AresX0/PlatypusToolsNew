@@ -52,17 +52,17 @@
             <StackPanel Orientation="Horizontal" Margin="0,4,0,4">
                 <TextBlock Text="{Binding BaselineInfo}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,20,0" />
                 <Border Background="#FF4CAF50" CornerRadius="3" Padding="8,2" Margin="0,0,8,0">
-                    <TextBlock Foreground="White">
+                    <TextBlock Foreground="{DynamicResource WindowForegroundBrush}">
                         <Run Text="Added: " /><Run Text="{Binding AddedCount, Mode=OneWay}" />
                     </TextBlock>
                 </Border>
                 <Border Background="#FFFF9800" CornerRadius="3" Padding="8,2" Margin="0,0,8,0">
-                    <TextBlock Foreground="White">
+                    <TextBlock Foreground="{DynamicResource WindowForegroundBrush}">
                         <Run Text="Modified: " /><Run Text="{Binding ModifiedCount, Mode=OneWay}" />
                     </TextBlock>
                 </Border>
                 <Border Background="#FFF44336" CornerRadius="3" Padding="8,2">
-                    <TextBlock Foreground="White">
+                    <TextBlock Foreground="{DynamicResource WindowForegroundBrush}">
                         <Run Text="Deleted: " /><Run Text="{Binding DeletedCount, Mode=OneWay}" />
                     </TextBlock>
                 </Border>
@@ -71,8 +71,8 @@
             <!-- Changes Grid -->
             <DataGrid Grid.Row="1" ItemsSource="{Binding Changes}"
                       AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
-                      GridLinesVisibility="Horizontal" AlternatingRowBackground="#FF2A2A3A"
-                      Background="#FF1E1E2E" Foreground="White" BorderThickness="0">
+                      GridLinesVisibility="Horizontal" AlternatingRowBackground="{DynamicResource ControlBackgroundBrush}"
+                      Background="{DynamicResource ControlBackgroundBrush}" Foreground="{DynamicResource WindowForegroundBrush}" BorderThickness="0">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="" Binding="{Binding ChangeIcon}" Width="35" />
                     <DataGridTextColumn Header="Change" Binding="{Binding ChangeType}" Width="70" />
@@ -110,7 +110,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBlock Text="{Binding StatusMessage}" Foreground="#FFB0B0B0" FontSize="11" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" VerticalAlignment="Center" />
             <ProgressBar Grid.Column="1" Value="{Binding Progress}" Width="200" Height="14"
                          Visibility="{Binding IsScanning, Converter={StaticResource BoolToVisibilityConverter}}" />
         </Grid>

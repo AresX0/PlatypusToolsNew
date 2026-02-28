@@ -41,7 +41,7 @@
                                         <VisualBrush Stretch="None" AlignmentX="Left">
                                             <VisualBrush.Visual>
                                                 <TextBlock Text="Type a command..." 
-                                                           Foreground="Gray" 
+                                                           Foreground="{DynamicResource SecondaryTextBrush}" 
                                                            Margin="12,0,0,0"/>
                                             </VisualBrush.Visual>
                                         </VisualBrush>

@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:converters="clr-namespace:PlatypusTools.UI.Converters"
         Title="Recent Workspaces" Height="500" Width="800" WindowStartupLocation="CenterOwner"
-        Background="#F0F0F0">
+        Background="{DynamicResource WindowBackgroundBrush}">
     
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
@@ -67,7 +67,7 @@
                                     
                                     <!-- Path -->
                                     <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding Path}" 
-                                               Foreground="Gray" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                               Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" TextTrimming="CharacterEllipsis"/>
                                     
                                     <!-- Module Badge -->
                                     <Border Grid.Column="2" Grid.Row="0" Background="LightBlue" CornerRadius="3" 
@@ -78,12 +78,12 @@
                                     <!-- Last Accessed -->
                                     <TextBlock Grid.Column="3" Grid.Row="0" 
                                                Text="{Binding LastAccessed, Converter={StaticResource RelativeTimeConverter}}"
-                                               Foreground="Gray" FontSize="11" VerticalAlignment="Center"/>
+                                               Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" VerticalAlignment="Center"/>
                                     
                                     <!-- Access Count -->
                                     <TextBlock Grid.Column="2" Grid.ColumnSpan="2" Grid.Row="1" 
                                                Text="{Binding AccessCount, StringFormat='Opened {0} times'}"
-                                               Foreground="Gray" FontSize="10" HorizontalAlignment="Right"/>
+                                               Foreground="{DynamicResource SecondaryTextBrush}" FontSize="10" HorizontalAlignment="Right"/>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -128,18 +128,18 @@
                                     <StackPanel Grid.Column="1">
                                         <TextBlock Text="{Binding Name}" FontWeight="SemiBold" 
                                                    TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Text="{Binding Path}" Foreground="Gray" FontSize="10" 
+                                        <TextBlock Text="{Binding Path}" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="10" 
                                                    TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
                                     
                                     <!-- Size -->
                                     <TextBlock Grid.Column="2" Text="{Binding FileSizeDisplay}" 
-                                               Foreground="Gray" FontSize="11" VerticalAlignment="Center" Margin="8,0"/>
+                                               Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" VerticalAlignment="Center" Margin="8,0"/>
                                     
                                     <!-- Last Accessed -->
                                     <TextBlock Grid.Column="3" 
                                                Text="{Binding LastAccessed, Converter={StaticResource RelativeTimeConverter}}"
-                                               Foreground="Gray" FontSize="11" VerticalAlignment="Center"/>
+                                               Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" VerticalAlignment="Center"/>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -156,7 +156,7 @@
                     </Grid.RowDefinitions>
                     
                     <TextBlock Grid.Row="0" Text="Pin frequently used paths for quick access" 
-                               Foreground="Gray" Margin="0,8,0,8"/>
+                               Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,8,0,8"/>
                     
                     <ListBox Grid.Row="1" x:Name="PinnedList" BorderThickness="1" BorderBrush="#CCC"
                              MouseDoubleClick="OnPinnedDoubleClick"/>

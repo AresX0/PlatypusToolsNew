@@ -20,7 +20,7 @@
         <StackPanel Grid.Row="0" Margin="0,0,0,15">
             <TextBlock Text="🔄 Reboot Analyzer" FontSize="24" FontWeight="Bold" Margin="0,0,0,5"/>
             <TextBlock Text="Analyze unexpected reboots, crashes, and blue screens to identify root causes and solutions." 
-                       Foreground="Gray" TextWrapping="Wrap"/>
+                       Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap"/>
         </StackPanel>
 
         <!-- Controls -->
@@ -55,7 +55,7 @@
                         IsEnabled="{Binding IsNotAnalyzing}"/>
 
                 <TextBlock Grid.Column="3" Text="{Binding StatusMessage}" 
-                           VerticalAlignment="Center" Margin="20,0,0,0" Foreground="Gray"/>
+                           VerticalAlignment="Center" Margin="20,0,0,0" Foreground="{DynamicResource SecondaryTextBrush}"/>
 
                 <ProgressBar Grid.Column="4" Width="150" Height="20" IsIndeterminate="True"
                              Visibility="{Binding IsAnalyzing, Converter={StaticResource BooleanToVisibilityConverter}}"/>
@@ -79,7 +79,7 @@
                         CornerRadius="5" Padding="10" Margin="0,0,5,0" Background="{DynamicResource CardBackgroundBrush}">
                     <StackPanel HorizontalAlignment="Center">
                         <TextBlock Text="⏱️" FontSize="24" HorizontalAlignment="Center"/>
-                        <TextBlock Text="System Uptime" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
+                        <TextBlock Text="System Uptime" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" HorizontalAlignment="Center"/>
                         <TextBlock Text="{Binding SystemUptime}" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Border>
@@ -241,7 +241,7 @@
                         <Button Content="🗑️ Delete Selected" Command="{Binding DeleteDumpCommand}" 
                                 MinWidth="180" Height="30" Margin="0,0,10,0" Background="#FFF44336" Foreground="White"/>
                         <TextBlock Text="💡 Tip: Use WinDbg to analyze dump files for detailed crash information." 
-                                   VerticalAlignment="Center" Foreground="Gray" Margin="20,0,0,0"/>
+                                   VerticalAlignment="Center" Foreground="{DynamicResource SecondaryTextBrush}" Margin="20,0,0,0"/>
                     </StackPanel>
                 </Grid>
             </TabItem>
@@ -270,26 +270,26 @@
                                 <TextBlock Text="🔧 General Troubleshooting Steps:" FontWeight="Bold" Margin="0,0,0,10"/>
                                 
                                 <TextBlock Text="1. Update Windows and Drivers" FontWeight="SemiBold" Margin="0,5,0,0"/>
-                                <TextBlock Text="   • Run Windows Update to get latest patches" TextWrapping="Wrap" Foreground="Gray"/>
-                                <TextBlock Text="   • Update chipset, graphics, and storage drivers" TextWrapping="Wrap" Foreground="Gray"/>
+                                <TextBlock Text="   • Run Windows Update to get latest patches" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                <TextBlock Text="   • Update chipset, graphics, and storage drivers" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}"/>
                                 
                                 <TextBlock Text="2. Check Hardware Health" FontWeight="SemiBold" Margin="0,10,0,0"/>
-                                <TextBlock Text="   • Run Windows Memory Diagnostic (mdsched.exe)" TextWrapping="Wrap" Foreground="Gray"/>
-                                <TextBlock Text="   • Check disk health with 'chkdsk /f'" TextWrapping="Wrap" Foreground="Gray"/>
-                                <TextBlock Text="   • Monitor temperatures with HWiNFO or similar" TextWrapping="Wrap" Foreground="Gray"/>
+                                <TextBlock Text="   • Run Windows Memory Diagnostic (mdsched.exe)" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                <TextBlock Text="   • Check disk health with 'chkdsk /f'" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                <TextBlock Text="   • Monitor temperatures with HWiNFO or similar" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}"/>
                                 
                                 <TextBlock Text="3. Power Supply" FontWeight="SemiBold" Margin="0,10,0,0"/>
-                                <TextBlock Text="   • Ensure adequate wattage for your system" TextWrapping="Wrap" Foreground="Gray"/>
-                                <TextBlock Text="   • Check all power connections" TextWrapping="Wrap" Foreground="Gray"/>
-                                <TextBlock Text="   • Consider using a UPS for protection" TextWrapping="Wrap" Foreground="Gray"/>
+                                <TextBlock Text="   • Ensure adequate wattage for your system" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                <TextBlock Text="   • Check all power connections" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                <TextBlock Text="   • Consider using a UPS for protection" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}"/>
                                 
                                 <TextBlock Text="4. System Integrity" FontWeight="SemiBold" Margin="0,10,0,0"/>
-                                <TextBlock Text="   • Run 'sfc /scannow' to repair system files" TextWrapping="Wrap" Foreground="Gray"/>
-                                <TextBlock Text="   • Run 'DISM /Online /Cleanup-Image /RestoreHealth'" TextWrapping="Wrap" Foreground="Gray"/>
+                                <TextBlock Text="   • Run 'sfc /scannow' to repair system files" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                <TextBlock Text="   • Run 'DISM /Online /Cleanup-Image /RestoreHealth'" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}"/>
                                 
                                 <TextBlock Text="5. Analyze Crash Dumps" FontWeight="SemiBold" Margin="0,10,0,0"/>
-                                <TextBlock Text="   • Install Windows Debugging Tools (WinDbg)" TextWrapping="Wrap" Foreground="Gray"/>
-                                <TextBlock Text="   • Use '!analyze -v' command for detailed analysis" TextWrapping="Wrap" Foreground="Gray"/>
+                                <TextBlock Text="   • Install Windows Debugging Tools (WinDbg)" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                <TextBlock Text="   • Use '!analyze -v' command for detailed analysis" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}"/>
                             </StackPanel>
                         </ScrollViewer>
                     </GroupBox>
@@ -312,11 +312,11 @@
         <!-- Status Bar -->
         <Border Grid.Row="5" Background="{DynamicResource StatusBarBackgroundBrush}" Padding="10,5" Margin="0,10,0,0">
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Last Analysis: " Foreground="Gray"/>
+                <TextBlock Text="Last Analysis: " Foreground="{DynamicResource SecondaryTextBrush}"/>
                 <TextBlock Text="{Binding LastAnalysisTime, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" FontWeight="SemiBold"/>
-                <TextBlock Text="  |  Days Analyzed: " Foreground="Gray" Margin="20,0,0,0"/>
+                <TextBlock Text="  |  Days Analyzed: " Foreground="{DynamicResource SecondaryTextBrush}" Margin="20,0,0,0"/>
                 <TextBlock Text="{Binding DaysAnalyzed}" FontWeight="SemiBold"/>
-                <TextBlock Text="  |  Last Boot: " Foreground="Gray" Margin="20,0,0,0"/>
+                <TextBlock Text="  |  Last Boot: " Foreground="{DynamicResource SecondaryTextBrush}" Margin="20,0,0,0"/>
                 <TextBlock Text="{Binding LastBootTime, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" FontWeight="SemiBold"/>
             </StackPanel>
         </Border>

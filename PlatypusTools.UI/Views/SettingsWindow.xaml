@@ -15,7 +15,7 @@
         
         <!-- Header -->
         <Border Grid.Row="0" Background="{DynamicResource PrimaryBrush}" Padding="20">
-            <TextBlock Text="⚙ Settings" FontSize="24" FontWeight="Bold" Foreground="White"/>
+            <TextBlock Text="⚙ Settings" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource WindowForegroundBrush}"/>
         </Border>
         
         <!-- Content -->
@@ -404,8 +404,8 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.3.8"/>
-                                <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="Gray" Margin="0,4,0,0"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.3.9"/>
+                                <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
                         </GroupBox>
@@ -443,7 +443,7 @@
                     <StackPanel x:Name="TabVisibilityPanel" Visibility="Collapsed">
                         <TextBlock Text="Tab Visibility" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
                         <TextBlock Text="Choose which tabs appear in the main window. Changes take effect immediately." 
-                                   TextWrapping="Wrap" Margin="0,0,0,16" Foreground="Gray"/>
+                                   TextWrapping="Wrap" Margin="0,0,0,16" Foreground="{DynamicResource SecondaryTextBrush}"/>
                         
                         <!-- File Management -->
                         <GroupBox Header="📁 File Management" Margin="0,0,0,12">
@@ -654,12 +654,12 @@
                     <StackPanel x:Name="LastFmPanel" Visibility="Collapsed">
                         <TextBlock Text="Last.fm Scrobbling" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
                         <TextBlock Text="Connect your Last.fm account to scrobble tracks as you listen. You need a Last.fm API key and secret." 
-                                   TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,16"/>
+                                   TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,16"/>
 
                         <GroupBox Header="API Credentials" Margin="0,0,0,16">
                             <StackPanel Margin="8">
                                 <TextBlock Text="Get your API key at https://www.last.fm/api/account/create" 
-                                           Foreground="Gray" Margin="0,0,0,8"/>
+                                           Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,8"/>
                                 <Grid Margin="0,4">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="120"/>
@@ -685,7 +685,7 @@
                             <StackPanel Margin="8">
                                 <TextBlock x:Name="LastFmStatusText" Text="Not Connected" FontWeight="SemiBold"/>
                                 <TextBlock Text="After saving your credentials, click 'Connect Last.fm' in the Audio Player to authenticate." 
-                                           TextWrapping="Wrap" Foreground="Gray" Margin="0,8,0,0"/>
+                                           TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,8,0,0"/>
                                 <Button Content="Clear Session (Re-authenticate)" MinWidth="220" HorizontalAlignment="Left" Margin="0,12,0,0" Click="ClearLastFmSession_Click"
                                         Background="#FFFF9800" Foreground="White"/>
                             </StackPanel>
@@ -696,7 +696,7 @@
                     <StackPanel x:Name="RemoteControlPanel" Visibility="Collapsed">
                         <TextBlock Text="Platypus Remote Control" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
                         <TextBlock Text="Control audio playback from your phone or tablet using a web browser. Enable the built-in server to access the remote control interface." 
-                                   TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,16"/>
+                                   TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,16"/>
 
                         <GroupBox Header="Server Configuration" Margin="0,0,0,16">
                             <StackPanel Margin="8">
@@ -714,7 +714,7 @@
                                     <TextBlock Text="Server Port:" VerticalAlignment="Center"/>
                                     <TextBox x:Name="RemoteServerPortBox" Grid.Column="1" Text="47392"
                                              IsEnabled="{Binding IsChecked, ElementName=RemoteServerEnabledCheck}"/>
-                                    <TextBlock Grid.Column="2" Text="(default: 47392)" Foreground="Gray" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                    <TextBlock Grid.Column="2" Text="(default: 47392)" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" Margin="8,0,0,0"/>
                                 </Grid>
                             </StackPanel>
                         </GroupBox>
@@ -723,7 +723,7 @@
                         <GroupBox Header="🔐 Entra ID App Registration" Margin="0,0,0,16">
                             <StackPanel Margin="8">
                                 <TextBlock Text="Configure your Azure AD app registration for authenticated remote access. These values are stored locally and never committed to source control." 
-                                           TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,12"/>
+                                           TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,12"/>
                                 
                                 <Grid Margin="0,4">
                                     <Grid.ColumnDefinitions>
@@ -766,10 +766,10 @@
                                 <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
                                     <Button x:Name="SaveEntraConfigBtn" Content="💾 Save Entra Config" MinWidth="140" 
                                             Click="SaveEntraConfig_Click" Background="#FF4CAF50" Foreground="White" Margin="0,0,8,0"/>
-                                    <TextBlock x:Name="EntraConfigStatus" VerticalAlignment="Center" Foreground="Gray" FontStyle="Italic"/>
+                                    <TextBlock x:Name="EntraConfigStatus" VerticalAlignment="Center" Foreground="{DynamicResource SecondaryTextBrush}" FontStyle="Italic"/>
                                 </StackPanel>
 
-                                <TextBlock Margin="0,8,0,0" TextWrapping="Wrap" Foreground="Gray" FontSize="11"
+                                <TextBlock Margin="0,8,0,0" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"
                                            Text="💡 See DOCS/ENTRA_ID_SETUP.md for instructions on creating your app registration in Azure Portal."/>
                             </StackPanel>
                         </GroupBox>
@@ -823,7 +823,7 @@
                                 </Grid>
                                 
                                 <TextBlock Text="Note: Accept the security certificate warning in your browser on first connection." 
-                                           TextWrapping="Wrap" Foreground="Gray" FontStyle="Italic" Margin="0,12,0,0"/>
+                                           TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontStyle="Italic" Margin="0,12,0,0"/>
                             </StackPanel>
                         </GroupBox>
 
@@ -831,7 +831,7 @@
                         <GroupBox Header="🌐 External Access (Cloudflare Tunnel)" Margin="0,0,0,16">
                             <StackPanel Margin="8">
                                 <TextBlock Text="Access Platypus Remote from anywhere without port forwarding. Cloudflare Tunnel creates a secure connection to your server." 
-                                           TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,12"/>
+                                           TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,12"/>
                                 
                                 <CheckBox x:Name="CloudflareTunnelEnabledCheck" Content="Enable Cloudflare Tunnel" Margin="0,4"
                                           ToolTip="Enables external access via Cloudflare's secure tunnel"/>
@@ -845,7 +845,7 @@
                                 <RadioButton x:Name="QuickTunnelRadio" Content="Quick Tunnel (No account required)" GroupName="TunnelType" IsChecked="True" Margin="0,4"
                                              IsEnabled="{Binding IsChecked, ElementName=CloudflareTunnelEnabledCheck}"/>
                                 <TextBlock Text="Generates a random *.trycloudflare.com URL. URL changes each time tunnel starts." 
-                                           Foreground="Gray" FontSize="11" Margin="20,0,0,8"/>
+                                           Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="20,0,0,8"/>
                                 
                                 <RadioButton x:Name="NamedTunnelRadio" Content="Named Tunnel (Custom hostname)" GroupName="TunnelType" Margin="0,4"
                                              IsEnabled="{Binding IsChecked, ElementName=CloudflareTunnelEnabledCheck}"/>
@@ -860,7 +860,7 @@
                                                  Text="platypus.yourdomain.com" MaxWidth="300" HorizontalAlignment="Left"/>
                                     </Grid>
                                     <TextBlock Text="Requires Cloudflare account setup. Click 'Setup Account' first." 
-                                               Foreground="Gray" FontSize="11" Margin="0,4,0,0"/>
+                                               Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,4,0,0"/>
                                     <Button x:Name="CloudflareLoginBtn" Content="🔐 Setup Cloudflare Account" MinWidth="200" HorizontalAlignment="Left" 
                                             Margin="0,8,0,0" Click="CloudflareLogin_Click"/>
                                 </StackPanel>
@@ -870,7 +870,7 @@
                                 <!-- Persistent Tunnel Control -->
                                 <TextBlock Text="Persistent Tunnel:" FontWeight="SemiBold" Margin="0,8,0,4"/>
                                 <TextBlock Text="The tunnel runs as a background process. Enable auto-start to launch it on login (no admin needed)." 
-                                           TextWrapping="Wrap" Foreground="Gray" FontSize="11" Margin="0,0,0,8"/>
+                                           TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,8"/>
                                 
                                 <StackPanel Orientation="Horizontal" Margin="0,4">
                                     <TextBlock Text="Service Status: " FontWeight="SemiBold" VerticalAlignment="Center"/>
@@ -893,7 +893,7 @@
                                 <!-- Tunnel Status (process-based - for quick tunnels) -->
                                 <TextBlock Text="Quick Tunnel (Temporary):" FontWeight="SemiBold" Margin="0,8,0,4"/>
                                 <TextBlock Text="For quick/temporary tunnels only. Use the Persistent Tunnel section above for your named tunnel." 
-                                           TextWrapping="Wrap" Foreground="Gray" FontSize="11" Margin="0,0,0,8"/>
+                                           TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,8"/>
                                 
                                 <StackPanel Orientation="Horizontal" Margin="0,8">
                                     <TextBlock Text="Tunnel Status: " FontWeight="SemiBold"/>
@@ -988,7 +988,7 @@
                     <StackPanel x:Name="DependenciesPanel" Visibility="Collapsed">
                         <TextBlock Text="Dependencies" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
                         <TextBlock Text="Some features require external tools. Use this section to check and install them." 
-                                   TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,16"/>
+                                   TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,16"/>
                         
                         <GroupBox Header="Dependency Status" Margin="0,0,0,16">
                             <StackPanel Margin="8">
@@ -1001,7 +1001,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock x:Name="DepFFmpegStatus" Text="⏳" FontSize="14"/>
                                     <TextBlock Grid.Column="1" Text="FFmpeg" FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="DepFFmpegInfo" Grid.Column="2" Text="Checking..." Foreground="Gray"/>
+                                    <TextBlock x:Name="DepFFmpegInfo" Grid.Column="2" Text="Checking..." Foreground="{DynamicResource SecondaryTextBrush}"/>
                                     <Button x:Name="DepFFmpegBtn" Grid.Column="3" Content="Install" MinWidth="180" Click="DepInstallFFmpeg_Click"/>
                                 </Grid>
                                 <Grid Margin="0,8">
@@ -1013,7 +1013,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock x:Name="DepExifToolStatus" Text="⏳" FontSize="14"/>
                                     <TextBlock Grid.Column="1" Text="ExifTool" FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="DepExifToolInfo" Grid.Column="2" Text="Checking..." Foreground="Gray"/>
+                                    <TextBlock x:Name="DepExifToolInfo" Grid.Column="2" Text="Checking..." Foreground="{DynamicResource SecondaryTextBrush}"/>
                                     <Button x:Name="DepExifToolBtn" Grid.Column="3" Content="Install" MinWidth="180" Click="DepInstallExifTool_Click"/>
                                 </Grid>
                                 <Grid Margin="0,8">
@@ -1025,7 +1025,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock x:Name="DepYtDlpStatus" Text="⏳" FontSize="14"/>
                                     <TextBlock Grid.Column="1" Text="yt-dlp" FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="DepYtDlpInfo" Grid.Column="2" Text="Checking..." Foreground="Gray"/>
+                                    <TextBlock x:Name="DepYtDlpInfo" Grid.Column="2" Text="Checking..." Foreground="{DynamicResource SecondaryTextBrush}"/>
                                     <Button x:Name="DepYtDlpBtn" Grid.Column="3" Content="Install" MinWidth="180" Click="DepInstallYtDlp_Click"/>
                                 </Grid>
                                 <Grid Margin="0,8">
@@ -1037,7 +1037,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock x:Name="DepWebView2Status" Text="⏳" FontSize="14"/>
                                     <TextBlock Grid.Column="1" Text="WebView2" FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="DepWebView2Info" Grid.Column="2" Text="Checking..." Foreground="Gray"/>
+                                    <TextBlock x:Name="DepWebView2Info" Grid.Column="2" Text="Checking..." Foreground="{DynamicResource SecondaryTextBrush}"/>
                                     <Button x:Name="DepWebView2Btn" Grid.Column="3" Content="Install" MinWidth="180" Click="DepInstallWebView2_Click"/>
                                 </Grid>
                                 
@@ -1053,7 +1053,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock x:Name="DepTailscaleStatus" Text="⏳" FontSize="14"/>
                                     <TextBlock Grid.Column="1" Text="Tailscale" FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="DepTailscaleInfo" Grid.Column="2" Text="Checking..." Foreground="Gray"/>
+                                    <TextBlock x:Name="DepTailscaleInfo" Grid.Column="2" Text="Checking..." Foreground="{DynamicResource SecondaryTextBrush}"/>
                                     <Button x:Name="DepTailscaleBtn" Grid.Column="3" Content="Download ↗" MinWidth="180" Click="DepOpenTailscaleSite_Click"/>
                                 </Grid>
                                 <Grid Margin="0,8">
@@ -1065,7 +1065,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock x:Name="DepCloudflaredStatus" Text="⏳" FontSize="14"/>
                                     <TextBlock Grid.Column="1" Text="cloudflared" FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="DepCloudflaredInfo" Grid.Column="2" Text="Checking..." Foreground="Gray"/>
+                                    <TextBlock x:Name="DepCloudflaredInfo" Grid.Column="2" Text="Checking..." Foreground="{DynamicResource SecondaryTextBrush}"/>
                                     <Button x:Name="DepCloudflaredBtn" Grid.Column="3" Content="Install" MinWidth="180" Click="DepInstallCloudflared_Click"/>
                                 </Grid>
                                 
@@ -1077,7 +1077,7 @@
                             <StackPanel Margin="8">
                                 <CheckBox x:Name="ShowDependencyPromptCheck" Content="Show dependency setup on startup if tools are missing" IsChecked="True" Margin="0,4"/>
                                 <TextBlock Text="When enabled, a setup window will appear on startup if any dependencies are missing." 
-                                           Foreground="Gray" FontSize="11" Margin="20,2,0,8"/>
+                                           Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="20,2,0,8"/>
                                 <Button Content="Open Dependency Setup Window..." MinWidth="220" HorizontalAlignment="Left" Margin="0,8,0,0" Click="OpenDependencySetup_Click"/>
                             </StackPanel>
                         </GroupBox>
@@ -1089,23 +1089,23 @@
                                 </TextBlock>
                                 <StackPanel Orientation="Horizontal" Margin="0,4">
                                     <Button Content="FFmpeg Website ↗" MinWidth="180" Click="DepOpenFFmpegSite_Click"/>
-                                    <TextBlock Text="Video editing, screen recording" VerticalAlignment="Center" Foreground="Gray" Margin="12,0,0,0"/>
+                                    <TextBlock Text="Video editing, screen recording" VerticalAlignment="Center" Foreground="{DynamicResource SecondaryTextBrush}" Margin="12,0,0,0"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,8">
                                     <Button Content="ExifTool Website ↗" MinWidth="180" Click="DepOpenExifToolSite_Click"/>
-                                    <TextBlock Text="Metadata editing" VerticalAlignment="Center" Foreground="Gray" Margin="12,0,0,0"/>
+                                    <TextBlock Text="Metadata editing" VerticalAlignment="Center" Foreground="{DynamicResource SecondaryTextBrush}" Margin="12,0,0,0"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,8">
                                     <Button Content="WebView2 Runtime ↗" MinWidth="180" Click="DepOpenWebView2Site_Click"/>
-                                    <TextBlock Text="Help system, browser features" VerticalAlignment="Center" Foreground="Gray" Margin="12,0,0,0"/>
+                                    <TextBlock Text="Help system, browser features" VerticalAlignment="Center" Foreground="{DynamicResource SecondaryTextBrush}" Margin="12,0,0,0"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,8">
                                     <Button Content="Tailscale Website ↗" MinWidth="180" Click="DepOpenTailscaleSite_Click"/>
-                                    <TextBlock Text="Secure remote access (optional)" VerticalAlignment="Center" Foreground="Gray" Margin="12,0,0,0"/>
+                                    <TextBlock Text="Secure remote access (optional)" VerticalAlignment="Center" Foreground="{DynamicResource SecondaryTextBrush}" Margin="12,0,0,0"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,8">
                                     <Button Content="cloudflared Releases ↗" MinWidth="180" Click="DepOpenCloudflaredSite_Click"/>
-                                    <TextBlock Text="Cloudflare tunnel remote access (optional)" VerticalAlignment="Center" Foreground="Gray" Margin="12,0,0,0"/>
+                                    <TextBlock Text="Cloudflare tunnel remote access (optional)" VerticalAlignment="Center" Foreground="{DynamicResource SecondaryTextBrush}" Margin="12,0,0,0"/>
                                 </StackPanel>
                                 <Button Content="📁 Open Tools Folder" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="DepOpenToolsFolder_Click"/>
                             </StackPanel>

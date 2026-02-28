@@ -70,7 +70,7 @@
         </GroupBox>
 
         <!-- Status Bar -->
-        <Border Grid.Row="3" Background="#F0F0F0" BorderBrush="#CCCCCC" BorderThickness="1" Padding="10">
+        <Border Grid.Row="3" Background="{DynamicResource ControlBackgroundBrush}" BorderBrush="#CCCCCC" BorderThickness="1" Padding="10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

@@ -136,7 +136,7 @@
             <!-- CENTER: Image Canvas -->
             <Grid Grid.Column="2" Margin="0">
                 <ScrollViewer x:Name="ImageScrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                              Background="#F0F0F0">
+                              Background="{DynamicResource ControlBackgroundBrush}">
                     <Grid x:Name="CanvasContainer">
                         <Image x:Name="ImagePreview" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         <Canvas x:Name="DrawingOverlay" 
@@ -240,7 +240,7 @@
                                             </CheckBox.LayoutTransform>
                                         </CheckBox>
                                         <TextBlock Grid.Column="1" Text="{Binding Name}" Margin="2,0" VerticalAlignment="Center" FontSize="10" TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Grid.Column="2" Text="{Binding Opacity, StringFormat='{}{0:P0}'}" FontSize="8" Foreground="Gray" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding Opacity, StringFormat='{}{0:P0}'}" FontSize="8" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center"/>
                                     </Grid>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>

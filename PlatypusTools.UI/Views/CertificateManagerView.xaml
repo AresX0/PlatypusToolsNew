@@ -45,8 +45,8 @@
             <!-- Certificate List -->
             <DataGrid Grid.Column="0" ItemsSource="{Binding Certificates}" SelectedItem="{Binding SelectedCertificate}"
                       AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
-                      GridLinesVisibility="Horizontal" AlternatingRowBackground="#FF2A2A3A"
-                      Background="#FF1E1E2E" Foreground="White" BorderThickness="0">
+                      GridLinesVisibility="Horizontal" AlternatingRowBackground="{DynamicResource ControlBackgroundBrush}"
+                      Background="{DynamicResource ControlBackgroundBrush}" Foreground="{DynamicResource WindowForegroundBrush}" BorderThickness="0">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="" Binding="{Binding StatusIcon}" Width="35" />
                     <DataGridTextColumn Header="Subject" Binding="{Binding SubjectShort}" Width="*" MinWidth="200">
@@ -86,7 +86,7 @@
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <TextBox Text="{Binding CertDetails, Mode=OneWay}" IsReadOnly="True"
                                  FontFamily="Consolas" FontSize="11"
-                                 Background="Transparent" Foreground="#FFE0E0E0"
+                                 Background="Transparent" Foreground="{DynamicResource WindowForegroundBrush}"
                                  BorderThickness="0" TextWrapping="Wrap" />
                     </ScrollViewer>
                 </GroupBox>
@@ -104,6 +104,6 @@
 
         <!-- Status Bar -->
         <TextBlock Grid.Row="4" Text="{Binding StatusMessage}" Margin="0,4,0,0"
-                   Foreground="#FFB0B0B0" FontSize="11" />
+                   Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" />
     </Grid>
 </UserControl>

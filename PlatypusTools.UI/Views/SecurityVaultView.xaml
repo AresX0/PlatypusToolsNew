@@ -21,17 +21,16 @@
         <!-- LOCKED STATE: Login / Create Vault -->
         <Grid Visibility="{Binding IsLocked, Converter={StaticResource BoolToVis}}">
             <Border HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Background="#FF1E1E1E" CornerRadius="12" Padding="40" MinWidth="420">
+                    Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="12" Padding="40" MinWidth="420">
                 <StackPanel>
-                    <TextBlock Text="🔐 PlatypusTools Vault" FontSize="24" FontWeight="Bold"
-                               Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                    <TextBlock Text="Your passwords, secured." Foreground="#FFAAAAAA" FontSize="13"
+                    <TextBlock Text="🔐 PlatypusTools Vault" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource WindowForegroundBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                    <TextBlock Text="Your passwords, secured." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="13"
                                HorizontalAlignment="Center" Margin="0,0,0,24"/>
 
                     <!-- If vault exists: unlock (hidden when MFA is pending) -->
                     <StackPanel Visibility="{Binding VaultExists, Converter={StaticResource BoolToVis}}"
                                 x:Name="UnlockPanel">
-                        <TextBlock Text="Master Password" Foreground="#FFCCCCCC" Margin="0,0,0,4"/>
+                        <TextBlock Text="Master Password" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,4"/>
                         <PasswordBox x:Name="MasterPasswordBox" FontSize="14" Padding="6"
                                      PasswordChanged="MasterPasswordBox_PasswordChanged"/>
                         <Button Content="🔓 Unlock Vault" Command="{Binding UnlockVaultCommand}"
@@ -41,14 +40,13 @@
 
                     <!-- MFA Verification (shown after password validated, when MFA is enabled) -->
                     <StackPanel Visibility="{Binding MfaRequired, Converter={StaticResource BoolToVis}}">
-                        <TextBlock Text="🔐 Multi-Factor Authentication" FontSize="16" FontWeight="SemiBold"
-                                   Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        <TextBlock Text="🔐 Multi-Factor Authentication" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource WindowForegroundBrush}" HorizontalAlignment="Center" Margin="0,0,0,12"/>
 
                         <!-- TOTP Code Entry (shown when TOTP or Both required) -->
                         <StackPanel Visibility="{Binding MfaRequiresTotp, Converter={StaticResource BoolToVis}}"
                                     Margin="0,0,0,8">
                             <TextBlock Text="Enter 6-digit code from your authenticator app"
-                                       Foreground="#FFCCCCCC" Margin="0,0,0,4" FontSize="12"/>
+                                       Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,4" FontSize="12"/>
                             <TextBox Text="{Binding MfaCodeInput, UpdateSourceTrigger=PropertyChanged}"
                                      FontSize="20" FontFamily="Consolas" Padding="8" MaxLength="6"
                                      HorizontalContentAlignment="Center"/>
@@ -84,12 +82,12 @@
 
                     <!-- Create vault (only when no vault exists) -->
                     <StackPanel x:Name="CreatePanel" Visibility="Collapsed">
-                        <TextBlock Text="Create a new vault" Foreground="#FFCCCCCC" FontSize="14"
+                        <TextBlock Text="Create a new vault" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="14"
                                    HorizontalAlignment="Center" Margin="0,0,0,16"/>
-                        <TextBlock Text="Master Password" Foreground="#FFCCCCCC" Margin="0,0,0,4"/>
+                        <TextBlock Text="Master Password" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,4"/>
                         <PasswordBox x:Name="NewPasswordBox" FontSize="14" Padding="6"
                                      PasswordChanged="NewPasswordBox_PasswordChanged"/>
-                        <TextBlock Text="Confirm Password" Foreground="#FFCCCCCC" Margin="0,8,0,4"/>
+                        <TextBlock Text="Confirm Password" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,8,0,4"/>
                         <PasswordBox x:Name="ConfirmPasswordBox" FontSize="14" Padding="6"
                                      PasswordChanged="ConfirmPasswordBox_PasswordChanged"/>
                         <Button Content="🔒 Create Vault" Command="{Binding CreateVaultCommand}"
@@ -129,7 +127,7 @@
                             Background="#FF2196F3" Foreground="White" Padding="8,4" Margin="0,0,4,0"/>
                     <Button Content="📝 Note" Command="{Binding AddSecureNoteCommand}"
                             Background="#FFFF9800" Foreground="White" Padding="8,4" Margin="0,0,4,0"/>
-                    <Border Width="1" Background="#FF555555" Margin="8,2"/>
+                    <Border Width="1" Background="{DynamicResource ControlBorderBrush}" Margin="8,2"/>
                     <Button Content="📁 Folder" Command="{Binding AddFolderCommand}"
                             Padding="8,4" Margin="0,0,4,0"/>
                 </StackPanel>
@@ -146,7 +144,7 @@
                                         <Setter.Value>
                                             <VisualBrush Stretch="None" AlignmentX="Left">
                                                 <VisualBrush.Visual>
-                                                    <TextBlock Text="  🔍 Search vault..." Foreground="#FF999999" FontSize="13"
+                                                    <TextBlock Text="  🔍 Search vault..." Foreground="{DynamicResource SecondaryTextBrush}" FontSize="13"
                                                                VerticalAlignment="Center" Margin="6,0"/>
                                                 </VisualBrush.Visual>
                                             </VisualBrush>
@@ -181,10 +179,10 @@
                         </Grid.ColumnDefinitions>
 
                         <!-- Left Sidebar: Filters + Folders -->
-                        <Border Grid.Column="0" BorderBrush="#FF444444" BorderThickness="0,0,1,0" Padding="4">
+                        <Border Grid.Column="0" BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="0,0,1,0" Padding="4">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel>
-                                    <TextBlock Text="FILTERS" FontWeight="Bold" Foreground="#FF888888" FontSize="11" Margin="4,4,4,8"/>
+                                    <TextBlock Text="FILTERS" FontWeight="Bold" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="4,4,4,8"/>
                                     <ListBox ItemsSource="{Binding ItemTypeFilters}"
                                              SelectedItem="{Binding SelectedItemTypeFilter}"
                                              BorderThickness="0" Background="Transparent" Padding="0">
@@ -196,9 +194,9 @@
                                     </ListBox>
 
                                     <DockPanel Margin="4,16,4,8">
-                                        <TextBlock Text="FOLDERS" FontWeight="Bold" Foreground="#FF888888" FontSize="11" VerticalAlignment="Center"/>
+                                        <TextBlock Text="FOLDERS" FontWeight="Bold" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" VerticalAlignment="Center"/>
                                         <Button Content="✕" FontSize="9" Padding="4,1" Margin="6,0,0,0"
-                                                Background="Transparent" Foreground="#FF888888" BorderThickness="0"
+                                                Background="Transparent" Foreground="{DynamicResource SecondaryTextBrush}" BorderThickness="0"
                                                 ToolTip="Clear folder filter (show all items)"
                                                 Visibility="{Binding SelectedFolder, Converter={StaticResource NullToVisibilityConverter}}"
                                                 Command="{Binding ClearFolderFilterCommand}" HorizontalAlignment="Left"/>
@@ -217,24 +215,24 @@
                                     </ListBox>
 
                                     <!-- Item counts -->
-                                    <Border Margin="4,16,4,0" Padding="4" Background="#FF2A2A2A" CornerRadius="4">
+                                    <Border Margin="4,16,4,0" Padding="4" Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="4">
                                         <StackPanel>
-                                            <TextBlock FontSize="11" Foreground="#FFAAAAAA">
+                                            <TextBlock FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}">
                                                 <Run Text="Total: "/><Run Text="{Binding TotalItemCount, Mode=OneWay}"/>
                                             </TextBlock>
-                                            <TextBlock FontSize="11" Foreground="#FFAAAAAA">
+                                            <TextBlock FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}">
                                                 <Run Text="Logins: "/><Run Text="{Binding LoginCount, Mode=OneWay}"/>
                                             </TextBlock>
-                                            <TextBlock FontSize="11" Foreground="#FFAAAAAA">
+                                            <TextBlock FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}">
                                                 <Run Text="Cards: "/><Run Text="{Binding CardCount, Mode=OneWay}"/>
                                             </TextBlock>
-                                            <TextBlock FontSize="11" Foreground="#FFAAAAAA">
+                                            <TextBlock FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}">
                                                 <Run Text="Identities: "/><Run Text="{Binding IdentityCount, Mode=OneWay}"/>
                                             </TextBlock>
-                                            <TextBlock FontSize="11" Foreground="#FFAAAAAA">
+                                            <TextBlock FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}">
                                                 <Run Text="Notes: "/><Run Text="{Binding NoteCount, Mode=OneWay}"/>
                                             </TextBlock>
-                                            <TextBlock FontSize="11" Foreground="#FFAAAAAA">
+                                            <TextBlock FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}">
                                                 <Run Text="⭐ Favorites: "/><Run Text="{Binding FavoriteCount, Mode=OneWay}"/>
                                             </TextBlock>
                                         </StackPanel>
@@ -244,7 +242,7 @@
                         </Border>
 
                         <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"
-                                      Background="#FF333333" Cursor="SizeWE"/>
+                                      Background="{DynamicResource ControlBorderBrush}" Cursor="SizeWE"/>
 
                         <!-- Center: Item List -->
                         <ListBox Grid.Column="2" ItemsSource="{Binding FilteredItems}"
@@ -281,7 +279,7 @@
                                                 <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"
                                                            TextTrimming="CharacterEllipsis"/>
                                                 <TextBlock Text="{Binding Login.Username}" FontSize="11"
-                                                           Foreground="#FF999999" TextTrimming="CharacterEllipsis"/>
+                                                           Foreground="{DynamicResource SecondaryTextBrush}" TextTrimming="CharacterEllipsis"/>
                                             </StackPanel>
                                             <TextBlock Grid.Column="2" Text="⭐" FontSize="14"
                                                        VerticalAlignment="Center"
@@ -293,14 +291,14 @@
                         </ListBox>
 
                         <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch"
-                                      Background="#FF333333" Cursor="SizeWE"/>
+                                      Background="{DynamicResource ControlBorderBrush}" Cursor="SizeWE"/>
 
                         <!-- Right: Item Detail Panel -->
                         <ScrollViewer Grid.Column="4" VerticalScrollBarVisibility="Auto" Padding="8">
                             <StackPanel>
                                 <!-- No item selected -->
                                 <TextBlock Text="Select an item to view details"
-                                           Foreground="#FF888888" FontSize="14" HorizontalAlignment="Center"
+                                           Foreground="{DynamicResource SecondaryTextBrush}" FontSize="14" HorizontalAlignment="Center"
                                            Margin="0,40,0,0">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
@@ -317,13 +315,13 @@
                                 <!-- Item detail (when selected) -->
                                 <StackPanel Visibility="{Binding IsItemSelected, Converter={StaticResource BoolToVis}}">
                                     <!-- Name -->
-                                    <TextBlock Text="Name" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                    <TextBlock Text="Name" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                     <TextBox Text="{Binding SelectedItem.Name, UpdateSourceTrigger=PropertyChanged}"
                                              FontSize="14" Padding="6" Margin="0,0,0,12"/>
 
                                     <!-- LOGIN FIELDS -->
                                     <StackPanel Visibility="{Binding IsLoginItem, Converter={StaticResource BoolToVis}}">
-                                        <TextBlock Text="Username" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Username" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                         <Grid Margin="0,0,0,8">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
@@ -335,7 +333,7 @@
                                                     ToolTip="Copy Username" Width="32" Margin="4,0,0,0"/>
                                         </Grid>
 
-                                        <TextBlock Text="Password" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Password" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                         <Grid Margin="0,0,0,8">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
@@ -351,7 +349,7 @@
                                         </Grid>
 
                                         <!-- TOTP -->
-                                        <TextBlock Text="Authenticator Key (TOTP)" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Authenticator Key (TOTP)" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                         <TextBox Text="{Binding SelectedItem.Login.TotpSecret, UpdateSourceTrigger=PropertyChanged}"
                                                  FontSize="13" Padding="6" Margin="0,0,0,4"/>
                                         <Grid Margin="0,0,0,12">
@@ -372,7 +370,7 @@
                                         </Grid>
 
                                         <!-- URIs -->
-                                        <TextBlock Text="URIs" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBlock Text="URIs" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                         <ItemsControl ItemsSource="{Binding ItemUris}" Margin="0,0,0,4">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
@@ -391,11 +389,11 @@
 
                                     <!-- CARD FIELDS -->
                                     <StackPanel Visibility="{Binding IsCardItem, Converter={StaticResource BoolToVis}}">
-                                        <TextBlock Text="Cardholder Name" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Cardholder Name" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                         <TextBox Text="{Binding SelectedItem.Card.CardholderName, UpdateSourceTrigger=PropertyChanged}"
                                                  FontSize="13" Padding="6" Margin="0,0,0,8"/>
 
-                                        <TextBlock Text="Card Number" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Card Number" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                         <Grid Margin="0,0,0,8">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
@@ -414,17 +412,17 @@
                                                 <ColumnDefinition Width="80"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" Margin="0,0,4,0">
-                                                <TextBlock Text="Exp Month" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                                <TextBlock Text="Exp Month" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                                 <TextBox Text="{Binding SelectedItem.Card.ExpMonth, UpdateSourceTrigger=PropertyChanged}"
                                                          FontSize="13" Padding="6"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Margin="4,0,4,0">
-                                                <TextBlock Text="Exp Year" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                                <TextBlock Text="Exp Year" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                                 <TextBox Text="{Binding SelectedItem.Card.ExpYear, UpdateSourceTrigger=PropertyChanged}"
                                                          FontSize="13" Padding="6"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="2">
-                                                <TextBlock Text="CVV" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                                <TextBlock Text="CVV" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
@@ -438,7 +436,7 @@
                                             </StackPanel>
                                         </Grid>
 
-                                        <TextBlock Text="Brand" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Brand" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                         <ComboBox IsEditable="True" Text="{Binding SelectedItem.Card.Brand, UpdateSourceTrigger=PropertyChanged}"
                                                   FontSize="13" Padding="4" Margin="0,0,0,8">
                                             <ComboBoxItem Content="Visa"/>
@@ -462,7 +460,7 @@
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" Margin="0,0,4,0">
-                                                <TextBlock Text="Title" Foreground="#FF888888" FontSize="11"/>
+                                                <TextBlock Text="Title" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                                                 <ComboBox IsEditable="True" Text="{Binding SelectedItem.Identity.Title, UpdateSourceTrigger=PropertyChanged}"
                                                           Padding="4">
                                                     <ComboBoxItem Content="Mr"/>
@@ -473,32 +471,32 @@
                                                 </ComboBox>
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Margin="4,0,4,0">
-                                                <TextBlock Text="First Name" Foreground="#FF888888" FontSize="11"/>
+                                                <TextBlock Text="First Name" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                                                 <TextBox Text="{Binding SelectedItem.Identity.FirstName, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="2" Margin="4,0,4,0">
-                                                <TextBlock Text="Middle" Foreground="#FF888888" FontSize="11"/>
+                                                <TextBlock Text="Middle" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                                                 <TextBox Text="{Binding SelectedItem.Identity.MiddleName, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="3" Margin="4,0,0,0">
-                                                <TextBlock Text="Last Name" Foreground="#FF888888" FontSize="11"/>
+                                                <TextBlock Text="Last Name" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                                                 <TextBox Text="{Binding SelectedItem.Identity.LastName, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
                                             </StackPanel>
                                         </Grid>
 
-                                        <TextBlock Text="Email" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Email" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                         <TextBox Text="{Binding SelectedItem.Identity.Email, UpdateSourceTrigger=PropertyChanged}"
                                                  FontSize="13" Padding="6" Margin="0,0,0,8"/>
 
-                                        <TextBlock Text="Phone" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Phone" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                         <TextBox Text="{Binding SelectedItem.Identity.Phone, UpdateSourceTrigger=PropertyChanged}"
                                                  FontSize="13" Padding="6" Margin="0,0,0,8"/>
 
-                                        <TextBlock Text="Company" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Company" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                         <TextBox Text="{Binding SelectedItem.Identity.Company, UpdateSourceTrigger=PropertyChanged}"
                                                  FontSize="13" Padding="6" Margin="0,0,0,8"/>
 
-                                        <TextBlock Text="Address" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBlock Text="Address" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                         <TextBox Text="{Binding SelectedItem.Identity.Address1, UpdateSourceTrigger=PropertyChanged}"
                                                  FontSize="12" Padding="4" Margin="0,0,0,2"/>
                                         <TextBox Text="{Binding SelectedItem.Identity.Address2, UpdateSourceTrigger=PropertyChanged}"
@@ -524,29 +522,29 @@
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" Margin="0,0,4,0">
-                                                <TextBlock Text="SSN" Foreground="#FF888888" FontSize="11"/>
+                                                <TextBlock Text="SSN" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                                                 <TextBox Text="{Binding SelectedItem.Identity.Ssn, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Margin="4,0,4,0">
-                                                <TextBlock Text="Passport #" Foreground="#FF888888" FontSize="11"/>
+                                                <TextBlock Text="Passport #" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                                                 <TextBox Text="{Binding SelectedItem.Identity.PassportNumber, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="2" Margin="4,0,0,0">
-                                                <TextBlock Text="License #" Foreground="#FF888888" FontSize="11"/>
+                                                <TextBlock Text="License #" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                                                 <TextBox Text="{Binding SelectedItem.Identity.LicenseNumber, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
                                             </StackPanel>
                                         </Grid>
                                     </StackPanel>
 
                                     <!-- NOTES (all types) -->
-                                    <TextBlock Text="Notes" Foreground="#FF888888" FontSize="11" Margin="0,4,0,2"/>
+                                    <TextBlock Text="Notes" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,4,0,2"/>
                                     <TextBox Text="{Binding SelectedItem.Notes, UpdateSourceTrigger=PropertyChanged}"
                                              TextWrapping="Wrap" AcceptsReturn="True" MinHeight="60" MaxHeight="120"
                                              FontSize="12" Padding="6" Margin="0,0,0,8"
                                              VerticalScrollBarVisibility="Auto"/>
 
                                     <!-- Custom Fields -->
-                                    <TextBlock Text="Custom Fields" Foreground="#FF888888" FontSize="11" Margin="0,0,0,2"/>
+                                    <TextBlock Text="Custom Fields" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                     <ItemsControl ItemsSource="{Binding ItemCustomFields}" Margin="0,0,0,4">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
@@ -583,7 +581,7 @@
                                     </StackPanel>
 
                                     <!-- Meta info -->
-                                    <TextBlock FontSize="10" Foreground="#FF666666" Margin="0,12,0,0">
+                                    <TextBlock FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,12,0,0">
                                         <Run Text="Created: "/><Run Text="{Binding SelectedItem.CreatedAt, StringFormat=g, Mode=OneWay}"/>
                                         <Run Text="  |  Modified: "/><Run Text="{Binding SelectedItem.ModifiedAt, StringFormat=g, Mode=OneWay}"/>
                                     </TextBlock>
@@ -602,7 +600,7 @@
                         </Grid.RowDefinitions>
 
                         <!-- Add authenticator entry -->
-                        <Border Grid.Row="0" Padding="12" Margin="0,0,0,8" Background="#FF2A2A2A" CornerRadius="6">
+                        <Border Grid.Row="0" Padding="12" Margin="0,0,0,8" Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="6">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -611,15 +609,15 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                                    <TextBlock Text="Issuer" Foreground="#FFAAAAAA" FontSize="11"/>
+                                    <TextBlock Text="Issuer" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                                     <TextBox Text="{Binding NewAuthIssuer, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Margin="0,0,8,0">
-                                    <TextBlock Text="Account" Foreground="#FFAAAAAA" FontSize="11"/>
+                                    <TextBlock Text="Account" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                                     <TextBox Text="{Binding NewAuthAccount, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Margin="0,0,8,0">
-                                    <TextBlock Text="Secret Key or otpauth:// URI" Foreground="#FFAAAAAA" FontSize="11"/>
+                                    <TextBlock Text="Secret Key or otpauth:// URI" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                                     <TextBox Text="{Binding NewAuthSecret, UpdateSourceTrigger=PropertyChanged}" Padding="4"/>
                                 </StackPanel>
                                 <Button Grid.Column="3" Content="➕ Add" Command="{Binding AddAuthEntryCommand}"
@@ -681,7 +679,7 @@
                             <TextBlock Text="Password Generator" FontSize="18" FontWeight="Bold" Margin="0,0,0,16"/>
 
                             <!-- Generated password display -->
-                            <Border Background="#FF1E1E1E" CornerRadius="6" Padding="12" Margin="0,0,0,12">
+                            <Border Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="6" Padding="12" Margin="0,0,0,12">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -768,22 +766,22 @@
 
                         <!-- Summary cards -->
                         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,16">
-                            <Border Background="#FF1B5E20" CornerRadius="8" Padding="16,12" Margin="0,0,12,0" MinWidth="140">
+                            <Border Background="{DynamicResource SuccessBackgroundBrush}" CornerRadius="8" Padding="16,12" Margin="0,0,12,0" MinWidth="140">
                                 <StackPanel>
-                                    <TextBlock Text="Total Passwords" Foreground="#FF81C784" FontSize="11"/>
-                                    <TextBlock Text="{Binding HealthTotalPasswords}" FontSize="28" FontWeight="Bold" Foreground="White"/>
+                                    <TextBlock Text="Total Passwords" Foreground="{DynamicResource SuccessForegroundBrush}" FontSize="11"/>
+                                    <TextBlock Text="{Binding HealthTotalPasswords}" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource SuccessForegroundBrush}"/>
                                 </StackPanel>
                             </Border>
-                            <Border Background="#FFE65100" CornerRadius="8" Padding="16,12" Margin="0,0,12,0" MinWidth="140">
+                            <Border Background="{DynamicResource WarningBackgroundBrush}" CornerRadius="8" Padding="16,12" Margin="0,0,12,0" MinWidth="140">
                                 <StackPanel>
-                                    <TextBlock Text="Weak Passwords" Foreground="#FFFFCC80" FontSize="11"/>
-                                    <TextBlock Text="{Binding HealthWeakCount}" FontSize="28" FontWeight="Bold" Foreground="White"/>
+                                    <TextBlock Text="Weak Passwords" Foreground="{DynamicResource WarningForegroundBrush}" FontSize="11"/>
+                                    <TextBlock Text="{Binding HealthWeakCount}" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource WarningForegroundBrush}"/>
                                 </StackPanel>
                             </Border>
-                            <Border Background="#FFB71C1C" CornerRadius="8" Padding="16,12" MinWidth="140">
+                            <Border Background="{DynamicResource ErrorBackgroundBrush}" CornerRadius="8" Padding="16,12" MinWidth="140">
                                 <StackPanel>
-                                    <TextBlock Text="Reused Passwords" Foreground="#FFEF9A9A" FontSize="11"/>
-                                    <TextBlock Text="{Binding HealthReusedCount}" FontSize="28" FontWeight="Bold" Foreground="White"/>
+                                    <TextBlock Text="Reused Passwords" Foreground="{DynamicResource ErrorForegroundBrush}" FontSize="11"/>
+                                    <TextBlock Text="{Binding HealthReusedCount}" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource ErrorForegroundBrush}"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -820,18 +818,18 @@
                         <StackPanel MaxWidth="600" HorizontalAlignment="Left" Margin="16">
                             <TextBlock Text="Multi-Factor Authentication" FontSize="18" FontWeight="Bold" Margin="0,0,0,8"/>
                             <TextBlock Text="Add an extra layer of security to your vault. When enabled, you'll need both your master password and a second factor to unlock."
-                                       Foreground="#FFAAAAAA" FontSize="13" TextWrapping="Wrap" Margin="0,0,0,16"/>
+                                       Foreground="{DynamicResource SecondaryTextBrush}" FontSize="13" TextWrapping="Wrap" Margin="0,0,0,16"/>
 
                             <!-- MFA Status -->
-                            <Border Background="#FF2A2A2A" CornerRadius="8" Padding="16" Margin="0,0,0,16">
+                            <Border Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="8" Padding="16" Margin="0,0,0,16">
                                 <StackPanel>
                                     <TextBlock Text="Current Status" FontWeight="SemiBold" FontSize="14" Margin="0,0,0,8"/>
-                                    <TextBlock Text="{Binding MfaStatusText}" Foreground="#FFCCCCCC" FontSize="13" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding MfaStatusText}" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="13" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Border>
 
                             <!-- TOTP Authenticator App Section -->
-                            <Border Background="#FF2A2A2A" CornerRadius="8" Padding="16" Margin="0,0,0,16">
+                            <Border Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="8" Padding="16" Margin="0,0,0,16">
                                 <StackPanel>
                                     <Grid Margin="0,0,0,8">
                                         <Grid.ColumnDefinitions>
@@ -841,7 +839,7 @@
                                         <StackPanel Grid.Column="0">
                                             <TextBlock Text="📱 Authenticator App (TOTP)" FontWeight="SemiBold" FontSize="14"/>
                                             <TextBlock Text="Use Google Authenticator, Microsoft Authenticator, Authy, or any TOTP app."
-                                                       Foreground="#FFAAAAAA" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                                       Foreground="{DynamicResource SecondaryTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                             <Button Content="➕ Enable" Command="{Binding SetupTotpMfaCommand}"
@@ -856,21 +854,21 @@
                                     <!-- TOTP Setup Panel (shown during setup) -->
                                     <StackPanel Visibility="{Binding IsMfaSetupVisible, Converter={StaticResource BoolToVis}}"
                                                 Margin="0,8,0,0">
-                                        <Border Background="#FF1A237E" CornerRadius="6" Padding="12" Margin="0,0,0,12">
+                                        <Border Background="{DynamicResource InfoBackgroundBrush}" CornerRadius="6" Padding="12" Margin="0,0,0,12">
                                             <StackPanel>
                                                 <TextBlock Text="Step 1: Scan the QR code with your authenticator app"
-                                                           Foreground="White" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                                           Foreground="{DynamicResource InfoForegroundBrush}" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                                 <Image Source="{Binding MfaQrCodeImage}" MaxWidth="200" MaxHeight="200"
                                                        HorizontalAlignment="Left" Margin="0,0,0,8"
                                                        RenderOptions.BitmapScalingMode="NearestNeighbor"/>
-                                                <TextBlock Text="Or manually enter this key:" Foreground="#FFB3B3FF" FontSize="12"/>
+                                                <TextBlock Text="Or manually enter this key:" Foreground="{DynamicResource InfoForegroundBrush}" FontSize="12"/>
                                                 <TextBox Text="{Binding MfaTotpSetupSecret, Mode=OneWay}" IsReadOnly="True"
                                                          FontFamily="Consolas" FontSize="13" Padding="6" Margin="0,4,0,0"
-                                                         Background="#FF0D1B3E" Foreground="White" BorderBrush="#FF3949AB"/>
+                                                         Background="{DynamicResource ControlBackgroundBrush}" Foreground="{DynamicResource WindowForegroundBrush}" BorderBrush="{DynamicResource ControlBorderBrush}"/>
                                             </StackPanel>
                                         </Border>
 
-                                        <TextBlock Text="Step 2: Enter the 6-digit code to verify" Foreground="#FFCCCCCC"
+                                        <TextBlock Text="Step 2: Enter the 6-digit code to verify" Foreground="{DynamicResource SecondaryTextBrush}"
                                                    FontWeight="SemiBold" Margin="0,0,0,4"/>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
@@ -891,7 +889,7 @@
                             </Border>
 
                             <!-- Windows Hello / FIDO2 Section -->
-                            <Border Background="#FF2A2A2A" CornerRadius="8" Padding="16" Margin="0,0,0,16">
+                            <Border Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="8" Padding="16" Margin="0,0,0,16">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -900,7 +898,7 @@
                                     <StackPanel Grid.Column="0">
                                         <TextBlock Text="🔑 Windows Hello / FIDO2" FontWeight="SemiBold" FontSize="14"/>
                                         <TextBlock Text="Use PIN, fingerprint, face recognition, or a FIDO2 security key."
-                                                   Foreground="#FFAAAAAA" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                                   Foreground="{DynamicResource SecondaryTextBrush}" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0"/>
                                         <TextBlock Foreground="#FFFF9800" FontSize="11" Margin="0,4,0,0"
                                                    Visibility="{Binding IsWindowsHelloAvailable, Converter={StaticResource InverseBoolToVis}}">
                                             ⚠ Windows Hello is not available on this device.
@@ -919,10 +917,10 @@
                             </Border>
 
                             <!-- Security Info -->
-                            <Border Background="#FF1A237E" CornerRadius="6" Padding="12">
+                            <Border Background="{DynamicResource InfoBackgroundBrush}" CornerRadius="6" Padding="12">
                                 <StackPanel>
-                                    <TextBlock Text="🔒 How MFA protects your vault" FontWeight="Bold" Foreground="White" Margin="0,0,0,4"/>
-                                    <TextBlock TextWrapping="Wrap" Foreground="#FFB3B3FF" FontSize="12">
+                                    <TextBlock Text="🔒 How MFA protects your vault" FontWeight="Bold" Foreground="{DynamicResource InfoForegroundBrush}" Margin="0,0,0,4"/>
+                                    <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource InfoForegroundBrush}" FontSize="12">
                                         When MFA is enabled, unlocking your vault requires both your master password AND a second factor (authenticator code or Windows Hello). Your TOTP secret is encrypted with your master password — it never leaves your device unencrypted.
                                     </TextBlock>
                                 </StackPanel>
@@ -937,10 +935,10 @@
                         <StackPanel MaxWidth="600" HorizontalAlignment="Left" Margin="16">
                             <TextBlock Text="Cloud Sync" FontSize="18" FontWeight="Bold" Margin="0,0,0,8"/>
                             <TextBlock Text="Sync your encrypted vault across devices using OneDrive or Google Drive."
-                                       Foreground="#FFAAAAAA" FontSize="13" TextWrapping="Wrap" Margin="0,0,0,24"/>
+                                       Foreground="{DynamicResource SecondaryTextBrush}" FontSize="13" TextWrapping="Wrap" Margin="0,0,0,24"/>
 
                             <!-- Current sync status -->
-                            <Border Background="#FF2A2A2A" CornerRadius="8" Padding="16" Margin="0,0,0,24">
+                            <Border Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="8" Padding="16" Margin="0,0,0,24">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -953,16 +951,16 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Provider:" Foreground="#FFAAAAAA" FontSize="13" Margin="0,0,0,4"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Provider:" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="13" Margin="0,0,0,4"/>
                                     <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SyncProviderName}" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,4"/>
 
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Account:" Foreground="#FFAAAAAA" FontSize="13" Margin="0,0,0,4"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Account:" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="13" Margin="0,0,0,4"/>
                                     <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SyncAccountEmail}" FontSize="13" Margin="0,0,0,4"/>
 
-                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Last Sync:" Foreground="#FFAAAAAA" FontSize="13" Margin="0,0,0,4"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Last Sync:" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="13" Margin="0,0,0,4"/>
                                     <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding LastSyncTime}" FontSize="13" Margin="0,0,0,4"/>
 
-                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Status:" Foreground="#FFAAAAAA" FontSize="13"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Status:" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="13"/>
                                     <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SyncStatus}" FontSize="13" TextWrapping="Wrap"/>
                                 </Grid>
                             </Border>
@@ -976,7 +974,7 @@
                                     <TextBlock Text="☁️" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <StackPanel>
                                         <TextBlock Text="Sign in with Microsoft" FontWeight="SemiBold" FontSize="13"/>
-                                        <TextBlock Text="Sync via OneDrive" Foreground="#FFAAAAAA" FontSize="11"/>
+                                        <TextBlock Text="Sync via OneDrive" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Button>
@@ -987,7 +985,7 @@
                                     <TextBlock Text="🔵" FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <StackPanel>
                                         <TextBlock Text="Sign in with Google" FontWeight="SemiBold" FontSize="13"/>
-                                        <TextBlock Text="Sync via Google Drive" Foreground="#FFAAAAAA" FontSize="11"/>
+                                        <TextBlock Text="Sync via Google Drive" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Button>
@@ -1001,10 +999,10 @@
                             </StackPanel>
 
                             <!-- Security info -->
-                            <Border Background="#FF1A237E" CornerRadius="6" Padding="12" Margin="0,24,0,0">
+                            <Border Background="{DynamicResource InfoBackgroundBrush}" CornerRadius="6" Padding="12" Margin="0,24,0,0">
                                 <StackPanel>
-                                    <TextBlock Text="🔒 Your data is always encrypted" FontWeight="Bold" Foreground="White" Margin="0,0,0,4"/>
-                                    <TextBlock TextWrapping="Wrap" Foreground="#FFB3B3FF" FontSize="12">
+                                    <TextBlock Text="🔒 Your data is always encrypted" FontWeight="Bold" Foreground="{DynamicResource InfoForegroundBrush}" Margin="0,0,0,4"/>
+                                    <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource InfoForegroundBrush}" FontSize="12">
                                         Your vault is encrypted with AES-256 before it leaves your device.
                                         Only the encrypted file is uploaded to the cloud. Your master password
                                         never leaves your device and is never stored anywhere.
@@ -1021,17 +1019,17 @@
                                         Padding="12,6"/>
                             </StackPanel>
                             <TextBlock Text="Export as unencrypted JSON for backup, or encrypted vault file."
-                                       Foreground="#FF888888" FontSize="11" Margin="0,4,0,0"/>
+                                       Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,4,0,0"/>
 
                             <!-- Change master password -->
                             <TextBlock Text="Security" FontSize="15" FontWeight="SemiBold" Margin="0,24,0,12"/>
-                            <Border Background="#FF2A2A2A" CornerRadius="6" Padding="12">
+                            <Border Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="6" Padding="12">
                                 <StackPanel>
                                     <TextBlock Text="Change Master Password" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                                    <TextBlock Text="New Password" Foreground="#FFAAAAAA" FontSize="11" Margin="0,0,0,2"/>
+                                    <TextBlock Text="New Password" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                     <PasswordBox x:Name="ChangePwBox" FontSize="13" Padding="4" Margin="0,0,0,4"
                                                  PasswordChanged="ChangePwBox_PasswordChanged"/>
-                                    <TextBlock Text="Confirm New Password" Foreground="#FFAAAAAA" FontSize="11" Margin="0,0,0,2"/>
+                                    <TextBlock Text="Confirm New Password" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2"/>
                                     <PasswordBox x:Name="ConfirmChangePwBox" FontSize="13" Padding="4" Margin="0,0,0,8"
                                                  PasswordChanged="ConfirmChangePwBox_PasswordChanged"/>
                                     <Button Content="Change Password" Command="{Binding ChangeMasterPasswordCommand}"

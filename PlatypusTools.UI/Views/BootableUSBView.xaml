@@ -72,7 +72,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="{Binding Caption}" FontWeight="Bold" Margin="0,0,10,0"/>
                                 <TextBlock Text="{Binding DriveLetter}" Margin="0,0,10,0"/>
-                                <TextBlock Text="{Binding SizeFormatted}" Foreground="Gray"/>
+                                <TextBlock Text="{Binding SizeFormatted}" Foreground="{DynamicResource SecondaryTextBrush}"/>
                             </StackPanel>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>

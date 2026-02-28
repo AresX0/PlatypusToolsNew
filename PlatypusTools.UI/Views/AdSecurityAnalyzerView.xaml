@@ -110,15 +110,15 @@
                                 <Border Background="#FFF44336" CornerRadius="5" Margin="5" Padding="10">
                                     <StackPanel HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding CriticalFindings}" FontSize="24" FontWeight="Bold" 
-                                                   Foreground="White" HorizontalAlignment="Center" />
-                                        <TextBlock Text="Critical" Foreground="White" HorizontalAlignment="Center" />
+                                                   Foreground="{DynamicResource WindowForegroundBrush}" HorizontalAlignment="Center" />
+                                        <TextBlock Text="Critical" Foreground="{DynamicResource WindowForegroundBrush}" HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </Border>
                                 <Border Background="#FFFF9800" CornerRadius="5" Margin="5" Padding="10">
                                     <StackPanel HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding HighFindings}" FontSize="24" FontWeight="Bold" 
-                                                   Foreground="White" HorizontalAlignment="Center" />
-                                        <TextBlock Text="High" Foreground="White" HorizontalAlignment="Center" />
+                                                   Foreground="{DynamicResource WindowForegroundBrush}" HorizontalAlignment="Center" />
+                                        <TextBlock Text="High" Foreground="{DynamicResource WindowForegroundBrush}" HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </Border>
                                 <Border Background="#FFFFC107" CornerRadius="5" Margin="5" Padding="10">
@@ -131,15 +131,15 @@
                                 <Border Background="#FF8BC34A" CornerRadius="5" Margin="5" Padding="10">
                                     <StackPanel HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding LowFindings}" FontSize="24" FontWeight="Bold" 
-                                                   Foreground="White" HorizontalAlignment="Center" />
-                                        <TextBlock Text="Low" Foreground="White" HorizontalAlignment="Center" />
+                                                   Foreground="{DynamicResource WindowForegroundBrush}" HorizontalAlignment="Center" />
+                                        <TextBlock Text="Low" Foreground="{DynamicResource WindowForegroundBrush}" HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </Border>
                                 <Border Background="#FF2196F3" CornerRadius="5" Margin="5" Padding="10">
                                     <StackPanel HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding TotalFindings}" FontSize="24" FontWeight="Bold" 
-                                                   Foreground="White" HorizontalAlignment="Center" />
-                                        <TextBlock Text="Total" Foreground="White" HorizontalAlignment="Center" />
+                                                   Foreground="{DynamicResource WindowForegroundBrush}" HorizontalAlignment="Center" />
+                                        <TextBlock Text="Total" Foreground="{DynamicResource WindowForegroundBrush}" HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </Border>
                             </UniformGrid>
@@ -352,7 +352,7 @@
                                       IsChecked="{Binding RemediationWhatIf}" 
                                       VerticalAlignment="Center" FontWeight="Bold" Foreground="#FF4CAF50"
                                       ToolTip="When checked, GPO deployments and IR operations will only simulate - no actual changes made" />
-                            <TextBlock Grid.Column="2" Text="Exempted Users:" VerticalAlignment="Center" Foreground="White" Margin="20,0,5,0" />
+                            <TextBlock Grid.Column="2" Text="Exempted Users:" VerticalAlignment="Center" Foreground="{DynamicResource WindowForegroundBrush}" Margin="20,0,5,0" />
                         </Grid>
                     </Border>
 
@@ -447,7 +447,7 @@
                             <!-- Warning -->
                             <Border Grid.Row="2" Background="#FFFF5252" Padding="5" CornerRadius="4">
                                 <TextBlock Text="⚠️ IR Operations are DESTRUCTIVE! Always add your UPN to Exempted Users. Start with WhatIf enabled." 
-                                           Foreground="White" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                           Foreground="{DynamicResource WindowForegroundBrush}" FontWeight="SemiBold" TextWrapping="Wrap" />
                             </Border>
                         </Grid>
                     </GroupBox>
@@ -494,7 +494,7 @@
                     <!-- Status Summary -->
                     <Border Grid.Row="5" Background="#FF1E88E5" Padding="5" Margin="0,0,0,10" CornerRadius="4">
                         <TextBlock Text="📊 Scan results and findings will appear in the grid below. Use WhatIf mode to preview GPO and IR operations before executing." 
-                                   Foreground="White" TextWrapping="Wrap" />
+                                   Foreground="{DynamicResource WindowForegroundBrush}" TextWrapping="Wrap" />
                     </Border>
 
                     <!-- Results DataGrid -->
@@ -721,7 +721,7 @@
                                                 <CheckBox Content="Create Tiered Security Groups" IsChecked="{Binding CreateTierGroups}" Margin="0,0,0,5"
                                                           ToolTip="Creates security groups for each tier: Operators, PAW Users, Service Accounts, Local Admins, plus IR/DVRL groups." FontWeight="SemiBold" />
                                                 <TextBlock Text="Groups created: Tier X - Operators, PAW Users, Service Accounts, Local Admins, IR - Emergency Access, DVRL - Deny Logon All Tiers"
-                                                           Foreground="Gray" FontStyle="Italic" TextWrapping="Wrap" Margin="20,0,0,5" />
+                                                           Foreground="{DynamicResource SecondaryTextBrush}" FontStyle="Italic" TextWrapping="Wrap" Margin="20,0,0,5" />
                                             </StackPanel>
                                         </Expander>
 
@@ -744,7 +744,7 @@
                             <GroupBox Header="🌐 MDE/MDI Proxy in a Box" Margin="0,0,0,10">
                                 <StackPanel Margin="10">
                                     <TextBlock Text="Generate a Squid proxy setup script for Microsoft Defender for Endpoint (MDE) and Microsoft Defender for Identity (MDI). Useful for air-gapped or restricted network environments." 
-                                               TextWrapping="Wrap" Margin="0,0,0,10" Foreground="Gray" />
+                                               TextWrapping="Wrap" Margin="0,0,0,10" Foreground="{DynamicResource SecondaryTextBrush}" />
                                     
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -797,7 +797,7 @@
                                              VerticalScrollBarVisibility="Auto"
                                              HorizontalScrollBarVisibility="Auto"
                                              FontFamily="Consolas" FontSize="11"
-                                             Background="#FF1E1E1E" Foreground="#FFDCDCDC"
+                                             Background="{DynamicResource ControlBackgroundBrush}" Foreground="{DynamicResource WindowForegroundBrush}"
                                              Margin="0,10,0,0" />
 
                                     <TextBlock Text="💡 Run this script on an Ubuntu server with internet access. Clients will use this as a proxy for MDE/MDI traffic only." 
@@ -865,7 +865,7 @@
                                      IsReadOnly="True" TextWrapping="Wrap" 
                                      VerticalScrollBarVisibility="Auto"
                                      FontFamily="Consolas" FontSize="11"
-                                     Background="#FF1E1E1E" Foreground="#FFDCDCDC"
+                                     Background="{DynamicResource ControlBackgroundBrush}" Foreground="{DynamicResource WindowForegroundBrush}"
                                      Margin="5" />
                         </Grid>
                     </GroupBox>
@@ -947,11 +947,11 @@
                         <!-- Counts -->
                         <Border Margin="20,5,5,5" Padding="10,2" Background="#333" CornerRadius="3">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="Priv Users: " Foreground="White" />
+                                <TextBlock Text="Priv Users: " Foreground="{DynamicResource WindowForegroundBrush}" />
                                 <TextBlock Text="{Binding EntraPrivilegedUserCount}" Foreground="#4CAF50" FontWeight="Bold" />
-                                <TextBlock Text=" | Risky Apps: " Foreground="White" Margin="15,0,0,0" />
+                                <TextBlock Text=" | Risky Apps: " Foreground="{DynamicResource WindowForegroundBrush}" Margin="15,0,0,0" />
                                 <TextBlock Text="{Binding EntraRiskyAppCount}" Foreground="#FF9800" FontWeight="Bold" />
-                                <TextBlock Text=" | CA Policies: " Foreground="White" Margin="15,0,0,0" />
+                                <TextBlock Text=" | CA Policies: " Foreground="{DynamicResource WindowForegroundBrush}" Margin="15,0,0,0" />
                                 <TextBlock Text="{Binding EntraCaPolicyCount}" Foreground="#2196F3" FontWeight="Bold" />
                             </StackPanel>
                         </Border>
@@ -963,7 +963,7 @@
                         <TabItem Header="👥 Privileged Roles">
                             <DataGrid ItemsSource="{Binding EntraPrivilegedRoles}" AutoGenerateColumns="False" 
                                       IsReadOnly="True" CanUserResizeRows="False" GridLinesVisibility="Horizontal"
-                                      AlternatingRowBackground="#FF2A2A2A" Background="#FF1E1E1E">
+                                      AlternatingRowBackground="{DynamicResource ControlBackgroundBrush}">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Role Name" Binding="{Binding RoleName}" Width="200" />
                                     <DataGridTextColumn Header="Role ID" Binding="{Binding RoleId}" Width="280" />
@@ -993,7 +993,7 @@
                         <TabItem Header="⚠️ Risky Apps">
                             <DataGrid ItemsSource="{Binding EntraRiskyApps}" AutoGenerateColumns="False" 
                                       IsReadOnly="True" CanUserResizeRows="False" GridLinesVisibility="Horizontal"
-                                      AlternatingRowBackground="#FF2A2A2A" Background="#FF1E1E1E">
+                                      AlternatingRowBackground="{DynamicResource ControlBackgroundBrush}">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="80">
                                         <DataGridTextColumn.ElementStyle>
@@ -1038,7 +1038,7 @@
                         <TabItem Header="🛡️ CA Policies">
                             <DataGrid ItemsSource="{Binding EntraConditionalAccessPolicies}" AutoGenerateColumns="False" 
                                       IsReadOnly="True" CanUserResizeRows="False" GridLinesVisibility="Horizontal"
-                                      AlternatingRowBackground="#FF2A2A2A" Background="#FF1E1E1E">
+                                      AlternatingRowBackground="{DynamicResource ControlBackgroundBrush}">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="State" Binding="{Binding State}" Width="100">
                                         <DataGridTextColumn.ElementStyle>
@@ -1080,15 +1080,15 @@
 
                     <ListBox ItemsSource="{Binding LogMessages}" 
                              FontFamily="Consolas" FontSize="11"
-                             Background="#FF1E1E1E">
+                             Background="{DynamicResource ControlBackgroundBrush}">
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
-                                <Setter Property="Foreground" Value="#FFDCDCDC" />
+                                <Setter Property="Foreground" Value="{DynamicResource WindowForegroundBrush}" />
                             </Style>
                         </ListBox.ItemContainerStyle>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding}" Foreground="#FFDCDCDC" />
+                                <TextBlock Text="{Binding}" Foreground="{DynamicResource WindowForegroundBrush}" />
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>

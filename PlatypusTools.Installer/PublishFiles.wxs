@@ -44,6 +44,21 @@
       <Component Id="CMP_GLWpfControl_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_GLWpfControl_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\GLWpfControl.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_Google_Apis_Auth_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Google_Apis_Auth_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Google.Apis.Auth.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Google_Apis_Core_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Google_Apis_Core_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Google.Apis.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Google_Apis_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Google_Apis_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Google.Apis.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Google_Apis_Drive_v3_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Google_Apis_Drive_v3_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Google.Apis.Drive.v3.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Google_Apis_Oauth2_v2_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Google_Apis_Oauth2_v2_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Google.Apis.Oauth2.v2.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_Hardcodet_NotifyIcon_Wpf_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Hardcodet_NotifyIcon_Wpf_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Hardcodet.NotifyIcon.Wpf.dll" KeyPath="yes" />
       </Component>
@@ -626,6 +641,9 @@
       <Component Id="CMP_netstandard_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_netstandard_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\netstandard.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_Newtonsoft_Json_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Newtonsoft_Json_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Newtonsoft.Json.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_OpenTK_Compute_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_OpenTK_Compute_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\OpenTK.Compute.dll" KeyPath="yes" />
       </Component>
@@ -652,6 +670,9 @@
       </Component>
       <Component Id="CMP_OpenTK_Windowing_GraphicsLibraryFramework_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_OpenTK_Windowing_GraphicsLibraryFramework_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\OpenTK.Windowing.GraphicsLibraryFramework.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Otp_NET_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Otp_NET_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Otp.NET.dll" KeyPath="yes" />
       </Component>
       <Component Id="CMP_PdfSharpCore_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_PdfSharpCore_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\PdfSharpCore.dll" KeyPath="yes" />
@@ -4947,6 +4968,11 @@
       <ComponentRef Id="CMP_DirectWriteForwarder_dll" />
       <ComponentRef Id="CMP_glfw3_dll" />
       <ComponentRef Id="CMP_GLWpfControl_dll" />
+      <ComponentRef Id="CMP_Google_Apis_Auth_dll" />
+      <ComponentRef Id="CMP_Google_Apis_Core_dll" />
+      <ComponentRef Id="CMP_Google_Apis_dll" />
+      <ComponentRef Id="CMP_Google_Apis_Drive_v3_dll" />
+      <ComponentRef Id="CMP_Google_Apis_Oauth2_v2_dll" />
       <ComponentRef Id="CMP_Hardcodet_NotifyIcon_Wpf_dll" />
       <ComponentRef Id="CMP_hostfxr_dll" />
       <ComponentRef Id="CMP_hostpolicy_dll" />
@@ -5141,6 +5167,7 @@
       <ComponentRef Id="CMP_NAudio_WinForms_dll" />
       <ComponentRef Id="CMP_NAudio_WinMM_dll" />
       <ComponentRef Id="CMP_netstandard_dll" />
+      <ComponentRef Id="CMP_Newtonsoft_Json_dll" />
       <ComponentRef Id="CMP_OpenTK_Compute_dll" />
       <ComponentRef Id="CMP_OpenTK_Core_dll" />
       <ComponentRef Id="CMP_OpenTK_Graphics_dll" />
@@ -5150,6 +5177,7 @@
       <ComponentRef Id="CMP_OpenTK_Windowing_Common_dll" />
       <ComponentRef Id="CMP_OpenTK_Windowing_Desktop_dll" />
       <ComponentRef Id="CMP_OpenTK_Windowing_GraphicsLibraryFramework_dll" />
+      <ComponentRef Id="CMP_Otp_NET_dll" />
       <ComponentRef Id="CMP_PdfSharpCore_dll" />
       <ComponentRef Id="CMP_PenImc_cor3_dll" />
       <ComponentRef Id="CMP_PlatypusTools_Core_dll" />

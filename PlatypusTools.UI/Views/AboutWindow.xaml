@@ -18,8 +18,8 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <Image Source="/Assets/platypus.png" Width="64" Height="64" Margin="0,0,15,0"/>
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="PlatypusTools" FontSize="28" FontWeight="Bold" Foreground="White"/>
-                        <TextBlock Text="Advanced File Management Suite" FontSize="14" Foreground="#FFBBDEFB"/>
+                        <TextBlock Text="PlatypusTools" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource WindowForegroundBrush}"/>
+                        <TextBlock Text="Advanced File Management Suite" FontSize="14" Foreground="{DynamicResource SecondaryTextBrush}"/>
                     </StackPanel>
                 </StackPanel>
             </StackPanel>
@@ -43,7 +43,7 @@
                         </Grid.RowDefinitions>
                         
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Version:" FontWeight="Bold"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="VersionText" Text="3.4.3.8"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="VersionText" Text="3.4.3.9"/>
                         
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Build Date:" FontWeight="Bold"/>
                         <TextBlock Grid.Row="1" Grid.Column="1" x:Name="BuildDateText" Text="2026-01-19"/>

@@ -80,7 +80,7 @@
         </StackPanel>
 
         <!-- Status Bar -->
-        <Border Grid.Row="5" Background="#F5F5F5" Padding="8" Margin="0,8,0,0" CornerRadius="4">
+        <Border Grid.Row="5" Background="{DynamicResource ControlBackgroundBrush}" Padding="8" Margin="0,8,0,0" CornerRadius="4">
             <TextBlock Text="{Binding StatusMessage}" />
         </Border>
     </Grid>

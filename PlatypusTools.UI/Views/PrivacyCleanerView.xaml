@@ -96,7 +96,7 @@
                           ToolTip="Preview what would be deleted without actually deleting"/>
                 <TextBlock Text="(Recommended: Use Dry Run first!)" 
                            VerticalAlignment="Center" Margin="10,0,0,0" 
-                           FontStyle="Italic" Foreground="Gray"/>
+                           FontStyle="Italic" Foreground="{DynamicResource SecondaryTextBrush}"/>
             </WrapPanel>
 
             <!-- Results - Expandable TreeView -->
@@ -120,7 +120,7 @@
                                           VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <TextBlock Grid.Column="1" Text="{Binding CategoryName}" 
                                            FontWeight="Bold" FontSize="13" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="15,0,15,0" Foreground="Gray">
+                                <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="15,0,15,0" Foreground="{DynamicResource SecondaryTextBrush}">
                                     <Run Text="{Binding SelectedCount, Mode=OneWay}"/><Run Text="/"/><Run Text="{Binding TotalItems, Mode=OneWay}"/><Run Text=" items"/>
                                 </TextBlock>
                                 <TextBlock Grid.Column="3" Text="{Binding TotalSize}" 
@@ -140,12 +140,12 @@
                                 
                                 <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" 
                                           VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                <TextBlock Grid.Column="1" Text="📄" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="Gray"/>
+                                <TextBlock Grid.Column="1" Text="📄" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{DynamicResource SecondaryTextBrush}"/>
                                 <TextBlock Grid.Column="2" Text="{Binding FileName}" 
                                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
                                            ToolTip="{Binding FilePath}"/>
                                 <TextBlock Grid.Column="3" Text="{Binding Size}" 
-                                           Foreground="Gray" VerticalAlignment="Center" Width="70" TextAlignment="Right"/>
+                                           Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" Width="70" TextAlignment="Right"/>
                             </Grid>
                         </DataTemplate>
                     </TreeView.Resources>
@@ -208,7 +208,7 @@
                                  VerticalScrollBarVisibility="Auto" 
                                  HorizontalScrollBarVisibility="Auto"
                                  TextWrapping="NoWrap" FontFamily="Consolas" FontSize="11" FontWeight="Normal"
-                                 Background="#FF1E1E1E" Foreground="#FFD4D4D4"/>
+                                 Background="{DynamicResource ControlBackgroundBrush}" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     </StackPanel>
                 </Grid>
             </Border>

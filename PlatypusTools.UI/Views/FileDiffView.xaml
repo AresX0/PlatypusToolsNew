@@ -43,7 +43,7 @@
                     <TextBlock VerticalAlignment="Center" Margin="8,0,0,0">
                         <Run Text="Added: " /><Run Text="{Binding AddedCount, Mode=OneWay}" Foreground="Green" FontWeight="Bold" />
                         <Run Text="  Removed: " /><Run Text="{Binding RemovedCount, Mode=OneWay}" Foreground="Red" FontWeight="Bold" />
-                        <Run Text="  Unchanged: " /><Run Text="{Binding UnchangedCount, Mode=OneWay}" Foreground="Gray" />
+                        <Run Text="  Unchanged: " /><Run Text="{Binding UnchangedCount, Mode=OneWay}" Foreground="{DynamicResource SecondaryTextBrush}" />
                     </TextBlock>
                 </WrapPanel>
             </Grid>
@@ -57,7 +57,7 @@
             <DataGrid ItemsSource="{Binding DiffLines}" AutoGenerateColumns="False"
                       IsReadOnly="True" CanUserSortColumns="False"
                       HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                      GridLinesVisibility="Horizontal" AlternatingRowBackground="#F8F8F8">
+                      GridLinesVisibility="Horizontal" AlternatingRowBackground="{DynamicResource ControlBackgroundBrush}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Line" Binding="{Binding LineNumber}" Width="60" />
                     <DataGridTemplateColumn Header="Type" Width="80">

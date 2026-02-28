@@ -79,7 +79,7 @@
                 
                 <!-- Menu Bar -->
                 <Menu Grid.Column="1" Background="Transparent" VerticalAlignment="Center" Margin="15,0,0,0">
-                    <MenuItem Header="_File">
+                    <MenuItem Header="File">
                         <MenuItem Header="📂 Open Files..." Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O"/>
                         <MenuItem Header="📁 Open Folder..." Command="{Binding OpenFolderCommand}"/>
                         <Separator/>
@@ -87,7 +87,7 @@
                         <Separator/>
                         <MenuItem Header="🔄 Scan Library" Command="{Binding ScanAllLibraryFoldersCommand}"/>
                     </MenuItem>
-                    <MenuItem Header="_Playback">
+                    <MenuItem Header="Playback">
                         <MenuItem Header="▶ Play/Pause" Command="{Binding PlayPauseCommand}" InputGestureText="Space"/>
                         <MenuItem Header="⏹ Stop" Command="{Binding StopCommand}"/>
                         <MenuItem Header="⏭ Next" Command="{Binding NextCommand}" InputGestureText="Ctrl+Right"/>
@@ -100,13 +100,13 @@
                         <MenuItem Header="🔉 Volume Down" Command="{Binding VolumeDownCommand}" InputGestureText="Down"/>
                         <MenuItem Header="🔇 Toggle Mute" Command="{Binding ToggleMuteCommand}" InputGestureText="M"/>
                     </MenuItem>
-                    <MenuItem Header="_Queue">
+                    <MenuItem Header="Queue">
                         <MenuItem Header="➕ Add to Queue" Command="{Binding OpenFileCommand}"/>
                         <MenuItem Header="➕ Add All to Queue" Command="{Binding AddAllToQueueCommand}"/>
                         <Separator/>
                         <MenuItem Header="🗑️ Clear Queue" Command="{Binding ClearQueueCommand}"/>
                     </MenuItem>
-                    <MenuItem Header="_Tools">
+                    <MenuItem Header="Tools">
                         <MenuItem Header="🎚️ Equalizer" IsCheckable="True" IsChecked="{Binding ShowEqualizer, Mode=TwoWay, FallbackValue=False}"/>
                         <MenuItem Header="🎧 Auto DJ" IsCheckable="True" IsChecked="{Binding AutoDjEnabled}"/>
                         <Separator/>
@@ -224,7 +224,7 @@
                                 VerticalAlignment="Bottom" HorizontalAlignment="Center" Padding="20,10"
                                 Visibility="{Binding ShowLyricsOverlay, Converter={StaticResource BoolToVis}}">
                             <TextBlock Text="{Binding CurrentLyricLineText}" FontSize="20" FontWeight="SemiBold"
-                                       Foreground="White" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="600"/>
+                                       Foreground="{DynamicResource WindowForegroundBrush}" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="600"/>
                         </Border>
                     </Grid>
                 </Border>
@@ -390,10 +390,10 @@
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding DisplayTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                                                    <TextBlock Text="{Binding DisplayArtist}" FontSize="11" Foreground="Gray" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding DisplayArtist}" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" TextTrimming="CharacterEllipsis"/>
                                                 </StackPanel>
                                                 <TextBlock Grid.Column="1" Text="{Binding DurationFormatted}" VerticalAlignment="Center"
-                                                           HorizontalAlignment="Right" Margin="10,0" Foreground="Gray" FontSize="11"/>
+                                                           HorizontalAlignment="Right" Margin="10,0" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                                                 <Button Grid.Column="2" Width="32" Height="24" Margin="4,0"
                                                         Background="#2196F3" Foreground="White" BorderThickness="0"
                                                         ToolTip="Play this track"
@@ -470,10 +470,10 @@
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding DisplayTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                                                    <TextBlock Text="{Binding DisplayArtist}" FontSize="11" Foreground="Gray" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding DisplayArtist}" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" TextTrimming="CharacterEllipsis"/>
                                                 </StackPanel>
                                                 <TextBlock Grid.Column="1" Text="{Binding DurationFormatted}" VerticalAlignment="Center"
-                                                           HorizontalAlignment="Right" Margin="10,0" Foreground="Gray" FontSize="11"/>
+                                                           HorizontalAlignment="Right" Margin="10,0" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                                                 <Button Grid.Column="2" Width="32" Height="24" Margin="4,0,0,0"
                                                         Background="#2196F3" Foreground="White" BorderThickness="0"
                                                         ToolTip="Play again"
@@ -553,7 +553,7 @@
                                         <!-- Watch Folders Section -->
                                         <Expander Header="👁 Watch Folders" IsExpanded="False" Margin="0,0,0,8">
                                             <StackPanel Margin="5">
-                                                <TextBlock Text="Auto-import new audio files from watched folders" FontSize="10" Foreground="Gray" Margin="0,0,0,5"/>
+                                                <TextBlock Text="Auto-import new audio files from watched folders" FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,5"/>
                                                 <ListBox ItemsSource="{Binding WatchFolders}" SelectedItem="{Binding SelectedWatchFolder}"
                                                          MaxHeight="80" FontSize="11"
                                                          HorizontalContentAlignment="Stretch">
@@ -1203,7 +1203,7 @@
                             <Border Background="#E0222222" CornerRadius="4" Padding="6,3" BorderBrush="#666" BorderThickness="1">
                                 <StackPanel>
                                     <Canvas x:Name="SeekPreviewWaveform" Width="140" Height="40" Background="Transparent" Margin="0,0,0,2"/>
-                                    <TextBlock x:Name="SeekPreviewTimeText" FontSize="10" Foreground="White" 
+                                    <TextBlock x:Name="SeekPreviewTimeText" FontSize="10" Foreground="{DynamicResource WindowForegroundBrush}" 
                                                HorizontalAlignment="Center" FontFamily="Consolas"/>
                                 </StackPanel>
                             </Border>

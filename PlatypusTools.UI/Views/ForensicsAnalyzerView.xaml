@@ -16,7 +16,7 @@
         <StackPanel Grid.Row="0" Margin="0,0,0,15">
             <TextBlock Text="🔬 Forensics Analyzer" FontSize="24" FontWeight="Bold" Margin="0,0,0,5"/>
             <TextBlock Text="Analyze system memory, file system, registry, and event logs for security issues and anomalies." 
-                       Foreground="Gray" TextWrapping="Wrap"/>
+                       Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap"/>
         </StackPanel>
 
         <!-- Analysis Controls -->
@@ -37,7 +37,7 @@
                             <TextBlock Text="⚡" FontSize="24" Margin="0,0,10,0"/>
                             <StackPanel>
                                 <TextBlock Text="Lightweight Scan" FontSize="16" FontWeight="SemiBold"/>
-                                <TextBlock Text="Quick analysis, single core" Foreground="Gray" FontSize="11"/>
+                                <TextBlock Text="Quick analysis, single core" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                             </StackPanel>
                         </StackPanel>
                         <TextBlock Text="• Single CPU core" Margin="0,2"/>
@@ -58,7 +58,7 @@
                             <TextBlock Text="🔍" FontSize="24" Margin="0,0,10,0"/>
                             <StackPanel>
                                 <TextBlock Text="Deep Analysis" FontSize="16" FontWeight="SemiBold"/>
-                                <TextBlock Text="Comprehensive, multi-core" Foreground="Gray" FontSize="11"/>
+                                <TextBlock Text="Comprehensive, multi-core" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                             </StackPanel>
                         </StackPanel>
                         <TextBlock Text="• All CPU cores" Margin="0,2"/>
@@ -100,7 +100,7 @@
 
                 <!-- Findings Summary -->
                 <StackPanel Grid.Column="0" Grid.Row="0" Margin="5">
-                    <TextBlock Text="Findings" FontWeight="Bold" Foreground="Gray"/>
+                    <TextBlock Text="Findings" FontWeight="Bold" Foreground="{DynamicResource SecondaryTextBrush}"/>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="🔴" FontSize="12" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding CriticalFindings}" FontSize="18" FontWeight="Bold" Foreground="Red" Margin="3,0,10,0"/>
@@ -115,7 +115,7 @@
 
                 <!-- Memory -->
                 <StackPanel Grid.Column="1" Grid.Row="0" Margin="5">
-                    <TextBlock Text="Memory" FontWeight="Bold" Foreground="Gray"/>
+                    <TextBlock Text="Memory" FontWeight="Bold" Foreground="{DynamicResource SecondaryTextBrush}"/>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Usage:" Margin="0,0,5,0"/>
                         <TextBlock Text="{Binding MemoryUsage}" FontWeight="Bold"/>
@@ -126,7 +126,7 @@
 
                 <!-- File System -->
                 <StackPanel Grid.Column="2" Grid.Row="0" Margin="5">
-                    <TextBlock Text="File System" FontWeight="Bold" Foreground="Gray"/>
+                    <TextBlock Text="File System" FontWeight="Bold" Foreground="{DynamicResource SecondaryTextBrush}"/>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Scanned:" Margin="0,0,5,0"/>
                         <TextBlock Text="{Binding FilesScanned}" FontWeight="Bold"/>
@@ -137,7 +137,7 @@
 
                 <!-- Registry -->
                 <StackPanel Grid.Column="3" Grid.Row="0" Margin="5">
-                    <TextBlock Text="Registry" FontWeight="Bold" Foreground="Gray"/>
+                    <TextBlock Text="Registry" FontWeight="Bold" Foreground="{DynamicResource SecondaryTextBrush}"/>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Startup:" Margin="0,0,5,0"/>
                         <TextBlock Text="{Binding StartupEntries}" FontWeight="Bold"/>
@@ -148,7 +148,7 @@
 
                 <!-- Event Logs -->
                 <StackPanel Grid.Column="0" Grid.Row="1" Margin="5">
-                    <TextBlock Text="Event Logs" FontWeight="Bold" Foreground="Gray"/>
+                    <TextBlock Text="Event Logs" FontWeight="Bold" Foreground="{DynamicResource SecondaryTextBrush}"/>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Scanned:" Margin="0,0,5,0"/>
                         <TextBlock Text="{Binding EventsScanned}" FontWeight="Bold"/>
@@ -159,7 +159,7 @@
 
                 <!-- Duration -->
                 <StackPanel Grid.Column="1" Grid.Row="1" Margin="5">
-                    <TextBlock Text="Duration" FontWeight="Bold" Foreground="Gray"/>
+                    <TextBlock Text="Duration" FontWeight="Bold" Foreground="{DynamicResource SecondaryTextBrush}"/>
                     <TextBlock>
                         <Run Text="{Binding AnalysisDuration.TotalMinutes, StringFormat={}{0:F1}, Mode=OneWay}"/>
                         <Run Text=" minutes"/>
@@ -168,7 +168,7 @@
 
                 <!-- Report -->
                 <StackPanel Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2" Margin="5">
-                    <TextBlock Text="Report" FontWeight="Bold" Foreground="Gray"/>
+                    <TextBlock Text="Report" FontWeight="Bold" Foreground="{DynamicResource SecondaryTextBrush}"/>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding LastReportSize}" FontWeight="Bold" Margin="0,0,10,0"/>
                         <Button Content="📂 Open Folder" Command="{Binding OpenReportFolderCommand}" 

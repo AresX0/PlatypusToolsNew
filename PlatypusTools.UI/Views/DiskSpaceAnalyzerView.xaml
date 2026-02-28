@@ -68,7 +68,7 @@
                                 </Image>
                                 <TextBlock Text="{Binding Name}" FontWeight="{Binding IsFile, Converter={StaticResource FileFontWeightConverter}}" Margin="0,0,8,0" />
                                 <TextBlock Text="{Binding SizeDisplay}" Foreground="DarkGreen" Margin="0,0,8,0" />
-                                <TextBlock Text="{Binding FileCount, StringFormat='({0} files)'}" Foreground="Gray" Visibility="{Binding IsFile, Converter={StaticResource FileCountVisibilityConverter}}" />
+                                <TextBlock Text="{Binding FileCount, StringFormat='({0} files)'}" Foreground="{DynamicResource SecondaryTextBrush}" Visibility="{Binding IsFile, Converter={StaticResource FileCountVisibilityConverter}}" />
                                 <TextBlock Text="[Hidden]" Foreground="DarkOrange" Margin="4,0,0,0" Visibility="{Binding IsHidden, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                 <TextBlock Text="[System]" Foreground="Red" Margin="4,0,0,0" Visibility="{Binding IsSystem, Converter={StaticResource BooleanToVisibilityConverter}}" />
                             </StackPanel>

@@ -24,7 +24,7 @@
                    HorizontalAlignment="Center"/>
             <TextBlock Text="Welcome to PlatypusTools!" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,8"/>
             <TextBlock Text="Some features require external tools to work properly. You can install them now or later from Settings." 
-                       TextWrapping="Wrap" Foreground="Gray" HorizontalAlignment="Center" TextAlignment="Center"/>
+                       TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" HorizontalAlignment="Center" TextAlignment="Center"/>
         </StackPanel>
         
         <!-- Status Message -->
@@ -50,7 +50,7 @@
                                 <TextBlock Text="FFmpeg" FontSize="16" FontWeight="SemiBold"/>
                             </StackPanel>
                             <TextBlock Text="Required for: Video editing, conversion, screen recording, audio processing" 
-                                       Foreground="Gray" TextWrapping="Wrap" Margin="24,4,0,0"/>
+                                       Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap" Margin="24,4,0,0"/>
                             <TextBlock x:Name="FFmpegPath" Text="" Foreground="Green" FontSize="11" Margin="24,4,0,0"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
@@ -73,7 +73,7 @@
                                 <TextBlock Text="ExifTool" FontSize="16" FontWeight="SemiBold"/>
                             </StackPanel>
                             <TextBlock Text="Required for: Metadata editing, EXIF data reading/writing" 
-                                       Foreground="Gray" TextWrapping="Wrap" Margin="24,4,0,0"/>
+                                       Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap" Margin="24,4,0,0"/>
                             <TextBlock x:Name="ExifToolPath" Text="" Foreground="Green" FontSize="11" Margin="24,4,0,0"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
@@ -96,7 +96,7 @@
                                 <TextBlock Text="WebView2 Runtime" FontSize="16" FontWeight="SemiBold"/>
                             </StackPanel>
                             <TextBlock Text="Required for: Help system, simple browser, PDF viewing" 
-                                       Foreground="Gray" TextWrapping="Wrap" Margin="24,4,0,0"/>
+                                       Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap" Margin="24,4,0,0"/>
                             <TextBlock x:Name="WebView2Path" Text="" Foreground="Green" FontSize="11" Margin="24,4,0,0"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
@@ -121,10 +121,10 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock x:Name="TailscaleStatus" Text="⏳" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <TextBlock Text="Tailscale VPN" FontSize="16" FontWeight="SemiBold"/>
-                                <TextBlock Text="(Optional)" Foreground="Gray" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                <TextBlock Text="(Optional)" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0"/>
                             </StackPanel>
                             <TextBlock Text="Used for: Secure remote access via mesh VPN network" 
-                                       Foreground="Gray" TextWrapping="Wrap" Margin="24,4,0,0"/>
+                                       Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap" Margin="24,4,0,0"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <Button x:Name="TailscaleDownloadBtn" Content="Download ↗" MinWidth="100" Click="OpenTailscaleSite_Click"/>
@@ -143,10 +143,10 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock x:Name="CloudflaredStatus" Text="⏳" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <TextBlock Text="cloudflared" FontSize="16" FontWeight="SemiBold"/>
-                                <TextBlock Text="(Optional)" Foreground="Gray" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                <TextBlock Text="(Optional)" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0"/>
                             </StackPanel>
                             <TextBlock Text="Used for: Cloudflare Tunnel secure external access without port forwarding" 
-                                       Foreground="Gray" TextWrapping="Wrap" Margin="24,4,0,0"/>
+                                       Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap" Margin="24,4,0,0"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <Button x:Name="CloudflaredInstallBtn" Content="Install" MinWidth="100" Click="InstallCloudflared_Click"/>
@@ -159,11 +159,11 @@
                 <Border Background="#2D2D30" CornerRadius="8" Padding="16" Margin="0,8,0,0">
                     <StackPanel>
                         <TextBlock Text="📁 Manual Installation Locations" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                        <TextBlock TextWrapping="Wrap" Foreground="Gray">
+                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}">
                             <Run Text="If automatic installation fails, download the tools manually and place them in:"/>
                         </TextBlock>
                         <TextBlock x:Name="ToolsPathText" Text="" FontFamily="Consolas" Foreground="#569CD6" Margin="0,8,0,0"/>
-                        <TextBlock TextWrapping="Wrap" Foreground="Gray" Margin="0,8,0,0">
+                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,8,0,0">
                             <Run Text="• FFmpeg: Place ffmpeg.exe in the Tools folder or add to system PATH"/>
                             <LineBreak/>
                             <Run Text="• ExifTool: Place exiftool.exe in Tools\exiftool_files\ folder"/>

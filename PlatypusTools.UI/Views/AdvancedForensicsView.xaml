@@ -14,7 +14,7 @@
         <StackPanel Grid.Row="0" Margin="0,0,0,10">
             <TextBlock Text="🔬 Advanced Forensics (DFIR)" FontSize="24" FontWeight="Bold"/>
             <TextBlock Text="Digital Forensics &amp; Incident Response - Memory acquisition &amp; analysis, artifact collection, timeline creation, malware analysis, and OSINT" 
-                       Foreground="Gray" TextWrapping="Wrap"/>
+                       Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap"/>
         </StackPanel>
 
         <!-- Main Content -->
@@ -252,7 +252,7 @@
                                     <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding KapeOutputPath, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
                                 </Grid>
                                 <TextBlock Text="💡 KAPE requires registration at kroll.com (free for authorized incident response)" 
-                                           Foreground="Gray" Margin="5,5,5,0" FontStyle="Italic"/>
+                                           Foreground="{DynamicResource SecondaryTextBrush}" Margin="5,5,5,0" FontStyle="Italic"/>
                             </StackPanel>
                         </GroupBox>
 
@@ -420,7 +420,7 @@
                                 <Button Grid.Column="1" Content="📥 Load" Command="{Binding LoadKustoTemplateCommand}"
                                         MinWidth="180" ToolTip="Load template to query box"/>
                             </Grid>
-                            <TextBlock Text="{Binding SelectedKustoTemplate.Description}" Foreground="Gray" 
+                            <TextBlock Text="{Binding SelectedKustoTemplate.Description}" Foreground="{DynamicResource SecondaryTextBrush}" 
                                        TextWrapping="Wrap" Margin="0,0,0,5"/>
                         </StackPanel>
                     </GroupBox>
@@ -436,7 +436,7 @@
                                 Height="35" MinWidth="190" Background="#00BCD4" Foreground="White"
                                 IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                         <TextBlock Text="💡 Copy query to Azure Data Explorer for execution" 
-                                   VerticalAlignment="Center" Margin="15,0,0,0" Foreground="Gray"/>
+                                   VerticalAlignment="Center" Margin="15,0,0,0" Foreground="{DynamicResource SecondaryTextBrush}"/>
                     </StackPanel>
                 </Grid>
             </TabItem>
@@ -481,7 +481,7 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
-                                        <TextBlock Text="{Binding LocalDbStatus}" Foreground="White" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding LocalDbStatus}" Foreground="{DynamicResource WindowForegroundBrush}" FontWeight="Bold"/>
                                     </Border>
                                 </Grid>
                                 <TextBlock Text="{Binding TotalRecords, StringFormat='Total Records: {0:N0}'}" Margin="0,5,0,0"/>
@@ -533,7 +533,7 @@
                                         <DataTemplate>
                                             <StackPanel Margin="2">
                                                 <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="11"/>
-                                                <TextBlock Text="{Binding Description}" Foreground="Gray" 
+                                                <TextBlock Text="{Binding Description}" Foreground="{DynamicResource SecondaryTextBrush}" 
                                                            FontSize="10" TextWrapping="Wrap" MaxWidth="200"/>
                                             </StackPanel>
                                         </DataTemplate>
@@ -575,7 +575,7 @@
                         <TextBox Grid.Row="3" Text="{Binding TranslatedSql, Mode=OneWay}" 
                                  IsReadOnly="True" Margin="0,20,0,0"
                                  TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
-                                 FontFamily="Consolas" FontSize="11" Background="#1E1E1E" Foreground="#9CDCFE"/>
+                                 FontFamily="Consolas" FontSize="11" Background="{DynamicResource ControlBackgroundBrush}" Foreground="#9CDCFE"/>
 
                         <!-- Results Grid -->
                         <TextBlock Grid.Row="4" Text="Results:" FontWeight="Bold" Margin="0,10,0,5"/>

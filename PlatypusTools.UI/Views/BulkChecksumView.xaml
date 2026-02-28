@@ -45,8 +45,8 @@
             <TabItem Header="📊 Checksums">
                 <DataGrid ItemsSource="{Binding Results}"
                           AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
-                          GridLinesVisibility="Horizontal" AlternatingRowBackground="#FF2A2A3A"
-                          Background="#FF1E1E2E" Foreground="White" BorderThickness="0">
+                          GridLinesVisibility="Horizontal" AlternatingRowBackground="{DynamicResource ControlBackgroundBrush}"
+                          Background="{DynamicResource ControlBackgroundBrush}" Foreground="{DynamicResource WindowForegroundBrush}" BorderThickness="0">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="File" Binding="{Binding FileName}" Width="200">
                             <DataGridTextColumn.ElementStyle>
@@ -105,8 +105,8 @@
 
                     <DataGrid Grid.Row="1" ItemsSource="{Binding Verifications}"
                               AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
-                              GridLinesVisibility="Horizontal" AlternatingRowBackground="#FF2A2A3A"
-                              Background="#FF1E1E2E" Foreground="White" BorderThickness="0">
+                              GridLinesVisibility="Horizontal" AlternatingRowBackground="{DynamicResource ControlBackgroundBrush}"
+                              Background="{DynamicResource ControlBackgroundBrush}" Foreground="{DynamicResource WindowForegroundBrush}" BorderThickness="0">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="" Binding="{Binding StatusIcon}" Width="35" />
                             <DataGridTextColumn Header="File" Binding="{Binding FileName}" Width="200">
@@ -148,7 +148,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBlock Text="{Binding StatusMessage}" Foreground="#FFB0B0B0" FontSize="11" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" VerticalAlignment="Center" />
             <ProgressBar Grid.Column="1" Value="{Binding Progress}" Width="200" Height="14"
                          Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}" />
         </Grid>

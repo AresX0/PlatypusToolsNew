@@ -15,7 +15,7 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Border Grid.Row="0" Background="#FFDDDD" BorderBrush="#FFAAAA" BorderThickness="1" CornerRadius="4" Padding="12" Margin="0,0,0,12">
+        <Border Grid.Row="0" Background="{DynamicResource ErrorBackgroundBrush}" BorderBrush="#FFAAAA" BorderThickness="1" CornerRadius="4" Padding="12" Margin="0,0,0,12">
             <StackPanel>
                 <TextBlock FontSize="18" FontWeight="Bold" Foreground="#CC0000">
                     🔥 Secure Data Wipe
@@ -51,7 +51,7 @@
                         MinWidth="180"/>
 
                 <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding TargetInfo}" 
-                           Margin="0,8,0,0" FontStyle="Italic" Foreground="Gray"/>
+                           Margin="0,8,0,0" FontStyle="Italic" Foreground="{DynamicResource SecondaryTextBrush}"/>
             </Grid>
         </GroupBox>
 
@@ -74,8 +74,8 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="{Binding Icon}" Width="24"/>
                                 <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                                <TextBlock Text=" - " Foreground="Gray"/>
-                                <TextBlock Text="{Binding PassCount, StringFormat='{}{0} passes'}" Foreground="Gray"/>
+                                <TextBlock Text=" - " Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                <TextBlock Text="{Binding PassCount, StringFormat='{}{0} passes'}" Foreground="{DynamicResource SecondaryTextBrush}"/>
                             </StackPanel>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
@@ -151,7 +151,7 @@
                 <TextBlock Text="{Binding StatusMessage}" Margin="0,0,0,4"/>
                 <ProgressBar Height="20" Value="{Binding Progress}" Maximum="100" 
                              Visibility="{Binding IsWiping, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                <TextBlock Text="{Binding CurrentOperation}" FontSize="11" Foreground="Gray"
+                <TextBlock Text="{Binding CurrentOperation}" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}"
                            Visibility="{Binding IsWiping, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             </StackPanel>
 

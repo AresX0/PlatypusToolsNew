@@ -36,8 +36,8 @@
             <!-- Disk List -->
             <DataGrid Grid.Column="0" ItemsSource="{Binding Disks}" SelectedItem="{Binding SelectedDisk}"
                       AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
-                      GridLinesVisibility="Horizontal" AlternatingRowBackground="#FF2A2A3A"
-                      Background="#FF1E1E2E" Foreground="White" BorderThickness="0">
+                      GridLinesVisibility="Horizontal" AlternatingRowBackground="{DynamicResource ControlBackgroundBrush}"
+                      Background="{DynamicResource ControlBackgroundBrush}" Foreground="{DynamicResource WindowForegroundBrush}" BorderThickness="0">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Health" Binding="{Binding HealthIcon}" Width="55" />
                     <DataGridTextColumn Header="Model" Binding="{Binding Model}" Width="*" MinWidth="200" />
@@ -58,7 +58,7 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <TextBox Text="{Binding DiskDetails, Mode=OneWay}" IsReadOnly="True"
                              FontFamily="Consolas" FontSize="12"
-                             Background="Transparent" Foreground="#FFE0E0E0"
+                             Background="Transparent" Foreground="{DynamicResource WindowForegroundBrush}"
                              BorderThickness="0" TextWrapping="Wrap"
                              VerticalScrollBarVisibility="Auto" />
                 </ScrollViewer>
@@ -67,6 +67,6 @@
 
         <!-- Status Bar -->
         <TextBlock Grid.Row="3" Text="{Binding StatusMessage}" Margin="0,4,0,0"
-                   Foreground="#FFB0B0B0" FontSize="11" />
+                   Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" />
     </Grid>
 </UserControl>

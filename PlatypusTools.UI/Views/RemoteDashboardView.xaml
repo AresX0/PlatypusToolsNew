@@ -56,7 +56,7 @@
 
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="🌐 Remote Management Dashboard" FontSize="18" FontWeight="Bold"
-                           Foreground="#FFCDD6F4" VerticalAlignment="Center" />
+                           Foreground="{DynamicResource WindowForegroundBrush}" VerticalAlignment="Center" />
                 <ProgressBar IsIndeterminate="True" Width="60" Height="4" Margin="12,0,0,0"
                              Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" />
             </StackPanel>
@@ -92,7 +92,7 @@
                             </Ellipse.Style>
                         </Ellipse>
                         <TextBlock Text="{Binding ServerStatus}" FontSize="14" FontWeight="SemiBold"
-                                   Foreground="#FFCDD6F4" VerticalAlignment="Center" />
+                                   Foreground="{DynamicResource WindowForegroundBrush}" VerticalAlignment="Center" />
                     </StackPanel>
                     <TextBlock Text="Server" Style="{StaticResource StatLabel}" />
                 </StackPanel>
@@ -115,7 +115,7 @@
                             </Ellipse.Style>
                         </Ellipse>
                         <TextBlock Text="{Binding TunnelStatus}" FontSize="14" FontWeight="SemiBold"
-                                   Foreground="#FFCDD6F4" VerticalAlignment="Center" />
+                                   Foreground="{DynamicResource WindowForegroundBrush}" VerticalAlignment="Center" />
                     </StackPanel>
                     <TextBlock Text="Cloudflare Tunnel" Style="{StaticResource StatLabel}" />
                 </StackPanel>
@@ -164,7 +164,7 @@
                         <StackPanel>
                             <TextBlock Text="🔗 Connection" Style="{StaticResource SectionHeader}" />
                             
-                            <TextBlock Text="Local URL" Foreground="#FF6C7086" FontSize="10" Margin="0,0,0,2" />
+                            <TextBlock Text="Local URL" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="10" Margin="0,0,0,2" />
                             <DockPanel Margin="0,0,0,8">
                                 <Button DockPanel.Dock="Right" Content="📋" Width="28" Height="28" Margin="4,0,0,0"
                                         Command="{Binding CopyServerUrlCommand}" ToolTip="Copy" />
@@ -172,7 +172,7 @@
                                          FontSize="11" VerticalAlignment="Center" />
                             </DockPanel>
 
-                            <TextBlock Text="LAN URL" Foreground="#FF6C7086" FontSize="10" Margin="0,0,0,2" />
+                            <TextBlock Text="LAN URL" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="10" Margin="0,0,0,2" />
                             <DockPanel Margin="0,0,0,8">
                                 <Button DockPanel.Dock="Right" Content="📋" Width="28" Height="28" Margin="4,0,0,0"
                                         Command="{Binding CopyLocalIpCommand}" ToolTip="Copy" />
@@ -186,7 +186,7 @@
                                 </TextBox>
                             </DockPanel>
 
-                            <TextBlock Text="Tunnel URL" Foreground="#FF6C7086" FontSize="10" Margin="0,0,0,2"
+                            <TextBlock Text="Tunnel URL" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="10" Margin="0,0,0,2"
                                        Visibility="{Binding IsTunnelRunning, Converter={StaticResource BoolToVis}}" />
                             <DockPanel Margin="0,0,0,4"
                                        Visibility="{Binding IsTunnelRunning, Converter={StaticResource BoolToVis}}">
@@ -200,9 +200,9 @@
                             <StackPanel Orientation="Horizontal" Margin="0,4,0,0"
                                         Visibility="{Binding IsTailscaleConnected, Converter={StaticResource BoolToVis}}">
                                 <Ellipse Width="8" Height="8" Fill="#FFA6E3A1" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                <TextBlock FontSize="11" Foreground="#FF6C7086" VerticalAlignment="Center">
+                                <TextBlock FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center">
                                     <Run Text="Tailscale: " />
-                                    <Run Text="{Binding TailscaleIp}" Foreground="#FFA6E3A1" />
+                                    <Run Text="{Binding TailscaleIp}" Foreground="{DynamicResource SuccessForegroundBrush}" />
                                 </TextBlock>
                             </StackPanel>
                         </StackPanel>
@@ -219,13 +219,13 @@
                             <ItemsControl ItemsSource="{Binding ConnectedClients}" MaxHeight="200">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Background="#FF2A2A3E" CornerRadius="4" Padding="8" Margin="0,0,0,4">
+                                        <Border Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="4" Padding="8" Margin="0,0,0,4">
                                             <StackPanel>
                                                 <TextBlock Text="{Binding IpAddress}" FontWeight="SemiBold"
-                                                           Foreground="#FFCDD6F4" FontSize="12" />
-                                                <TextBlock FontSize="10" Foreground="#FF6C7086"
+                                                           Foreground="{DynamicResource WindowForegroundBrush}" FontSize="12" />
+                                                <TextBlock FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}"
                                                            Text="{Binding ConnectedAt, StringFormat='Connected: {0:HH:mm:ss}'}" />
-                                                <TextBlock FontSize="10" Foreground="#FF6C7086"
+                                                <TextBlock FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}"
                                                            Text="{Binding UserAgent}" TextTrimming="CharacterEllipsis"
                                                            ToolTip="{Binding UserAgent}" />
                                             </StackPanel>
@@ -233,7 +233,7 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <TextBlock Text="No clients connected" Foreground="#FF6C7086" FontSize="11"
+                            <TextBlock Text="No clients connected" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"
                                        Margin="0,4,0,0" FontStyle="Italic">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
@@ -254,7 +254,7 @@
                         <StackPanel>
                             <TextBlock Text="🔒 IP Allowlist" Style="{StaticResource SectionHeader}" />
                             <CheckBox Content="Enable IP filtering" IsChecked="{Binding IsIpAllowlistEnabled}"
-                                      Foreground="#FFCDD6F4" Margin="0,0,0,8" />
+                                      Foreground="{DynamicResource WindowForegroundBrush}" Margin="0,0,0,8" />
                             
                             <DockPanel Margin="0,0,0,8">
                                 <Button DockPanel.Dock="Right" Content="Add" Width="50" Margin="4,0,0,0"
@@ -269,11 +269,11 @@
                                     <DataTemplate>
                                         <DockPanel Margin="0,0,0,2">
                                             <Button DockPanel.Dock="Right" Content="✕" Width="22" Height="22"
-                                                    FontSize="10" Margin="4,0,0,0" Foreground="#FFF38BA8"
+                                                    FontSize="10" Margin="4,0,0,0" Foreground="{DynamicResource ErrorForegroundBrush}"
                                                     Background="Transparent" BorderThickness="0"
                                                     Command="{Binding DataContext.RemoveIpCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}" />
-                                            <TextBlock Text="{Binding}" Foreground="#FFCDD6F4" FontSize="11"
+                                            <TextBlock Text="{Binding}" Foreground="{DynamicResource WindowForegroundBrush}" FontSize="11"
                                                        VerticalAlignment="Center" FontFamily="Consolas" />
                                         </DockPanel>
                                     </DataTemplate>
@@ -321,7 +321,7 @@
                               CanUserSortColumns="True"
                               GridLinesVisibility="Horizontal"
                               BorderThickness="0" Background="Transparent"
-                              RowBackground="#FF1E1E2E" AlternatingRowBackground="#FF2A2A3E"
+                              RowBackground="{DynamicResource ControlBackgroundBrush}" AlternatingRowBackground="{DynamicResource ControlBackgroundBrush}"
                               HeadersVisibility="Column">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Time" Width="80"
@@ -404,7 +404,7 @@
                              FontFamily="Consolas" FontSize="10">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding}" Foreground="#FF6C7086" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding}" Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap" />
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
@@ -413,15 +413,15 @@
         </Grid>
 
         <!-- Status Bar -->
-        <Border Grid.Row="3" Background="#FF1E1E2E" CornerRadius="4" Padding="8,4" Margin="4,4,4,0">
+        <Border Grid.Row="3" Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="4" Padding="8,4" Margin="4,4,4,0">
             <DockPanel>
-                <TextBlock DockPanel.Dock="Right" FontSize="11" Foreground="#FF6C7086" VerticalAlignment="Center">
+                <TextBlock DockPanel.Dock="Right" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center">
                     <Run Text="Port: " />
                     <Run Text="{Binding ServerPort}" />
                     <Run Text=" | Local: " />
                     <Run Text="{Binding LocalIpAddress}" />
                 </TextBlock>
-                <TextBlock Text="{Binding StatusMessage}" FontSize="11" Foreground="#FFA6E3A1"
+                <TextBlock Text="{Binding StatusMessage}" FontSize="11" Foreground="{DynamicResource SuccessForegroundBrush}"
                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
             </DockPanel>
         </Border>

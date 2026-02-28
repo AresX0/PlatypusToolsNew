@@ -27,7 +27,7 @@
                             Padding="16,8" FontSize="14"
                             Background="#FF4CAF50" Foreground="White" />
                     <TextBlock VerticalAlignment="Center" Margin="12,0,0,0">
-                        <Run Text="Position: " Foreground="#FFB0B0B0" />
+                        <Run Text="Position: " Foreground="{DynamicResource SecondaryTextBrush}" />
                         <Run Text="{Binding CursorX, Mode=OneWay}" />
                         <Run Text=", " />
                         <Run Text="{Binding CursorY, Mode=OneWay}" />
@@ -36,7 +36,7 @@
 
                 <!-- Magnifier Preview -->
                 <GroupBox Header="Screen Magnifier" Margin="0,0,0,12">
-                    <Border Background="#FF1E1E2E" CornerRadius="4" Padding="8"
+                    <Border Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="4" Padding="8"
                             HorizontalAlignment="Left" Width="310" Height="310">
                         <Image Source="{Binding MagnifierImage}" 
                                RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -88,7 +88,7 @@
                         <StackPanel Orientation="Horizontal" Margin="4">
                             <TextBox Text="{Binding HexColor, Mode=OneWay}" IsReadOnly="True"
                                      FontFamily="Consolas" FontSize="14" Width="120"
-                                     Background="Transparent" Foreground="#FFE0E0E0"
+                                     Background="Transparent" Foreground="{DynamicResource WindowForegroundBrush}"
                                      BorderThickness="0" />
                             <Button Content="📋" Command="{Binding CopyHexCommand}" Padding="6,2"
                                     Background="#FF2196F3" Foreground="White" ToolTip="Copy HEX" />
@@ -99,7 +99,7 @@
                         <StackPanel Orientation="Horizontal" Margin="4">
                             <TextBox Text="{Binding RgbColor, Mode=OneWay}" IsReadOnly="True"
                                      FontFamily="Consolas" FontSize="14" Width="180"
-                                     Background="Transparent" Foreground="#FFE0E0E0"
+                                     Background="Transparent" Foreground="{DynamicResource WindowForegroundBrush}"
                                      BorderThickness="0" />
                             <Button Content="📋" Command="{Binding CopyRgbCommand}" Padding="6,2"
                                     Background="#FF2196F3" Foreground="White" ToolTip="Copy RGB" />
@@ -110,7 +110,7 @@
                         <StackPanel Orientation="Horizontal" Margin="4">
                             <TextBox Text="{Binding HslColor, Mode=OneWay}" IsReadOnly="True"
                                      FontFamily="Consolas" FontSize="14" Width="180"
-                                     Background="Transparent" Foreground="#FFE0E0E0"
+                                     Background="Transparent" Foreground="{DynamicResource WindowForegroundBrush}"
                                      BorderThickness="0" />
                             <Button Content="📋" Command="{Binding CopyHslCommand}" Padding="6,2"
                                     Background="#FF2196F3" Foreground="White" ToolTip="Copy HSL" />
@@ -122,6 +122,6 @@
 
         <!-- Status Bar -->
         <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" Margin="0,4,0,0"
-                   Foreground="#FFB0B0B0" FontSize="11" />
+                   Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" />
     </Grid>
 </UserControl>

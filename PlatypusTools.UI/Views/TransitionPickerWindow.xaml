@@ -21,7 +21,7 @@
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,16">
             <TextBlock Text="Select Transition" FontSize="20" FontWeight="Bold"/>
-            <TextBlock Text="Choose a transition effect to apply between clips" Foreground="Gray"/>
+            <TextBlock Text="Choose a transition effect to apply between clips" Foreground="{DynamicResource SecondaryTextBrush}"/>
         </StackPanel>
         
         <!-- Categories and Transitions -->
@@ -33,7 +33,7 @@
             </Grid.ColumnDefinitions>
             
             <!-- Categories List -->
-            <Border Grid.Column="0" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="4" Background="#F8F8F8" Margin="0,0,8,0">
+            <Border Grid.Column="0" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="4" Background="{DynamicResource ControlBackgroundBrush}" Margin="0,0,8,0">
                 <StackPanel Margin="8">
                     <TextBlock Text="Categories" FontWeight="SemiBold" Margin="0,0,0,8"/>
                     <ListBox x:Name="CategoryList" ItemsSource="{Binding Categories}" 
@@ -91,7 +91,7 @@
             </Border>
             
             <!-- Preview and Settings -->
-            <Border Grid.Column="2" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="4" Background="#F8F8F8" Margin="8,0,0,0">
+            <Border Grid.Column="2" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="4" Background="{DynamicResource ControlBackgroundBrush}" Margin="8,0,0,0">
                 <StackPanel Margin="12">
                     <TextBlock Text="Preview" FontWeight="SemiBold" Margin="0,0,0,8"/>
                     

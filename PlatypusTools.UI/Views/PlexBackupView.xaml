@@ -56,7 +56,7 @@
                         <TextBlock Text="🎬" FontSize="32" VerticalAlignment="Center" Margin="0,0,15,0"/>
                         
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="Plex Media Server Backup" FontSize="20" FontWeight="Bold" Foreground="White"/>
+                            <TextBlock Text="Plex Media Server Backup" FontSize="20" FontWeight="Bold"/>
                             <TextBlock Text="Native C# backup and restore for Plex" Foreground="#CCFFFFFF" FontSize="12"/>
                         </StackPanel>
                         
@@ -151,7 +151,7 @@
                                       SelectedItem="{Binding Mode}"
                                       IsEnabled="{Binding IsNotRunning}"/>
                             <TextBlock Text="Backup: Create new backup&#x0a;Continue: Resume interrupted backup&#x0a;Restore: Restore from backup" 
-                                       FontSize="10" Foreground="Gray" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                                       FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
                         </StackPanel>
                         
                         <StackPanel Grid.Column="1" Margin="10,0,0,0">
@@ -160,7 +160,7 @@
                                       SelectedItem="{Binding BackupType}"
                                       IsEnabled="{Binding IsNotRunning}"/>
                             <TextBlock Text="Default: Built-in ZIP compression&#x0a;SevenZip: 7-Zip compression&#x0a;Robocopy: File mirroring" 
-                                       FontSize="10" Foreground="Gray" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                                       FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Grid>
                 </GroupBox>
@@ -425,7 +425,7 @@
                                  HorizontalScrollBarVisibility="Auto"
                                  FontFamily="Consolas"
                                  FontSize="11"
-                                 Background="#1E1E1E"
+                                 Background="{DynamicResource ControlBackgroundBrush}"
                                  Foreground="#D4D4D4"
                                  Padding="10"/>
                         
@@ -470,19 +470,19 @@
                                     <StackPanel>
                                         <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="12"/>
                                         
-                                        <TextBlock FontSize="11" Foreground="Gray" Margin="0,3,0,0">
+                                        <TextBlock FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,3,0,0">
                                             <Run Text="Created: "/>
                                             <Run Text="{Binding Created, StringFormat='yyyy-MM-dd HH:mm'}"/>
                                         </TextBlock>
                                         
-                                        <TextBlock FontSize="11" Foreground="Gray" Margin="0,2,0,0">
+                                        <TextBlock FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2,0,0">
                                             <Run Text="Plex: "/>
                                             <Run Text="{Binding PlexVersion, TargetNullValue='Unknown'}"/>
                                             <Run Text=" | "/>
                                             <Run Text="{Binding BackupType}"/>
                                         </TextBlock>
                                         
-                                        <TextBlock FontSize="11" Foreground="Gray" Margin="0,2,0,0">
+                                        <TextBlock FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2,0,0">
                                             <Run Text="{Binding FileCount}"/>
                                             <Run Text=" files | "/>
                                             <Run Text="{Binding FormattedSize}"/>
@@ -511,7 +511,7 @@
                 <!-- No backups message -->
                 <TextBlock Grid.Row="1" Text="No backups found in the selected directory."
                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                           Foreground="Gray" FontStyle="Italic">
+                           Foreground="{DynamicResource SecondaryTextBrush}" FontStyle="Italic">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed"/>

@@ -211,7 +211,7 @@
                         <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="0,0,10,0"/>
-                                <TextBlock Text="{Binding SizeFormatted, StringFormat={}({0})}" Foreground="Gray"/>
+                                <TextBlock Text="{Binding SizeFormatted, StringFormat={}({0})}" Foreground="{DynamicResource SecondaryTextBrush}"/>
                             </StackPanel>
                         </HierarchicalDataTemplate>
                     </TreeView.ItemTemplate>

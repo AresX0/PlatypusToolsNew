@@ -765,4 +765,39 @@
         <Setter Property="Background" Value="{StaticResource KlingonBloodRedBrush}"/>
     </Style>
 
+    <!-- ContextMenu -->
+    <Style TargetType="ContextMenu">
+        <Setter Property="Background" Value="{StaticResource KlingonDarkRedBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KlingonBloodRedBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <!-- ToggleButton -->
+    <Style TargetType="ToggleButton">
+        <Setter Property="Background" Value="{StaticResource KlingonDarkRedBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KlingonBloodRedBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Style.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter Property="Background" Value="{StaticResource KlingonBloodRedBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource KlingonGoldBrightBrush}"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource KlingonCrimsonBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- GridViewColumnHeader -->
+    <Style TargetType="GridViewColumnHeader">
+        <Setter Property="Background" Value="{StaticResource KlingonDarkRedBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource KlingonBloodRedBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,1,1"/>
+        <Setter Property="Padding" Value="6,3"/>
+    </Style>
+
 </ResourceDictionary>

@@ -41,7 +41,7 @@
                         <Button Content="🔄 Refresh" Command="{Binding RefreshLibraryCommand}" 
                                 MinWidth="100" Margin="0,0,8,0"
                                 Background="#FF2196F3" Foreground="White"/>
-                        <TextBlock VerticalAlignment="Center" FontStyle="Italic" Foreground="Gray" 
+                        <TextBlock VerticalAlignment="Center" FontStyle="Italic" Foreground="{DynamicResource SecondaryTextBrush}" 
                                    Text="{Binding LibraryInfo}"/>
                     </StackPanel>
 
@@ -64,7 +64,7 @@
 
                     <!-- Legacy single path entry (hidden if folders exist) -->
                     <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,6,0,0">
-                        <TextBlock VerticalAlignment="Center" Margin="0,0,6,0" Foreground="Gray">Quick add path:</TextBlock>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,6,0" Foreground="{DynamicResource SecondaryTextBrush}">Quick add path:</TextBlock>
                         <TextBox Text="{Binding PrimaryLibraryPath, UpdateSourceTrigger=PropertyChanged}" 
                                  Width="300" VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <Button Content="Set" Command="{Binding SetLibraryPathCommand}" 
@@ -147,8 +147,8 @@
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="📁" Margin="0,0,5,0"/>
                                                 <TextBlock Text="{Binding DuplicateCount, StringFormat='{}{0} files'}" FontWeight="SemiBold"/>
-                                                <TextBlock Text=" • " Foreground="Gray"/>
-                                                <TextBlock Text="{Binding FormattedSize}" Foreground="Gray"/>
+                                                <TextBlock Text=" • " Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                                <TextBlock Text="{Binding FormattedSize}" Foreground="{DynamicResource SecondaryTextBrush}"/>
                                             </StackPanel>
                                         </Expander.Header>
                                         <ItemsControl ItemsSource="{Binding Files}" Margin="20,0,0,0">
@@ -158,7 +158,7 @@
                                                         <TextBlock Text="📄" Margin="0,0,5,0"/>
                                                         <TextBlock Text="{Binding FileName}" Width="200" TextTrimming="CharacterEllipsis"/>
                                                         <TextBlock Text="{Binding FileSize, Converter={StaticResource BytesToMBConverter}}" 
-                                                                   Foreground="Gray" Width="80"/>
+                                                                   Foreground="{DynamicResource SecondaryTextBrush}" Width="80"/>
                                                     </StackPanel>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
@@ -227,7 +227,7 @@
                 <StackPanel Margin="8">
                     <CheckBox Content="Organize by media type (Videos/Audio/Images folders)" 
                               IsChecked="{Binding OrganizeByType}" Margin="0,0,0,4"/>
-                    <TextBlock FontSize="11" Foreground="Gray" TextWrapping="Wrap">
+                    <TextBlock FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" TextWrapping="Wrap">
                         Files will be copied to your primary library location and added to the library index (JSON).
                     </TextBlock>
                 </StackPanel>
@@ -238,9 +238,9 @@
                 <GroupBox.Header>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="📋 Found Media Files"/>
-                        <TextBlock Text=" (" Foreground="Gray"/>
+                        <TextBlock Text=" (" Foreground="{DynamicResource SecondaryTextBrush}"/>
                         <TextBlock Text="{Binding ScannedFilesCount}" FontWeight="Bold"/>
-                        <TextBlock Text=")" Foreground="Gray"/>
+                        <TextBlock Text=")" Foreground="{DynamicResource SecondaryTextBrush}"/>
                     </StackPanel>
                 </GroupBox.Header>
                 <Grid>
@@ -278,9 +278,9 @@
                                     <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding FileName}" 
                                                FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
                                     <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
-                                        <TextBlock Text="{Binding FileType}" FontSize="11" Foreground="Gray" Margin="0,0,8,0"/>
+                                        <TextBlock Text="{Binding FileType}" FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,8,0"/>
                                         <TextBlock Text="{Binding FileSize, Converter={StaticResource BytesToMBConverter}}" 
-                                                   FontSize="11" Foreground="Gray"/>
+                                                   FontSize="11" Foreground="{DynamicResource SecondaryTextBrush}"/>
                                     </StackPanel>
                                 </Grid>
                             </DataTemplate>

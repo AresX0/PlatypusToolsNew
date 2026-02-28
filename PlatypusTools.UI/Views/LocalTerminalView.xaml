@@ -81,7 +81,7 @@
         </Border>
 
         <!-- Terminal Output Area -->
-        <Border Grid.Row="1" Background="#FF0C0C0C" BorderBrush="{DynamicResource BorderBrush}" 
+        <Border Grid.Row="1" Background="{DynamicResource ControlBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" 
                 BorderThickness="1" CornerRadius="4">
             <Grid>
                 <Grid.RowDefinitions>
@@ -94,7 +94,7 @@
                               PreviewMouseWheel="OutputScroller_PreviewMouseWheel">
                     <RichTextBox x:Name="OutputTextBox" 
                                  Background="Transparent" 
-                                 Foreground="#FF00FF00"
+                                 Foreground="{DynamicResource WindowForegroundBrush}"
                                  FontFamily="Consolas, Courier New, monospace"
                                  FontSize="13"
                                  IsReadOnly="True"
@@ -118,7 +118,7 @@
                 <Border x:Name="LoadingOverlay" Background="#80000000" Visibility="Collapsed">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                         <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
-                        <TextBlock Text="Executing command..." Foreground="White" 
+                        <TextBlock Text="Executing command..." Foreground="{DynamicResource WindowForegroundBrush}" 
                                    HorizontalAlignment="Center" Margin="0,8,0,0"/>
                     </StackPanel>
                 </Border>
@@ -134,15 +134,15 @@
             </Grid.ColumnDefinitions>
             
             <!-- Prompt -->
-            <Border Grid.Column="0" Background="#FF1A1A1A" CornerRadius="4,0,0,4" Padding="8,6">
+            <Border Grid.Column="0" Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="4,0,0,4" Padding="8,6">
                 <TextBlock x:Name="PromptText" Text="PS>" FontFamily="Consolas" FontSize="13"
-                           Foreground="#FF00FF00" VerticalAlignment="Center"/>
+                           Foreground="{DynamicResource WindowForegroundBrush}" VerticalAlignment="Center"/>
             </Border>
             
             <!-- Command Input -->
             <TextBox x:Name="CommandInput" Grid.Column="1" 
                      FontFamily="Consolas, Courier New, monospace" FontSize="13"
-                     Background="#FF1A1A1A" Foreground="#FF00FF00" 
+                     Background="{DynamicResource ControlBackgroundBrush}" Foreground="{DynamicResource WindowForegroundBrush}" 
                      CaretBrush="#FF00FF00"
                      BorderThickness="0" Padding="8,6"
                      VerticalContentAlignment="Center"
@@ -151,7 +151,7 @@
             
             <!-- Execute Button -->
             <Button Grid.Column="2" Content="Execute" MinWidth="180" Click="Execute_Click"
-                    Background="#FF0078D4" Foreground="White" FontWeight="SemiBold">
+                    Background="#FF0078D4" Foreground="{DynamicResource WindowForegroundBrush}" FontWeight="SemiBold">
                 <Button.Style>
                     <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                         <Setter Property="Template">

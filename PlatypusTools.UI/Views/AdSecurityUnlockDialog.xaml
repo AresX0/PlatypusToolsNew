@@ -38,7 +38,7 @@
                      MaxLength="19"
                      KeyDown="LicenseKeyBox_KeyDown"
                      TextChanged="LicenseKeyBox_TextChanged" />
-            <TextBlock Text="Format: XXXX-XXXX-XXXX-XXXX" FontSize="10" Foreground="Gray" 
+            <TextBlock Text="Format: XXXX-XXXX-XXXX-XXXX" FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}" 
                        HorizontalAlignment="Center" Margin="0,3,0,0" />
         </StackPanel>
 
@@ -53,7 +53,7 @@
             <TextBlock Text="✅ Licensed" FontSize="14" Foreground="#4CAF50" 
                        HorizontalAlignment="Center" FontWeight="Bold" />
             <TextBlock x:Name="LicenseKeyDisplay" FontFamily="Consolas" FontSize="12"
-                       HorizontalAlignment="Center" Margin="0,5,0,0" Foreground="Gray" />
+                       HorizontalAlignment="Center" Margin="0,5,0,0" Foreground="{DynamicResource SecondaryTextBrush}" />
         </StackPanel>
 
         <!-- Buttons -->

@@ -982,4 +982,94 @@
         <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
     </Style>
 
+    <!-- ContextMenu -->
+    <Style TargetType="ContextMenu">
+        <Setter Property="Background" Value="{StaticResource PipBoyBlackLightBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PipBoyGreenDimBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+    </Style>
+
+    <!-- ToggleButton -->
+    <Style TargetType="ToggleButton">
+        <Setter Property="Background" Value="{StaticResource PipBoyBlackLightBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PipBoyGreenDimBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Style.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter Property="Background" Value="{StaticResource PipBoyGreenDimBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource PipBoyGreenDarkBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- TreeView -->
+    <Style TargetType="TreeView">
+        <Setter Property="Background" Value="{StaticResource PipBoyBlackBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PipBoyGreenDimBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+    </Style>
+
+    <!-- TreeViewItem -->
+    <Style TargetType="TreeViewItem">
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+                <Setter Property="Background" Value="{StaticResource PipBoyGreenDarkBrush}"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource PipBoyGreenFaintBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ListView -->
+    <Style TargetType="ListView">
+        <Setter Property="Background" Value="{StaticResource PipBoyBlackBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PipBoyGreenDimBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+    </Style>
+
+    <!-- ListViewItem -->
+    <Style TargetType="ListViewItem">
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrush}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+                <Setter Property="Background" Value="{StaticResource PipBoyGreenDarkBrush}"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource PipBoyGreenFaintBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- GridViewColumnHeader -->
+    <Style TargetType="GridViewColumnHeader">
+        <Setter Property="Background" Value="{StaticResource PipBoyBlackLightBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PipBoyGreenBrightBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PipBoyGreenDimBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,1,1"/>
+        <Setter Property="Padding" Value="6,3"/>
+        <Setter Property="FontFamily" Value="{StaticResource PipBoyFont}"/>
+    </Style>
+
+    <!-- Separator -->
+    <Style TargetType="Separator">
+        <Setter Property="Background" Value="{StaticResource PipBoyGreenDimBrush}"/>
+    </Style>
+
 </ResourceDictionary>

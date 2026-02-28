@@ -29,7 +29,7 @@
                         <TextBlock Text="Input Video:" VerticalAlignment="Center" Width="90" />
                         <TextBox Text="{Binding InputFilePath, UpdateSourceTrigger=PropertyChanged}" Width="400" Margin="0,0,8,0" />
                         <Button Content="Browse..." Command="{Binding BrowseInputCommand}" MinWidth="80" Margin="0,0,8,0" />
-                        <TextBlock Text="{Binding VideoDuration, StringFormat='Duration: {0}'}" VerticalAlignment="Center" Foreground="Gray" />
+                        <TextBlock Text="{Binding VideoDuration, StringFormat='Duration: {0}'}" VerticalAlignment="Center" Foreground="{DynamicResource SecondaryTextBrush}" />
                     </WrapPanel>
 
                     <!-- Output -->

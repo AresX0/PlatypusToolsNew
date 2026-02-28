@@ -16,6 +16,29 @@
                     <SolidColorBrush x:Key="ControlBorderBrush" Color="#FFCCCCCC"/>
                     <SolidColorBrush x:Key="AccentBrush" Color="#FF0078D4"/>
                     <SolidColorBrush x:Key="PrimaryBrush" Color="#FF0078D4"/>
+                    <SolidColorBrush x:Key="SecondaryBrush" Color="#FF5C6BC0"/>
+                    <SolidColorBrush x:Key="HighlightBrush" Color="#FF0078D4"/>
+                    <SolidColorBrush x:Key="SecondaryTextBrush" Color="#FF6E6E6E"/>
+                    <SolidColorBrush x:Key="HeaderBrush" Color="#FFE8E8E8"/>
+                    <SolidColorBrush x:Key="HeaderForegroundBrush" Color="#FF1E1E1E"/>
+                    
+                    <!-- Status brushes -->
+                    <SolidColorBrush x:Key="InfoBackgroundBrush" Color="#FFE3F2FD"/>
+                    <SolidColorBrush x:Key="InfoBorderBrush" Color="#FF2196F3"/>
+                    <SolidColorBrush x:Key="InfoForegroundBrush" Color="#FF1565C0"/>
+                    <SolidColorBrush x:Key="SuccessBackgroundBrush" Color="#FFE8F5E9"/>
+                    <SolidColorBrush x:Key="SuccessBorderBrush" Color="#FF4CAF50"/>
+                    <SolidColorBrush x:Key="SuccessForegroundBrush" Color="#FF2E7D32"/>
+                    <SolidColorBrush x:Key="WarningBackgroundBrush" Color="#FFFFF3E0"/>
+                    <SolidColorBrush x:Key="WarningBorderBrush" Color="#FFFF9800"/>
+                    <SolidColorBrush x:Key="WarningForegroundBrush" Color="#FFE65100"/>
+                    <SolidColorBrush x:Key="ErrorBackgroundBrush" Color="#FFFFEBEE"/>
+                    <SolidColorBrush x:Key="ErrorBorderBrush" Color="#FFF44336"/>
+                    <SolidColorBrush x:Key="ErrorForegroundBrush" Color="#FFC62828"/>
+                    <SolidColorBrush x:Key="SuccessBrush" Color="#FF4CAF50"/>
+                    <SolidColorBrush x:Key="WarningBrush" Color="#FFFF9800"/>
+                    <SolidColorBrush x:Key="ErrorBrush" Color="#FFF44336"/>
+                    <SolidColorBrush x:Key="InfoBrush" Color="#FF2196F3"/>
                     
                     <!-- Title Bar brushes (for custom chrome) -->
                     <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="#FF0078D4"/>

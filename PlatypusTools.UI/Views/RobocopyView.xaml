@@ -243,7 +243,7 @@
                 <TextBox Grid.Column="0" Text="{Binding Output, Mode=OneWay}" IsReadOnly="True"
                          FontFamily="Consolas" FontSize="11" 
                          VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                         TextWrapping="NoWrap" Background="#1E1E1E" Foreground="#DCDCDC"
+                         TextWrapping="NoWrap" Background="{DynamicResource ControlBackgroundBrush}" Foreground="{DynamicResource WindowForegroundBrush}"
                          Padding="8" />
 
                 <Button Grid.Column="1" Content="Clear" Command="{Binding ClearOutputCommand}" 

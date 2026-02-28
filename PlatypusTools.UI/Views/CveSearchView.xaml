@@ -25,7 +25,7 @@
         </Grid.RowDefinitions>
 
         <!-- Search Bar -->
-        <Border Grid.Row="0" Background="#FF1E1E2E" CornerRadius="6" Padding="10" Margin="0,0,0,4">
+        <Border Grid.Row="0" Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="6" Padding="10" Margin="0,0,0,4">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -37,11 +37,11 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Column="0" Text="🔍 CVE Search" FontSize="16" FontWeight="Bold"
-                           Foreground="#FF00BCD4" VerticalAlignment="Center" Margin="0,0,12,0" />
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" Margin="0,0,12,0" />
 
                 <TextBox Grid.Column="1" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
                          FontSize="14" Padding="8,6" VerticalContentAlignment="Center"
-                         Background="#FF2D2D3D" Foreground="White" BorderBrush="#FF555577"
+                         Background="{DynamicResource ControlBackgroundBrush}" Foreground="{DynamicResource WindowForegroundBrush}" BorderBrush="{DynamicResource ControlBorderBrush}"
                          ToolTip="Enter CVE ID (e.g. CVE-2024-1234) or keyword (e.g. 'remote code execution')">
                     <TextBox.InputBindings>
                         <KeyBinding Key="Return" Command="{Binding SearchCommand}" />
@@ -55,17 +55,17 @@
                           ToolTip="CVE ID: Direct lookup via MITRE API&#x0a;Keyword: Search via NVD API" />
 
                 <Button Grid.Column="3" Content="Search" Command="{Binding SearchCommand}"
-                        Background="#FF2196F3" Foreground="White" FontWeight="Bold"
+                        Background="#FF2196F3" Foreground="{DynamicResource WindowForegroundBrush}" FontWeight="Bold"
                         Padding="16,6" Margin="8,0,0,0" Cursor="Hand"
                         ToolTip="Search for CVEs" />
 
                 <Button Grid.Column="4" Content="Cancel" Command="{Binding CancelCommand}"
-                        Background="#FFFF9800" Foreground="White"
+                        Background="#FFFF9800" Foreground="{DynamicResource WindowForegroundBrush}"
                         Padding="10,6" Margin="4,0,0,0" Cursor="Hand"
                         ToolTip="Cancel current search" />
 
                 <Button Grid.Column="5" Content="Clear" Command="{Binding ClearCommand}"
-                        Background="#FF616161" Foreground="White"
+                        Background="#FF616161" Foreground="{DynamicResource WindowForegroundBrush}"
                         Padding="10,6" Margin="4,0,0,0" Cursor="Hand"
                         ToolTip="Clear results" />
             </Grid>
@@ -78,14 +78,14 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="{Binding StatusText}" Foreground="#FFAAAACC"
+                <TextBlock Grid.Column="0" Text="{Binding StatusText}" Foreground="{DynamicResource SecondaryTextBrush}"
                            FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button Content="📋 Copy ID" Command="{Binding CopyIdCommand}"
-                            Background="#FF9C27B0" Foreground="White"
+                            Background="#FF9C27B0" Foreground="{DynamicResource WindowForegroundBrush}"
                             Padding="8,3" Margin="4,0,0,0" FontSize="11" Cursor="Hand" />
                     <Button Content="💾 Export" Command="{Binding ExportCommand}"
-                            Background="#FF4CAF50" Foreground="White"
+                            Background="#FF4CAF50" Foreground="{DynamicResource WindowForegroundBrush}"
                             Padding="8,3" Margin="4,0,0,0" FontSize="11" Cursor="Hand" />
                 </StackPanel>
             </Grid>
@@ -114,11 +114,11 @@
                       GridLinesVisibility="Horizontal"
                       HeadersVisibility="Column"
                       RowHeaderWidth="0"
-                      Background="#FF1A1A2E"
-                      Foreground="White"
-                      BorderBrush="#FF333355"
+                      Background="{DynamicResource ControlBackgroundBrush}"
+                      Foreground="{DynamicResource WindowForegroundBrush}"
+                      BorderBrush="{DynamicResource ControlBorderBrush}"
                       AlternatingRowBackground="#FF22223A"
-                      RowBackground="#FF1A1A2E"
+                      RowBackground="{DynamicResource ControlBackgroundBrush}"
                       FontSize="12"
                       VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Auto">
@@ -181,7 +181,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
-                                    <TextBlock Text="{Binding ScoreDisplay}" Foreground="White"
+                                    <TextBlock Text="{Binding ScoreDisplay}" Foreground="{DynamicResource WindowForegroundBrush}"
                                                HorizontalAlignment="Center" FontWeight="SemiBold" FontSize="11" />
                                 </Border>
                             </DataTemplate>
@@ -216,13 +216,13 @@
                           Background="#FF333350" Cursor="SizeWE" />
 
             <!-- Detail Panel -->
-            <Border Grid.Column="2" Background="#FF1E1E30" CornerRadius="6" Padding="12"
-                    BorderBrush="#FF333355" BorderThickness="1">
+            <Border Grid.Column="2" Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="6" Padding="12"
+                    BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel>
                         <!-- No selection message -->
                         <TextBlock Text="Select a CVE from the results to view details"
-                                   Foreground="#FF666688" FontSize="13" FontStyle="Italic"
+                                   Foreground="{DynamicResource SecondaryTextBrush}" FontSize="13" FontStyle="Italic"
                                    TextWrapping="Wrap" Margin="0,20,0,0"
                                    HorizontalAlignment="Center">
                             <TextBlock.Style>
@@ -252,7 +252,7 @@
 
                             <!-- CVE ID Header -->
                             <TextBlock Text="{Binding CveId}" FontSize="18" FontWeight="Bold"
-                                       Foreground="#FF64B5F6" Margin="0,0,0,8" />
+                                       Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,8" />
 
                             <!-- Score Badge -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
@@ -276,49 +276,49 @@
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
-                                    <TextBlock Text="{Binding ScoreDisplay}" Foreground="White" FontWeight="Bold" FontSize="13" />
+                                    <TextBlock Text="{Binding ScoreDisplay}" Foreground="{DynamicResource WindowForegroundBrush}" FontWeight="Bold" FontSize="13" />
                                 </Border>
-                                <TextBlock Text="{Binding State}" Foreground="#FFAAAACC" FontSize="12"
+                                <TextBlock Text="{Binding State}" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="12"
                                            VerticalAlignment="Center" />
                             </StackPanel>
 
                             <!-- CVSS Vector -->
                             <StackPanel Margin="0,0,0,8">
-                                <TextBlock Text="CVSS Vector" Foreground="#FF888899" FontSize="11" Margin="0,0,0,2" />
-                                <TextBlock Text="{Binding CvssVector}" Foreground="#FFCCCCDD" FontSize="11"
+                                <TextBlock Text="CVSS Vector" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,2" />
+                                <TextBlock Text="{Binding CvssVector}" Foreground="{DynamicResource WindowForegroundBrush}" FontSize="11"
                                            TextWrapping="Wrap" FontFamily="Consolas" />
                             </StackPanel>
 
                             <!-- Dates -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                 <StackPanel Margin="0,0,16,0">
-                                    <TextBlock Text="Published" Foreground="#FF888899" FontSize="11" />
-                                    <TextBlock Text="{Binding Published}" Foreground="#FFCCCCDD" FontSize="12" />
+                                    <TextBlock Text="Published" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" />
+                                    <TextBlock Text="{Binding Published}" Foreground="{DynamicResource WindowForegroundBrush}" FontSize="12" />
                                 </StackPanel>
                                 <StackPanel>
-                                    <TextBlock Text="Last Modified" Foreground="#FF888899" FontSize="11" />
-                                    <TextBlock Text="{Binding LastModified}" Foreground="#FFCCCCDD" FontSize="12" />
+                                    <TextBlock Text="Last Modified" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" />
+                                    <TextBlock Text="{Binding LastModified}" Foreground="{DynamicResource WindowForegroundBrush}" FontSize="12" />
                                 </StackPanel>
                             </StackPanel>
 
                             <!-- Description -->
-                            <TextBlock Text="Description" Foreground="#FF00BCD4" FontWeight="Bold"
+                            <TextBlock Text="Description" Foreground="{DynamicResource AccentBrush}" FontWeight="Bold"
                                        FontSize="13" Margin="0,8,0,4" />
                             <Border Background="#FF151525" CornerRadius="4" Padding="8">
-                                <TextBlock Text="{Binding Description}" Foreground="#FFDDDDEE"
+                                <TextBlock Text="{Binding Description}" Foreground="{DynamicResource WindowForegroundBrush}"
                                            FontSize="12" TextWrapping="Wrap" LineHeight="18" />
                             </Border>
 
                             <!-- Affected Products -->
-                            <TextBlock Text="Affected Products" Foreground="#FF00BCD4" FontWeight="Bold"
+                            <TextBlock Text="Affected Products" Foreground="{DynamicResource AccentBrush}" FontWeight="Bold"
                                        FontSize="13" Margin="0,12,0,4" />
                             <Border Background="#FF151525" CornerRadius="4" Padding="8">
-                                <TextBlock Text="{Binding AffectedProductsText}" Foreground="#FFDDDDEE"
+                                <TextBlock Text="{Binding AffectedProductsText}" Foreground="{DynamicResource WindowForegroundBrush}"
                                            FontSize="12" TextWrapping="Wrap" />
                             </Border>
 
                             <!-- References -->
-                            <TextBlock Text="References" Foreground="#FF00BCD4" FontWeight="Bold"
+                            <TextBlock Text="References" Foreground="{DynamicResource AccentBrush}" FontWeight="Bold"
                                        FontSize="13" Margin="0,12,0,4" />
                             <Border Background="#FF151525" CornerRadius="4" Padding="8" MaxHeight="200">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -327,7 +327,7 @@
                                             <DataTemplate>
                                                 <Button Content="{Binding}" Margin="0,1"
                                                         Cursor="Hand" HorizontalContentAlignment="Left"
-                                                        Background="Transparent" Foreground="#FF64B5F6"
+                                                        Background="Transparent" Foreground="{DynamicResource AccentBrush}"
                                                         BorderThickness="0" Padding="2"
                                                         FontSize="11"
                                                         Command="{Binding DataContext.OpenReferenceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
@@ -335,7 +335,7 @@
                                                     <Button.Template>
                                                         <ControlTemplate TargetType="Button">
                                                             <TextBlock Text="{TemplateBinding Content}"
-                                                                       Foreground="#FF64B5F6"
+                                                                       Foreground="{DynamicResource AccentBrush}"
                                                                        TextDecorations="Underline"
                                                                        TextTrimming="CharacterEllipsis"
                                                                        ToolTip="{TemplateBinding Content}"
@@ -352,10 +352,10 @@
                             <!-- Action Buttons -->
                             <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
                                 <Button Content="📋 Copy CVE ID" Padding="10,6" Margin="0,0,6,0"
-                                        Background="#FF9C27B0" Foreground="White" Cursor="Hand"
+                                        Background="#FF9C27B0" Foreground="{DynamicResource WindowForegroundBrush}" Cursor="Hand"
                                         Command="{Binding DataContext.CopyIdCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                                 <Button Content="📝 Copy Description" Padding="10,6" Margin="0,0,6,0"
-                                        Background="#FF2196F3" Foreground="White" Cursor="Hand"
+                                        Background="#FF2196F3" Foreground="{DynamicResource WindowForegroundBrush}" Cursor="Hand"
                                         Command="{Binding DataContext.CopyDescriptionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                             </StackPanel>
                         </StackPanel>

@@ -61,10 +61,10 @@
                     <TextBlock Grid.Column="0" Text="File:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="Bold"/>
                     <TextBlock Grid.Column="1" Text="{Binding ArchiveFileName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                     
-                    <TextBlock Grid.Column="2" Text="Size:" VerticalAlignment="Center" Margin="16,0,8,0" Foreground="Gray"/>
+                    <TextBlock Grid.Column="2" Text="Size:" VerticalAlignment="Center" Margin="16,0,8,0" Foreground="{DynamicResource SecondaryTextBrush}"/>
                     <TextBlock Grid.Column="3" Text="{Binding ArchiveInfo.FileSizeDisplay}" VerticalAlignment="Center"/>
                     
-                    <TextBlock Grid.Column="4" Text="Entries:" VerticalAlignment="Center" Margin="16,0,8,0" Foreground="Gray"/>
+                    <TextBlock Grid.Column="4" Text="Entries:" VerticalAlignment="Center" Margin="16,0,8,0" Foreground="{DynamicResource SecondaryTextBrush}"/>
                     <TextBlock Grid.Column="5" Text="{Binding ArchiveInfo.EntryCount}" VerticalAlignment="Center" FontWeight="Bold"/>
                 </Grid>
                 </ScrollViewer>
@@ -129,7 +129,7 @@
                 <WrapPanel Grid.Row="0" Margin="0,0,0,5">
                     <Button Content="Select All" Click="OnSelectAllClick" MinWidth="90" Margin="0,2,8,2"/>
                     <Button Content="Select None" Click="OnSelectNoneClick" MinWidth="90" Margin="0,2,16,2"/>
-                    <TextBlock x:Name="SelectionInfoText" VerticalAlignment="Center" Foreground="Gray">
+                    <TextBlock x:Name="SelectionInfoText" VerticalAlignment="Center" Foreground="{DynamicResource SecondaryTextBrush}">
                         <Run Text="Selected: "/><Run Text="{Binding SelectedEntries.Count, Mode=OneWay}" FontWeight="Bold"/>
                         <Run Text=" of "/><Run Text="{Binding Entries.Count, Mode=OneWay}"/>
                     </TextBlock>
@@ -193,7 +193,7 @@
             
             <ProgressBar Grid.Row="0" Height="20" Value="{Binding Progress}" Maximum="100"/>
             <TextBlock Grid.Row="1" Text="{Binding CurrentFile}" TextTrimming="CharacterEllipsis" 
-                       Foreground="Gray" FontSize="11" Margin="0,4,0,0"/>
+                       Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,4,0,0"/>
         </Grid>
         
         <!-- Status Bar -->
@@ -205,7 +205,7 @@
                 <StackPanel Orientation="Horizontal"
                             Visibility="{Binding DataContext.IsProcessing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed, TargetNullValue=Collapsed}">
                     <ProgressBar Width="100" Height="16" IsIndeterminate="True" Margin="0,0,8,0"/>
-                    <TextBlock Text="Processing..." Foreground="Gray"/>
+                    <TextBlock Text="Processing..." Foreground="{DynamicResource SecondaryTextBrush}"/>
                 </StackPanel>
             </StatusBarItem>
         </StatusBar>

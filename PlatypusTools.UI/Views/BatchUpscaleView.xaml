@@ -193,10 +193,10 @@
                         <StackPanel>
                             <TextBlock Text="{Binding SelectedItem.FileName}" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
                             <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                <TextBlock Text="Original: " Foreground="Gray"/>
+                                <TextBlock Text="Original: " Foreground="{DynamicResource SecondaryTextBrush}"/>
                                 <TextBlock Text="{Binding SelectedItem.OriginalDimensions}"/>
-                                <TextBlock Text=" → " Foreground="Gray"/>
-                                <TextBlock Text="Output: " Foreground="Gray"/>
+                                <TextBlock Text=" → " Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                <TextBlock Text="Output: " Foreground="{DynamicResource SecondaryTextBrush}"/>
                                 <TextBlock Text="{Binding SelectedItem.OutputDimensions}" FontWeight="SemiBold" Foreground="Green"/>
                             </StackPanel>
                         </StackPanel>
@@ -222,11 +222,11 @@
                 
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding StatusMessage}"/>
                 <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
-                    <TextBlock Text="Completed: " Foreground="Gray"/>
+                    <TextBlock Text="Completed: " Foreground="{DynamicResource SecondaryTextBrush}"/>
                     <TextBlock Text="{Binding CompletedCount}" FontWeight="Bold" Foreground="Green"/>
-                    <TextBlock Text=" / " Foreground="Gray"/>
+                    <TextBlock Text=" / " Foreground="{DynamicResource SecondaryTextBrush}"/>
                     <TextBlock Text="{Binding TotalCount}"/>
-                    <TextBlock Text=" | Failed: " Foreground="Gray" Margin="16,0,0,0"/>
+                    <TextBlock Text=" | Failed: " Foreground="{DynamicResource SecondaryTextBrush}" Margin="16,0,0,0"/>
                     <TextBlock Text="{Binding FailedCount}" FontWeight="Bold" Foreground="Red"/>
                 </StackPanel>
             </Grid>

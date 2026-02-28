@@ -19,7 +19,7 @@
         <!-- Header -->
         <Border Grid.Row="0" Background="{DynamicResource PrimaryBrush}" Padding="20">
             <StackPanel>
-                <TextBlock Text="🎨 Theme Creator" FontSize="24" FontWeight="Bold" Foreground="White"/>
+                <TextBlock Text="🎨 Theme Creator" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource WindowForegroundBrush}"/>
                 <TextBlock Text="Create and customize your own themes for PlatypusTools" Foreground="#CCFFFFFF" Margin="0,4,0,0"/>
             </StackPanel>
         </Border>
@@ -384,14 +384,14 @@
                         <Border x:Name="PreviewPanel" Padding="16" CornerRadius="4" Background="#FFFFFF">
                             <StackPanel>
                                 <Border x:Name="PreviewHeader" Background="#007ACC" CornerRadius="4,4,0,0" Padding="12,8" Margin="0,0,0,12">
-                                    <TextBlock x:Name="PreviewHeaderText" Text="PlatypusTools" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                                    <TextBlock x:Name="PreviewHeaderText" Text="PlatypusTools" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource WindowForegroundBrush}"/>
                                 </Border>
                                 <TextBlock x:Name="PreviewPrimaryText" Text="Sample Heading" FontSize="16" FontWeight="Bold" Foreground="#1E1E1E"/>
                                 <TextBlock x:Name="PreviewSecondaryText" Text="This is secondary text to preview your theme colors." 
                                            Foreground="#6E6E6E" Margin="0,4,0,12"/>
                                 <StackPanel Orientation="Horizontal">
                                     <Border x:Name="PreviewButton" Background="#007ACC" CornerRadius="4" Padding="12,6" Margin="0,0,8,0">
-                                        <TextBlock Text="Primary Button" Foreground="White"/>
+                                        <TextBlock Text="Primary Button" Foreground="{DynamicResource WindowForegroundBrush}"/>
                                     </Border>
                                     <Border x:Name="PreviewSecondaryButton" Background="Transparent" BorderBrush="#007ACC" 
                                             BorderThickness="1" CornerRadius="4" Padding="12,6">
@@ -416,7 +416,7 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Content="Reset" Padding="14,6" Margin="0,0,6,0" Click="ResetDefault_Click" ToolTip="Reset to built-in themes"/>
                     <Button Content="✓ Apply Theme" Padding="14,6" Margin="0,0,6,0" Click="Apply_Click" 
-                            Background="{DynamicResource PrimaryBrush}" Foreground="White"/>
+                            Background="{DynamicResource PrimaryBrush}" Foreground="{DynamicResource WindowForegroundBrush}"/>
                     <Button Content="Close" Padding="16,6" Click="Close_Click"/>
                 </StackPanel>
             </Grid>

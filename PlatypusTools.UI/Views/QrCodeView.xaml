@@ -130,6 +130,6 @@
 
         <!-- Status Bar -->
         <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" Margin="0,4,0,0"
-                   Foreground="#FFB0B0B0" FontSize="11" />
+                   Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" />
     </Grid>
 </UserControl>

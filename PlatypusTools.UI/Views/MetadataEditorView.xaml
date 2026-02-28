@@ -41,11 +41,11 @@
                             <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Background="Orange" Padding="10" Margin="0,10,0,0"
                                     Visibility="{Binding IsExifToolMissing, Converter={StaticResource BoolToVisibilityConverter}}">
                                 <StackPanel>
-                                    <TextBlock TextWrapping="Wrap" FontWeight="Bold" Foreground="White" Margin="0,0,0,5">
+                                    <TextBlock TextWrapping="Wrap" FontWeight="Bold" Foreground="{DynamicResource WindowForegroundBrush}" Margin="0,0,0,5">
                                         ⚠️ ExifTool is not installed. This feature requires ExifTool to read and write metadata.
                                     </TextBlock>
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock TextWrapping="Wrap" Foreground="White" VerticalAlignment="Center" Margin="0,0,10,0">
+                                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource WindowForegroundBrush}" VerticalAlignment="Center" Margin="0,0,10,0">
                                             Download from: https://exiftool.org/
                                         </TextBlock>
                                         <Button Content="Open ExifTool Website" Command="{Binding OpenExifToolWebsiteCommand}" 
@@ -61,7 +61,7 @@
                         <GroupBox.Header>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="Common Tags" FontWeight="Bold"/>
-                                <TextBlock Text="{Binding FileTypeDisplay}" Margin="10,0,0,0" Foreground="Gray" FontStyle="Italic"/>
+                                <TextBlock Text="{Binding FileTypeDisplay}" Margin="10,0,0,0" Foreground="{DynamicResource SecondaryTextBrush}" FontStyle="Italic"/>
                             </StackPanel>
                         </GroupBox.Header>
                         <Grid>
@@ -337,9 +337,9 @@
                                         
                                         <!-- Category & Tag Count -->
                                         <StackPanel Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" Orientation="Horizontal">
-                                            <TextBlock Text="{Binding Category}" Foreground="Gray" FontSize="11"/>
-                                            <TextBlock Text=" • " Foreground="Gray" FontSize="11"/>
-                                            <TextBlock Text="{Binding Tags.Count, StringFormat='{}{0} tags'}" Foreground="Gray" FontSize="11"/>
+                                            <TextBlock Text="{Binding Category}" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
+                                            <TextBlock Text=" • " Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
+                                            <TextBlock Text="{Binding Tags.Count, StringFormat='{}{0} tags'}" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
                                         </StackPanel>
                                     </Grid>
                                 </DataTemplate>
@@ -401,7 +401,7 @@
                                                     <ColumnDefinition Width="*"/>
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Grid.Column="0" Text="{Binding Key}" FontWeight="SemiBold"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding Value}" TextTrimming="CharacterEllipsis" Foreground="Gray"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Value}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource SecondaryTextBrush}"/>
                                             </Grid>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -524,7 +524,7 @@
                                 <Button Grid.Row="0" Grid.Column="1" Content="Browse..." 
                                         Command="{Binding SelectSourceFileCommand}" MinWidth="180" Margin="5,0,0,0"/>
                                 
-                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Margin="0,5,0,0" Foreground="Gray" FontSize="11"
+                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Margin="0,5,0,0" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"
                                            Text="Select a file to copy metadata from. Tags will be loaded automatically."/>
                             </Grid>
                         </GroupBox>

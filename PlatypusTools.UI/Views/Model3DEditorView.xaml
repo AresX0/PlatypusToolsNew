@@ -24,7 +24,7 @@
                         <Button Content="Load SVG File" Command="{Binding LoadSvgCommand}" 
                                 Padding="10,5" Margin="0,0,0,5"/>
                         <TextBlock Text="{Binding FileName}" TextTrimming="CharacterEllipsis" 
-                                   ToolTip="{Binding CurrentFilePath}" Foreground="Gray"/>
+                                   ToolTip="{Binding CurrentFilePath}" Foreground="{DynamicResource SecondaryTextBrush}"/>
                     </StackPanel>
                 </GroupBox>
                 
@@ -179,7 +179,7 @@
             
             <!-- 3D Viewport -->
             <Border Grid.Row="0" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" 
-                    Background="#1E1E1E" Margin="5"
+                    Background="{DynamicResource ControlBackgroundBrush}" Margin="5"
                     x:Name="viewportBorder"
                     MouseLeftButtonDown="Viewport_MouseLeftButtonDown"
                     MouseLeftButtonUp="Viewport_MouseLeftButtonUp"
@@ -213,7 +213,7 @@
                     <!-- No model placeholder -->
                     <TextBlock Text="Load an SVG file or create a shape to begin" 
                                HorizontalAlignment="Center" VerticalAlignment="Center"
-                               Foreground="Gray" FontSize="16"
+                               Foreground="{DynamicResource SecondaryTextBrush}" FontSize="16"
                                Visibility="{Binding Model3D, Converter={StaticResource NullToVisibilityConverter}}"/>
                     
                     <!-- Processing indicator -->
@@ -221,7 +221,7 @@
                             Visibility="{Binding IsProcessing, Converter={StaticResource BoolToVisibilityConverter}}">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                             <ProgressBar IsIndeterminate="True" Width="200" Height="4"/>
-                            <TextBlock Text="Processing..." Foreground="White" 
+                            <TextBlock Text="Processing..." Foreground="{DynamicResource WindowForegroundBrush}" 
                                        HorizontalAlignment="Center" Margin="0,10,0,0"/>
                         </StackPanel>
                     </Border>

@@ -72,7 +72,7 @@
 
                             <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center">Detected Prefix:</TextBlock>
                             <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBox Text="{Binding DetectedPrefix, UpdateSourceTrigger=PropertyChanged}" Width="300" IsReadOnly="True" Background="#F0F0F0" />
+                                <TextBox Text="{Binding DetectedPrefix, UpdateSourceTrigger=PropertyChanged}" Width="300" IsReadOnly="True" Background="{DynamicResource ControlBackgroundBrush}" />
                                 <Button Content="Detect Prefix" Command="{Binding DetectPrefixCommand}" MinWidth="180" Margin="8,0,0,0" />
                             </StackPanel>
 
@@ -142,11 +142,11 @@
                                 Season before Episode (S01E01 format)
                             </CheckBox>
 
-                            <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,8,0,4" FontStyle="Italic" Foreground="Gray">
+                            <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,8,0,4" FontStyle="Italic" Foreground="{DynamicResource SecondaryTextBrush}">
                                 Example: PREFIX-S01E001-Filename.ext
                             </TextBlock>
 
-                            <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" FontSize="10" Foreground="Gray">
+                            <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}">
                                 Season/Episode will be inserted immediately after prefix, before the rest of the filename. 
                                 Renumber alphabetically will sort files by name and assign sequential episode numbers.
                             </TextBlock>
@@ -204,7 +204,7 @@
                                 </ComboBox.ItemsSource>
                             </ComboBox>
 
-                            <TextBlock Grid.Row="2" TextWrapping="Wrap" FontSize="10" Foreground="Gray" VerticalAlignment="Top">
+                            <TextBlock Grid.Row="2" TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Top">
                                 Normalization converts spaces and separators according to the selected preset. 
                                 Multiple consecutive separators will be cleaned up automatically.
                             </TextBlock>

@@ -1944,4 +1944,31 @@
         <Setter Property="RadiusY" Value="2"/>
     </Style>
 
+    <!-- ContextMenu -->
+    <Style TargetType="ContextMenu">
+        <Setter Property="Background" Value="{StaticResource LcarsGrayBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource LcarsGoldBrush}"/>
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+    </Style>
+
+    <!-- ToggleButton -->
+    <Style TargetType="ToggleButton">
+        <Setter Property="Background" Value="{StaticResource LcarsTanBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="12,4"/>
+        <Setter Property="FontFamily" Value="{StaticResource LcarsFont}"/>
+        <Style.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter Property="Background" Value="{StaticResource LcarsGoldBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource LcarsBlackBrush}"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource LcarsGoldLightBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
 </ResourceDictionary>
