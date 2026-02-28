@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -254,9 +255,10 @@ public class PlatypusRemoteServer : IDisposable
                 {
                     webBuilder.UseKestrel(options =>
                     {
+                        var cert = SelfSignedCertificateHelper.GetOrCreateCertificate();
                         options.Listen(IPAddress.Any, _port, listenOptions =>
                         {
-                            listenOptions.UseHttps(); // Use dev cert
+                            listenOptions.UseHttps(cert);
                         });
                     });
                     webBuilder.ConfigureServices(services =>

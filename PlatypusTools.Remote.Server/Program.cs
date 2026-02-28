@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
@@ -7,12 +9,48 @@ using PlatypusTools.Remote.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Kestrel for port 47392
+// Generate or load a self-signed certificate for HTTPS
+var certPath = Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+    "PlatypusTools", "server-cert.pfx");
+Directory.CreateDirectory(Path.GetDirectoryName(certPath)!);
+
+X509Certificate2? serverCert = null;
+if (File.Exists(certPath))
+{
+    try
+    {
+        var existing = new X509Certificate2(certPath, (string?)null, X509KeyStorageFlags.Exportable);
+        if (existing.NotAfter > DateTime.UtcNow.AddDays(30))
+            serverCert = existing;
+        else
+            existing.Dispose();
+    }
+    catch { }
+}
+if (serverCert == null)
+{
+    using var rsa = RSA.Create(2048);
+    var req = new CertificateRequest("CN=PlatypusTools Remote Server", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+    req.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
+    req.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new("1.3.6.1.5.5.7.3.1") }, false));
+    var san = new SubjectAlternativeNameBuilder();
+    san.AddDnsName("localhost");
+    san.AddDnsName(Environment.MachineName);
+    san.AddIpAddress(System.Net.IPAddress.Loopback);
+    san.AddIpAddress(System.Net.IPAddress.IPv6Loopback);
+    req.CertificateExtensions.Add(san.Build());
+    var tmp = req.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(730));
+    serverCert = new X509Certificate2(tmp.Export(X509ContentType.Pfx), (string?)null, X509KeyStorageFlags.Exportable);
+    try { File.WriteAllBytes(certPath, serverCert.Export(X509ContentType.Pfx)); } catch { }
+}
+
+// Configure Kestrel for port 47392 with self-signed cert
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(47392, listenOptions =>
     {
-        listenOptions.UseHttps();
+        listenOptions.UseHttps(serverCert);
     });
 });
 
