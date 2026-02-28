@@ -2525,6 +2525,308 @@ namespace PlatypusTools.UI.Views
                 UninstallServiceBtn.IsEnabled = isAutoStart || isRunning;
         }
         
+        #region Tunnel Management Handlers
+
+        private void ShowTunnelMgmtOutput(string text)
+        {
+            if (TunnelMgmtOutputText != null)
+                TunnelMgmtOutputText.Text = text;
+            if (TunnelMgmtOutputExpander != null)
+                TunnelMgmtOutputExpander.IsExpanded = true;
+        }
+
+        private void RefreshCredentials_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var creds = CloudflareTunnelService.Instance.GetLocalCredentials();
+                if (creds.Count == 0)
+                {
+                    if (TunnelCredentialsSummaryText != null)
+                        TunnelCredentialsSummaryText.Text = "No credential files found in ~/.cloudflared/\nYou need to create a tunnel first.";
+                    if (CleanupCredentialsBtn != null)
+                        CleanupCredentialsBtn.IsEnabled = false;
+                }
+                else
+                {
+                    var lines = new System.Text.StringBuilder();
+                    foreach (var c in creds)
+                    {
+                        lines.AppendLine($"• {c.FileName}");
+                        if (!string.IsNullOrEmpty(c.TunnelName))
+                            lines.AppendLine($"  Tunnel: {c.TunnelName}");
+                        if (!string.IsNullOrEmpty(c.TunnelId))
+                            lines.AppendLine($"  UUID:   {c.TunnelId}");
+                        lines.AppendLine($"  Modified: {c.LastModified:yyyy-MM-dd HH:mm}  Size: {c.FileSize:N0} bytes");
+                    }
+                    if (TunnelCredentialsSummaryText != null)
+                        TunnelCredentialsSummaryText.Text = lines.ToString().TrimEnd();
+                    if (CleanupCredentialsBtn != null)
+                        CleanupCredentialsBtn.IsEnabled = creds.Count > 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to list credentials: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void CleanupCredentials_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var creds = CloudflareTunnelService.Instance.GetLocalCredentials();
+                if (creds.Count <= 1)
+                {
+                    MessageBox.Show("Only one credential file exists — nothing to clean up.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                // Let the user pick which to keep
+                var currentTunnelName = CloudflareTunnelNameBox?.Text?.Trim() ?? "";
+                var msg = new System.Text.StringBuilder();
+                msg.AppendLine($"Found {creds.Count} credential files. Select which to DELETE:\n");
+                for (int i = 0; i < creds.Count; i++)
+                {
+                    var c = creds[i];
+                    var label = !string.IsNullOrEmpty(c.TunnelName) ? c.TunnelName : c.TunnelId ?? c.FileName;
+                    var isCurrent = (!string.IsNullOrEmpty(c.TunnelName) && c.TunnelName.Equals(currentTunnelName, StringComparison.OrdinalIgnoreCase));
+                    msg.AppendLine($"  [{i + 1}] {label} ({c.FileName}){(isCurrent ? " ← current" : "")}");
+                }
+                msg.AppendLine("\nDelete ALL credential files EXCEPT the most recent one?");
+                msg.AppendLine("(You can also open the folder and delete manually.)");
+
+                var result = MessageBox.Show(msg.ToString(), "Clean Up Credentials", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (result != MessageBoxResult.Yes) return;
+
+                // Keep the most recent, delete the rest
+                var sorted = creds.OrderByDescending(c => c.LastModified).ToList();
+                var kept = sorted.First();
+                var deleted = 0;
+                foreach (var c in sorted.Skip(1))
+                {
+                    if (CloudflareTunnelService.Instance.DeleteCredentialFile(c.FilePath))
+                        deleted++;
+                }
+
+                MessageBox.Show($"Deleted {deleted} old credential file(s).\nKept: {kept.FileName}", "Cleanup Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                RefreshCredentials_Click(sender, e);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to clean up: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void OpenCloudflaredFolder_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cloudflared");
+                if (Directory.Exists(path))
+                    Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
+                else
+                    MessageBox.Show($"Folder not found: {path}\n\nRun 'Cloudflare Login' first to create it.", "Not Found", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to open folder: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void ListTunnels_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (TunnelListStatusText != null)
+                    TunnelListStatusText.Text = "Fetching tunnels from Cloudflare...";
+
+                var (success, output, tunnels) = await CloudflareTunnelService.Instance.ListTunnelsAsync();
+                ShowTunnelMgmtOutput(output);
+
+                if (success && tunnels.Count > 0)
+                {
+                    if (TunnelListItemsControl != null)
+                        TunnelListItemsControl.ItemsSource = tunnels;
+                    if (TunnelListStatusText != null)
+                        TunnelListStatusText.Text = $"Found {tunnels.Count} tunnel(s).";
+                }
+                else if (success)
+                {
+                    if (TunnelListItemsControl != null)
+                        TunnelListItemsControl.ItemsSource = null;
+                    if (TunnelListStatusText != null)
+                        TunnelListStatusText.Text = "No tunnels found. Create one below.";
+                }
+                else
+                {
+                    if (TunnelListStatusText != null)
+                        TunnelListStatusText.Text = "Failed — are you logged in? Click 'Cloudflare Login' above.";
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to list tunnels: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void UseTunnel_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is TunnelInfo tunnel)
+            {
+                if (CloudflareTunnelNameBox != null)
+                    CloudflareTunnelNameBox.Text = tunnel.Name;
+                SaveCloudflareSettings();
+                MessageBox.Show($"Tunnel name set to: {tunnel.Name}\n\nMake sure the Hostname field is also filled in, then start the tunnel.", 
+                    "Tunnel Selected", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private async void DeleteTunnel_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is TunnelInfo tunnel)
+            {
+                var result = MessageBox.Show(
+                    $"Delete tunnel '{tunnel.Name}' (ID: {tunnel.Id})?\n\nThis removes the tunnel from your Cloudflare account.\nThe tunnel must not be running.",
+                    "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (result != MessageBoxResult.Yes) return;
+
+                btn.IsEnabled = false;
+                btn.Content = "...";
+
+                try
+                {
+                    var (success, output) = await CloudflareTunnelService.Instance.DeleteTunnelAsync(tunnel.Id);
+                    ShowTunnelMgmtOutput(output);
+
+                    if (success)
+                    {
+                        MessageBox.Show($"Tunnel '{tunnel.Name}' deleted.\n\nYou may also want to delete its local credential file.", 
+                            "Deleted", MessageBoxButton.OK, MessageBoxImage.Information);
+                        // Refresh the list
+                        ListTunnels_Click(sender, e);
+                        RefreshCredentials_Click(sender, e);
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Failed to delete tunnel:\n{output}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                }
+                finally
+                {
+                    btn.IsEnabled = true;
+                    btn.Content = "Delete";
+                }
+            }
+        }
+
+        private async void CreateTunnel_Click(object sender, RoutedEventArgs e)
+        {
+            var tunnelName = NewTunnelNameBox?.Text?.Trim();
+            if (string.IsNullOrWhiteSpace(tunnelName))
+            {
+                MessageBox.Show("Please enter a name for the new tunnel.", "Missing Name", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (CreateTunnelBtn != null)
+            {
+                CreateTunnelBtn.IsEnabled = false;
+                CreateTunnelBtn.Content = "Creating...";
+            }
+
+            try
+            {
+                var (success, output) = await CloudflareTunnelService.Instance.CreateTunnelAsync(tunnelName);
+                ShowTunnelMgmtOutput(output);
+
+                if (success)
+                {
+                    MessageBox.Show($"Tunnel '{tunnelName}' created successfully!\n\nCredential file saved to ~/.cloudflared/.\nThe tunnel name has been set in the configuration.", 
+                        "Tunnel Created", MessageBoxButton.OK, MessageBoxImage.Information);
+                    
+                    // Auto-fill the tunnel name
+                    if (CloudflareTunnelNameBox != null)
+                        CloudflareTunnelNameBox.Text = tunnelName;
+                    SaveCloudflareSettings();
+
+                    // Refresh lists
+                    ListTunnels_Click(sender, e);
+                    RefreshCredentials_Click(sender, e);
+                }
+                else
+                {
+                    MessageBox.Show($"Failed to create tunnel:\n{output}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error creating tunnel: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                if (CreateTunnelBtn != null)
+                {
+                    CreateTunnelBtn.IsEnabled = true;
+                    CreateTunnelBtn.Content = "➕ Create Tunnel";
+                }
+            }
+        }
+
+        private async void RouteDns_Click(object sender, RoutedEventArgs e)
+        {
+            SaveCloudflareSettings();
+            var tunnelName = CloudflareTunnelNameBox?.Text?.Trim();
+            var hostname = CloudflareTunnelHostnameBox?.Text?.Trim();
+
+            if (string.IsNullOrWhiteSpace(tunnelName))
+            {
+                MessageBox.Show("Please enter a Tunnel Name above first.", "Missing Tunnel Name", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(hostname))
+            {
+                MessageBox.Show("Please enter a Hostname above first (e.g., platypus.yourdomain.com).", "Missing Hostname", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (RouteDnsBtn != null)
+            {
+                RouteDnsBtn.IsEnabled = false;
+                RouteDnsBtn.Content = "Routing...";
+            }
+
+            try
+            {
+                var (success, output) = await CloudflareTunnelService.Instance.RouteDnsAsync(tunnelName, hostname);
+                ShowTunnelMgmtOutput(output);
+
+                if (success)
+                {
+                    MessageBox.Show($"DNS route created!\n\n{hostname} → {tunnelName}\n\nYou can now start the tunnel.", 
+                        "DNS Routed", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show($"Failed to route DNS:\n{output}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error routing DNS: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                if (RouteDnsBtn != null)
+                {
+                    RouteDnsBtn.IsEnabled = true;
+                    RouteDnsBtn.Content = "🌐 Route DNS (Tunnel → Hostname)";
+                }
+            }
+        }
+
+        #endregion
+        
         private async void StartWindowsService_Click(object sender, RoutedEventArgs e)
         {
             try

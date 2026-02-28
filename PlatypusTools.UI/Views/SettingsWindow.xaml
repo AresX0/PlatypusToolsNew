@@ -410,7 +410,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 4.0.0.6"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 4.0.0.7"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
@@ -1083,6 +1083,108 @@
                                     <Button x:Name="CloudflareLoginBtn" Content="🔐 Cloudflare Login (opens browser)" MinWidth="200" HorizontalAlignment="Left" 
                                             Margin="0,8,0,0" Click="CloudflareLogin_Click"/>
                                 </StackPanel>
+                                
+                                <!-- Tunnel Management -->
+                                <Expander Header="🔧 Tunnel Management" Margin="0,12,0,0" IsExpanded="False">
+                                    <StackPanel Margin="8">
+                                        <TextBlock Text="Create, list, and manage your Cloudflare Tunnels and credentials — no CLI needed." 
+                                                   TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,12"/>
+
+                                        <!-- Current Credentials Info -->
+                                        <TextBlock Text="Local Credentials:" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="4" Padding="8" Margin="0,0,0,8">
+                                            <StackPanel>
+                                                <TextBlock x:Name="TunnelCredentialsSummaryText" Text="Click 'Refresh' to scan credentials..." 
+                                                           TextWrapping="Wrap" FontFamily="Consolas" FontSize="11"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                            <Button Content="🔄 Refresh Credentials" MinWidth="140" Margin="0,0,8,0" Click="RefreshCredentials_Click"
+                                                    Background="#FF2196F3" Foreground="White"/>
+                                            <Button x:Name="CleanupCredentialsBtn" Content="🗑 Delete Old Credentials" MinWidth="160" Margin="0,0,8,0" Click="CleanupCredentials_Click"
+                                                    Background="#FFF44336" Foreground="White" IsEnabled="False"
+                                                    ToolTip="Removes credential files that don't match any existing tunnel"/>
+                                            <Button Content="📂 Open .cloudflared Folder" MinWidth="160" Click="OpenCloudflaredFolder_Click"/>
+                                        </StackPanel>
+                                        
+                                        <Separator Margin="0,4,0,12"/>
+                                        
+                                        <!-- List Tunnels -->
+                                        <TextBlock Text="Remote Tunnels (Cloudflare Account):" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="4" Padding="8" Margin="0,0,0,8" MaxHeight="200">
+                                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                                <ItemsControl x:Name="TunnelListItemsControl">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="4" Margin="0,2">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <StackPanel VerticalAlignment="Center">
+                                                                        <TextBlock FontWeight="SemiBold" FontSize="13">
+                                                                            <Run Text="{Binding Name, Mode=OneWay}"/>
+                                                                        </TextBlock>
+                                                                        <TextBlock FontFamily="Consolas" FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}">
+                                                                            <Run Text="ID: "/><Run Text="{Binding Id, Mode=OneWay}"/>
+                                                                        </TextBlock>
+                                                                        <TextBlock FontSize="10" Foreground="{DynamicResource SecondaryTextBrush}">
+                                                                            <Run Text="{Binding Connections, Mode=OneWay}"/>
+                                                                        </TextBlock>
+                                                                    </StackPanel>
+                                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                                        <Button Content="Use" MinWidth="50" Margin="4,0" Click="UseTunnel_Click" Tag="{Binding}"
+                                                                                Background="#FF4CAF50" Foreground="White" ToolTip="Set this as the active tunnel name"/>
+                                                                        <Button Content="Delete" MinWidth="55" Click="DeleteTunnel_Click" Tag="{Binding}"
+                                                                                Background="#FFF44336" Foreground="White" ToolTip="Delete this tunnel from Cloudflare"/>
+                                                                    </StackPanel>
+                                                                </Grid>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </ScrollViewer>
+                                        </Border>
+                                        <TextBlock x:Name="TunnelListStatusText" Text="Click 'List Tunnels' to fetch from Cloudflare." 
+                                                   Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,4"/>
+                                        <Button Content="🔍 List Tunnels" MinWidth="120" HorizontalAlignment="Left" Margin="0,0,0,12" Click="ListTunnels_Click"
+                                                Background="#FF2196F3" Foreground="White"/>
+                                        
+                                        <Separator Margin="0,4,0,12"/>
+                                        
+                                        <!-- Create Tunnel -->
+                                        <TextBlock Text="Create New Tunnel:" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Creates a new tunnel and generates credentials. You must be logged in first." 
+                                                   TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,8"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                            <TextBlock Text="New Tunnel Name:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+                                            <TextBox x:Name="NewTunnelNameBox" Width="200" Margin="0,0,8,0" 
+                                                     ToolTip="Enter a name for the new tunnel"/>
+                                            <Button x:Name="CreateTunnelBtn" Content="➕ Create Tunnel" MinWidth="120" Click="CreateTunnel_Click"
+                                                    Background="#FF4CAF50" Foreground="White"/>
+                                        </StackPanel>
+                                        
+                                        <Separator Margin="0,12,0,12"/>
+                                        
+                                        <!-- Route DNS -->
+                                        <TextBlock Text="Route DNS:" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Creates or updates a DNS CNAME record pointing your hostname to the tunnel. Uses the Tunnel Name and Hostname configured above." 
+                                                   TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,8"/>
+                                        <Button x:Name="RouteDnsBtn" Content="🌐 Route DNS (Tunnel → Hostname)" MinWidth="240" HorizontalAlignment="Left" Click="RouteDns_Click"
+                                                Background="#FF9C27B0" Foreground="White"
+                                                ToolTip="Runs 'cloudflared tunnel route dns' using the tunnel name and hostname above"/>
+                                        
+                                        <!-- Command Output -->
+                                        <Expander Header="📋 Command Output" Margin="0,12,0,0" IsExpanded="False" x:Name="TunnelMgmtOutputExpander">
+                                            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="4" Padding="8" MaxHeight="200">
+                                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                                    <TextBlock x:Name="TunnelMgmtOutputText" Text="" TextWrapping="Wrap" FontFamily="Consolas" FontSize="11"/>
+                                                </ScrollViewer>
+                                            </Border>
+                                        </Expander>
+                                    </StackPanel>
+                                </Expander>
                                 
                                 <Separator Margin="0,12"/>
                                 

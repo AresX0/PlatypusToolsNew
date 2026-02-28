@@ -748,6 +748,334 @@ ingress:
         }
     }
 
+    #region Tunnel Management (List, Create, Delete, Route DNS, Credentials)
+
+    /// <summary>
+    /// Lists all tunnels from the Cloudflare account.
+    /// Requires prior 'cloudflared tunnel login'.
+    /// </summary>
+    public async Task<(bool success, string output, System.Collections.Generic.List<TunnelInfo> tunnels)> ListTunnelsAsync()
+    {
+        if (!IsInstalled)
+            return (false, "cloudflared is not installed.", new());
+
+        try
+        {
+            var resolvedPath = ResolveCloudflaredPath();
+            var psi = new ProcessStartInfo
+            {
+                FileName = resolvedPath,
+                Arguments = "tunnel list",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            using var process = Process.Start(psi);
+            if (process == null)
+                return (false, "Failed to start cloudflared process.", new());
+
+            var stdout = await process.StandardOutput.ReadToEndAsync();
+            var stderr = await process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+
+            var output = !string.IsNullOrWhiteSpace(stdout) ? stdout : stderr;
+            var tunnels = ParseTunnelList(output);
+
+            Log($"Listed {tunnels.Count} tunnel(s)");
+            return (process.ExitCode == 0, output.Trim(), tunnels);
+        }
+        catch (Exception ex)
+        {
+            Log($"Failed to list tunnels: {ex.Message}");
+            return (false, $"Error: {ex.Message}", new());
+        }
+    }
+
+    /// <summary>
+    /// Creates a new tunnel with the given name.
+    /// Requires prior 'cloudflared tunnel login'.
+    /// </summary>
+    public async Task<(bool success, string output)> CreateTunnelAsync(string tunnelName)
+    {
+        if (!IsInstalled)
+            return (false, "cloudflared is not installed.");
+        if (string.IsNullOrWhiteSpace(tunnelName))
+            return (false, "Tunnel name cannot be empty.");
+
+        try
+        {
+            var resolvedPath = ResolveCloudflaredPath();
+            var psi = new ProcessStartInfo
+            {
+                FileName = resolvedPath,
+                Arguments = $"tunnel create \"{tunnelName}\"",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            using var process = Process.Start(psi);
+            if (process == null)
+                return (false, "Failed to start cloudflared process.");
+
+            var stdout = await process.StandardOutput.ReadToEndAsync();
+            var stderr = await process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+
+            var output = !string.IsNullOrWhiteSpace(stdout) ? stdout : stderr;
+            Log($"Create tunnel '{tunnelName}': {output.Trim()}");
+            return (process.ExitCode == 0, output.Trim());
+        }
+        catch (Exception ex)
+        {
+            Log($"Failed to create tunnel: {ex.Message}");
+            return (false, $"Error: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Deletes a tunnel by name or UUID.
+    /// The tunnel must not be running.
+    /// </summary>
+    public async Task<(bool success, string output)> DeleteTunnelAsync(string tunnelNameOrId)
+    {
+        if (!IsInstalled)
+            return (false, "cloudflared is not installed.");
+        if (string.IsNullOrWhiteSpace(tunnelNameOrId))
+            return (false, "Tunnel name/ID cannot be empty.");
+
+        try
+        {
+            var resolvedPath = ResolveCloudflaredPath();
+            // Use -f to force delete even if connections exist
+            var psi = new ProcessStartInfo
+            {
+                FileName = resolvedPath,
+                Arguments = $"tunnel delete -f \"{tunnelNameOrId}\"",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            using var process = Process.Start(psi);
+            if (process == null)
+                return (false, "Failed to start cloudflared process.");
+
+            var stdout = await process.StandardOutput.ReadToEndAsync();
+            var stderr = await process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+
+            var output = !string.IsNullOrWhiteSpace(stdout) ? stdout : stderr;
+            Log($"Delete tunnel '{tunnelNameOrId}': {output.Trim()}");
+            return (process.ExitCode == 0, output.Trim());
+        }
+        catch (Exception ex)
+        {
+            Log($"Failed to delete tunnel: {ex.Message}");
+            return (false, $"Error: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Routes a DNS hostname to the specified tunnel.
+    /// Creates/updates a CNAME record in Cloudflare DNS.
+    /// </summary>
+    public async Task<(bool success, string output)> RouteDnsAsync(string tunnelName, string hostname)
+    {
+        if (!IsInstalled)
+            return (false, "cloudflared is not installed.");
+        if (string.IsNullOrWhiteSpace(tunnelName))
+            return (false, "Tunnel name cannot be empty.");
+        if (string.IsNullOrWhiteSpace(hostname))
+            return (false, "Hostname cannot be empty.");
+
+        try
+        {
+            var resolvedPath = ResolveCloudflaredPath();
+            var psi = new ProcessStartInfo
+            {
+                FileName = resolvedPath,
+                Arguments = $"tunnel route dns \"{tunnelName}\" \"{hostname}\"",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            using var process = Process.Start(psi);
+            if (process == null)
+                return (false, "Failed to start cloudflared process.");
+
+            var stdout = await process.StandardOutput.ReadToEndAsync();
+            var stderr = await process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+
+            var output = !string.IsNullOrWhiteSpace(stdout) ? stdout : stderr;
+            Log($"Route DNS '{hostname}' → '{tunnelName}': {output.Trim()}");
+            return (process.ExitCode == 0, output.Trim());
+        }
+        catch (Exception ex)
+        {
+            Log($"Failed to route DNS: {ex.Message}");
+            return (false, $"Error: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Gets info about local credential files in ~/.cloudflared/.
+    /// </summary>
+    public System.Collections.Generic.List<CredentialFileInfo> GetLocalCredentials()
+    {
+        var result = new System.Collections.Generic.List<CredentialFileInfo>();
+        try
+        {
+            if (!Directory.Exists(UserConfigPath)) return result;
+
+            foreach (var file in Directory.GetFiles(UserConfigPath, "*.json"))
+            {
+                var fileName = Path.GetFileNameWithoutExtension(file);
+                if (fileName.Equals("config", StringComparison.OrdinalIgnoreCase)) continue;
+
+                var info = new CredentialFileInfo
+                {
+                    FilePath = file,
+                    FileName = Path.GetFileName(file),
+                    FileSize = new FileInfo(file).Length,
+                    LastModified = File.GetLastWriteTime(file)
+                };
+
+                // Try to parse UUID from filename
+                if (Guid.TryParse(fileName, out var uuid))
+                {
+                    info.TunnelId = uuid.ToString();
+                }
+
+                // Try reading tunnel info from the JSON
+                try
+                {
+                    var json = File.ReadAllText(file);
+                    var tunnelIdMatch = System.Text.RegularExpressions.Regex.Match(json,
+                        "\"TunnelID\"\\s*:\\s*\"([^\"]+)\"",
+                        System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                    if (tunnelIdMatch.Success)
+                        info.TunnelId = tunnelIdMatch.Groups[1].Value;
+
+                    var tunnelNameMatch = System.Text.RegularExpressions.Regex.Match(json,
+                        "\"TunnelName\"\\s*:\\s*\"([^\"]+)\"",
+                        System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                    if (tunnelNameMatch.Success)
+                        info.TunnelName = tunnelNameMatch.Groups[1].Value;
+                }
+                catch { }
+
+                result.Add(info);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log($"Failed to enumerate credentials: {ex.Message}");
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Deletes a specific credential file.
+    /// </summary>
+    public bool DeleteCredentialFile(string filePath)
+    {
+        try
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+                Log($"Deleted credential file: {filePath}");
+                return true;
+            }
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Log($"Failed to delete credential file: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Parses the text output of 'cloudflared tunnel list' into structured data.
+    /// </summary>
+    private static System.Collections.Generic.List<TunnelInfo> ParseTunnelList(string output)
+    {
+        var tunnels = new System.Collections.Generic.List<TunnelInfo>();
+        if (string.IsNullOrWhiteSpace(output)) return tunnels;
+
+        var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        // Skip header lines (typically 2: column headers + separator)
+        var dataStarted = false;
+        foreach (var rawLine in lines)
+        {
+            var line = rawLine.Trim();
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            // Skip lines that are clearly headers or separators
+            if (line.StartsWith("ID") || line.StartsWith("You can obtain"))
+                continue;
+
+            // Try to parse a UUID at the start of the line
+            var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length >= 3 && Guid.TryParse(parts[0], out var tunnelId))
+            {
+                dataStarted = true;
+                var tunnel = new TunnelInfo
+                {
+                    Id = tunnelId.ToString(),
+                    Name = parts[1],
+                    RawLine = line
+                };
+
+                // Parse created date and connections (varies in format)
+                // Format: ID  NAME  CREATED  CONNECTIONS
+                if (parts.Length >= 3)
+                {
+                    // Try to find a date in the remaining parts
+                    for (int i = 2; i < parts.Length; i++)
+                    {
+                        if (DateTime.TryParse(parts[i], out var created))
+                        {
+                            tunnel.CreatedAt = created;
+
+                            // Everything after date fields is connections info
+                            var dateEndIndex = i + 1;
+                            // Check if next part is also part of the date (time component)
+                            if (dateEndIndex < parts.Length && parts[dateEndIndex].Contains(":"))
+                                dateEndIndex++;
+                            // Check for timezone
+                            if (dateEndIndex < parts.Length && (parts[dateEndIndex].StartsWith("+") || parts[dateEndIndex].StartsWith("-") || parts[dateEndIndex] == "UTC"))
+                                dateEndIndex++;
+
+                            if (dateEndIndex < parts.Length)
+                                tunnel.Connections = string.Join(" ", parts.Skip(dateEndIndex));
+                            break;
+                        }
+                    }
+                }
+
+                tunnels.Add(tunnel);
+            }
+            else if (dataStarted)
+            {
+                // Could be continuation of previous entry
+            }
+        }
+
+        return tunnels;
+    }
+
+    #endregion
+
     #region Persistent Tunnel (Background Process + Auto-Start)
     
     private static readonly string UserConfigPath = Path.Combine(
@@ -1135,6 +1463,39 @@ ingress:
         _cts?.Dispose();
         GC.SuppressFinalize(this);
     }
+}
+
+/// <summary>
+/// Represents a tunnel entry from 'cloudflared tunnel list'.
+/// </summary>
+public class TunnelInfo
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    public DateTime? CreatedAt { get; set; }
+    public string? Connections { get; set; }
+    public string RawLine { get; set; } = "";
+
+    public string DisplayText => $"{Name}  ({Id})";
+    public override string ToString() => DisplayText;
+}
+
+/// <summary>
+/// Represents a local credential JSON file in ~/.cloudflared/.
+/// </summary>
+public class CredentialFileInfo
+{
+    public string FilePath { get; set; } = "";
+    public string FileName { get; set; } = "";
+    public string? TunnelId { get; set; }
+    public string? TunnelName { get; set; }
+    public long FileSize { get; set; }
+    public DateTime LastModified { get; set; }
+
+    public string DisplayText => !string.IsNullOrEmpty(TunnelName) 
+        ? $"{TunnelName} ({TunnelId ?? FileName})" 
+        : $"{TunnelId ?? FileName}";
+    public override string ToString() => DisplayText;
 }
 
 /// <summary>
