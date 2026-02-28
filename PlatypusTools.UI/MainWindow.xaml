@@ -179,6 +179,12 @@
                      AutomationProperties.Name="Multimedia"
                      Visibility="{Binding Multimedia, Source={x:Static services:TabVisibilityService.Instance}}">
                 <TabControl>
+                    <!-- Media Hub (Plex-like features) -->
+                    <TabItem Header="🏠 Media Hub"
+                             Visibility="{Binding MediaHub, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:MediaHubView}" ViewDataContext="{Binding MediaHub}" />
+                    </TabItem>
+
                     <!-- Audio -->
                     <TabItem Header="🎵 Audio">
                         <TabControl>

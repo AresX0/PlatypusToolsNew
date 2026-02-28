@@ -90,6 +90,7 @@ namespace PlatypusTools.UI.Services
         public Visibility VideoCombiner => GetVisibility("Multimedia.Video.VideoCombiner");
         public Visibility VideoConverter => GetVisibility("Multimedia.Video.VideoConverter");
         public Visibility ExportQueue => GetVisibility("Multimedia.Video.ExportQueue");
+        public Visibility MediaHub => GetVisibility("Multimedia.MediaHub");
         public Visibility MediaLibrary => GetVisibility("Multimedia.MediaLibrary");
         public Visibility ExternalTools => GetVisibility("Multimedia.ExternalTools");
 

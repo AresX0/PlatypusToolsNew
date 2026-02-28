@@ -231,6 +231,19 @@ namespace PlatypusTools.UI.Services
         private string _adSecurityLicenseKey = string.Empty;
         private bool _adSecurityHidden = true;
 
+        // TMDb Metadata Settings
+        private string _tmdbApiKey = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the TMDb (The Movie Database) API key for metadata lookups.
+        /// Get one at https://www.themoviedb.org/settings/api
+        /// </summary>
+        public string TmdbApiKey
+        {
+            get => _tmdbApiKey;
+            set { _tmdbApiKey = value ?? string.Empty; OnPropertyChanged(); }
+        }
+
         // Last.fm Scrobbling Settings
         private string _lastFmApiKey = string.Empty;
         private string _lastFmApiSecret = string.Empty;
@@ -728,6 +741,7 @@ namespace PlatypusTools.UI.Services
                 new("Multimedia.Video.ScreenRecorder", "Screen Recorder", "Multimedia.Video"),
                 new("Multimedia.Video.VideoMetadata", "Video Metadata", "Multimedia.Video"),
                 new("Multimedia.Video.GifMaker", "GIF Maker", "Multimedia.Video"),
+                new("Multimedia.MediaHub", "🏠 Media Hub", "Multimedia"),
                 new("Multimedia.MediaLibrary", "📚 Media Library", "Multimedia"),
                 new("Multimedia.ExternalTools", "🔧 External Tools", "Multimedia"),
 

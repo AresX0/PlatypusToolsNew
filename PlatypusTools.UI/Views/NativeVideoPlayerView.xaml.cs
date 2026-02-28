@@ -70,6 +70,9 @@ namespace PlatypusTools.UI.Views
         private readonly ObservableCollection<QueueItem> _queue = new();
         private int _currentQueueIndex = -1;
         
+        // Pending file to play once LibVLC is initialized
+        private string? _pendingPlayFile;
+        
         // Logging
         private static readonly string LogPath = Path.Combine(AppContext.BaseDirectory, "vlc_debug.log");
 
@@ -169,6 +172,15 @@ namespace PlatypusTools.UI.Views
                     }
                     
                     _isInitialized = true;
+                    
+                    // Play any file that was requested before init completed
+                    if (!string.IsNullOrEmpty(_pendingPlayFile))
+                    {
+                        var pending = _pendingPlayFile;
+                        _pendingPlayFile = null;
+                        Log($"Playing pending file after init: {pending}");
+                        PlayFromMediaLibrary(pending);
+                    }
                 }
             }
             catch (Exception ex)
@@ -670,7 +682,8 @@ namespace PlatypusTools.UI.Views
         }
 
         /// <summary>
-        /// Play a video file from an external source (e.g., Media Library).
+        /// Play a video file from an external source (e.g., Media Library / Media Hub).
+        /// Adds to queue and handles the case where LibVLC is still initializing.
         /// </summary>
         public void PlayFromMediaLibrary(string filePath)
         {
@@ -678,8 +691,43 @@ namespace PlatypusTools.UI.Views
             
             _currentFilePath = filePath;
             VideoFilePathBox.Text = filePath;
-            Log($"PlayFromMediaLibrary: {filePath}");
-            LoadVideo(filePath);
+            Log($"PlayFromMediaLibrary: {filePath}, _libVLC={_libVLC != null}, _isInitialized={_isInitialized}");
+            
+            // Add to queue if not already there
+            if (!_queue.Any(q => q.FullPath.Equals(filePath, StringComparison.OrdinalIgnoreCase)))
+            {
+                _queue.Add(new QueueItem { FullPath = filePath });
+                UpdateQueueInfo();
+                Log($"Added to queue: {Path.GetFileName(filePath)}");
+            }
+            
+            if (_libVLC == null || !_isInitialized)
+            {
+                // LibVLC not ready yet — store for deferred playback
+                _pendingPlayFile = filePath;
+                Log($"LibVLC not ready, stored as pending: {filePath}");
+                return;
+            }
+            
+            // Find the item in the queue and play via queue
+            var queueIndex = -1;
+            for (int i = 0; i < _queue.Count; i++)
+            {
+                if (_queue[i].FullPath.Equals(filePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    queueIndex = i;
+                    break;
+                }
+            }
+            
+            if (queueIndex >= 0)
+            {
+                PlayFromQueue(queueIndex);
+            }
+            else
+            {
+                LoadVideo(filePath);
+            }
         }
 
         #region Queue Management

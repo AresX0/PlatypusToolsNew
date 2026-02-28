@@ -141,8 +141,8 @@ namespace PlatypusTools.UI.Views
             var mainVm = GetMainViewModel();
             if (mainVm == null) return;
 
-            // Navigate to Multimedia > Audio > Audio Player
-            NavigateToTab(1, 0, 0);
+            // Navigate to Multimedia (2) > Audio (1) > Audio Player (0)
+            NavigateToTab(2, 1, 0);
 
             await mainVm.EnhancedAudioPlayer.PlayFileAsync(item.FilePath);
         }
@@ -152,17 +152,17 @@ namespace PlatypusTools.UI.Views
             var item = GetSelectedItem(sender);
             if (item == null || string.IsNullOrEmpty(item.FilePath)) return;
 
-            // Navigate to Multimedia > Video > Video Player
-            NavigateToTab(1, 2, 0);
+            // Navigate to Multimedia (2) > Video (3) > Video Player (0)
+            NavigateToTab(2, 3, 0);
 
             // Wait for LazyTabContent to load the video player view.
             // Poll with small delays since the view is created asynchronously.
             var mainWindow = Window.GetWindow(this);
             if (mainWindow == null) return;
 
-            for (int attempt = 0; attempt < 20; attempt++)
+            for (int attempt = 0; attempt < 30; attempt++)
             {
-                await Task.Delay(100);
+                await Task.Delay(150);
                 var videoView = FindVisualDescendant<NativeVideoPlayerView>(mainWindow);
                 if (videoView != null)
                 {

@@ -2632,7 +2632,7 @@ class PlatypusRemote {
         } catch { /* ignore */ }
     }
 
-    switchVideoView(view) {
+    async switchVideoView(view) {
         this.videoViewMode = view;
         this.seriesDrillPath = [];
 
@@ -2652,13 +2652,15 @@ class PlatypusRemote {
             this.renderVideoGrid(this.videoLibrary);
         } else if (view === 'series') {
             if (grid) grid.style.display = 'none';
-            if (series) series.style.display = '';
+            if (series) { series.style.display = ''; series.innerHTML = '<div class="no-content"><div class="spinner"></div><p>Loading TV series...</p></div>'; }
             if (folderBar) folderBar.style.display = 'none';
+            if (!this.organizedContent) await this.loadOrganizedContent();
             this.renderSeriesList();
         } else if (view === 'movies') {
             if (grid) grid.style.display = 'none';
-            if (series) series.style.display = '';
+            if (series) { series.style.display = ''; series.innerHTML = '<div class="no-content"><div class="spinner"></div><p>Loading movies...</p></div>'; }
             if (folderBar) folderBar.style.display = 'none';
+            if (!this.organizedContent) await this.loadOrganizedContent();
             this.renderMoviesList();
         }
     }

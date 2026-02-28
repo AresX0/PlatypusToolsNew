@@ -41,7 +41,7 @@ namespace PlatypusTools.UI.Views
                 _panels = new[] 
                 { 
                     GeneralPanel, AppearancePanel, KeyboardPanel, 
-                    AIPanel, UpdatesPanel, BackupPanel, TabVisibilityPanel, VisualizerPanel, DependenciesPanel, AdvancedPanel, LastFmPanel, RemoteControlPanel 
+                    AIPanel, UpdatesPanel, BackupPanel, TabVisibilityPanel, VisualizerPanel, DependenciesPanel, AdvancedPanel, LastFmPanel, MetadataPanel, RemoteControlPanel 
                 };
             }
             catch (System.Exception ex)
@@ -140,6 +140,9 @@ namespace PlatypusTools.UI.Views
                 
                 // Load Last.fm settings
                 LoadLastFmSettings(settings);
+
+                // Load Metadata/TMDb settings
+                LoadMetadataSettings(settings);
 
                 // Load Remote Control settings
                 LoadRemoteControlSettings(settings);
@@ -505,6 +508,7 @@ namespace PlatypusTools.UI.Views
                 "TabVisibility" => TabVisibilityPanel,
                 "Visualizer" => VisualizerPanel,
                 "LastFm" => LastFmPanel,
+                "Metadata" => MetadataPanel,
                 "RemoteControl" => RemoteControlPanel,
                 "Dependencies" => DependenciesPanel,
                 "Advanced" => AdvancedPanel,
@@ -1354,6 +1358,61 @@ namespace PlatypusTools.UI.Views
         
         #endregion
         
+        #region Metadata / TMDb Settings
+
+        private void LoadMetadataSettings(AppSettings? settings)
+        {
+            if (settings == null) return;
+            try
+            {
+                if (TmdbApiKeyBox != null)
+                    TmdbApiKeyBox.Text = settings.TmdbApiKey;
+                if (TmdbStatusText != null)
+                    TmdbStatusText.Text = string.IsNullOrEmpty(settings.TmdbApiKey) 
+                        ? "No API key configured." 
+                        : "✅ TMDb API key is configured.";
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading TMDb settings: {ex.Message}");
+            }
+        }
+
+        private void SaveTmdbApiKey_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var settings = SettingsManager.Current;
+                settings.TmdbApiKey = TmdbApiKeyBox?.Text?.Trim() ?? string.Empty;
+                SettingsManager.SaveCurrent();
+
+                // Also update the MetadataEnrichmentService instance
+                if (!string.IsNullOrWhiteSpace(settings.TmdbApiKey))
+                {
+                    PlatypusTools.Core.Services.MetadataEnrichmentService.Instance.SetTmdbApiKey(settings.TmdbApiKey);
+                }
+
+                if (TmdbStatusText != null)
+                    TmdbStatusText.Text = string.IsNullOrEmpty(settings.TmdbApiKey)
+                        ? "API key cleared."
+                        : "✅ TMDb API key saved successfully.";
+
+                MessageBox.Show(
+                    string.IsNullOrEmpty(settings.TmdbApiKey)
+                        ? "TMDb API key cleared."
+                        : "TMDb API key saved.\n\nYou can now use the 🔍 TMDb button in Media Hub to look up movie and TV show metadata.",
+                    "TMDb Settings",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Error saving TMDb API key: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        #endregion
+
         /// <summary>
         /// Updates the manifest file for the next application launch based on the admin rights setting.
         /// Since embedded manifests cannot be changed at runtime, this creates a companion file

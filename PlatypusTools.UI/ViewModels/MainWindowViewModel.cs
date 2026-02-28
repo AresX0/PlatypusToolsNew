@@ -92,6 +92,7 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<WifiPasswordViewModel> _wifiPassword = new(() => new WifiPasswordViewModel());
         private readonly Lazy<RemoteDashboardViewModel> _remoteDashboard = new(() => new RemoteDashboardViewModel());
         private readonly Lazy<SecurityVaultViewModel> _securityVault = new(() => new SecurityVaultViewModel());
+        private readonly Lazy<MediaHubViewModel> _mediaHub = new(() => new MediaHubViewModel());
         
         #endregion
 
@@ -211,6 +212,7 @@ namespace PlatypusTools.UI.ViewModels
         public WifiPasswordViewModel WifiPassword => _wifiPassword.Value;
         public RemoteDashboardViewModel RemoteDashboard => _remoteDashboard.Value;
         public SecurityVaultViewModel SecurityVault => _securityVault.Value;
+        public MediaHubViewModel MediaHub => _mediaHub.Value;
         
         #endregion
 

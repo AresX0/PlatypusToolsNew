@@ -67,6 +67,12 @@
                         <TextBlock Text="Last.fm"/>
                     </StackPanel>
                 </ListBoxItem>
+                <ListBoxItem Tag="Metadata">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🎬" Width="24"/>
+                        <TextBlock Text="Metadata / TMDb"/>
+                    </StackPanel>
+                </ListBoxItem>
                 <ListBoxItem Tag="RemoteControl">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="📱" Width="24"/>
@@ -404,7 +410,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 3.4.3.10"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 4.0.0.1"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
@@ -688,6 +694,45 @@
                                            TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,8,0,0"/>
                                 <Button Content="Clear Session (Re-authenticate)" MinWidth="220" HorizontalAlignment="Left" Margin="0,12,0,0" Click="ClearLastFmSession_Click"
                                         Background="#FFFF9800" Foreground="White"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+
+                    <!-- Metadata / TMDb Settings -->
+                    <StackPanel x:Name="MetadataPanel" Visibility="Collapsed">
+                        <TextBlock Text="Metadata / TMDb" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
+                        <TextBlock Text="Connect to The Movie Database (TMDb) to look up movie and TV show metadata including descriptions, ratings, genres, and cast information." 
+                                   TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,16"/>
+
+                        <GroupBox Header="TMDb API Key" Margin="0,0,0,16">
+                            <StackPanel Margin="8">
+                                <TextBlock Text="Get your free API key at https://www.themoviedb.org/settings/api" 
+                                           Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,0,0,8"/>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="API Key:" VerticalAlignment="Center"/>
+                                    <TextBox x:Name="TmdbApiKeyBox" Grid.Column="1" MaxWidth="400" HorizontalAlignment="Left" Width="400"/>
+                                </Grid>
+                                <Button Content="Save TMDb Key" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="SaveTmdbApiKey_Click"
+                                        Background="#FF4CAF50" Foreground="White"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="How It Works" Margin="0,0,0,16">
+                            <StackPanel Margin="8">
+                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}">
+                                    <Run FontWeight="SemiBold" Text="Once configured:"/>
+                                </TextBlock>
+                                <TextBlock Text="• In Media Hub, click the 🔍 TMDb button next to any movie or TV series"
+                                           Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,4,0,0"/>
+                                <TextBlock Text="• TMDb will return title, description, genre, rating, director/cast info"
+                                           Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2,0,0"/>
+                                <TextBlock Text="• Results are matched by filename, so clean filenames work best"
+                                           Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2,0,0"/>
+                                <TextBlock x:Name="TmdbStatusText" Text="" FontWeight="SemiBold" Margin="0,12,0,0"/>
                             </StackPanel>
                         </GroupBox>
                     </StackPanel>
