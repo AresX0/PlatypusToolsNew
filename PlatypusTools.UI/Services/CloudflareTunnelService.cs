@@ -47,8 +47,62 @@ public class CloudflareTunnelService : IDisposable
     public event EventHandler<string>? TunnelUrlGenerated;
 
     public bool IsRunning => _tunnelProcess != null && !_tunnelProcess.HasExited;
-    public bool IsInstalled => File.Exists(CloudflaredPath);
+    public bool IsInstalled => File.Exists(ResolveCloudflaredPath());
     public string? CurrentTunnelUrl { get; private set; }
+
+    /// <summary>
+    /// Resolves the actual path to the cloudflared executable.
+    /// Checks: (1) our bundled path, (2) system PATH, (3) common install locations.
+    /// </summary>
+    private static string ResolveCloudflaredPath()
+    {
+        // 1. Our bundled location
+        if (File.Exists(CloudflaredPath))
+            return CloudflaredPath;
+
+        // 2. Check system PATH
+        try
+        {
+            var pathDirs = Environment.GetEnvironmentVariable("PATH")?.Split(';') ?? Array.Empty<string>();
+            foreach (var dir in pathDirs)
+            {
+                if (string.IsNullOrWhiteSpace(dir)) continue;
+                var candidate = Path.Combine(dir.Trim(), "cloudflared.exe");
+                if (File.Exists(candidate))
+                    return candidate;
+            }
+        }
+        catch { }
+
+        // 3. Common install locations (winget, choco, scoop)
+        var commonPaths = new[]
+        {
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "cloudflared", "cloudflared.exe"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "cloudflared", "cloudflared.exe"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft", "WinGet", "Packages"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "scoop", "apps", "cloudflared", "current", "cloudflared.exe"),
+        };
+        foreach (var p in commonPaths)
+        {
+            if (p.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+            {
+                if (File.Exists(p)) return p;
+            }
+            else if (Directory.Exists(p))
+            {
+                // Search winget packages directory for cloudflared.exe
+                try
+                {
+                    var found = Directory.GetFiles(p, "cloudflared.exe", SearchOption.AllDirectories);
+                    if (found.Length > 0) return found[0];
+                }
+                catch { }
+            }
+        }
+
+        // Fallback to bundled path (will fail IsInstalled check, prompting install)
+        return CloudflaredPath;
+    }
 
     private CloudflareTunnelService() { }
 
@@ -138,9 +192,12 @@ public class CloudflareTunnelService : IDisposable
             
             _cts = new CancellationTokenSource();
 
+            var resolvedPath = ResolveCloudflaredPath();
+            Log($"Using cloudflared at: {resolvedPath}");
+            
             var psi = new ProcessStartInfo
             {
-                FileName = CloudflaredPath,
+                FileName = resolvedPath,
                 Arguments = $"tunnel --url https://localhost:{localPort} --no-tls-verify",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
@@ -220,9 +277,12 @@ public class CloudflareTunnelService : IDisposable
                 ? $"tunnel --config \"{configFile}\" run {tunnelName}"
                 : $"tunnel --url https://localhost:{localPort} --no-tls-verify --hostname {hostname}";
 
+            var resolvedPath = ResolveCloudflaredPath();
+            Log($"Using cloudflared at: {resolvedPath}");
+            
             var psi = new ProcessStartInfo
             {
-                FileName = CloudflaredPath,
+                FileName = resolvedPath,
                 Arguments = args,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
@@ -361,7 +421,7 @@ ingress:
         {
             var psi = new ProcessStartInfo
             {
-                FileName = CloudflaredPath,
+                FileName = ResolveCloudflaredPath(),
                 Arguments = "tunnel login",
                 UseShellExecute = false,
                 CreateNoWindow = false // Show window for user to see URL
@@ -545,7 +605,7 @@ ingress:
         {
             var psi = new ProcessStartInfo
             {
-                FileName = CloudflaredPath,
+                FileName = ResolveCloudflaredPath(),
                 Arguments = $"tunnel info {_lastTunnelName ?? ""}",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
@@ -745,13 +805,28 @@ ingress:
     /// <summary>
     /// Starts the persistent tunnel as a background process (no admin needed).
     /// Generates config.yml from saved settings before starting.
+    /// If a stale cloudflared process is running (not managed by us), kills it and restarts with current config.
     /// </summary>
     public async Task<bool> StartPersistentTunnelAsync()
     {
-        if (IsPersistentTunnelRunning)
+        // If WE started a tunnel and it's still running, that's fine
+        if (_persistentTunnelProcess != null && !_persistentTunnelProcess.HasExited)
         {
-            Log("Tunnel is already running");
+            Log("Tunnel is already running (managed process)");
             return true;
+        }
+        
+        // If there are orphan/stale cloudflared processes we didn't start, kill them
+        // so we can restart with the correct, current config
+        var staleProcesses = Process.GetProcessesByName("cloudflared");
+        if (staleProcesses.Length > 0)
+        {
+            Log($"Found {staleProcesses.Length} stale cloudflared process(es) — killing and restarting with current config...");
+            foreach (var proc in staleProcesses)
+            {
+                try { proc.Kill(true); proc.Dispose(); } catch { }
+            }
+            await Task.Delay(1000); // Let processes die
         }
         
         if (!IsInstalled)
@@ -785,9 +860,12 @@ ingress:
         {
             Log("Starting persistent tunnel...");
             
+            var resolvedPath = ResolveCloudflaredPath();
+            Log($"Using cloudflared at: {resolvedPath}");
+            
             var psi = new ProcessStartInfo
             {
-                FileName = CloudflaredPath,
+                FileName = resolvedPath,
                 Arguments = $"tunnel --config \"{configFile}\" run",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
@@ -913,7 +991,8 @@ ingress:
             Log("Setting up auto-start tunnel via Registry Run key...");
             
             // Set Registry Run key - runs on user login, zero admin needed
-            var runCommand = $"\"{CloudflaredPath}\" tunnel --config \"{configFile}\" run";
+            var resolvedPath = ResolveCloudflaredPath();
+            var runCommand = $"\"{resolvedPath}\" tunnel --config \"{configFile}\" run";
             using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(AutoStartRegistryKey, true))
             {
                 if (key == null)

@@ -152,3 +152,8 @@ PLATYPUS/
 
 # Archive files - never commit
 *.zip
+
+# ===================
+# Diagnostic output (collected from remote devices)
+# ===================
+diagnostic/

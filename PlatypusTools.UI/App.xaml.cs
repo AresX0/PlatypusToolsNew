@@ -429,6 +429,9 @@ namespace PlatypusTools.UI
                 // Start Platypus Remote Server if enabled
                 await StartRemoteServerIfEnabledAsync();
 
+                // Start Cloudflare Tunnel if auto-start is enabled (AFTER server is listening)
+                await StartCloudflaredTunnelIfEnabledAsync();
+
                 // Start the internal App Task Scheduler
                 try
                 {
@@ -874,6 +877,34 @@ namespace PlatypusTools.UI
             catch (Exception ex)
             {
                 SimpleLogger.Warn($"Failed to auto-start Remote Server: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Starts the Cloudflare Tunnel if auto-start is enabled.
+        /// Must be called AFTER the Remote Server is listening to avoid 502 errors.
+        /// Kills any stale cloudflared processes and restarts with current config.
+        /// </summary>
+        private async Task StartCloudflaredTunnelIfEnabledAsync()
+        {
+            try
+            {
+                var settings = SettingsManager.Current;
+                if (settings.CloudflareTunnelEnabled && settings.CloudflareTunnelAutoStart
+                    && !settings.CloudflareTunnelUseQuickTunnel
+                    && !string.IsNullOrWhiteSpace(settings.CloudflareTunnelName))
+                {
+                    SimpleLogger.Info("Auto-starting Cloudflare Tunnel (after server is ready)...");
+                    var started = await CloudflareTunnelService.Instance.StartPersistentTunnelAsync();
+                    if (started)
+                        SimpleLogger.Info("Cloudflare Tunnel auto-started successfully");
+                    else
+                        SimpleLogger.Warn("Cloudflare Tunnel auto-start failed — check Settings → Cloudflare Tunnel");
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Warn($"Failed to auto-start Cloudflare Tunnel: {ex.Message}");
             }
         }
 
