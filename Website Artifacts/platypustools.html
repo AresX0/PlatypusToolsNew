@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlatypusTools — The Swiss Army Knife for Windows | Platysoft</title>
+    <meta name="description" content="PlatypusTools is a comprehensive Windows utility suite with 70+ tools for file management, multimedia editing, system optimization, security forensics, and much more. Free and open-source from Platysoft.">
+    <meta name="keywords" content="PlatypusTools, Windows utilities, file manager, video editor, system cleaner, security audit, forensics, Platysoft">
+    <meta property="og:title" content="PlatypusTools — The Swiss Army Knife for Windows">
+    <meta property="og:description" content="70+ tools in one app: file management, multimedia, system optimization, security, and more.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://platysoft.com/platypustools">
+    <link rel="canonical" href="https://platysoft.com/platypustools">
+    <style>
+        /* ============================================
+           PlatypusTools Product Page — Platysoft
+           Drop this into your WordPress theme or
+           use as a standalone page.
+           ============================================ */
+
+        :root {
+            --pt-gold:      #e9a820;
+            --pt-gold-dim:  #b8841a;
+            --pt-dark:      #0d1117;
+            --pt-surface:   #161b22;
+            --pt-card:      #1c2333;
+            --pt-border:    #30363d;
+            --pt-text:      #e6edf3;
+            --pt-muted:     #8b949e;
+            --pt-accent:    #58a6ff;
+            --pt-green:     #3fb950;
+            --pt-purple:    #bc8cff;
+            --pt-radius:    12px;
+            --pt-max-width: 1200px;
+        }
+
+        /* Reset & Base */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        .pt-page {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--pt-dark);
+            color: var(--pt-text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .pt-page a { color: var(--pt-accent); text-decoration: none; transition: color 0.2s; }
+        .pt-page a:hover { color: var(--pt-gold); }
+
+        .pt-container { max-width: var(--pt-max-width); margin: 0 auto; padding: 0 24px; }
+
+        /* ========== HERO ========== */
+        .pt-hero {
+            position: relative;
+            padding: 100px 0 80px;
+            text-align: center;
+            background: linear-gradient(135deg, #0d1117 0%, #1a1a2e 50%, #16213e 100%);
+            overflow: hidden;
+        }
+        .pt-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 40%, rgba(233, 168, 32, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(88, 166, 255, 0.05) 0%, transparent 50%);
+            animation: pt-glow 15s ease-in-out infinite;
+        }
+        @keyframes pt-glow {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-2%, 2%); }
+        }
+        .pt-hero-content { position: relative; z-index: 1; }
+        .pt-hero-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--pt-gold-dim);
+            color: var(--pt-gold);
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 24px;
+        }
+        .pt-hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 16px;
+        }
+        .pt-hero h1 span { color: var(--pt-gold); }
+        .pt-hero-sub {
+            font-size: 1.25rem;
+            color: var(--pt-muted);
+            max-width: 700px;
+            margin: 0 auto 40px;
+        }
+        .pt-hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-top: 48px;
+            flex-wrap: wrap;
+        }
+        .pt-stat { text-align: center; }
+        .pt-stat-num { font-size: 2.5rem; font-weight: 800; color: var(--pt-gold); }
+        .pt-stat-label { font-size: 0.85rem; color: var(--pt-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Download buttons */
+        .pt-cta-group { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .pt-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        .pt-btn-primary {
+            background: var(--pt-gold);
+            color: #000;
+        }
+        .pt-btn-primary:hover { background: #f0b840; color: #000; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(233, 168, 32, 0.3); }
+        .pt-btn-secondary {
+            background: transparent;
+            color: var(--pt-text);
+            border: 1px solid var(--pt-border);
+        }
+        .pt-btn-secondary:hover { border-color: var(--pt-gold); color: var(--pt-gold); }
+
+        /* ========== HERO SCREENSHOT ========== */
+        .pt-hero-img {
+            position: relative;
+            z-index: 1;
+            margin-top: 60px;
+            max-width: 960px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .pt-hero-img img {
+            width: 100%;
+            border-radius: var(--pt-radius);
+            border: 1px solid var(--pt-border);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+        }
+
+        /* ========== SECTION BASE ========== */
+        .pt-section {
+            padding: 80px 0;
+        }
+        .pt-section-alt { background: var(--pt-surface); }
+        .pt-section-title {
+            text-align: center;
+            margin-bottom: 16px;
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+        .pt-section-subtitle {
+            text-align: center;
+            color: var(--pt-muted);
+            max-width: 600px;
+            margin: 0 auto 48px;
+            font-size: 1.05rem;
+        }
+
+        /* ========== FEATURE CATEGORY GRID ========== */
+        .pt-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        .pt-cat-card {
+            background: var(--pt-card);
+            border: 1px solid var(--pt-border);
+            border-radius: var(--pt-radius);
+            padding: 32px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .pt-cat-card:hover { transform: translateY(-4px); border-color: var(--pt-gold-dim); }
+        .pt-cat-icon { font-size: 2rem; margin-bottom: 12px; }
+        .pt-cat-card h3 { font-size: 1.2rem; margin-bottom: 8px; }
+        .pt-cat-card p { color: var(--pt-muted); font-size: 0.9rem; margin-bottom: 16px; }
+        .pt-cat-tools {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .pt-tool-tag {
+            display: inline-block;
+            padding: 3px 10px;
+            background: rgba(233, 168, 32, 0.1);
+            border: 1px solid rgba(233, 168, 32, 0.2);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--pt-gold);
+        }
+
+        /* ========== FEATURE DETAIL SECTION ========== */
+        .pt-feature-detail {
+            padding: 60px 0 30px;
+            border-bottom: 1px solid var(--pt-border);
+        }
+        .pt-feature-detail:last-child { border-bottom: none; }
+        .pt-feature-detail h3 {
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+            color: var(--pt-gold);
+        }
+        .pt-feature-detail > p {
+            color: var(--pt-muted);
+            margin-bottom: 32px;
+            font-size: 1rem;
+        }
+
+        /* Feature grid with screenshots */
+        .pt-feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .pt-feature-item {
+            background: var(--pt-card);
+            border: 1px solid var(--pt-border);
+            border-radius: var(--pt-radius);
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .pt-feature-item:hover { transform: translateY(-3px); border-color: var(--pt-gold-dim); }
+        .pt-feature-item img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+        .pt-feature-item-body { padding: 16px; }
+        .pt-feature-item h4 { font-size: 1rem; margin-bottom: 4px; }
+        .pt-feature-item p { color: var(--pt-muted); font-size: 0.85rem; }
+
+        /* ========== THEMES SHOWCASE ========== */
+        .pt-themes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+        }
+        .pt-theme-card {
+            position: relative;
+            border-radius: var(--pt-radius);
+            overflow: hidden;
+            border: 2px solid var(--pt-border);
+            transition: transform 0.2s, border-color 0.3s;
+            cursor: pointer;
+        }
+        .pt-theme-card:hover { transform: scale(1.03); border-color: var(--pt-gold); }
+        .pt-theme-card img { width: 100%; display: block; }
+        .pt-theme-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 16px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.85));
+            font-weight: 600;
+        }
+        .pt-theme-label small { display: block; color: var(--pt-muted); font-weight: 400; font-size: 0.8rem; }
+
+        /* ========== TECH SPECS ========== */
+        .pt-specs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .pt-spec {
+            background: var(--pt-card);
+            border: 1px solid var(--pt-border);
+            border-radius: var(--pt-radius);
+            padding: 24px;
+        }
+        .pt-spec h4 { color: var(--pt-gold); margin-bottom: 12px; font-size: 1rem; }
+        .pt-spec ul { list-style: none; }
+        .pt-spec li {
+            padding: 4px 0;
+            color: var(--pt-muted);
+            font-size: 0.9rem;
+        }
+        .pt-spec li::before { content: '✓ '; color: var(--pt-green); font-weight: bold; }
+
+        /* ========== DOWNLOAD / CTA ========== */
+        .pt-download-section {
+            text-align: center;
+            padding: 100px 0;
+            background: linear-gradient(135deg, var(--pt-surface) 0%, #1a1a2e 100%);
+        }
+        .pt-download-section h2 { font-size: 2.5rem; margin-bottom: 16px; }
+        .pt-download-section p { color: var(--pt-muted); margin-bottom: 40px; font-size: 1.1rem; }
+
+        /* ========== FOOTER ========== */
+        .pt-footer {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid var(--pt-border);
+            color: var(--pt-muted);
+            font-size: 0.85rem;
+        }
+        .pt-footer a { color: var(--pt-gold); }
+
+        /* ========== NAV (sticky) ========== */
+        .pt-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(13, 17, 23, 0.92);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--pt-border);
+            padding: 12px 0;
+        }
+        .pt-nav-inner {
+            max-width: var(--pt-max-width);
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .pt-nav-brand { font-weight: 700; font-size: 1.1rem; color: var(--pt-text); }
+        .pt-nav-brand span { color: var(--pt-gold); }
+        .pt-nav-links { display: flex; gap: 24px; align-items: center; }
+        .pt-nav-links a { color: var(--pt-muted); font-size: 0.9rem; font-weight: 500; }
+        .pt-nav-links a:hover { color: var(--pt-text); }
+        .pt-nav-download {
+            padding: 8px 20px;
+            background: var(--pt-gold);
+            color: #000 !important;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .pt-nav-download:hover { background: #f0b840; color: #000 !important; }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .pt-hero { padding: 60px 0 50px; }
+            .pt-hero-stats { gap: 24px; }
+            .pt-nav-links { display: none; }
+            .pt-section { padding: 50px 0; }
+            .pt-feature-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ========== LIGHTBOX ========== */
+        .pt-lightbox {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+        }
+        .pt-lightbox.active { display: flex; }
+        .pt-lightbox img {
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 8px;
+            box-shadow: 0 0 60px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="pt-page">
+
+<!-- ==================== NAV ==================== -->
+<nav class="pt-nav">
+    <div class="pt-nav-inner">
+        <div class="pt-nav-brand">Platypus<span>Tools</span></div>
+        <div class="pt-nav-links">
+            <a href="#features">Features</a>
+            <a href="#themes">Themes</a>
+            <a href="#file-management">File Mgmt</a>
+            <a href="#multimedia">Multimedia</a>
+            <a href="#system">System</a>
+            <a href="#security">Security</a>
+            <a href="#tools">Tools</a>
+            <a href="#specs">Specs</a>
+            <a href="#download" class="pt-nav-download">Download</a>
+        </div>
+    </div>
+</nav>
+
+<!-- ==================== HERO ==================== -->
+<section class="pt-hero">
+    <div class="pt-container pt-hero-content">
+        <div class="pt-hero-badge">v4.0 — Open Source &amp; Free</div>
+        <h1>The Swiss Army Knife<br>for <span>Windows</span></h1>
+        <p class="pt-hero-sub">
+            PlatypusTools packs 70+ professional-grade utilities into one sleek app.
+            File management, multimedia editing, system optimization, security forensics,
+            and everything in between.
+        </p>
+        <div class="pt-cta-group">
+            <a href="#download" class="pt-btn pt-btn-primary">⬇ Download MSI Installer</a>
+            <a href="https://github.com/AresX0/PlatypusToolsNew" class="pt-btn pt-btn-secondary">★ View on GitHub</a>
+        </div>
+        <div class="pt-hero-stats">
+            <div class="pt-stat"><div class="pt-stat-num">70+</div><div class="pt-stat-label">Tools</div></div>
+            <div class="pt-stat"><div class="pt-stat-num">8</div><div class="pt-stat-label">Themes</div></div>
+            <div class="pt-stat"><div class="pt-stat-num">7</div><div class="pt-stat-label">Categories</div></div>
+            <div class="pt-stat"><div class="pt-stat-num">100%</div><div class="pt-stat-label">Free</div></div>
+        </div>
+    </div>
+    <div class="pt-container pt-hero-img">
+        <img src="screenshots/hero-overview.svg" alt="PlatypusTools overview screenshot" loading="lazy">
+    </div>
+</section>
+
+<!-- ==================== FEATURE OVERVIEW ==================== -->
+<section id="features" class="pt-section pt-section-alt">
+    <div class="pt-container">
+        <h2 class="pt-section-title">Everything You Need. One App.</h2>
+        <p class="pt-section-subtitle">Seven major categories, each packed with powerful tools for power users, IT pros, and creatives.</p>
+        <div class="pt-categories">
+            <div class="pt-cat-card">
+                <div class="pt-cat-icon">📁</div>
+                <h3>File Management</h3>
+                <p>Rename, deduplicate, compare, and organize files at scale.</p>
+                <div class="pt-cat-tools">
+                    <span class="pt-tool-tag">File Cleaner</span>
+                    <span class="pt-tool-tag">Duplicates</span>
+                    <span class="pt-tool-tag">Robocopy</span>
+                    <span class="pt-tool-tag">File Diff</span>
+                    <span class="pt-tool-tag">Bulk Mover</span>
+                    <span class="pt-tool-tag">Symlinks</span>
+                    <span class="pt-tool-tag">Cloud Sync</span>
+                    <span class="pt-tool-tag">Empty Folders</span>
+                </div>
+            </div>
+            <div class="pt-cat-card">
+                <div class="pt-cat-icon">🎬</div>
+                <h3>Multimedia</h3>
+                <p>Edit audio, images, and video with professional tools.</p>
+                <div class="pt-cat-tools">
+                    <span class="pt-tool-tag">Audio Player</span>
+                    <span class="pt-tool-tag">Video Editor</span>
+                    <span class="pt-tool-tag">Image Editor</span>
+                    <span class="pt-tool-tag">Upscaler</span>
+                    <span class="pt-tool-tag">GIF Maker</span>
+                    <span class="pt-tool-tag">3D Models</span>
+                    <span class="pt-tool-tag">Media Hub</span>
+                    <span class="pt-tool-tag">Transcription</span>
+                </div>
+            </div>
+            <div class="pt-cat-card">
+                <div class="pt-cat-icon">🖥️</div>
+                <h3>System</h3>
+                <p>Optimize, clean, and maintain your Windows installation.</p>
+                <div class="pt-cat-tools">
+                    <span class="pt-tool-tag">Disk Cleanup</span>
+                    <span class="pt-tool-tag">Privacy</span>
+                    <span class="pt-tool-tag">Startup Mgr</span>
+                    <span class="pt-tool-tag">Process Mgr</span>
+                    <span class="pt-tool-tag">Registry</span>
+                    <span class="pt-tool-tag">Services</span>
+                    <span class="pt-tool-tag">Remote Desktop</span>
+                    <span class="pt-tool-tag">Disk Health</span>
+                </div>
+            </div>
+            <div class="pt-cat-card">
+                <div class="pt-cat-icon">🔒</div>
+                <h3>Security</h3>
+                <p>Forensics, auditing, and digital security tools.</p>
+                <div class="pt-cat-tools">
+                    <span class="pt-tool-tag">Forensics</span>
+                    <span class="pt-tool-tag">Secure Wipe</span>
+                    <span class="pt-tool-tag">Hash Scanner</span>
+                    <span class="pt-tool-tag">CVE Search</span>
+                    <span class="pt-tool-tag">AD Analyzer</span>
+                    <span class="pt-tool-tag">Vault</span>
+                    <span class="pt-tool-tag">Certificates</span>
+                    <span class="pt-tool-tag">File Integrity</span>
+                </div>
+            </div>
+            <div class="pt-cat-card">
+                <div class="pt-cat-icon">📋</div>
+                <h3>Metadata</h3>
+                <p>Read and write EXIF, XMP, and IPTC metadata for any file.</p>
+                <div class="pt-cat-tools">
+                    <span class="pt-tool-tag">EXIF Editor</span>
+                    <span class="pt-tool-tag">XMP Tags</span>
+                    <span class="pt-tool-tag">IPTC Data</span>
+                    <span class="pt-tool-tag">Batch Edit</span>
+                    <span class="pt-tool-tag">Templates</span>
+                </div>
+            </div>
+            <div class="pt-cat-card">
+                <div class="pt-cat-icon">🔧</div>
+                <h3>Tools</h3>
+                <p>A Swiss Army knife of utilities for every workflow.</p>
+                <div class="pt-cat-tools">
+                    <span class="pt-tool-tag">Network</span>
+                    <span class="pt-tool-tag">PDF</span>
+                    <span class="pt-tool-tag">Archive</span>
+                    <span class="pt-tool-tag">FTP/SFTP</span>
+                    <span class="pt-tool-tag">SSH</span>
+                    <span class="pt-tool-tag">Browser</span>
+                    <span class="pt-tool-tag">QR Code</span>
+                    <span class="pt-tool-tag">Intune</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== THEMES ==================== -->
+<section id="themes" class="pt-section">
+    <div class="pt-container">
+        <h2 class="pt-section-title">8 Stunning Themes</h2>
+        <p class="pt-section-subtitle">From clean professional to sci-fi immersive — pick the look that fits your style.</p>
+        <div class="pt-themes-grid">
+            <div class="pt-theme-card" onclick="ptLightbox(this)">
+                <img src="screenshots/theme-light.svg" alt="Light Theme" loading="lazy">
+                <div class="pt-theme-label">Light<small>Clean &amp; bright for daytime</small></div>
+            </div>
+            <div class="pt-theme-card" onclick="ptLightbox(this)">
+                <img src="screenshots/theme-dark.svg" alt="Dark Theme" loading="lazy">
+                <div class="pt-theme-label">Dark<small>Easy on the eyes</small></div>
+            </div>
+            <div class="pt-theme-card" onclick="ptLightbox(this)">
+                <img src="screenshots/theme-lcars.svg" alt="LCARS Theme" loading="lazy">
+                <div class="pt-theme-label">LCARS<small>Star Trek bridge console</small></div>
+            </div>
+            <div class="pt-theme-card" onclick="ptLightbox(this)">
+                <img src="screenshots/theme-glass.svg" alt="Glass Theme" loading="lazy">
+                <div class="pt-theme-label">Glass<small>Translucent with blur effects</small></div>
+            </div>
+            <div class="pt-theme-card" onclick="ptLightbox(this)">
+                <img src="screenshots/theme-pipboy.svg" alt="Pip-Boy Theme" loading="lazy">
+                <div class="pt-theme-label">Pip-Boy<small>Fallout retro terminal</small></div>
+            </div>
+            <div class="pt-theme-card" onclick="ptLightbox(this)">
+                <img src="screenshots/theme-klingon.svg" alt="Klingon Theme" loading="lazy">
+                <div class="pt-theme-label">Klingon<small>Bold warrior interface</small></div>
+            </div>
+            <div class="pt-theme-card" onclick="ptLightbox(this)">
+                <img src="screenshots/theme-kpop.svg" alt="K-Pop Demon Hunters Theme" loading="lazy">
+                <div class="pt-theme-label">K-Pop Demon Hunters<small>Vibrant neon energy</small></div>
+            </div>
+            <div class="pt-theme-card" onclick="ptLightbox(this)">
+                <img src="screenshots/theme-highcontrast.svg" alt="High Contrast Theme" loading="lazy">
+                <div class="pt-theme-label">High Contrast<small>Accessibility focused</small></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== FILE MANAGEMENT ==================== -->
+<section id="file-management" class="pt-section pt-section-alt">
+    <div class="pt-container">
+        <div class="pt-feature-detail">
+            <h3>📁 File Management</h3>
+            <p>Powerful batch operations for organizing, cleaning, and comparing files across your entire system.</p>
+            <div class="pt-feature-grid">
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/file-cleaner.svg" alt="File Cleaner" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>File Cleaner</h4><p>Batch rename, move, and organize files with pattern matching and rules.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/duplicates.svg" alt="Duplicate Finder" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Duplicate Finder</h4><p>Find duplicate files by hash, size, or name across multiple directories.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/empty-folder-scanner.svg" alt="Empty Folder Scanner" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Empty Folder Scanner</h4><p>Detect and clean empty directories cluttering your drives.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/robocopy.svg" alt="Robocopy" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Robocopy</h4><p>Visual interface for Windows' powerful Robocopy file copy utility.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/cloud-sync.svg" alt="Cloud Sync" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Cloud Sync</h4><p>Synchronize files between local drives and cloud storage providers.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/file-diff.svg" alt="File Diff" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>File Diff</h4><p>Compare files side by side with highlighted differences.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/bulk-file-mover.svg" alt="Bulk File Mover" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Bulk File Mover</h4><p>Move large batches of files based on customizable rules and filters.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/symlink-manager.svg" alt="Symlink Manager" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Symlink Manager</h4><p>Create and manage symbolic links, hard links, and junctions.</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== MULTIMEDIA ==================== -->
+<section id="multimedia" class="pt-section">
+    <div class="pt-container">
+        <div class="pt-feature-detail">
+            <h3>🎵 Audio</h3>
+            <p>Play, trim, and transcribe audio with a full-featured music player and AI-powered tools.</p>
+            <div class="pt-feature-grid">
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/audio-player.svg" alt="Audio Player" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Audio Player</h4><p>Full music player with playlist management, equalizer, and audio visualizer.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/audio-trim.svg" alt="Audio Trimmer" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Audio Trimmer</h4><p>Trim audio clips with visual waveform display. Powered by FFmpeg.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/audio-transcription.svg" alt="Audio Transcription" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Audio Transcription</h4><p>AI speech-to-text powered by OpenAI Whisper. Supports 50+ languages.</p></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-feature-detail">
+            <h3>🖼️ Image</h3>
+            <p>Edit, convert, resize, watermark, and upscale images with professional tools.</p>
+            <div class="pt-feature-grid">
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/image-edit.svg" alt="Image Editor" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Image Editor</h4><p>Rotate, flip, crop, and apply visual effects to images.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/image-converter.svg" alt="Image Converter" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Image Converter</h4><p>Convert between PNG, JPEG, WebP, TIFF, BMP, and more.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/image-resizer.svg" alt="Image Resizer" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Image Resizer</h4><p>Batch resize images to exact dimensions or percentages.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/ico-converter.svg" alt="ICO Converter" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>ICO Converter</h4><p>Create multi-size Windows icon files from any image.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/batch-watermark.svg" alt="Batch Watermark" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Batch Watermark</h4><p>Apply customizable text watermarks to entire image batches.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/image-scaler.svg" alt="Image Scaler" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Image Scaler (AI)</h4><p>AI-powered image upscaling with Real-ESRGAN for crystal-clear results.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/3d-model-editor.svg" alt="3D Model Editor" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>3D Model Editor</h4><p>View, rotate, and inspect 3D model files directly in the app.</p></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-feature-detail">
+            <h3>🎬 Video</h3>
+            <p>Play, edit, convert, upscale, and combine videos with FFmpeg and AI tools.</p>
+            <div class="pt-feature-grid">
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/video-player.svg" alt="Video Player" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Video Player</h4><p>Native fullscreen video player with playback controls.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/video-editor.svg" alt="Video Editor" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Video Editor</h4><p>Shotcut-powered non-linear video editing with timeline.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/upscaler.svg" alt="Video Upscaler" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Video Upscaler (AI)</h4><p>AI video upscaling using Real-ESRGAN for stunning quality.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/video-combiner.svg" alt="Video Combiner" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Video Combiner</h4><p>Merge multiple video files into one seamless output.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/video-converter.svg" alt="Video Converter" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Video Converter</h4><p>Convert between video formats with codec and quality control.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/gif-maker.svg" alt="GIF Maker" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>GIF Maker</h4><p>Create animated GIFs from video clips with frame control.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/video-metadata.svg" alt="Video Metadata" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Video Metadata</h4><p>View and edit video file metadata tags and properties.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/export-queue.svg" alt="Export Queue" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Export Queue</h4><p>Manage and monitor batch video export and encoding jobs.</p></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-feature-detail">
+            <h3>📚 Media Library &amp; Hub</h3>
+            <p>Browse and organize your media collection with a Plex-like experience.</p>
+            <div class="pt-feature-grid">
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/media-hub.svg" alt="Media Hub" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Media Hub</h4><p>Plex-like browsing interface for your local media files.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/media-library.svg" alt="Media Library" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Media Library</h4><p>Organize, tag, and search your complete media collection.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/external-tools.svg" alt="External Tools" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>External Tools</h4><p>Quick-launch VLC, Audacity, GIMP, and other multimedia apps.</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== SYSTEM ==================== -->
+<section id="system" class="pt-section pt-section-alt">
+    <div class="pt-container">
+        <div class="pt-feature-detail">
+            <h3>🖥️ System Tools</h3>
+            <p>Deep system optimization, process management, remote access, and Windows maintenance.</p>
+            <div class="pt-feature-grid">
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/disk-cleanup.svg" alt="Disk Cleanup" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Disk Cleanup</h4><p>Deep clean temp files, caches, logs, and Windows junk.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/privacy-cleaner.svg" alt="Privacy Cleaner" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Privacy Cleaner</h4><p>Remove browser history, cookies, and app tracking data.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/recent-cleaner.svg" alt="Recent Cleaner" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Recent Cleaner</h4><p>Clear Windows recent file lists and jump lists.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/startup-manager.svg" alt="Startup Manager" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Startup Manager</h4><p>Control which programs launch at Windows startup.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/process-manager.svg" alt="Process Manager" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Process Manager</h4><p>Advanced process monitoring with CPU, memory, and I/O stats.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/registry-cleaner.svg" alt="Registry Cleaner" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Registry Cleaner</h4><p>Find and clean orphaned registry entries safely.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/scheduled-tasks.svg" alt="Scheduled Tasks" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Scheduled Tasks</h4><p>View, manage, and create Windows scheduled tasks.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/system-restore.svg" alt="System Restore" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>System Restore</h4><p>Create and manage Windows restore points.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/windows-update.svg" alt="Windows Update Repair" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Windows Update Repair</h4><p>Diagnose and fix Windows Update issues automatically.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/terminal.svg" alt="Terminal" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Terminal</h4><p>Built-in PowerShell terminal for quick commands.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/env-variables.svg" alt="Environment Variables" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Environment Variables</h4><p>Visual editor for system and user environment variables.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/windows-services.svg" alt="Windows Services" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Windows Services</h4><p>Service manager with start, stop, and status monitoring.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/disk-health.svg" alt="Disk Health" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Disk Health</h4><p>S.M.A.R.T. disk monitoring with health indicators.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/wifi-passwords.svg" alt="WiFi Passwords" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>WiFi Passwords</h4><p>Reveal saved WiFi network credentials on your system.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/scheduled-backup.svg" alt="Scheduled Backup" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Scheduled Backup</h4><p>Automate file and folder backups on a schedule.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/remote-dashboard.svg" alt="Remote Dashboard" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Remote Dashboard</h4><p>Monitor remote systems via Cloudflare Tunnel.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/remote-desktop.svg" alt="Remote Desktop" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Remote Desktop</h4><p>Built-in remote desktop client for connecting to remote machines.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/job-queue.svg" alt="Job Queue" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Job Queue</h4><p>Batch job scheduling and execution queue.</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== SECURITY ==================== -->
+<section id="security" class="pt-section">
+    <div class="pt-container">
+        <div class="pt-feature-detail">
+            <h3>🔒 Security &amp; Forensics</h3>
+            <p>Enterprise-grade security auditing, digital forensics, and data protection tools.</p>
+            <div class="pt-feature-grid">
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/folder-hider.svg" alt="Folder Hider" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Folder Hider</h4><p>Hide sensitive folders from view with one click.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/system-audit.svg" alt="System Audit" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>System Audit</h4><p>Comprehensive security configuration assessment.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/forensics-analyzer.svg" alt="Forensics Analyzer" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Forensics Analyzer</h4><p>Digital forensics toolkit for file and system analysis.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/advanced-forensics.svg" alt="Advanced Forensics" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Advanced Forensics</h4><p>Deep forensic analysis with Volatility memory forensics integration.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/reboot-analyzer.svg" alt="Reboot Analyzer" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Reboot Analyzer</h4><p>Analyze system reboot history and unexpected shutdowns.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/secure-wipe.svg" alt="Secure Wipe" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Secure Wipe</h4><p>Military-grade file shredding (DoD 5220.22-M, Gutmann).</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/hash-scanner.svg" alt="Hash Scanner" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Hash Scanner</h4><p>Scan file hashes against known-threat databases.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/ad-security.svg" alt="AD Security Analyzer" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>AD Security Analyzer</h4><p>Active Directory security assessment and auditing.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/cve-search.svg" alt="CVE Search" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>CVE Search</h4><p>Search NIST NVD and other vulnerability databases.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/file-integrity.svg" alt="File Integrity Monitor" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>File Integrity Monitor</h4><p>Monitor critical files for unauthorized modifications.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/certificate-manager.svg" alt="Certificate Manager" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Certificate Manager</h4><p>Manage X.509 certificates, view chains, and check expiry.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/security-vault.svg" alt="Security Vault" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Security Vault</h4><p>Encrypted credential and secret storage with AES-256.</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== METADATA ==================== -->
+<section id="metadata" class="pt-section pt-section-alt">
+    <div class="pt-container">
+        <div class="pt-feature-detail">
+            <h3>📋 Metadata Editor</h3>
+            <p>Read and write EXIF, XMP, and IPTC metadata for photos, videos, and documents using ExifTool.</p>
+            <div class="pt-feature-grid">
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/metadata-editor.svg" alt="Metadata Editor" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Metadata Editor</h4><p>Full-featured metadata editor with template support, batch editing, GPS data, and tag management for EXIF, XMP, and IPTC standards.</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== TOOLS ==================== -->
+<section id="tools" class="pt-section">
+    <div class="pt-container">
+        <div class="pt-feature-detail">
+            <h3>🔧 Tools &amp; Utilities</h3>
+            <p>Network diagnostics, PDF manipulation, archive management, remote connections, and more.</p>
+            <div class="pt-feature-grid">
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/website-downloader.svg" alt="Website Downloader" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Website Downloader</h4><p>Download entire websites for offline browsing.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/file-analyzer.svg" alt="File Analyzer" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>File Analyzer</h4><p>Deep file type analysis with hex viewer and structure inspection.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/disk-space.svg" alt="Disk Space Analyzer" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Disk Space Analyzer</h4><p>Visual treemap of disk usage — find what's eating your space.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/network-tools.svg" alt="Network Tools" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Network Tools</h4><p>Ping, traceroute, port scan, DNS lookup, and speed test.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/archive-manager.svg" alt="Archive Manager" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Archive Manager</h4><p>Create and extract ZIP, 7Z, TAR, and RAR archives.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/pdf-tools.svg" alt="PDF Tools" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>PDF Tools</h4><p>Merge, split, rotate, and convert PDF documents.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/screenshot.svg" alt="Screenshot" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Screenshot</h4><p>Capture screens with region selection and annotation tools.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/bootable-usb.svg" alt="Bootable USB Creator" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Bootable USB Creator</h4><p>Create bootable USB drives from ISO images.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/plugin-manager.svg" alt="Plugin Manager" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Plugin Manager</h4><p>Extend PlatypusTools with community plugins.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/ftp-client.svg" alt="FTP/SFTP Client" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>FTP/SFTP Client</h4><p>Secure file transfer with dual-pane interface.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/terminal-client.svg" alt="SSH/Telnet Terminal" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>SSH/Telnet Terminal</h4><p>Remote terminal connections with saved session profiles.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/web-browser.svg" alt="Web Browser" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Web Browser</h4><p>Built-in Chromium browser for quick web access.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/plex-backup.svg" alt="Plex Backup" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Plex Backup</h4><p>Back up your Plex Media Server database and configuration.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/screen-recorder.svg" alt="Screen Recorder" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Screen Recorder</h4><p>Record your screen with system audio and microphone.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/intune-packager.svg" alt="Intune Packager" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Intune Packager</h4><p>Package Win32 apps for Microsoft Intune deployment.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/clipboard-history.svg" alt="Clipboard History" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Clipboard History</h4><p>Track, search, and reuse previous clipboard entries.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/qr-code.svg" alt="QR Code Generator" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>QR Code Generator</h4><p>Generate QR codes from text, URLs, WiFi configs, and more.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/color-picker.svg" alt="Color Picker" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Color Picker</h4><p>Pick colors from your screen with HEX, RGB, and HSL output.</p></div>
+                </div>
+                <div class="pt-feature-item" onclick="ptLightbox(this)">
+                    <img src="screenshots/bulk-checksum.svg" alt="Bulk Checksum" loading="lazy">
+                    <div class="pt-feature-item-body"><h4>Bulk Checksum</h4><p>Generate MD5, SHA-1, SHA-256 checksums for file batches.</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== TECH SPECS ==================== -->
+<section id="specs" class="pt-section pt-section-alt">
+    <div class="pt-container">
+        <h2 class="pt-section-title">Technical Specifications</h2>
+        <p class="pt-section-subtitle">Built with modern technologies for performance, reliability, and extensibility.</p>
+        <div class="pt-specs">
+            <div class="pt-spec">
+                <h4>Platform</h4>
+                <ul>
+                    <li>.NET 10 / WPF</li>
+                    <li>Windows 10/11 (64-bit)</li>
+                    <li>Self-contained single-file EXE</li>
+                    <li>MSI installer available</li>
+                </ul>
+            </div>
+            <div class="pt-spec">
+                <h4>Architecture</h4>
+                <ul>
+                    <li>MVVM pattern with CommunityToolkit</li>
+                    <li>Lazy-loaded tabs for fast startup</li>
+                    <li>Plugin system for extensibility</li>
+                    <li>Configurable tab visibility</li>
+                </ul>
+            </div>
+            <div class="pt-spec">
+                <h4>Media Engines</h4>
+                <ul>
+                    <li>FFmpeg / FFprobe</li>
+                    <li>Real-ESRGAN (AI upscaling)</li>
+                    <li>OpenAI Whisper (transcription)</li>
+                    <li>ExifTool (metadata)</li>
+                </ul>
+            </div>
+            <div class="pt-spec">
+                <h4>Security</h4>
+                <ul>
+                    <li>AES-256 encrypted vault</li>
+                    <li>Volatility memory forensics</li>
+                    <li>NIST NVD CVE database</li>
+                    <li>DoD 5220.22-M secure wipe</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== DOWNLOAD CTA ==================== -->
+<section id="download" class="pt-download-section">
+    <div class="pt-container">
+        <h2>Ready to Simplify Your Workflow?</h2>
+        <p>Download PlatypusTools free — no ads, no telemetry, open source forever.</p>
+        <div class="pt-cta-group">
+            <a href="#" class="pt-btn pt-btn-primary">⬇ Download MSI Installer</a>
+            <a href="#" class="pt-btn pt-btn-secondary">📦 Portable ZIP</a>
+            <a href="https://github.com/AresX0/PlatypusToolsNew" class="pt-btn pt-btn-secondary">★ GitHub</a>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="pt-footer">
+    <div class="pt-container">
+        <p>&copy; 2024&ndash;2026 <a href="https://platysoft.com/">Platysoft</a>. PlatypusTools is free and open-source software under the MIT License.</p>
+    </div>
+</footer>
+
+<!-- ==================== LIGHTBOX ==================== -->
+<div class="pt-lightbox" id="ptLightbox" onclick="this.classList.remove('active')">
+    <img id="ptLightboxImg" src="" alt="Screenshot preview">
+</div>
+
+<script>
+function ptLightbox(el) {
+    var img = el.querySelector('img');
+    if (!img) return;
+    var lb = document.getElementById('ptLightbox');
+    var lbImg = document.getElementById('ptLightboxImg');
+    lbImg.src = img.src;
+    lbImg.alt = img.alt;
+    lb.classList.add('active');
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') document.getElementById('ptLightbox').classList.remove('active');
+});
+</script>
+
+</body>
+</html>

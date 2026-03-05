@@ -210,10 +210,10 @@
                                 <RadioButton x:Name="DarkThemeRadio" Content="Dark" GroupName="Theme" Margin="0,4"/>
                                 <RadioButton x:Name="GlassThemeRadio" Content="Aero Glass (Windows 10/11)" GroupName="Theme" Margin="0,4"
                                              Checked="ThemeRadio_Changed" Unchecked="ThemeRadio_Changed"/>
-                                <RadioButton x:Name="LCARSThemeRadio" Content="LCARS (Star Trek)" GroupName="Theme" Margin="0,4"/>
-                                <RadioButton x:Name="KlingonThemeRadio" Content="Klingon (tlhIngan)" GroupName="Theme" Margin="0,4"/>
-                                <RadioButton x:Name="PipBoyThemeRadio" Content="Pip-Boy (Fallout)" GroupName="Theme" Margin="0,4"/>
-                                <RadioButton x:Name="KPopDemonHuntersThemeRadio" Content="K-Pop Demon Hunters" GroupName="Theme" Margin="0,4"/>
+                                <RadioButton x:Name="LCARSThemeRadio" Content="SCI-FI" GroupName="Theme" Margin="0,4"/>
+                                <RadioButton x:Name="KlingonThemeRadio" Content="Warrior" GroupName="Theme" Margin="0,4"/>
+                                <RadioButton x:Name="PipBoyThemeRadio" Content="P-boy" GroupName="Theme" Margin="0,4"/>
+                                <RadioButton x:Name="KPopDemonHuntersThemeRadio" Content="KPOP" GroupName="Theme" Margin="0,4"/>
                                 <RadioButton x:Name="HighContrastThemeRadio" Content="High Contrast (Accessibility)" GroupName="Theme" Margin="0,4"/>
                                 <RadioButton x:Name="SystemThemeRadio" Content="Use system setting" GroupName="Theme" Margin="0,4"/>
                                 <Button Content="Customize Theme..." MinWidth="190" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CustomizeTheme_Click"/>
@@ -410,7 +410,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 4.0.0.9"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 4.0.0.10"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>

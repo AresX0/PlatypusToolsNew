@@ -44,6 +44,7 @@ namespace PlatypusTools.UI.Services
         private bool _restoreLastSession = true;
         private int _lastSelectedMainTabIndex = 0;
         private Dictionary<string, int> _lastSelectedSubTabIndices = new();
+        private Dictionary<string, int> _lastSelectedSubSubTabIndices = new();
         private double _windowWidth = 0;
         private double _windowHeight = 0;
         private double _windowTop = double.NaN;
@@ -443,6 +444,16 @@ namespace PlatypusTools.UI.Services
         {
             get => _lastSelectedSubTabIndices;
             set { _lastSelectedSubTabIndices = value ?? new Dictionary<string, int>(); OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Maps sub-tab names (e.g. "🎵 Audio", "🖼️ Image", "🎬 Video") to their last selected sub-sub-tab index.
+        /// Used for 3-level deep tab nesting in the Multimedia section.
+        /// </summary>
+        public Dictionary<string, int> LastSelectedSubSubTabIndices
+        {
+            get => _lastSelectedSubSubTabIndices;
+            set { _lastSelectedSubSubTabIndices = value ?? new Dictionary<string, int>(); OnPropertyChanged(); }
         }
 
         /// <summary>Window width in device-independent pixels. 0 = use default.</summary>

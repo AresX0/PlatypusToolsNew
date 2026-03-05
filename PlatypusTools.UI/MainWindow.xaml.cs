@@ -304,15 +304,27 @@ namespace PlatypusTools.UI
                 
                 // Save sub-tab selections for each main tab that has a nested TabControl
                 var subIndices = new Dictionary<string, int>();
+                var subSubIndices = new Dictionary<string, int>();
                 for (int i = 0; i < MainTabControl.Items.Count; i++)
                 {
                     if (MainTabControl.Items[i] is TabItem mainTab && mainTab.Content is TabControl subTab)
                     {
                         string key = mainTab.Header?.ToString() ?? $"Tab{i}";
                         subIndices[key] = subTab.SelectedIndex;
+                        
+                        // Save third-level tab selections (e.g., Audio/Image/Video sub-tabs in Multimedia)
+                        for (int j = 0; j < subTab.Items.Count; j++)
+                        {
+                            if (subTab.Items[j] is TabItem subTabItem && subTabItem.Content is TabControl subSubTab)
+                            {
+                                string subKey = subTabItem.Header?.ToString() ?? $"SubTab{j}";
+                                subSubIndices[subKey] = subSubTab.SelectedIndex;
+                            }
+                        }
                     }
                 }
                 settings.LastSelectedSubTabIndices = subIndices;
+                settings.LastSelectedSubSubTabIndices = subSubIndices;
                 
                 // Save window position and size (only if not minimized)
                 if (this.WindowState != WindowState.Minimized)
@@ -388,6 +400,23 @@ namespace PlatypusTools.UI
                                 subIndex >= 0 && subIndex < subTab.Items.Count)
                             {
                                 subTab.SelectedIndex = subIndex;
+                            }
+                            
+                            // Restore third-level tab selections (e.g., Audio/Image/Video in Multimedia)
+                            if (settings.LastSelectedSubSubTabIndices.Count > 0)
+                            {
+                                for (int j = 0; j < subTab.Items.Count; j++)
+                                {
+                                    if (subTab.Items[j] is TabItem subTabItem && subTabItem.Content is TabControl subSubTab)
+                                    {
+                                        string subKey = subTabItem.Header?.ToString() ?? $"SubTab{j}";
+                                        if (settings.LastSelectedSubSubTabIndices.TryGetValue(subKey, out int subSubIndex) &&
+                                            subSubIndex >= 0 && subSubIndex < subSubTab.Items.Count)
+                                        {
+                                            subSubTab.SelectedIndex = subSubIndex;
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -962,7 +991,7 @@ namespace PlatypusTools.UI
                 "• Metadata Editor\n\n" +
                 "Originally developed as PowerShell scripts,\n" +
                 "now rebuilt as a modern Windows application.\n\n" +
-                "© 2026 PlatypusTools Project",
+                "© 2024-2026 PlatySoft — https://platysoft.com/",
                 "About PlatypusTools",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);

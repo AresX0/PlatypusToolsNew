@@ -270,7 +270,18 @@ namespace PlatypusTools.UI.ViewModels
         public bool IsDarkTheme { get => _isDarkTheme; set { _isDarkTheme = value; RaisePropertyChanged(); } }
 
         private string _currentThemeName = "Dark";
-        public string CurrentThemeName { get => _currentThemeName; set { _currentThemeName = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(HeaderImage)); } }
+        public string CurrentThemeName { get => _currentThemeName; set { _currentThemeName = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(CurrentThemeDisplayName)); RaisePropertyChanged(nameof(HeaderImage)); } }
+
+        private static readonly System.Collections.Generic.Dictionary<string, string> _themeDisplayNames = new(System.StringComparer.OrdinalIgnoreCase)
+        {
+            { "LCARS", "SCI-FI" },
+            { "Klingon", "Warrior" },
+            { "PipBoy", "P-boy" },
+            { "KPopDemonHunters", "KPOP" },
+            { "HighContrast", "High Contrast" },
+        };
+
+        public string CurrentThemeDisplayName => _themeDisplayNames.TryGetValue(_currentThemeName, out var display) ? display : _currentThemeName;
 
         public string HeaderImage 
         {
