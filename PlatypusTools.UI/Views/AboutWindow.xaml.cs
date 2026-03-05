@@ -53,17 +53,17 @@ namespace PlatypusTools.UI.Views
 
         private void GitHub_Click(object sender, RoutedEventArgs e)
         {
-            OpenUrl("https://github.com/AresX0/PlatypusToolsNew");
+            OpenUrl("https://platysoft.com/");
         }
 
         private void Docs_Click(object sender, RoutedEventArgs e)
         {
-            OpenUrl("https://github.com/AresX0/PlatypusToolsNew/wiki");
+            OpenUrl("https://platysoft.com/docs");
         }
 
         private void Issue_Click(object sender, RoutedEventArgs e)
         {
-            OpenUrl("https://github.com/AresX0/PlatypusToolsNew/issues");
+            OpenUrl("https://platysoft.com/support");
         }
 
         private void OpenUrl(string url)
