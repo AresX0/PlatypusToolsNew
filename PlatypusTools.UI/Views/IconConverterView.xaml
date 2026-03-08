@@ -91,7 +91,7 @@
                     <TextBlock Grid.Column="0" Text="Output Folder:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <TextBox Grid.Column="1" Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}" 
                              Margin="0,0,10,0"/>
-                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseFolderCommand}" 
+                    <Button Grid.Column="2" Content="Browse" Command="{Binding BrowseOutputFolderCommand}" 
                             MinWidth="180" Padding="5"/>
                 </Grid>
 

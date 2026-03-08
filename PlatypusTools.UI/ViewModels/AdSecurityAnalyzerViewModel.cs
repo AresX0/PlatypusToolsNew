@@ -970,8 +970,8 @@ namespace PlatypusTools.UI.ViewModels
                     HasResults = acls.Count > 0;
                 });
 
-                Status = $"Found {acls.Count} risky ACL entries";
-                AppendLog($"Risky ACLs: {acls.Count}");
+                Status = $"Found {acls.Count} ACLs of interest";
+                AppendLog($"ACLs of Interest: {acls.Count}");
             }
             catch (OperationCanceledException)
             {
@@ -1342,20 +1342,20 @@ namespace PlatypusTools.UI.ViewModels
 
             preview.AppendLine($"OU={DeploymentBaseName},{DomainInfo?.DomainDn ?? "DC=domain,DC=local"}");
             preview.AppendLine($"  ├── OU={Tier0Name}");
-            if (CreatePawOus) preview.AppendLine($"  │   ├── OU=PAW");
+            if (CreatePawOus) preview.AppendLine($"  │   ├── OU=SecureKeyboard");
             if (CreateServiceAccountOus) preview.AppendLine($"  │   ├── OU=ServiceAccounts");
             if (CreateGroupsOus) preview.AppendLine($"  │   ├── OU=Groups");
             if (CreateUsersOus) preview.AppendLine($"  │   └── OU=Users");
             
             preview.AppendLine($"  ├── OU={Tier1Name}");
-            if (CreatePawOus) preview.AppendLine($"  │   ├── OU=PAW");
+            if (CreatePawOus) preview.AppendLine($"  │   ├── OU=SecureKeyboard");
             if (CreateServiceAccountOus) preview.AppendLine($"  │   ├── OU=ServiceAccounts");
             if (CreateGroupsOus) preview.AppendLine($"  │   ├── OU=Groups");
             if (CreateUsersOus) preview.AppendLine($"  │   ├── OU=Users");
             if (CreateDevicesOus) preview.AppendLine($"  │   └── OU=Servers");
             
             preview.AppendLine($"  └── OU={Tier2Name}");
-            if (CreatePawOus) preview.AppendLine($"      ├── OU=PAW");
+            if (CreatePawOus) preview.AppendLine($"      ├── OU=SecureKeyboard");
             if (CreateServiceAccountOus) preview.AppendLine($"      ├── OU=ServiceAccounts");
             if (CreateGroupsOus) preview.AppendLine($"      ├── OU=Groups");
             if (CreateUsersOus) preview.AppendLine($"      ├── OU=Users");
@@ -1372,7 +1372,7 @@ namespace PlatypusTools.UI.ViewModels
                 if (DeployPasswordPolicyGpo) preview.AppendLine("  • Password Policy GPO (linked to domain)");
                 if (DeployAuditPolicyGpo) preview.AppendLine("  • Advanced Audit Policy GPO (linked to domain)");
                 if (DeploySecurityBaselineGpo) preview.AppendLine("  • Security Baseline GPO (linked to each tier)");
-                if (DeployPawGpo) preview.AppendLine("  • PAW Security GPO (linked to PAW OUs)");
+                if (DeployPawGpo) preview.AppendLine("  • SecureKeyboard Security GPO (linked to SecureKeyboard OUs)");
                 preview.AppendLine();
             }
 
@@ -1383,7 +1383,7 @@ namespace PlatypusTools.UI.ViewModels
                 preview.AppendLine("[Tier 0 GPOs - Domain Controllers / Critical Servers]");
                 if (DeployT0BaselineAudit) preview.AppendLine("  • Tier 0 - Baseline Audit Policies - Tier 0 Servers");
                 if (DeployT0DisallowDsrm) preview.AppendLine("  • Tier 0 - Disallow DSRM Login - DC ONLY");
-                if (DeployT0DomainBlock) preview.AppendLine("  • Tier 0 - Domain Block - Top Level");
+                if (DeployT0DomainBlock) preview.AppendLine("  • Tier 0 - Admin Block - Top Level");
                 if (DeployT0DomainControllers) preview.AppendLine("  • Tier 0 - Domain Controllers - DC Only");
                 if (DeployT0EsxAdmins) preview.AppendLine("  • Tier 0 - ESX Admins Restricted Group - DC Only");
                 if (DeployT0UserRights) preview.AppendLine("  • Tier 0 - User Rights Assignments - Tier 0 Servers");

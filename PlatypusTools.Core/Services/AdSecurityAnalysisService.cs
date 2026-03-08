@@ -606,7 +606,7 @@ namespace PlatypusTools.Core.Services
 
         #endregion
 
-        #region Risky ACL Analysis
+        #region ACL Analysis
 
         /// <summary>
         /// Analyzes ACLs on sensitive AD objects for risky permissions.
@@ -708,7 +708,7 @@ namespace PlatypusTools.Core.Services
                     }
                 }
 
-                _progress?.Report($"Found {riskyAcls.Count} risky ACL entries");
+                _progress?.Report($"Found {riskyAcls.Count} ACLs of interest");
                 return riskyAcls;
             }, ct);
         }
@@ -1871,10 +1871,10 @@ namespace PlatypusTools.Core.Services
                     sb.AppendLine();
                 }
 
-                // Risky ACLs
+                // ACLs of Interest
                 if (result.RiskyAcls.Any())
                 {
-                    sb.AppendLine("=== RISKY ACLs ===");
+                    sb.AppendLine("=== ACLs OF INTEREST ===");
                     sb.AppendLine("ObjectDN,Identity,Rights,ObjectType,Severity");
                     foreach (var a in result.RiskyAcls)
                     {
@@ -1973,7 +1973,7 @@ namespace PlatypusTools.Core.Services
                         // Create sub-OUs for each tier
                         if (template.CreatePawOus)
                         {
-                            results.Add(CreateOrganizationalUnit(dc, tierOuDn, "PAW", $"Privileged Access Workstations for {tier}", protectFromDeletion));
+                            results.Add(CreateOrganizationalUnit(dc, tierOuDn, "SecureKeyboard", $"SecureKeyboard workstations for {tier}", protectFromDeletion));
                         }
 
                         if (template.CreateServiceAccountOus)
@@ -2098,15 +2098,15 @@ namespace PlatypusTools.Core.Services
             var groupNames = new[]
             {
                 "Tier 0 - Operators",
-                "Tier 0 - PAW Users", 
+                "Tier 0 - SecureKeyboard Users", 
                 "Tier 0 - Service Accounts",
-                "Tier 0 Computers",  // For T0 Domain Block DENY ACL
+                "Tier 0 Computers",  // For T0 Admin Block DENY ACL
                 "Tier 1 - Operators",
-                "Tier 1 - PAW Users",
+                "Tier 1 - SecureKeyboard Users",
                 "Tier 1 - Service Accounts",
                 "Tier 1 - Server Local Admins",
                 "Tier 2 - Operators",
-                "Tier 2 - PAW Users",
+                "Tier 2 - SecureKeyboard Users",
                 "Tier 2 - Service Accounts",
                 "Tier 2 - Workstation Local Admins",
                 "IR - Emergency Access",
@@ -2430,12 +2430,12 @@ namespace PlatypusTools.Core.Services
                         
                         results.Add(CreateSecurityGroup(dc, tier0GroupsOu, domainDn, "Tier 0 - Operators", 
                             "Tier 0 privileged operators - Domain Controllers and core infrastructure"));
-                        results.Add(CreateSecurityGroup(dc, tier0GroupsOu, domainDn, "Tier 0 - PAW Users", 
-                            "Users authorized to log on to Tier 0 PAWs"));
+                        results.Add(CreateSecurityGroup(dc, tier0GroupsOu, domainDn, "Tier 0 - SecureKeyboard Users", 
+                            "Users authorized to log on to Tier 0 SecureKeyboard workstations"));
                         results.Add(CreateSecurityGroup(dc, tier0GroupsOu, domainDn, "Tier 0 - Service Accounts", 
                             "Service accounts for Tier 0 systems"));
                         results.Add(CreateSecurityGroup(dc, tier0GroupsOu, domainDn, "Tier 0 Computers", 
-                            "Members of this group are Tier 0 computers and will be exempted from the Tier 0 Domain Block GPO"));
+                            "Members of this group are Tier 0 computers and will be exempted from the Tier 0 Admin Block GPO"));
                         
                         // Add Domain Controllers to Tier 0 Computers group
                         try
@@ -2454,8 +2454,8 @@ namespace PlatypusTools.Core.Services
                         
                         results.Add(CreateSecurityGroup(dc, tier1GroupsOu, domainDn, "Tier 1 - Operators", 
                             "Tier 1 privileged operators - Server administrators"));
-                        results.Add(CreateSecurityGroup(dc, tier1GroupsOu, domainDn, "Tier 1 - PAW Users", 
-                            "Users authorized to log on to Tier 1 PAWs"));
+                        results.Add(CreateSecurityGroup(dc, tier1GroupsOu, domainDn, "Tier 1 - SecureKeyboard Users", 
+                            "Users authorized to log on to Tier 1 SecureKeyboard workstations"));
                         results.Add(CreateSecurityGroup(dc, tier1GroupsOu, domainDn, "Tier 1 - Service Accounts", 
                             "Service accounts for Tier 1 systems"));
                         results.Add(CreateSecurityGroup(dc, tier1GroupsOu, domainDn, "Tier 1 - Server Local Admins", 
@@ -2467,8 +2467,8 @@ namespace PlatypusTools.Core.Services
                         
                         results.Add(CreateSecurityGroup(dc, tier2GroupsOu, domainDn, "Tier 2 - Operators", 
                             "Tier 2 privileged operators - Workstation administrators"));
-                        results.Add(CreateSecurityGroup(dc, tier2GroupsOu, domainDn, "Tier 2 - PAW Users", 
-                            "Users authorized to log on to Tier 2 PAWs"));
+                        results.Add(CreateSecurityGroup(dc, tier2GroupsOu, domainDn, "Tier 2 - SecureKeyboard Users", 
+                            "Users authorized to log on to Tier 2 SecureKeyboard workstations"));
                         results.Add(CreateSecurityGroup(dc, tier2GroupsOu, domainDn, "Tier 2 - Service Accounts", 
                             "Service accounts for Tier 2 systems"));
                         results.Add(CreateSecurityGroup(dc, tier2GroupsOu, domainDn, "Tier 2 - Workstation Local Admins", 
@@ -2533,10 +2533,10 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployPawPolicy)
                     {
                         ct.ThrowIfCancellationRequested();
-                        _progress?.Report("[DEBUG] Creating PAW Security Policy GPO...");
+                        _progress?.Report("[DEBUG] Creating SecureKeyboard Security Policy GPO...");
                         results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
-                            "PAW-SecurityPolicy",
-                            "PAW lockdown settings configured.",
+                            "SecureKeyboard-SecurityPolicy",
+                            "SecureKeyboard lockdown settings configured.",
                             GpoSettingsType.SecuritySettings));
                     }
 
@@ -2564,9 +2564,9 @@ namespace PlatypusTools.Core.Services
                     if (options.DeployT0DomainBlock)
                     {
                         ct.ThrowIfCancellationRequested();
-                        _progress?.Report("[DEBUG] Creating Tier 0 Domain Block GPO...");
+                        _progress?.Report("[DEBUG] Creating Tier 0 Admin Block GPO...");
                         results.Add(CreateGpoWithSettings(dc, domainFqdn, groupSids,
-                            "Tier 0 - Domain Block - Top Level",
+                            "Tier 0 - Admin Block - Top Level",
                             "Tier 0 account blocking configured.",
                             GpoSettingsType.T0DomainBlock));
                     }
@@ -2845,7 +2845,7 @@ namespace PlatypusTools.Core.Services
                     _progress?.Report($"[WARN] SYSVOL content creation/update failed for: {gpoName}");
                 }
 
-                // For T0 Domain Block GPO: Create WMI filter and set DENY Apply ACLs
+                // For T0 Admin Block GPO: Create WMI filter and set DENY Apply ACLs
                 if (settingsType == GpoSettingsType.T0DomainBlock && result.Success)
                 {
                     ConfigureT0DomainBlockGpo(dc, domainFqdn, gpoGuid);
@@ -2889,7 +2889,7 @@ namespace PlatypusTools.Core.Services
                 GpoSettingsType.Registry => "[{B087BE9D-ED37-454F-AF9C-04291E351182}{BEE07A6A-EC9F-4659-B8C9-0B1937907C83}]",
                 // GPP Local Users and Groups
                 GpoSettingsType.LocalUsersAndGroups => "[{17D89FEC-5C44-4972-B12D-241CAEF74509}{79F92669-4224-476C-9C5C-6EFB4D87DF4A}]",
-                // T0 Domain Block - same as UserRights (security settings)
+                // T0 Admin Block - same as UserRights (security settings)
                 GpoSettingsType.T0DomainBlock => "[{827D319E-6EAC-11D2-A4EA-00C04F79F83A}{803E14A0-B4FB-11D0-A0D0-00A0C90F574B}]",
                 // Domain Controllers GPO - security settings + audit + registry preferences
                 GpoSettingsType.DomainControllers => "[{827D319E-6EAC-11D2-A4EA-00C04F79F83A}{803E14A0-B4FB-11D0-A0D0-00A0C90F574B}][{B087BE9D-ED37-454F-AF9C-04291E351182}{BEE07A6A-EC9F-4659-B8C9-0B1937907C83}][{F3CCC681-B74C-4060-9F26-CD84525DCA2A}{0F3F3735-573D-9804-99E4-AB2A69BA5FD4}]",
@@ -3257,11 +3257,11 @@ namespace PlatypusTools.Core.Services
                 gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\LanManServer\\Parameters\\NullSessionShares=7,");
                 gptTmpl.AppendLine("MACHINE\\System\\CurrentControlSet\\Services\\LanManServer\\Parameters\\NullSessionPipes=7,");
             }
-            else if (gpoName.Contains("PAW", StringComparison.OrdinalIgnoreCase) && gpoName.Contains("Security", StringComparison.OrdinalIgnoreCase))
+            else if (gpoName.Contains("SecureKeyboard", StringComparison.OrdinalIgnoreCase) && gpoName.Contains("Security", StringComparison.OrdinalIgnoreCase))
             {
-                // PAW Security Policy - Per PLATYPUS BILL model: Deny logon rights to sensitive accounts
+                // SecureKeyboard Security Policy - Per PLATYPUS BILL model: Deny logon rights to sensitive accounts
                 // This matches Set-BillT0UserRightsGpo from PLATYPUS module
-                _progress?.Report("[DEBUG] Creating PAW Security Policy with user rights assignments...");
+                _progress?.Report("[DEBUG] Creating SecureKeyboard Security Policy with user rights assignments...");
                 
                 // Build list of SIDs to deny
                 var denySids = new List<string>();
@@ -3281,14 +3281,14 @@ namespace PlatypusTools.Core.Services
                 var denyList = string.Join(",", denySids);
                 
                 gptTmpl.AppendLine("[Privilege Rights]");
-                gptTmpl.AppendLine("; PLATYPUS PAW Security Policy - Deny logon rights to Tier 0 accounts");
+                gptTmpl.AppendLine("; PLATYPUS SecureKeyboard Security Policy - Deny logon rights to Tier 0 accounts");
                 gptTmpl.AppendLine($"SeDenyNetworkLogonRight = {denyList}");
                 gptTmpl.AppendLine($"SeDenyRemoteInteractiveLogonRight = {denyList}");
                 gptTmpl.AppendLine($"SeDenyBatchLogonRight = {denyList}");
                 gptTmpl.AppendLine($"SeDenyServiceLogonRight = {denyList}");
                 gptTmpl.AppendLine($"SeDenyInteractiveLogonRight = {denyList}");
                 
-                _progress?.Report($"[DEBUG] PAW Security Policy deny list: {denyList}");
+                _progress?.Report($"[DEBUG] SecureKeyboard Security Policy deny list: {denyList}");
             }
             else
             {
@@ -3509,12 +3509,12 @@ namespace PlatypusTools.Core.Services
             var guests = "*S-1-5-32-546"; // Built-in Guests
 
             // Tier 0 - Domain Controllers and Tier 0 Servers
-            if (gpoName.Contains("Tier 0", StringComparison.OrdinalIgnoreCase) || gpoName.Contains("Domain Block", StringComparison.OrdinalIgnoreCase))
+            if (gpoName.Contains("Tier 0", StringComparison.OrdinalIgnoreCase) || gpoName.Contains("Admin Block", StringComparison.OrdinalIgnoreCase))
             {
                 _progress?.Report("[DEBUG] Creating Tier 0 user rights settings...");
                 
                 var tier0Ops = groupSids.GetValueOrDefault("Tier 0 - Operators", "");
-                var tier0Paw = groupSids.GetValueOrDefault("Tier 0 - PAW Users", "");
+                var tier0Paw = groupSids.GetValueOrDefault("Tier 0 - SecureKeyboard Users", "");
                 var tier1Ops = groupSids.GetValueOrDefault("Tier 1 - Operators", "");
                 var tier2Ops = groupSids.GetValueOrDefault("Tier 2 - Operators", "");
                 var domainAdmins = groupSids.GetValueOrDefault("Domain Admins", "");
@@ -3554,7 +3554,7 @@ namespace PlatypusTools.Core.Services
             {
                 _progress?.Report("[DEBUG] Creating Tier 1 user rights settings (BILL pattern)...");
                 
-                // Build deny list with ALL Tier 0 privileged accounts (same as T0 Domain Block)
+                // Build deny list with ALL Tier 0 privileged accounts (same as T0 Admin Block)
                 var denyList = new List<string>();
                 
                 // Schema Admins
@@ -3759,13 +3759,13 @@ namespace PlatypusTools.Core.Services
         }
 
         /// <summary>
-        /// Creates T0 Domain Block GPO content - blocks Tier 0 privileged accounts from logging on to non-Tier 0 machines.
+        /// Creates T0 Admin Block GPO content - blocks Tier 0 privileged accounts from logging on to non-Tier 0 machines.
         /// Per PLATYPUS BILL model: Applies 5 deny logon rights to all Tier 0 privileged groups.
         /// This GPO should be linked at the domain root with DENY Apply ACL for "Tier 0 Computers" and Domain Controllers.
         /// </summary>
         private void CreateT0DomainBlockContent(string secEditPath, string gpoName, Dictionary<string, string> groupSids)
         {
-            _progress?.Report($"[DEBUG] Creating T0 Domain Block content for: {gpoName}");
+            _progress?.Report($"[DEBUG] Creating T0 Admin Block content for: {gpoName}");
             
             var gptTmpl = new StringBuilder();
             gptTmpl.AppendLine("[Unicode]");
@@ -3776,7 +3776,7 @@ namespace PlatypusTools.Core.Services
             gptTmpl.AppendLine();
             gptTmpl.AppendLine("[Privilege Rights]");
 
-            // Per PLATYPUS BILL model: The T0 Domain Block applies to ALL machines in the domain EXCEPT:
+            // Per PLATYPUS BILL model: The T0 Admin Block applies to ALL machines in the domain EXCEPT:
             // - Domain Controllers (via DENY Apply ACL)
             // - Tier 0 Computers group members (via DENY Apply ACL)
             // - Systems filtered by WMI Filter "Tier 0 - No DC Apply" (DomainRole < 4)
@@ -3831,13 +3831,13 @@ namespace PlatypusTools.Core.Services
             var tier0Svc = groupSids.GetValueOrDefault("Tier 0 - Service Accounts", "");
             if (!string.IsNullOrEmpty(tier0Svc)) denyGroups.Add($"*{tier0Svc.TrimStart('*')}");
             
-            // Tier 0 - PAW Users (from user feedback)
-            var tier0Paw = groupSids.GetValueOrDefault("Tier 0 - PAW Users", "");
+            // Tier 0 - SecureKeyboard Users (from user feedback)
+            var tier0Paw = groupSids.GetValueOrDefault("Tier 0 - SecureKeyboard Users", "");
             if (!string.IsNullOrEmpty(tier0Paw)) denyGroups.Add($"*{tier0Paw.TrimStart('*')}");
 
             var denyList = string.Join(",", denyGroups);
             
-            gptTmpl.AppendLine("; Tier 0 Domain Block - Denies Tier 0 privileged accounts from logging on to non-Tier 0 machines");
+            gptTmpl.AppendLine("; Tier 0 Admin Block - Denies Tier 0 privileged accounts from logging on to non-Tier 0 machines");
             gptTmpl.AppendLine("; Note: WMI Filter and DENY Apply ACLs are configured automatically for Tier 0 Computers and Domain Controllers");
             gptTmpl.AppendLine($"SeDenyNetworkLogonRight = {denyList}");
             gptTmpl.AppendLine($"SeDenyRemoteInteractiveLogonRight = {denyList}");
@@ -3848,12 +3848,12 @@ namespace PlatypusTools.Core.Services
             var filePath = Path.Combine(secEditPath, "GptTmpl.inf");
             File.WriteAllText(filePath, gptTmpl.ToString(), Encoding.Unicode);
             _progress?.Report($"[DEBUG] Wrote GptTmpl.inf to: {filePath}");
-            _progress?.Report($"[DEBUG] T0 Domain Block deny list ({denyGroups.Count} groups): {denyList}");
+            _progress?.Report($"[DEBUG] T0 Admin Block deny list ({denyGroups.Count} groups): {denyList}");
         }
 
         /// <summary>
         /// Adds Domain Controllers group as a member of the Tier 0 Computers group.
-        /// Per PLATYPUS BILL model: Domain Controllers should be exempted from the Tier 0 Domain Block GPO.
+        /// Per PLATYPUS BILL model: Domain Controllers should be exempted from the Tier 0 Admin Block GPO.
         /// </summary>
         private void AddDomainControllersToTier0Computers(string dc, string domainDn, string tier0GroupsOu)
         {
@@ -3952,7 +3952,7 @@ namespace PlatypusTools.Core.Services
         }
 
         /// <summary>
-        /// Configures the T0 Domain Block GPO with WMI filter and DENY Apply ACLs.
+        /// Configures the T0 Admin Block GPO with WMI filter and DENY Apply ACLs.
         /// This ensures the GPO only applies to non-Tier 0 computers.
         /// Per PLATYPUS BILL model, this GPO should:
         /// 1. Have a WMI filter to exclude Domain Controllers (DomainRole less than 4)
@@ -3963,7 +3963,7 @@ namespace PlatypusTools.Core.Services
         /// </summary>
         private void ConfigureT0DomainBlockGpo(string dc, string domainFqdn, string gpoGuid)
         {
-            _progress?.Report($"[DEBUG] Configuring T0 Domain Block GPO with WMI filter and delegation...");
+            _progress?.Report($"[DEBUG] Configuring T0 Admin Block GPO with WMI filter and delegation...");
             var domainDn = DomainToDn(domainFqdn);
 
             try
@@ -4008,11 +4008,11 @@ namespace PlatypusTools.Core.Services
                     _progress?.Report("[DEBUG] Enterprise Read-Only Domain Controllers group not found (may not exist or not forest root)");
                 }
 
-                _progress?.Report("[DEBUG] T0 Domain Block GPO configured with WMI filter and DENY ACLs");
+                _progress?.Report("[DEBUG] T0 Admin Block GPO configured with WMI filter and DENY ACLs");
             }
             catch (Exception ex)
             {
-                _progress?.Report($"[WARN] Failed to fully configure T0 Domain Block GPO: {ex.Message}");
+                _progress?.Report($"[WARN] Failed to fully configure T0 Admin Block GPO: {ex.Message}");
                 _progress?.Report("[INFO] You may need to manually set the WMI filter and DENY Apply permissions");
             }
         }
@@ -4273,7 +4273,7 @@ namespace PlatypusTools.Core.Services
             /// </summary>
             LocalUsersAndGroups,
             /// <summary>
-            /// T0 Domain Block - specialized GPO that blocks Tier 0 accounts from non-Tier 0 machines.
+            /// T0 Admin Block - specialized GPO that blocks Tier 0 accounts from non-Tier 0 machines.
             /// Requires additional WMI filter and DENY ACL configuration.
             /// </summary>
             T0DomainBlock,

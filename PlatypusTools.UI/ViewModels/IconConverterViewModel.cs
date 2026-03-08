@@ -33,6 +33,7 @@ public class IconConverterViewModel : BindableBase
         _iconConverterService = iconConverterService;
         
         BrowseFolderCommand = new RelayCommand(_ => BrowseFolder());
+        BrowseOutputFolderCommand = new RelayCommand(_ => BrowseOutputFolder());
         AddFilesCommand = new RelayCommand(_ => AddFiles());
         AddFolderCommand = new RelayCommand(_ => AddFolder());
         ClearListCommand = new RelayCommand(_ => ClearList(), _ => FileList.Any());
@@ -102,6 +103,7 @@ public class IconConverterViewModel : BindableBase
     }
 
     public ICommand BrowseFolderCommand { get; }
+    public ICommand BrowseOutputFolderCommand { get; }
     public ICommand AddFilesCommand { get; }
     public ICommand AddFolderCommand { get; }
     public ICommand ClearListCommand { get; }
@@ -122,6 +124,20 @@ public class IconConverterViewModel : BindableBase
         if (dialog.ShowDialog() == DialogResult.OK)
         {
             ImagesFolder = dialog.SelectedPath;
+        }
+    }
+
+    private void BrowseOutputFolder()
+    {
+        using var dialog = new FolderBrowserDialog
+        {
+            Description = "Select Output Folder",
+            ShowNewFolderButton = true
+        };
+
+        if (dialog.ShowDialog() == DialogResult.OK)
+        {
+            OutputFolder = dialog.SelectedPath;
         }
     }
 

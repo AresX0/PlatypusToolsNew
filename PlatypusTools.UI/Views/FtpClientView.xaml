@@ -108,7 +108,7 @@
                         <TextBlock Text="Key:" VerticalAlignment="Center" Margin="8,0,4,0"/>
                         <TextBox Text="{Binding PrivateKeyPath}" Width="120" FontSize="10" IsReadOnly="True" 
                                  VerticalAlignment="Center" ToolTip="{Binding PrivateKeyPath}"/>
-                        <Button Content="..." Width="24" Margin="4,0,0,0" Command="{Binding BrowseKeyCommand}" 
+                        <Button Content="..." MinWidth="24" Margin="4,0,0,0" Command="{Binding BrowseKeyCommand}" 
                                 ToolTip="Browse for key file" VerticalAlignment="Center"/>
                     </StackPanel>
 

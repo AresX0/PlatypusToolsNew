@@ -4,38 +4,65 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="900">
+             d:DesignHeight="800" d:DesignWidth="1100">
     <Grid Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto" MinHeight="60"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="5"/>
             <RowDefinition Height="*" MinHeight="100"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="140"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- URL Input -->
-        <GroupBox Header="Website URL" Grid.Row="0" Margin="0,0,0,8">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <!-- Row 0: URL Input + Profile -->
+        <GroupBox Header="Website URL &amp; Profile" Grid.Row="0" Margin="0,0,0,4">
+            <Grid Margin="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Profile selector -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Profile:" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                <ComboBox x:Name="ProfileComboBox" Grid.Row="0" Grid.Column="1" 
+                          ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}"
+                          DisplayMemberPath="Name" Margin="0,0,4,4" ToolTip="Select a pre-configured site profile"/>
+                <Button Grid.Row="0" Grid.Column="2" Content="💾 Save" MinWidth="70" Click="OnSaveProfileClick"
+                        ToolTip="Save current settings as a profile" Margin="0,0,4,4"/>
+                <Button Grid.Row="0" Grid.Column="3" Content="✏️ Edit" MinWidth="70" Click="OnEditProfileClick"
+                        ToolTip="Update selected custom profile with current settings" Margin="0,0,4,4"/>
+                <Button Grid.Row="0" Grid.Column="4" Content="🗑️ Delete" MinWidth="80" Click="OnDeleteProfileClick"
+                        ToolTip="Delete selected custom profile" Margin="0,0,4,4"
+                        Background="#FFF44336" Foreground="White"/>
+                <Button Grid.Row="0" Grid.Column="5" Content="Scan" MinWidth="100" Click="OnScanClick" 
+                        FontWeight="Bold" Background="#FF2196F3" Foreground="White" Margin="0,0,0,4"/>
+                
+                <!-- URL input -->
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="URL:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBox x:Name="UrlTextBox" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="5"
+                         Text="{Binding Url, UpdateSourceTrigger=PropertyChanged}" 
+                         VerticalContentAlignment="Center"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Row 1: Download Options -->
+        <GroupBox Header="Download Options" Grid.Row="1" Margin="0,0,0,4">
             <Grid Margin="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBox x:Name="UrlTextBox" Grid.Column="0" Text="{Binding Url, UpdateSourceTrigger=PropertyChanged}" 
-                         VerticalContentAlignment="Center" Margin="0,0,8,0"/>
-                <Button Grid.Column="1" Content="Scan" MinWidth="180" Click="OnScanClick" FontWeight="Bold" Background="#FF2196F3" Foreground="White"/>
-            </Grid>
-            </ScrollViewer>
-        </GroupBox>
-
-        <!-- Download Options -->
-        <GroupBox Header="Download Options" Grid.Row="1" Margin="0,0,0,8">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <Grid Margin="8">
-                <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
@@ -44,33 +71,53 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <CheckBox Grid.Row="0" Grid.Column="0" Content="Download Images" IsChecked="{Binding DownloadImages}" Margin="0,4"/>
-                <CheckBox Grid.Row="1" Grid.Column="0" Content="Download Videos" IsChecked="{Binding DownloadVideos}" Margin="0,4"/>
-                <CheckBox Grid.Row="2" Grid.Column="0" Content="Download Documents" IsChecked="{Binding DownloadDocuments}" Margin="0,4"/>
-                <CheckBox Grid.Row="3" Grid.Column="0" Content="Follow Pagination" IsChecked="{Binding FollowPagination}" ToolTip="Automatically follow Next/page links to get all results" Margin="0,4"/>
+                <!-- Column 0: File types -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="File Types" FontWeight="Bold" Margin="0,0,0,4"/>
+                <CheckBox Grid.Row="1" Grid.Column="0" Content="Images (.jpg, .png, .gif...)" IsChecked="{Binding DownloadImages}" Margin="0,2"/>
+                <CheckBox Grid.Row="2" Grid.Column="0" Content="Videos (.mp4, .avi, .mkv...)" IsChecked="{Binding DownloadVideos}" Margin="0,2"/>
+                <CheckBox Grid.Row="3" Grid.Column="0" Content="Documents (.pdf, .doc, .xlsx...)" IsChecked="{Binding DownloadDocuments}" Margin="0,2"/>
+                <CheckBox Grid.Row="4" Grid.Column="0" Content="Archives (.zip, .rar, .7z...)" IsChecked="{Binding DownloadArchives}" Margin="0,2"/>
                 
-                <CheckBox Grid.Row="0" Grid.Column="1" Content="Recursive Crawl" IsChecked="{Binding RecursiveCrawl}" Margin="0,4"/>
-                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,4">
-                    <TextBlock Text="Max Depth:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <!-- Column 1: Crawl settings -->
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="Crawl Settings" FontWeight="Bold" Margin="8,0,0,4"/>
+                <CheckBox Grid.Row="1" Grid.Column="1" Content="Follow Pagination" IsChecked="{Binding FollowPagination}" 
+                          ToolTip="Automatically follow Next/page links" Margin="8,2,0,2"/>
+                <CheckBox Grid.Row="2" Grid.Column="1" Content="Recursive Crawl" IsChecked="{Binding RecursiveCrawl}" Margin="8,2,0,2"/>
+                <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="8,2,0,2">
+                    <TextBlock Text="Max Depth:" VerticalAlignment="Center" Margin="0,0,6,0"/>
                     <TextBox Text="{Binding MaxDepth}" Width="50" VerticalContentAlignment="Center"/>
+                    <TextBlock Text="Max Pages:" VerticalAlignment="Center" Margin="12,0,6,0"/>
+                    <TextBox Text="{Binding MaxPaginationPages}" Width="60" VerticalContentAlignment="Center" ToolTip="Maximum pagination pages to follow"/>
                 </StackPanel>
-                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,4">
-                    <TextBlock Text="URL Pattern:" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <TextBox Text="{Binding UrlPattern}" Width="150" VerticalContentAlignment="Center"/>
+                <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="8,2,0,2">
+                    <TextBlock Text="URL Pattern:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBox Text="{Binding UrlPattern}" Width="180" VerticalContentAlignment="Center" ToolTip="Regex pattern to filter URLs"/>
                 </StackPanel>
-                <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,4">
-                    <TextBlock Text="Max Pages:" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <TextBox Text="{Binding MaxPaginationPages}" Width="50" VerticalContentAlignment="Center" ToolTip="Maximum number of pagination pages to follow"/>
+
+                <!-- Column 2: Advanced settings -->
+                <TextBlock Grid.Row="0" Grid.Column="2" Text="Advanced" FontWeight="Bold" Margin="8,0,0,4"/>
+                <CheckBox Grid.Row="1" Grid.Column="2" Content="Skip Duplicates (SHA-256)" IsChecked="{Binding SkipDuplicates}" 
+                          ToolTip="Hash-based duplicate detection" Margin="8,2,0,2"/>
+                <CheckBox Grid.Row="2" Grid.Column="2" Content="Mirror Directory Structure" IsChecked="{Binding MirrorDirectoryStructure}" 
+                          ToolTip="Mirror the URL path structure in output" Margin="8,2,0,2"/>
+                <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal" Margin="8,2,0,2">
+                    <TextBlock Text="Concurrent:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBox Text="{Binding MaxConcurrentDownloads}" Width="40" VerticalContentAlignment="Center" ToolTip="Max concurrent downloads"/>
+                    <TextBlock Text="Delay (ms):" VerticalAlignment="Center" Margin="12,0,6,0"/>
+                    <TextBox Text="{Binding RequestDelayMs}" Width="50" VerticalContentAlignment="Center" ToolTip="Delay between requests"/>
+                </StackPanel>
+                <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal" Margin="8,2,0,2">
+                    <TextBlock Text="Speed Limit (KB/s):" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBox Text="{Binding SpeedLimitKbps}" Width="60" VerticalContentAlignment="Center" ToolTip="0 = unlimited"/>
                 </StackPanel>
             </Grid>
-            </ScrollViewer>
         </GroupBox>
 
-        <!-- Output Directory -->
-        <GroupBox Header="Output Directory" Grid.Row="2" Margin="0,0,0,8">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <!-- Row 2: Output Directory -->
+        <GroupBox Header="Output Directory" Grid.Row="2" Margin="0,0,0,4">
             <Grid Margin="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -78,90 +125,161 @@
                 </Grid.ColumnDefinitions>
                 <TextBox x:Name="OutputDirectoryTextBox" Grid.Column="0" Text="{Binding OutputDirectory, UpdateSourceTrigger=PropertyChanged}" 
                          VerticalContentAlignment="Center" Margin="0,0,8,0"/>
-                <Button Grid.Column="1" Content="Browse..." MinWidth="180" Click="OnBrowseClick"/>
+                <Button Grid.Column="1" Content="Browse..." MinWidth="100" Click="OnBrowseClick"/>
             </Grid>
-            </ScrollViewer>
         </GroupBox>
 
-        <!-- Action Buttons -->
-        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,8">
-            <Button Content="Download Selected" Click="OnDownloadClick" MinWidth="190" Margin="0,0,8,0" FontWeight="Bold" Background="#FF4CAF50" Foreground="White"/>
-            <Button Content="Cancel" Click="OnCancelClick" MinWidth="180" Margin="0,0,8,0" Background="#FFF44336" Foreground="White"/>
-            <Button Content="Select All" Click="OnSelectAllClick" MinWidth="180" Margin="0,0,8,0" Background="#FF2196F3" Foreground="White"/>
-            <Button Content="Select None" Click="OnSelectNoneClick" MinWidth="180" Margin="0,0,16,0"/>
-            <TextBlock VerticalAlignment="Center" Margin="0,0,4,0">Items:</TextBlock>
-            <TextBlock x:Name="ItemCountText" VerticalAlignment="Center" FontWeight="Bold" Text="{Binding DownloadItems.Count, FallbackValue=0}"/>
-        </StackPanel>
-
-        <!-- GridSplitter -->
-        <GridSplitter Grid.Row="4" Height="5" HorizontalAlignment="Stretch" 
-                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
-
-        <!-- Download Items -->
-        <GroupBox Header="Download Queue" Grid.Row="5" Margin="0,0,0,8">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <DataGrid x:Name="DownloadItemsDataGrid" ItemsSource="{Binding DownloadItems}"
-                          AutoGenerateColumns="False" CanUserAddRows="False"
-                          CanUserResizeColumns="True" CanUserSortColumns="True"
-                          SelectionMode="Single" IsReadOnly="True"
-                          ColumnHeaderHeight="32"
-                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
-                    <DataGrid.Columns>
-                        <DataGridTemplateColumn Header="Select" Width="60" CanUserResize="True" MinWidth="50">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
-                                             HorizontalAlignment="Center"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="80" MinWidth="60" CanUserResize="True"/>
-                        <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="200" MinWidth="150" CanUserResize="True"/>
-                        <DataGridTextColumn Header="URL" Binding="{Binding Url}" Width="300" MinWidth="200" CanUserResize="True"/>
-                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" MinWidth="80" CanUserResize="True">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Status}" Value="Completed">
-                                            <Setter Property="Foreground" Value="Green"/>
-                                            <Setter Property="FontWeight" Value="Bold"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding Status}" Value="Failed">
-                                            <Setter Property="Foreground" Value="Red"/>
-                                            <Setter Property="FontWeight" Value="Bold"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding Status}" Value="Downloading">
-                                            <Setter Property="Foreground" Value="Blue"/>
-                                            <Setter Property="FontWeight" Value="Bold"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                        <DataGridTemplateColumn Header="Progress" Width="120" MinWidth="100" CanUserResize="True">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <ProgressBar Value="{Binding Progress}" Height="16" Minimum="0" Maximum="100"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </ScrollViewer>
-        </GroupBox>
-
-        <!-- Status Bar -->
-        <Grid Grid.Row="6">
+        <!-- Row 3: Action Buttons & Counters -->
+        <Grid Grid.Row="3" Margin="0,0,0,4">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
-            <StackPanel Grid.Column="1" Orientation="Horizontal">
-                <TextBlock Text="Overall:" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                <ProgressBar Width="150" Height="20" Value="{Binding Progress}" Minimum="0" Maximum="100"/>
-                <TextBlock Text="{Binding Progress, StringFormat={}{0:F0}%}" VerticalAlignment="Center" Margin="8,0,0,0" FontWeight="Bold"/>
+            
+            <!-- Left: Action buttons -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <Button Content="Download Selected" Click="OnDownloadClick" MinWidth="130" Margin="0,0,4,0" 
+                        FontWeight="Bold" Background="#FF4CAF50" Foreground="White"/>
+                <Button x:Name="PauseResumeButton" Content="Pause" Click="OnPauseResumeClick" MinWidth="70" Margin="0,0,4,0" 
+                        Background="#FFFF9800" Foreground="White"/>
+                <Button Content="Cancel" Click="OnCancelClick" MinWidth="70" Margin="0,0,4,0" 
+                        Background="#FFF44336" Foreground="White"/>
+                <Button Content="Select All" Click="OnSelectAllClick" MinWidth="80" Margin="0,0,4,0" 
+                        Background="#FF2196F3" Foreground="White"/>
+                <Button Content="Select None" Click="OnSelectNoneClick" MinWidth="80" Margin="0,0,4,0"/>
+                <Button Content="Test Link" Click="OnTestLinkClick" MinWidth="70" Margin="0,0,4,0" 
+                        Background="#FF9C27B0" Foreground="White" ToolTip="Test if selected URL is reachable"/>
+                <Button Content="Retry Failed" Click="OnRetryFailedClick" MinWidth="80" Margin="0,0,4,0" 
+                        Background="#FFFF9800" Foreground="White" ToolTip="Retry all failed downloads"/>
+                <Button Content="Skipped" Click="OnShowSkippedClick" MinWidth="70" Margin="0,0,4,0" 
+                        ToolTip="Show skipped duplicate files"/>
+            </StackPanel>
+
+            <!-- Right: Counters -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Items:" Margin="0,0,4,0"/>
+                <TextBlock x:Name="ItemCountText" FontWeight="Bold" Text="{Binding DownloadItems.Count, FallbackValue=0}" Margin="0,0,12,0"/>
+                <TextBlock Text="OK:" Foreground="Green" Margin="0,0,4,0"/>
+                <TextBlock Text="{Binding CompletedCount}" FontWeight="Bold" Foreground="Green" Margin="0,0,12,0"/>
+                <TextBlock Text="Failed:" Foreground="Red" Margin="0,0,4,0"/>
+                <TextBlock Text="{Binding FailedCount}" FontWeight="Bold" Foreground="Red" Margin="0,0,12,0"/>
+                <TextBlock Text="Skipped:" Foreground="Orange" Margin="0,0,4,0"/>
+                <TextBlock Text="{Binding SkippedCount}" FontWeight="Bold" Foreground="Orange"/>
             </StackPanel>
         </Grid>
+
+        <!-- Row 4: GridSplitter -->
+        <GridSplitter Grid.Row="4" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
+        <!-- Row 5: Download Items DataGrid -->
+        <GroupBox Header="Download Queue" Grid.Row="5" Margin="0,0,0,4">
+            <DataGrid x:Name="DownloadItemsDataGrid" ItemsSource="{Binding DownloadItems}"
+                      AutoGenerateColumns="False" CanUserAddRows="False"
+                      CanUserResizeColumns="True" CanUserSortColumns="True"
+                      SelectionMode="Single" IsReadOnly="True"
+                      ColumnHeaderHeight="32"
+                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="Select" Width="50" MinWidth="50">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                                         HorizontalAlignment="Center"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="70" MinWidth="60"/>
+                    <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*" MinWidth="200">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                <Setter Property="ToolTip" Value="{Binding FileName}"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120" MinWidth="80">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="ToolTip" Value="{Binding ErrorMessage}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Status}" Value="Completed">
+                                        <Setter Property="Foreground" Value="Green"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Status}" Value="Failed">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Status}" Value="Downloading">
+                                        <Setter Property="Foreground" Value="DodgerBlue"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Status}" Value="Skipped (duplicate)">
+                                        <Setter Property="Foreground" Value="Orange"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTemplateColumn Header="Progress" Width="120" MinWidth="100">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <ProgressBar Value="{Binding Progress}" Height="16" Minimum="0" Maximum="100"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Actions" Width="120" MinWidth="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="Retry" MinWidth="50" Margin="0,0,4,0" Click="OnRetryItemClick"
+                                            Background="#FFFF9800" Foreground="White" FontSize="11" Padding="4,1"/>
+                                    <Button Content="Test" MinWidth="45" Click="OnTestItemLinkClick"
+                                            Background="#FF9C27B0" Foreground="White" FontSize="11" Padding="4,1"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+
+        <!-- Row 6: Status Bar with speed/ETA -->
+        <Grid Grid.Row="6" Margin="0,2,0,2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="8,0,0,0">
+                <TextBlock Text="{Binding SpeedText}" VerticalAlignment="Center" FontWeight="Bold" Foreground="DodgerBlue" Margin="0,0,8,0"/>
+                <TextBlock Text="{Binding EtaText}" VerticalAlignment="Center" Foreground="Gray" Margin="0,0,8,0"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="8,0,0,0">
+                <TextBlock Text="Overall:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <ProgressBar Width="150" Height="18" Value="{Binding Progress}" Minimum="0" Maximum="100"/>
+                <TextBlock Text="{Binding Progress, StringFormat={}{0:F0}%}" VerticalAlignment="Center" Margin="6,0,0,0" FontWeight="Bold"/>
+            </StackPanel>
+            <Button Grid.Column="3" Content="Clear Log" Click="OnClearLogClick" MinWidth="80" Margin="8,0,0,0"/>
+        </Grid>
+
+        <!-- Row 7: GridSplitter for log -->
+        <GridSplitter Grid.Row="7" Height="5" HorizontalAlignment="Stretch" 
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
+        <!-- Row 8: Log Panel -->
+        <GroupBox Header="Log" Grid.Row="8" Margin="0,0,0,4">
+            <TextBox x:Name="LogTextBox" Text="{Binding LogText, Mode=OneWay}" IsReadOnly="True" 
+                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                     TextWrapping="NoWrap" FontFamily="Consolas" FontSize="11"
+                     Background="#FF1E1E1E" Foreground="#FFDCDCDC"/>
+        </GroupBox>
+
+        <!-- Row 9: History (collapsed by default, accessible via button) -->
     </Grid>
 </UserControl>

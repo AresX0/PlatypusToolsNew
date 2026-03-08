@@ -89,12 +89,12 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Button Content="Cancel" Width="60" Margin="2,0"
+                                <Button Content="Cancel" MinWidth="60" Margin="2,0"
                                         Command="{Binding DataContext.CancelJobCommand, 
                                                   RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}"
                                         Background="#FFF44336" Foreground="White" FontSize="11" Padding="4,2"/>
-                                <Button Content="Retry" Width="55" Margin="2,0"
+                                <Button Content="Retry" MinWidth="55" Margin="2,0"
                                         Command="{Binding DataContext.RetryJobCommand, 
                                                   RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}"

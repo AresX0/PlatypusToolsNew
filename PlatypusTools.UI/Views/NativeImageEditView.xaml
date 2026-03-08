@@ -52,9 +52,9 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="File:" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0"/>
                 <TextBox x:Name="ImageFilePathBox" Grid.Column="1" IsReadOnly="True" FontSize="11" Height="22" VerticalContentAlignment="Center" Margin="0,0,4,0"/>
-                <Button Grid.Column="2" Content="📂 Open" Click="BrowseImage_Click" Style="{StaticResource ToolBtn}" Width="70"/>
-                <Button Grid.Column="3" Content="🆕 New" Click="NewImage_Click" Style="{StaticResource ToolBtn}" Width="60" ToolTip="Create a new blank canvas"/>
-                <Button Grid.Column="4" Content="📋 Paste" Click="PasteImage_Click" Style="{StaticResource ToolBtn}" Width="65" ToolTip="Paste image from clipboard"/>
+                <Button Grid.Column="2" Content="📂 Open" Click="BrowseImage_Click" Style="{StaticResource ToolBtn}" MinWidth="70"/>
+                <Button Grid.Column="3" Content="🆕 New" Click="NewImage_Click" Style="{StaticResource ToolBtn}" MinWidth="60" ToolTip="Create a new blank canvas"/>
+                <Button Grid.Column="4" Content="📋 Paste" Click="PasteImage_Click" Style="{StaticResource ToolBtn}" MinWidth="65" ToolTip="Paste image from clipboard"/>
                 <Separator Grid.Column="5" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="6,2"/>
                 <StackPanel Grid.Column="6" Orientation="Horizontal" Margin="2,0">
                     <TextBlock Text="View:" VerticalAlignment="Center" FontSize="10" Margin="0,0,4,0"/>
@@ -64,8 +64,8 @@
                                   ToolTip="Toggle Settings panel" Click="ToggleSettingsPanel_Click"/>
                 </StackPanel>
                 <StackPanel Grid.Column="7" Orientation="Horizontal" Margin="6,0,0,0">
-                    <Button Content="↩ Undo" Click="Undo_Click" Style="{StaticResource ToolBtn}" Width="60"/>
-                    <Button Content="↩ Reset" Click="Reset_Click" Style="{StaticResource ToolBtn}" Width="60"/>
+                    <Button Content="↩ Undo" Click="Undo_Click" Style="{StaticResource ToolBtn}" MinWidth="60"/>
+                    <Button Content="↩ Reset" Click="Reset_Click" Style="{StaticResource ToolBtn}" MinWidth="60"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -178,7 +178,7 @@
                         </WrapPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <Border x:Name="SelectedColorPreview" Width="30" Height="18" Background="Red" CornerRadius="2" BorderBrush="Gray" BorderThickness="1"/>
-                            <Button Content="Custom" Click="CustomColor_Click" Height="20" Width="55" Margin="4,0,0,0" FontSize="10" Padding="2,0"/>
+                            <Button Content="Custom" Click="CustomColor_Click" Height="20" MinWidth="55" Margin="4,0,0,0" FontSize="10" Padding="2,0"/>
                         </StackPanel>
                         
                         <!-- Picked Color -->
@@ -299,10 +299,10 @@
                     <ComboBoxItem Content="SVG"/>
                 </ComboBox>
                 <TextBlock x:Name="StatusText" Grid.Column="2" Text="" Foreground="Blue" VerticalAlignment="Center" FontSize="11" Margin="10,0,0,0"/>
-                <Button Grid.Column="3" Content="📋 Copy" Click="CopyToClipboard_Click" Style="{StaticResource ToolBtn}" Width="70" Margin="4,0" ToolTip="Copy image to clipboard"/>
-                <Button Grid.Column="4" Content="💾 Save As..." Click="Save_Click" Style="{StaticResource ToolBtn}" Width="90" FontWeight="Bold"
+                <Button Grid.Column="3" Content="📋 Copy" Click="CopyToClipboard_Click" Style="{StaticResource ToolBtn}" MinWidth="70" Margin="4,0" ToolTip="Copy image to clipboard"/>
+                <Button Grid.Column="4" Content="💾 Save As..." Click="Save_Click" Style="{StaticResource ToolBtn}" MinWidth="90" FontWeight="Bold"
                         Background="#FF4CAF50" Foreground="White"/>
-                <Button Grid.Column="5" Content="💾 Quick Save" Click="QuickSave_Click" Style="{StaticResource ToolBtn}" Width="95" Margin="4,0,0,0"
+                <Button Grid.Column="5" Content="💾 Quick Save" Click="QuickSave_Click" Style="{StaticResource ToolBtn}" MinWidth="95" Margin="4,0,0,0"
                         Background="#FF2196F3" Foreground="White" ToolTip="Save with same name + _edited"/>
             </Grid>
         </Border>

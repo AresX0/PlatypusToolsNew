@@ -114,10 +114,10 @@
                                 <Button Content="▼" Width="28" Margin="2,0" ToolTip="Move Down"
                                         Click="MoveDown_Click" Tag="{Binding}"
                                         Background="#FF2196F3" Foreground="White" FontSize="11" Padding="2"/>
-                                <Button Content="Cancel" Width="55" Margin="4,0,2,0"
+                                <Button Content="Cancel" MinWidth="55" Margin="4,0,2,0"
                                         Click="CancelJob_Click" Tag="{Binding}"
                                         Background="#FFF44336" Foreground="White" FontSize="11" Padding="4,2"/>
-                                <Button Content="Remove" Width="58" Margin="2,0"
+                                <Button Content="Remove" MinWidth="58" Margin="2,0"
                                         Click="RemoveJob_Click" Tag="{Binding}"
                                         Background="#FF9C27B0" Foreground="White" FontSize="11" Padding="4,2"/>
                             </StackPanel>

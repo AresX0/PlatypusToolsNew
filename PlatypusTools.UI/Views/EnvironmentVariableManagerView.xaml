@@ -156,7 +156,7 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBox Text="{Binding NewPathEntry, UpdateSourceTrigger=PropertyChanged}" />
-                        <Button Content="..." Grid.Column="1" Command="{Binding BrowsePathCommand}" Width="30" Margin="4,0,0,0" />
+                        <Button Content="..." Grid.Column="1" Command="{Binding BrowsePathCommand}" MinWidth="30" Margin="4,0,0,0" />
                     </Grid>
 
                     <WrapPanel Grid.Row="2">

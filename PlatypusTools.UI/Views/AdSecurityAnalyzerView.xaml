@@ -65,7 +65,7 @@
                 <!-- Checkboxes -->
                 <WrapPanel Grid.Column="0" Orientation="Horizontal" Margin="5">
                     <CheckBox Content="Privileged Groups" IsChecked="{Binding AnalyzePrivilegedGroups}" Margin="5" />
-                    <CheckBox Content="Risky ACLs" IsChecked="{Binding AnalyzeRiskyAcls}" Margin="5" />
+                    <CheckBox Content="ACLs of Interest" IsChecked="{Binding AnalyzeRiskyAcls}" Margin="5" />
                     <CheckBox Content="GPO Analysis" IsChecked="{Binding AnalyzeGpos}" Margin="5" />
                     <CheckBox Content="SYSVOL Scan" IsChecked="{Binding AnalyzeSysvol}" Margin="5" />
                     <CheckBox Content="Kerberos Delegation" IsChecked="{Binding AnalyzeKerberosDelegation}" Margin="5" />
@@ -164,7 +164,7 @@
                                     <TextBlock Grid.Row="0" Text="Privileged Members" />
                                     <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding PrivilegedMembers.Count}" FontWeight="SemiBold" />
 
-                                    <TextBlock Grid.Row="1" Text="Risky ACLs" />
+                                    <TextBlock Grid.Row="1" Text="ACLs of Interest" />
                                     <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding RiskyAcls.Count}" FontWeight="SemiBold" />
 
                                     <TextBlock Grid.Row="2" Text="Risky GPOs" />
@@ -230,8 +230,8 @@
                 </DataGrid>
             </TabItem>
 
-            <!-- Risky ACLs Tab -->
-            <TabItem Header="🔐 Risky ACLs">
+            <!-- ACLs of Interest Tab -->
+            <TabItem Header="🔐 ACLs of Interest">
                 <DataGrid ItemsSource="{Binding RiskyAcls}" 
                           SelectedItem="{Binding SelectedRiskyAcl}"
                           AutoGenerateColumns="False" IsReadOnly="True"
@@ -629,7 +629,7 @@
 
                                     <TextBlock Text="Sub-OUs to Create:" FontWeight="SemiBold" Margin="0,0,0,5" />
                                     <WrapPanel Orientation="Horizontal">
-                                        <CheckBox Content="PAW (Privileged Access Workstations)" IsChecked="{Binding CreatePawOus}" Margin="0,0,20,5" />
+                                        <CheckBox Content="SecureKeyboard" IsChecked="{Binding CreatePawOus}" Margin="0,0,20,5" />
                                         <CheckBox Content="Service Accounts" IsChecked="{Binding CreateServiceAccountOus}" Margin="0,0,20,5" />
                                         <CheckBox Content="Groups" IsChecked="{Binding CreateGroupsOus}" Margin="0,0,20,5" />
                                         <CheckBox Content="Users" IsChecked="{Binding CreateUsersOus}" Margin="0,0,20,5" />
@@ -655,7 +655,7 @@
                                                 <CheckBox Content="Password Policy (14+ chars, complexity, 90-day expiry)" IsChecked="{Binding DeployPasswordPolicyGpo}" Margin="0,0,0,5" />
                                                 <CheckBox Content="Advanced Audit Policy (Logon, Object Access, etc.)" IsChecked="{Binding DeployAuditPolicyGpo}" Margin="0,0,0,5" />
                                                 <CheckBox Content="Security Baseline (Disable LM, SMB signing, LDAP signing)" IsChecked="{Binding DeploySecurityBaselineGpo}" Margin="0,0,0,5" />
-                                                <CheckBox Content="PAW Security Policy (Credential Guard, AppLocker)" IsChecked="{Binding DeployPawGpo}" Margin="0,0,0,5" />
+                                                <CheckBox Content="SecureKeyboard Security Policy (Credential Guard, AppLocker)" IsChecked="{Binding DeployPawGpo}" Margin="0,0,0,5" />
                                             </StackPanel>
                                         </Expander>
 
@@ -666,7 +666,7 @@
                                                           ToolTip="Enhanced audit policies for Tier 0 servers. Success/Failure auditing for security events." />
                                                 <CheckBox Content="Disallow DSRM Login - DC ONLY" IsChecked="{Binding DeployT0DisallowDsrm}" Margin="0,0,0,5"
                                                           ToolTip="Prevents DSRM (Directory Services Restore Mode) network logon. Critical for DC security." />
-                                                <CheckBox Content="Domain Block - Top Level" IsChecked="{Binding DeployT0DomainBlock}" Margin="0,0,0,5"
+                                                <CheckBox Content="Admin Block - Top Level" IsChecked="{Binding DeployT0DomainBlock}" Margin="0,0,0,5"
                                                           ToolTip="Blocks Tier 0 accounts from logging into non-Tier 0 systems. Essential for tiering." />
                                                 <CheckBox Content="Domain Controllers Hardening - DC Only" IsChecked="{Binding DeployT0DomainControllers}" Margin="0,0,0,5"
                                                           ToolTip="Security hardening for Domain Controllers." />
@@ -719,8 +719,8 @@
                                         <Expander Header="👥 Security Groups" IsExpanded="True" Margin="0,0,0,10">
                                             <StackPanel Margin="20,10,0,0">
                                                 <CheckBox Content="Create Tiered Security Groups" IsChecked="{Binding CreateTierGroups}" Margin="0,0,0,5"
-                                                          ToolTip="Creates security groups for each tier: Operators, PAW Users, Service Accounts, Local Admins, plus IR/DVRL groups." FontWeight="SemiBold" />
-                                                <TextBlock Text="Groups created: Tier X - Operators, PAW Users, Service Accounts, Local Admins, IR - Emergency Access, DVRL - Deny Logon All Tiers"
+                                                          ToolTip="Creates security groups for each tier: Operators, SecureKeyboard Users, Service Accounts, Local Admins, plus IR/DVRL groups." FontWeight="SemiBold" />
+                                                <TextBlock Text="Groups created: Tier X - Operators, SecureKeyboard Users, Service Accounts, Local Admins, IR - Emergency Access, DVRL - Deny Logon All Tiers"
                                                            Foreground="{DynamicResource SecondaryTextBrush}" FontStyle="Italic" TextWrapping="Wrap" Margin="20,0,0,5" />
                                             </StackPanel>
                                         </Expander>

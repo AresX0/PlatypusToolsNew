@@ -23,13 +23,13 @@
 
                 <WrapPanel Grid.Row="0" Margin="0,0,0,8">
                     <TextBlock Text="Left File:" VerticalAlignment="Center" Width="70" />
-                    <TextBox Text="{Binding LeftFilePath, UpdateSourceTrigger=PropertyChanged}" Width="400" Margin="0,0,8,0" />
+                    <TextBox Text="{Binding LeftFile, UpdateSourceTrigger=PropertyChanged}" Width="400" Margin="0,0,8,0" />
                     <Button Content="Browse..." Command="{Binding BrowseLeftCommand}" MinWidth="80" Margin="0,0,8,0" />
                 </WrapPanel>
 
                 <WrapPanel Grid.Row="1" Margin="0,0,0,8">
                     <TextBlock Text="Right File:" VerticalAlignment="Center" Width="70" />
-                    <TextBox Text="{Binding RightFilePath, UpdateSourceTrigger=PropertyChanged}" Width="400" Margin="0,0,8,0" />
+                    <TextBox Text="{Binding RightFile, UpdateSourceTrigger=PropertyChanged}" Width="400" Margin="0,0,8,0" />
                     <Button Content="Browse..." Command="{Binding BrowseRightCommand}" MinWidth="80" Margin="0,0,8,0" />
                 </WrapPanel>
 

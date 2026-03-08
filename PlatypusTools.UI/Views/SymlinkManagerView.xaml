@@ -17,11 +17,11 @@
         <GroupBox Header="Scan for Links" Grid.Row="0" Margin="0,0,0,4">
             <WrapPanel Margin="8">
                 <TextBlock Text="Directory:" VerticalAlignment="Center" Width="70" />
-                <TextBox Text="{Binding ScanPath, UpdateSourceTrigger=PropertyChanged}" Width="400" Margin="0,0,8,0" />
-                <Button Content="Browse" Command="{Binding BrowseScanPathCommand}" MinWidth="70" Margin="0,0,8,0" />
+                <TextBox Text="{Binding ScanFolder, UpdateSourceTrigger=PropertyChanged}" Width="400" Margin="0,0,8,0" />
+                <Button Content="Browse" Command="{Binding BrowseScanFolderCommand}" MinWidth="70" Margin="0,0,8,0" />
                 <Button Content="Scan" Command="{Binding ScanCommand}" MinWidth="80" FontWeight="Bold"
                         Background="#FF4CAF50" Foreground="White" Margin="0,0,8,0" />
-                <CheckBox Content="Include subdirectories" IsChecked="{Binding IncludeSubdirectories}" VerticalAlignment="Center" />
+                <CheckBox Content="Include subdirectories" IsChecked="{Binding Recursive}" VerticalAlignment="Center" />
             </WrapPanel>
         </GroupBox>
 
