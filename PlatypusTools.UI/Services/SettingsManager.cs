@@ -879,6 +879,7 @@ namespace PlatypusTools.UI.Services
                 new("Tools.PlexBackup", "Plex Backup", "Tools"),
                 new("Tools.IntunePackager", "Intune Packager", "Tools"),
                 new("Tools.ClipboardHistory", "Clipboard History", "Tools"),
+                new("Tools.MailClient", "Mail Client", "Tools"),
             };
         }
     }

@@ -190,5 +190,6 @@ namespace PlatypusTools.UI.Services
         public Visibility QrCode => GetVisibility("Tools.QrCode");
         public Visibility ColorPicker => GetVisibility("Tools.ColorPicker");
         public Visibility BulkChecksum => GetVisibility("Tools.BulkChecksum");
+        public Visibility MailClient => GetVisibility("Tools.MailClient");
     }
 }

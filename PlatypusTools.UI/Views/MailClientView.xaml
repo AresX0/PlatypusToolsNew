@@ -1,0 +1,571 @@
+<UserControl x:Class="PlatypusTools.UI.Views.MailClientView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             xmlns:mailModels="clr-namespace:PlatypusTools.Core.Models.Mail;assembly=PlatypusTools.Core"
+             mc:Ignorable="d" d:DesignHeight="700" d:DesignWidth="1200">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Top Bar: Account Selection & Connection -->
+        <Grid Grid.Row="0" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="Account:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="Bold" />
+
+            <ComboBox Grid.Column="1" ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedAccount}"
+                      DisplayMemberPath="DisplayName" Margin="0,0,8,0" MinWidth="200" />
+
+            <Button Grid.Column="2" Content="📨 Connect" Command="{Binding ConnectCommand}"
+                    Background="#FF4CAF50" Foreground="White" Padding="12,4" Margin="0,0,4,0"
+                    ToolTip="Connect to selected account" />
+            <Button Grid.Column="3" Content="Disconnect" Command="{Binding DisconnectCommand}"
+                    Padding="12,4" Margin="0,0,4,0" />
+            <Button Grid.Column="4" Content="🔄 Refresh" Command="{Binding RefreshCommand}"
+                    Padding="12,4" Margin="0,0,4,0" />
+            <Button Grid.Column="5" Content="➕ Add Account" Command="{Binding AddAccountCommand}"
+                    Background="#FF2196F3" Foreground="White" Padding="12,4" Margin="0,0,4,0" />
+            <Button Grid.Column="6" Content="🗑️ Remove" Command="{Binding RemoveAccountCommand}"
+                    Background="#FFF44336" Foreground="White" Padding="12,4" />
+        </Grid>
+
+        <!-- Main Content -->
+        <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedTabIndex}">
+            <!-- Mail Tab -->
+            <TabItem Header="📬 Mail">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="200" MinWidth="120" />
+                        <ColumnDefinition Width="5" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Folder Tree -->
+                    <DockPanel Grid.Column="0">
+                        <TextBlock DockPanel.Dock="Top" Text="Folders" FontWeight="Bold" Margin="4,4,4,4" />
+                        <TreeView ItemsSource="{Binding Folders}" Margin="0,0,0,0"
+                                  SelectedItemChanged="FolderTree_SelectedItemChanged">
+                            <TreeView.ItemTemplate>
+                                <HierarchicalDataTemplate DataType="{x:Type mailModels:MailFolder}"
+                                                          ItemsSource="{Binding SubFolders}">
+                                    <StackPanel Orientation="Horizontal" Margin="2">
+                                        <TextBlock Text="{Binding Icon}" Margin="0,0,4,0" />
+                                        <TextBlock Text="{Binding Name}" />
+                                        <TextBlock Text=" (" Foreground="Gray" />
+                                        <TextBlock Text="{Binding UnreadCount}" Foreground="Blue" FontWeight="Bold" />
+                                        <TextBlock Text=")" Foreground="Gray" />
+                                    </StackPanel>
+                                </HierarchicalDataTemplate>
+                            </TreeView.ItemTemplate>
+                        </TreeView>
+                    </DockPanel>
+
+                    <!-- Splitter -->
+                    <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"
+                                  Background="#CCCCCC" Cursor="SizeWE" />
+
+                    <!-- Message List + Reading Pane -->
+                    <Grid Grid.Column="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" MinHeight="120" />
+                            <RowDefinition Height="5" />
+                            <RowDefinition Height="*" MinHeight="120" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Search & Filter Bar -->
+                        <Grid Grid.Row="0" Margin="4,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="🔍" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="14" />
+                            <TextBox Grid.Column="1" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                                     Margin="0,0,4,0" VerticalContentAlignment="Center"
+                                     ToolTip="Search messages (subject, from, body)" />
+                            <Button Grid.Column="2" Content="Search" Command="{Binding SearchCommand}"
+                                    Padding="8,3" Margin="0,0,4,0" />
+                            <Button Grid.Column="3" Content="Clear" Command="{Binding ClearSearchCommand}"
+                                    Padding="8,3" Margin="0,0,8,0" />
+
+                            <TextBlock Grid.Column="4" Text="Filter:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                            <ComboBox Grid.Column="5" ItemsSource="{Binding FilterFields}" SelectedItem="{Binding FilterField}"
+                                      Width="100" Margin="0,0,4,0" />
+
+                            <!-- Paging -->
+                            <StackPanel Grid.Column="6" Orientation="Horizontal">
+                                <Button Content="◀" Command="{Binding PrevPageCommand}" Padding="6,3" Margin="0,0,2,0" />
+                                <TextBlock Text="{Binding PageInfo}" VerticalAlignment="Center" Margin="4,0,4,0" />
+                                <Button Content="▶" Command="{Binding NextPageCommand}" Padding="6,3" />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Message List -->
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding Messages}"
+                                  SelectedItem="{Binding SelectedMessage}"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  SelectionMode="Single" CanUserReorderColumns="True"
+                                  GridLinesVisibility="Horizontal"
+                                  HeadersVisibility="Column" Margin="4,0,0,0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="" Binding="{Binding ReadIcon}" Width="25" />
+                                <DataGridTextColumn Header="" Binding="{Binding FlagIcon}" Width="25" />
+                                <DataGridTextColumn Header="" Binding="{Binding AttachmentIcon}" Width="25" />
+                                <DataGridTextColumn Header="From" Binding="{Binding From}" Width="180">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                            <Setter Property="ToolTip" Value="{Binding FromAddress}" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Subject" Binding="{Binding Subject}" Width="*" MinWidth="200">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                            <Setter Property="ToolTip" Value="{Binding Subject}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsRead}" Value="False">
+                                                    <Setter Property="FontWeight" Value="Bold" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Date" Binding="{Binding DisplayDate}" Width="130" />
+                                <DataGridTextColumn Header="Size" Binding="{Binding DisplaySize}" Width="70" />
+                                <DataGridTemplateColumn Header="Actions" Width="200" MinWidth="200">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Content="📖" ToolTip="Toggle Read"
+                                                        Command="{Binding DataContext.ToggleReadCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                        Width="30" Margin="0,0,2,0" />
+                                                <Button Content="🚩" ToolTip="Toggle Flag"
+                                                        Command="{Binding DataContext.ToggleFlagCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                        Width="30" Margin="0,0,2,0" />
+                                                <Button Content="🗑️" ToolTip="Delete"
+                                                        Command="{Binding DataContext.DeleteMessageCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                        Width="30" Margin="0,0,2,0" Background="#FFF44336" Foreground="White" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsRead}" Value="False">
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+                        </DataGrid>
+
+                        <!-- Splitter between message list and reading pane -->
+                        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch"
+                                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows" />
+
+                        <!-- Reading Pane -->
+                        <Border Grid.Row="3" BorderBrush="#DDD" BorderThickness="1" Margin="4,0,0,0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <!-- Message Header -->
+                                <StackPanel Grid.Row="0" Margin="8"
+                                            Visibility="{Binding FullMessage, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}">
+                                    <TextBlock Text="{Binding FullMessage.Subject}" FontSize="16" FontWeight="Bold" TextWrapping="Wrap" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <TextBlock Text="From: " FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding FullMessage.From}" />
+                                        <TextBlock Text="  |  " Foreground="Gray" />
+                                        <TextBlock Text="{Binding FullMessage.DisplayDate}" Foreground="Gray" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                        <TextBlock Text="To: " FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding FullMessage.To, Converter={StaticResource ListToStringConverter}}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Attachments -->
+                                <ItemsControl Grid.Row="1" ItemsSource="{Binding FullMessage.Attachments}"
+                                              Margin="8,0,8,4"
+                                              Visibility="{Binding FullMessage.HasAttachments, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Margin="0,0,4,4" Padding="6,3"
+                                                    Command="{Binding DataContext.SaveAttachmentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="📎 " />
+                                                    <TextBlock Text="{Binding FileName}" />
+                                                    <TextBlock Text=" (" Foreground="Gray" />
+                                                    <TextBlock Text="{Binding DisplaySize}" Foreground="Gray" />
+                                                    <TextBlock Text=")" Foreground="Gray" />
+                                                </StackPanel>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- Message Body -->
+                                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                                    <TextBlock Text="{Binding FullMessage.BodyText}" TextWrapping="Wrap"
+                                               Margin="8" FontFamily="Segoe UI" />
+                                </ScrollViewer>
+
+                                <!-- No message selected placeholder -->
+                                <TextBlock Grid.Row="0" Grid.RowSpan="3" Text="Select a message to read"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="Gray" FontSize="14"
+                                           Visibility="{Binding FullMessage, Converter={StaticResource InverseNullToVisibilityConverter}, FallbackValue=Visible}" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <!-- Rules Tab -->
+            <TabItem Header="📋 Rules &amp; Filters">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Rules toolbar -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                        <Button Content="➕ Add Rule" Command="{Binding AddRuleCommand}"
+                                Background="#FF4CAF50" Foreground="White" Padding="12,4" Margin="0,0,4,0" />
+                        <Button Content="🗑️ Remove Rule" Command="{Binding RemoveRuleCommand}"
+                                Background="#FFF44336" Foreground="White" Padding="12,4" Margin="0,0,4,0" />
+                        <Button Content="▶ Apply Rules Now" Command="{Binding ApplyRulesCommand}"
+                                Background="#FF2196F3" Foreground="White" Padding="12,4" Margin="0,0,4,0"
+                                ToolTip="Apply all enabled rules to the current folder" />
+                    </StackPanel>
+
+                    <!-- Rules List -->
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding Rules}" SelectedItem="{Binding SelectedRule}"
+                              AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
+                              CanUserReorderColumns="True" GridLinesVisibility="Horizontal">
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header="Enabled" Binding="{Binding IsEnabled}" Width="60" />
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200" />
+                            <DataGridTextColumn Header="Conditions" Binding="{Binding Conditions.Count}" Width="80" />
+                            <DataGridTextColumn Header="Match" Width="70">
+                                <DataGridTextColumn.Binding>
+                                    <Binding Path="MatchAll" StringFormat="{}{0}">
+                                        <Binding.Converter>
+                                            <vm:BoolToTextConverter TrueText="All" FalseText="Any" />
+                                        </Binding.Converter>
+                                    </Binding>
+                                </DataGridTextColumn.Binding>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="120" />
+                            <DataGridTextColumn Header="Target Folder" Binding="{Binding TargetFolder}" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                        <Setter Property="ToolTip" Value="{Binding TargetFolder}" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridCheckBoxColumn Header="Stop" Binding="{Binding StopProcessing}" Width="50" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Rule Editor (shown when editing) -->
+                    <Border Grid.Row="2" BorderBrush="#DDD" BorderThickness="1" Margin="0,8,0,0" Padding="8"
+                            Visibility="{Binding IsEditingRule, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel>
+                            <TextBlock Text="Rule Editor" FontWeight="Bold" FontSize="14" Margin="0,0,0,8" />
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="120" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Rule Name:" VerticalAlignment="Center" />
+                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding EditRuleName, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,0,4" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Match:" VerticalAlignment="Center" />
+                                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,4">
+                                    <RadioButton Content="All conditions" IsChecked="{Binding EditRuleMatchAll}" Margin="0,0,12,0" />
+                                    <RadioButton Content="Any condition" />
+                                </StackPanel>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Conditions:" VerticalAlignment="Top" Margin="0,4,0,0" />
+                                <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,4">
+                                    <ItemsControl ItemsSource="{Binding EditRuleConditions}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Margin="0,2">
+                                                    <ComboBox ItemsSource="{Binding DataContext.MailRuleFields, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                              SelectedItem="{Binding Field}" Width="110" Margin="0,0,4,0" />
+                                                    <ComboBox ItemsSource="{Binding DataContext.MailRuleOperators, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                              SelectedItem="{Binding Operator}" Width="130" Margin="0,0,4,0" />
+                                                    <TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
+                                                             Width="200" Margin="0,0,4,0" />
+                                                    <Button Content="✕" Width="24"
+                                                            Command="{Binding DataContext.RemoveConditionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Button Content="➕ Add Condition" Command="{Binding AddConditionCommand}"
+                                            HorizontalAlignment="Left" Margin="0,4,0,0" Padding="8,3" />
+                                </StackPanel>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Action:" VerticalAlignment="Center" />
+                                <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding MailRuleActions}"
+                                          SelectedItem="{Binding EditRuleAction}" Margin="0,0,0,4" Width="200"
+                                          HorizontalAlignment="Left" />
+
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Target Folder:" VerticalAlignment="Center" />
+                                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding EditRuleTargetFolder, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,0,4" />
+
+                                <TextBlock Grid.Row="5" Grid.Column="0" Text="Options:" VerticalAlignment="Center" />
+                                <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,4">
+                                    <CheckBox Content="Stop processing further rules" IsChecked="{Binding EditRuleStopProcessing}" Margin="0,0,12,0" />
+                                    <CheckBox Content="Apply to existing messages" IsChecked="{Binding EditRuleApplyToExisting}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal" Margin="0,4,0,0">
+                                    <Button Content="💾 Save Rule" Command="{Binding SaveRuleCommand}"
+                                            Background="#FF4CAF50" Foreground="White" Padding="12,4" Margin="0,0,4,0" />
+                                    <Button Content="Cancel" Command="{Binding CancelEditRuleCommand}"
+                                            Padding="12,4" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- Accounts Tab -->
+            <TabItem Header="⚙️ Accounts">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Account List -->
+                    <DataGrid Grid.Row="0" ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedAccount}"
+                              AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
+                              GridLinesVisibility="Horizontal" Margin="0,0,0,8">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding DisplayName}" Width="180" />
+                            <DataGridTextColumn Header="Email" Binding="{Binding EmailAddress}" Width="*" MinWidth="200">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                        <Setter Property="ToolTip" Value="{Binding EmailAddress}" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Type" Binding="{Binding AccountType}" Width="80" />
+                            <DataGridTextColumn Header="Server" Binding="{Binding ImapServer}" Width="200">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                        <Setter Property="ToolTip" Value="{Binding ImapServer}" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Last Sync" Binding="{Binding LastSyncUtc, StringFormat=g}" Width="130" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Account Editor (shown when editing) -->
+                    <Border Grid.Row="1" BorderBrush="#DDD" BorderThickness="1" Padding="12"
+                            Visibility="{Binding IsEditingAccount, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel>
+                            <TextBlock Text="Account Settings" FontWeight="Bold" FontSize="14" Margin="0,0,0,8" />
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="120" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="120" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <!-- Row 0: Name & Email -->
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Display Name:" VerticalAlignment="Center" />
+                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding EditAccountName, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,8,4" />
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Email Address:" VerticalAlignment="Center" />
+                                <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding EditEmailAddress, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,0,4" />
+
+                                <!-- Row 1: Account Type -->
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Account Type:" VerticalAlignment="Center" />
+                                <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding MailAccountTypes}"
+                                          SelectedItem="{Binding EditAccountType}" Margin="0,0,8,4"
+                                          Width="150" HorizontalAlignment="Left" />
+
+                                <!-- Row 2: IMAP Server (visible for all IMAP-based types) -->
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="IMAP Server:" VerticalAlignment="Center"
+                                           Visibility="{Binding IsEditImapBased, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <Grid Grid.Row="2" Grid.Column="1" Margin="0,0,8,4"
+                                      Visibility="{Binding IsEditImapBased, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="70" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" Text="{Binding EditImapServer, UpdateSourceTrigger=PropertyChanged}"
+                                             IsReadOnly="{Binding IsPresetProvider}" />
+                                    <TextBlock Grid.Column="1" Text="  Port:" VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="2" Text="{Binding EditImapPort}" Margin="4,0,4,0"
+                                             IsReadOnly="{Binding IsPresetProvider}" />
+                                    <CheckBox Grid.Column="3" Content="SSL" IsChecked="{Binding EditImapUseSsl}" VerticalAlignment="Center"
+                                              IsEnabled="{Binding IsEditImap}" />
+                                </Grid>
+
+
+
+                                <!-- Row 3: SMTP Server -->
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="SMTP Server:" VerticalAlignment="Center"
+                                           Visibility="{Binding IsEditImapBased, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <Grid Grid.Row="3" Grid.Column="1" Margin="0,0,8,4"
+                                      Visibility="{Binding IsEditImapBased, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="70" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" Text="{Binding EditSmtpServer, UpdateSourceTrigger=PropertyChanged}"
+                                             IsReadOnly="{Binding IsPresetProvider}" />
+                                    <TextBlock Grid.Column="1" Text="  Port:" VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="2" Text="{Binding EditSmtpPort}" Margin="4,0,4,0"
+                                             IsReadOnly="{Binding IsPresetProvider}" />
+                                    <CheckBox Grid.Column="3" Content="SSL" IsChecked="{Binding EditSmtpUseSsl}" VerticalAlignment="Center"
+                                              IsEnabled="{Binding IsEditImap}" />
+                                </Grid>
+
+
+                                <!-- Row 4: Username -->
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Username:" VerticalAlignment="Center" />
+                                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding EditUsername, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,8,4" />
+
+                                <!-- Row 4: Password (hidden when OAuth is on) -->
+                                <TextBlock Grid.Row="4" Grid.Column="2" Text="Password:" VerticalAlignment="Center"
+                                           Visibility="{Binding ShowPasswordField, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <PasswordBox Grid.Row="4" Grid.Column="3" x:Name="PasswordBox" Margin="0,0,0,4"
+                                             Visibility="{Binding ShowPasswordField, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                                <!-- Row 5: OAuth toggle -->
+                                <TextBlock Grid.Row="5" Grid.Column="0" Text="Authentication:" VerticalAlignment="Center" />
+                                <StackPanel Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,2,0,4">
+                                    <CheckBox Content="Use OAuth2 browser sign-in (supports MFA)"
+                                              IsChecked="{Binding EditUseOAuth}" VerticalAlignment="Center" />
+                                </StackPanel>
+
+                                <!-- Row 6: OAuth Client ID (visible when OAuth is enabled) -->
+                                <TextBlock Grid.Row="6" Grid.Column="0" Text="OAuth Client ID:" VerticalAlignment="Center"
+                                           Visibility="{Binding ShowOAuthClientId, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <TextBox Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="3"
+                                         Text="{Binding EditClientId, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,0,4"
+                                         Visibility="{Binding ShowOAuthClientId, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                                <!-- Row 7: Provider-specific note -->
+                                <TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="4"
+                                           Text="{Binding ProviderNote}"
+                                           Foreground="Gray" FontStyle="Italic" Margin="0,4,0,4"
+                                           TextWrapping="Wrap"
+                                           Visibility="{Binding ProviderNote, Converter={StaticResource NullToVisibilityConverter}}" />
+
+                                <!-- Row 8: Buttons -->
+                                <StackPanel Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="4"
+                                            Orientation="Horizontal" Margin="0,8,0,0">
+                                    <Button Content="💾 Save Account" Command="{Binding SaveAccountCommand}"
+                                            Background="#FF4CAF50" Foreground="White" Padding="12,4" Margin="0,0,4,0"
+                                            Click="SaveAccount_Click" />
+                                    <Button Content="🔌 Test Connection" Command="{Binding TestConnectionCommand}"
+                                            Background="#FF2196F3" Foreground="White" Padding="12,4" Margin="0,0,4,0"
+                                            Click="TestConnection_Click" />
+                                    <Button Content="Cancel" Command="{Binding CancelEditAccountCommand}"
+                                            Padding="12,4" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <!-- Status Bar -->
+        <Grid Grid.Row="2" Margin="0,4,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="200" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" Foreground="Gray"
+                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+            <ProgressBar Grid.Column="1" Value="{Binding Progress}" Maximum="100" Height="16"
+                         Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}" />
+        </Grid>
+    </Grid>
+</UserControl>

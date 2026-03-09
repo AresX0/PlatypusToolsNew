@@ -511,6 +511,10 @@
                              Visibility="{Binding BulkChecksum, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:BulkChecksumView}" ViewDataContext="{Binding BulkChecksum}" />
                     </TabItem>
+                    <TabItem Header="📧 Mail Client"
+                             Visibility="{Binding MailClient, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:MailClientView}" ViewDataContext="{Binding MailClient}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
         </TabControl>
