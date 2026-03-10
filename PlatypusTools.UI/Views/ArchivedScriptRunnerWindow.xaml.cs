@@ -36,7 +36,19 @@ namespace PlatypusTools.UI.Views
             if (string.IsNullOrWhiteSpace(script)) { OutputBox.Text = "No script selected."; return; }
             var cmd = CmdBox.Text ?? string.Empty;
             if (string.IsNullOrWhiteSpace(cmd)) { OutputBox.Text = "No command entered."; return; }
-            var ps = $". '{script}'; {cmd}";
+
+            // Sanitize: only allow alphanumeric, spaces, hyphens, dots, and common parameter chars
+            // Block semicolons, pipes, ampersands, backticks which enable command chaining
+            var dangerousChars = new[] { ';', '|', '&', '`', '$', '(', ')', '{', '}' };
+            if (cmd.IndexOfAny(dangerousChars) >= 0)
+            {
+                OutputBox.Text = "Error: Command contains disallowed characters (; | & ` $ ( ) { }). Please use only simple commands.";
+                return;
+            }
+
+            // Escape single quotes in path to prevent injection via script path
+            var escapedScript = script.Replace("'", "''");
+            var ps = $". '{escapedScript}'; {cmd}";
             OutputBox.Text = "Running...";
             var res = await PlatypusTools.UI.Services.PowerShellRunner.RunScriptAsync(ps, timeoutMs: 90000);
             OutputBox.Text = res.StdOut + "\n" + res.StdErr + $"\nExitCode: {res.ExitCode}";

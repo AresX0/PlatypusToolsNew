@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Identity.Web;
 using PlatypusTools.Remote.Server.Hubs;
+using PlatypusTools.Remote.Server.Models;
 using PlatypusTools.Remote.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,7 +21,9 @@ if (File.Exists(certPath))
 {
     try
     {
+#pragma warning disable CA2000 // Certificate is intentionally long-lived, used by Kestrel for HTTPS
         var existing = new X509Certificate2(certPath, (string?)null, X509KeyStorageFlags.Exportable);
+#pragma warning restore CA2000
         if (existing.NotAfter > DateTime.UtcNow.AddDays(30))
             serverCert = existing;
         else
@@ -41,7 +44,9 @@ if (serverCert == null)
     san.AddIpAddress(System.Net.IPAddress.IPv6Loopback);
     req.CertificateExtensions.Add(san.Build());
     var tmp = req.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(730));
+#pragma warning disable CA2000 // Certificate is intentionally long-lived, used by Kestrel for HTTPS
     serverCert = new X509Certificate2(tmp.Export(X509ContentType.Pfx), (string?)null, X509KeyStorageFlags.Exportable);
+#pragma warning restore CA2000
     try { File.WriteAllBytes(certPath, serverCert.Export(X509ContentType.Pfx)); } catch { }
 }
 
@@ -91,6 +96,7 @@ builder.Services.AddRateLimiter(options =>
 // Register services
 builder.Services.AddSingleton<IRemoteAudioService, RemoteAudioService>();
 builder.Services.AddSingleton<ISessionManager, SessionManager>();
+builder.Services.AddSingleton<IVaultService, VaultService>();
 
 builder.Services.AddOpenApi();
 
@@ -102,7 +108,7 @@ app.Use(async (context, next) =>
     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
     context.Response.Headers["X-Frame-Options"] = "DENY";
     context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-    context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' wss:;";
+    context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://unpkg.com; style-src 'self' 'unsafe-inline'; connect-src 'self' wss:; media-src 'self' blob:; img-src 'self' data: blob:;";
     
     if (context.Request.IsHttps)
     {
@@ -285,5 +291,79 @@ api.MapDelete("/sessions/{sessionId}", async (string sessionId, ISessionManager 
 
 // Fallback to Blazor client for SPA routing
 app.MapFallbackToFile("index.html");
+
+// Vault API endpoints
+var vault = api.MapGroup("/vault");
+
+vault.MapGet("/status", (IVaultService vaultService) =>
+    Results.Ok(vaultService.GetStatus()))
+    .WithName("VaultStatus");
+
+vault.MapPost("/unlock", (VaultUnlockRequest req, IVaultService vaultService) =>
+{
+    var success = vaultService.Unlock(req.MasterPassword);
+    return success ? Results.Ok(vaultService.GetStatus()) : Results.Unauthorized();
+}).WithName("VaultUnlock");
+
+vault.MapPost("/lock", (IVaultService vaultService) =>
+{
+    vaultService.Lock();
+    return Results.Ok();
+}).WithName("VaultLock");
+
+vault.MapGet("/items", (string? filter, int? type, string? folderId, IVaultService vaultService) =>
+{
+    if (!vaultService.IsUnlocked) return Results.Unauthorized();
+    return Results.Ok(vaultService.GetItems(filter, type, folderId));
+}).WithName("VaultGetItems");
+
+vault.MapGet("/items/{id}", (string id, IVaultService vaultService) =>
+{
+    if (!vaultService.IsUnlocked) return Results.Unauthorized();
+    var item = vaultService.GetItem(id);
+    return item != null ? Results.Ok(item) : Results.NotFound();
+}).WithName("VaultGetItem");
+
+vault.MapPost("/items", (AddVaultItemRequest req, IVaultService vaultService) =>
+{
+    if (!vaultService.IsUnlocked) return Results.Unauthorized();
+    var item = vaultService.AddItem(req);
+    return Results.Ok(item);
+}).WithName("VaultAddItem");
+
+vault.MapDelete("/items/{id}", (string id, IVaultService vaultService) =>
+{
+    if (!vaultService.IsUnlocked) return Results.Unauthorized();
+    return vaultService.DeleteItem(id) ? Results.Ok() : Results.NotFound();
+}).WithName("VaultDeleteItem");
+
+vault.MapGet("/folders", (IVaultService vaultService) =>
+{
+    if (!vaultService.IsUnlocked) return Results.Unauthorized();
+    return Results.Ok(vaultService.GetFolders());
+}).WithName("VaultGetFolders");
+
+vault.MapGet("/authenticator", (IVaultService vaultService) =>
+{
+    if (!vaultService.IsUnlocked) return Results.Unauthorized();
+    return Results.Ok(vaultService.GetAuthenticatorEntries());
+}).WithName("VaultGetAuthenticator");
+
+vault.MapPost("/authenticator", (AddAuthenticatorRequest req, IVaultService vaultService) =>
+{
+    if (!vaultService.IsUnlocked) return Results.Unauthorized();
+    var entry = vaultService.AddAuthenticatorEntry(req);
+    return entry != null ? Results.Ok(entry) : Results.BadRequest("Invalid entry");
+}).WithName("VaultAddAuthenticator");
+
+vault.MapDelete("/authenticator/{id}", (string id, IVaultService vaultService) =>
+{
+    if (!vaultService.IsUnlocked) return Results.Unauthorized();
+    return vaultService.DeleteAuthenticatorEntry(id) ? Results.Ok() : Results.NotFound();
+}).WithName("VaultDeleteAuthenticator");
+
+vault.MapPost("/generate-password", (GeneratePasswordRequest req, IVaultService vaultService) =>
+    Results.Ok(new { password = vaultService.GeneratePassword(req) }))
+    .WithName("VaultGeneratePassword");
 
 app.Run();

@@ -1,6 +1,7 @@
 using PlatypusTools.Core.Models.Mail;
 using PlatypusTools.Core.Services.Mail;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
@@ -86,6 +87,16 @@ namespace PlatypusTools.UI.ViewModels
                 if (param is MailRuleCondition c)
                     EditRuleConditions.Remove(c);
             });
+
+            // Compose commands
+            ComposeCommand = new RelayCommand(_ => StartCompose(), _ => IsConnected && SelectedAccount != null);
+            ReplyCommand = new RelayCommand(_ => StartReply(), _ => IsConnected && SelectedMessage != null);
+            ReplyAllCommand = new RelayCommand(_ => StartReplyAll(), _ => IsConnected && SelectedMessage != null);
+            ForwardCommand = new RelayCommand(_ => StartForward(), _ => IsConnected && SelectedMessage != null);
+            SendCommand = new RelayCommand(async _ => await SendMessageAsync(), _ => IsComposing && !IsBusy && !string.IsNullOrWhiteSpace(ComposeTo));
+            CancelComposeCommand = new RelayCommand(_ => IsComposing = false);
+            AddAttachmentCommand = new RelayCommand(_ => AddComposeAttachment());
+            RemoveAttachmentCommand = new RelayCommand(param => { if (param is string s) ComposeAttachments.Remove(s); });
 
             // Load saved data
             _ = LoadAccountsAsync();
@@ -383,6 +394,37 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand AddConditionCommand { get; }
         public ICommand RemoveConditionCommand { get; }
 
+        // Compose commands
+        public ICommand ComposeCommand { get; }
+        public ICommand ReplyCommand { get; }
+        public ICommand ReplyAllCommand { get; }
+        public ICommand ForwardCommand { get; }
+        public ICommand SendCommand { get; }
+        public ICommand CancelComposeCommand { get; }
+        public ICommand AddAttachmentCommand { get; }
+        public ICommand RemoveAttachmentCommand { get; }
+
+        #endregion
+
+        #region Compose Properties
+
+        private bool _isComposing;
+        public bool IsComposing { get => _isComposing; set => SetProperty(ref _isComposing, value); }
+
+        private string _composeTo = "";
+        public string ComposeTo { get => _composeTo; set => SetProperty(ref _composeTo, value); }
+
+        private string _composeCc = "";
+        public string ComposeCc { get => _composeCc; set => SetProperty(ref _composeCc, value); }
+
+        private string _composeSubject = "";
+        public string ComposeSubject { get => _composeSubject; set => SetProperty(ref _composeSubject, value); }
+
+        private string _composeBody = "";
+        public string ComposeBody { get => _composeBody; set => SetProperty(ref _composeBody, value); }
+
+        public ObservableCollection<string> ComposeAttachments { get; } = new();
+
         #endregion
 
         #region Connection
@@ -418,6 +460,11 @@ namespace PlatypusTools.UI.ViewModels
 
                 await _mailService.ConnectAsync(SelectedAccount, _cts.Token);
                 IsConnected = true;
+
+                // Clear OAuth access token from memory after auth is complete
+                // (the IMAP client has already authenticated; token is no longer needed)
+                if (SelectedAccount.UseOAuth)
+                    SelectedAccount.OAuthAccessToken = "";
 
                 // Load folders
                 var folders = await _mailService.GetFoldersAsync(_cts.Token);
@@ -486,6 +533,10 @@ namespace PlatypusTools.UI.ViewModels
                 await testService.ConnectAsync(account);
                 StatusMessage = "✅ Connection successful!";
                 await testService.DisconnectAsync();
+
+                // Clear OAuth token from memory
+                if (account.UseOAuth)
+                    account.OAuthAccessToken = "";
             }
             catch (Exception ex)
             {
@@ -861,7 +912,10 @@ namespace PlatypusTools.UI.ViewModels
                 var json = JsonSerializer.Serialize(Accounts.ToList(), new JsonSerializerOptions { WriteIndented = true });
                 await File.WriteAllTextAsync(_accountsPath, json);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Failed to save accounts: {ex.Message}";
+            }
         }
 
         private async Task LoadAccountsAsync()
@@ -879,7 +933,10 @@ namespace PlatypusTools.UI.ViewModels
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Failed to load accounts: {ex.Message}";
+            }
         }
 
         #endregion
@@ -978,7 +1035,10 @@ namespace PlatypusTools.UI.ViewModels
                 var json = JsonSerializer.Serialize(Rules.ToList(), new JsonSerializerOptions { WriteIndented = true });
                 await File.WriteAllTextAsync(_rulesPath, json);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Failed to save rules: {ex.Message}";
+            }
         }
 
         private async Task LoadRulesAsync()
@@ -996,7 +1056,118 @@ namespace PlatypusTools.UI.ViewModels
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Failed to load rules: {ex.Message}";
+            }
+        }
+
+        #endregion
+
+        #region Compose / Reply / Forward / Send
+
+        private void ResetComposeFields()
+        {
+            ComposeTo = "";
+            ComposeCc = "";
+            ComposeSubject = "";
+            ComposeBody = "";
+            ComposeAttachments.Clear();
+        }
+
+        private void StartCompose()
+        {
+            ResetComposeFields();
+            IsComposing = true;
+        }
+
+        private void StartReply()
+        {
+            if (SelectedMessage == null) return;
+            ResetComposeFields();
+            ComposeTo = SelectedMessage.From;
+            ComposeSubject = SelectedMessage.Subject.StartsWith("Re:", StringComparison.OrdinalIgnoreCase)
+                ? SelectedMessage.Subject : $"Re: {SelectedMessage.Subject}";
+            ComposeBody = $"\n\n--- Original Message ---\nFrom: {SelectedMessage.From}\nDate: {SelectedMessage.DateUtc.ToLocalTime():g}\nSubject: {SelectedMessage.Subject}\n\n{SelectedMessage.BodyText}";
+            IsComposing = true;
+        }
+
+        private void StartReplyAll()
+        {
+            if (SelectedMessage == null) return;
+            ResetComposeFields();
+            ComposeTo = SelectedMessage.From;
+            // CC includes all original recipients except the sender account
+            var ccs = new List<string>();
+            if (SelectedMessage.To != null && SelectedMessage.To.Count > 0)
+            {
+                foreach (var addr in SelectedMessage.To)
+                {
+                    var trimmed = addr.Trim();
+                    if (!string.IsNullOrEmpty(trimmed) &&
+                        !trimmed.Equals(SelectedAccount?.EmailAddress, StringComparison.OrdinalIgnoreCase))
+                        ccs.Add(trimmed);
+                }
+            }
+            ComposeCc = string.Join("; ", ccs);
+            ComposeSubject = SelectedMessage.Subject.StartsWith("Re:", StringComparison.OrdinalIgnoreCase)
+                ? SelectedMessage.Subject : $"Re: {SelectedMessage.Subject}";
+            ComposeBody = $"\n\n--- Original Message ---\nFrom: {SelectedMessage.From}\nDate: {SelectedMessage.DateUtc.ToLocalTime():g}\nSubject: {SelectedMessage.Subject}\n\n{SelectedMessage.BodyText}";
+            IsComposing = true;
+        }
+
+        private void StartForward()
+        {
+            if (SelectedMessage == null) return;
+            ResetComposeFields();
+            ComposeSubject = SelectedMessage.Subject.StartsWith("Fwd:", StringComparison.OrdinalIgnoreCase)
+                ? SelectedMessage.Subject : $"Fwd: {SelectedMessage.Subject}";
+            ComposeBody = $"\n\n--- Forwarded Message ---\nFrom: {SelectedMessage.From}\nDate: {SelectedMessage.DateUtc.ToLocalTime():g}\nSubject: {SelectedMessage.Subject}\n\n{SelectedMessage.BodyText}";
+            IsComposing = true;
+        }
+
+        private void AddComposeAttachment()
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "Attach File",
+                Multiselect = true,
+                Filter = "All Files (*.*)|*.*"
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                foreach (var file in dlg.FileNames)
+                    ComposeAttachments.Add(file);
+            }
+        }
+
+        private async Task SendMessageAsync()
+        {
+            if (_mailService == null || SelectedAccount == null) return;
+            IsBusy = true;
+            StatusMessage = "Sending...";
+            try
+            {
+                await _mailService.SendMessageAsync(
+                    SelectedAccount,
+                    ComposeTo,
+                    ComposeCc,
+                    ComposeSubject,
+                    ComposeBody,
+                    ComposeAttachments.Count > 0 ? ComposeAttachments.ToList() : null,
+                    _cts?.Token ?? CancellationToken.None);
+                StatusMessage = "Message sent successfully.";
+                IsComposing = false;
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Send failed: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"SendMessageAsync error: {ex}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         #endregion
@@ -1013,7 +1184,10 @@ namespace PlatypusTools.UI.ViewModels
                 account.EncryptedPassword = Convert.ToBase64String(encrypted);
                 account.Password = ""; // Clear plaintext
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"DPAPI encrypt failed: {ex.Message}");
+            }
         }
 
         private static void DecryptPassword(MailAccountConfig account)
@@ -1025,7 +1199,10 @@ namespace PlatypusTools.UI.ViewModels
                 var decrypted = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
                 account.Password = Encoding.UTF8.GetString(decrypted);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"DPAPI decrypt failed: {ex.Message}");
+            }
         }
 
         #endregion
@@ -1097,7 +1274,10 @@ namespace PlatypusTools.UI.ViewModels
                 var encrypted = ProtectedData.Protect(bytes, null, DataProtectionScope.CurrentUser);
                 account.EncryptedRefreshToken = Convert.ToBase64String(encrypted);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"DPAPI encrypt refresh token failed: {ex.Message}");
+            }
         }
 
         private static string DecryptRefreshToken(MailAccountConfig account)
@@ -1109,7 +1289,11 @@ namespace PlatypusTools.UI.ViewModels
                 var decrypted = ProtectedData.Unprotect(encrypted, null, DataProtectionScope.CurrentUser);
                 return Encoding.UTF8.GetString(decrypted);
             }
-            catch { return ""; }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"DPAPI decrypt refresh token failed: {ex.Message}");
+                return "";
+            }
         }
 
         #endregion

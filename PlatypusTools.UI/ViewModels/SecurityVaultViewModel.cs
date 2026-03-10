@@ -1531,6 +1531,23 @@ namespace PlatypusTools.UI.ViewModels
                     }
                     else
                     {
+                        // Warn user that JSON export is unencrypted
+                        var confirm = System.Windows.MessageBox.Show(
+                            "⚠️ WARNING: The JSON export is UNENCRYPTED.\n\n" +
+                            "All passwords, notes, and secrets will be saved in plaintext.\n" +
+                            "Only use this for backup/migration, and delete the file when done.\n\n" +
+                            "For a secure backup, choose the .encrypted format instead.\n\n" +
+                            "Continue with unencrypted export?",
+                            "Unencrypted Export Warning",
+                            System.Windows.MessageBoxButton.YesNo,
+                            System.Windows.MessageBoxImage.Warning);
+
+                        if (confirm != System.Windows.MessageBoxResult.Yes)
+                        {
+                            StatusText = "Export cancelled.";
+                            return;
+                        }
+
                         var json = _vaultService.ExportVaultJson(_vault);
                         await File.WriteAllTextAsync(dlg.FileName, json);
                     }

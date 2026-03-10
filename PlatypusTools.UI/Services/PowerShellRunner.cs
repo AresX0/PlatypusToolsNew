@@ -31,7 +31,10 @@ namespace PlatypusTools.UI.Services
         public static async Task<PowerShellResult> RunScriptAsync(string command, int timeoutMs = 60000)
         {
             var exe = FindPowerShellExe();
-            var psi = new ProcessStartInfo(exe, $"-NoProfile -NonInteractive -Command \"{command}\"")
+            // Use -EncodedCommand with Base64 to prevent command injection
+            // This avoids all quoting/escaping issues with user-provided input
+            var encodedCommand = Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(command));
+            var psi = new ProcessStartInfo(exe, $"-NoProfile -NonInteractive -EncodedCommand {encodedCommand}")
             {
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

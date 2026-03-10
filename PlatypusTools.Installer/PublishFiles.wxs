@@ -14,6 +14,9 @@
       <Component Id="CMP_Azure_Identity_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Azure_Identity_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Azure.Identity.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_BouncyCastle_Cryptography_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_BouncyCastle_Cryptography_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\BouncyCastle.Cryptography.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_clretwrc_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_clretwrc_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\clretwrc.dll" KeyPath="yes" />
       </Component>
@@ -82,6 +85,9 @@
       </Component>
       <Component Id="CMP_LibVLCSharp_WPF_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_LibVLCSharp_WPF_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\LibVLCSharp.WPF.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_MailKit_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_MailKit_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\MailKit.dll" KeyPath="yes" />
       </Component>
       <Component Id="CMP_MetadataExtractor_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_MetadataExtractor_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\MetadataExtractor.dll" KeyPath="yes" />
@@ -598,6 +604,9 @@
       </Component>
       <Component Id="CMP_Microsoft_Windows_SDK_NET_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_Microsoft_Windows_SDK_NET_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Microsoft.Windows.SDK.NET.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_MimeKit_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_MimeKit_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\MimeKit.dll" KeyPath="yes" />
       </Component>
       <Component Id="CMP_mscordaccore_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_mscordaccore_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\mscordaccore.dll" KeyPath="yes" />
@@ -4958,6 +4967,7 @@
       <ComponentRef Id="CMP_aspnetcorev2_inprocess_dll" />
       <ComponentRef Id="CMP_Azure_Core_dll" />
       <ComponentRef Id="CMP_Azure_Identity_dll" />
+      <ComponentRef Id="CMP_BouncyCastle_Cryptography_dll" />
       <ComponentRef Id="CMP_clretwrc_dll" />
       <ComponentRef Id="CMP_clrgc_dll" />
       <ComponentRef Id="CMP_clrgcexp_dll" />
@@ -4981,6 +4991,7 @@
       <ComponentRef Id="CMP_libSkiaSharp_dll" />
       <ComponentRef Id="CMP_LibVLCSharp_dll" />
       <ComponentRef Id="CMP_LibVLCSharp_WPF_dll" />
+      <ComponentRef Id="CMP_MailKit_dll" />
       <ComponentRef Id="CMP_MetadataExtractor_dll" />
       <ComponentRef Id="CMP_Microsoft_AspNetCore_Antiforgery_dll" />
       <ComponentRef Id="CMP_Microsoft_AspNetCore_Authenticat_6DD363DD476F" />
@@ -5153,6 +5164,7 @@
       <ComponentRef Id="CMP_Microsoft_Win32_Registry_dll" />
       <ComponentRef Id="CMP_Microsoft_Win32_SystemEvents_dll" />
       <ComponentRef Id="CMP_Microsoft_Windows_SDK_NET_dll" />
+      <ComponentRef Id="CMP_MimeKit_dll" />
       <ComponentRef Id="CMP_mscordaccore_dll" />
       <ComponentRef Id="CMP_mscordaccore_amd64_amd64_10_0_326_7603_dll" />
       <ComponentRef Id="CMP_mscordbi_dll" />

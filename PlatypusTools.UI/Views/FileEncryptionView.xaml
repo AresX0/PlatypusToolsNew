@@ -1,0 +1,104 @@
+<UserControl x:Class="PlatypusTools.UI.Views.FileEncryptionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="900">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Controls -->
+        <GroupBox Grid.Row="0" Header="🔒 AES-256 File Encryption" Padding="8" Margin="0,0,0,4">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="250" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Password:" VerticalAlignment="Center" Margin="0,0,8,4" FontWeight="SemiBold" />
+                <PasswordBox Grid.Row="0" Grid.Column="1" Margin="0,0,12,4"
+                             ToolTip="Password used for encryption/decryption (AES-256 + PBKDF2)" />
+
+                <TextBlock Grid.Row="0" Grid.Column="2" Text="Output Folder:" VerticalAlignment="Center" Margin="0,0,8,4" />
+                <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="0,0,4,4" ToolTip="Leave blank to output next to originals" />
+                <Button Grid.Row="0" Grid.Column="4" Content="📁" Command="{Binding BrowseOutputCommand}" Padding="8,4" Margin="0,0,0,4" />
+
+                <CheckBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                          IsChecked="{Binding DeleteOriginals}" Content="Delete originals after processing"
+                          Margin="0,0,0,0" ToolTip="⚠️ Warning: permanently deletes source files" />
+            </Grid>
+        </GroupBox>
+
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,4,0,4">
+            <Button Content="➕ Add Files" Command="{Binding AddFilesCommand}"
+                    Background="#FF2196F3" Foreground="White" Padding="12,4" Margin="0,0,4,0" />
+            <Button Content="🗑️ Clear" Command="{Binding ClearListCommand}"
+                    Padding="12,4" Margin="0,0,16,0" />
+            <Button Content="🔐 Encrypt" Command="{Binding EncryptCommand}"
+                    Background="#FF4CAF50" Foreground="White" Padding="16,4" Margin="0,0,4,0"
+                    FontWeight="Bold" />
+            <Button Content="🔓 Decrypt" Command="{Binding DecryptCommand}"
+                    Background="#FF9C27B0" Foreground="White" Padding="16,4" Margin="0,0,4,0"
+                    FontWeight="Bold" />
+            <Button Content="📁 Open Output" Command="{Binding OpenOutputFolderCommand}"
+                    Padding="12,4" />
+        </StackPanel>
+
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch"
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows" />
+
+        <!-- Files DataGrid -->
+        <DataGrid Grid.Row="3" ItemsSource="{Binding Files}" AutoGenerateColumns="False"
+                  IsReadOnly="True" SelectionMode="Single" CanUserAddRows="False"
+                  CanUserDeleteRows="False" GridLinesVisibility="Horizontal"
+                  HeadersVisibility="Column" Margin="0,4,0,0">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="File" Binding="{Binding FileName}" Width="250" />
+                <DataGridTextColumn Header="Path" Binding="{Binding FilePath}" Width="*" MinWidth="200">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                            <Setter Property="ToolTip" Value="{Binding FilePath}" />
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Size" Binding="{Binding Size}" Width="100" />
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120" />
+                <DataGridTemplateColumn Header="Actions" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="✕ Remove" Padding="6,2"
+                                    Command="{Binding DataContext.RemoveFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"
+                                    Background="#FFF44336" Foreground="White" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Progress -->
+        <ProgressBar Grid.Row="4" Height="6" Margin="0,4,0,0"
+                     Value="{Binding Progress}" Maximum="100"
+                     Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+
+        <!-- Status -->
+        <TextBlock Grid.Row="5" Text="{Binding StatusMessage}" Margin="0,4,0,0" Foreground="Gray" />
+    </Grid>
+</UserControl>

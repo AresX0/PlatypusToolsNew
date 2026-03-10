@@ -35,6 +35,9 @@ builder.Services.AddMsalAuthentication(options =>
 // Add SignalR connection service
 builder.Services.AddScoped<PlatypusHubConnection>();
 
+// Add vault API service
+builder.Services.AddScoped<VaultApiService>();
+
 // Add local audio player for streaming mode
 builder.Services.AddScoped<LocalAudioPlayerService>();
 

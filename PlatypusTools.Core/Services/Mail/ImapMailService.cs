@@ -393,6 +393,63 @@ namespace PlatypusTools.Core.Services.Mail
                 throw new InvalidOperationException("Not connected to mail server. Please connect first.");
         }
 
+        public async Task SendMessageAsync(MailAccountConfig account, string to, string cc, string subject, string body, List<string>? attachmentPaths = null, CancellationToken ct = default)
+        {
+            RaiseStatus("Composing message...");
+
+            using var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(account.DisplayName, account.EmailAddress));
+
+            foreach (var addr in to.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                message.To.Add(MailboxAddress.Parse(addr));
+
+            if (!string.IsNullOrWhiteSpace(cc))
+            {
+                foreach (var addr in cc.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                    message.Cc.Add(MailboxAddress.Parse(addr));
+            }
+
+            message.Subject = subject;
+
+            var builder = new BodyBuilder { TextBody = body };
+
+            if (attachmentPaths != null)
+            {
+                foreach (var path in attachmentPaths)
+                {
+                    if (System.IO.File.Exists(path))
+                        builder.Attachments.Add(path);
+                }
+            }
+
+            message.Body = builder.ToMessageBody();
+
+            RaiseStatus($"Connecting to SMTP {account.SmtpServer}:{account.SmtpPort}...");
+
+            using var smtpClient = new MailKit.Net.Smtp.SmtpClient();
+            var sslOptions = account.SmtpUseSsl
+                ? SecureSocketOptions.StartTls
+                : SecureSocketOptions.StartTlsWhenAvailable;
+
+            await smtpClient.ConnectAsync(account.SmtpServer, account.SmtpPort, sslOptions, ct);
+
+            if (account.UseOAuth && !string.IsNullOrEmpty(account.OAuthAccessToken))
+            {
+                var oauth2 = new SaslMechanismOAuth2(account.Username, account.OAuthAccessToken);
+                await smtpClient.AuthenticateAsync(oauth2, ct);
+            }
+            else
+            {
+                await smtpClient.AuthenticateAsync(account.Username, account.Password, ct);
+            }
+
+            RaiseStatus("Sending...");
+            await smtpClient.SendAsync(message, ct);
+            await smtpClient.DisconnectAsync(true, ct);
+
+            RaiseStatus("Message sent successfully");
+        }
+
         public void Dispose()
         {
             if (!_disposed)

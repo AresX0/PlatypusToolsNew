@@ -31,5 +31,10 @@ namespace PlatypusTools.Core.Services.Mail
         /// Search messages in a folder.
         /// </summary>
         Task<List<MailMessageItem>> SearchAsync(string folderPath, string query, CancellationToken ct = default);
+
+        /// <summary>
+        /// Sends an email message via SMTP.
+        /// </summary>
+        Task SendMessageAsync(MailAccountConfig account, string to, string cc, string subject, string body, List<string>? attachmentPaths = null, CancellationToken ct = default);
     }
 }

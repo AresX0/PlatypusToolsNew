@@ -15,15 +15,18 @@ public class PlatypusHub : Hub
 {
     private readonly IRemoteAudioService _audioService;
     private readonly ISessionManager _sessionManager;
+    private readonly IVaultService _vaultService;
     private readonly ILogger<PlatypusHub> _logger;
 
     public PlatypusHub(
         IRemoteAudioService audioService,
         ISessionManager sessionManager,
+        IVaultService vaultService,
         ILogger<PlatypusHub> logger)
     {
         _audioService = audioService;
         _sessionManager = sessionManager;
+        _vaultService = vaultService;
         _logger = logger;
     }
 
@@ -214,6 +217,120 @@ public class PlatypusHub : Hub
         }
         await BroadcastNowPlaying();
         await BroadcastQueue();
+    }
+
+    // ========== Vault Hub Methods ==========
+
+    /// <summary>
+    /// Get vault status (exists, unlocked, item counts)
+    /// </summary>
+    public VaultStatusDto GetVaultStatus()
+    {
+        return _vaultService.GetStatus();
+    }
+
+    /// <summary>
+    /// Unlock vault with master password
+    /// </summary>
+    public VaultStatusDto? UnlockVault(string masterPassword)
+    {
+        var success = _vaultService.Unlock(masterPassword);
+        if (!success)
+        {
+            _logger.LogWarning("Failed vault unlock attempt from {ConnectionId}", Context.ConnectionId);
+            return null;
+        }
+        _logger.LogInformation("Vault unlocked by {ConnectionId}", Context.ConnectionId);
+        return _vaultService.GetStatus();
+    }
+
+    /// <summary>
+    /// Lock vault
+    /// </summary>
+    public void LockVault()
+    {
+        _vaultService.Lock();
+        _logger.LogInformation("Vault locked by {ConnectionId}", Context.ConnectionId);
+    }
+
+    /// <summary>
+    /// Get vault items with optional filtering
+    /// </summary>
+    public List<VaultItemDto>? GetVaultItems(string? filter, int? type, string? folderId)
+    {
+        if (!_vaultService.IsUnlocked) return null;
+        return _vaultService.GetItems(filter, type, folderId);
+    }
+
+    /// <summary>
+    /// Get a single vault item by ID
+    /// </summary>
+    public VaultItemDto? GetVaultItem(string id)
+    {
+        if (!_vaultService.IsUnlocked) return null;
+        return _vaultService.GetItem(id);
+    }
+
+    /// <summary>
+    /// Add a new vault item
+    /// </summary>
+    public VaultItemDto? AddVaultItem(AddVaultItemRequest request)
+    {
+        if (!_vaultService.IsUnlocked) return null;
+        return _vaultService.AddItem(request);
+    }
+
+    /// <summary>
+    /// Delete a vault item by ID
+    /// </summary>
+    public bool DeleteVaultItem(string id)
+    {
+        if (!_vaultService.IsUnlocked) return false;
+        return _vaultService.DeleteItem(id);
+    }
+
+    /// <summary>
+    /// Get vault folders
+    /// </summary>
+    public List<VaultFolderDto>? GetVaultFolders()
+    {
+        if (!_vaultService.IsUnlocked) return null;
+        return _vaultService.GetFolders();
+    }
+
+    /// <summary>
+    /// Get authenticator entries with live TOTP codes
+    /// </summary>
+    public List<AuthenticatorEntryDto>? GetAuthenticatorEntries()
+    {
+        if (!_vaultService.IsUnlocked) return null;
+        return _vaultService.GetAuthenticatorEntries();
+    }
+
+    /// <summary>
+    /// Add authenticator entry from otpauth URI or manual entry
+    /// </summary>
+    public AuthenticatorEntryDto? AddAuthenticatorEntry(AddAuthenticatorRequest request)
+    {
+        if (!_vaultService.IsUnlocked) return null;
+        return _vaultService.AddAuthenticatorEntry(request);
+    }
+
+    /// <summary>
+    /// Delete an authenticator entry
+    /// </summary>
+    public bool DeleteAuthenticatorEntry(string id)
+    {
+        if (!_vaultService.IsUnlocked) return false;
+        return _vaultService.DeleteAuthenticatorEntry(id);
+    }
+
+    /// <summary>
+    /// Generate a random password
+    /// </summary>
+    public string GeneratePassword(GeneratePasswordRequest request)
+    {
+        return _vaultService.GeneratePassword(request);
     }
 
     private async Task BroadcastNowPlaying()

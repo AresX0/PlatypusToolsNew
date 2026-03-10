@@ -323,6 +323,11 @@ namespace PlatypusTools.Core.Services.Mail
                 throw new InvalidOperationException("Not connected to Exchange. Please connect first.");
         }
 
+        public Task SendMessageAsync(MailAccountConfig account, string to, string cc, string subject, string body, List<string>? attachmentPaths = null, CancellationToken ct = default)
+        {
+            throw new NotSupportedException("Exchange Graph API send is not implemented. Use IMAP/SMTP account type instead.");
+        }
+
         public void Dispose()
         {
             if (!_disposed)

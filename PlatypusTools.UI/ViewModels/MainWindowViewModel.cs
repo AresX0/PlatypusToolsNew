@@ -95,6 +95,10 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<MediaHubViewModel> _mediaHub = new(() => new MediaHubViewModel());
         private readonly Lazy<RemoteDesktopViewModel> _remoteDesktop = new(() => new RemoteDesktopViewModel());
         private readonly Lazy<MailClientViewModel> _mailClient = new(() => new MailClientViewModel());
+        private readonly Lazy<SshKeyManagerViewModel> _sshKeyManager = new(() => new SshKeyManagerViewModel());
+        private readonly Lazy<FileEncryptionViewModel> _fileEncryption = new(() => new FileEncryptionViewModel());
+        private readonly Lazy<SystemHardeningViewModel> _systemHardening = new(() => new SystemHardeningViewModel());
+        private readonly Lazy<NetworkTrafficViewModel> _networkTraffic = new(() => new NetworkTrafficViewModel());
         
         #endregion
 
@@ -217,6 +221,10 @@ namespace PlatypusTools.UI.ViewModels
         public MediaHubViewModel MediaHub => _mediaHub.Value;
         public RemoteDesktopViewModel RemoteDesktop => _remoteDesktop.Value;
         public MailClientViewModel MailClient => _mailClient.Value;
+        public SshKeyManagerViewModel SshKeyManager => _sshKeyManager.Value;
+        public FileEncryptionViewModel FileEncryption => _fileEncryption.Value;
+        public SystemHardeningViewModel SystemHardening => _systemHardening.Value;
+        public NetworkTrafficViewModel NetworkTraffic => _networkTraffic.Value;
         
         #endregion
 

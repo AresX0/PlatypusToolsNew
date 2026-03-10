@@ -78,6 +78,15 @@ namespace PlatypusTools.UI.Services.Forensics
             {
                 ReportProgress("Testing OpenSearch connection...");
 
+                // Warn if using HTTP with credentials for remote servers
+                if (!string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password) &&
+                    ServerUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                    !ServerUrl.Contains("localhost", StringComparison.OrdinalIgnoreCase) &&
+                    !ServerUrl.Contains("127.0.0.1"))
+                {
+                    ReportProgress("⚠️ WARNING: Sending credentials over unencrypted HTTP to a remote server. Use HTTPS for production.");
+                }
+
                 ConfigureAuthentication();
                 var response = await _httpClient.GetAsync(ServerUrl, cancellationToken);
 

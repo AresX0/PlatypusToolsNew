@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -257,6 +258,10 @@ namespace PlatypusTools.UI.Services
 
                 // === VALIDATION PASSED — Rename temp file to final name ===
                 File.Move(tempPath, finalPath, overwrite: true);
+
+                // Compute SHA-256 hash for integrity logging
+                var sha256Hash = ComputeFileSha256(finalPath);
+                SimpleLogger.Info($"Update SHA-256: {sha256Hash}");
                 SimpleLogger.Info($"Update validated and saved: {finalPath} ({actualSize:N0} bytes)");
                 return finalPath;
             }
@@ -441,6 +446,9 @@ namespace PlatypusTools.UI.Services
 
                 System.Diagnostics.Process.Start(psi);
 
+                // Clean up stale MSI copies from ProgramData after launching
+                CleanupStaleMsiUpdates();
+
                 if (closeApp)
                 {
                     System.Windows.Application.Current?.Shutdown();
@@ -510,6 +518,50 @@ namespace PlatypusTools.UI.Services
             }
 
             return version;
+        }
+
+        /// <summary>
+        /// Computes the SHA-256 hash of a file for integrity verification.
+        /// </summary>
+        private static string ComputeFileSha256(string filePath)
+        {
+            try
+            {
+                using var stream = File.OpenRead(filePath);
+                var hash = SHA256.HashData(stream);
+                return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error($"Failed to compute SHA-256: {ex.Message}");
+                return "unknown";
+            }
+        }
+
+        /// <summary>
+        /// Cleans up stale MSI copies from the ProgramData update directory.
+        /// These are left behind after the installer launches.
+        /// </summary>
+        private static void CleanupStaleMsiUpdates()
+        {
+            try
+            {
+                var updateDir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                    "PlatypusTools", "Updates");
+                if (Directory.Exists(updateDir))
+                {
+                    foreach (var file in Directory.GetFiles(updateDir, "*.msi"))
+                    {
+                        // Only clean up MSIs older than 1 hour (the active install may still be running)
+                        if ((DateTime.UtcNow - File.GetLastWriteTimeUtc(file)).TotalHours > 1)
+                        {
+                            try { File.Delete(file); } catch { /* best-effort */ }
+                        }
+                    }
+                }
+            }
+            catch { /* Non-critical cleanup */ }
         }
     }
 

@@ -1,0 +1,96 @@
+<UserControl x:Class="PlatypusTools.UI.Views.SshKeyManagerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="900">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Generate Key Controls -->
+        <GroupBox Grid.Row="0" Header="🔑 Generate New SSH Key" Padding="8" Margin="0,0,0,4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="200" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="200" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="Key Name:" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <TextBox Grid.Column="1" Text="{Binding KeyName, UpdateSourceTrigger=PropertyChanged}"
+                         VerticalContentAlignment="Center" Margin="0,0,12,0"
+                         ToolTip="Leave blank for default (id_rsa / id_ed25519)" />
+
+                <TextBlock Grid.Column="2" Text="Passphrase:" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <PasswordBox Grid.Column="3" Margin="0,0,12,0"
+                             ToolTip="Optional passphrase to protect key" />
+
+                <Button Grid.Column="4" Content="🔐 RSA-4096" Command="{Binding GenerateRsaCommand}"
+                        Background="#FF4CAF50" Foreground="White" Padding="12,6" Margin="0,0,4,0" />
+                <Button Grid.Column="5" Content="🔐 Ed25519" Command="{Binding GenerateEd25519Command}"
+                        Background="#FF2196F3" Foreground="White" Padding="12,6" />
+            </Grid>
+        </GroupBox>
+
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,4,0,4">
+            <Button Content="🔄 Refresh" Command="{Binding RefreshCommand}" Padding="12,4" Margin="0,0,4,0" />
+            <Button Content="📁 Open .ssh Folder" Command="{Binding OpenFolderCommand}" Padding="12,4" />
+        </StackPanel>
+
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch"
+                      Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows" />
+
+        <!-- Keys DataGrid -->
+        <DataGrid Grid.Row="3" ItemsSource="{Binding Keys}" AutoGenerateColumns="False"
+                  IsReadOnly="True" SelectionMode="Single" CanUserAddRows="False"
+                  CanUserDeleteRows="False" GridLinesVisibility="Horizontal"
+                  HeadersVisibility="Column" Margin="0,4,0,0">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="150" />
+                <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="80" />
+                <DataGridTextColumn Header="Fingerprint" Binding="{Binding Fingerprint}" Width="*" MinWidth="200">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                            <Setter Property="ToolTip" Value="{Binding Fingerprint}" />
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Created" Binding="{Binding Created, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="140" />
+                <DataGridTemplateColumn Header="Actions" Width="340" MinWidth="340">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="📋 Copy Pub" Padding="8,3" Margin="0,0,4,0"
+                                        Command="{Binding DataContext.CopyPublicKeyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}"
+                                        Background="#FF2196F3" Foreground="White" />
+                                <Button Content="👁️ View" Padding="8,3" Margin="0,0,4,0"
+                                        Command="{Binding DataContext.ViewPublicKeyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" />
+                                <Button Content="🗑️ Delete" Padding="8,3"
+                                        Command="{Binding DataContext.DeleteKeyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}"
+                                        Background="#FFF44336" Foreground="White" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Status Bar -->
+        <TextBlock Grid.Row="4" Text="{Binding StatusMessage}" Margin="0,4,0,0" Foreground="Gray" />
+    </Grid>
+</UserControl>

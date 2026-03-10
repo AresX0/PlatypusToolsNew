@@ -330,10 +330,12 @@
                              Visibility="{Binding WindowsUpdateRepair, Source={x:Static services:TabVisibilityService.Instance}}">
                         <views:WindowsUpdateRepairView />
                     </TabItem>
-                    <TabItem Header="💻 Terminal">
+                    <TabItem Header="💻 Terminal"
+                             Visibility="{Binding Terminal, Source={x:Static services:TabVisibilityService.Instance}}">
                         <views:LocalTerminalView/>
                     </TabItem>
-                    <TabItem Header="📋 Job Queue">
+                    <TabItem Header="📋 Job Queue"
+                             Visibility="{Binding JobQueue, Source={x:Static services:TabVisibilityService.Instance}}">
                         <views:BatchJobQueueView/>
                     </TabItem>
                     <TabItem Header="Scheduled Backup"
@@ -419,6 +421,22 @@
                     <TabItem Header="🔐 Security Vault"
                              Visibility="{Binding SecurityVault, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:SecurityVaultView}" ViewDataContext="{Binding SecurityVault}" />
+                    </TabItem>
+                    <TabItem Header="🔑 SSH Key Manager"
+                             Visibility="{Binding SshKeyManager, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:SshKeyManagerView}" ViewDataContext="{Binding SshKeyManager}" />
+                    </TabItem>
+                    <TabItem Header="🔒 File Encryption"
+                             Visibility="{Binding FileEncryption, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:FileEncryptionView}" ViewDataContext="{Binding FileEncryption}" />
+                    </TabItem>
+                    <TabItem Header="🛡️ System Hardening"
+                             Visibility="{Binding SystemHardening, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:SystemHardeningView}" ViewDataContext="{Binding SystemHardening}" />
+                    </TabItem>
+                    <TabItem Header="📡 Network Traffic"
+                             Visibility="{Binding NetworkTraffic, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:NetworkTrafficView}" ViewDataContext="{Binding NetworkTraffic}" />
                     </TabItem>
                 </TabControl>
             </TabItem>

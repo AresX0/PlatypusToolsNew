@@ -105,6 +105,8 @@ namespace PlatypusTools.UI.Services
         public Visibility ScheduledTasks => GetVisibility("System.ScheduledTasks");
         public Visibility SystemRestore => GetVisibility("System.SystemRestore");
         public Visibility WindowsUpdateRepair => GetVisibility("System.WindowsUpdateRepair");
+        public Visibility Terminal => GetVisibility("System.Terminal");
+        public Visibility JobQueue => GetVisibility("System.JobQueue");
 
         // Security
         public Visibility Security => GetVisibility("Security");
@@ -191,5 +193,11 @@ namespace PlatypusTools.UI.Services
         public Visibility ColorPicker => GetVisibility("Tools.ColorPicker");
         public Visibility BulkChecksum => GetVisibility("Tools.BulkChecksum");
         public Visibility MailClient => GetVisibility("Tools.MailClient");
+
+        // Security - New Features
+        public Visibility SshKeyManager => GetVisibility("Security.SshKeyManager");
+        public Visibility FileEncryption => GetVisibility("Security.FileEncryption");
+        public Visibility SystemHardening => GetVisibility("Security.SystemHardening");
+        public Visibility NetworkTraffic => GetVisibility("Security.NetworkTraffic");
     }
 }

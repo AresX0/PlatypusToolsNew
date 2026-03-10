@@ -32,6 +32,19 @@
                 </Button>
                 <Button Content="Clear All" Command="{Binding ClearHistoryCommand}" MinWidth="80" Margin="0,0,16,0"
                         Background="#FFF44336" Foreground="White" />
+
+                <!-- Auto-Clear Controls -->
+                <Separator Width="1" Margin="0,0,12,0" />
+                <CheckBox Content="Auto-Clear" IsChecked="{Binding AutoClearEnabled}" VerticalAlignment="Center" Margin="0,0,8,0"
+                          ToolTip="Automatically clear clipboard after a set number of seconds" />
+                <TextBox Text="{Binding AutoClearSeconds, UpdateSourceTrigger=PropertyChanged}" Width="40"
+                         VerticalContentAlignment="Center" Margin="0,0,4,0" IsEnabled="{Binding AutoClearEnabled}"
+                         ToolTip="Seconds before auto-clear (min 5)" />
+                <TextBlock Text="sec" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <Button Content="🧹 Clear Now" Command="{Binding ClearClipboardNowCommand}" MinWidth="80" Margin="0,0,8,0"
+                        Background="#FF9C27B0" Foreground="White" ToolTip="Clear clipboard immediately" />
+                <TextBlock Text="{Binding AutoClearCountdown}" VerticalAlignment="Center" Foreground="#FF9800" FontWeight="SemiBold" Margin="0,0,16,0" />
+
                 <TextBlock Text="Search:" VerticalAlignment="Center" Width="55" />
                 <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=300}" Width="200" />
             </WrapPanel>

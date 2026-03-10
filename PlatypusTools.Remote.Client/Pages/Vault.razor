@@ -1,0 +1,783 @@
+@page "/vault"
+@using PlatypusTools.Remote.Client.Models
+@using PlatypusTools.Remote.Client.Services
+@inject VaultApiService VaultApi
+@inject IJSRuntime JS
+@implements IDisposable
+
+<PageTitle>Vault - Platypus Remote</PageTitle>
+
+<div class="vault-container">
+    @if (_loading)
+    {
+        <div class="vault-loading">
+            <div class="vault-loading-spinner"></div>
+            <p>Loading vault...</p>
+        </div>
+    }
+    else if (_status == null || !_status.VaultExists)
+    {
+        <div class="vault-no-vault">
+            <span class="vault-icon-large">🔒</span>
+            <h2>No Vault Found</h2>
+            <p>Create a vault in the PlatypusTools desktop app first, then access it here.</p>
+        </div>
+    }
+    else if (!_status.IsUnlocked)
+    {
+        <!-- Unlock Screen -->
+        <div class="vault-unlock">
+            <span class="vault-icon-large">🔐</span>
+            <h2>Unlock Vault</h2>
+            <p>Enter your master password to access the vault.</p>
+            <div class="vault-unlock-form">
+                <input type="password" class="vault-input" placeholder="Master Password"
+                       @bind="_masterPassword" @bind:event="oninput"
+                       @onkeydown="OnUnlockKeyDown" autofocus />
+                <button class="vault-btn vault-btn-primary" @onclick="UnlockAsync" disabled="@_unlocking">
+                    @if (_unlocking)
+                    {
+                        <span>Unlocking...</span>
+                    }
+                    else
+                    {
+                        <span>🔓 Unlock</span>
+                    }
+                </button>
+            </div>
+            @if (!string.IsNullOrEmpty(_unlockError))
+            {
+                <div class="vault-error">@_unlockError</div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Vault Unlocked -->
+        <div class="vault-header">
+            <div class="vault-tabs">
+                <button class="vault-tab @(_activeTab == "items" ? "active" : "")" @onclick='() => SetTab("items")'>
+                    🔑 Items (@(_status?.ItemCount ?? 0))
+                </button>
+                <button class="vault-tab @(_activeTab == "auth" ? "active" : "")" @onclick='() => SetTab("auth")'>
+                    🔢 Authenticator (@(_status?.AuthenticatorCount ?? 0))
+                </button>
+                <button class="vault-tab @(_activeTab == "generator" ? "active" : "")" @onclick='() => SetTab("generator")'>
+                    🎲 Generator
+                </button>
+            </div>
+            <button class="vault-btn vault-btn-danger vault-btn-sm" @onclick="LockAsync">
+                🔒 Lock
+            </button>
+        </div>
+
+        @if (_activeTab == "items")
+        {
+            <!-- Items Tab -->
+            <div class="vault-search-bar">
+                <input type="text" class="vault-input vault-search" placeholder="🔍 Search vault..."
+                       @bind="_searchFilter" @bind:event="oninput" @bind:after="OnSearchInputChanged" />
+                <div class="vault-filter-chips">
+                    <button class="vault-chip @(_typeFilter == null ? "active" : "")" @onclick="() => SetTypeFilter(null)">All</button>
+                    <button class="vault-chip @(_typeFilter == 1 ? "active" : "")" @onclick="() => SetTypeFilter(1)">🔑 Logins</button>
+                    <button class="vault-chip @(_typeFilter == 2 ? "active" : "")" @onclick="() => SetTypeFilter(2)">💳 Cards</button>
+                    <button class="vault-chip @(_typeFilter == 3 ? "active" : "")" @onclick="() => SetTypeFilter(3)">👤 Identity</button>
+                    <button class="vault-chip @(_typeFilter == 4 ? "active" : "")" @onclick="() => SetTypeFilter(4)">📝 Notes</button>
+                </div>
+            </div>
+
+            @if (_selectedItem != null)
+            {
+                <!-- Item Detail View -->
+                <div class="vault-detail">
+                    <button class="vault-btn vault-btn-ghost" @onclick="DeselectItem">
+                        ← Back to list
+                    </button>
+                    <div class="vault-detail-header">
+                        <span class="vault-detail-icon">@_selectedItem.TypeIcon</span>
+                        <h3>@_selectedItem.Name</h3>
+                    </div>
+
+                    @if (_selectedItem.Type == 1) // Login
+                    {
+                        <div class="vault-field-group">
+                            @if (!string.IsNullOrEmpty(_selectedItem.Username))
+                            {
+                                <div class="vault-field">
+                                    <label>Username</label>
+                                    <div class="vault-field-value">
+                                        <span>@_selectedItem.Username</span>
+                                        <button class="vault-btn-icon" @onclick="() => CopyToClipboard(_selectedItem.Username)">📋</button>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(_selectedItem.Password))
+                            {
+                                <div class="vault-field">
+                                    <label>Password</label>
+                                    <div class="vault-field-value">
+                                        <span class="@(_showPassword ? "" : "vault-masked")">
+                                            @(_showPassword ? _selectedItem.Password : "••••••••••••")
+                                        </span>
+                                        <button class="vault-btn-icon" @onclick="() => _showPassword = !_showPassword">
+                                            @(_showPassword ? "🙈" : "👁️")
+                                        </button>
+                                        <button class="vault-btn-icon" @onclick="() => CopyToClipboard(_selectedItem.Password)">📋</button>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(_selectedItem.Uri))
+                            {
+                                <div class="vault-field">
+                                    <label>Website</label>
+                                    <div class="vault-field-value">
+                                        <a href="@_selectedItem.Uri" target="_blank" rel="noopener">@_selectedItem.Uri</a>
+                                        <button class="vault-btn-icon" @onclick="() => CopyToClipboard(_selectedItem.Uri)">📋</button>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(_selectedItem.TotpCode))
+                            {
+                                <div class="vault-field">
+                                    <label>TOTP Code</label>
+                                    <div class="vault-field-value vault-totp-field">
+                                        <span class="vault-totp-code">@_selectedItem.TotpCode</span>
+                                        <div class="vault-totp-timer">
+                                            <svg viewBox="0 0 36 36" class="vault-totp-ring">
+                                                <path class="vault-totp-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                                <path class="vault-totp-ring-fill" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                      stroke-dasharray="@((_selectedItem.TotpRemaining / 30.0 * 100).ToString("F0")), 100" />
+                                            </svg>
+                                            <span class="vault-totp-seconds">@_selectedItem.TotpRemaining</span>
+                                        </div>
+                                        <button class="vault-btn-icon" @onclick="() => CopyToClipboard(_selectedItem.TotpCode)">📋</button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else if (_selectedItem.Type == 2) // Card
+                    {
+                        <div class="vault-field-group">
+                            @if (!string.IsNullOrEmpty(_selectedItem.CardholderName))
+                            {
+                                <div class="vault-field">
+                                    <label>Cardholder</label>
+                                    <div class="vault-field-value">
+                                        <span>@_selectedItem.CardholderName</span>
+                                        <button class="vault-btn-icon" @onclick="() => CopyToClipboard(_selectedItem.CardholderName)">📋</button>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(_selectedItem.CardNumber))
+                            {
+                                <div class="vault-field">
+                                    <label>Card Number</label>
+                                    <div class="vault-field-value">
+                                        <span class="@(_showPassword ? "" : "vault-masked")">
+                                            @(_showPassword ? _selectedItem.CardNumber : MaskCardNumber(_selectedItem.CardNumber))
+                                        </span>
+                                        <button class="vault-btn-icon" @onclick="() => _showPassword = !_showPassword">
+                                            @(_showPassword ? "🙈" : "👁️")
+                                        </button>
+                                        <button class="vault-btn-icon" @onclick="() => CopyToClipboard(_selectedItem.CardNumber)">📋</button>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(_selectedItem.ExpirationMonth) || !string.IsNullOrEmpty(_selectedItem.ExpirationYear))
+                            {
+                                <div class="vault-field">
+                                    <label>Expiration</label>
+                                    <div class="vault-field-value">
+                                        <span>@_selectedItem.ExpirationMonth/@_selectedItem.ExpirationYear</span>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(_selectedItem.SecurityCode))
+                            {
+                                <div class="vault-field">
+                                    <label>CVV</label>
+                                    <div class="vault-field-value">
+                                        <span class="vault-masked">•••</span>
+                                        <button class="vault-btn-icon" @onclick="() => CopyToClipboard(_selectedItem.SecurityCode)">📋</button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else if (_selectedItem.Type == 3) // Identity
+                    {
+                        <div class="vault-field-group">
+                            @if (!string.IsNullOrEmpty(_selectedItem.FirstName) || !string.IsNullOrEmpty(_selectedItem.LastName))
+                            {
+                                <div class="vault-field">
+                                    <label>Name</label>
+                                    <div class="vault-field-value">
+                                        <span>@_selectedItem.Title @_selectedItem.FirstName @_selectedItem.MiddleName @_selectedItem.LastName</span>
+                                        <button class="vault-btn-icon" @onclick='() => CopyToClipboard($"{_selectedItem.FirstName} {_selectedItem.LastName}")'>📋</button>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(_selectedItem.Email))
+                            {
+                                <div class="vault-field">
+                                    <label>Email</label>
+                                    <div class="vault-field-value">
+                                        <span>@_selectedItem.Email</span>
+                                        <button class="vault-btn-icon" @onclick="() => CopyToClipboard(_selectedItem.Email)">📋</button>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(_selectedItem.Phone))
+                            {
+                                <div class="vault-field">
+                                    <label>Phone</label>
+                                    <div class="vault-field-value">
+                                        <span>@_selectedItem.Phone</span>
+                                        <button class="vault-btn-icon" @onclick="() => CopyToClipboard(_selectedItem.Phone)">📋</button>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(_selectedItem.Company))
+                            {
+                                <div class="vault-field">
+                                    <label>Company</label>
+                                    <div class="vault-field-value">
+                                        <span>@_selectedItem.Company</span>
+                                        <button class="vault-btn-icon" @onclick="() => CopyToClipboard(_selectedItem.Company)">📋</button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(_selectedItem.Notes))
+                    {
+                        <div class="vault-field">
+                            <label>Notes</label>
+                            <div class="vault-field-value vault-notes">
+                                <pre>@_selectedItem.Notes</pre>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="vault-detail-meta">
+                        <span>Created: @_selectedItem.CreatedAt.ToString("g")</span>
+                        <span>Modified: @_selectedItem.ModifiedAt.ToString("g")</span>
+                    </div>
+
+                    <div class="vault-detail-actions">
+                        <button class="vault-btn vault-btn-danger" @onclick="() => DeleteItemAsync(_selectedItem.Id)">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Item List -->
+                @if (_items.Count == 0)
+                {
+                    <div class="vault-empty">
+                        <p>No items found</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="vault-item-list">
+                        @foreach (var item in _items)
+                        {
+                            <div class="vault-item-card" @onclick="() => SelectItemAsync(item.Id)">
+                                <span class="vault-item-icon">@item.TypeIcon</span>
+                                <div class="vault-item-info">
+                                    <span class="vault-item-name">@item.Name</span>
+                                    <span class="vault-item-subtitle">
+                                        @if (item.Type == 1 && !string.IsNullOrEmpty(item.Username))
+                                        {
+                                            @item.Username
+                                        }
+                                        else
+                                        {
+                                            @item.TypeName
+                                        }
+                                    </span>
+                                </div>
+                                <span class="vault-item-chevron">›</span>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        }
+        else if (_activeTab == "auth")
+        {
+            <!-- Authenticator Tab -->
+            <div class="vault-auth-header">
+                <button class="vault-btn vault-btn-primary" @onclick="ShowQrScanner">
+                    📷 Scan QR Code
+                </button>
+                <button class="vault-btn vault-btn-secondary" @onclick="ShowManualEntry">
+                    ✏️ Manual Entry
+                </button>
+            </div>
+
+            @if (_showQrScanner)
+            {
+                <div class="vault-qr-overlay">
+                    <div class="vault-qr-container">
+                        <h3>Scan QR Code</h3>
+                        <div id="qr-reader" class="vault-qr-reader"></div>
+                        @if (!string.IsNullOrEmpty(_qrError))
+                        {
+                            <div class="vault-error">@_qrError</div>
+                        }
+                        <button class="vault-btn vault-btn-ghost" @onclick="HideQrScanner">Cancel</button>
+                    </div>
+                </div>
+            }
+
+            @if (_showManualAuthEntry)
+            {
+                <div class="vault-manual-entry">
+                    <h3>Add Authenticator</h3>
+                    <input type="text" class="vault-input" placeholder="Issuer (e.g., Google)" @bind="_newAuthIssuer" />
+                    <input type="text" class="vault-input" placeholder="Account (e.g., user@example.com)" @bind="_newAuthAccount" />
+                    <input type="text" class="vault-input" placeholder="Secret Key (Base32)" @bind="_newAuthSecret" />
+                    <div class="vault-manual-actions">
+                        <button class="vault-btn vault-btn-primary" @onclick="AddManualAuthEntryAsync">
+                            ✅ Add
+                        </button>
+                        <button class="vault-btn vault-btn-ghost" @onclick="() => _showManualAuthEntry = false">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            }
+
+            @if (_authEntries.Count == 0 && !_showManualAuthEntry)
+            {
+                <div class="vault-empty">
+                    <span class="vault-icon-large">🔢</span>
+                    <p>No authenticator entries. Scan a QR code or add one manually.</p>
+                </div>
+            }
+            else
+            {
+                <div class="vault-auth-list">
+                    @foreach (var entry in _authEntries)
+                    {
+                        <div class="vault-auth-card" @onclick="() => CopyToClipboard(entry.CurrentCode)">
+                            <div class="vault-auth-info">
+                                <span class="vault-auth-issuer">@entry.Issuer</span>
+                                <span class="vault-auth-account">@entry.AccountName</span>
+                            </div>
+                            <div class="vault-auth-code-area">
+                                <span class="vault-auth-code">@FormatCode(entry.CurrentCode)</span>
+                                <div class="vault-totp-timer">
+                                    <svg viewBox="0 0 36 36" class="vault-totp-ring">
+                                        <path class="vault-totp-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        <path class="vault-totp-ring-fill" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                              stroke-dasharray="@((entry.TimeRemaining / 30.0 * 100).ToString("F0")), 100" />
+                                    </svg>
+                                    <span class="vault-totp-seconds">@entry.TimeRemaining</span>
+                                </div>
+                            </div>
+                            <button class="vault-btn-icon vault-auth-delete" @onclick:stopPropagation @onclick="() => DeleteAuthEntryAsync(entry.Id)">
+                                🗑️
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+        }
+        else if (_activeTab == "generator")
+        {
+            <!-- Password Generator Tab -->
+            <div class="vault-generator">
+                <div class="vault-generated-password">
+                    <span class="vault-gen-text">@(_generatedPassword ?? "Click Generate")</span>
+                    @if (!string.IsNullOrEmpty(_generatedPassword))
+                    {
+                        <button class="vault-btn-icon" @onclick="() => CopyToClipboard(_generatedPassword)">📋</button>
+                    }
+                </div>
+
+                <div class="vault-gen-options">
+                    <div class="vault-gen-slider">
+                        <label>Length: @_genLength</label>
+                        <input type="range" min="8" max="64" @bind="_genLength" @bind:event="oninput" />
+                    </div>
+                    <label class="vault-gen-check">
+                        <input type="checkbox" @bind="_genUppercase" /> Uppercase (A-Z)
+                    </label>
+                    <label class="vault-gen-check">
+                        <input type="checkbox" @bind="_genLowercase" /> Lowercase (a-z)
+                    </label>
+                    <label class="vault-gen-check">
+                        <input type="checkbox" @bind="_genDigits" /> Digits (0-9)
+                    </label>
+                    <label class="vault-gen-check">
+                        <input type="checkbox" @bind="_genSpecial" /> Special (!@@#$%...)
+                    </label>
+                </div>
+
+                <button class="vault-btn vault-btn-primary vault-btn-full" @onclick="GeneratePasswordAsync">
+                    🎲 Generate Password
+                </button>
+            </div>
+        }
+    }
+
+    @if (!string.IsNullOrEmpty(_copyNotification))
+    {
+        <div class="vault-toast">✅ @_copyNotification</div>
+    }
+</div>
+
+@code {
+    // State
+    private bool _loading = true;
+    private VaultStatusDto? _status;
+    private string _masterPassword = string.Empty;
+    private bool _unlocking;
+    private string? _unlockError;
+    private string _activeTab = "items";
+
+    // Items
+    private List<VaultItemDto> _items = new();
+    private VaultItemDto? _selectedItem;
+    private string _searchFilter = string.Empty;
+    private int? _typeFilter;
+    private bool _showPassword;
+
+    // Authenticator
+    private List<AuthenticatorEntryDto> _authEntries = new();
+    private bool _showQrScanner;
+    private bool _showManualAuthEntry;
+    private string _newAuthIssuer = string.Empty;
+    private string _newAuthAccount = string.Empty;
+    private string _newAuthSecret = string.Empty;
+    private string? _qrError;
+    private DotNetObjectReference<Vault>? _dotNetRef;
+
+    // Generator
+    private string? _generatedPassword;
+    private int _genLength = 20;
+    private bool _genUppercase = true;
+    private bool _genLowercase = true;
+    private bool _genDigits = true;
+    private bool _genSpecial = true;
+
+    // UI
+    private string? _copyNotification;
+    private System.Threading.Timer? _totpTimer;
+    private System.Threading.Timer? _toastTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _dotNetRef = DotNetObjectReference.Create(this);
+        _status = await VaultApi.GetStatusAsync();
+        _loading = false;
+
+        if (_status?.IsUnlocked == true)
+        {
+            await LoadItemsAsync();
+            await LoadAuthEntriesAsync();
+            StartTotpTimer();
+        }
+    }
+
+    private async Task UnlockAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_masterPassword)) return;
+
+        _unlocking = true;
+        _unlockError = null;
+        StateHasChanged();
+
+        var (success, error) = await VaultApi.UnlockAsync(_masterPassword);
+        if (success)
+        {
+            _status = VaultApi.CurrentStatus;
+            _masterPassword = string.Empty;
+            await LoadItemsAsync();
+            await LoadAuthEntriesAsync();
+            StartTotpTimer();
+        }
+        else
+        {
+            _unlockError = error ?? "Invalid master password";
+        }
+
+        _unlocking = false;
+    }
+
+    private async Task LockAsync()
+    {
+        await VaultApi.LockAsync();
+        _status = VaultApi.CurrentStatus;
+        _items.Clear();
+        _authEntries.Clear();
+        _selectedItem = null;
+        _totpTimer?.Dispose();
+        _totpTimer = null;
+    }
+
+    private async Task LoadItemsAsync()
+    {
+        _items = await VaultApi.GetItemsAsync(_searchFilter, _typeFilter);
+    }
+
+    private async Task LoadAuthEntriesAsync()
+    {
+        _authEntries = await VaultApi.GetAuthenticatorEntriesAsync();
+    }
+
+    private void SetTab(string tab)
+    {
+        _activeTab = tab;
+        _selectedItem = null;
+    }
+
+    private async Task OnSearchInputChanged()
+    {
+        await LoadItemsAsync();
+    }
+
+    private async void SetTypeFilter(int? type)
+    {
+        _typeFilter = type;
+        await LoadItemsAsync();
+        StateHasChanged();
+    }
+
+    private async Task SelectItemAsync(string id)
+    {
+        _selectedItem = await VaultApi.GetItemAsync(id);
+        _showPassword = false;
+    }
+
+    private void DeselectItem()
+    {
+        _selectedItem = null;
+        _showPassword = false;
+    }
+
+    private async Task DeleteItemAsync(string id)
+    {
+        if (await VaultApi.DeleteItemAsync(id))
+        {
+            _selectedItem = null;
+            await LoadItemsAsync();
+            _status = await VaultApi.GetStatusAsync();
+        }
+    }
+
+    // QR Scanner
+    private async void ShowQrScanner()
+    {
+        _showQrScanner = true;
+        _qrError = null;
+        StateHasChanged();
+
+        // Wait for DOM to render the qr-reader element
+        await Task.Delay(100);
+        try
+        {
+            var initialized = await JS.InvokeAsync<bool>("QrScanner.init", "qr-reader", _dotNetRef);
+            if (initialized)
+            {
+                await JS.InvokeAsync<bool>("QrScanner.start");
+            }
+            else
+            {
+                _qrError = "Failed to initialize camera";
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            _qrError = $"Camera error: {ex.Message}";
+            StateHasChanged();
+        }
+    }
+
+    private async void HideQrScanner()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("QrScanner.stop");
+        }
+        catch { }
+        _showQrScanner = false;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnQrCodeScanned(string decodedText)
+    {
+        if (decodedText.StartsWith("otpauth://", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("QrScanner.stop");
+            }
+            catch { }
+
+            _showQrScanner = false;
+
+            var entry = await VaultApi.AddAuthenticatorEntryAsync(new AddAuthenticatorRequest
+            {
+                OtpAuthUri = decodedText
+            });
+
+            if (entry != null)
+            {
+                await LoadAuthEntriesAsync();
+                _status = await VaultApi.GetStatusAsync();
+                ShowToast("Authenticator entry added!");
+            }
+            else
+            {
+                ShowToast("Failed to add entry");
+            }
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public void OnQrScanError(string error)
+    {
+        _qrError = error;
+        StateHasChanged();
+    }
+
+    // Manual auth entry
+    private void ShowManualEntry()
+    {
+        _showManualAuthEntry = true;
+        _newAuthIssuer = string.Empty;
+        _newAuthAccount = string.Empty;
+        _newAuthSecret = string.Empty;
+    }
+
+    private async Task AddManualAuthEntryAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newAuthSecret)) return;
+
+        var entry = await VaultApi.AddAuthenticatorEntryAsync(new AddAuthenticatorRequest
+        {
+            Issuer = _newAuthIssuer,
+            AccountName = _newAuthAccount,
+            Secret = _newAuthSecret
+        });
+
+        if (entry != null)
+        {
+            await LoadAuthEntriesAsync();
+            _status = await VaultApi.GetStatusAsync();
+            _showManualAuthEntry = false;
+            ShowToast("Authenticator entry added!");
+        }
+    }
+
+    private async Task DeleteAuthEntryAsync(string id)
+    {
+        if (await VaultApi.DeleteAuthenticatorEntryAsync(id))
+        {
+            await LoadAuthEntriesAsync();
+            _status = await VaultApi.GetStatusAsync();
+        }
+    }
+
+    // Password Generator
+    private async Task GeneratePasswordAsync()
+    {
+        _generatedPassword = await VaultApi.GeneratePasswordAsync(new GeneratePasswordRequest
+        {
+            Length = _genLength,
+            IncludeUppercase = _genUppercase,
+            IncludeLowercase = _genLowercase,
+            IncludeDigits = _genDigits,
+            IncludeSpecial = _genSpecial
+        });
+    }
+
+    // TOTP Timer
+    private void StartTotpTimer()
+    {
+        _totpTimer = new System.Threading.Timer(async _ =>
+        {
+            if (_activeTab == "auth" && _authEntries.Count > 0)
+            {
+                await InvokeAsync(async () =>
+                {
+                    await LoadAuthEntriesAsync();
+                    StateHasChanged();
+                });
+            }
+            // Also refresh selected item if it has TOTP
+            if (_selectedItem?.TotpCode != null)
+            {
+                await InvokeAsync(async () =>
+                {
+                    _selectedItem = await VaultApi.GetItemAsync(_selectedItem.Id);
+                    StateHasChanged();
+                });
+            }
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    }
+
+    // Helpers
+    private async Task CopyToClipboard(string? text)
+    {
+        if (string.IsNullOrEmpty(text)) return;
+        try
+        {
+            await JS.InvokeAsync<bool>("VaultClipboard.copyText", text);
+            ShowToast("Copied!");
+        }
+        catch { }
+    }
+
+    private void ShowToast(string message)
+    {
+        _copyNotification = message;
+        StateHasChanged();
+        _toastTimer?.Dispose();
+        _toastTimer = new System.Threading.Timer(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                _copyNotification = null;
+                StateHasChanged();
+            });
+        }, null, 2000, Timeout.Infinite);
+    }
+
+    private async Task OnUnlockKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await UnlockAsync();
+        }
+    }
+
+    private static string FormatCode(string code) =>
+        code.Length == 6 ? $"{code[..3]} {code[3..]}" : code;
+
+    private static string MaskCardNumber(string number) =>
+        number.Length >= 4 ? $"•••• •••• •••• {number[^4..]}" : "••••";
+
+    public void Dispose()
+    {
+        _totpTimer?.Dispose();
+        _toastTimer?.Dispose();
+        try
+        {
+            _ = JS.InvokeVoidAsync("QrScanner.dispose");
+        }
+        catch { }
+        _dotNetRef?.Dispose();
+    }
+}

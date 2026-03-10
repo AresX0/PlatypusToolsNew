@@ -23,6 +23,11 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0" Text="Account:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="Bold" />
@@ -41,6 +46,17 @@
                     Background="#FF2196F3" Foreground="White" Padding="12,4" Margin="0,0,4,0" />
             <Button Grid.Column="6" Content="🗑️ Remove" Command="{Binding RemoveAccountCommand}"
                     Background="#FFF44336" Foreground="White" Padding="12,4" />
+
+            <!-- Compose Buttons -->
+            <Button Grid.Column="8" Content="✏️ Compose" Command="{Binding ComposeCommand}"
+                    Background="#FF9C27B0" Foreground="White" Padding="12,4" Margin="0,0,4,0"
+                    ToolTip="New message" />
+            <Button Grid.Column="9" Content="↩️ Reply" Command="{Binding ReplyCommand}"
+                    Padding="12,4" Margin="0,0,4,0" ToolTip="Reply to sender" />
+            <Button Grid.Column="10" Content="↩️ Reply All" Command="{Binding ReplyAllCommand}"
+                    Padding="12,4" Margin="0,0,4,0" ToolTip="Reply to all" />
+            <Button Grid.Column="11" Content="➡️ Forward" Command="{Binding ForwardCommand}"
+                    Padding="12,4" ToolTip="Forward message" />
         </Grid>
 
         <!-- Main Content -->
@@ -250,6 +266,87 @@
                                            HorizontalAlignment="Center" VerticalAlignment="Center"
                                            Foreground="Gray" FontSize="14"
                                            Visibility="{Binding FullMessage, Converter={StaticResource InverseNullToVisibilityConverter}, FallbackValue=Visible}" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Compose Panel (overlays reading pane when composing) -->
+                        <Border Grid.Row="3" BorderBrush="#9C27B0" BorderThickness="2" Background="White" Margin="4,0,0,0"
+                                Visibility="{Binding IsComposing, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
+                            <Grid Margin="8">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <!-- To -->
+                                <Grid Grid.Row="0" Margin="0,0,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="70" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="To:" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="1" Text="{Binding ComposeTo, UpdateSourceTrigger=PropertyChanged}" />
+                                </Grid>
+
+                                <!-- CC -->
+                                <Grid Grid.Row="1" Margin="0,0,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="70" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="CC:" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="1" Text="{Binding ComposeCc, UpdateSourceTrigger=PropertyChanged}" />
+                                </Grid>
+
+                                <!-- Subject -->
+                                <Grid Grid.Row="2" Margin="0,0,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="70" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Subject:" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="1" Text="{Binding ComposeSubject, UpdateSourceTrigger=PropertyChanged}" />
+                                </Grid>
+
+                                <!-- Attachments -->
+                                <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,4">
+                                    <Button Content="📎 Attach" Command="{Binding AddAttachmentCommand}" Padding="8,3" Margin="0,0,8,0" />
+                                    <ItemsControl ItemsSource="{Binding ComposeAttachments}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,6,0">
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center" Margin="0,0,2,0"
+                                                               TextTrimming="CharacterEllipsis" MaxWidth="200"
+                                                               ToolTip="{Binding}" />
+                                                    <Button Content="✕" Padding="4,1" FontSize="10"
+                                                            Command="{Binding DataContext.RemoveAttachmentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}" Background="#FFF44336" Foreground="White" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+
+                                <!-- Body -->
+                                <TextBox Grid.Row="4" Text="{Binding ComposeBody, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True" TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto" FontFamily="Segoe UI" />
+
+                                <!-- Buttons -->
+                                <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                                    <Button Content="📤 Send" Command="{Binding SendCommand}"
+                                            Background="#FF4CAF50" Foreground="White" Padding="16,6" Margin="0,0,8,0"
+                                            FontWeight="Bold" />
+                                    <Button Content="Cancel" Command="{Binding CancelComposeCommand}"
+                                            Padding="16,6" />
+                                </StackPanel>
                             </Grid>
                         </Border>
                     </Grid>
