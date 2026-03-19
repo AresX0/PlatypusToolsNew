@@ -544,6 +544,11 @@
         <Setter Property="GridLinesVisibility" Value="None" />
     </Style>
 
+    <!-- DataGridRow -->
+    <Style TargetType="DataGridRow">
+        <Setter Property="MinHeight" Value="28" />
+    </Style>
+
     <!-- DataGridCell -->
     <Style TargetType="DataGridCell">
         <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}" />

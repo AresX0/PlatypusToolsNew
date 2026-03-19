@@ -576,6 +576,7 @@
 
     <!-- DataGridRow - Critical for preventing white bands -->
     <Style TargetType="DataGridRow">
+        <Setter Property="MinHeight" Value="28" />
         <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}" />
         <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}" />
         <Setter Property="BorderBrush" Value="Transparent" />

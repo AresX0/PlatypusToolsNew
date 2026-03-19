@@ -95,6 +95,11 @@
                     <!-- Global Font Settings (can be overridden by user preferences) -->
                     <sys:Double x:Key="GlobalFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">12</sys:Double>
                     
+                    <!-- Global DataGrid row minimum height for emoji/icon rendering -->
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="MinHeight" Value="28" />
+                    </Style>
+                    
                     <!-- Converters — must be inside MergedDictionary to avoid .NET 10 BAML
                          offset collision that causes BooleanToVisibilityConverter to be cast as Style -->
                     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />

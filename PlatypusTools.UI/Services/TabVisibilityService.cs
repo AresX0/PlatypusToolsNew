@@ -194,6 +194,9 @@ namespace PlatypusTools.UI.Services
         public Visibility BulkChecksum => GetVisibility("Tools.BulkChecksum");
         public Visibility MailClient => GetVisibility("Tools.MailClient");
 
+        // Tools - Text Editor
+        public Visibility TextEditor => GetVisibility("Tools.TextEditor");
+
         // Security - New Features
         public Visibility SshKeyManager => GetVisibility("Security.SshKeyManager");
         public Visibility FileEncryption => GetVisibility("Security.FileEncryption");

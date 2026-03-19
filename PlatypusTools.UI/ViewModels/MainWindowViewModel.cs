@@ -99,6 +99,7 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<FileEncryptionViewModel> _fileEncryption = new(() => new FileEncryptionViewModel());
         private readonly Lazy<SystemHardeningViewModel> _systemHardening = new(() => new SystemHardeningViewModel());
         private readonly Lazy<NetworkTrafficViewModel> _networkTraffic = new(() => new NetworkTrafficViewModel());
+        private readonly Lazy<TextEditorViewModel> _textEditor = new(() => new TextEditorViewModel());
         
         #endregion
 
@@ -225,6 +226,7 @@ namespace PlatypusTools.UI.ViewModels
         public FileEncryptionViewModel FileEncryption => _fileEncryption.Value;
         public SystemHardeningViewModel SystemHardening => _systemHardening.Value;
         public NetworkTrafficViewModel NetworkTraffic => _networkTraffic.Value;
+        public TextEditorViewModel TextEditor => _textEditor.Value;
         
         #endregion
 

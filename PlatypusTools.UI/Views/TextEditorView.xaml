@@ -1,0 +1,212 @@
+<UserControl x:Class="PlatypusTools.UI.Views.TextEditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:PlatypusTools.UI.Views"
+             mc:Ignorable="d" d:DesignHeight="700" d:DesignWidth="1200">
+    <UserControl.Resources>
+        <local:BoolToTextWrappingConverter x:Key="BoolToTextWrappingConverter" />
+        <local:NotNullToBoolConverter x:Key="NotNullToBoolConverter" />
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Gesture="Ctrl+N" Command="{Binding NewFileCommand}" />
+        <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenFileCommand}" />
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveFileCommand}" />
+        <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding SaveAllCommand}" />
+        <KeyBinding Gesture="Ctrl+F" Command="{Binding ToggleFindPanelCommand}" />
+        <KeyBinding Gesture="Ctrl+H" Command="{Binding ToggleFindPanelCommand}" />
+        <KeyBinding Gesture="Ctrl+G" Command="{Binding GoToLineCommand}" />
+        <KeyBinding Gesture="Ctrl+W" Command="{Binding CloseActiveTabCommand}" />
+        <KeyBinding Gesture="Ctrl+OemPlus" Command="{Binding IncreaseFontSizeCommand}" />
+        <KeyBinding Gesture="Ctrl+OemMinus" Command="{Binding DecreaseFontSizeCommand}" />
+        <KeyBinding Gesture="F3" Command="{Binding FindNextCommand}" />
+        <KeyBinding Gesture="Shift+F3" Command="{Binding FindPreviousCommand}" />
+    </UserControl.InputBindings>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <ToolBarTray Grid.Row="0">
+            <ToolBar Band="0" BandIndex="0">
+                <Button Content="📄 New" Command="{Binding NewFileCommand}" ToolTip="New File (Ctrl+N)" Padding="6,2" />
+                <Button Content="📂 Open" Command="{Binding OpenFileCommand}" ToolTip="Open File (Ctrl+O)" Padding="6,2" />
+                <Button Content="💾 Save" Command="{Binding SaveFileCommand}" ToolTip="Save (Ctrl+S)" Padding="6,2" />
+                <Button Content="💾 Save All" Command="{Binding SaveAllCommand}" ToolTip="Save All (Ctrl+Shift+S)" Padding="6,2" />
+                <Separator />
+                <Button Content="🔍 Find" Command="{Binding ToggleFindPanelCommand}" ToolTip="Find/Replace (Ctrl+F)" Padding="6,2" />
+                <Button Content="↕ Go To" Command="{Binding GoToLineCommand}" ToolTip="Go to Line (Ctrl+G)" Padding="6,2" />
+                <Separator />
+                <ToggleButton Content="↩ Wrap" IsChecked="{Binding WordWrap}" ToolTip="Toggle Word Wrap" Padding="6,2" />
+                <ToggleButton Content="¶ WhiteSpace" IsChecked="{Binding ShowWhitespace}" ToolTip="Show Whitespace" Padding="6,2" />
+                <ToggleButton Content="# Lines" IsChecked="{Binding ShowLineNumbers}" ToolTip="Show Line Numbers" Padding="6,2" />
+                <Separator />
+                <Button Content="A+" Command="{Binding IncreaseFontSizeCommand}" ToolTip="Increase Font (Ctrl+Plus)" Padding="6,2" />
+                <Button Content="A-" Command="{Binding DecreaseFontSizeCommand}" ToolTip="Decrease Font (Ctrl+Minus)" Padding="6,2" />
+                <Separator />
+                <ComboBox x:Name="EncodingCombo" Width="120" ToolTip="File Encoding" SelectedIndex="0"
+                          SelectionChanged="OnEncodingChanged">
+                    <ComboBoxItem Content="UTF-8" />
+                    <ComboBoxItem Content="UTF-8 BOM" />
+                    <ComboBoxItem Content="ASCII" />
+                    <ComboBoxItem Content="UTF-16 LE" />
+                    <ComboBoxItem Content="UTF-16 BE" />
+                    <ComboBoxItem Content="Windows-1252" />
+                </ComboBox>
+            </ToolBar>
+        </ToolBarTray>
+
+        <!-- Find/Replace Panel -->
+        <Border Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+                BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="0,0,0,1"
+                Padding="8,4" 
+                Visibility="{Binding ShowFindPanel, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,2">
+                    <TextBlock Text="Find:" VerticalAlignment="Center" Width="60" />
+                    <TextBox x:Name="SearchTextBox" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             Width="300" Margin="0,0,4,0" />
+                    <Button Content="▼ Next" Command="{Binding FindNextCommand}" Width="70" Margin="2,0" 
+                            Background="#FF2196F3" Foreground="White" />
+                    <Button Content="▲ Prev" Command="{Binding FindPreviousCommand}" Width="70" Margin="2,0"
+                            Background="#FF2196F3" Foreground="White" />
+                    <Separator Margin="4,0" />
+                    <CheckBox Content="Match Case" IsChecked="{Binding MatchCase}" VerticalAlignment="Center" Margin="4,0" />
+                    <CheckBox Content="Whole Word" IsChecked="{Binding WholeWord}" VerticalAlignment="Center" Margin="4,0" />
+                    <CheckBox Content="Regex" IsChecked="{Binding UseRegex}" VerticalAlignment="Center" Margin="4,0" />
+                    <TextBlock VerticalAlignment="Center" Margin="8,0,0,0">
+                        <Run Text="{Binding MatchCount, Mode=OneWay}" />
+                        <Run Text=" matches" />
+                    </TextBlock>
+                    <ToggleButton Content="Replace ▾" IsChecked="{Binding ShowReplaceRow}" Margin="8,0,0,0"
+                                  Padding="6,2" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,2"
+                            Visibility="{Binding ShowReplaceRow, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
+                    <TextBlock Text="Replace:" VerticalAlignment="Center" Width="60" />
+                    <TextBox Text="{Binding ReplaceText, UpdateSourceTrigger=PropertyChanged}"
+                             Width="300" Margin="0,0,4,0" />
+                    <Button Content="Replace" Command="{Binding ReplaceNextCommand}" Width="70" Margin="2,0"
+                            Background="#FF4CAF50" Foreground="White" />
+                    <Button Content="Replace All" Command="{Binding ReplaceAllCommand}" Width="85" Margin="2,0"
+                            Background="#FFFF9800" Foreground="White" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Tab Strip for open documents -->
+        <Border Grid.Row="2" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+                BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="0,0,0,1">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Documents}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border x:Name="TabBorder" Padding="8,4" Margin="1,2,1,0" Cursor="Hand"
+                                    BorderThickness="1,1,1,0" CornerRadius="4,4,0,0"
+                                    BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+                                    Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
+                                    MouseLeftButtonDown="OnTabClick">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding TabHeader}" VerticalAlignment="Center" Margin="0,0,6,0"
+                                               ToolTip="{Binding FilePath}" />
+                                    <Button Content="✕" Padding="2,0" FontSize="10" VerticalAlignment="Center"
+                                            Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                            Click="OnCloseTabClick" Tag="{Binding}"
+                                            ToolTip="Close Tab" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Main Editor Area -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Line Numbers Gutter -->
+            <Border Grid.Column="0" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+                    BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="0,0,1,0"
+                    Padding="4,0"
+                    Visibility="{Binding ShowLineNumbers, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <TextBlock x:Name="LineNumbersBlock" FontFamily="Consolas" FontSize="{Binding FontSize}"
+                           Foreground="Gray" TextAlignment="Right" Padding="4,4,8,0" MinWidth="40" />
+            </Border>
+
+            <!-- Text Editor -->
+            <TextBox x:Name="EditorTextBox" Grid.Column="1"
+                     Text="{Binding ActiveDocument.Content, UpdateSourceTrigger=PropertyChanged}"
+                     FontFamily="Consolas" FontSize="{Binding FontSize}"
+                     AcceptsReturn="True" AcceptsTab="True"
+                     TextWrapping="{Binding WordWrap, Converter={StaticResource BoolToTextWrappingConverter}, FallbackValue=NoWrap}"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Auto"
+                     SpellCheck.IsEnabled="False"
+                     IsInactiveSelectionHighlightEnabled="True"
+                     Padding="4"
+                     AllowDrop="True"
+                     Drop="OnFileDrop" DragOver="OnDragOver"
+                     SelectionChanged="OnSelectionChanged"
+                     TextChanged="OnTextChanged"
+                     IsEnabled="{Binding ActiveDocument, Converter={StaticResource NotNullToBoolConverter}, FallbackValue=False}" />
+        </Grid>
+
+        <!-- Status Bar -->
+        <StatusBar Grid.Row="4">
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusMessage}" />
+            </StatusBarItem>
+            <Separator />
+            <StatusBarItem>
+                <TextBlock>
+                    <Run Text="Ln " />
+                    <Run Text="{Binding ActiveDocument.CaretLine, Mode=OneWay, FallbackValue=1}" />
+                    <Run Text=", Col " />
+                    <Run Text="{Binding ActiveDocument.CaretColumn, Mode=OneWay, FallbackValue=1}" />
+                </TextBlock>
+            </StatusBarItem>
+            <Separator />
+            <StatusBarItem>
+                <TextBlock>
+                    <Run Text="{Binding ActiveDocument.LineCount, Mode=OneWay, FallbackValue=0}" />
+                    <Run Text=" lines" />
+                </TextBlock>
+            </StatusBarItem>
+            <Separator />
+            <StatusBarItem>
+                <TextBlock>
+                    <Run Text="{Binding ActiveDocument.CharCount, Mode=OneWay, FallbackValue=0}" />
+                    <Run Text=" chars" />
+                </TextBlock>
+            </StatusBarItem>
+            <Separator />
+            <StatusBarItem>
+                <TextBlock Text="{Binding ActiveDocument.Language, FallbackValue='Plain Text'}" />
+            </StatusBarItem>
+            <Separator />
+            <StatusBarItem HorizontalAlignment="Right">
+                <TextBlock>
+                    <Run Text="Font: " />
+                    <Run Text="{Binding FontSize, Mode=OneWay}" />
+                    <Run Text="px" />
+                </TextBlock>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</UserControl>

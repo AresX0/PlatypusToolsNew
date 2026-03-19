@@ -162,6 +162,214 @@
                     </GroupBox>
                 </Grid>
             </TabItem>
+
+            <!-- Port Scanner Tab -->
+            <TabItem Header="Port Scanner">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="*" MinHeight="100" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <TextBlock VerticalAlignment="Center" Width="80">Target Host:</TextBlock>
+                            <TextBox x:Name="PortScanHostTextBox" Width="250" Text="{Binding PortScanHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
+                            <TextBlock VerticalAlignment="Center" Width="75">Port Range:</TextBlock>
+                            <TextBox Width="120" Text="{Binding PortRange, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" ToolTip="e.g., 1-1024 or 80-443" />
+                            <TextBlock VerticalAlignment="Center" Width="80">Timeout (ms):</TextBlock>
+                            <TextBox Width="60" Text="{Binding PortScanTimeout, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <Button Content="🔍 Scan Ports" Click="OnPortScanClick" MinWidth="130" FontWeight="Bold" Background="#FF2196F3" Foreground="White" Margin="0,0,8,0" />
+                            <Button Content="⛔ Cancel" Click="OnCancelPortScanClick" MinWidth="100" Background="#FFF44336" Foreground="White" Margin="0,0,8,0" />
+                            <CheckBox Content="Show Open Ports Only" IsChecked="{Binding ShowOpenOnly}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                            <ProgressBar Width="200" Height="18" Value="{Binding PortScanProgress}" Minimum="0" Maximum="100" Margin="16,0,0,0" />
+                            <TextBlock VerticalAlignment="Center" Margin="8,0,0,0">
+                                <Run Text="{Binding PortScanProgress, Mode=OneWay}" /><Run Text="%" />
+                            </TextBlock>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" 
+                                  Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
+                    <GroupBox Header="Scan Results" Grid.Row="2">
+                        <DataGrid x:Name="PortScanDataGrid" ItemsSource="{Binding PortScanResults}"
+                                  AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                                  CanUserResizeColumns="True" CanUserSortColumns="True" IsReadOnly="True"
+                                  SelectionMode="Single" ColumnHeaderHeight="32"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                  VirtualizingStackPanel.IsVirtualizing="True"
+                                  VirtualizingStackPanel.VirtualizationMode="Recycling"
+                                  EnableRowVirtualization="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Port" Binding="{Binding Port}" Width="80" MinWidth="60" />
+                                <DataGridTextColumn Header="State" Binding="{Binding State}" Width="100" MinWidth="80" />
+                                <DataGridTextColumn Header="Service" Binding="{Binding Service}" Width="150" MinWidth="100" />
+                                <DataGridTextColumn Header="Banner" Binding="{Binding Banner}" Width="*" MinWidth="200" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+
+            <!-- DNS Lookup Tab -->
+            <TabItem Header="DNS Lookup">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" MinHeight="40" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="*" MinHeight="100" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                        <TextBlock VerticalAlignment="Center" Width="110">Host / IP:</TextBlock>
+                        <TextBox x:Name="DnsLookupHostTextBox" Width="300" Text="{Binding DnsLookupHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
+                        <Button Content="🔍 Lookup" Click="OnDnsLookupClick" MinWidth="130" FontWeight="Bold" Background="#FF2196F3" Foreground="White" />
+                    </StackPanel>
+
+                    <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" 
+                                  Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
+                    <GroupBox Header="DNS Results" Grid.Row="2">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl x:Name="DnsResultsControl" ItemsSource="{Binding DnsResults}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" FontFamily="Consolas" Margin="4,2" TextWrapping="Wrap" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+
+            <!-- Network Discovery Tab -->
+            <TabItem Header="Network Discovery">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="*" MinHeight="100" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <TextBlock VerticalAlignment="Center" Width="110">Subnet (base):</TextBlock>
+                            <TextBox Width="200" Text="{Binding DiscoverySubnet, UpdateSourceTrigger=PropertyChanged}" 
+                                     Margin="0,0,8,0" ToolTip="e.g., 192.168.1 (leave empty for auto-detect)" />
+                            <Button Content="🔍 Discover Devices" Click="OnNetworkDiscoveryClick" MinWidth="160" FontWeight="Bold" Background="#FF4CAF50" Foreground="White" Margin="0,0,8,0" />
+                            <Button Content="⛔ Cancel" Click="OnCancelDiscoveryClick" MinWidth="100" Background="#FFF44336" Foreground="White" Margin="0,0,8,0" />
+                            <ProgressBar Width="200" Height="18" Value="{Binding DiscoveryProgress}" Minimum="0" Maximum="100" Margin="16,0,0,0" />
+                            <TextBlock VerticalAlignment="Center" Margin="8,0,0,0">
+                                <Run Text="{Binding DiscoveryProgress, Mode=OneWay}" /><Run Text="%" />
+                            </TextBlock>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" 
+                                  Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
+                    <GroupBox Header="Discovered Devices" Grid.Row="2">
+                        <DataGrid x:Name="DiscoveryDataGrid" ItemsSource="{Binding DiscoveredDevices}"
+                                  AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                                  CanUserResizeColumns="True" CanUserSortColumns="True" IsReadOnly="True"
+                                  SelectionMode="Single" ColumnHeaderHeight="32"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                  VirtualizingStackPanel.IsVirtualizing="True"
+                                  VirtualizingStackPanel.VirtualizationMode="Recycling"
+                                  EnableRowVirtualization="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="IP Address" Binding="{Binding IPAddress}" Width="140" MinWidth="120" />
+                                <DataGridTextColumn Header="Hostname" Binding="{Binding Hostname}" Width="*" MinWidth="200" />
+                                <DataGridTextColumn Header="MAC Address" Binding="{Binding MACAddress}" Width="160" MinWidth="140" />
+                                <DataGridTextColumn Header="Response Time" Binding="{Binding ResponseTime}" Width="120" MinWidth="80" />
+                                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80" MinWidth="60" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+
+            <!-- Bandwidth Monitor Tab -->
+            <TabItem Header="Bandwidth Monitor">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" MinHeight="40" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="*" MinHeight="100" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                        <Button Content="▶ Start Monitoring" Click="OnStartBandwidthClick" MinWidth="160" FontWeight="Bold" Background="#FF4CAF50" Foreground="White" Margin="0,0,8,0" />
+                        <Button Content="⏹ Stop Monitoring" Click="OnStopBandwidthClick" MinWidth="160" FontWeight="Bold" Background="#FFF44336" Foreground="White" Margin="0,0,8,0" />
+                        <TextBlock VerticalAlignment="Center" Margin="16,0,0,0" FontStyle="Italic">
+                            Updates every second. Shows real-time bandwidth per adapter.
+                        </TextBlock>
+                    </StackPanel>
+
+                    <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" 
+                                  Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
+                    <GroupBox Header="Real-Time Bandwidth" Grid.Row="2">
+                        <DataGrid x:Name="BandwidthDataGrid" ItemsSource="{Binding BandwidthEntries}"
+                                  AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                                  CanUserResizeColumns="True" CanUserSortColumns="True" IsReadOnly="True"
+                                  SelectionMode="Single" ColumnHeaderHeight="32"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                  VirtualizingStackPanel.IsVirtualizing="True"
+                                  VirtualizingStackPanel.VirtualizationMode="Recycling"
+                                  EnableRowVirtualization="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Adapter" Binding="{Binding AdapterName}" Width="200" MinWidth="150" />
+                                <DataGridTextColumn Header="↓ Download" Binding="{Binding DownloadSpeed}" Width="130" MinWidth="100" />
+                                <DataGridTextColumn Header="↑ Upload" Binding="{Binding UploadSpeed}" Width="130" MinWidth="100" />
+                                <DataGridTextColumn Header="Total Downloaded" Binding="{Binding TotalDownloaded}" Width="150" MinWidth="120" />
+                                <DataGridTextColumn Header="Total Uploaded" Binding="{Binding TotalUploaded}" Width="150" MinWidth="120" />
+                                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="*" MinWidth="80" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+
+            <!-- WHOIS Lookup Tab -->
+            <TabItem Header="WHOIS">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" MinHeight="40" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="*" MinHeight="100" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                        <TextBlock VerticalAlignment="Center" Width="110">Domain / IP:</TextBlock>
+                        <TextBox x:Name="WhoisDomainTextBox" Width="300" Text="{Binding WhoisDomain, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
+                        <Button Content="🔍 WHOIS Lookup" Click="OnWhoisLookupClick" MinWidth="150" FontWeight="Bold" Background="#FF9C27B0" Foreground="White" />
+                    </StackPanel>
+
+                    <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" 
+                                  Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows"/>
+
+                    <GroupBox Header="WHOIS Results" Grid.Row="2">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl x:Name="WhoisResultsControl" ItemsSource="{Binding WhoisResults}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" FontFamily="Consolas" Margin="4,2" TextWrapping="Wrap" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
         </TabControl>
 
         <!-- Status Bar -->

@@ -440,6 +440,10 @@
         <Setter Property="Foreground" Value="#FF0A1020" />
     </Style>
     
+    <Style TargetType="DataGridRow">
+        <Setter Property="MinHeight" Value="28" />
+    </Style>
+
     <Style TargetType="DataGridCell">
         <Setter Property="Foreground" Value="#FF0A1020" />
         <Setter Property="BorderBrush" Value="Transparent" />

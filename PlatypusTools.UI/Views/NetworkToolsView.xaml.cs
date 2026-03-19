@@ -61,5 +61,69 @@ namespace PlatypusTools.UI.Views
                 AdaptersDataGrid.ItemsSource = vm.Adapters;
             }
         }
+
+        private async void OnPortScanClick(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ViewModels.NetworkToolsViewModel vm)
+            {
+                await vm.PortScanAsync();
+            }
+        }
+
+        private void OnCancelPortScanClick(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ViewModels.NetworkToolsViewModel vm)
+            {
+                vm.CancelPortScanCommand.Execute(null);
+            }
+        }
+
+        private async void OnDnsLookupClick(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ViewModels.NetworkToolsViewModel vm)
+            {
+                await vm.DnsLookupAsync();
+            }
+        }
+
+        private async void OnNetworkDiscoveryClick(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ViewModels.NetworkToolsViewModel vm)
+            {
+                await vm.NetworkDiscoveryAsync();
+            }
+        }
+
+        private void OnCancelDiscoveryClick(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ViewModels.NetworkToolsViewModel vm)
+            {
+                vm.CancelDiscoveryCommand.Execute(null);
+            }
+        }
+
+        private void OnStartBandwidthClick(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ViewModels.NetworkToolsViewModel vm)
+            {
+                vm.StartBandwidthMonitorCommand.Execute(null);
+            }
+        }
+
+        private void OnStopBandwidthClick(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ViewModels.NetworkToolsViewModel vm)
+            {
+                vm.StopBandwidthMonitorCommand.Execute(null);
+            }
+        }
+
+        private async void OnWhoisLookupClick(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ViewModels.NetworkToolsViewModel vm)
+            {
+                await vm.WhoisLookupAsync();
+            }
+        }
     }
 }

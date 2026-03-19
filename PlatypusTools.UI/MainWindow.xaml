@@ -533,6 +533,10 @@
                              Visibility="{Binding MailClient, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:MailClientView}" ViewDataContext="{Binding MailClient}" />
                     </TabItem>
+                    <TabItem Header="📝 Text Editor"
+                             Visibility="{Binding TextEditor, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:TextEditorView}" ViewDataContext="{Binding TextEditor}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
         </TabControl>

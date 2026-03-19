@@ -893,6 +893,7 @@ namespace PlatypusTools.UI.Services
                 new("Tools.BulkChecksum", "Bulk Checksum", "Tools"),
                 new("Tools.ScreenRecorder", "Screen Recorder", "Tools"),
                 new("Tools.MailClient", "Mail Client", "Tools"),
+                new("Tools.TextEditor", "📝 Text Editor", "Tools"),
                 new("Security.SshKeyManager", "SSH Key Manager", "Security"),
                 new("Security.FileEncryption", "File Encryption", "Security"),
                 new("Security.SystemHardening", "System Hardening", "Security"),

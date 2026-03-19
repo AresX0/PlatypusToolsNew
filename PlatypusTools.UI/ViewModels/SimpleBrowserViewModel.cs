@@ -71,7 +71,7 @@ namespace PlatypusTools.UI.ViewModels
         public event Action? Stop;
         public event Action<string>? NavigateToUrlRequested;
 
-        private string _url = "https://www.google.com";
+        private string _url = "https://platysearch.platysoft.com";
         public string Url
         {
             get => _url;
@@ -123,7 +123,7 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
-        private string _homePage = "https://www.google.com";
+        private string _homePage = "https://platysearch.platysoft.com";
         public string HomePage { get => _homePage; set => SetProperty(ref _homePage, value); }
 
         private bool _isFavorite;

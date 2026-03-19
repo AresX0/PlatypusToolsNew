@@ -502,6 +502,7 @@
 
     <!-- DataGridRow -->
     <Style TargetType="DataGridRow">
+        <Setter Property="MinHeight" Value="28" />
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
         <Style.Triggers>

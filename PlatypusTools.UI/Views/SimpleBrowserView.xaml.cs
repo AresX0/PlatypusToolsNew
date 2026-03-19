@@ -40,7 +40,7 @@ namespace PlatypusTools.UI.Views
                 _isInitialized = true;
 
                 // Navigate to default page after initialization
-                webView.CoreWebView2.Navigate("https://www.google.com");
+                webView.CoreWebView2.Navigate("https://platysearch.platysoft.com");
             }
             catch (Exception ex)
             {
