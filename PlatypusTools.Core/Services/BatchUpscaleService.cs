@@ -421,8 +421,11 @@ namespace PlatypusTools.Core.Services
                 }
             };
             process.BeginErrorReadLine();
+            // Drain stdout to prevent deadlock (stdout redirected but unused)
+            var stdoutTask = process.StandardOutput.ReadToEndAsync(ct);
             
             await process.WaitForExitAsync(ct);
+            await stdoutTask;
             
             if (process.ExitCode != 0)
             {
@@ -448,7 +451,12 @@ namespace PlatypusTools.Core.Services
             using var process = Process.Start(psi);
             if (process != null)
             {
+                // Drain both pipes concurrently to prevent deadlock
+                var stdoutTask = process.StandardOutput.ReadToEndAsync(ct);
+                var stderrTask = process.StandardError.ReadToEndAsync(ct);
                 await process.WaitForExitAsync(ct);
+                await stdoutTask;
+                await stderrTask;
                 item.Progress = 100;
             }
         }

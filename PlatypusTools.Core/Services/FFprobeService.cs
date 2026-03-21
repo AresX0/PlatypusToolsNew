@@ -92,8 +92,12 @@ namespace PlatypusTools.Core.Services
             {
                 using var p = Process.Start(psi);
                 if (p == null) return null;
-                var output = p.StandardOutput.ReadToEnd();
+                // Read both pipes concurrently to prevent deadlock
+                var outputTask = p.StandardOutput.ReadToEndAsync();
+                var errorTask = p.StandardError.ReadToEndAsync();
                 p.WaitForExit(5000);
+                var output = outputTask.GetAwaiter().GetResult();
+                _ = errorTask.GetAwaiter().GetResult();
 
                 var info = new MediaProbeInfo();
                 

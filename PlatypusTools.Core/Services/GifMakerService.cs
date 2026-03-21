@@ -153,6 +153,7 @@ namespace PlatypusTools.Core.Services
                 if (p == null) return 0;
                 var output = await p.StandardOutput.ReadToEndAsync();
                 await p.WaitForExitAsync();
+                // stdout-only redirect, no deadlock risk here
 
                 if (double.TryParse(output.Trim(), System.Globalization.NumberStyles.Any, 
                     System.Globalization.CultureInfo.InvariantCulture, out var duration))
@@ -176,7 +177,10 @@ namespace PlatypusTools.Core.Services
 
             try
             {
+                // Drain stderr to prevent deadlock
+                var stderrTask = p.StandardError.ReadToEndAsync(ct);
                 await p.WaitForExitAsync(ct);
+                await stderrTask;
                 return p.ExitCode == 0;
             }
             catch (OperationCanceledException)

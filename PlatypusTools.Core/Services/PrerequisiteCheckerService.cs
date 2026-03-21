@@ -160,8 +160,11 @@ namespace PlatypusTools.Core.Services
 
                     using (var process = Process.Start(processInfo))
                     {
-                        process?.WaitForExit();
-                        return process?.ExitCode == 0;
+                        if (process == null) return false;
+                        // Drain stdout to prevent deadlock
+                        process.StandardOutput.ReadToEnd();
+                        process.WaitForExit(5000);
+                        return process.ExitCode == 0;
                     }
                 }
                 catch
@@ -190,10 +193,10 @@ namespace PlatypusTools.Core.Services
                     using (var process = Process.Start(processInfo))
                     {
                         if (process == null) return null;
-                        process.WaitForExit(5000);
-
+                        // Read both pipes concurrently to prevent deadlock
                         string output = process.StandardOutput.ReadToEnd();
                         string error = process.StandardError.ReadToEnd();
+                        process.WaitForExit(5000);
                         return string.IsNullOrWhiteSpace(output) ? error : output;
                     }
                 }

@@ -632,7 +632,7 @@ namespace PlatypusTools.Core.Services
                 var exifToolPath = GetExifToolPath();
                 if (exifToolPath == "exiftool")
                 {
-                    var process = Process.Start(new ProcessStartInfo
+                    using var process = Process.Start(new ProcessStartInfo
                     {
                         FileName = "exiftool",
                         Arguments = "-ver",
@@ -640,7 +640,10 @@ namespace PlatypusTools.Core.Services
                         RedirectStandardOutput = true,
                         CreateNoWindow = true
                     });
-                    return process != null;
+                    if (process == null) return false;
+                    process.StandardOutput.ReadToEnd();
+                    process.WaitForExit(3000);
+                    return true;
                 }
                 return File.Exists(exifToolPath);
             }
@@ -665,8 +668,12 @@ namespace PlatypusTools.Core.Services
                 {
                     using var proc = MediaService.StartTool(exif, $"-j \"{filePath}\"");
                     if (proc == null) return result;
-                    var outJson = proc.StandardOutput.ReadToEnd();
+                    // Read both pipes concurrently to prevent deadlock
+                    var outJsonTask = proc.StandardOutput.ReadToEndAsync();
+                    var errTask = proc.StandardError.ReadToEndAsync();
                     proc.WaitForExit(3000);
+                    var outJson = outJsonTask.GetAwaiter().GetResult();
+                    _ = errTask.GetAwaiter().GetResult();
                     if (!string.IsNullOrWhiteSpace(outJson))
                     {
                         var arr = JsonSerializer.Deserialize<List<JsonElement>>(outJson);

@@ -673,7 +673,20 @@ namespace PlatypusTools.Core.Services
                 using var p = Process.Start(psi);
                 if (p != null)
                 {
-                    await p.WaitForExitAsync(cancellationToken);
+                    try
+                    {
+                        // Drain both pipes concurrently to prevent deadlock
+                        var stdoutDrain = p.StandardOutput.ReadToEndAsync(cancellationToken);
+                        var stderrDrain = p.StandardError.ReadToEndAsync(cancellationToken);
+                        await p.WaitForExitAsync(cancellationToken);
+                        await stdoutDrain;
+                        await stderrDrain;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        TryKillProcess(p);
+                        throw;
+                    }
 
                     if (File.Exists(tempPath))
                     {
@@ -682,6 +695,7 @@ namespace PlatypusTools.Core.Services
                     }
                 }
             }
+            catch (OperationCanceledException) { throw; }
             catch { }
             finally
             {

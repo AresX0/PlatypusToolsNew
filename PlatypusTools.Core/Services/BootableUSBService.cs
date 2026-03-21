@@ -326,6 +326,9 @@ namespace PlatypusTools.Core.Services
                     using var process = Process.Start(startInfo);
                     if (process == null) return false;
 
+                    // Start draining stdout asynchronously to prevent pipe buffer deadlock
+                    var stdoutDrain = process.StandardOutput.ReadToEndAsync();
+
                     var progressPercentage = 35;
                     while (!process.HasExited && !cancellationToken.IsCancellationRequested)
                     {
@@ -335,6 +338,7 @@ namespace PlatypusTools.Core.Services
                     }
 
                     process.WaitForExit();
+                    _ = stdoutDrain.GetAwaiter().GetResult();
                     
                     // Robocopy exit codes 0-7 are success
                     return process.ExitCode <= 7 && !cancellationToken.IsCancellationRequested;
