@@ -2442,7 +2442,7 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             // Request a token
             try
             {
-                var httpClient = new System.Net.Http.HttpClient();
+                using var httpClient = new System.Net.Http.HttpClient();
                 var tokenUrl = $"https://ws.audioscrobbler.com/2.0/?method=auth.getToken&api_key={settings.LastFmApiKey}&format=json";
                 var response = await httpClient.GetAsync(tokenUrl);
                 

@@ -110,6 +110,12 @@ namespace PlatypusTools.Core.Services
                         ? Path.Combine(options.OutputDirectory, entry.Key ?? "")
                         : Path.Combine(options.OutputDirectory, Path.GetFileName(entry.Key ?? ""));
                     
+                    // Zip Slip protection: ensure the resolved path stays within the output directory
+                    var fullOutputPath = Path.GetFullPath(outputPath);
+                    var fullOutputDir = Path.GetFullPath(options.OutputDirectory + Path.DirectorySeparatorChar);
+                    if (!fullOutputPath.StartsWith(fullOutputDir, StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException($"Archive entry '{entry.Key}' would extract outside the target directory. This may indicate a malicious archive (Zip Slip).");
+                    
                     var outputDir = Path.GetDirectoryName(outputPath);
                     if (!string.IsNullOrEmpty(outputDir))
                         Directory.CreateDirectory(outputDir);

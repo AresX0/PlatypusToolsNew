@@ -101,6 +101,9 @@ namespace PlatypusTools.Core.Services.Mail
             var codeVerifier = GenerateCodeVerifier();
             var codeChallenge = GenerateCodeChallenge(codeVerifier);
 
+            // Generate state parameter for CSRF protection
+            var state = GenerateCodeVerifier();
+
             // Find an available port and start listener
             var port = FindAvailablePort();
             var redirectUri = $"http://localhost:{port}/";
@@ -111,7 +114,7 @@ namespace PlatypusTools.Core.Services.Mail
             try
             {
                 // Build authorization URL
-                var authUrl = BuildAuthUrl(provider, clientId, redirectUri, codeChallenge, account.EmailAddress);
+                var authUrl = BuildAuthUrl(provider, clientId, redirectUri, codeChallenge, account.EmailAddress, state);
 
                 // Open system browser
                 statusCallback?.Invoke("Opening browser for sign-in...");
@@ -127,12 +130,17 @@ namespace PlatypusTools.Core.Services.Mail
                 var code = context.Request.QueryString["code"];
                 var error = context.Request.QueryString["error"];
                 var errorDesc = context.Request.QueryString["error_description"];
+                var returnedState = context.Request.QueryString["state"];
 
                 // Send HTML response to browser
                 await SendBrowserResponse(context, error, errorDesc);
 
                 if (!string.IsNullOrEmpty(error))
                     throw new Exception($"OAuth error: {error} — {errorDesc}");
+
+                // Validate state parameter to prevent CSRF attacks
+                if (returnedState != state)
+                    throw new Exception("OAuth state mismatch — possible CSRF attack. Please try again.");
 
                 if (string.IsNullOrEmpty(code))
                     throw new Exception("No authorization code was received from the provider.");
@@ -193,7 +201,7 @@ namespace PlatypusTools.Core.Services.Mail
 
         private static string BuildAuthUrl(
             OAuthProviderConfig provider, string clientId,
-            string redirectUri, string codeChallenge, string? loginHint)
+            string redirectUri, string codeChallenge, string? loginHint, string state)
         {
             var sb = new StringBuilder(provider.AuthEndpoint);
             sb.Append("?client_id=").Append(Uri.EscapeDataString(clientId));
@@ -202,6 +210,7 @@ namespace PlatypusTools.Core.Services.Mail
             sb.Append("&scope=").Append(Uri.EscapeDataString(provider.Scopes));
             sb.Append("&code_challenge=").Append(codeChallenge);
             sb.Append("&code_challenge_method=S256");
+            sb.Append("&state=").Append(Uri.EscapeDataString(state));
             sb.Append("&prompt=login");
 
             if (!string.IsNullOrEmpty(loginHint))

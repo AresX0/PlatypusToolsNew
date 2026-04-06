@@ -271,15 +271,15 @@ namespace PlatypusTools.Core.Services
         {
             using var aes = Aes.Create();
             var salt = RandomNumberGenerator.GetBytes(16);
+            var iv = RandomNumberGenerator.GetBytes(16);
             
-            // Use the static Pbkdf2 method instead of the obsolete constructor
             var keyBytes = Rfc2898DeriveBytes.Pbkdf2(password, salt, 100000, HashAlgorithmName.SHA256, 32);
-            var ivBytes = Rfc2898DeriveBytes.Pbkdf2(password, salt, 100000, HashAlgorithmName.SHA256, 16);
             aes.Key = keyBytes;
-            aes.IV = ivBytes;
+            aes.IV = iv;
 
             using var ms = new MemoryStream();
             ms.Write(salt, 0, salt.Length);
+            ms.Write(iv, 0, iv.Length);
             using (var cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
             {
                 var data = Encoding.UTF8.GetBytes(plainText);
@@ -290,11 +290,41 @@ namespace PlatypusTools.Core.Services
 
         private string DecryptWithPassword(byte[] encrypted, string password)
         {
-            using var aes = Aes.Create();
-            var salt = encrypted.Take(16).ToArray();
-            var cipherText = encrypted.Skip(16).ToArray();
+            // Try new format first: salt(16) + iv(16) + ciphertext
+            try
+            {
+                return DecryptNewFormat(encrypted, password);
+            }
+            catch (CryptographicException)
+            {
+                // Fall back to legacy format: salt(16) + ciphertext (IV derived from PBKDF2)
+                return DecryptLegacyFormat(encrypted, password);
+            }
+        }
 
-            // Use the static Pbkdf2 method instead of the obsolete constructor
+        private static string DecryptNewFormat(byte[] encrypted, string password)
+        {
+            using var aes = Aes.Create();
+            var salt = encrypted.AsSpan(0, 16).ToArray();
+            var iv = encrypted.AsSpan(16, 16).ToArray();
+            var cipherText = encrypted.AsSpan(32).ToArray();
+
+            var keyBytes = Rfc2898DeriveBytes.Pbkdf2(password, salt, 100000, HashAlgorithmName.SHA256, 32);
+            aes.Key = keyBytes;
+            aes.IV = iv;
+
+            using var ms = new MemoryStream(cipherText);
+            using var cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Read);
+            using var reader = new StreamReader(cs);
+            return reader.ReadToEnd();
+        }
+
+        private static string DecryptLegacyFormat(byte[] encrypted, string password)
+        {
+            using var aes = Aes.Create();
+            var salt = encrypted.AsSpan(0, 16).ToArray();
+            var cipherText = encrypted.AsSpan(16).ToArray();
+
             var keyBytes = Rfc2898DeriveBytes.Pbkdf2(password, salt, 100000, HashAlgorithmName.SHA256, 32);
             var ivBytes = Rfc2898DeriveBytes.Pbkdf2(password, salt, 100000, HashAlgorithmName.SHA256, 16);
             aes.Key = keyBytes;

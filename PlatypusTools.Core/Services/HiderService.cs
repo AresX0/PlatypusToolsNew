@@ -318,7 +318,9 @@ namespace PlatypusTools.Core.Services
                 var iterations = rec.Iterations;
                 var pwdBytes = System.Text.Encoding.UTF8.GetBytes(plainPassword);
                 var dk = DerivePbkdf2HmacSha256(pwdBytes, salt, iterations, 32);
-                return Convert.ToBase64String(dk) == rec.Hash;
+                var storedHash = Convert.FromBase64String(rec.Hash);
+                // Use constant-time comparison to prevent timing attacks
+                return System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(dk, storedHash);
             }
             catch { return false; }
         }
