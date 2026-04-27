@@ -58,6 +58,13 @@ namespace PlatypusTools.UI
                     Shutdown();
                     return;
                 }
+
+                // --wallpaper-daemon — run the wallpaper rotator headless (tray icon only)
+                if (arg == "--wallpaper-daemon" || arg == "-wallpaper-daemon")
+                {
+                    RunAsWallpaperDaemon();
+                    return;
+                }
             }
             
             // Check if we need to run as admin but aren't elevated
@@ -187,6 +194,40 @@ namespace PlatypusTools.UI
             var configWindow = new ScreensaverConfigWindow();
             configWindow.ShowDialog();
             Shutdown();
+        }
+
+        /// <summary>
+        /// Runs the wallpaper rotator headless at user login (no main window).
+        /// </summary>
+        private void RunAsWallpaperDaemon()
+        {
+            try
+            {
+                var cfg = PlatypusTools.Core.Services.Wallpaper.WallpaperRotatorConfig.Load();
+                if (string.IsNullOrWhiteSpace(cfg.ImagesDirectory))
+                {
+                    Shutdown();
+                    return;
+                }
+                PlatypusTools.Core.Services.Wallpaper.WallpaperRotatorService.Instance.Start(cfg);
+
+                MainWindow = new System.Windows.Window
+                {
+                    Width = 0,
+                    Height = 0,
+                    WindowStyle = System.Windows.WindowStyle.None,
+                    ShowInTaskbar = false,
+                    AllowsTransparency = true,
+                    Background = System.Windows.Media.Brushes.Transparent,
+                    Title = "PlatypusTools Wallpaper Daemon",
+                };
+                MainWindow.Loaded += (_, _) => MainWindow.Hide();
+                MainWindow.Show();
+            }
+            catch
+            {
+                Shutdown();
+            }
         }
         
         #region System Requirements Check Helpers

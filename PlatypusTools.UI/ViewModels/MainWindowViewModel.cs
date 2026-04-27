@@ -101,6 +101,8 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<SystemHardeningViewModel> _systemHardening = new(() => new SystemHardeningViewModel());
         private readonly Lazy<NetworkTrafficViewModel> _networkTraffic = new(() => new NetworkTrafficViewModel());
         private readonly Lazy<TextEditorViewModel> _textEditor = new(() => new TextEditorViewModel());
+        private readonly Lazy<WallpaperRotatorViewModel> _wallpaperRotator = new(() => new WallpaperRotatorViewModel());
+        private readonly Lazy<ScreensaverViewModel> _screensaver = new(() => new ScreensaverViewModel());
         
         #endregion
 
@@ -229,6 +231,8 @@ namespace PlatypusTools.UI.ViewModels
         public SystemHardeningViewModel SystemHardening => _systemHardening.Value;
         public NetworkTrafficViewModel NetworkTraffic => _networkTraffic.Value;
         public TextEditorViewModel TextEditor => _textEditor.Value;
+        public WallpaperRotatorViewModel WallpaperRotator => _wallpaperRotator.Value;
+        public ScreensaverViewModel Screensaver => _screensaver.Value;
         
         #endregion
 

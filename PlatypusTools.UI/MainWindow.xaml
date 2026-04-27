@@ -370,6 +370,14 @@
                              Visibility="{Binding IntuneBackupSuite, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:IntuneBackupSuiteView}" ViewDataContext="{Binding IntuneBackupSuite}" />
                     </TabItem>
+                    <TabItem Header="🖼️ Wallpaper Rotator"
+                             Visibility="{Binding WallpaperRotator, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:WallpaperRotatorView}" ViewDataContext="{Binding WallpaperRotator}" />
+                    </TabItem>
+                    <TabItem Header="🌌 Screensaver"
+                             Visibility="{Binding Screensaver, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:ScreensaverView}" ViewDataContext="{Binding Screensaver}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
 

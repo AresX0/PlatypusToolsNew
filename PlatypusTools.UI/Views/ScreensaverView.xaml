@@ -1,0 +1,117 @@
+<UserControl x:Class="PlatypusTools.UI.Views.ScreensaverView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignHeight="700" d:DesignWidth="1100">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="🌌 Image Slideshow Screensaver"
+                   FontSize="16" FontWeight="Bold" Margin="0,0,0,4" />
+
+        <!-- Slideshow settings -->
+        <GroupBox Grid.Row="1" Header="Slideshow Settings" Margin="0,0,0,4">
+            <StackPanel Margin="8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Folder:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBox Grid.Column="1" Text="{Binding ImagesDirectory, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Padding="6,4" />
+                    <TextBlock Grid.Column="2" Text="(set in Wallpaper tab)" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                </Grid>
+                <WrapPanel Margin="0,8,0,0">
+                    <TextBlock Text="Slide every (sec):" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <TextBox Text="{Binding SlideshowIntervalSeconds, UpdateSourceTrigger=PropertyChanged}" Width="60" Margin="0,0,16,0"/>
+
+                    <TextBlock Text="Fit:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <ComboBox SelectedValue="{Binding FitMode}" SelectedValuePath="Tag" Width="120" Margin="0,0,16,0">
+                        <ComboBoxItem Content="Fit" Tag="fit" />
+                        <ComboBoxItem Content="Fill" Tag="fill" />
+                        <ComboBoxItem Content="Stretch" Tag="stretch" />
+                        <ComboBoxItem Content="Center" Tag="center" />
+                    </ComboBox>
+
+                    <TextBlock Text="Transition:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <ComboBox SelectedValue="{Binding Transition}" SelectedValuePath="Tag" Width="80" Margin="0,0,16,0">
+                        <ComboBoxItem Content="Fade" Tag="fade" />
+                        <ComboBoxItem Content="Cut"  Tag="cut" />
+                    </ComboBox>
+
+                    <CheckBox Content="🔀 Shuffle" IsChecked="{Binding Shuffle}" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                    <CheckBox Content="📰 Show overlay" IsChecked="{Binding ShowOverlay}" VerticalAlignment="Center" />
+                </WrapPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Overlay -->
+        <GroupBox Grid.Row="2" Header="Overlay" Margin="0,0,0,4">
+            <StackPanel Margin="8">
+                <WrapPanel>
+                    <TextBlock Text="Source:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <ComboBox SelectedValue="{Binding OverlaySource}" SelectedValuePath="Tag" Width="200">
+                        <ComboBoxItem Content="🚀 NASA Artemis (live + cached)" Tag="nasa" />
+                        <ComboBoxItem Content="✏️ Custom text" Tag="custom" />
+                        <ComboBoxItem Content="🚫 None" Tag="none" />
+                    </ComboBox>
+                    <Button Content="🔄 Refresh NASA" Command="{Binding RefreshNasaCommand}"
+                            Padding="10,4" Margin="12,0,0,0"
+                            Background="#FF9C27B0" Foreground="White" />
+
+                    <TextBlock Text="Scroll speed (sec/cycle):" VerticalAlignment="Center" Margin="20,0,4,0"/>
+                    <TextBox Text="{Binding OverlayScrollSpeedSeconds, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
+                </WrapPanel>
+                <TextBox Text="{Binding CustomOverlayText, UpdateSourceTrigger=PropertyChanged}"
+                         AcceptsReturn="True" TextWrapping="Wrap" Height="70" Margin="0,8,0,0"
+                         VerticalScrollBarVisibility="Auto"
+                         ToolTip="One line per row. Used when Source = Custom text." />
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Windows install -->
+        <GroupBox Grid.Row="3" Header="Install as Windows Screensaver" Margin="0,0,0,4">
+            <StackPanel Margin="8">
+                <TextBlock Text="{Binding InstallStatusText}" FontWeight="SemiBold"/>
+                <WrapPanel Margin="0,8,0,0">
+                    <Button Content="📦 Install (.scr)" Command="{Binding InstallScrCommand}"
+                            Padding="14,6" Margin="0,0,6,0"
+                            Background="#FF4CAF50" Foreground="White"
+                            ToolTip="Copies a .scr to %LOCALAPPDATA%\PlatypusTools and registers it. No UAC needed." />
+                    <Button Content="🗑 Uninstall" Command="{Binding UninstallScrCommand}"
+                            Padding="14,6" Margin="0,0,16,0"
+                            Background="#FFF44336" Foreground="White" />
+
+                    <TextBlock Text="Idle timeout (min):" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <TextBox Text="{Binding IdleTimeoutMinutes, UpdateSourceTrigger=PropertyChanged}" Width="60" Margin="0,0,6,0" />
+                    <Button Content="✔ Apply Timeout" Command="{Binding ApplyTimeoutCommand}"
+                            Padding="12,4"
+                            Background="#FF2196F3" Foreground="White" />
+                </WrapPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Spacer -->
+        <Border Grid.Row="4" />
+
+        <!-- Action bar -->
+        <WrapPanel Grid.Row="5" Margin="0,4,0,0">
+            <Button Content="🖥 Preview Now" Command="{Binding PreviewCommand}" Padding="14,6" Margin="0,0,6,0"
+                    Background="#FFFF9800" Foreground="White" />
+            <Button Content="💾 Save Settings" Command="{Binding SaveSettingsCommand}" Padding="14,6"
+                    Background="#FF2196F3" Foreground="White" />
+            <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="16,0,0,0"
+                       Foreground="{DynamicResource SecondaryTextBrush}" />
+        </WrapPanel>
+    </Grid>
+</UserControl>

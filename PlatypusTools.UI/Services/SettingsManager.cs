@@ -841,6 +841,8 @@ namespace PlatypusTools.UI.Services
                 new("System.RemoteDashboard", "Remote Dashboard", "System"),
                 new("System.RemoteDesktop", "Remote Desktop", "System"),
                 new("System.IntuneBackupSuite", "Intune Backup Suite", "System"),
+                new("System.WallpaperRotator", "🖼️ Wallpaper Rotator", "System"),
+                new("System.Screensaver", "🌌 Slideshow Screensaver", "System"),
 
                 new("Security", "🔒 Security", null),
                 new("Security.FolderHider", "Folder Hider", "Security"),
