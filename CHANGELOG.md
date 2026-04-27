@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## v4.0.1.10 - 2026-04-26
+
+### Added
+- **☁️ Intune Backup** — New System sub-tab integrating the `backupINtune` (`IntuneBackup.ps1`) toolkit directly into PlatypusTools
+  - One-click actions: Full Backup, Compare Exports, Generate Reimport, Baseline Compare, Import Baseline,
+    Cross-Tenant Compare, Cross-Tenant Import, Export Settings CSV
+  - Custom Input mode for ad-hoc workflows
+  - Tenant GUID validation, configurable Project Root, live status log, and Cancel support
+  - Runs PowerShell in-process (hidden) with redirected stdin/stdout — no external console window
+- Tab visibility toggle `System.IntuneBackupSuite` in Settings
+
 ## v3.4.2 - 2026-02-14
 
 ### Added

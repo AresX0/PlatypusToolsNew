@@ -393,6 +393,13 @@
                 <li>Quiet mode and configurable output</li>
             </ul>
         </li>
+        <li><strong>Intune Backup</strong> <span class="new-badge">New</span> - Integrated tenant backup, compare, and restore workflows
+            <ul>
+                <li>One-click full backup, compare, reimport, baseline, and cross-tenant migration</li>
+                <li>Settings catalog CSV export</li>
+                <li>Runs <code>IntuneBackup.ps1</code> in-process with live status output and cancel support</li>
+            </ul>
+        </li>
         <li><strong>FTP/SFTP Client</strong> <span class="new-badge">New</span> - Full file transfer client with saved sessions
             <ul>
                 <li>FTP, FTPS (SSL), and SFTP protocols</li>
@@ -2701,6 +2708,31 @@ ingress:
         <li>Click <strong>Package</strong> to create the Intune package</li>
     </ol>
     <p>The tool automatically downloads the Microsoft Win32 Content Prep Tool if not already present.</p>
+
+    <h3>Intune Backup <span class="new-badge">New</span></h3>
+    <p>Integrated suite for backing up, comparing, and restoring Microsoft Intune tenant configurations using the
+       <code>IntuneBackup.ps1</code> workflow — all driven from inside PlatypusTools (no external windows).</p>
+    <h4>One-Click Actions</h4>
+    <ul>
+        <li><strong>Run Full Backup</strong> — Export all Intune configuration from the signed-in tenant</li>
+        <li><strong>Compare Exports</strong> — Diff two previous exports to see configuration drift</li>
+        <li><strong>Generate Reimport</strong> — Build re-import payloads from a prior export</li>
+        <li><strong>Baseline Compare / Import</strong> — Compare current tenant against a saved baseline, or import a baseline</li>
+        <li><strong>Cross-Tenant Compare / Import</strong> — Compare or migrate configuration between two tenants</li>
+        <li><strong>Export Settings CSV</strong> — Flatten settings catalog policies to CSV for review</li>
+        <li><strong>Custom Input</strong> — Run the script interactively when an unsupported workflow is needed</li>
+    </ul>
+    <h4>How It Works</h4>
+    <ol>
+        <li>Set the <strong>Project Root</strong> to the folder containing <code>IntuneBackup.ps1</code> (default: <code>C:\Projects\backupINtune</code>)</li>
+        <li>Provide tenant GUIDs / paths required by the chosen action</li>
+        <li>Click a one-click action — PowerShell runs hidden in-process and streams output to the status log</li>
+        <li>Use <strong>Cancel</strong> to terminate a running operation at any time</li>
+    </ol>
+    <div class="tip">
+        <strong>Note:</strong> Tenant IDs are validated as GUIDs before execution. The integrated runner pipes responses
+        to the script automatically so no separate console window is shown.
+    </div>
 </section>
 
 <section id="terminal" class="section">
