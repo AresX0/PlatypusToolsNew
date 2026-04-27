@@ -3049,7 +3049,7 @@ namespace PlatypusTools.UI.Views
         {
             try
             {
-                CloudflareTunnelService.Instance.LoginAsync();
+                _ = CloudflareTunnelService.Instance.LoginAsync();
             }
             catch (Exception ex)
             {

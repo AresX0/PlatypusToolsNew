@@ -417,9 +417,9 @@ public class VaultService : IVaultService, IDisposable
 
     private void DeriveKeys(string password, byte[] salt, int iterations)
     {
-        using var pbkdf2 = new Rfc2898DeriveBytes(
-            Encoding.UTF8.GetBytes(password), salt, iterations, HashAlgorithmName.SHA256);
-        var derived = pbkdf2.GetBytes(64);
+        // Static Pbkdf2 API (non-obsolete equivalent of Rfc2898DeriveBytes ctor).
+        var derived = Rfc2898DeriveBytes.Pbkdf2(
+            Encoding.UTF8.GetBytes(password), salt, iterations, HashAlgorithmName.SHA256, 64);
         _masterKey = derived[..32];
         _macKey = derived[32..];
     }

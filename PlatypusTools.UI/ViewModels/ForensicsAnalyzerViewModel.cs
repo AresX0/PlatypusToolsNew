@@ -296,8 +296,8 @@ namespace PlatypusTools.UI.ViewModels
                 _cts?.Dispose();
                 _cts = null;
 
-                // Force refresh of command states on UI thread
-                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                // Force refresh of command states on UI thread (fire-and-forget on dispatcher).
+                _ = Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     System.Windows.Input.CommandManager.InvalidateRequerySuggested();
                 }), System.Windows.Threading.DispatcherPriority.Background);

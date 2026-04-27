@@ -130,12 +130,19 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Text="One line per prompt. First line should be login UPN, second line menu option (1-8)." Margin="0,0,0,4" />
                     <DockPanel Grid.Row="1">
                         <Button DockPanel.Dock="Right" Content="Run Custom" Width="120" Margin="8,0,0,0" Command="{Binding RunCustomInputCommand}" />
                         <TextBox Text="{Binding CustomInputLines, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" MinHeight="90" FontFamily="Consolas" />
                     </DockPanel>
+                    <TextBlock Grid.Row="2" Text="Output Log" FontWeight="SemiBold" Margin="0,8,0,4" />
+                    <ListBox Grid.Row="3" ItemsSource="{Binding OutputLog}" FontFamily="Consolas" FontSize="11"
+                             ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             Background="#FF1E1E1E" Foreground="#FFE0E0E0" BorderBrush="#FF3F3F46" />
                 </Grid>
             </GroupBox>
         </Grid>

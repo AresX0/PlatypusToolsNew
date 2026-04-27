@@ -1,8 +1,0 @@
-<Window x:Class="PlatypusTools.UI.Views.ScriptOutputWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Output" Height="500" Width="800" WindowStartupLocation="CenterOwner">
-    <Grid Margin="8">
-        <TextBox Text="{Binding}" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" IsReadOnly="True" />
-    </Grid>
-</Window>

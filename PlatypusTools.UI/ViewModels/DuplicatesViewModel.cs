@@ -1031,13 +1031,17 @@ namespace PlatypusTools.UI.ViewModels
                         var progress = (double)processedFiles / totalFiles * 100;
                         var fileName = Path.GetFileName(f);
                         
-                        // Update UI on dispatcher thread
-                        await App.Current.Dispatcher.InvokeAsync(() =>
+                        // Update UI on dispatcher thread (project standard: System.Windows.Application.Current).
+                        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+                        if (dispatcher != null)
                         {
-                            DeleteProgress = progress;
-                            StatusMessage = $"Deleting: {fileName} ({processedFiles}/{totalFiles})";
-                            StatusBarViewModel.Instance.UpdateProgress(progress, StatusMessage);
-                        });
+                            await dispatcher.InvokeAsync(() =>
+                            {
+                                DeleteProgress = progress;
+                                StatusMessage = $"Deleting: {fileName} ({processedFiles}/{totalFiles})";
+                                StatusBarViewModel.Instance.UpdateProgress(progress, StatusMessage);
+                            });
+                        }
                     }
                 });
             }

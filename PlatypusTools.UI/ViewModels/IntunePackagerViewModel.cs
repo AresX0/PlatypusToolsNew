@@ -525,7 +525,7 @@ public class IntunePackagerViewModel : BindableBase
         {
             while (!reader.EndOfStream && !cancellationToken.IsCancellationRequested)
             {
-                var line = await reader.ReadLineAsync();
+                var line = await reader.ReadLineAsync(cancellationToken);
                 if (line != null)
                 {
                     System.Windows.Application.Current.Dispatcher.Invoke(() =>

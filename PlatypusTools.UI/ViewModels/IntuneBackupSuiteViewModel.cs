@@ -210,19 +210,12 @@ public class IntuneBackupSuiteViewModel : BindableBase
         }
     }
 
-    public string LauncherScriptPath => Path.Combine(ProjectRoot, "Launch-IntuneBackup.ps1");
     public string IntuneBackupScriptPath => Path.Combine(ProjectRoot, "IntuneBackup.ps1");
-    public string GuiProjectPath => Path.Combine(ProjectRoot, "IntuneBackupGUI", "IntuneBackupGUI.csproj");
-    public string GuiExeReleasePath => Path.Combine(ProjectRoot, "IntuneBackupGUI", "bin", "Release", "net10.0-windows", "IntuneBackupGUI.exe");
-    public string GuiExeDebugPath => Path.Combine(ProjectRoot, "IntuneBackupGUI", "bin", "Debug", "net10.0-windows", "IntuneBackupGUI.exe");
-    public string GuiExePublishPath => Path.Combine(ProjectRoot, "publish", "IntuneBackupGUI.exe");
     public string DocsPath => Path.Combine(ProjectRoot, "docs");
     public string ReadmePath => Path.Combine(ProjectRoot, "README.md");
     public string ExportRootPath => @"C:\IntuneSettings";
 
-    public bool LauncherExists => File.Exists(LauncherScriptPath);
     public bool ScriptExists => File.Exists(IntuneBackupScriptPath);
-    public bool GuiProjectExists => File.Exists(GuiProjectPath);
 
     public ObservableCollection<string> OutputLog { get; } = new();
 
@@ -267,14 +260,14 @@ public class IntuneBackupSuiteViewModel : BindableBase
             return;
         }
 
-        var missing = 0;
-        if (!LauncherExists) missing++;
-        if (!ScriptExists) missing++;
-        if (!GuiProjectExists) missing++;
+        if (!ScriptExists)
+        {
+            StatusMessage = $"IntuneBackup.ps1 not found in {ProjectRoot}.";
+            AddLog(StatusMessage);
+            return;
+        }
 
-        StatusMessage = missing == 0
-            ? "Project detected. Ready to launch GUI/CLI and run backup operations."
-            : $"Project loaded with {missing} missing component(s).";
+        StatusMessage = "Project detected. Ready to run backup operations.";
 
         ((RelayCommand)OpenProjectFolderCommand).RaiseCanExecuteChanged();
         ((RelayCommand)OpenDocsFolderCommand).RaiseCanExecuteChanged();
@@ -472,7 +465,6 @@ public class IntuneBackupSuiteViewModel : BindableBase
             var startInfo = new ProcessStartInfo
             {
                 FileName = "powershell.exe",
-                Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{IntuneBackupScriptPath}\"",
                 WorkingDirectory = ProjectRoot,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -480,6 +472,11 @@ public class IntuneBackupSuiteViewModel : BindableBase
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
+            startInfo.ArgumentList.Add("-NoProfile");
+            startInfo.ArgumentList.Add("-ExecutionPolicy");
+            startInfo.ArgumentList.Add("Bypass");
+            startInfo.ArgumentList.Add("-File");
+            startInfo.ArgumentList.Add(IntuneBackupScriptPath);
 
             using var process = new Process { StartInfo = startInfo };
             _runningProcess = process;
@@ -565,12 +562,13 @@ public class IntuneBackupSuiteViewModel : BindableBase
                 return;
             }
 
-            Process.Start(new ProcessStartInfo
+            var psi = new ProcessStartInfo
             {
                 FileName = "explorer.exe",
-                Arguments = $"\"{path}\"",
                 UseShellExecute = true
-            });
+            };
+            psi.ArgumentList.Add(path);
+            Process.Start(psi);
         }
         catch (Exception ex)
         {
@@ -605,17 +603,10 @@ public class IntuneBackupSuiteViewModel : BindableBase
 
     private void RaisePathPropertiesChanged()
     {
-        RaisePropertyChanged(nameof(LauncherScriptPath));
         RaisePropertyChanged(nameof(IntuneBackupScriptPath));
-        RaisePropertyChanged(nameof(GuiProjectPath));
-        RaisePropertyChanged(nameof(GuiExeReleasePath));
-        RaisePropertyChanged(nameof(GuiExeDebugPath));
-        RaisePropertyChanged(nameof(GuiExePublishPath));
         RaisePropertyChanged(nameof(DocsPath));
         RaisePropertyChanged(nameof(ReadmePath));
-        RaisePropertyChanged(nameof(LauncherExists));
         RaisePropertyChanged(nameof(ScriptExists));
-        RaisePropertyChanged(nameof(GuiProjectExists));
     }
 
     private static bool IsValidTenantId(string tenantId)
@@ -643,13 +634,23 @@ public class IntuneBackupSuiteViewModel : BindableBase
     private void AddLog(string message)
     {
         var line = $"[{DateTime.Now:HH:mm:ss}] {message}";
-        App.Current?.Dispatcher?.Invoke(() =>
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher == null || dispatcher.CheckAccess())
         {
-            OutputLog.Add(line);
-            while (OutputLog.Count > 500)
-            {
-                OutputLog.RemoveAt(0);
-            }
-        });
+            AppendLogLine(line);
+        }
+        else
+        {
+            dispatcher.Invoke(() => AppendLogLine(line));
+        }
+    }
+
+    private void AppendLogLine(string line)
+    {
+        OutputLog.Add(line);
+        while (OutputLog.Count > 500)
+        {
+            OutputLog.RemoveAt(0);
+        }
     }
 }

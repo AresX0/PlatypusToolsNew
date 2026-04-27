@@ -120,7 +120,11 @@ namespace PlatypusTools.UI
             
             // Now kick off the async initialization in the background
             // The video will loop while everything loads
-            Dispatcher.BeginInvoke(new Action(async () => await InitializeApplicationAsync()));
+            Dispatcher.BeginInvoke(new Action(async () =>
+            {
+                try { await InitializeApplicationAsync(); }
+                catch (Exception ex) { SimpleLogger.Error($"InitializeApplicationAsync failed: {ex}"); }
+            }));
         }
 
         protected override void OnExit(ExitEventArgs e)
@@ -302,7 +306,11 @@ namespace PlatypusTools.UI
                 _splashScreen = new SplashScreenWindow();
                 _splashScreen.Show();
                 _splashScreen.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);
-                Dispatcher.BeginInvoke(new Action(async () => await InitializeApplicationAsync()));
+                Dispatcher.BeginInvoke(new Action(async () =>
+                {
+                    try { await InitializeApplicationAsync(); }
+                    catch (Exception ex) { SimpleLogger.Error($"InitializeApplicationAsync failed: {ex}"); }
+                }));
                 return;
             }
             catch (Exception ex)
@@ -312,7 +320,11 @@ namespace PlatypusTools.UI
                 _splashScreen = new SplashScreenWindow();
                 _splashScreen.Show();
                 _splashScreen.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);
-                Dispatcher.BeginInvoke(new Action(async () => await InitializeApplicationAsync()));
+                Dispatcher.BeginInvoke(new Action(async () =>
+                {
+                    try { await InitializeApplicationAsync(); }
+                    catch (Exception ex2) { SimpleLogger.Error($"InitializeApplicationAsync failed: {ex2}"); }
+                }));
                 return;
             }
             

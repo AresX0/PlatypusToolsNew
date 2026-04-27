@@ -184,9 +184,8 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
     {
         try
         {
-            using var httpClient = new System.Net.Http.HttpClient();
-            httpClient.Timeout = TimeSpan.FromSeconds(5); // Short timeout to avoid UI delay
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "PlatypusTools/1.0");
+            // Use shared HttpClient (avoid per-call socket churn).
+            var httpClient = PlatypusTools.Core.Services.HttpClientFactory.Api;
             
             // Try MusicBrainz Cover Art Archive
             var searchArtist = Uri.EscapeDataString(track.Artist ?? "");
@@ -2442,7 +2441,8 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
             // Request a token
             try
             {
-                using var httpClient = new System.Net.Http.HttpClient();
+                // Use shared HttpClient (avoid per-call socket churn).
+                var httpClient = PlatypusTools.Core.Services.HttpClientFactory.Api;
                 var tokenUrl = $"https://ws.audioscrobbler.com/2.0/?method=auth.getToken&api_key={settings.LastFmApiKey}&format=json";
                 var response = await httpClient.GetAsync(tokenUrl);
                 

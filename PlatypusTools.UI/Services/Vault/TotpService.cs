@@ -137,7 +137,7 @@ namespace PlatypusTools.UI.Services.Vault
 
                 // Issuer from query param takes precedence
                 if (!string.IsNullOrEmpty(query["issuer"]))
-                    entry.Issuer = query["issuer"];
+                    entry.Issuer = query["issuer"] ?? string.Empty;
 
                 return entry;
             }

@@ -67,33 +67,44 @@ namespace PlatypusTools.Core.Services
 
             // Basic best-effort CLI invocation; video2x CLI may differ across versions so we use reasonable defaults.
             string fileName = Path.GetFileName(exe).ToLowerInvariant();
-            string args;
             string runner;
+            var argList = new List<string>();
 
             // If the tool is a python script, run with python; if it's a batch file, run via cmd /c
             if (fileName.EndsWith(".py"))
             {
                 runner = "python";
-                args = $"\"{exe}\" -i \"{inputPath}\" -o \"{outputPath}\" -s {scale}";
+                argList.Add(exe);
+                argList.Add("-i"); argList.Add(inputPath);
+                argList.Add("-o"); argList.Add(outputPath);
+                argList.Add("-s"); argList.Add(scale.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
             else if (fileName.EndsWith(".bat") || fileName.EndsWith(".cmd"))
             {
-                runner = "cmd";
-                args = $"/c \"\"{exe}\" -i \"{inputPath}\" -o \"{outputPath}\" -s {scale}\"";
+                runner = "cmd.exe";
+                argList.Add("/c");
+                argList.Add(exe);
+                argList.Add("-i"); argList.Add(inputPath);
+                argList.Add("-o"); argList.Add(outputPath);
+                argList.Add("-s"); argList.Add(scale.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
             else
             {
                 runner = exe;
-                args = $"-i \"{inputPath}\" -o \"{outputPath}\" -s {scale}";
+                argList.Add("-i"); argList.Add(inputPath);
+                argList.Add("-o"); argList.Add(outputPath);
+                argList.Add("-s"); argList.Add(scale.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
 
-            var psi = new ProcessStartInfo(runner, args)
+            var psi = new ProcessStartInfo
             {
+                FileName = runner,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
+            foreach (var a in argList) psi.ArgumentList.Add(a);
 
             var stdout = new StringBuilder();
             var stderr = new StringBuilder();

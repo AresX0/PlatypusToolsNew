@@ -90,7 +90,8 @@ namespace PlatypusTools.Core.Utilities
         }
 
         /// <summary>
-        /// Executes a PowerShell command with elevated privileges
+        /// Executes a PowerShell command with elevated privileges.
+        /// Uses -EncodedCommand to avoid argument injection vulnerabilities from quoting issues.
         /// </summary>
         /// <param name="command">The PowerShell command to execute</param>
         /// <returns>True if successful, false otherwise</returns>
@@ -98,14 +99,22 @@ namespace PlatypusTools.Core.Utilities
         {
             try
             {
+                // Encode the command as UTF-16LE base64 — PowerShell's -EncodedCommand format.
+                // This avoids any quoting/escaping issues that could allow argument injection.
+                var encoded = Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(command ?? string.Empty));
+
                 var processInfo = new ProcessStartInfo
                 {
                     UseShellExecute = true,
                     FileName = "powershell.exe",
-                    Arguments = $"-NoProfile -ExecutionPolicy Bypass -Command \"{command}\"",
                     Verb = "runas",
                     CreateNoWindow = false
                 };
+                processInfo.ArgumentList.Add("-NoProfile");
+                processInfo.ArgumentList.Add("-ExecutionPolicy");
+                processInfo.ArgumentList.Add("Bypass");
+                processInfo.ArgumentList.Add("-EncodedCommand");
+                processInfo.ArgumentList.Add(encoded);
 
                 using var process = Process.Start(processInfo);
                 if (process == null) return false;

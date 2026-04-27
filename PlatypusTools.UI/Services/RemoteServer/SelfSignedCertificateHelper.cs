@@ -37,7 +37,9 @@ public static class SelfSignedCertificateHelper
         {
             try
             {
-                var existing = new X509Certificate2(CertPath, (string?)null, X509KeyStorageFlags.Exportable);
+                // X509CertificateLoader replaces obsolete X509Certificate2 ctor (SYSLIB0057).
+                var existing = X509CertificateLoader.LoadPkcs12FromFile(
+                    CertPath, (string?)null, X509KeyStorageFlags.Exportable);
                 if (existing.NotAfter > DateTime.UtcNow.AddDays(CertRenewThresholdDays))
                 {
                     return existing;
@@ -89,8 +91,9 @@ public static class SelfSignedCertificateHelper
 
         var cert = request.CreateSelfSigned(notBefore, notAfter);
 
-        // On Windows, export and re-import to make the private key persist properly
-        return new X509Certificate2(
+        // On Windows, export and re-import to make the private key persist properly.
+        // X509CertificateLoader replaces obsolete X509Certificate2 ctor (SYSLIB0057).
+        return X509CertificateLoader.LoadPkcs12(
             cert.Export(X509ContentType.Pfx),
             (string?)null,
             X509KeyStorageFlags.Exportable);

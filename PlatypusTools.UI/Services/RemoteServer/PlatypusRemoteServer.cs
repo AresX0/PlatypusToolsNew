@@ -255,6 +255,11 @@ public class PlatypusRemoteServer : IDisposable
                 {
                     webBuilder.UseKestrel(options =>
                     {
+                        // Cap incoming request body to 8 MB to mitigate DoS via oversized JSON.
+                        // Vault/auth endpoints expect at most a few KB; file uploads use streamed
+                        // SignalR/WebSocket channels which bypass this limit.
+                        options.Limits.MaxRequestBodySize = 8 * 1024 * 1024;
+
                         var cert = SelfSignedCertificateHelper.GetOrCreateCertificate();
                         options.Listen(IPAddress.Any, _port, listenOptions =>
                         {

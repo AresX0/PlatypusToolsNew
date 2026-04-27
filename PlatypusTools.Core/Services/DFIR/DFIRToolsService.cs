@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using PlatypusTools.Core.Services;
 
 namespace PlatypusTools.Core.Services.DFIR
 {
@@ -176,17 +177,33 @@ namespace PlatypusTools.Core.Services.DFIR
                 progress?.Report($"Running Volatility plugin: {plugin}...");
                 
                 var outputFile = Path.Combine(outputPath, $"vol_{plugin.Replace(".", "_")}_{DateTime.Now:yyyyMMdd_HHmmss}.json");
-                var volExe = IsVolatilityInPath() ? "vol" : $"python \"{GetVolatilityPath()}\"";
-                
+                var volPath = GetVolatilityPath();
+                var volInPath = IsVolatilityInPath();
+
+                // Build args list (no shell wrapper). Run python <script> for non-PATH installs,
+                // or 'vol' directly when it's on PATH.
                 var psi = new ProcessStartInfo
                 {
-                    FileName = "cmd.exe",
-                    Arguments = $"/c {volExe} -f \"{memoryDumpPath}\" -o \"{outputFile}\" --renderer=json {plugin}",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true
                 };
+                if (volInPath)
+                {
+                    psi.FileName = "vol";
+                }
+                else
+                {
+                    psi.FileName = "python";
+                    psi.ArgumentList.Add(volPath);
+                }
+                psi.ArgumentList.Add("-f");
+                psi.ArgumentList.Add(memoryDumpPath);
+                psi.ArgumentList.Add("-o");
+                psi.ArgumentList.Add(outputFile);
+                psi.ArgumentList.Add("--renderer=json");
+                psi.ArgumentList.Add(plugin);
                 
                 using var process = Process.Start(psi);
                 if (process == null)
@@ -383,7 +400,8 @@ namespace PlatypusTools.Core.Services.DFIR
             {
                 progress?.Report($"Exporting to OpenSearch: {opensearchUrl}/{indexName}...");
                 
-                using var client = new System.Net.Http.HttpClient();
+                // Use shared HttpClient (avoid socket exhaustion / inconsistent TLS configuration).
+                var client = HttpClientFactory.Api;
                 var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
                 
                 using var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
@@ -429,7 +447,8 @@ namespace PlatypusTools.Core.Services.DFIR
             
             try
             {
-                using var client = new System.Net.Http.HttpClient();
+                // Use shared HttpClient (avoid socket exhaustion / inconsistent TLS configuration).
+                var client = HttpClientFactory.Api;
                 var bulkBody = new System.Text.StringBuilder();
                 
                 int count = 0;
@@ -518,17 +537,27 @@ namespace PlatypusTools.Core.Services.DFIR
                 
                 progress?.Report("Creating Plaso database...");
                 
-                // Step 1: Create Plaso storage file
-                var log2timeline = IsToolInPath("log2timeline.py") ? "log2timeline.py" : $"python \"{GetPlasoPath()}\"";
+                // Step 1: Create Plaso storage file. Build args directly (no cmd.exe shell wrapper)
+                // to avoid argument-injection from interpolated user-supplied paths.
+                var l2tInPath = IsToolInPath("log2timeline.py");
                 var psi = new ProcessStartInfo
                 {
-                    FileName = "cmd.exe",
-                    Arguments = $"/c {log2timeline} \"{plasoFile}\" \"{sourcePath}\"",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true
                 };
+                if (l2tInPath)
+                {
+                    psi.FileName = "log2timeline.py";
+                }
+                else
+                {
+                    psi.FileName = "python";
+                    psi.ArgumentList.Add(GetPlasoPath());
+                }
+                psi.ArgumentList.Add(plasoFile);
+                psi.ArgumentList.Add(sourcePath);
                 
                 using var process = Process.Start(psi);
                 if (process == null)
@@ -549,17 +578,29 @@ namespace PlatypusTools.Core.Services.DFIR
                 
                 progress?.Report("Converting to CSV timeline...");
                 
-                // Step 2: Convert to CSV
-                var psort = IsToolInPath("psort.py") ? "psort.py" : $"python \"{Path.Combine(_toolsPath, "psort.py")}\"";
+                // Step 2: Convert to CSV (no shell wrapper)
+                var psortInPath = IsToolInPath("psort.py");
                 psi = new ProcessStartInfo
                 {
-                    FileName = "cmd.exe",
-                    Arguments = $"/c {psort} -o l2tcsv -w \"{csvFile}\" \"{plasoFile}\"",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true
                 };
+                if (psortInPath)
+                {
+                    psi.FileName = "psort.py";
+                }
+                else
+                {
+                    psi.FileName = "python";
+                    psi.ArgumentList.Add(Path.Combine(_toolsPath, "psort.py"));
+                }
+                psi.ArgumentList.Add("-o");
+                psi.ArgumentList.Add("l2tcsv");
+                psi.ArgumentList.Add("-w");
+                psi.ArgumentList.Add(csvFile);
+                psi.ArgumentList.Add(plasoFile);
                 
                 using var psortProcess = Process.Start(psi);
                 if (psortProcess != null)

@@ -259,17 +259,25 @@ namespace PlatypusTools.Core.Services
             {
                 try
                 {
-                    // Use PowerShell Mount-DiskImage
-                    var mountCommand = $"(Mount-DiskImage -ImagePath '{isoPath}' -PassThru | Get-Volume).DriveLetter + ':'";
-                    
+                    // Use PowerShell Mount-DiskImage. Pass the path as a parameter (single-quoted in script
+                    // text) and base64-encode the whole script to avoid argument-injection / quoting issues
+                    // when the user-supplied isoPath contains unusual characters.
+                    var safePath = (isoPath ?? string.Empty).Replace("'", "''");
+                    var script = $"(Mount-DiskImage -ImagePath '{safePath}' -PassThru | Get-Volume).DriveLetter + ':'";
+                    var encoded = Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(script));
+
                     var startInfo = new ProcessStartInfo
                     {
                         FileName = "powershell.exe",
-                        Arguments = $"-NoProfile -ExecutionPolicy Bypass -Command \"{mountCommand}\"",
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         CreateNoWindow = true
                     };
+                    startInfo.ArgumentList.Add("-NoProfile");
+                    startInfo.ArgumentList.Add("-ExecutionPolicy");
+                    startInfo.ArgumentList.Add("Bypass");
+                    startInfo.ArgumentList.Add("-EncodedCommand");
+                    startInfo.ArgumentList.Add(encoded);
 
                     using var process = Process.Start(startInfo);
                     if (process == null) return string.Empty;
@@ -292,7 +300,10 @@ namespace PlatypusTools.Core.Services
             {
                 try
                 {
-                    var unmountCommand = $"Dismount-DiskImage -ImagePath '{isoPath}'";
+                    // Single-quote escape PowerShell-style; ElevationHelper.RunPowerShellElevated
+                    // now uses -EncodedCommand internally to avoid any argument-injection risk.
+                    var safePath = (isoPath ?? string.Empty).Replace("'", "''");
+                    var unmountCommand = $"Dismount-DiskImage -ImagePath '{safePath}'";
                     return ElevationHelper.RunPowerShellElevated(unmountCommand);
                 }
                 catch
@@ -311,17 +322,25 @@ namespace PlatypusTools.Core.Services
                     var source = sourceDrive.TrimEnd('\\');
                     var target = targetDrive.TrimEnd('\\');
 
-                    // Use robocopy for reliable copying
-                    var copyCommand = $"robocopy \"{source}\" \"{target}\" /E /NFL /NDL /NJH /NJS /nc /ns /np";
-                    
+                    // Invoke robocopy directly via ArgumentList (no cmd.exe wrapper) to eliminate
+                    // any shell-injection risk from interpolated drive paths.
                     var startInfo = new ProcessStartInfo
                     {
-                        FileName = "cmd.exe",
-                        Arguments = $"/C {copyCommand}",
+                        FileName = "robocopy.exe",
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         CreateNoWindow = true
                     };
+                    startInfo.ArgumentList.Add(source);
+                    startInfo.ArgumentList.Add(target);
+                    startInfo.ArgumentList.Add("/E");
+                    startInfo.ArgumentList.Add("/NFL");
+                    startInfo.ArgumentList.Add("/NDL");
+                    startInfo.ArgumentList.Add("/NJH");
+                    startInfo.ArgumentList.Add("/NJS");
+                    startInfo.ArgumentList.Add("/nc");
+                    startInfo.ArgumentList.Add("/ns");
+                    startInfo.ArgumentList.Add("/np");
 
                     using var process = Process.Start(startInfo);
                     if (process == null) return false;
@@ -370,9 +389,29 @@ namespace PlatypusTools.Core.Services
                         var bootsectPath = Path.Combine(driveLetter, "boot", "bootsect.exe");
                         if (File.Exists(bootsectPath))
                         {
-                            var command = $"\"{bootsectPath}\" /nt60 {drive}: /mbr";
-                            var exitCode = ElevationHelper.RunElevated("cmd.exe", $"/C {command}", true);
-                            return exitCode == 0;
+                            // Pass arguments directly to bootsect (no cmd.exe wrapper) to avoid
+                            // shell-injection from interpolated drive letter / path.
+                            var psi = new ProcessStartInfo
+                            {
+                                FileName = bootsectPath,
+                                UseShellExecute = true,
+                                Verb = "runas",
+                                CreateNoWindow = false
+                            };
+                            psi.ArgumentList.Add("/nt60");
+                            psi.ArgumentList.Add($"{drive}:");
+                            psi.ArgumentList.Add("/mbr");
+                            try
+                            {
+                                using var p = Process.Start(psi);
+                                if (p == null) return false;
+                                p.WaitForExit();
+                                return p.ExitCode == 0;
+                            }
+                            catch
+                            {
+                                return false;
+                            }
                         }
                         return true; // Assume bootable if bootsect not found
                     }

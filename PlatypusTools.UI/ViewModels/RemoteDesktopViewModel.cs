@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using PlatypusTools.UI.Services;
+using PlatypusTools.UI.Services.RemoteServer;
 
 namespace PlatypusTools.UI.ViewModels;
 
@@ -42,6 +43,7 @@ public class RemoteDesktopViewModel : BindableBase
     private ClientWebSocket? _ws;
     private CancellationTokenSource? _cts;
     private readonly object _frameLock = new();
+    private static readonly CertificatePinService _pinService = new();
 
     #endregion
 
@@ -256,10 +258,65 @@ public class RemoteDesktopViewModel : BindableBase
             var scheme = UseHttps ? "wss" : "ws";
             var uri = new Uri($"{scheme}://{HostAddress}:{HostPort}/ws/remote-desktop");
 
-            // For self-signed certs, skip validation
+            // Self-signed certs are validated using TOFU (trust-on-first-use) thumbprint pinning.
+            // First-time connections prompt the user to verify the SHA-256 fingerprint and trust it.
+            // Subsequent connections require the same fingerprint or refuse the connection.
             if (UseHttps)
             {
-                _ws.Options.RemoteCertificateValidationCallback = (sender, cert, chain, errors) => true;
+                var hostKey = $"{HostAddress}:{HostPort}";
+                _ws.Options.RemoteCertificateValidationCallback = (sender, cert, chain, errors) =>
+                {
+                    if (cert is null) return false;
+                    if (errors == System.Net.Security.SslPolicyErrors.None) return true;
+
+                    // Self-signed / unknown CA — fall back to pinning.
+                    var pinned = _pinService.GetPin(hostKey);
+                    var current = CertificatePinService.ComputeThumbprint(cert);
+
+                    if (pinned is null)
+                    {
+                        // First connection — prompt user to trust. Must run on the UI thread.
+                        var prompt =
+                            $"The remote server at {hostKey} is using a self-signed certificate.\n\n" +
+                            $"SHA-256 fingerprint:\n{FormatThumbprint(current)}\n\n" +
+                            "Verify this fingerprint matches the server you intend to connect to.\n\n" +
+                            "Trust this certificate for future connections?";
+                        var trust = false;
+                        try
+                        {
+                            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+                            if (dispatcher != null)
+                            {
+                                trust = dispatcher.Invoke(() =>
+                                    MessageBox.Show(prompt, "Untrusted Remote Certificate",
+                                        MessageBoxButton.YesNo, MessageBoxImage.Warning)
+                                    == MessageBoxResult.Yes);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[RemoteDesktop] Trust prompt failed: {ex.Message}");
+                            return false;
+                        }
+
+                        if (trust)
+                        {
+                            _pinService.Pin(hostKey, current);
+                            return true;
+                        }
+                        return false;
+                    }
+
+                    // Mismatch = potential MitM. Reject and warn user.
+                    if (!string.Equals(pinned, current, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Debug.WriteLine(
+                            $"[RemoteDesktop] CERT PIN MISMATCH for {hostKey}. " +
+                            $"Expected {pinned}, got {current}.");
+                        return false;
+                    }
+                    return true;
+                };
             }
 
             await _ws.ConnectAsync(uri, _cts.Token);
@@ -282,6 +339,19 @@ public class RemoteDesktopViewModel : BindableBase
             Debug.WriteLine($"[RemoteDesktop Client] Connect error: {ex}");
             await DisconnectAsync();
         }
+    }
+
+    private static string FormatThumbprint(string hex)
+    {
+        // Pretty-print "AABBCC..." as "AA:BB:CC:..."
+        if (string.IsNullOrEmpty(hex)) return string.Empty;
+        var sb = new StringBuilder(hex.Length + hex.Length / 2);
+        for (int i = 0; i < hex.Length; i += 2)
+        {
+            if (i > 0) sb.Append(':');
+            sb.Append(hex, i, Math.Min(2, hex.Length - i));
+        }
+        return sb.ToString();
     }
 
     public async Task DisconnectAsync()

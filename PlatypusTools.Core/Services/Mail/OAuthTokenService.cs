@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using PlatypusTools.Core.Models.Mail;
+using PlatypusTools.Core.Services;
 
 namespace PlatypusTools.Core.Services.Mail
 {
@@ -116,9 +117,9 @@ namespace PlatypusTools.Core.Services.Mail
                 // Build authorization URL
                 var authUrl = BuildAuthUrl(provider, clientId, redirectUri, codeChallenge, account.EmailAddress, state);
 
-                // Open system browser
+                // Open system browser. Use SafeProcessLauncher to enforce http(s) scheme only.
                 statusCallback?.Invoke("Opening browser for sign-in...");
-                Process.Start(new ProcessStartInfo(authUrl) { UseShellExecute = true });
+                PlatypusTools.Core.Utilities.SafeProcessLauncher.OpenUrl(authUrl);
 
                 // Wait for the browser callback (2-minute timeout)
                 statusCallback?.Invoke("Waiting for browser sign-in (2 min timeout)...");
@@ -173,7 +174,8 @@ namespace PlatypusTools.Core.Services.Mail
 
             var clientId = !string.IsNullOrEmpty(account.ClientId) ? account.ClientId : provider.DefaultClientId;
 
-            using var httpClient = new HttpClient();
+            // Use shared HttpClient (avoid socket exhaustion / inconsistent TLS configuration).
+            var httpClient = HttpClientFactory.Api;
             using var content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 ["client_id"] = clientId,
@@ -240,7 +242,8 @@ namespace PlatypusTools.Core.Services.Mail
             OAuthProviderConfig provider, string clientId, string code,
             string redirectUri, string codeVerifier, CancellationToken ct)
         {
-            using var httpClient = new HttpClient();
+            // Use shared HttpClient (avoid socket exhaustion / inconsistent TLS configuration).
+            var httpClient = HttpClientFactory.Api;
             using var content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 ["client_id"] = clientId,

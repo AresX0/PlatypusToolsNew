@@ -2242,9 +2242,14 @@ namespace PlatypusTools.Core.Services
         private static string GenerateSecurePassword(int length = 16)
         {
             const string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
-            var random = new Random();
-            return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
+            // Use cryptographically-secure RNG; passwords are returned to callers and may be set
+            // on user accounts, so non-secure System.Random is unacceptable here.
+            var result = new char[length];
+            for (int i = 0; i < length; i++)
+            {
+                result[i] = chars[System.Security.Cryptography.RandomNumberGenerator.GetInt32(chars.Length)];
+            }
+            return new string(result);
         }
 
         #endregion
