@@ -1485,12 +1485,18 @@ namespace PlatypusTools.UI.Views
             { "TabDuplicates", "FileManagement.Duplicates" },
             { "TabEmptyFolderScanner", "FileManagement.EmptyFolderScanner" },
             { "TabRobocopy", "FileManagement.Robocopy" },
+            { "TabCloudSync", "FileManagement.CloudSync" },
+            { "TabFileDiff", "FileManagement.FileDiff" },
+            { "TabBulkFileMover", "FileManagement.BulkFileMover" },
+            { "TabSymlinkManager", "FileManagement.SymlinkManager" },
             
             // Multimedia
             { "TabMultimedia", "Multimedia" },
+            { "TabMediaHub", "Multimedia.MediaHub" },
             { "TabEnhancedAudioPlayer", "Multimedia.Audio.EnhancedAudioPlayer" },
             { "TabAudioPlayer", "Multimedia.Audio.AudioPlayer" },
             { "TabAudioTrim", "Multimedia.Audio.AudioTrim" },
+            { "TabAudioTranscription", "Multimedia.Audio.AudioTranscription" },
             { "TabImageEdit", "Multimedia.Image.ImageEdit" },
             { "TabImageConverter", "Multimedia.Image.ImageConverter" },
             { "TabImageResizer", "Multimedia.Image.ImageResizer" },
@@ -1503,6 +1509,9 @@ namespace PlatypusTools.UI.Views
             { "TabUpscaler", "Multimedia.Video.Upscaler" },
             { "TabVideoCombiner", "Multimedia.Video.VideoCombiner" },
             { "TabVideoConverter", "Multimedia.Video.VideoConverter" },
+            { "TabExportQueue", "Multimedia.Video.ExportQueue" },
+            { "TabVideoMetadata", "Multimedia.Video.VideoMetadata" },
+            { "TabGifMaker", "Multimedia.Video.GifMaker" },
             { "TabMediaLibrary", "Multimedia.MediaLibrary" },
             { "TabExternalTools", "Multimedia.ExternalTools" },
             
@@ -1516,6 +1525,17 @@ namespace PlatypusTools.UI.Views
             { "TabRegistryCleaner", "System.RegistryCleaner" },
             { "TabScheduledTasks", "System.ScheduledTasks" },
             { "TabSystemRestore", "System.SystemRestore" },
+            { "TabWindowsUpdateRepair", "System.WindowsUpdateRepair" },
+            { "TabTerminal", "System.Terminal" },
+            { "TabJobQueue", "System.JobQueue" },
+            { "TabScheduledBackup", "System.ScheduledBackup" },
+            { "TabEnvironmentVariableManager", "System.EnvironmentVariableManager" },
+            { "TabWindowsServiceManager", "System.WindowsServiceManager" },
+            { "TabDiskHealth", "System.DiskHealth" },
+            { "TabWifiPassword", "System.WifiPassword" },
+            { "TabRemoteDashboard", "System.RemoteDashboard" },
+            { "TabRemoteDesktop", "System.RemoteDesktop" },
+            { "TabIntuneBackupSuite", "System.IntuneBackupSuite" },
             
             // Security
             { "TabSecurity", "Security" },
@@ -1542,6 +1562,16 @@ namespace PlatypusTools.UI.Views
             { "TabHashScanner", "Security.HashScanner" },
             { "TabRebootAnalyzer", "Security.RebootAnalyzer" },
             { "TabAdSecurityAnalyzer", "Security.AdSecurityAnalyzer" },
+            { "TabCveSearch", "Security.CveSearch" },
+            { "TabFileIntegrity", "Security.FileIntegrity" },
+            { "TabCertificateManager", "Security.CertificateManager" },
+            { "TabSecurityVault", "Security.SecurityVault" },
+            { "TabSshKeyManager", "Security.SshKeyManager" },
+            { "TabFileEncryption", "Security.FileEncryption" },
+            { "TabSystemHardening", "Security.SystemHardening" },
+            { "TabNetworkTraffic", "Security.NetworkTraffic" },
+            { "TabWallpaperRotator", "System.WallpaperRotator" },
+            { "TabScreensaver", "System.Screensaver" },
             
             // Metadata
             { "TabMetadata", "Metadata" },
@@ -1560,6 +1590,15 @@ namespace PlatypusTools.UI.Views
             { "TabFtpClient", "Tools.FtpClient" },
             { "TabTerminalClient", "Tools.TerminalClient" },
             { "TabSimpleBrowser", "Tools.SimpleBrowser" },
+            { "TabPlexBackup", "Tools.PlexBackup" },
+            { "TabScreenRecorder", "Tools.ScreenRecorder" },
+            { "TabIntunePackager", "Tools.IntunePackager" },
+            { "TabClipboardHistory", "Tools.ClipboardHistory" },
+            { "TabQrCode", "Tools.QrCode" },
+            { "TabColorPicker", "Tools.ColorPicker" },
+            { "TabBulkChecksum", "Tools.BulkChecksum" },
+            { "TabMailClient", "Tools.MailClient" },
+            { "TabTextEditor", "Tools.TextEditor" },
         };
         
         private void LoadTabVisibilitySettings()
@@ -1577,21 +1616,7 @@ namespace PlatypusTools.UI.Views
                     }
                 }
                 
-                // Show AD Security Analyzer checkbox only when licensed
-                if (TabAdSecurityAnalyzer != null)
-                {
-                    bool isLicensed = settings.HasValidLicenseKey();
-                    TabAdSecurityAnalyzer.Visibility = isLicensed ? Visibility.Visible : Visibility.Collapsed;
-                    
-                    // If licensed, check the saved visibility setting (or default to visible)
-                    if (isLicensed)
-                    {
-                        if (settings.VisibleTabs.TryGetValue("Security.AdSecurityAnalyzer", out var visible))
-                            TabAdSecurityAnalyzer.IsChecked = visible;
-                        else
-                            TabAdSecurityAnalyzer.IsChecked = true; // Default to visible once licensed
-                    }
-                }
+                // AD Security Analyzer is always available now (no license required)
             }
             catch (System.Exception ex)
             {

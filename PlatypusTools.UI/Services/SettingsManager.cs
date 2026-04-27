@@ -491,12 +491,12 @@ namespace PlatypusTools.UI.Services
             set { _windowState = value; OnPropertyChanged(); }
         }
 
-        // Session-based unlock state (not persisted - resets on app restart)
-        private bool _isAdSecurityUnlocked = false;
+        // Session-based unlock state (kept for compatibility — license requirement removed in v4.0.2.5)
+        private bool _isAdSecurityUnlocked = true;
         
         /// <summary>
-        /// Gets or sets whether the AD Security Analyzer has been unlocked for this session.
-        /// This is NOT persisted - resets to false on app restart.
+        /// Always returns true. The license/unlock requirement was removed; the property is kept
+        /// for backward compatibility with existing code paths.
         /// </summary>
         [System.Text.Json.Serialization.JsonIgnore]
         public bool IsAdSecurityUnlocked
@@ -506,7 +506,6 @@ namespace PlatypusTools.UI.Services
             { 
                 _isAdSecurityUnlocked = value; 
                 OnPropertyChanged();
-                // Trigger tab visibility refresh
                 TabVisibilityChanged?.Invoke(this, "Security.AdSecurityAnalyzer");
             }
         }
@@ -556,19 +555,6 @@ namespace PlatypusTools.UI.Services
         public bool IsTabVisible(string tabKey)
         {
             if (string.IsNullOrEmpty(tabKey)) return true;
-            
-            // Special handling for AD Security Analyzer - requires valid license + session unlock
-            if (tabKey == "Security.AdSecurityAnalyzer")
-            {
-                // Must have valid license AND be unlocked this session
-                if (!HasValidLicenseKey() || !IsAdSecurityUnlocked)
-                    return false;
-                    
-                // If unlocked and licensed, use saved visibility setting (defaults to true if not set)
-                if (VisibleTabs.TryGetValue(tabKey, out var adVisible))
-                    return adVisible;
-                return true; // Default to visible once licensed and unlocked
-            }
             
             // Explicitly check if user has set visibility
             if (VisibleTabs.TryGetValue(tabKey, out var visible))

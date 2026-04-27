@@ -410,7 +410,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 4.0.2.4"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 4.0.2.6"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
@@ -459,6 +459,10 @@
                                 <CheckBox x:Name="TabDuplicates" Content="    Duplicates" IsChecked="True" Margin="16,4,0,4"/>
                                 <CheckBox x:Name="TabEmptyFolderScanner" Content="    Empty Folder Scanner" IsChecked="True" Margin="16,4,0,4"/>
                                 <CheckBox x:Name="TabRobocopy" Content="    Robocopy" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabCloudSync" Content="    Cloud Sync" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabFileDiff" Content="    File Diff" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabBulkFileMover" Content="    Bulk File Mover" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabSymlinkManager" Content="    Symlink Manager" IsChecked="True" Margin="16,4,0,4"/>
                             </StackPanel>
                         </GroupBox>
                         
@@ -471,6 +475,7 @@
                                 <CheckBox x:Name="TabEnhancedAudioPlayer" Content="    Enhanced Audio Player" IsChecked="True" Margin="32,4,0,4"/>
                                 <CheckBox x:Name="TabAudioPlayer" Content="    Audio Player" IsChecked="True" Margin="32,4,0,4"/>
                                 <CheckBox x:Name="TabAudioTrim" Content="    Audio Trim" IsChecked="True" Margin="32,4,0,4"/>
+                                <CheckBox x:Name="TabAudioTranscription" Content="    Audio Transcription" IsChecked="True" Margin="32,4,0,4"/>
                                 
                                 <TextBlock Text="Image" FontWeight="SemiBold" Margin="16,8,0,4"/>
                                 <CheckBox x:Name="TabImageEdit" Content="    Image Edit" IsChecked="True" Margin="32,4,0,4"/>
@@ -487,8 +492,12 @@
                                 <CheckBox x:Name="TabUpscaler" Content="    Upscaler" IsChecked="True" Margin="32,4,0,4"/>
                                 <CheckBox x:Name="TabVideoCombiner" Content="    Video Combiner" IsChecked="True" Margin="32,4,0,4"/>
                                 <CheckBox x:Name="TabVideoConverter" Content="    Video Converter" IsChecked="True" Margin="32,4,0,4"/>
+                                <CheckBox x:Name="TabExportQueue" Content="    Export Queue" IsChecked="True" Margin="32,4,0,4"/>
+                                <CheckBox x:Name="TabVideoMetadata" Content="    Video Metadata" IsChecked="True" Margin="32,4,0,4"/>
+                                <CheckBox x:Name="TabGifMaker" Content="    GIF Maker" IsChecked="True" Margin="32,4,0,4"/>
                                 
-                                <CheckBox x:Name="TabMediaLibrary" Content="    📚 Media Library" IsChecked="True" Margin="16,8,0,4"/>
+                                <CheckBox x:Name="TabMediaHub" Content="    🎦 Media Hub" IsChecked="True" Margin="16,8,0,4"/>
+                                <CheckBox x:Name="TabMediaLibrary" Content="    📚 Media Library" IsChecked="True" Margin="16,4,0,4"/>
                                 <CheckBox x:Name="TabExternalTools" Content="    🔧 External Tools" IsChecked="True" Margin="16,4,0,4"/>
                             </StackPanel>
                         </GroupBox>
@@ -505,6 +514,19 @@
                                 <CheckBox x:Name="TabRegistryCleaner" Content="    Registry Cleaner" IsChecked="True" Margin="16,4,0,4"/>
                                 <CheckBox x:Name="TabScheduledTasks" Content="    Scheduled Tasks" IsChecked="True" Margin="16,4,0,4"/>
                                 <CheckBox x:Name="TabSystemRestore" Content="    System Restore" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabWindowsUpdateRepair" Content="    Windows Update Repair" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabTerminal" Content="    Terminal" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabJobQueue" Content="    Job Queue" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabScheduledBackup" Content="    Scheduled Backup" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabEnvironmentVariableManager" Content="    Environment Variables" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabWindowsServiceManager" Content="    Windows Services" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabDiskHealth" Content="    Disk Health" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabWifiPassword" Content="    WiFi Passwords" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabRemoteDashboard" Content="    Remote Dashboard" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabRemoteDesktop" Content="    Remote Desktop" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabIntuneBackupSuite" Content="    Intune Backup" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabWallpaperRotator" Content="    🖼️ Wallpaper Rotator" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabScreensaver" Content="    🌌 Slideshow Screensaver" IsChecked="True" Margin="16,4,0,4"/>
                             </StackPanel>
                         </GroupBox>
                         
@@ -518,8 +540,15 @@
                                 <CheckBox x:Name="TabSecureWipe" Content="    Secure Wipe" IsChecked="True" Margin="16,4,0,4"/>
                                 <CheckBox x:Name="TabHashScanner" Content="    Hash Scanner" IsChecked="True" Margin="16,4,0,4"/>
                                 <CheckBox x:Name="TabRebootAnalyzer" Content="    Reboot Analyzer" IsChecked="True" Margin="16,4,0,4"/>
-                                <!-- AD Security Analyzer - shown only when licensed -->
-                                <CheckBox x:Name="TabAdSecurityAnalyzer" Content="    🔐 AD Security Analyzer (Licensed)" IsChecked="True" Margin="16,4,0,4" Visibility="Collapsed"/>
+                                <CheckBox x:Name="TabAdSecurityAnalyzer" Content="    🛡️ AD Security Analyzer" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabCveSearch" Content="    CVE Search" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabFileIntegrity" Content="    File Integrity Monitor" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabCertificateManager" Content="    Certificate Manager" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabSecurityVault" Content="    Security Vault" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabSshKeyManager" Content="    SSH Key Manager" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabFileEncryption" Content="    File Encryption" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabSystemHardening" Content="    System Hardening" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabNetworkTraffic" Content="    Network Traffic" IsChecked="True" Margin="16,4,0,4"/>
                                 <CheckBox x:Name="TabAdvancedForensics" Content="    🔬 Advanced Forensics" IsChecked="True" Margin="16,4,0,4"/>
                                 <!-- Advanced Forensics Sub-tabs -->
                                 <CheckBox x:Name="TabAdvForensicsMemory" Content="        Memory Analysis" IsChecked="True" Margin="32,4,0,4"/>
@@ -563,6 +592,15 @@
                                 <CheckBox x:Name="TabFtpClient" Content="    FTP Client" IsChecked="True" Margin="16,4,0,4"/>
                                 <CheckBox x:Name="TabTerminalClient" Content="    Terminal Client" IsChecked="True" Margin="16,4,0,4"/>
                                 <CheckBox x:Name="TabSimpleBrowser" Content="    Simple Browser" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabPlexBackup" Content="    Plex Backup" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabScreenRecorder" Content="    Screen Recorder" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabIntunePackager" Content="    Intune Packager" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabClipboardHistory" Content="    Clipboard History" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabQrCode" Content="    QR Code" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabColorPicker" Content="    Color Picker" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabBulkChecksum" Content="    Bulk Checksum" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabMailClient" Content="    Mail Client" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabTextEditor" Content="    Text Editor" IsChecked="True" Margin="16,4,0,4"/>
                             </StackPanel>
                         </GroupBox>
                         

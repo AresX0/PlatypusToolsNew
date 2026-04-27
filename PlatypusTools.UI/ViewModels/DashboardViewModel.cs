@@ -22,6 +22,10 @@ namespace PlatypusTools.UI.ViewModels
             OpenSettingsCommand = new RelayCommand(_ => OpenSettings());
             OpenCommandPaletteCommand = new RelayCommand(_ => OpenCommandPalette());
             CheckForUpdatesCommand = new AsyncRelayCommand(CheckForUpdatesAsync);
+            OpenWallpaperRotatorCommand = new RelayCommand(_ => Services.CommandService.NavigateToTabByHeaders("System", "Wallpaper Rotator"));
+            OpenScreensaverCommand = new RelayCommand(_ => Services.CommandService.NavigateToTabByHeaders("System", "Screensaver"));
+            OpenAdSecurityCommand = new RelayCommand(_ => Services.CommandService.NavigateToTabByHeaders("Security", "AD Security Analyzer"));
+            ApplyNextWallpaperCommand = new AsyncRelayCommand(ApplyNextWallpaperAsync);
 
             _refreshTimer = new DispatcherTimer
             {
@@ -184,6 +188,13 @@ namespace PlatypusTools.UI.ViewModels
             set { if (SetProperty(ref _showKeyboardShortcuts, value)) SaveWidgetPrefs(); }
         }
 
+        private bool _showNewFeatures = true;
+        public bool ShowNewFeatures
+        {
+            get => _showNewFeatures;
+            set { if (SetProperty(ref _showNewFeatures, value)) SaveWidgetPrefs(); }
+        }
+
         private bool _isCustomizePanelOpen;
         public bool IsCustomizePanelOpen
         {
@@ -199,6 +210,10 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand OpenSettingsCommand { get; }
         public ICommand OpenCommandPaletteCommand { get; }
         public ICommand CheckForUpdatesCommand { get; }
+        public ICommand OpenWallpaperRotatorCommand { get; }
+        public ICommand OpenScreensaverCommand { get; }
+        public ICommand OpenAdSecurityCommand { get; }
+        public ICommand ApplyNextWallpaperCommand { get; }
 
         #endregion
 
@@ -317,6 +332,26 @@ namespace PlatypusTools.UI.ViewModels
             }
         }
 
+        private async Task ApplyNextWallpaperAsync()
+        {
+            try
+            {
+                var cfg = PlatypusTools.Core.Services.Wallpaper.WallpaperRotatorConfig.Load();
+                if (string.IsNullOrWhiteSpace(cfg.ImagesDirectory))
+                {
+                    Services.ToastNotificationService.Instance.ShowInfo(
+                        "Set a source folder in the Wallpaper Rotator tab first.", "Wallpaper Rotator");
+                    return;
+                }
+                await PlatypusTools.Core.Services.Wallpaper.WallpaperRotatorService.Instance.ApplyNextNowAsync(cfg);
+                Services.ToastNotificationService.Instance.ShowSuccess("Wallpaper updated.", "Wallpaper Rotator");
+            }
+            catch (Exception ex)
+            {
+                Services.ToastNotificationService.Instance.ShowError(ex.Message, "Wallpaper Rotator");
+            }
+        }
+
         private void SaveWidgetPrefs()
         {
             try
@@ -333,7 +368,8 @@ namespace PlatypusTools.UI.ViewModels
                     ShowSystemStatus,
                     ShowRemoteServer,
                     ShowUndoStack,
-                    ShowKeyboardShortcuts
+                    ShowKeyboardShortcuts,
+                    ShowNewFeatures
                 });
                 File.WriteAllText(path, json);
             }
@@ -360,6 +396,7 @@ namespace PlatypusTools.UI.ViewModels
                 if (root.TryGetProperty("ShowRemoteServer", out var v5)) _showRemoteServer = v5.GetBoolean();
                 if (root.TryGetProperty("ShowUndoStack", out var v6)) _showUndoStack = v6.GetBoolean();
                 if (root.TryGetProperty("ShowKeyboardShortcuts", out var v7)) _showKeyboardShortcuts = v7.GetBoolean();
+                if (root.TryGetProperty("ShowNewFeatures", out var v8)) _showNewFeatures = v8.GetBoolean();
             }
             catch (Exception ex)
             {
