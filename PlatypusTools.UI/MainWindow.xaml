@@ -366,6 +366,10 @@
                              Visibility="{Binding RemoteDesktop, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:RemoteDesktopView}" ViewDataContext="{Binding RemoteDesktop}" />
                     </TabItem>
+                    <TabItem Header="☁️ Intune Backup"
+                             Visibility="{Binding IntuneBackupSuite, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:IntuneBackupSuiteView}" ViewDataContext="{Binding IntuneBackupSuite}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
 

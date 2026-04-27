@@ -69,6 +69,7 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<SimpleBrowserViewModel> _simpleBrowser = new(() => new SimpleBrowserViewModel());
         private readonly Lazy<PlexBackupViewModel> _plexBackup = new(() => new PlexBackupViewModel());
         private readonly Lazy<IntunePackagerViewModel> _intunePackager = new(() => new IntunePackagerViewModel());
+        private readonly Lazy<IntuneBackupSuiteViewModel> _intuneBackupSuite = new(() => new IntuneBackupSuiteViewModel());
         private readonly Lazy<HashScannerViewModel> _hashScanner = new(() => new HashScannerViewModel());
         private readonly Lazy<AdSecurityAnalyzerViewModel> _adSecurityAnalyzer = new(() => new AdSecurityAnalyzerViewModel());
         private readonly Lazy<CveSearchViewModel> _cveSearch = new(() => new CveSearchViewModel());
@@ -196,6 +197,7 @@ namespace PlatypusTools.UI.ViewModels
         public SimpleBrowserViewModel SimpleBrowser => _simpleBrowser.Value;
         public PlexBackupViewModel PlexBackup => _plexBackup.Value;
         public IntunePackagerViewModel IntunePackager => _intunePackager.Value;
+        public IntuneBackupSuiteViewModel IntuneBackupSuite => _intuneBackupSuite.Value;
         public HashScannerViewModel HashScanner => _hashScanner.Value;
         public AdSecurityAnalyzerViewModel AdSecurityAnalyzer => _adSecurityAnalyzer.Value;
         public CveSearchViewModel CveSearch => _cveSearch.Value;

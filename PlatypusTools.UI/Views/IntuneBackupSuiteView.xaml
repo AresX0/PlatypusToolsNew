@@ -1,0 +1,161 @@
+<UserControl x:Class="PlatypusTools.UI.Views.IntuneBackupSuiteView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:IntuneBackupSuiteViewModel}">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <GroupBox Grid.Row="0" Header="Intune Backup Project">
+            <Grid Margin="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="Project Root:" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <TextBox Grid.Column="1" Text="{Binding ProjectRoot, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" VerticalContentAlignment="Center" />
+                <Button Grid.Column="2" Content="Browse" Width="90" Margin="0,0,8,0" Command="{Binding BrowseProjectRootCommand}" />
+                <Button Grid.Column="3" Content="Refresh" Width="90" Command="{Binding RefreshStatusCommand}" />
+            </Grid>
+        </GroupBox>
+
+        <GroupBox Grid.Row="1" Header="Integrated Intune Workflows" Margin="0,8,0,8">
+            <Grid Margin="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Login UPN" VerticalAlignment="Center" Margin="0,0,8,4" />
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding LoginUpn, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Tenant ID (GUID)" VerticalAlignment="Center" Margin="0,0,8,4" />
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding TenantId, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Primary Export Folder" VerticalAlignment="Center" Margin="0,0,8,4" />
+                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SelectedExportRoot, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
+
+                <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,8,0,0">
+                    <CheckBox Content="Include Assignments" IsChecked="{Binding IncludeAssignments}" Margin="0,0,12,0" />
+                    <CheckBox Content="Include Apps" IsChecked="{Binding IncludeApps}" Margin="0,0,12,0" />
+                    <CheckBox Content="Expand Settings Catalog" IsChecked="{Binding ExpandCatalog}" Margin="0,0,12,0" />
+                    <CheckBox Content="Generate Re-import Script" IsChecked="{Binding GenerateImportScript}" Margin="0,0,12,0" />
+                    <CheckBox Content="Confirm Destructive" IsChecked="{Binding ConfirmDestructive}" />
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" Background="#CCCCCC" Cursor="SizeNS" ResizeDirection="Rows" />
+
+        <Grid Grid.Row="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <GroupBox Grid.Row="0" Header="One-Click Actions" Margin="0,0,0,8">
+                <StackPanel Margin="8">
+                    <WrapPanel>
+                        <Button Content="Full Backup" Width="140" Margin="0,0,8,8" Command="{Binding RunFullBackupCommand}" Background="#FF4CAF50" Foreground="White" />
+                        <Button Content="Compare Exports" Width="140" Margin="0,0,8,8" Command="{Binding RunCompareExportsCommand}" Background="#FF2196F3" Foreground="White" />
+                        <Button Content="Generate Re-import" Width="140" Margin="0,0,8,8" Command="{Binding RunGenerateReimportCommand}" />
+                        <Button Content="Baseline Compare" Width="140" Margin="0,0,8,8" Command="{Binding RunBaselineCompareCommand}" />
+                        <Button Content="Import Baseline" Width="140" Margin="0,0,8,8" Command="{Binding RunImportBaselineCommand}" Background="#FFFF9800" Foreground="White" />
+                        <Button Content="Cross-Tenant Compare" Width="160" Margin="0,0,8,8" Command="{Binding RunCrossTenantCompareCommand}" />
+                        <Button Content="Cross-Tenant Import" Width="160" Margin="0,0,8,8" Command="{Binding RunCrossTenantImportCommand}" Background="#FFFF9800" Foreground="White" />
+                        <Button Content="Export Settings CSV" Width="150" Margin="0,0,8,8" Command="{Binding RunExportSettingsCsvCommand}" />
+                        <Button Content="Cancel Running" Width="130" Margin="0,0,8,8" Command="{Binding CancelCommand}" Background="#FFF44336" Foreground="White" />
+                    </WrapPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Grid.Row="1" Header="Workflow Paths" Margin="0,0,0,8">
+                <Grid Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Compare A Folder" VerticalAlignment="Center" Margin="0,0,8,4" />
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ExportFolderA, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,4" />
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Compare B Folder" VerticalAlignment="Center" Margin="0,0,8,4" />
+                    <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding ExportFolderB, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Source Export" VerticalAlignment="Center" Margin="0,0,8,4" />
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SourceExportFolder, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,4" />
+                    <TextBlock Grid.Row="1" Grid.Column="2" Text="Target Export" VerticalAlignment="Center" Margin="0,0,8,4" />
+                    <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding TargetExportFolder, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Baseline Folder" VerticalAlignment="Center" Margin="0,0,8,4" />
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding BaselineFolder, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,4" />
+                    <TextBlock Grid.Row="2" Grid.Column="2" Text="Baseline Index (1..n)" VerticalAlignment="Center" Margin="0,0,8,4" />
+                    <TextBox Grid.Row="2" Grid.Column="3" Text="{Binding BaselineIndex, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Output Folder" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,0" />
+                    <TextBlock Grid.Row="3" Grid.Column="2" Text="CSV Output" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <TextBox Grid.Row="3" Grid.Column="3" Text="{Binding CsvOutputPath, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,0" />
+                </Grid>
+            </GroupBox>
+
+            <GroupBox Grid.Row="2" Header="Advanced / Custom Input">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="One line per prompt. First line should be login UPN, second line menu option (1-8)." Margin="0,0,0,4" />
+                    <DockPanel Grid.Row="1">
+                        <Button DockPanel.Dock="Right" Content="Run Custom" Width="120" Margin="8,0,0,0" Command="{Binding RunCustomInputCommand}" />
+                        <TextBox Text="{Binding CustomInputLines, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" MinHeight="90" FontFamily="Consolas" />
+                    </DockPanel>
+                </Grid>
+            </GroupBox>
+        </Grid>
+
+        <Grid Grid.Row="4" Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Padding="8" Background="#22000000" CornerRadius="4" Margin="0,0,8,0">
+                <TextBlock Text="{Binding StatusMessage}" FontWeight="SemiBold" />
+            </Border>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="Open Project" Width="110" Margin="0,0,8,0" Command="{Binding OpenProjectFolderCommand}" />
+                <Button Content="Open Docs" Width="100" Margin="0,0,8,0" Command="{Binding OpenDocsFolderCommand}" />
+                <Button Content="Open README" Width="110" Margin="0,0,8,0" Command="{Binding OpenReadmeCommand}" />
+                <Button Content="Open Exports" Width="110" Command="{Binding OpenExportFolderCommand}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

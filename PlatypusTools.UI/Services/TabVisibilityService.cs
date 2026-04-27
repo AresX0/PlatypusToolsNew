@@ -181,6 +181,7 @@ namespace PlatypusTools.UI.Services
         public Visibility WifiPassword => GetVisibility("System.WifiPassword");
         public Visibility RemoteDashboard => GetVisibility("System.RemoteDashboard");
         public Visibility RemoteDesktop => GetVisibility("System.RemoteDesktop");
+        public Visibility IntuneBackupSuite => GetVisibility("System.IntuneBackupSuite");
 
         // Security - New
         public Visibility FileIntegrity => GetVisibility("Security.FileIntegrity");

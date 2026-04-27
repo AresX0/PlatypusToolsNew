@@ -840,6 +840,7 @@ namespace PlatypusTools.UI.Services
                 new("System.WifiPassword", "WiFi Passwords", "System"),
                 new("System.RemoteDashboard", "Remote Dashboard", "System"),
                 new("System.RemoteDesktop", "Remote Desktop", "System"),
+                new("System.IntuneBackupSuite", "Intune Backup Suite", "System"),
 
                 new("Security", "🔒 Security", null),
                 new("Security.FolderHider", "Folder Hider", "Security"),
