@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## v4.0.2.1 - 2026-04-27
+
+### Security
+- **Remote Desktop TLS pinning (TOFU)** — first-connection prompt with SHA-256 fingerprint; pins persisted in `%APPDATA%\PlatypusTools\trusted_remote_certs.json`. Replaces the prior unconditional accept callback.
+- **PBKDF2 modernization** — vault key derivation migrated to the static `Rfc2898DeriveBytes.Pbkdf2` API (same iteration count, salt, and output length — existing vaults continue to decrypt). Removes `SYSLIB0060` reliance.
+- **X509 cert loading** — `X509CertificateLoader` replaces obsolete PKCS#12 constructors (`SYSLIB0057`).
+- **Process argument hardening** — `ArgumentList`-based launches throughout (BootableUSB, DFIRTools, Upscaler, ElevationHelper); long PowerShell payloads use `-EncodedCommand` to prevent argument injection.
+- **URL launching whitelist** — new `SafeProcessLauncher.OpenUrl` validates `http(s)` only; `OpenLocalPath` verifies path existence; `RevealInExplorer` uses `ArgumentList`.
+- **HttpClient lifetime** — `OAuthTokenService`, `DFIRToolsService`, `EnhancedAudioPlayerViewModel` switched to the centralized `HttpClientFactory` singletons (no more per-call `using new HttpClient`).
+- **Crypto password generation** — `EntraIdSecurityService.GenerateSecurePassword` now uses `RandomNumberGenerator.GetInt32`.
+- **Remote server DoS protection** — Kestrel `MaxRequestBodySize` capped at 8 MB to prevent oversized-JSON DoS on auth endpoints.
+- **Startup exception observability** — async lambdas in `App.xaml.cs` startup wrapped with try/catch + structured logging.
+
+### Changed
+- **Dispatcher null-safety** — `DuplicatesViewModel` switched from `App.Current.Dispatcher` to null-safe `System.Windows.Application.Current?.Dispatcher`.
+- **Cancellation propagation** — `IntunePackagerViewModel.ReadOutputAsync` forwards its `CancellationToken` to `ReadLineAsync`.
+
+### Removed
+- **Dead code** — legacy `archive/PlatypusToolsNew-3.1.0/` tree deleted (425 files; not referenced by solution, csprojs, or build scripts).
+
+### Notes
+- See `DOCS/SECURITY_AUDIT_2026-04-27_ROLLBACK.md` for the full per-file change log and rollback instructions.
+
 ## v4.0.1.10 - 2026-04-26
 
 ### Added
