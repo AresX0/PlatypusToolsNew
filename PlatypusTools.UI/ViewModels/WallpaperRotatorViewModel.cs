@@ -1,14 +1,16 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
 using PlatypusTools.Core.Services.Wallpaper;
+using PlatypusTools.UI.Services.TabConfig;
 
 namespace PlatypusTools.UI.ViewModels
 {
-    public class WallpaperRotatorViewModel : BindableBase
+    public class WallpaperRotatorViewModel : BindableBase, ITabConfigProvider
     {
         private readonly WallpaperRotatorConfig _config;
         private readonly WallpaperRotatorService _service = WallpaperRotatorService.Instance;
@@ -210,6 +212,70 @@ namespace PlatypusTools.UI.ViewModels
             {
                 StatusMessage = $"NASA refresh failed: {ex.Message}";
             }
+        }
+
+        // ── Phase 1.4: ITabConfigProvider ─────────────────────────────────────
+        public string TabKey => "System.WallpaperRotator";
+        public string TabDisplayName => "Wallpaper Rotator";
+
+        public IDictionary<string, object?> ExportConfig() => new Dictionary<string, object?>
+        {
+            ["imagesDirectory"] = _config.ImagesDirectory,
+            ["wallpaperIntervalSeconds"] = _config.WallpaperIntervalSeconds,
+            ["slideshowIntervalSeconds"] = _config.SlideshowIntervalSeconds,
+            ["shuffle"] = _config.Shuffle,
+            ["fitMode"] = _config.FitMode,
+            ["transition"] = _config.Transition,
+            ["showOverlay"] = _config.ShowOverlay,
+            ["burnOverlayOnWallpaper"] = _config.BurnOverlayOnWallpaper,
+            ["applyToLockScreen"] = _config.ApplyToLockScreen,
+            ["overlayOpacity"] = _config.OverlayOpacity,
+            ["overlayScrollSpeedSeconds"] = _config.OverlayScrollSpeedSeconds,
+            ["runAtLogin"] = _config.RunAtLogin,
+            ["minimizeOnStart"] = _config.MinimizeOnStart,
+            ["overlaySource"] = _config.OverlaySource,
+            ["customOverlayText"] = _config.CustomOverlayText,
+        };
+
+        public void ImportConfig(IDictionary<string, object?> config)
+        {
+            ImagesDirectory = TabConfigService.GetValue(config, "imagesDirectory", _config.ImagesDirectory) ?? _config.ImagesDirectory;
+            WallpaperIntervalSeconds = TabConfigService.GetValue(config, "wallpaperIntervalSeconds", _config.WallpaperIntervalSeconds);
+            _config.SlideshowIntervalSeconds = TabConfigService.GetValue(config, "slideshowIntervalSeconds", _config.SlideshowIntervalSeconds);
+            Shuffle = TabConfigService.GetValue(config, "shuffle", _config.Shuffle);
+            FitMode = TabConfigService.GetValue(config, "fitMode", _config.FitMode) ?? _config.FitMode;
+            _config.Transition = TabConfigService.GetValue(config, "transition", _config.Transition) ?? _config.Transition;
+            _config.ShowOverlay = TabConfigService.GetValue(config, "showOverlay", _config.ShowOverlay);
+            BurnOverlayOnWallpaper = TabConfigService.GetValue(config, "burnOverlayOnWallpaper", _config.BurnOverlayOnWallpaper);
+            ApplyToLockScreen = TabConfigService.GetValue(config, "applyToLockScreen", _config.ApplyToLockScreen);
+            OverlayOpacity = TabConfigService.GetValue(config, "overlayOpacity", _config.OverlayOpacity);
+            _config.OverlayScrollSpeedSeconds = TabConfigService.GetValue(config, "overlayScrollSpeedSeconds", _config.OverlayScrollSpeedSeconds);
+            RunAtLogin = TabConfigService.GetValue(config, "runAtLogin", _config.RunAtLogin);
+            _config.MinimizeOnStart = TabConfigService.GetValue(config, "minimizeOnStart", _config.MinimizeOnStart);
+            OverlaySource = TabConfigService.GetValue(config, "overlaySource", _config.OverlaySource) ?? _config.OverlaySource;
+            CustomOverlayText = TabConfigService.GetValue(config, "customOverlayText", _config.CustomOverlayText) ?? _config.CustomOverlayText;
+            Save();
+        }
+
+        public void ResetConfig()
+        {
+            var def = new WallpaperRotatorConfig();
+            ImagesDirectory = def.ImagesDirectory;
+            WallpaperIntervalSeconds = def.WallpaperIntervalSeconds;
+            _config.SlideshowIntervalSeconds = def.SlideshowIntervalSeconds;
+            Shuffle = def.Shuffle;
+            FitMode = def.FitMode;
+            _config.Transition = def.Transition;
+            _config.ShowOverlay = def.ShowOverlay;
+            BurnOverlayOnWallpaper = def.BurnOverlayOnWallpaper;
+            ApplyToLockScreen = def.ApplyToLockScreen;
+            OverlayOpacity = def.OverlayOpacity;
+            _config.OverlayScrollSpeedSeconds = def.OverlayScrollSpeedSeconds;
+            RunAtLogin = def.RunAtLogin;
+            _config.MinimizeOnStart = def.MinimizeOnStart;
+            OverlaySource = def.OverlaySource;
+            CustomOverlayText = def.CustomOverlayText;
+            Save();
         }
     }
 }

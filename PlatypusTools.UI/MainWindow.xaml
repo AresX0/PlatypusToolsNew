@@ -549,6 +549,10 @@
                              Visibility="{Binding TextEditor, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:TextEditorView}" ViewDataContext="{Binding TextEditor}" />
                     </TabItem>
+                    <TabItem Header="🔔 Notification Center"
+                             Visibility="{Binding NotificationCenter, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:NotificationCenterView}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
         </TabControl>

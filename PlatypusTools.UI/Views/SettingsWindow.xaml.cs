@@ -1599,6 +1599,7 @@ namespace PlatypusTools.UI.Views
             { "TabBulkChecksum", "Tools.BulkChecksum" },
             { "TabMailClient", "Tools.MailClient" },
             { "TabTextEditor", "Tools.TextEditor" },
+            { "TabNotificationCenter", "Tools.NotificationCenter" },
         };
         
         private void LoadTabVisibilitySettings()

@@ -124,6 +124,14 @@ namespace PlatypusTools.UI
             
             // Force the window to render before continuing
             _splashScreen.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);
+
+            // Phase 1.5 — detect dirty shutdown + plant sentinel + start periodic snapshots.
+            try
+            {
+                Services.Recovery.SessionStateService.Instance.Initialize();
+                Services.Recovery.SessionStateService.Instance.Start();
+            }
+            catch (Exception ex) { SimpleLogger.Error($"SessionStateService init failed: {ex}"); }
             
             // Now kick off the async initialization in the background
             // The video will loop while everything loads
@@ -136,6 +144,9 @@ namespace PlatypusTools.UI
 
         protected override void OnExit(ExitEventArgs e)
         {
+            // Phase 1.5 — mark clean shutdown so next launch doesn't show the recovery prompt.
+            try { Services.Recovery.SessionStateService.Instance.MarkCleanShutdown(); } catch { }
+
             // Stop the Remote Server on shutdown
             try
             {
@@ -470,6 +481,17 @@ namespace PlatypusTools.UI
                 StartupProfiler.BeginPhase("Show main window");
                 mainWindow.Show();
                 StartupProfiler.Finish();
+
+                // Phase 1.5 — if previous shutdown was dirty, prompt to restore.
+                try
+                {
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        try { Services.Recovery.SessionStateService.Instance.PromptAndRestoreIfNeeded(); }
+                        catch (Exception ex) { SimpleLogger.Error($"Recovery prompt failed: {ex}"); }
+                    }), System.Windows.Threading.DispatcherPriority.Background);
+                }
+                catch { }
                 
                 // Run dependency checks in background AFTER main window is shown
                 // This doesn't block startup - user can start using the app immediately

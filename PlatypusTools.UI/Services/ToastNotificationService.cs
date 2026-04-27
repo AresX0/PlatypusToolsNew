@@ -1,6 +1,8 @@
 using System;
 using System.Collections.ObjectModel;
-
+using System.IO;
+using System.Linq;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -50,6 +52,67 @@ namespace PlatypusTools.UI.Services
         private ToastNotificationService()
         {
             _dispatcher = Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
+            LoadHistoryFromDisk();
+        }
+
+        // ── Phase 1.2: disk persistence ─────────────────────────────────────────
+        private static readonly string HistoryPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "PlatypusTools", "notification-history.json");
+        private const int MaxPersistedEntries = 500;
+
+        private void LoadHistoryFromDisk()
+        {
+            try
+            {
+                if (!File.Exists(HistoryPath)) return;
+                var json = File.ReadAllText(HistoryPath);
+                var entries = JsonSerializer.Deserialize<PersistedNotification[]>(json);
+                if (entries == null) return;
+                foreach (var e in entries.Take(100))
+                {
+                    NotificationHistory.Add(new ToastNotification
+                    {
+                        Id = e.Id == Guid.Empty ? Guid.NewGuid() : e.Id,
+                        Type = e.Type,
+                        Title = e.Title ?? string.Empty,
+                        Message = e.Message ?? string.Empty,
+                        Timestamp = e.Timestamp,
+                        Duration = 0,
+                        IsPersistent = false
+                    });
+                }
+            }
+            catch { /* corrupt file: ignore */ }
+        }
+
+        private void SaveHistoryToDisk()
+        {
+            try
+            {
+                var dir = Path.GetDirectoryName(HistoryPath);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                var snapshot = NotificationHistory.Take(MaxPersistedEntries).Select(n => new PersistedNotification
+                {
+                    Id = n.Id,
+                    Type = n.Type,
+                    Title = n.Title,
+                    Message = n.Message,
+                    Timestamp = n.Timestamp
+                }).ToArray();
+                var json = JsonSerializer.Serialize(snapshot);
+                File.WriteAllText(HistoryPath, json);
+            }
+            catch { /* best-effort persistence */ }
+        }
+
+        private sealed class PersistedNotification
+        {
+            public Guid Id { get; set; }
+            public ToastType Type { get; set; }
+            public string? Title { get; set; }
+            public string? Message { get; set; }
+            public DateTime Timestamp { get; set; }
         }
         
         /// <summary>
@@ -157,6 +220,7 @@ namespace PlatypusTools.UI.Services
                 while (NotificationHistory.Count > 100)
                     NotificationHistory.RemoveAt(NotificationHistory.Count - 1);
                 if (!IsPanelOpen) UnreadCount++;
+                SaveHistoryToDisk();
                 
                 if (!notification.IsPersistent && notification.Duration > 0)
                 {
@@ -238,6 +302,7 @@ namespace PlatypusTools.UI.Services
             {
                 NotificationHistory.Clear();
                 UnreadCount = 0;
+                SaveHistoryToDisk();
             });
         }
     }
