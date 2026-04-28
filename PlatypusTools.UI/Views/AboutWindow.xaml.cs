@@ -66,6 +66,22 @@ namespace PlatypusTools.UI.Views
             OpenUrl("https://platysoft.com/support");
         }
 
+        /// <summary>Phase 6.3 — display the in-memory startup profile and offer to open the JSON file.</summary>
+        private void StartupProfile_Click(object sender, RoutedEventArgs e)
+        {
+            var report = Utilities.StartupProfiler.GetReportText();
+            var path = Utilities.StartupProfiler.ReportFilePath;
+            var msg = string.IsNullOrWhiteSpace(report) ? "No startup phases recorded." : report;
+            msg += $"\n\nFull JSON: {path}";
+            var result = MessageBox.Show(msg + "\n\nOpen JSON file in Explorer?",
+                "Startup Profile", MessageBoxButton.YesNo, MessageBoxImage.Information);
+            if (result == MessageBoxResult.Yes && System.IO.File.Exists(path))
+            {
+                try { Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{path}\"") { UseShellExecute = true }); }
+                catch { }
+            }
+        }
+
         private void OpenUrl(string url)
         {
             try

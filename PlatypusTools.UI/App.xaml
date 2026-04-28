@@ -130,6 +130,18 @@
                     <converters:PercentToWidthConverter x:Key="PercentToWidthConverter" />
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Phase 5.3 — Accessibility: visible focus rectangle (opt-in via FocusVisualStyle="{StaticResource A11yFocusVisual}") -->
+            <Style x:Key="A11yFocusVisual">
+                <Setter Property="Control.Template">
+                    <Setter.Value>
+                        <ControlTemplate>
+                            <Rectangle Margin="-2" StrokeThickness="2" Stroke="#FFFFB000"
+                                       StrokeDashArray="2 1" SnapsToDevicePixels="True"/>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

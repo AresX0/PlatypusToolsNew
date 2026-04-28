@@ -289,6 +289,12 @@
                                 <TextBlock Text="Art" FontSize="11"/>
                             </StackPanel>
                         </ToggleButton>
+
+                        <!-- Phase 3.5: Fetch cover art from MusicBrainz / Cover Art Archive -->
+                        <Button Content="🔍 Find Cover" Click="OnFindCoverArtClick"
+                                AutomationProperties.Name="Fetch Cover Art From MusicBrainz"
+                                Padding="6,4" FontSize="11" MinWidth="90" Margin="0,0,10,0"
+                                ToolTip="Find front-cover art for current track via MusicBrainz / Cover Art Archive"/>
                         
                         <!-- Fullscreen Button -->
                         <Button FontSize="11" Padding="6,4"

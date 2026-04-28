@@ -1,5 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using PlatypusTools.Core.Services;
 
@@ -8,12 +12,15 @@ namespace PlatypusTools.UI.Utilities
     /// <summary>
     /// Utility for profiling and optimizing startup time.
     /// Provides timing information for initialization phases.
+    /// Phase 6.3 — also writes startup-profile.json on Finish().
     /// </summary>
     public static class StartupProfiler
     {
         private static readonly Stopwatch _totalTimer = new();
         private static readonly Stopwatch _phaseTimer = new();
         private static string _currentPhase = string.Empty;
+        private static readonly List<(string Phase, long ElapsedMs)> _phases = new();
+        private static long _totalMs;
 
         /// <summary>
         /// Starts the overall startup timer.
@@ -49,6 +56,7 @@ namespace PlatypusTools.UI.Utilities
                 return;
 
             _phaseTimer.Stop();
+            _phases.Add((_currentPhase, _phaseTimer.ElapsedMilliseconds));
             SimpleLogger.Debug($"[STARTUP] END: {_currentPhase} ({_phaseTimer.ElapsedMilliseconds}ms)");
             _currentPhase = string.Empty;
         }
@@ -60,8 +68,47 @@ namespace PlatypusTools.UI.Utilities
         {
             EndPhase();
             _totalTimer.Stop();
-            SimpleLogger.Info($"[STARTUP] Total startup time: {_totalTimer.ElapsedMilliseconds}ms");
+            _totalMs = _totalTimer.ElapsedMilliseconds;
+            SimpleLogger.Info($"[STARTUP] Total startup time: {_totalMs}ms");
+            try
+            {
+                var dir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "PlatypusTools");
+                Directory.CreateDirectory(dir);
+                var path = Path.Combine(dir, "startup-profile.json");
+                var payload = new
+                {
+                    timestamp = DateTime.UtcNow.ToString("o"),
+                    totalMs = _totalMs,
+                    phases = _phases
+                };
+                File.WriteAllText(path, JsonSerializer.Serialize(payload,
+                    new JsonSerializerOptions { WriteIndented = true }));
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Warn($"[STARTUP] Failed to write startup-profile.json: {ex.Message}");
+            }
         }
+
+        /// <summary>Phase 6.3 — returns a human-readable summary of startup phases for the About dialog.</summary>
+        public static string GetReportText()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine($"Total startup: {_totalMs}ms");
+            sb.AppendLine();
+            sb.AppendLine("Phase                                          Elapsed");
+            sb.AppendLine("------------------------------------------------------");
+            foreach (var (name, ms) in _phases)
+                sb.AppendLine($"{name,-46} {ms,6}ms");
+            return sb.ToString();
+        }
+
+        /// <summary>Path to the persisted startup-profile.json (may not yet exist).</summary>
+        public static string ReportFilePath => Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "PlatypusTools", "startup-profile.json");
 
         /// <summary>
         /// Gets the total elapsed time since Start() was called.
@@ -83,6 +130,7 @@ namespace PlatypusTools.UI.Utilities
             finally
             {
                 sw.Stop();
+                _phases.Add((actionName, sw.ElapsedMilliseconds));
                 SimpleLogger.Debug($"[STARTUP] {actionName}: {sw.ElapsedMilliseconds}ms");
             }
         }
@@ -102,6 +150,7 @@ namespace PlatypusTools.UI.Utilities
             finally
             {
                 sw.Stop();
+                _phases.Add((actionName, sw.ElapsedMilliseconds));
                 SimpleLogger.Debug($"[STARTUP] {actionName}: {sw.ElapsedMilliseconds}ms");
             }
         }

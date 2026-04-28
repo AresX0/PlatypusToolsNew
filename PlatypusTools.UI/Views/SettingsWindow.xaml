@@ -176,6 +176,32 @@
                                 </ComboBox>
                                 <TextBlock Text="↳ Restart may be required for full language change" 
                                            FontSize="11" Foreground="{DynamicResource ForegroundDimBrush}" Margin="0,4,0,0"/>
+
+                                <!-- Phase 5.4 — Translation completeness meter -->
+                                <Separator Margin="0,12,0,8"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <TextBlock Text="Translation Status" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <Button x:Name="LocCompletenessRefreshBtn" Content="Refresh" Margin="12,0,8,0" Padding="8,2"
+                                            Click="LocCompletenessRefreshBtn_Click" AutomationProperties.Name="Refresh translation completeness"/>
+                                    <Button x:Name="LocCompletenessExportBtn" Content="Export Untranslated CSV" Padding="8,2"
+                                            Click="LocCompletenessExportBtn_Click" AutomationProperties.Name="Export untranslated strings to CSV"/>
+                                </StackPanel>
+                                <ItemsControl x:Name="LocCompletenessList" Margin="0,4,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="180"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="80"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Display}" VerticalAlignment="Center"/>
+                                                <ProgressBar Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding Percent}" Height="8" Margin="8,0"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding PercentText}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </StackPanel>
                         </GroupBox>
                         
@@ -410,7 +436,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 4.0.3.0"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 4.0.3.2"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
@@ -602,7 +628,8 @@
                                 <CheckBox x:Name="TabMailClient" Content="    Mail Client" IsChecked="True" Margin="16,4,0,4"/>
                                 <CheckBox x:Name="TabTextEditor" Content="    Text Editor" IsChecked="True" Margin="16,4,0,4"/>
                                 <CheckBox x:Name="TabNotificationCenter" Content="    🔔 Notification Center" IsChecked="True" Margin="16,4,0,4"/>
-                                <CheckBox x:Name="TabScriptingConsole" Content="    🐚 Scripting Console" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabScriptingConsole" Content="    🐚 Scripting Console" IsChecked="False" Margin="16,4,0,4"
+                                          ToolTip="Phase 2.1 — opt-in. Disabled by default. Requires PowerShell or Python."/>
                             </StackPanel>
                         </GroupBox>
                         

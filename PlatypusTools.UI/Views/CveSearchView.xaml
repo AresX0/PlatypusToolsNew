@@ -198,6 +198,18 @@
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
 
+                    <!-- Phase 4.1 — CISA KEV badge -->
+                    <DataGridTextColumn Header="KEV" Binding="{Binding KevBadge}" Width="70">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Padding" Value="4,2" />
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter Property="Foreground" Value="#FFFF6F61"/>
+                                <Setter Property="ToolTip" Value="{Binding KevDateAdded, StringFormat='Listed in CISA KEV catalog on {0}'}"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
                     <!-- Description -->
                     <DataGridTextColumn Header="Description" Binding="{Binding ShortDescription}" Width="*" MinWidth="200">
                         <DataGridTextColumn.ElementStyle>

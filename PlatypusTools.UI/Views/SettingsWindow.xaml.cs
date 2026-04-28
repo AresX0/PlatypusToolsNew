@@ -3188,6 +3188,136 @@ namespace PlatypusTools.UI.Views
 
         #endregion
 
+        #region Phase 5.4 — Localization completeness meter
+
+        public class LocCompletenessRow
+        {
+            public string CultureCode { get; set; } = "";
+            public string Display { get; set; } = "";
+            public int Percent { get; set; }
+            public string PercentText => $"{Percent}%";
+            public List<string> UntranslatedKeys { get; set; } = new();
+        }
+
+        private List<LocCompletenessRow>? _lastLocReport;
+
+        private void LocCompletenessRefreshBtn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var rows = ComputeLocalizationCompleteness();
+                _lastLocReport = rows;
+                if (LocCompletenessList != null)
+                    LocCompletenessList.ItemsSource = rows;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to compute translation completeness: {ex.Message}",
+                    "Translation Status", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private void LocCompletenessExportBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (_lastLocReport == null) LocCompletenessRefreshBtn_Click(sender, e);
+            if (_lastLocReport == null || _lastLocReport.Count == 0) return;
+
+            var dlg = new Microsoft.Win32.SaveFileDialog
+            {
+                FileName = "untranslated-strings.csv",
+                Filter = "CSV (*.csv)|*.csv"
+            };
+            if (dlg.ShowDialog() != true) return;
+            try
+            {
+                using var sw = new StreamWriter(dlg.FileName);
+                sw.WriteLine("Culture,Key,EnglishValue");
+                var en = LoadResources("");
+                foreach (var row in _lastLocReport)
+                {
+                    foreach (var key in row.UntranslatedKeys)
+                    {
+                        var enVal = en.TryGetValue(key, out var v) ? v.Replace("\"", "\"\"") : "";
+                        sw.WriteLine($"{row.CultureCode},\"{key}\",\"{enVal}\"");
+                    }
+                }
+                MessageBox.Show($"Exported to {dlg.FileName}", "Translation Status",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Export failed: {ex.Message}", "Translation Status",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        /// <summary>
+        /// Computes translation completeness against the embedded Strings resource set
+        /// for every supported language. Cultures with no satellite show 0%.
+        /// </summary>
+        private List<LocCompletenessRow> ComputeLocalizationCompleteness()
+        {
+            var baseStrings = LoadResources("");
+            var rows = new List<LocCompletenessRow>();
+            if (baseStrings.Count == 0) return rows;
+
+            foreach (var kvp in LocalizationService.SupportedLanguages)
+            {
+                if (kvp.Key.StartsWith("en-", StringComparison.OrdinalIgnoreCase))
+                {
+                    rows.Add(new LocCompletenessRow
+                    {
+                        CultureCode = kvp.Key,
+                        Display = $"{kvp.Value} ({kvp.Key})",
+                        Percent = 100
+                    });
+                    continue;
+                }
+                var localized = LoadResources(kvp.Key);
+                int translated = 0;
+                var untranslated = new List<string>();
+                foreach (var bk in baseStrings)
+                {
+                    if (localized.TryGetValue(bk.Key, out var lv) && !string.IsNullOrEmpty(lv) && lv != bk.Value)
+                        translated++;
+                    else
+                        untranslated.Add(bk.Key);
+                }
+                int pct = (int)Math.Round(100.0 * translated / baseStrings.Count);
+                rows.Add(new LocCompletenessRow
+                {
+                    CultureCode = kvp.Key,
+                    Display = $"{kvp.Value} ({kvp.Key})",
+                    Percent = pct,
+                    UntranslatedKeys = untranslated
+                });
+            }
+            return rows;
+        }
+
+        private static Dictionary<string, string> LoadResources(string cultureName)
+        {
+            var dict = new Dictionary<string, string>(StringComparer.Ordinal);
+            try
+            {
+                var rm = new System.Resources.ResourceManager(
+                    "PlatypusTools.UI.Resources.Strings", typeof(LocalizationService).Assembly);
+                var culture = string.IsNullOrEmpty(cultureName)
+                    ? System.Globalization.CultureInfo.InvariantCulture
+                    : System.Globalization.CultureInfo.GetCultureInfo(cultureName);
+                var rs = rm.GetResourceSet(culture, true, false);
+                if (rs == null) return dict;
+                foreach (System.Collections.DictionaryEntry e in rs)
+                {
+                    if (e.Key is string k && e.Value is string v) dict[k] = v;
+                }
+            }
+            catch { }
+            return dict;
+        }
+
+        #endregion
+
         #endregion
     }
     

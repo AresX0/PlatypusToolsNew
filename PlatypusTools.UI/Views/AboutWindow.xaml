@@ -43,7 +43,7 @@
                         </Grid.RowDefinitions>
                         
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Version:" FontWeight="Bold"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="VersionText" Text="4.0.3.0"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="VersionText" Text="4.0.3.2"/>
                         
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Build Date:" FontWeight="Bold"/>
                         <TextBlock Grid.Row="1" Grid.Column="1" x:Name="BuildDateText" Text="2026-01-19"/>
@@ -90,7 +90,10 @@
                     <StackPanel Orientation="Horizontal" Margin="10">
                         <Button Content="GitHub" Click="GitHub_Click" Margin="0,0,10,0" Padding="15,5"/>
                         <Button Content="Documentation" Click="Docs_Click" Margin="0,0,10,0" Padding="15,5"/>
-                        <Button Content="Report Issue" Click="Issue_Click" Padding="15,5"/>
+                        <Button Content="Report Issue" Click="Issue_Click" Margin="0,0,10,0" Padding="15,5"/>
+                        <!-- Phase 6.3 — Surface startup profile -->
+                        <Button Content="📊 Startup Profile" Click="StartupProfile_Click" Padding="15,5"
+                                AutomationProperties.Name="Show Startup Profile"/>
                     </StackPanel>
                 </GroupBox>
             </StackPanel>

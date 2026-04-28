@@ -28,6 +28,20 @@ namespace PlatypusTools.UI.ViewModels
         public List<string> References { get; set; } = new();
         public List<string> AffectedProducts { get; set; } = new();
 
+        /// <summary>Phase 4.1 — true if this CVE is in the CISA Known Exploited Vulnerabilities catalog.</summary>
+        public bool IsKev { get; private set; }
+        public string KevDateAdded { get; private set; } = string.Empty;
+        public string KevBadge => IsKev ? "🔥 KEV" : string.Empty;
+
+        public void MarkKev(string dateAdded)
+        {
+            IsKev = true;
+            KevDateAdded = dateAdded ?? string.Empty;
+            RaisePropertyChanged(nameof(IsKev));
+            RaisePropertyChanged(nameof(KevDateAdded));
+            RaisePropertyChanged(nameof(KevBadge));
+        }
+
         /// <summary>Short description for DataGrid display (truncated to ~200 chars).</summary>
         public string ShortDescription => Description.Length > 200
             ? Description[..200] + "…"
@@ -188,6 +202,9 @@ namespace PlatypusTools.UI.ViewModels
                 StatusText = Results.Count == 0
                     ? "No results found."
                     : $"Found {Results.Count} result(s).";
+
+                // Phase 4.1 — enrich with CISA KEV badges (best-effort, non-fatal).
+                await EnrichWithKevAsync(ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -625,6 +642,56 @@ namespace PlatypusTools.UI.ViewModels
                 sb.AppendLine();
             }
             await System.IO.File.WriteAllTextAsync(path, sb.ToString());
+        }
+
+        #endregion
+
+        #region Phase 4.1 — KEV enrichment
+
+        private static System.Collections.Generic.Dictionary<string, string>? _kevCache;
+        private static readonly System.Threading.SemaphoreSlim _kevLock = new(1, 1);
+
+        private async Task EnrichWithKevAsync(CancellationToken ct)
+        {
+            if (Results.Count == 0) return;
+            try
+            {
+                if (_kevCache == null)
+                {
+                    await _kevLock.WaitAsync(ct).ConfigureAwait(false);
+                    try
+                    {
+                        if (_kevCache == null)
+                        {
+                            var entries = await Services.ThreatIntel.ThreatFeedService.Instance
+                                .GetCisaKevAsync(ct).ConfigureAwait(false);
+                            var dict = new System.Collections.Generic.Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                            foreach (var k in entries)
+                            {
+                                if (!string.IsNullOrEmpty(k.CveId))
+                                    dict[k.CveId] = k.DateAdded;
+                            }
+                            _kevCache = dict;
+                        }
+                    }
+                    finally { _kevLock.Release(); }
+                }
+
+                var cache = _kevCache;
+                if (cache == null || cache.Count == 0) return;
+
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    foreach (var r in Results)
+                    {
+                        if (cache.TryGetValue(r.CveId, out var date))
+                        {
+                            r.MarkKev(date);
+                        }
+                    }
+                });
+            }
+            catch { /* enrichment is best-effort */ }
         }
 
         #endregion

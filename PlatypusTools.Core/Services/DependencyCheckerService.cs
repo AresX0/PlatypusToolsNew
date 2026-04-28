@@ -19,6 +19,8 @@ namespace PlatypusTools.Core.Services
             result.WebView2Installed = CheckWebView2();
             result.TailscaleInstalled = CheckTailscale();
             result.CloudflaredInstalled = CheckCloudflared();
+            result.PowerShellInstalled = await CheckPowerShellAsync();
+            result.PythonInstalled = await CheckPythonAsync();
 
             result.AllDependenciesMet = result.FFmpegInstalled && result.ExifToolInstalled 
                 && result.YtDlpInstalled && result.WebView2Installed;
@@ -236,6 +238,66 @@ namespace PlatypusTools.Core.Services
             }
         }
 
+        private async Task<bool> CheckPowerShellAsync()
+        {
+            // Prefer pwsh, fallback to legacy powershell.exe (always present on Windows).
+            foreach (var exe in new[] { "pwsh", "powershell" })
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = exe,
+                        Arguments = "-NoProfile -Command $PSVersionTable.PSVersion.Major",
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+                    using var process = Process.Start(psi);
+                    if (process != null)
+                    {
+                        await process.WaitForExitAsync().ConfigureAwait(false);
+                        if (process.ExitCode == 0) return true;
+                    }
+                }
+                catch { }
+            }
+            return false;
+        }
+
+        private async Task<bool> CheckPythonAsync()
+        {
+            var paths = new[]
+            {
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "python", "python.exe"),
+                "python",
+                "python3"
+            };
+            foreach (var p in paths)
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = p,
+                        Arguments = "--version",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+                    using var process = Process.Start(psi);
+                    if (process != null)
+                    {
+                        await process.WaitForExitAsync().ConfigureAwait(false);
+                        if (process.ExitCode == 0) return true;
+                    }
+                }
+                catch { }
+            }
+            return false;
+        }
+
         private bool CheckCloudflared()
         {
             try
@@ -295,6 +357,8 @@ namespace PlatypusTools.Core.Services
         public bool WebView2Installed { get; set; }
         public bool TailscaleInstalled { get; set; }
         public bool CloudflaredInstalled { get; set; }
+        public bool PowerShellInstalled { get; set; }
+        public bool PythonInstalled { get; set; }
         public bool AllDependenciesMet { get; set; }
 
         public string GetMissingDependenciesMessage()
@@ -306,6 +370,8 @@ namespace PlatypusTools.Core.Services
             if (!WebView2Installed) missing.Add("WebView2 Runtime (for help system)");
             if (!TailscaleInstalled) missing.Add("Tailscale (optional - for secure remote access)");
             if (!CloudflaredInstalled) missing.Add("cloudflared (optional - for Cloudflare tunnel remote access)");
+            if (!PowerShellInstalled) missing.Add("PowerShell (optional - for Scripting Console)");
+            if (!PythonInstalled) missing.Add("Python (optional - for Scripting Console)");
 
             if (missing.Count == 0)
                 return "All dependencies are installed.";

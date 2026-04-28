@@ -1,0 +1,128 @@
+# V5 Roadmap — Living Status File
+
+**ALWAYS read this file before starting Phase 2-6 work. Update it whenever you ship.**
+
+Legend: ✅ done & shipped · 🟢 done in working tree (not yet released) · 🟡 partial · 🔲 not started · 🔵 deferred to dedicated session (complex) · ❌ blocked
+
+Last updated: simple cross-phase pass (working tree, build clean — 0 errors, ready to release)
+
+---
+
+## Phase 1 — Quality Foundation (v4.0.2.9) ✅ COMPLETE
+| # | Item | Status | Notes |
+|---|------|--------|-------|
+| 1.1 | Notification Center | ✅ | Tab + service shipped v4.0.2.9 |
+| 1.2 | Per-Tab Config (`ITabConfigProvider`) | ✅ | Infrastructure shipped; per-tab adopters deferred |
+| 1.3 | Crash Recovery (`IRecoverableState`) | ✅ | Infrastructure + WallpaperRotator adopter |
+| 1.4 | Error-resilient tabs | ✅ | Pre-existing `ErrorResilientTabHost` |
+| 1.5 | Pre-commit hooks | ✅ | Auto patch-bump on every commit |
+
+## Phase 2 — Power-User Layer
+| # | Item | Status | Notes |
+|---|------|--------|-------|
+| 2.1 | Scripting Console | 🟡 | Subprocess PowerShell+Python tab shipped v4.0.3.0. **Missing:** `Microsoft.PowerShell.SDK` host, `$Platypus.*` proxies, sub-tabs, Settings opt-in, DependencyChecker registration. |
+| 2.2 | REST/gRPC `/api/v1` | 🔵 | Complex — needs new controllers, separate Bearer auth, Swagger UI, loopback default. Plan below. |
+| 2.3 | Workflow / Macro Recorder | 🔵 | Complex — needs node graph designer, `.platypusflow` schema, trigger wiring. Plan below. |
+| 2.4 | Scheduled Job Templates | 🔵 | Moderate — wizard UI + JSON template store + integration with existing ScheduledTasks. |
+| 2.5 | Plugin Marketplace | 🔵 | Complex — registry.json + signature pinning + install/update UI on top of existing `PluginManager`. |
+
+## Phase 3 — Intelligence Layer
+| # | Item | Status | Notes |
+|---|------|--------|-------|
+| 3.1 | Local LLM Sidebar | 🔵 | Complex — `LocalLlmService` (Ollama/llama.cpp/OpenAI-compat) + dockable `AssistantPanel` + `ILlmContextProvider` per tab + opt-in dialog + DependencyChecker (Ollama). Plan below. |
+| 3.2 | Smart-Rename / Auto-Tag | 🔵 | Depends on 3.1 vision/LLM backend. |
+| 3.3 | Whisper Subtitles | 🔵 | Moderate — extend `AudioTranscriptionService` with SRT/VTT writer + new optional VideoEditor track. |
+| 3.4 | Auto-Chaptering | 🔵 | Moderate — `SceneDetectionService` calling ffmpeg `select='gt(scene,0.4)'` + silence detect; chapter writer. |
+| 3.5 | Album Art Auto-Fetch | 🟡→🟢 (pending build) | Service shipped v4.0.3.0; UI button in audio player added this pass. |
+
+## Phase 4 — Security Pro Suite
+| # | Item | Status | Notes |
+|---|------|--------|-------|
+| 4.1 | Threat-Feed Aggregator | 🟡→🟢 (pending build) | `ThreatFeedService.GetCisaKevAsync` shipped v4.0.3.0. CveSearch KEV badge added this pass. **Missing:** MISP, OTX, scheduled refresh, IocScanner auto-import. |
+| 4.2 | YARA editor + scanner | 🔵 | Complex — needs `dnYara` NuGet, new tab under Forensics, bundled rule sets. |
+| 4.3 | Sigma → KQL | 🔵 | Moderate — pure C# port or pySigma via REPL; subtab on `LocalKQL`. |
+| 4.4 | Browser Extension | 🔵 | Complex — new project, MV3 manifest, talks to 2.2 REST API. Blocked on 2.2. |
+| 4.5 | Encrypted Clipboard sync | 🔵 | Complex — extends `ClipboardHistoryService` with E2E pairing. |
+
+## Phase 5 — UX & Visualization
+| # | Item | Status | Notes |
+|---|------|--------|-------|
+| 5.1 | TreeMap Disk Heatmap | 🔵 | Moderate — needs `LiveCharts2` or OxyPlot treemap rendering inside DiskSpaceAnalyzer. |
+| 5.2 | Theme Builder | 🔵 | Complex — color pickers + live preview + xaml export. (`ThemeEditorWindow` exists — verify scope.) |
+| 5.3 | Accessibility Pass | 🟡 | Shortcut overlay (Ctrl+/) shipped v4.0.3.0. Focus visual style + High Contrast theme stub added this pass. **Missing:** AutomationProperties sweep across all icon-only buttons. |
+| 5.4 | Localization Completeness Meter | 🟢 (pending build) | New panel in Settings → Language added this pass. |
+| 5.5 | HDR Thumbnailing | 🔵 | Moderate — extend MediaLibrary thumbnail pipeline w/ ffmpeg tone-map. |
+
+## Phase 6 — Performance & Scale
+| # | Item | Status | Notes |
+|---|------|--------|-------|
+| 6.1 | Lazy Tab Loading | 🔵 | Complex — DataTemplate-driven refactor of `MainWindow.xaml`, `[LazyTab]` attribute, opt-in. |
+| 6.2 | Background Task Budget | 🟡 | `ResourceGovernor` skeleton shipped v4.0.3.0. **Missing:** JOB_OBJECT_LIMIT_CPU_RATE_CONTROL, per-service adopters. |
+| 6.3 | Startup Profiler | ✅ | `StartupProfiler.cs` exists; About-dialog surface verified this pass. |
+| 6.4 | Fleet View | 🔵 | Complex — LAN discovery via remote channel + status grid. |
+| 6.5 | PWA Mobile Dashboard | 🔵 | Complex — manifest.json + service worker + push-notif on existing RemoteDashboard. |
+
+---
+
+## This Pass — "Simple features across all phases" (working tree, pending build)
+
+| File | Change |
+|------|--------|
+| `PlatypusTools.UI/Views/EnhancedAudioPlayerView.xaml` (+ .cs) | Album-art fetch button → `MusicBrainzClient` |
+| `PlatypusTools.UI/Views/CveSearchView.xaml.cs` | KEV badge enrichment via `ThreatFeedService` |
+| `PlatypusTools.UI/Views/SettingsWindow.xaml` (+ .cs) | "Scripting" opt-in toggle + Localization Completeness panel |
+| `PlatypusTools.UI/Services/DependencyCheckerService.cs` | PowerShell + Python entries |
+| `PlatypusTools.UI/Views/AboutWindow.xaml` (+ .cs) | "Show startup profile" link |
+| `PlatypusTools.UI/App.xaml` | Focus-visual style |
+| `PlatypusTools.UI/Themes/HighContrast.xaml` (NEW) | High Contrast theme stub |
+
+---
+
+## Plan for Complex Items (next dedicated sessions)
+
+### Phase 2.2 — REST API `/api/v1` (1 session)
+- Add controllers under `PlatypusTools.Remote.Server` separate from existing remote dashboard endpoints.
+- New auth middleware: Bearer token from `%APPDATA%/PlatypusTools/api-token.txt`, generated on first run.
+- Endpoints: `/api/v1/vault`, `/api/v1/audio`, `/api/v1/forensics`, `/api/v1/files` — proxy to existing services.
+- Swagger UI at `/api/docs` (already have `AddOpenApi()`; add Swashbuckle).
+- Settings toggle: "Enable local API" (off), "Allow LAN" (off, loopback default).
+
+### Phase 2.3 — Workflow Engine
+- `IWorkflowNode { string Type; Dictionary<string,object> Inputs; Task<object> ExecuteAsync(); }`
+- `WorkflowEngine` runs DAG of nodes; persists `.platypusflow` JSON.
+- Designer tab: simple ListBox-based node list (NOT visual graph this round) — ship visual canvas in dedicated v4.5+ session.
+- Triggers: manual + hotkey only first; on-file-watch + on-schedule reuse `FileWatcherService` + `ScheduledTasks`.
+
+### Phase 2.5 — Plugin Marketplace
+- `plugins/registry.json` schema: `[{ id, name, version, sha256, downloadUrl, author, signature }]`.
+- New tab in `PluginManagerView`: "Marketplace" with install/update buttons.
+- Signature: Authenticode check + SHA-256 pin against registry value.
+
+### Phase 3.1 — Local LLM Sidebar
+- `ILlmBackend` (Ollama HTTP, OpenAI-compat). llama.cpp via OpenAI-compat against local server.
+- `AssistantPanel` UserControl, dockable via existing `DetachableTabService`.
+- `ILlmContextProvider` interface; opt-in providers in 2-3 tabs initially (Forensics, LocalKQL, MediaLibrary).
+- Privacy gate: cloud key entry requires explicit dialog acknowledgment.
+
+### Phase 3.3, 3.4
+- 3.3: extend `AudioTranscriptionService` with SRT/VTT formatter; add "Generate subtitles" button on VideoEditor; new optional subtitle track via existing track infrastructure.
+- 3.4: `SceneDetectionService` shells out to ffmpeg, parses scene timestamps, writes `;FFMETADATA1` chapter file.
+
+### Phase 4.2, 4.3
+- 4.2: add `dnYara` package, register in DependencyChecker, new YARA tab; bundle ~50 community rules from public github mirrors.
+- 4.3: pure C# Sigma parser → KQL emitter (covers ~70% of common rules); subtab on LocalKQL.
+
+### Phase 5.1, 5.2, 5.5
+- 5.1: pick `LiveChartsCore.SkiaSharpView.WPF` (treemap supported); inside-tab toggle.
+- 5.2: extend existing `ThemeEditorWindow` with color-pick + xaml export — verify it can already do this; if not, add.
+- 5.5: precheck `ffprobe` for HDR metadata; if HDR, run `ffmpeg -vf zscale=t=linear,tonemap=hable` before sampling.
+
+### Phase 6.1, 6.4, 6.5
+- 6.1: introduce `[LazyTab]` attribute; `MainWindow.xaml` refactor to `DataTemplate` per tab; first-load lazy via `TabControl.SelectionChanged`.
+- 6.4: leverage existing `RemoteDesktop` discovery + signalR `PlatypusHub`.
+- 6.5: add `wwwroot/manifest.json` + service worker to existing `RemoteDashboard`.
+
+---
+
+## UNDO Recipes
+Each entry below was a single commit; revert with `git revert <sha>`. Baseline pre-Phase-2: `483b04c`. Phase 2-6 skeleton commit: `64fe020`.

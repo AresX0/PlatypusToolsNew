@@ -317,6 +317,63 @@ public partial class EnhancedAudioPlayerView : UserControl
             EnterFullscreenVisualizer();
     }
 
+    /// <summary>
+    /// Phase 3.5 — Fetch front-cover art from MusicBrainz / Cover Art Archive
+    /// for the currently playing track and apply it as the album art image.
+    /// </summary>
+    private async void OnFindCoverArtClick(object sender, RoutedEventArgs e)
+    {
+        var btn = sender as System.Windows.Controls.Button;
+        if (DataContext is not EnhancedAudioPlayerViewModel vm || vm.CurrentTrack == null)
+        {
+            System.Windows.MessageBox.Show("No track is currently selected.", "Find Cover",
+                System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            return;
+        }
+        var artist = vm.CurrentTrack.Artist;
+        var album = vm.CurrentTrack.Album;
+        if (string.IsNullOrWhiteSpace(artist) || string.IsNullOrWhiteSpace(album))
+        {
+            System.Windows.MessageBox.Show("Current track has no artist/album metadata.",
+                "Find Cover", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            return;
+        }
+
+        if (btn != null) { btn.IsEnabled = false; btn.Content = "⏳ Searching..."; }
+        try
+        {
+            var url = await Services.Music.MusicBrainzClient.Instance
+                .FindFrontCoverUrlAsync(artist!, album!).ConfigureAwait(true);
+            if (string.IsNullOrEmpty(url))
+            {
+                System.Windows.MessageBox.Show($"No cover found for \"{artist} — {album}\".",
+                    "Find Cover", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                return;
+            }
+            using var http = new System.Net.Http.HttpClient();
+            var bytes = await http.GetByteArrayAsync(url).ConfigureAwait(true);
+            var bmp = new System.Windows.Media.Imaging.BitmapImage();
+            using (var ms = new System.IO.MemoryStream(bytes))
+            {
+                bmp.BeginInit();
+                bmp.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                bmp.StreamSource = ms;
+                bmp.EndInit();
+                bmp.Freeze();
+            }
+            vm.AlbumArtImage = bmp;
+        }
+        catch (Exception ex)
+        {
+            System.Windows.MessageBox.Show($"Cover-art lookup failed: {ex.Message}",
+                "Find Cover", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+        }
+        finally
+        {
+            if (btn != null) { btn.IsEnabled = true; btn.Content = "🔍 Find Cover"; }
+        }
+    }
+
     #region Sidebar Toggle
     
     private void ToggleSidebar_Click(object sender, RoutedEventArgs e)

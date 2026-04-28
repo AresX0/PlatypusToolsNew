@@ -1,0 +1,15 @@
+v4.0.3.0 - Phase 2-6 Infrastructure Skeletons
+
+NEW FEATURES
+- Scripting Console tab (PowerShell + Python via subprocess, Ctrl+Enter to run)
+- Keyboard shortcut overlay (Ctrl+/)
+
+NEW INFRASTRUCTURE (service-only, UI wiring deferred)
+- MusicBrainz / Cover Art Archive client
+- CISA KEV threat feed reader
+- ResourceGovernor concurrency budget
+
+DOCS
+- V5_ROADMAP + V5_PHASE_CHANGELOG updated with full DEFERRED list and per-phase UNDO recipes.
+
+Build: 0 errors.
