@@ -274,7 +274,15 @@ namespace PlatypusTools.UI.Views
         
         private void VideoPlayer_Seeked(object? sender, TimeSpan position)
         {
-            // Optionally update timeline position when seeking in the player
+            // Mirror the player's seek into the timeline so the playhead
+            // tracks scrubs/clicks made directly on the preview surface.
+            // Avoid feeding back into VideoPlayer.SeekTo when the source of
+            // truth is the player itself.
+            _timelinePosition = position;
+            if (Timeline != null && Timeline.Position != position)
+            {
+                Timeline.Position = position;
+            }
         }
         
         private TimelineClip? GetClipAtPosition(TimeSpan position)

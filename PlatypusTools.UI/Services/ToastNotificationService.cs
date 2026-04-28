@@ -214,6 +214,22 @@ namespace PlatypusTools.UI.Services
                 notification.Timestamp = DateTime.Now;
                 ActiveNotifications.Add(notification);
                 NotificationShown?.Invoke(this, notification);
+
+                // Phase 1.2 — also append every toast to the unified activity log.
+                try
+                {
+                    var lvl = notification.Type switch
+                    {
+                        ToastType.Error => Diagnostics.ActivityLogService.Level.Error,
+                        ToastType.Warning => Diagnostics.ActivityLogService.Level.Warning,
+                        _ => Diagnostics.ActivityLogService.Level.Info,
+                    };
+                    Diagnostics.ActivityLogService.Instance.Log(
+                        lvl,
+                        string.IsNullOrEmpty(notification.Title) ? "toast" : notification.Title!,
+                        notification.Message ?? "");
+                }
+                catch { /* never break a toast over logging */ }
                 
                 // IDEA-008: Track in history
                 NotificationHistory.Insert(0, notification);

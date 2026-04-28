@@ -551,7 +551,9 @@ namespace PlatypusTools.UI.Views
         
         private void GlassEffectCheck_Changed(object sender, RoutedEventArgs e)
         {
-            // Legacy handler — no longer used (Glass is now a theme radio button)
+            // Legacy handler retained because older XAML may still reference it.
+            // Glass is now selected via the theme radio buttons (see ThemeRadio_Changed).
+            // No-op intentionally; do not remove until all referencing XAML is migrated.
         }
         
         private void ThemeRadio_Changed(object sender, RoutedEventArgs e)
