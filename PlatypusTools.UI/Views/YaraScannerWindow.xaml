@@ -1,0 +1,57 @@
+<Window x:Class="PlatypusTools.UI.Views.YaraScannerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="🧬 YARA Scanner"
+        Height="620" Width="980"
+        WindowStartupLocation="CenterOwner"
+        Background="#FF1E1E1E"
+        Foreground="White">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0" Margin="0,0,0,4">
+            <TextBlock Text="Rules file (.yar):" Width="120" VerticalAlignment="Center" />
+            <Button DockPanel.Dock="Right" Content="📄 Browse" Width="90" Click="BrowseRules_Click"
+                    Background="#FF2196F3" Foreground="White" BorderThickness="0" />
+            <TextBox x:Name="RulesBox" Padding="4" Margin="0,0,6,0"
+                     Background="#FF252525" Foreground="White" BorderBrush="#FF444444" />
+        </DockPanel>
+
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <TextBlock Text="Target file/folder:" Width="120" VerticalAlignment="Center" />
+            <Button DockPanel.Dock="Right" Content="📁 Browse" Width="90" Click="BrowseTarget_Click"
+                    Background="#FF2196F3" Foreground="White" BorderThickness="0" />
+            <TextBox x:Name="TargetBox" Padding="4" Margin="0,0,6,0"
+                     Background="#FF252525" Foreground="White" BorderBrush="#FF444444" />
+        </DockPanel>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,8">
+            <CheckBox x:Name="RecursiveBox" Content="Recursive" Foreground="White" IsChecked="True" VerticalAlignment="Center" />
+            <Button Content="🔍 Scan" Width="100" Margin="12,0,0,0" Click="Scan_Click"
+                    Background="#FF4CAF50" Foreground="White" BorderThickness="0" Padding="6,4" />
+            <Button Content="🧪 Sample rule" Width="120" Margin="6,0,0,0" Click="SampleRule_Click"
+                    Background="#FF9C27B0" Foreground="White" BorderThickness="0" Padding="6,4" />
+        </StackPanel>
+
+        <DataGrid Grid.Row="3" x:Name="ResultsGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                  Background="#FF252525" RowBackground="#FF2D2D2D" AlternatingRowBackground="#FF333333"
+                  Foreground="White" HorizontalGridLinesBrush="#FF444444" BorderBrush="#FF444444">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Rule" Binding="{Binding RuleName}" Width="180" />
+                <DataGridTextColumn Header="Tags" Binding="{Binding Tags}" Width="160" />
+                <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StatusBar Grid.Row="4" Background="#FF252525" Foreground="White">
+            <TextBlock x:Name="StatusText" Text="Ready." />
+        </StatusBar>
+    </Grid>
+</Window>

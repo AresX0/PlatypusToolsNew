@@ -24,13 +24,13 @@ Last updated: simple cross-phase pass (working tree, build clean — 0 errors, r
 | 2.2 | REST/gRPC `/api/v1` | � | `Remote.Server/Program.cs` exposes `/api/v1` group with file-based Bearer (auto-generated 32-byte token at `%APPDATA%/PlatypusTools/api-token.txt`). Endpoints: `/health`, `/info`, `/audio/{nowplaying,queue,play,pause,next,previous}`, `/vault/items`. |
 | 2.3 | Workflow / Macro Recorder | 🟢 | `WorkflowEngine` (shell/powershell/writefile/readfile/delay/log nodes, `{{key}}` substitution, JSON `.platypusflow` schema) + `WorkflowDesignerWindow` (Tools menu → 🔁 Workflow Designer). |
 | 2.4 | Scheduled Job Templates | � | `ScheduledJobTemplates.cs` ships 4 starter Task Scheduler XML templates (backup-home, cleanup-temp, media-convert-mp4, forensics-collect). 'Templates ▾' button on `ScheduledTasksView` saves chosen template to disk + shows the `schtasks /create /xml` registration command. |
-| 2.5 | Plugin Marketplace | 🔵 | Complex — registry.json + signature pinning + install/update UI on top of existing `PluginManager`. |
+| 2.5 | Plugin Marketplace | � | `PluginRegistryService` reads `plugins/registry.json` (URL or local fallback), verifies SHA-256 against pin before installing into `%APPDATA%/PlatypusTools/Plugins/`. UI: Tools → 🧩 Plugin Marketplace. |
 
 ## Phase 3 — Intelligence Layer
 | # | Item | Status | Notes |
 |---|------|--------|-------|
 | 3.1 | Local LLM Sidebar | � | `LocalLlmService` singleton (Ollama `/api/chat` + OpenAI-compat `/v1/chat/completions` for LM Studio) + `AIAssistantWindow` (Tools menu → 🤖 AI Assistant) with backend/model picker, system prompt, and chat log. |
-| 3.2 | Smart-Rename / Auto-Tag | 🔵 | Depends on 3.1 vision/LLM backend. |
+| 3.2 | Smart-Rename / Auto-Tag | � | `SmartRenameService` calls `LocalLlmService` to suggest snake_case filenames; UI grid lets user toggle each suggestion before applying. Tools → ✨ Smart Rename (LLM). |
 | 3.3 | Whisper Subtitles | ✅ | Pre-existing — `AudioTranscriptionView` already supports SRT + VTT export via `LocalWhisperService.TranscribeAsync` → `FormatCaptions`. Verified this pass. |
 | 3.4 | Auto-Chaptering | � | `SceneDetectionService` shells to ffmpeg `select='gt(scene,N)',showinfo`, parses `pts_time:` to scenes, writes `;FFMETADATA1` chapter file. '🎬 Detect Scenes' button in `MultimediaEditorView` video player. |
 | 3.5 | Album Art Auto-Fetch | 🟡→🟢 (pending build) | Service shipped v4.0.3.0; UI button in audio player added this pass. |
@@ -39,16 +39,16 @@ Last updated: simple cross-phase pass (working tree, build clean — 0 errors, r
 | # | Item | Status | Notes |
 |---|------|--------|-------|
 | 4.1 | Threat-Feed Aggregator | 🟡→🟢 (pending build) | `ThreatFeedService.GetCisaKevAsync` shipped v4.0.3.0. CveSearch KEV badge added this pass. **Missing:** MISP, OTX, scheduled refresh, IocScanner auto-import. |
-| 4.2 | YARA editor + scanner | 🔵 | Complex — needs `dnYara` NuGet, new tab under Forensics, bundled rule sets. |
+| 4.2 | YARA editor + scanner | � | `YaraScannerService` shells out to yara.exe (registered in `DependencyCheckerService.CheckYaraAsync`). UI: Tools → 🧬 YARA Scanner with rules picker, target picker, recursive toggle, sample-rule generator. |
 | 4.3 | Sigma → KQL | � | Pure C# `SigmaToKqlTranslator` (tiny YAML reader → MDE/Sentinel KQL). Modifiers: contains/startswith/endswith/re. Surfaced as '🛡️ Sigma → KQL' button on AdvancedForensics LocalKQL tab — opens YAML, loads translated KQL into editor. |
-| 4.4 | Browser Extension | 🔵 | Complex — new project, MV3 manifest, talks to 2.2 REST API. Blocked on 2.2. |
-| 4.5 | Encrypted Clipboard sync | 🔵 | Complex — extends `ClipboardHistoryService` with E2E pairing. |
+| 4.4 | Browser Extension | � | MV3 extension at `BrowserExtension/` (manifest.json, background.js, popup.html/js) with context menus to push selection/link to `/api/v1/clipboard/plain`. |
+| 4.5 | Encrypted Clipboard sync | � | `EncryptedClipboardSyncService` uses AES-GCM with a pre-shared 32-byte key (in `%APPDATA%/PlatypusTools/clipboard-key.bin`); pushes/pulls opaque blobs through Remote.Server `/api/v1/clipboard`. UI: Tools → 🔐 Encrypted Clipboard. |
 
 ## Phase 5 — UX & Visualization
 | # | Item | Status | Notes |
 |---|------|--------|-------|
-| 5.1 | TreeMap Disk Heatmap | 🔵 | Moderate — needs `LiveCharts2` or OxyPlot treemap rendering inside DiskSpaceAnalyzer. |
-| 5.2 | Theme Builder | 🔵 | Complex — color pickers + live preview + xaml export. (`ThemeEditorWindow` exists — verify scope.) |
+| 5.1 | TreeMap Disk Heatmap | � | `TreeMapLayout` (squarified algorithm, pure WPF) drives `TreeMapDiskWindow` with click-to-reveal in Explorer. Tools → 🗺️ Disk TreeMap. |
+| 5.2 | Theme Builder | � | `ThemeBuilderWindow` with hex editors, live preview pane, and Save/Load `ResourceDictionary` xaml export. Tools → 🎨 Theme Builder. |
 | 5.3 | Accessibility Pass | 🟡 | Shortcut overlay (Ctrl+/) shipped v4.0.3.0. Focus visual style + High Contrast theme stub added this pass. **Missing:** AutomationProperties sweep across all icon-only buttons. |
 | 5.4 | Localization Completeness Meter | 🟢 (pending build) | New panel in Settings → Language added this pass. |
 | 5.5 | HDR Thumbnailing | � | `ThumbnailCacheService.GenerateVideoThumbnail` probes for `smpte2084`/`arib-std-b67`/`bt2020`; if HDR runs `zscale→tonemap=hable→bt709` before grabbing JPEG. |
@@ -56,11 +56,11 @@ Last updated: simple cross-phase pass (working tree, build clean — 0 errors, r
 ## Phase 6 — Performance & Scale
 | # | Item | Status | Notes |
 |---|------|--------|-------|
-| 6.1 | Lazy Tab Loading | 🔵 | Complex — DataTemplate-driven refactor of `MainWindow.xaml`, `[LazyTab]` attribute, opt-in. |
+| 6.1 | Lazy Tab Loading | � | `LazyTabContent` attached property defers UserControl construction until parent TabItem first becomes visible/focused. Opt-in per heavy tab; documented in service file. |
 | 6.2 | Background Task Budget | � | `ResourceGovernor` adopted by `SceneDetectionService` (CPU slot acquired before ffmpeg invocation). Pattern is documented for future adopters. **Future:** JOB_OBJECT_LIMIT_CPU_RATE_CONTROL, more adopters across hot ffmpeg paths. |
 | 6.3 | Startup Profiler | ✅ | `StartupProfiler.cs` exists; About-dialog surface verified this pass. |
 | 6.4 | Fleet View | � | `FleetViewWindow` (Tools menu → 🛰️ Fleet View) parallel-scans `/24` subnet against the Remote.Server `/health` endpoint and renders an Address/Status/Latency/Banner grid. |
-| 6.5 | PWA Mobile Dashboard | 🔵 | Complex — manifest.json + service worker + push-notif on existing RemoteDashboard. |
+| 6.5 | PWA Mobile Dashboard | � | `PlatypusTools.Remote.Client/wwwroot/manifest.webmanifest` + `service-worker.js` already shipped with PWA icons — verified standalone display, theme color, maskable icon. |
 
 ---
 
@@ -75,6 +75,21 @@ Last updated: simple cross-phase pass (working tree, build clean — 0 errors, r
 | `PlatypusTools.UI/Views/AboutWindow.xaml` (+ .cs) | "Show startup profile" link |
 | `PlatypusTools.UI/App.xaml` | Focus-visual style |
 | `PlatypusTools.UI/Themes/HighContrast.xaml` (NEW) | High Contrast theme stub |
+
+## Wave C/D — Marketplace, YARA, Smart Rename, Browser ext, Clipboard, TreeMap, Theme Builder, Lazy Tabs (built clean)
+
+| File | Change |
+|------|--------|
+| `PlatypusTools.UI/Services/Plugins/PluginRegistryService.cs` (NEW) + `plugins/registry.json` (NEW) + `Views/PluginMarketplaceWindow.xaml` (+ .cs) | Phase 2.5 — fetch & SHA-256-pinned install. |
+| `PlatypusTools.UI/Services/Files/SmartRenameService.cs` (NEW) + `Views/SmartRenameWindow.xaml` (+ .cs) | Phase 3.2 — LLM-driven snake_case rename suggestions. |
+| `PlatypusTools.UI/Services/Security/YaraScannerService.cs` (NEW) + `Views/YaraScannerWindow.xaml` (+ .cs) + `DependencyCheckerService.CheckYaraAsync` | Phase 4.2 — yara.exe shell-out scanner. |
+| `BrowserExtension/` (NEW) | Phase 4.4 — MV3 manifest + service worker + popup, talks to `/api/v1`. |
+| `PlatypusTools.UI/Services/Clipboard/EncryptedClipboardSyncService.cs` (NEW) + `Views/EncryptedClipboardWindow.xaml` (+ .cs) + `Remote.Server/ClipboardStore.cs` + `/api/v1/clipboard` endpoints | Phase 4.5 — AES-GCM E2E sync. |
+| `PlatypusTools.UI/Services/Visualization/TreeMapLayout.cs` (NEW) + `Views/TreeMapDiskWindow.xaml` (+ .cs) | Phase 5.1 — squarified treemap, pure WPF Canvas. |
+| `PlatypusTools.UI/Views/ThemeBuilderWindow.xaml` (+ .cs) | Phase 5.2 — palette editor + ResourceDictionary export/import. |
+| `PlatypusTools.UI/Services/UI/LazyTabContent.cs` (NEW) | Phase 6.1 — attached behavior to defer heavy tab construction. |
+
+---
 
 ## Wave B — REST + Workflow + LLM + Fleet (built clean)
 

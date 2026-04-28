@@ -1,0 +1,12 @@
+[
+  {
+    "id": "sample-plugin",
+    "name": "Sample Plugin",
+    "version": "0.1.0",
+    "description": "Placeholder entry — replace with real signed plugins.",
+    "author": "PlatypusTools",
+    "downloadUrl": "",
+    "sha256": "",
+    "homepage": "https://github.com/AresX0/PlatypusToolsNew"
+  }
+]

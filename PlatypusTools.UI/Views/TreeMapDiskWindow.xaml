@@ -1,0 +1,33 @@
+<Window x:Class="PlatypusTools.UI.Views.TreeMapDiskWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="🗺️ Disk TreeMap"
+        Height="700" Width="1000"
+        WindowStartupLocation="CenterOwner"
+        Background="#FF1E1E1E"
+        Foreground="White">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0" LastChildFill="True" Margin="0,0,0,8">
+            <Button x:Name="PickFolderButton" Content="📁 Pick Folder" Width="120" Click="PickFolder_Click"
+                    Background="#FF2196F3" Foreground="White" BorderThickness="0" Padding="6,4" />
+            <Button x:Name="ScanButton" Content="🔍 Scan" Width="80" Margin="6,0,0,0" Click="Scan_Click"
+                    Background="#FF4CAF50" Foreground="White" BorderThickness="0" Padding="6,4" />
+            <TextBox x:Name="PathBox" Margin="8,0,0,0" Padding="4"
+                     Background="#FF252525" Foreground="White" BorderBrush="#FF444444" />
+        </DockPanel>
+
+        <Border Grid.Row="1" Background="#FF111111" BorderBrush="#FF333333" BorderThickness="1">
+            <Canvas x:Name="MapCanvas" ClipToBounds="True" SizeChanged="MapCanvas_SizeChanged" />
+        </Border>
+
+        <StatusBar Grid.Row="2" Background="#FF252525" Foreground="White">
+            <TextBlock x:Name="StatusText" Text="Ready." />
+        </StatusBar>
+    </Grid>
+</Window>

@@ -21,6 +21,7 @@ namespace PlatypusTools.Core.Services
             result.CloudflaredInstalled = CheckCloudflared();
             result.PowerShellInstalled = await CheckPowerShellAsync();
             result.PythonInstalled = await CheckPythonAsync();
+            result.YaraInstalled = await CheckYaraAsync();
 
             result.AllDependenciesMet = result.FFmpegInstalled && result.ExifToolInstalled 
                 && result.YtDlpInstalled && result.WebView2Installed;
@@ -200,6 +201,40 @@ namespace PlatypusTools.Core.Services
         }
 
         public string GetFFmpegDownloadUrl() => "https://ffmpeg.org/download.html";
+        public string GetYaraDownloadUrl() => "https://github.com/VirusTotal/yara/releases";
+
+        private async Task<bool> CheckYaraAsync()
+        {
+            var paths = new[]
+            {
+                "yara", "yara64",
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "yara64.exe"),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools", "yara.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "yara", "yara64.exe")
+            };
+            foreach (var p in paths)
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = p,
+                        Arguments = "--version",
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+                    using var proc = Process.Start(psi);
+                    if (proc != null)
+                    {
+                        await proc.WaitForExitAsync();
+                        if (proc.ExitCode == 0) return true;
+                    }
+                }
+                catch { }
+            }
+            return false;
+        }
         public string GetExifToolDownloadUrl() => "https://exiftool.org/";
         public string GetYtDlpDownloadUrl() => "https://github.com/yt-dlp/yt-dlp/releases";
         public string GetWebView2DownloadUrl() => "https://developer.microsoft.com/en-us/microsoft-edge/webview2/";
@@ -359,6 +394,7 @@ namespace PlatypusTools.Core.Services
         public bool CloudflaredInstalled { get; set; }
         public bool PowerShellInstalled { get; set; }
         public bool PythonInstalled { get; set; }
+        public bool YaraInstalled { get; set; }
         public bool AllDependenciesMet { get; set; }
 
         public string GetMissingDependenciesMessage()
@@ -372,6 +408,7 @@ namespace PlatypusTools.Core.Services
             if (!CloudflaredInstalled) missing.Add("cloudflared (optional - for Cloudflare tunnel remote access)");
             if (!PowerShellInstalled) missing.Add("PowerShell (optional - for Scripting Console)");
             if (!PythonInstalled) missing.Add("Python (optional - for Scripting Console)");
+            if (!YaraInstalled) missing.Add("YARA (optional - for malware rule scanning)");
 
             if (missing.Count == 0)
                 return "All dependencies are installed.";

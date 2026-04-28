@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "PlatypusTools",
+  "version": "0.1.0",
+  "description": "Send selections, links, and downloads to your local PlatypusTools instance via the /api/v1 REST surface.",
+  "permissions": ["activeTab", "contextMenus", "storage", "scripting"],
+  "host_permissions": ["https://localhost:47392/*", "http://localhost:47392/*"],
+  "action": {
+    "default_title": "PlatypusTools",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icon-16.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  }
+}

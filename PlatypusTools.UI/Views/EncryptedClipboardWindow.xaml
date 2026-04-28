@@ -1,0 +1,59 @@
+<Window x:Class="PlatypusTools.UI.Views.EncryptedClipboardWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="🔐 Encrypted Clipboard Sync"
+        Height="540" Width="780"
+        WindowStartupLocation="CenterOwner"
+        Background="#FF1E1E1E"
+        Foreground="White">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Pre-shared 32-byte AES-GCM key (base64) — stored in %APPDATA%/PlatypusTools/clipboard-key.bin"
+                   Foreground="#FFAAAAAA" Margin="0,0,0,4" />
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Right" Content="🔑 New key" Width="100" Click="NewKey_Click"
+                    Background="#FF9C27B0" Foreground="White" BorderThickness="0" />
+            <Button DockPanel.Dock="Right" Content="📋 Copy" Width="80" Margin="0,0,6,0" Click="CopyKey_Click"
+                    Background="#FF2196F3" Foreground="White" BorderThickness="0" />
+            <TextBox x:Name="KeyBox" Padding="4" Margin="0,0,6,0"
+                     Background="#FF252525" Foreground="White" BorderBrush="#FF444444" FontFamily="Consolas" />
+        </DockPanel>
+
+        <DockPanel Grid.Row="2" Margin="0,0,0,4">
+            <TextBlock Text="Peer URL:" Width="80" VerticalAlignment="Center" />
+            <TextBox x:Name="PeerBox" Padding="4" Text="https://localhost:47392"
+                     Background="#FF252525" Foreground="White" BorderBrush="#FF444444" />
+        </DockPanel>
+        <DockPanel Grid.Row="3" Margin="0,0,0,8">
+            <TextBlock Text="API token:" Width="80" VerticalAlignment="Center" />
+            <TextBox x:Name="TokenBox" Padding="4"
+                     Background="#FF252525" Foreground="White" BorderBrush="#FF444444" FontFamily="Consolas" />
+        </DockPanel>
+
+        <TextBox Grid.Row="4" x:Name="TextArea" AcceptsReturn="True" TextWrapping="Wrap"
+                 VerticalScrollBarVisibility="Auto" Background="#FF252525" Foreground="White"
+                 BorderBrush="#FF444444" Padding="6" />
+
+        <StackPanel Grid.Row="5" Orientation="Horizontal" Margin="0,8,0,4">
+            <Button Content="📤 Encrypt &amp; Push" Width="160" Click="Push_Click"
+                    Background="#FF4CAF50" Foreground="White" BorderThickness="0" Padding="6,4" />
+            <Button Content="📥 Pull &amp; Decrypt" Width="160" Margin="6,0,0,0" Click="Pull_Click"
+                    Background="#FF2196F3" Foreground="White" BorderThickness="0" Padding="6,4" />
+            <Button Content="📋 To system clipboard" Width="180" Margin="6,0,0,0" Click="CopyOut_Click"
+                    Background="#FF9C27B0" Foreground="White" BorderThickness="0" Padding="6,4" />
+        </StackPanel>
+
+        <StatusBar Grid.Row="6" Background="#FF252525" Foreground="White">
+            <TextBlock x:Name="StatusText" Text="Ready." />
+        </StatusBar>
+    </Grid>
+</Window>

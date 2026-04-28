@@ -424,4 +424,11 @@ v1.MapPost("/audio/previous", async (IRemoteAudioService a) => { await a.Previou
 v1.MapGet("/vault/items", (IVaultService v) =>
     !v.IsUnlocked ? Results.Unauthorized() : Results.Ok(v.GetItems()));
 
+// Phase 4.5 — Encrypted clipboard sync (server is opaque blob store; payload is AES-GCM ciphertext).
+v1.MapGet("/clipboard", () => PlatypusTools.Remote.Server.ClipboardStore.Latest is null ? Results.NoContent() : Results.Ok(PlatypusTools.Remote.Server.ClipboardStore.Latest));
+v1.MapPost("/clipboard", (System.Text.Json.JsonElement body) => { PlatypusTools.Remote.Server.ClipboardStore.Latest = System.Text.Json.JsonSerializer.Deserialize<object>(body.GetRawText()); return Results.NoContent(); });
+// Phase 4.4 — Browser extension plain-text endpoint (cleartext on the wire; intended for loopback/LAN trusted scenarios).
+v1.MapPost("/clipboard/plain", (System.Text.Json.JsonElement body) => { if (body.TryGetProperty("text", out var t)) PlatypusTools.Remote.Server.ClipboardStore.Plain = t.GetString() ?? string.Empty; return Results.NoContent(); });
+v1.MapGet("/clipboard/plain", () => Results.Ok(new { text = PlatypusTools.Remote.Server.ClipboardStore.Plain }));
+
 app.Run();

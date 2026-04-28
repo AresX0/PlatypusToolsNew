@@ -1,0 +1,19 @@
+## Wave C/D — Phases 2.5, 3.2, 4.2, 4.4, 4.5, 5.1, 5.2, 6.1 (and verified 6.5)
+
+### New Features
+- **Phase 2.5 — Plugin Marketplace**: New **Tools → 🧩 Plugin Marketplace** window. SHA-256-pinned install from `plugins/registry.json` (URL or local cache).
+- **Phase 3.2 — Smart Rename (LLM)**: New **Tools → ✨ Smart Rename**. Calls Ollama/LM Studio (Phase 3.1) to propose snake_case filenames; per-row toggle before apply.
+- **Phase 4.2 — YARA Scanner**: New **Tools → 🧬 YARA Scanner**. Shells out to yara.exe (now registered in DependencyChecker). Includes sample-rule generator.
+- **Phase 4.4 — Browser Extension**: `BrowserExtension/` MV3 extension with context menus that push selections/links to `/api/v1/clipboard/plain`.
+- **Phase 4.5 — Encrypted Clipboard Sync**: New **Tools → 🔐 Encrypted Clipboard**. AES-GCM with pre-shared 32-byte key, opaque blob through Remote.Server.
+- **Phase 5.1 — Disk TreeMap**: New **Tools → 🗺️ Disk TreeMap**. Pure-WPF squarified treemap; click any tile to reveal in Explorer.
+- **Phase 5.2 — Theme Builder**: New **Tools → 🎨 Theme Builder**. Hex editors with live preview pane and ResourceDictionary `.xaml` import/export.
+- **Phase 6.1 — Lazy Tab Loading**: `LazyTabContent` attached behavior defers UserControl construction per TabItem.
+- **Phase 6.5 — PWA**: Verified Remote.Client wwwroot already ships manifest.webmanifest + service-worker.js with PWA icons.
+
+### Server
+- New `/api/v1/clipboard` (encrypted blob) and `/api/v1/clipboard/plain` (browser ext) endpoints.
+
+### Artifacts
+- `PlatypusToolsSetup-vX.Y.Z.msi` — signed MSI installer
+- `PlatypusTools.UI.exe` — portable standalone executable

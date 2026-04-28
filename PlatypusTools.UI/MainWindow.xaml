@@ -56,6 +56,12 @@
                 <MenuItem Header="🔁 Workflow Designer..." Click="OpenWorkflowDesigner_Click" />
                 <MenuItem Header="🤖 AI Assistant..." Click="OpenAIAssistant_Click" />
                 <MenuItem Header="🛰️ Fleet View..." Click="OpenFleetView_Click" />
+                <MenuItem Header="🗺️ Disk TreeMap..." Click="OpenTreeMap_Click" />
+                <MenuItem Header="🎨 Theme Builder..." Click="OpenThemeBuilder_Click" />
+                <MenuItem Header="🧩 Plugin Marketplace..." Click="OpenPluginMarketplace_Click" />
+                <MenuItem Header="🧬 YARA Scanner..." Click="OpenYaraScanner_Click" />
+                <MenuItem Header="✨ Smart Rename (LLM)..." Click="OpenSmartRename_Click" />
+                <MenuItem Header="🔐 Encrypted Clipboard..." Click="OpenEncryptedClipboard_Click" />
                 <Separator />
                 <MenuItem Header="Settings..." Click="OpenSettings" InputGestureText="Ctrl+," />
             </MenuItem>

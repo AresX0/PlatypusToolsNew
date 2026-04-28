@@ -1145,6 +1145,48 @@ namespace PlatypusTools.UI
             try { var w = new Views.FleetViewWindow { Owner = this }; w.Show(); }
             catch (System.Exception ex) { MessageBox.Show("Failed to open Fleet View: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning); }
         }
+
+        // Phase 5.1 — Disk TreeMap
+        private void OpenTreeMap_Click(object sender, RoutedEventArgs e)
+        {
+            try { var w = new Views.TreeMapDiskWindow { Owner = this }; w.Show(); }
+            catch (System.Exception ex) { MessageBox.Show("Failed to open TreeMap: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        }
+
+        // Phase 5.2 — Theme Builder
+        private void OpenThemeBuilder_Click(object sender, RoutedEventArgs e)
+        {
+            try { var w = new Views.ThemeBuilderWindow { Owner = this }; w.Show(); }
+            catch (System.Exception ex) { MessageBox.Show("Failed to open Theme Builder: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        }
+
+        // Phase 2.5 — Plugin Marketplace
+        private void OpenPluginMarketplace_Click(object sender, RoutedEventArgs e)
+        {
+            try { var w = new Views.PluginMarketplaceWindow { Owner = this }; w.Show(); }
+            catch (System.Exception ex) { MessageBox.Show("Failed to open Plugin Marketplace: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        }
+
+        // Phase 4.2 — YARA Scanner
+        private void OpenYaraScanner_Click(object sender, RoutedEventArgs e)
+        {
+            try { var w = new Views.YaraScannerWindow { Owner = this }; w.Show(); }
+            catch (System.Exception ex) { MessageBox.Show("Failed to open YARA Scanner: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        }
+
+        // Phase 3.2 — Smart Rename
+        private void OpenSmartRename_Click(object sender, RoutedEventArgs e)
+        {
+            try { var w = new Views.SmartRenameWindow { Owner = this }; w.Show(); }
+            catch (System.Exception ex) { MessageBox.Show("Failed to open Smart Rename: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        }
+
+        // Phase 4.5 — Encrypted Clipboard
+        private void OpenEncryptedClipboard_Click(object sender, RoutedEventArgs e)
+        {
+            try { var w = new Views.EncryptedClipboardWindow { Owner = this }; w.Show(); }
+            catch (System.Exception ex) { MessageBox.Show("Failed to open Encrypted Clipboard: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        }
     }
 }
 

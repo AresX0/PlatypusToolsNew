@@ -1,0 +1,11 @@
+## Wave B — Phases 2.2 / 2.3 / 3.1 / 6.4
+
+### New Features
+- **Phase 2.2 — REST `/api/v1`**: Local Bearer-authenticated REST surface in Remote.Server (`/health`, `/info`, `/audio/*`, `/vault/items`). Token auto-generated at `%APPDATA%/PlatypusTools/api-token.txt`.
+- **Phase 2.3 — Workflow Engine + Designer**: `WorkflowEngine` runs shell/powershell/writefile/readfile/delay/log nodes from `.platypusflow` JSON. New **Tools → 🔁 Workflow Designer** window with Open / Save As / Run.
+- **Phase 3.1 — Local LLM Sidebar**: `LocalLlmService` (Ollama + OpenAI-compatible / LM Studio). New **Tools → 🤖 AI Assistant** window with backend/model picker, system prompt, chat log (Ctrl+Enter to send).
+- **Phase 6.4 — Fleet View**: New **Tools → 🛰️ Fleet View** window parallel-scans a `/24` subnet for other Platypus Remote.Server hosts.
+
+### Artifacts
+- `PlatypusToolsSetup-vX.Y.Z.msi` — signed MSI installer
+- `PlatypusTools.UI.exe` — portable standalone executable
