@@ -10,41 +10,74 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="2*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="🐚 Scripting Console"
+        <TextBlock Text="🐚 Scripting Console — read-only $Platypus proxy"
                    FontSize="16" FontWeight="Bold" Margin="0,0,0,4"/>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,6">
-            <TextBlock Text="Engine:" VerticalAlignment="Center" Margin="0,0,6,0"/>
-            <ComboBox x:Name="EngineCombo" Width="180" SelectedIndex="0">
-                <ComboBoxItem Content="PowerShell"/>
-                <ComboBoxItem Content="Python"/>
-            </ComboBox>
-            <Button x:Name="RunButton" Content="▶ Run (Ctrl+Enter)" Margin="12,0,0,0"
-                    Padding="10,3" Background="#FF4CAF50" Foreground="White"
+            <Button x:Name="RunButton" Content="▶ Run (Ctrl+Enter)" Padding="10,3"
+                    Background="#FF4CAF50" Foreground="White"
+                    AutomationProperties.Name="Run script"
                     Click="Run_Click"/>
-            <Button x:Name="ClearButton" Content="Clear" Margin="6,0,0,0" Padding="10,3" Click="Clear_Click"/>
+            <Button x:Name="ClearButton" Content="Clear output" Margin="6,0,0,0" Padding="10,3"
+                    AutomationProperties.Name="Clear output"
+                    Click="Clear_Click"/>
+            <CheckBox x:Name="InjectProxyBox" Content="Inject $Platypus" IsChecked="True"
+                      Margin="14,0,0,0" VerticalAlignment="Center"
+                      ToolTip="Adds a read-only $Platypus.{Audio,Vault,Forensics,Info} proxy that calls the local /api/v1 endpoints."
+                      Checked="Inject_Changed" Unchecked="Inject_Changed"/>
             <TextBlock x:Name="StatusText" VerticalAlignment="Center" Margin="14,0,0,0" Opacity="0.7"/>
         </StackPanel>
 
-        <TextBox x:Name="ScriptBox" Grid.Row="2" AcceptsReturn="True" AcceptsTab="True"
-                 FontFamily="Consolas" FontSize="13"
-                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                 PreviewKeyDown="ScriptBox_PreviewKeyDown"
-                 Text="# Type PowerShell or Python here, then click Run.&#x0a;Get-Date"/>
+        <TabControl x:Name="EngineTabs" Grid.Row="2" SelectionChanged="Engine_Changed">
+            <TabItem Header="PowerShell" x:Name="PowerShellTab">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="5"/>
+                        <RowDefinition Height="2*"/>
+                    </Grid.RowDefinitions>
+                    <TextBox x:Name="PsScriptBox" AcceptsReturn="True" AcceptsTab="True"
+                             FontFamily="Consolas" FontSize="13"
+                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                             AutomationProperties.Name="PowerShell script editor"
+                             PreviewKeyDown="ScriptBox_PreviewKeyDown"
+                             Text="# PowerShell — try: $Platypus.Info.Invoke()&#x0a;Get-Date"/>
+                    <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="#CCCCCC" Cursor="SizeNS"/>
+                    <TextBox x:Name="PsOutputBox" Grid.Row="2" IsReadOnly="True"
+                             FontFamily="Consolas" FontSize="12"
+                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                             Background="#FF1E1E1E" Foreground="#FFD4D4D4"
+                             BorderThickness="1" BorderBrush="#FF333333"
+                             AutomationProperties.Name="PowerShell output"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Python" x:Name="PythonTab">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="5"/>
+                        <RowDefinition Height="2*"/>
+                    </Grid.RowDefinitions>
+                    <TextBox x:Name="PyScriptBox" AcceptsReturn="True" AcceptsTab="True"
+                             FontFamily="Consolas" FontSize="13"
+                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                             AutomationProperties.Name="Python script editor"
+                             PreviewKeyDown="ScriptBox_PreviewKeyDown"
+                             Text="# Python — try: print(Platypus.info())&#x0a;import datetime; print(datetime.datetime.now())"/>
+                    <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" Background="#CCCCCC" Cursor="SizeNS"/>
+                    <TextBox x:Name="PyOutputBox" Grid.Row="2" IsReadOnly="True"
+                             FontFamily="Consolas" FontSize="12"
+                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                             Background="#FF1E1E1E" Foreground="#FFD4D4D4"
+                             BorderThickness="1" BorderBrush="#FF333333"
+                             AutomationProperties.Name="Python output"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
 
-        <GridSplitter Grid.Row="3" Height="5" HorizontalAlignment="Stretch" Background="#CCCCCC" Cursor="SizeNS"/>
-
-        <TextBox x:Name="OutputBox" Grid.Row="4" IsReadOnly="True"
-                 FontFamily="Consolas" FontSize="12"
-                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                 Background="#FF1E1E1E" Foreground="#FFD4D4D4"
-                 BorderThickness="1" BorderBrush="#FF333333"/>
-
-        <TextBlock Grid.Row="5" Margin="0,4,0,0" Opacity="0.6"
-                   Text="⚠ Scripts run in a separate process. Read-only — internal app services are not exposed."/>
+        <TextBlock Grid.Row="3" Margin="0,4,0,0" Opacity="0.6" TextWrapping="Wrap"
+                   Text="⚠ Each tab uses a separate process. $Platypus exposes Audio.NowPlaying/Queue, Vault.Items, Forensics.Iocs, Info via /api/v1 (requires Remote.Server running on 47392)."/>
     </Grid>
 </UserControl>

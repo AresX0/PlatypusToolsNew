@@ -17,16 +17,25 @@ namespace PlatypusTools.UI.Services.Scripting
         private static readonly Lazy<ScriptingHostService> _instance = new(() => new ScriptingHostService());
         public static ScriptingHostService Instance => _instance.Value;
 
+        /// <summary>When true, the read-only $Platypus REST proxy is injected before the user's script.</summary>
+        public bool InjectPlatypusProxy { get; set; } = true;
+
         public async Task<ScriptResult> RunPowerShellAsync(string script, CancellationToken ct = default)
         {
-            return await RunAsync(GetPowerShellExe(), $"-NoProfile -NonInteractive -Command -", script, ct).ConfigureAwait(false);
+            var fullScript = InjectPlatypusProxy
+                ? PlatypusScriptPrelude.PowerShell() + Environment.NewLine + script
+                : script;
+            return await RunAsync(GetPowerShellExe(), $"-NoProfile -NonInteractive -Command -", fullScript, ct).ConfigureAwait(false);
         }
 
         public async Task<ScriptResult> RunPythonAsync(string script, CancellationToken ct = default)
         {
             var py = ResolvePython();
             if (py == null) return new ScriptResult(false, "", "Python interpreter not found. Install python or place python.exe in Tools/python.", -1);
-            return await RunAsync(py, "-", script, ct).ConfigureAwait(false);
+            var fullScript = InjectPlatypusProxy
+                ? PlatypusScriptPrelude.Python() + Environment.NewLine + script
+                : script;
+            return await RunAsync(py, "-", fullScript, ct).ConfigureAwait(false);
         }
 
         public bool IsPowerShellAvailable() => !string.IsNullOrEmpty(GetPowerShellExe());

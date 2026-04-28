@@ -261,6 +261,32 @@ namespace PlatypusTools.UI.Services.Forensics
         }
 
         /// <summary>
+        /// Phase 4.1 — imports cached threat-feed indicators (CISA KEV / MISP / OTX) written by
+        /// <see cref="PlatypusTools.UI.Services.ThreatIntel.ThreatFeedScheduler"/> into the IOC database.
+        /// Returns the number of new IOCs added.
+        /// </summary>
+        public int AutoImportFromThreatFeeds()
+        {
+            int before = _iocs.Count;
+            var batch = new List<IOC>();
+            foreach (var (rawType, value, source) in PlatypusTools.UI.Services.ThreatIntel.ThreatFeedScheduler.ReadCachedIndicators())
+            {
+                if (!Enum.TryParse<IOCType>(rawType, ignoreCase: true, out var t))
+                    t = IOCType.Custom;
+                batch.Add(new IOC
+                {
+                    Type = t,
+                    Value = value,
+                    Source = source,
+                    Severity = source.Contains("KEV", StringComparison.OrdinalIgnoreCase) ? "high" : "medium",
+                    Description = $"Auto-imported from {source}"
+                });
+            }
+            if (batch.Count > 0) AddIOCs(batch);
+            return _iocs.Count - before;
+        }
+
+        /// <summary>
         /// Updates all enabled feeds.
         /// </summary>
         public async Task<int> UpdateAllFeedsAsync(CancellationToken token = default)

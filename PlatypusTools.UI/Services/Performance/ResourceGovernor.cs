@@ -21,6 +21,14 @@ namespace PlatypusTools.UI.Services.Performance
         public int CpuLimit { get; }
         public int NetworkLimit { get; }
 
+        /// <summary>
+        /// Phase 6.2 — when 1..99, child processes started via <c>StartThrottledProcess</c>
+        /// are wrapped in a Win32 job object that hard-caps CPU usage to this percent.
+        /// 0 (default) disables CPU rate control. Honored across SceneDetectionService,
+        /// ThumbnailCacheService, and any future ffmpeg shell-out.
+        /// </summary>
+        public int CpuThrottlePercent { get; set; }
+
         private ResourceGovernor()
         {
             CpuLimit = Math.Max(2, Environment.ProcessorCount / 2);
@@ -29,6 +37,21 @@ namespace PlatypusTools.UI.Services.Performance
             _cpu = new SemaphoreSlim(CpuLimit, CpuLimit);
             _io = new SemaphoreSlim(IoLimit, IoLimit);
             _network = new SemaphoreSlim(NetworkLimit, NetworkLimit);
+        }
+
+        /// <summary>
+        /// Wraps a started <see cref="System.Diagnostics.Process"/> in a job object that hard-caps
+        /// CPU rate, when <see cref="CpuThrottlePercent"/> is set. Returns the job (or null) — the
+        /// caller must keep it alive for the duration of the process and dispose it after exit.
+        /// </summary>
+        public JobObjectThrottler? AttachCpuCap(System.Diagnostics.Process process)
+        {
+            var pct = CpuThrottlePercent;
+            if (pct <= 0 || pct >= 100) return null;
+            var job = JobObjectThrottler.CreateThrottled(pct);
+            if (job == null) return null;
+            if (!job.Attach(process)) { job.Dispose(); return null; }
+            return job;
         }
 
         public IDisposable Acquire(ResourceCategory category, CancellationToken ct = default)

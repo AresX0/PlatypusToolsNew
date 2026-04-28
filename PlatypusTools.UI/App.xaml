@@ -142,6 +142,20 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+
+            <!-- Phase 5.3 — Accessibility: implicit Button style supplies AutomationProperties.Name
+                 from ToolTip when the caller has not set a Name. Icon-only buttons (Content="🔄"
+                 etc.) become accessible to screen readers as long as a ToolTip is present.
+                 Buttons that already set AutomationProperties.Name win because explicit attached
+                 properties override implicit-style setters. -->
+            <Style TargetType="{x:Type Button}">
+                <Setter Property="AutomationProperties.Name" Value="{Binding RelativeSource={RelativeSource Self}, Path=ToolTip, TargetNullValue='', FallbackValue=''}"/>
+                <Setter Property="FocusVisualStyle" Value="{StaticResource A11yFocusVisual}"/>
+            </Style>
+            <Style TargetType="{x:Type ToggleButton}">
+                <Setter Property="AutomationProperties.Name" Value="{Binding RelativeSource={RelativeSource Self}, Path=ToolTip, TargetNullValue='', FallbackValue=''}"/>
+                <Setter Property="FocusVisualStyle" Value="{StaticResource A11yFocusVisual}"/>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -1,0 +1,40 @@
+# v4.0.3.7 — Wave E (final scaffolding cleanup)
+
+Implements the remaining 4 partial roadmap items so all Phase 2-6 features ship complete:
+
+## Phase 2.1 — Scripting Console (full)
+- New `PlatypusScriptPrelude` injects a read-only `$Platypus` proxy into PowerShell and Python sessions
+- Proxy calls `/api/v1/{audio,vault,forensics,info}` over loopback HTTPS using the auto-generated Bearer token
+- `ScriptingConsoleView` rebuilt with separate PowerShell + Python sub-tabs, per-tab editor & output panes, and an `Inject $Platypus` toggle
+- Already-shipped DependencyChecker entries verified for PowerShell and Python
+
+## Phase 4.1 — Threat Feed Aggregator (full)
+- `ThreatFeedService.GetMispEventsAsync` — pulls events from any MISP instance via `/events/restSearch`, normalizes attribute types
+- `ThreatFeedService.GetOtxPulsesAsync` — pulls subscribed AlienVault OTX pulses via `/api/v1/pulses/subscribed`
+- `ThreatFeedScheduler` — background timer (default 6h) with per-feed enable flags, writes normalized JSON cache to `%APPDATA%/PlatypusTools/threat-cache/`
+- `IOCScannerService.AutoImportFromThreatFeeds()` — bulk-imports cached indicators with severity tagging
+- App start hook auto-starts CISA KEV refresh
+- New `/api/v1/forensics/iocs` endpoint exposes the cache to scripts
+
+## Phase 5.3 — Accessibility (full)
+- App-wide implicit `Button` and `ToggleButton` styles bind `AutomationProperties.Name` to `ToolTip` (covers every icon-only button without per-call edits)
+- All buttons gain the dashed-orange `A11yFocusVisual` focus rectangle by default
+- New scripting console buttons have explicit `AutomationProperties.Name`
+
+## Phase 6.2 — Resource Governor (full)
+- `JobObjectThrottler` — Win32 `JOB_OBJECT_LIMIT_CPU_RATE_CONTROL` wrapper with `HARD_CAP`
+- `ResourceGovernor.AttachCpuCap(process)` adopts a started child process into the throttle when `CpuThrottlePercent` is set
+- `SceneDetectionService` now wraps its ffmpeg child in the throttle slot
+
+## Bug fix
+- `AIAssistantWindow` — fixed `Object reference not set to an instance of an object` NRE when opening (Backend_Changed fired during XAML init before StatusText constructed)
+
+## Server-side
+- `ClipboardStore` upgraded from public-field stub to thread-safe TTL store (1h expiry on encrypted blob and plain text)
+- `/api/v1/forensics/iocs` returns cached threat-feed JSON
+
+## Artifacts
+- `PlatypusToolsSetup-v4.0.3.7.msi` — signed MSI installer
+- `PlatypusTools.UI.exe` — portable standalone executable
+
+Undo: `git revert <v4.0.3.7-commit>` reverts everything since v4.0.3.6.

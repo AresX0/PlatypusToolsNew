@@ -424,6 +424,32 @@ v1.MapPost("/audio/previous", async (IRemoteAudioService a) => { await a.Previou
 v1.MapGet("/vault/items", (IVaultService v) =>
     !v.IsUnlocked ? Results.Unauthorized() : Results.Ok(v.GetItems()));
 
+// Phase 2.1 / 4.1 — Forensics surface for the $Platypus.Forensics PowerShell/Python proxy.
+// Reads cached threat-feed indicators that the UI's ThreatFeedScheduler writes to
+// %APPDATA%/PlatypusTools/threat-cache/. Returns an empty list when no cache is present.
+v1.MapGet("/forensics/iocs", () =>
+{
+    try
+    {
+        var cacheDir = System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "PlatypusTools", "threat-cache");
+        if (!System.IO.Directory.Exists(cacheDir)) return Results.Ok(Array.Empty<object>());
+        var list = new System.Collections.Generic.List<object>();
+        foreach (var f in System.IO.Directory.EnumerateFiles(cacheDir, "*.json"))
+        {
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(f));
+                list.Add(new { source = System.IO.Path.GetFileNameWithoutExtension(f), data = doc.RootElement.Clone() });
+            }
+            catch { }
+        }
+        return Results.Ok(list);
+    }
+    catch { return Results.Ok(Array.Empty<object>()); }
+});
+
 // Phase 4.5 — Encrypted clipboard sync (server is opaque blob store; payload is AES-GCM ciphertext).
 v1.MapGet("/clipboard", () => PlatypusTools.Remote.Server.ClipboardStore.Latest is null ? Results.NoContent() : Results.Ok(PlatypusTools.Remote.Server.ClipboardStore.Latest));
 v1.MapPost("/clipboard", (System.Text.Json.JsonElement body) => { PlatypusTools.Remote.Server.ClipboardStore.Latest = System.Text.Json.JsonSerializer.Deserialize<object>(body.GetRawText()); return Results.NoContent(); });

@@ -49,15 +49,19 @@ namespace PlatypusTools.UI.Views
 
         private void Backend_Changed(object sender, SelectionChangedEventArgs e)
         {
+            // SelectionChanged can fire during XAML parsing (because ComboBoxItem
+            // IsSelected="True" lights up before later children construct). Guard
+            // every named control we touch here.
+            if (BackendBox == null) return;
             if (BackendBox.SelectedIndex == 1)
             {
                 LocalLlmService.Instance.OpenAiCompatBaseUrl = "http://localhost:1234/v1";
-                StatusText.Text = "Backend: OpenAI-compat at http://localhost:1234/v1 (LM Studio default)";
+                if (StatusText != null) StatusText.Text = "Backend: OpenAI-compat at http://localhost:1234/v1 (LM Studio default)";
             }
             else
             {
                 LocalLlmService.Instance.OpenAiCompatBaseUrl = null;
-                StatusText.Text = "Backend: Ollama";
+                if (StatusText != null) StatusText.Text = "Backend: Ollama";
             }
         }
 

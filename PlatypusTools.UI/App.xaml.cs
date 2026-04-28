@@ -132,6 +132,16 @@ namespace PlatypusTools.UI
                 Services.Recovery.SessionStateService.Instance.Start();
             }
             catch (Exception ex) { SimpleLogger.Error($"SessionStateService init failed: {ex}"); }
+
+            // Phase 4.1 — start background threat-feed refresh (CISA KEV always; MISP/OTX opt-in via settings).
+            try
+            {
+                var sched = Services.ThreatIntel.ThreatFeedScheduler.Instance;
+                sched.EnableCisaKev = true;
+                sched.Interval = TimeSpan.FromHours(6);
+                sched.Start();
+            }
+            catch (Exception ex) { SimpleLogger.Error($"ThreatFeedScheduler start failed: {ex}"); }
             
             // Now kick off the async initialization in the background
             // The video will loop while everything loads

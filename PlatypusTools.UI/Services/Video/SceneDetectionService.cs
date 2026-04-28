@@ -60,6 +60,7 @@ namespace PlatypusTools.UI.Services.Video
             using var slot = await PlatypusTools.UI.Services.Performance.ResourceGovernor.Instance
                 .AcquireAsync(PlatypusTools.UI.Services.Performance.ResourceCategory.Cpu, ct).ConfigureAwait(false);
             using var proc = Process.Start(psi)!;
+            using var cpuCap = PlatypusTools.UI.Services.Performance.ResourceGovernor.Instance.AttachCpuCap(proc);
             proc.ErrorDataReceived += (_, e) =>
             {
                 if (e.Data == null) return;
