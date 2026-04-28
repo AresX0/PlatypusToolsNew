@@ -553,6 +553,10 @@
                              Visibility="{Binding NotificationCenter, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:NotificationCenterView}" />
                     </TabItem>
+                    <TabItem Header="🐚 Scripting Console"
+                             Visibility="{Binding ScriptingConsole, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:ScriptingConsoleView}" />
+                    </TabItem>
                 </TabControl>
             </TabItem>
         </TabControl>

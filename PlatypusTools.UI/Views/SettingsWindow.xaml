@@ -410,7 +410,7 @@
                         
                         <GroupBox Header="Current Version">
                             <StackPanel Margin="8">
-                                <TextBlock x:Name="CurrentVersionText" Text="Version: 4.0.2.9"/>
+                                <TextBlock x:Name="CurrentVersionText" Text="Version: 4.0.3.0"/>
                                 <TextBlock x:Name="LastCheckText" Text="Last checked: Never" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,4,0,0"/>
                                 <Button Content="Check for Updates Now" MinWidth="180" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CheckUpdates_Click"/>
                             </StackPanel>
@@ -602,6 +602,7 @@
                                 <CheckBox x:Name="TabMailClient" Content="    Mail Client" IsChecked="True" Margin="16,4,0,4"/>
                                 <CheckBox x:Name="TabTextEditor" Content="    Text Editor" IsChecked="True" Margin="16,4,0,4"/>
                                 <CheckBox x:Name="TabNotificationCenter" Content="    🔔 Notification Center" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabScriptingConsole" Content="    🐚 Scripting Console" IsChecked="True" Margin="16,4,0,4"/>
                             </StackPanel>
                         </GroupBox>
                         

@@ -203,6 +203,9 @@ namespace PlatypusTools.UI.Services
         // Tools - Notification Center (Phase 1.2)
         public Visibility NotificationCenter => GetVisibility("Tools.NotificationCenter");
 
+        // Tools - Scripting Console (Phase 2.1)
+        public Visibility ScriptingConsole => GetVisibility("Tools.ScriptingConsole");
+
         // Security - New Features
         public Visibility SshKeyManager => GetVisibility("Security.SshKeyManager");
         public Visibility FileEncryption => GetVisibility("Security.FileEncryption");

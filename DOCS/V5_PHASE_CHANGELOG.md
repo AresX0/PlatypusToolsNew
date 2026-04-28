@@ -147,3 +147,117 @@ UNDO:
 ## [PHASE 1 COMPLETE] — 2026-04-27
 Roadmap items 1.1 (pre-existing), 1.2, 1.3 (pre-existing base), 1.4, 1.5 all landed.
 Next session: begin Phase 2 (advanced search / fuzzy finder / global hotkeys expansion).
+
+---
+
+## [Phase 2.1] Scripting Console (PowerShell + Python) — 2026-04-27  pre-SHA: 483b04c
+Minimal one-shot runner. Each Run spawns a fresh `pwsh.exe`/`powershell.exe` (or `python.exe` if available) and pipes the script in via stdin. **No SDK packages added**, no in-proc host (deferred). Read-only — internal services NOT exposed.
+
+NEW FILES:
+  - `PlatypusTools.UI/Services/Scripting/ScriptingHostService.cs`
+  - `PlatypusTools.UI/Views/ScriptingConsoleView.xaml`
+  - `PlatypusTools.UI/Views/ScriptingConsoleView.xaml.cs`
+
+MODIFIED FILES:
+  - `PlatypusTools.UI/Services/TabVisibilityService.cs` (+ `ScriptingConsole` property keyed `"Tools.ScriptingConsole"`)
+  - `PlatypusTools.UI/MainWindow.xaml` (+ Tools tab "🐚 Scripting Console")
+  - `PlatypusTools.UI/Views/SettingsWindow.xaml` (+ `TabScriptingConsole` checkbox)
+  - `PlatypusTools.UI/Views/SettingsWindow.xaml.cs` (+ TabCheckboxMapping entry)
+
+UNDO:
+  rm PlatypusTools.UI/Services/Scripting/ScriptingHostService.cs
+  rmdir PlatypusTools.UI/Services/Scripting
+  rm PlatypusTools.UI/Views/ScriptingConsoleView.xaml*
+  git checkout 483b04c -- PlatypusTools.UI/Services/TabVisibilityService.cs \
+                          PlatypusTools.UI/MainWindow.xaml \
+                          PlatypusTools.UI/Views/SettingsWindow.xaml \
+                          PlatypusTools.UI/Views/SettingsWindow.xaml.cs
+
+---
+
+## [Phase 5.3] Keyboard Shortcut Overlay (Ctrl+/) — 2026-04-27  pre-SHA: 483b04c
+NEW FILES:
+  - `PlatypusTools.UI/Views/KeyboardShortcutsWindow.xaml`
+  - `PlatypusTools.UI/Views/KeyboardShortcutsWindow.xaml.cs` (hardcoded list of current shortcuts)
+
+MODIFIED FILES:
+  - `PlatypusTools.UI/MainWindow.xaml.cs` (+ Ctrl+/ hotkey in `MainWindow_PreviewKeyDown`)
+
+UNDO:
+  rm PlatypusTools.UI/Views/KeyboardShortcutsWindow.xaml*
+  git checkout 483b04c -- PlatypusTools.UI/MainWindow.xaml.cs
+
+---
+
+## [Phase 3.5] MusicBrainz / Cover Art Archive Client — 2026-04-27  pre-SHA: 483b04c
+Service skeleton only — **not wired to audio player UI yet**. Caller calls `MusicBrainzClient.Instance.FindFrontCoverUrlAsync(artist, album)` to get the front-cover URL.
+
+NEW FILES:
+  - `PlatypusTools.UI/Services/Music/MusicBrainzClient.cs` (uses existing `HttpClientFactory.Api`, sets PlatypusTools User-Agent per MB policy)
+
+UNDO:
+  rm PlatypusTools.UI/Services/Music/MusicBrainzClient.cs
+  rmdir PlatypusTools.UI/Services/Music
+
+---
+
+## [Phase 4.1] Threat-Feed Service (CISA KEV) — 2026-04-27  pre-SHA: 483b04c
+Service skeleton only — **not wired to CveSearch / IocScanner UI yet**. `ThreatFeedService.Instance.GetCisaKevAsync()` returns a list of `KevEntry` records. MISP/OTX deferred (require API keys + Settings UI).
+
+NEW FILES:
+  - `PlatypusTools.UI/Services/ThreatIntel/ThreatFeedService.cs`
+
+UNDO:
+  rm PlatypusTools.UI/Services/ThreatIntel/ThreatFeedService.cs
+  rmdir PlatypusTools.UI/Services/ThreatIntel
+
+---
+
+## [Phase 6.2] ResourceGovernor — 2026-04-27  pre-SHA: 483b04c
+Co-operative semaphores for CPU / IO / Network. Long-running services adopt by `using var slot = ResourceGovernor.Instance.Acquire(ResourceCategory.Cpu)` (deferred per-service adoption).
+
+NEW FILES:
+  - `PlatypusTools.UI/Services/Performance/ResourceGovernor.cs`
+
+UNDO:
+  rm PlatypusTools.UI/Services/Performance/ResourceGovernor.cs
+  rmdir PlatypusTools.UI/Services/Performance
+
+---
+
+## [Phase 6.3] Startup Profiler — already exists
+`Services/StartupProfiler.cs` (with `BeginPhase` / `Finish`) is already wired in `App.xaml.cs`. No new code needed.
+
+---
+
+## [Multi-Phase Skeletons COMPLETE] — 2026-04-27
+The following landed as opt-in infrastructure (each compiled clean, additive only, fully undoable per recipes above):
+  - Phase 2.1 Scripting Console — UI + service (one-shot, sandboxed by process)
+  - Phase 3.5 MusicBrainz client — service only
+  - Phase 4.1 Threat-Feed service — CISA KEV reader
+  - Phase 5.3 Keyboard shortcut overlay — Ctrl+/ window
+  - Phase 6.2 ResourceGovernor — concurrency budget skeleton
+  - Phase 6.3 Startup Profiler — verified pre-existing
+
+DEFERRED (intentionally — significant scope, can be added later):
+  - 2.2 Local REST API (extends existing Remote.Server)
+  - 2.3 Workflow / Macro recorder
+  - 2.4 Scheduled job templates (extends existing ScheduledTasksView)
+  - 2.5 Plugin marketplace registry browser
+  - 3.1 Local LLM sidebar (Ollama/llama.cpp)
+  - 3.2 Smart-rename / auto-tag for media (LLM-dependent)
+  - 3.3 Whisper SRT/VTT writer in VideoEditor
+  - 3.4 Auto-chaptering (ffmpeg scene detect)
+  - 4.2 YARA rule editor + scanner (needs dnYara NuGet)
+  - 4.3 Sigma → KQL translator
+  - 4.4 Browser extension companion
+  - 4.5 Shared encrypted clipboard
+  - 5.1 TreeMap disk heatmap
+  - 5.2 Theme builder live preview
+  - 5.4 Localization completeness meter
+  - 5.5 HDR thumbnailing
+  - 6.1 [LazyTab] attribute auto-discovery
+  - 6.4 Multi-machine fleet view
+  - 6.5 PWA mobile remote dashboard
+  - Per-tab adopters of `IRecoverableState` / `ITabConfigProvider` beyond WallpaperRotator
+  - Per-service adopters of `ResourceGovernor`

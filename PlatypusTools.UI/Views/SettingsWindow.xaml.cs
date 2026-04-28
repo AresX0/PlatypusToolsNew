@@ -1600,6 +1600,7 @@ namespace PlatypusTools.UI.Views
             { "TabMailClient", "Tools.MailClient" },
             { "TabTextEditor", "Tools.TextEditor" },
             { "TabNotificationCenter", "Tools.NotificationCenter" },
+            { "TabScriptingConsole", "Tools.ScriptingConsole" },
         };
         
         private void LoadTabVisibilitySettings()

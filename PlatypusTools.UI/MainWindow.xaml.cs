@@ -451,6 +451,17 @@ namespace PlatypusTools.UI
                 Services.CommandService.Instance.ShowCommandPalette(this);
                 e.Handled = true;
             }
+            // Phase 5.3: Ctrl+/ — Keyboard shortcut overlay
+            else if (e.Key == System.Windows.Input.Key.OemQuestion && ctrlOnly)
+            {
+                try
+                {
+                    var ksw = new Views.KeyboardShortcutsWindow { Owner = this };
+                    ksw.ShowDialog();
+                }
+                catch { }
+                e.Handled = true;
+            }
             // Ctrl+Shift+A - Unlock AD Security Analyzer
             else if (e.Key == System.Windows.Input.Key.A && ctrlShift)
             {

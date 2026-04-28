@@ -210,8 +210,14 @@ _Audited 2026-04-27: `Services/UpdateService.cs` already polls GitHub releases a
 | 1.3 Auto-Update | ✅ Base shipped (delta patches deferred) | (pre-v5) |
 | 1.4 Per-Tab Reset/Export | ✅ ITabConfigProvider + TabActionMenuButton shipped (reference adopter: WallpaperRotator) | v4.0.2.7 |
 | 1.5 Crash Recovery | ✅ Infrastructure shipped (IRecoverableState + SessionStateService + dirty-shutdown prompt). Per-tab adopters TBD. | v4.0.2.7 |
-| 2 | ⚪ Pending | v4.2.x |
-| 3 | ⚪ Pending | v4.3.x |
-| 4 | ⚪ Pending | v4.4.x |
-| 5 | ⚪ Pending | v4.5.x |
-| 6 | ⚪ Pending | v4.6.x |
+| 2.1 Scripting Console | ✅ UI + service shipped (one-shot pwsh/python via subprocess) | v4.0.3.0 |
+| 2.2–2.5 | 🔴 Deferred | — |
+| 3.1–3.4 | 🔴 Deferred (LLM/ffmpeg work) | — |
+| 3.5 MusicBrainz client | ✅ Service shipped (UI wiring deferred) | v4.0.3.0 |
+| 4.1 Threat Feed | ✅ Service shipped (CISA KEV; UI wiring deferred) | v4.0.3.0 |
+| 4.2–4.5 | 🔴 Deferred | — |
+| 5.1, 5.2, 5.4, 5.5 | 🔴 Deferred | — |
+| 5.3 Keyboard shortcuts overlay | ✅ Ctrl+/ window shipped | v4.0.3.0 |
+| 6.1, 6.4, 6.5 | 🔴 Deferred | — |
+| 6.2 ResourceGovernor | ✅ Skeleton shipped (per-service adopters TBD) | v4.0.3.0 |
+| 6.3 Startup Profiler | ✅ Already shipped (`Services/StartupProfiler.cs`) | (pre-v5) |
