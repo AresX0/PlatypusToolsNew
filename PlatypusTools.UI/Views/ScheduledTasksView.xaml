@@ -29,6 +29,8 @@
                     <Button Content="Run Now" Click="OnRunClick" MinWidth="80" Margin="0,2,8,2" />
                     <Button Content="Delete" Click="OnDeleteClick" MinWidth="80" Background="DarkRed" Foreground="White" Margin="0,2,8,2" />
                     <Button Content="Create Task" Click="OnCreateClick" MinWidth="100" FontWeight="Bold" Margin="0,2,0,2" />
+                    <Button Content="📋 Templates ▾" Click="OnTemplatesClick" MinWidth="120" Background="#7E57C2" Foreground="White" FontWeight="Bold" Margin="8,2,0,2"
+                            ToolTip="Save a starter Task Scheduler XML from a built-in template"/>
                 </WrapPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <TextBlock VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,16,0">

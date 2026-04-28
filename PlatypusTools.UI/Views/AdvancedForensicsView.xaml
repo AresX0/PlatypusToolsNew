@@ -567,7 +567,10 @@
                                     Height="35" MinWidth="120" Background="#4CAF50" Foreground="White" FontWeight="Bold" Margin="0,2,10,2"
                                     IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBoolConverter}}"/>
                             <Button Content="📤 Export Results" Command="{Binding ExportLocalResultsCommand}"
-                                    Height="35" MinWidth="120" Margin="0,2,0,2"/>
+                                    Height="35" MinWidth="120" Margin="0,2,10,2"/>
+                            <Button Content="🛡️ Sigma → KQL" Click="SigmaToKql_Click"
+                                    Height="35" MinWidth="130" Background="#7E57C2" Foreground="White" FontWeight="Bold" Margin="0,2,0,2"
+                                    ToolTip="Translate a Sigma rule (YAML) to KQL and load it into the editor"/>
                         </WrapPanel>
 
                         <!-- Translated SQL -->

@@ -169,6 +169,12 @@ namespace PlatypusTools.UI.Services
                     {
                         return ImageHelper.LoadFromFile(filePath, decodePixelWidth: size);
                     }
+
+                    // Phase 5.5 — HDR-aware video thumbnails via ffmpeg.
+                    if (IsVideoFile(ext))
+                    {
+                        return GenerateVideoThumbnail(filePath, size, cancellationToken);
+                    }
                     
                     // For other file types, return null (use default icon)
                     return null;
@@ -179,6 +185,70 @@ namespace PlatypusTools.UI.Services
                     return null;
                 }
             }, cancellationToken);
+        }
+
+        private static BitmapSource? GenerateVideoThumbnail(string filePath, int size, CancellationToken ct)
+        {
+            var ffmpeg = PlatypusTools.Core.Services.FFmpegService.FindFfmpeg();
+            if (string.IsNullOrEmpty(ffmpeg)) return null;
+
+            // Detect HDR by inspecting the first video stream's color_transfer.
+            bool isHdr = false;
+            try
+            {
+                var probeArgs = $"-hide_banner -i \"{filePath}\"";
+                var probePsi = new System.Diagnostics.ProcessStartInfo(ffmpeg, probeArgs)
+                {
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                using var probe = System.Diagnostics.Process.Start(probePsi)!;
+                var stderr = probe.StandardError.ReadToEnd();
+                probe.WaitForExit(5000);
+                // smpte2084 (PQ) and arib-std-b67 (HLG) are the two HDR transfer functions.
+                if (stderr.IndexOf("smpte2084", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    stderr.IndexOf("arib-std-b67", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    stderr.IndexOf("bt2020", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    isHdr = true;
+                }
+            }
+            catch { /* probe failures fall back to non-HDR */ }
+
+            ct.ThrowIfCancellationRequested();
+
+            var tempJpg = Path.Combine(Path.GetTempPath(),
+                $"platypus_thumb_{Guid.NewGuid():N}.jpg");
+            try
+            {
+                // Build filter graph. For HDR sources we tone-map to BT.709 SDR.
+                var vf = isHdr
+                    ? $"zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p,scale={size}:-2"
+                    : $"scale={size}:-2";
+
+                var args =
+                    $"-hide_banner -loglevel error -ss 00:00:01 -i \"{filePath}\" -frames:v 1 " +
+                    $"-vf \"{vf}\" -q:v 4 -y \"{tempJpg}\"";
+
+                var psi = new System.Diagnostics.ProcessStartInfo(ffmpeg, args)
+                {
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                using var proc = System.Diagnostics.Process.Start(psi)!;
+                proc.WaitForExit(15000);
+
+                if (!File.Exists(tempJpg)) return null;
+                return ImageHelper.LoadFromFile(tempJpg, decodePixelWidth: size);
+            }
+            finally
+            {
+                try { if (File.Exists(tempJpg)) File.Delete(tempJpg); } catch { }
+            }
         }
 
         private async Task<BitmapSource?> LoadFromDiskCacheAsync(string cachePath, CancellationToken cancellationToken)
@@ -251,6 +321,15 @@ namespace PlatypusTools.UI.Services
             return extension switch
             {
                 ".jpg" or ".jpeg" or ".png" or ".bmp" or ".gif" or ".tiff" or ".webp" or ".ico" => true,
+                _ => false
+            };
+        }
+
+        private static bool IsVideoFile(string extension)
+        {
+            return extension switch
+            {
+                ".mp4" or ".mkv" or ".mov" or ".avi" or ".webm" or ".m4v" or ".wmv" or ".flv" or ".ts" or ".mts" or ".m2ts" => true,
                 _ => false
             };
         }

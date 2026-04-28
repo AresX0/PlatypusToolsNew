@@ -190,6 +190,46 @@ namespace PlatypusTools.UI.Views
             NativeVideoPlayer.Pause();
         }
 
+        /// <summary>Phase 3.4 — detect scene cuts via ffmpeg and export FFMETADATA chapters.</summary>
+        private async void VideoDetectScenes_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is not MultimediaEditorViewModel vm || string.IsNullOrEmpty(vm.FilePath) || !System.IO.File.Exists(vm.FilePath))
+            {
+                MessageBox.Show("Pick a video file first.", "Detect Scenes", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            try
+            {
+                System.Windows.Input.Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
+                var scenes = await Services.Video.SceneDetectionService.Instance.DetectScenesAsync(vm.FilePath);
+                System.Windows.Input.Mouse.OverrideCursor = null;
+
+                if (scenes.Count == 0)
+                {
+                    MessageBox.Show("No scenes detected.", "Detect Scenes", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                var save = new SaveFileDialog
+                {
+                    Title = "Save FFMETADATA chapters",
+                    Filter = "FFMETADATA (*.ffmeta;*.txt)|*.ffmeta;*.txt|All files (*.*)|*.*",
+                    FileName = System.IO.Path.GetFileNameWithoutExtension(vm.FilePath) + ".chapters.ffmeta"
+                };
+                if (save.ShowDialog() != true) return;
+
+                await Services.Video.SceneDetectionService.Instance.WriteFfmetadataAsync(scenes, save.FileName);
+                MessageBox.Show($"Detected {scenes.Count} scene(s).\nChapter file saved to:\n{save.FileName}",
+                    "Detect Scenes", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Input.Mouse.OverrideCursor = null;
+                MessageBox.Show($"Scene detection failed: {ex.Message}", "Detect Scenes", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
         private void VideoStop_Click(object sender, RoutedEventArgs e)
         {
             NativeVideoPlayer.Stop();

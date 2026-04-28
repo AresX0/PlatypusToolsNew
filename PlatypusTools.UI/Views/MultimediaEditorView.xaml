@@ -71,6 +71,10 @@
                                 <Button Content="⏩ +10s" Click="VideoForward_Click" MinWidth="180" Height="35" Margin="5"/>
                                 <Button Content="⛶ Fullscreen" Click="VideoFullscreen_Click" MinWidth="180" Height="35" Margin="5" ToolTip="Press Escape to exit fullscreen"/>
                             </WrapPanel>
+                            <WrapPanel HorizontalAlignment="Center" Margin="0,5">
+                                <Button Content="🎬 Detect Scenes" Click="VideoDetectScenes_Click" MinWidth="180" Height="32" Margin="5" Background="#7E57C2" Foreground="White" FontWeight="Bold"
+                                        ToolTip="Use ffmpeg to detect scene cuts and export an FFMETADATA chapter file"/>
+                            </WrapPanel>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5">
                                 <TextBlock Text="Volume:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <Slider x:Name="VideoVolumeSlider" Minimum="0" Maximum="1" Value="0.7" Width="150" ValueChanged="VideoVolume_ValueChanged"/>

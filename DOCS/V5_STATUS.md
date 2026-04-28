@@ -23,7 +23,7 @@ Last updated: simple cross-phase pass (working tree, build clean — 0 errors, r
 | 2.1 | Scripting Console | 🟡 | Subprocess PowerShell+Python tab shipped v4.0.3.0. **Missing:** `Microsoft.PowerShell.SDK` host, `$Platypus.*` proxies, sub-tabs, Settings opt-in, DependencyChecker registration. |
 | 2.2 | REST/gRPC `/api/v1` | 🔵 | Complex — needs new controllers, separate Bearer auth, Swagger UI, loopback default. Plan below. |
 | 2.3 | Workflow / Macro Recorder | 🔵 | Complex — needs node graph designer, `.platypusflow` schema, trigger wiring. Plan below. |
-| 2.4 | Scheduled Job Templates | 🔵 | Moderate — wizard UI + JSON template store + integration with existing ScheduledTasks. |
+| 2.4 | Scheduled Job Templates | � | `ScheduledJobTemplates.cs` ships 4 starter Task Scheduler XML templates (backup-home, cleanup-temp, media-convert-mp4, forensics-collect). 'Templates ▾' button on `ScheduledTasksView` saves chosen template to disk + shows the `schtasks /create /xml` registration command. |
 | 2.5 | Plugin Marketplace | 🔵 | Complex — registry.json + signature pinning + install/update UI on top of existing `PluginManager`. |
 
 ## Phase 3 — Intelligence Layer
@@ -31,8 +31,8 @@ Last updated: simple cross-phase pass (working tree, build clean — 0 errors, r
 |---|------|--------|-------|
 | 3.1 | Local LLM Sidebar | 🔵 | Complex — `LocalLlmService` (Ollama/llama.cpp/OpenAI-compat) + dockable `AssistantPanel` + `ILlmContextProvider` per tab + opt-in dialog + DependencyChecker (Ollama). Plan below. |
 | 3.2 | Smart-Rename / Auto-Tag | 🔵 | Depends on 3.1 vision/LLM backend. |
-| 3.3 | Whisper Subtitles | 🔵 | Moderate — extend `AudioTranscriptionService` with SRT/VTT writer + new optional VideoEditor track. |
-| 3.4 | Auto-Chaptering | 🔵 | Moderate — `SceneDetectionService` calling ffmpeg `select='gt(scene,0.4)'` + silence detect; chapter writer. |
+| 3.3 | Whisper Subtitles | ✅ | Pre-existing — `AudioTranscriptionView` already supports SRT + VTT export via `LocalWhisperService.TranscribeAsync` → `FormatCaptions`. Verified this pass. |
+| 3.4 | Auto-Chaptering | � | `SceneDetectionService` shells to ffmpeg `select='gt(scene,N)',showinfo`, parses `pts_time:` to scenes, writes `;FFMETADATA1` chapter file. '🎬 Detect Scenes' button in `MultimediaEditorView` video player. |
 | 3.5 | Album Art Auto-Fetch | 🟡→🟢 (pending build) | Service shipped v4.0.3.0; UI button in audio player added this pass. |
 
 ## Phase 4 — Security Pro Suite
@@ -40,7 +40,7 @@ Last updated: simple cross-phase pass (working tree, build clean — 0 errors, r
 |---|------|--------|-------|
 | 4.1 | Threat-Feed Aggregator | 🟡→🟢 (pending build) | `ThreatFeedService.GetCisaKevAsync` shipped v4.0.3.0. CveSearch KEV badge added this pass. **Missing:** MISP, OTX, scheduled refresh, IocScanner auto-import. |
 | 4.2 | YARA editor + scanner | 🔵 | Complex — needs `dnYara` NuGet, new tab under Forensics, bundled rule sets. |
-| 4.3 | Sigma → KQL | 🔵 | Moderate — pure C# port or pySigma via REPL; subtab on `LocalKQL`. |
+| 4.3 | Sigma → KQL | � | Pure C# `SigmaToKqlTranslator` (tiny YAML reader → MDE/Sentinel KQL). Modifiers: contains/startswith/endswith/re. Surfaced as '🛡️ Sigma → KQL' button on AdvancedForensics LocalKQL tab — opens YAML, loads translated KQL into editor. |
 | 4.4 | Browser Extension | 🔵 | Complex — new project, MV3 manifest, talks to 2.2 REST API. Blocked on 2.2. |
 | 4.5 | Encrypted Clipboard sync | 🔵 | Complex — extends `ClipboardHistoryService` with E2E pairing. |
 
@@ -51,13 +51,13 @@ Last updated: simple cross-phase pass (working tree, build clean — 0 errors, r
 | 5.2 | Theme Builder | 🔵 | Complex — color pickers + live preview + xaml export. (`ThemeEditorWindow` exists — verify scope.) |
 | 5.3 | Accessibility Pass | 🟡 | Shortcut overlay (Ctrl+/) shipped v4.0.3.0. Focus visual style + High Contrast theme stub added this pass. **Missing:** AutomationProperties sweep across all icon-only buttons. |
 | 5.4 | Localization Completeness Meter | 🟢 (pending build) | New panel in Settings → Language added this pass. |
-| 5.5 | HDR Thumbnailing | 🔵 | Moderate — extend MediaLibrary thumbnail pipeline w/ ffmpeg tone-map. |
+| 5.5 | HDR Thumbnailing | � | `ThumbnailCacheService.GenerateVideoThumbnail` probes for `smpte2084`/`arib-std-b67`/`bt2020`; if HDR runs `zscale→tonemap=hable→bt709` before grabbing JPEG. |
 
 ## Phase 6 — Performance & Scale
 | # | Item | Status | Notes |
 |---|------|--------|-------|
 | 6.1 | Lazy Tab Loading | 🔵 | Complex — DataTemplate-driven refactor of `MainWindow.xaml`, `[LazyTab]` attribute, opt-in. |
-| 6.2 | Background Task Budget | 🟡 | `ResourceGovernor` skeleton shipped v4.0.3.0. **Missing:** JOB_OBJECT_LIMIT_CPU_RATE_CONTROL, per-service adopters. |
+| 6.2 | Background Task Budget | � | `ResourceGovernor` adopted by `SceneDetectionService` (CPU slot acquired before ffmpeg invocation). Pattern is documented for future adopters. **Future:** JOB_OBJECT_LIMIT_CPU_RATE_CONTROL, more adopters across hot ffmpeg paths. |
 | 6.3 | Startup Profiler | ✅ | `StartupProfiler.cs` exists; About-dialog surface verified this pass. |
 | 6.4 | Fleet View | 🔵 | Complex — LAN discovery via remote channel + status grid. |
 | 6.5 | PWA Mobile Dashboard | 🔵 | Complex — manifest.json + service worker + push-notif on existing RemoteDashboard. |
@@ -75,6 +75,18 @@ Last updated: simple cross-phase pass (working tree, build clean — 0 errors, r
 | `PlatypusTools.UI/Views/AboutWindow.xaml` (+ .cs) | "Show startup profile" link |
 | `PlatypusTools.UI/App.xaml` | Focus-visual style |
 | `PlatypusTools.UI/Themes/HighContrast.xaml` (NEW) | High Contrast theme stub |
+
+## Wave A — Phase 2-6 deferred items (built clean)
+
+| File | Change |
+|------|--------|
+| `PlatypusTools.UI/Services/Video/SceneDetectionService.cs` (NEW) | ffmpeg scene detection + FFMETADATA chapter writer (Phase 3.4). Uses `ResourceGovernor` CPU slot (Phase 6.2). |
+| `PlatypusTools.UI/Services/Security/SigmaToKqlTranslator.cs` (NEW) | Pure C# Sigma YAML → KQL translator (Phase 4.3). |
+| `PlatypusTools.UI/Services/Scheduling/ScheduledJobTemplates.cs` (NEW) | 4 starter Task Scheduler XML templates (Phase 2.4). |
+| `PlatypusTools.UI/Views/MultimediaEditorView.xaml` (+ .cs) | "🎬 Detect Scenes" button on video player. |
+| `PlatypusTools.UI/Views/AdvancedForensicsView.xaml` (+ .cs) | "🛡️ Sigma → KQL" button on LocalKQL tab. |
+| `PlatypusTools.UI/Views/ScheduledTasksView.xaml` (+ .cs) | "📋 Templates ▾" context menu of starter jobs. |
+| `PlatypusTools.UI/Services/ThumbnailCacheService.cs` | HDR-aware video thumbnails via ffmpeg `zscale`/`tonemap=hable` when smpte2084/arib-std-b67/bt2020 detected (Phase 5.5). |
 
 ---
 
