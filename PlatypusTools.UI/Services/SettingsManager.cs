@@ -51,6 +51,41 @@ namespace PlatypusTools.UI.Services
         private double _windowLeft = double.NaN;
         private int _windowState = 0; // 0=Normal, 2=Maximized
 
+        // AI / LLM settings (Phase 3.1)
+        // Backend: "Ollama" (default), "OpenAiCompat", "Anthropic"
+        private string _aiBackend = "Ollama";
+        // When true (default), refuses to contact any non-loopback host on
+        // every backend. Must be turned off explicitly to use a self-hosted
+        // server on a different machine or a cloud provider.
+        private bool _aiLocalOnlyMode = true;
+        private string _aiOllamaBaseUrl = "http://localhost:11434";
+        private string _aiOllamaModel = "llama3.2";
+        private string _aiOpenAiBaseUrl = "http://localhost:1234/v1";
+        private string _aiOpenAiApiKey = "";
+        private string _aiAnthropicBaseUrl = "https://api.anthropic.com";
+        private string _aiAnthropicApiKey = "";
+        private string _aiAnthropicModel = "claude-3-5-sonnet-latest";
+        private int _aiAnthropicMaxTokens = 1024;
+
+        public string AiBackend { get => _aiBackend; set { _aiBackend = value ?? "Ollama"; OnPropertyChanged(); } }
+        public bool AiLocalOnlyMode { get => _aiLocalOnlyMode; set { _aiLocalOnlyMode = value; OnPropertyChanged(); } }
+        public string AiOllamaBaseUrl { get => _aiOllamaBaseUrl; set { _aiOllamaBaseUrl = value ?? "http://localhost:11434"; OnPropertyChanged(); } }
+        public string AiOllamaModel { get => _aiOllamaModel; set { _aiOllamaModel = value ?? "llama3.2"; OnPropertyChanged(); } }
+        public string AiOpenAiBaseUrl { get => _aiOpenAiBaseUrl; set { _aiOpenAiBaseUrl = value ?? "http://localhost:1234/v1"; OnPropertyChanged(); } }
+        public string AiOpenAiApiKey { get => _aiOpenAiApiKey; set { _aiOpenAiApiKey = value ?? ""; OnPropertyChanged(); } }
+        public string AiAnthropicBaseUrl { get => _aiAnthropicBaseUrl; set { _aiAnthropicBaseUrl = value ?? "https://api.anthropic.com"; OnPropertyChanged(); } }
+        public string AiAnthropicApiKey { get => _aiAnthropicApiKey; set { _aiAnthropicApiKey = value ?? ""; OnPropertyChanged(); } }
+        public string AiAnthropicModel { get => _aiAnthropicModel; set { _aiAnthropicModel = value ?? "claude-3-5-sonnet-latest"; OnPropertyChanged(); } }
+        public int AiAnthropicMaxTokens { get => _aiAnthropicMaxTokens; set { _aiAnthropicMaxTokens = value < 1 ? 1024 : value; OnPropertyChanged(); } }
+
+        // Telemetry (defaults OFF — opt-in only).
+        private bool _telemetryOptIn = false;
+        public bool TelemetryOptIn { get => _telemetryOptIn; set { _telemetryOptIn = value; OnPropertyChanged(); } }
+
+        // Plugin verification mode: "Off", "Manifest", "Signed".
+        private string _pluginVerificationMode = "Manifest";
+        public string PluginVerificationMode { get => _pluginVerificationMode; set { _pluginVerificationMode = value ?? "Manifest"; OnPropertyChanged(); } }
+
         public string Theme
         {
             get => _theme;
@@ -731,6 +766,13 @@ namespace PlatypusTools.UI.Services
                 }
                 var txt = File.ReadAllText(SettingsFile);
                 _cachedSettings = JsonSerializer.Deserialize<AppSettings>(txt) ?? new AppSettings();
+                // Decrypt at-rest secrets (idempotent: legacy plaintext passes through).
+                try
+                {
+                    _cachedSettings.AiOpenAiApiKey = Security.DataProtectionHelper.Unprotect(_cachedSettings.AiOpenAiApiKey);
+                    _cachedSettings.AiAnthropicApiKey = Security.DataProtectionHelper.Unprotect(_cachedSettings.AiAnthropicApiKey);
+                }
+                catch { }
                 return _cachedSettings;
             }
             catch
@@ -745,8 +787,22 @@ namespace PlatypusTools.UI.Services
             try
             {
                 if (!Directory.Exists(AppFolder)) Directory.CreateDirectory(AppFolder);
-                var txt = JsonSerializer.Serialize(s, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(SettingsFile, txt);
+                // Snapshot, encrypt secrets, serialize, then restore plaintext on the live
+                // instance so consumers in the running process still see decrypted values.
+                var openKey = s.AiOpenAiApiKey;
+                var anthKey = s.AiAnthropicApiKey;
+                try
+                {
+                    s.AiOpenAiApiKey = Security.DataProtectionHelper.Protect(openKey);
+                    s.AiAnthropicApiKey = Security.DataProtectionHelper.Protect(anthKey);
+                    var txt = JsonSerializer.Serialize(s, new JsonSerializerOptions { WriteIndented = true });
+                    File.WriteAllText(SettingsFile, txt);
+                }
+                finally
+                {
+                    s.AiOpenAiApiKey = openKey;
+                    s.AiAnthropicApiKey = anthKey;
+                }
                 _cachedSettings = s;
             }
             catch { }

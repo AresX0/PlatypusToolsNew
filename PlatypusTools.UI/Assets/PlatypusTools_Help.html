@@ -148,7 +148,7 @@
 <header>
     <h1>🦆 PlatypusTools</h1>
     <p>Advanced File Management &amp; Media Tools Suite</p>
-    <div class="version">Version 4.0.3.8.8.7.6.5.4.3.0.9.6.4.2.0.8.8.7.4.4.1.1.10.10.9.8.7.6.5.4.3.2.1 | Built with .NET 10 / WPF</div>
+    <div class="version">Version 4.0.4.0.10 | Built with .NET 10 / WPF</div>
 </header>
 
 <div class="container">
@@ -156,6 +156,9 @@
 <nav>
     <ul>
         <li><a href="#overview">Overview</a></li>
+        <li><a href="#whats-new-4-0-3-10">What's New in v4.0.4.0.10</a></li>
+        <li><a href="#ai-hub">AI Hub</a></li>
+        <li><a href="#remote-hub">Remote Hub</a></li>
         <li><a href="#file-management">File Management</a></li>
         <li><a href="#robocopy">Robocopy</a></li>
         <li><a href="#multimedia">Multimedia</a></li>
@@ -179,7 +182,45 @@
 <section id="overview" class="section">
     <h2>Overview</h2>
     <p>PlatypusTools is a powerful, all-in-one Windows system utility that combines file management, multimedia editing, system cleanup, security tools, digital forensics, and metadata editing into a single, modern WPF application.</p>
-    
+
+    <h3 id="whats-new-4-0-3-10">What's New in v4.0.4.0.10 <span class="new-badge">Latest</span></h3>
+    <p>This release focuses on <strong>UI reorganization</strong> (surfacing previously buried tools) and a critical <strong>startup-crash fix</strong> for self-contained .NET 10 builds.</p>
+    <ul>
+        <li><strong>🤖 AI Hub tab</strong> <span class="new-badge">New</span> &mdash; new top-level tab (right after Dashboard) that gathers every AI-related tool in one place:
+            <ul>
+                <li><strong>AI Assistant</strong> &mdash; chat with the configured LLM about your files, generate scripts, summarize logs.</li>
+                <li><strong>Smart Rename</strong> &mdash; LLM-powered batch file renaming based on content.</li>
+                <li><strong>Workflow Designer</strong> &mdash; build and run multi-step automation pipelines (file ops + AI prompts + scripts).</li>
+                <li><strong>AI Settings</strong> &mdash; one-click deep link to <em>Settings &rarr; AI</em> for providers, API keys, model, temperature, and <code>LocalOnlyMode</code> loopback guard.</li>
+            </ul>
+            All four tools were previously only reachable via the <em>Tools</em> menu &mdash; they remain there too, this is purely additive.
+        </li>
+        <li><strong>🛰️ Remote Hub sub-tab</strong> <span class="new-badge">New</span> &mdash; added inside the <em>System</em> tab (next to Remote Dashboard / Remote Desktop). Launcher cards for:
+            <ul>
+                <li><strong>Remote Server / Cloudflare Tunnel</strong> &mdash; deep link to <em>Settings &rarr; Remote Control</em> (start/stop server, manage tunnels, route DNS, run diagnostics).</li>
+                <li><strong>Fleet View</strong> &mdash; LAN discovery and live status of every PlatypusTools instance on your network.</li>
+                <li><strong>Disk TreeMap</strong> &mdash; squarified treemap visualization of disk usage.</li>
+            </ul>
+        </li>
+        <li><strong>🔒 Security launcher sub-tabs</strong> <span class="new-badge">New</span> &mdash; added inside the <em>Security</em> tab:
+            <ul>
+                <li><strong>🧬 YARA Scanner</strong> &mdash; scan files/folders against YARA rules for malware patterns and IoCs.</li>
+                <li><strong>🔐 Encrypted Clipboard</strong> &mdash; DPAPI-encrypted clipboard history with masked paste and auto-clear timeout.</li>
+                <li><strong>🔑 Credential Manager</strong> &mdash; manage encrypted credentials (FTP, SSH, API keys, remote hosts) backed by DPAPI.</li>
+            </ul>
+        </li>
+        <li><strong>Help &rarr; 🔧 Manage Dependencies&hellip;</strong> <span class="new-badge">New</span> &mdash; new menu item in the Help menu that opens Settings already focused on the <em>Dependencies</em> pane (FFmpeg, ExifTool, yt-dlp, Tailscale, cloudflared, etc.). Faster than navigating Settings manually.</li>
+        <li><strong>Settings deep linking</strong> &mdash; <code>SettingsWindow.NavigateToSection(string tag)</code> can now jump directly to a named section. Tags: <code>General</code>, <code>Appearance</code>, <code>Keyboard</code>, <code>AI</code>, <code>Updates</code>, <code>Backup</code>, <code>TabVisibility</code>, <code>Visualizer</code>, <code>Dependencies</code>, <code>Advanced</code>, <code>LastFm</code>, <code>Metadata</code>, <code>RemoteControl</code>.</li>
+        <li><strong>Startup-crash fix (XamlParseException)</strong> <span class="new-badge">Fix</span> &mdash; self-contained .NET 10 publish builds were crashing at <code>MainWindow.InitializeComponent</code> with <em>"Initialization of Button threw"</em> due to implicit <code>Button</code>/<code>ToggleButton</code> styles in <code>App.xaml</code>. Those styles have been removed from XAML and re-implemented as <code>EventManager.RegisterClassHandler</code> in <code>App.xaml.cs</code>. Both accessibility behaviors are fully preserved:
+            <ul>
+                <li><code>AutomationProperties.Name</code> is auto-derived from each control's <code>ToolTip</code> when not explicitly set (so screen readers announce something useful).</li>
+                <li>Every <code>Button</code>/<code>ToggleButton</code> gets the <code>A11yFocusVisual</code> high-contrast amber dashed focus rectangle when keyboard-focused (when no custom <code>FocusVisualStyle</code> is set).</li>
+            </ul>
+            New helper: <code>Converters/ToolTipToStringConverter</code> handles string, <code>ToolTip</code> object, and generic <code>ToString</code> cases safely.
+        </li>
+        <li><strong>Nothing was removed.</strong> All existing Tools menu items, Settings panels, and tabs remain exactly where they were &mdash; the new tabs and menu items are <em>additional</em> entry points, not replacements.</li>
+    </ul>
+
     <h3>What's New in v4.0 <span class="new-badge">Major Release</span></h3>
     <p>Version 4.0 is a major release introducing Plex-style media management, advanced authentication options, a secure password vault, remote photo gallery, and comprehensive API expansion.</p>
     <ul>
@@ -566,6 +607,36 @@
         <li>FFmpeg/FFprobe (for media operations - auto-detected)</li>
         <li>ExifTool (for metadata operations - optional)</li>
     </ul>
+</section>
+
+<section id="ai-hub" class="section">
+    <h2>🤖 AI Hub <span class="new-badge">New in v4.0.4.0.10</span></h2>
+    <p>The <strong>AI Hub</strong> is a top-level tab (immediately after Dashboard) that consolidates every AI-powered tool in PlatypusTools. Each card opens the corresponding window or jumps straight into the relevant Settings section.</p>
+
+    <h3>Cards</h3>
+    <ul>
+        <li><strong>💬 AI Assistant</strong> &mdash; chat with the configured LLM. Ask about files in your workspace, generate scripts, summarize logs, or run prompts. Same window as <em>Tools &rarr; AI Assistant</em>.</li>
+        <li><strong>✨ Smart Rename</strong> &mdash; LLM-powered batch file renamer. Drop in a folder and the model proposes descriptive, normalized names based on file content/metadata. Same window as <em>Tools &rarr; Smart Rename</em>.</li>
+        <li><strong>🔁 Workflow Designer</strong> &mdash; build and execute multi-step automation pipelines. Chain file ops, AI prompts, scripts, and conditional steps into a saveable workflow.</li>
+        <li><strong>⚙ AI Settings</strong> &mdash; deep link to <em>Settings &rarr; AI</em>. Choose provider (OpenAI, Anthropic, local), edit API keys, default model, temperature, and toggle <code>LocalOnlyMode</code> (the loopback guard that blocks external HTTP traffic from AI services).</li>
+    </ul>
+
+    <h3>Privacy &amp; LocalOnlyMode</h3>
+    <p>If you only want to use a local LLM backend (e.g. Ollama, LM Studio, llama.cpp) and want hard assurance that no data leaves your machine, enable <strong>LocalOnlyMode</strong> in <em>Settings &rarr; AI</em>. While enabled, AI requests are restricted to <code>127.0.0.1</code>/<code>::1</code> and external DNS targets are refused.</p>
+</section>
+
+<section id="remote-hub" class="section">
+    <h2>🛰️ Remote Hub <span class="new-badge">New in v4.0.4.0.10</span></h2>
+    <p>The <strong>Remote Hub</strong> is a sub-tab inside the <em>System</em> tab (alongside Remote Dashboard and Remote Desktop). It is a launcher for headless management, fleet monitoring, and disk visualization tools.</p>
+
+    <h3>Cards</h3>
+    <ul>
+        <li><strong>📡 Remote Server / Cloudflare Tunnel</strong> &mdash; jumps to <em>Settings &rarr; Remote Control</em> where you can start/stop the embedded HTTPS server, manage Cloudflare Tunnels, route DNS, and run diagnostics. See <a href="#remote">Remote &amp; Streaming</a> for the full feature list.</li>
+        <li><strong>🛰️ Fleet View</strong> &mdash; LAN discovery and live status of every PlatypusTools instance reachable on your network. Click any host to drill into its dashboard.</li>
+        <li><strong>🗺️ Disk TreeMap</strong> &mdash; interactive squarified treemap of disk usage. Useful for quickly spotting space hogs and old data without leaving the app.</li>
+    </ul>
+
+    <p>The same windows are still available via the <em>Tools</em> menu &mdash; this tab is purely an additional, faster entry point.</p>
 </section>
 
 <section id="file-management" class="section">
@@ -3011,7 +3082,7 @@ ingress:
 </div>
 
 <footer>
-    <p>PlatypusTools v4.0.3.8.8.7.6.5.4.3.0.9.6.4.2.0.8.8.7.4.4.1.1.10.10.9.8.7.6.5.4.3.2.1 | &copy; 2024-2026 PlatySoft &mdash; <a href="https://platysoft.com/">platysoft.com</a> | Built with .NET 10 / WPF</p>
+    <p>PlatypusTools v4.0.4.0.8.8.7.6.5.4.3.0.9.6.4.2.0.8.8.7.4.4.1.1.10.10.9.8.7.6.5.4.3.2.1 | &copy; 2024-2026 PlatySoft &mdash; <a href="https://platysoft.com/">platysoft.com</a> | Built with .NET 10 / WPF</p>
 </footer>
 
 </body>

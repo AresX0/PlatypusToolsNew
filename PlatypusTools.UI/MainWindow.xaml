@@ -62,6 +62,7 @@
                 <MenuItem Header="🧬 YARA Scanner..." Click="OpenYaraScanner_Click" />
                 <MenuItem Header="✨ Smart Rename (LLM)..." Click="OpenSmartRename_Click" />
                 <MenuItem Header="🔐 Encrypted Clipboard..." Click="OpenEncryptedClipboard_Click" />
+                <MenuItem Header="📜 Activity Log..." Click="OpenActivityLog_Click" />
                 <Separator />
                 <MenuItem Header="Settings..." Click="OpenSettings" InputGestureText="Ctrl+," />
             </MenuItem>
@@ -78,6 +79,7 @@
                 <Separator />
                 <MenuItem Header="View Logs..." Click="OpenLogViewer" />
                 <MenuItem Header="Check for Updates..." Click="CheckForUpdates" />
+                <MenuItem Header="🔧 Manage Dependencies..." Click="OpenSettingsToDependencies_Click" />
                 <MenuItem Header="View Changelog..." Click="ShowChangelog" />
                 <Separator />
                 <MenuItem Header="About PlatypusTools" Click="ShowAbout" InputGestureText="Shift+F1" />
@@ -135,6 +137,58 @@
             <!-- Dashboard -->
             <TabItem Header="🏠 Dashboard" AutomationProperties.Name="Dashboard">
                 <views:DashboardView/>
+            </TabItem>
+            <!-- AI Hub (v4.0.3.10 reorg — surfaces AI Assistant, Smart Rename, Workflow Designer that were buried in Tools menu) -->
+            <TabItem Header="🤖 AI" AutomationProperties.Name="AI Hub">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="24" MaxWidth="1100" HorizontalAlignment="Left">
+                        <TextBlock Text="🤖 AI Hub" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                        <TextBlock Text="Local-first LLM tools. All AI features can be routed to a local backend (LocalOnlyMode) — see Settings → AI to switch providers and edit API keys."
+                                   TextWrapping="Wrap" Opacity="0.8" Margin="0,0,0,20"/>
+
+                        <WrapPanel ItemWidth="340">
+                            <Border Background="{DynamicResource ControlBackgroundBrush}" BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,12,12">
+                                <StackPanel>
+                                    <TextBlock Text="💬 AI Assistant" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                    <TextBlock Text="Chat with the configured LLM. Ask about files, generate scripts, summarize logs, or run prompts against your workspace."
+                                               TextWrapping="Wrap" Opacity="0.85" Margin="0,0,0,12" MinHeight="60"/>
+                                    <Button Content="Open AI Assistant" Padding="14,8" HorizontalAlignment="Left"
+                                            Background="#FF2196F3" Foreground="White" Click="OpenAIAssistant_Click" ToolTip="Open the AI Assistant chat window"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="{DynamicResource ControlBackgroundBrush}" BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,12,12">
+                                <StackPanel>
+                                    <TextBlock Text="✨ Smart Rename" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                    <TextBlock Text="LLM-powered batch file renaming. Drop in a folder and let the model suggest descriptive, normalized names based on content."
+                                               TextWrapping="Wrap" Opacity="0.85" Margin="0,0,0,12" MinHeight="60"/>
+                                    <Button Content="Open Smart Rename" Padding="14,8" HorizontalAlignment="Left"
+                                            Background="#FF9C27B0" Foreground="White" Click="OpenSmartRename_Click" ToolTip="Open the Smart Rename window"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="{DynamicResource ControlBackgroundBrush}" BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,12,12">
+                                <StackPanel>
+                                    <TextBlock Text="🔁 Workflow Designer" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                    <TextBlock Text="Build and run multi-step automation pipelines. Chain file ops, AI prompts, scripts, and conditional steps into a reusable workflow."
+                                               TextWrapping="Wrap" Opacity="0.85" Margin="0,0,0,12" MinHeight="60"/>
+                                    <Button Content="Open Workflow Designer" Padding="14,8" HorizontalAlignment="Left"
+                                            Background="#FF4CAF50" Foreground="White" Click="OpenWorkflowDesigner_Click" ToolTip="Open the Workflow Designer"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="{DynamicResource ControlBackgroundBrush}" BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,12,12">
+                                <StackPanel>
+                                    <TextBlock Text="⚙ AI Settings" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                    <TextBlock Text="Configure providers (OpenAI, Anthropic, local), API keys, default model, temperature, and the LocalOnlyMode loopback guard."
+                                               TextWrapping="Wrap" Opacity="0.85" Margin="0,0,0,12" MinHeight="60"/>
+                                    <Button Content="Open AI Settings" Padding="14,8" HorizontalAlignment="Left"
+                                            Background="#FF607D8B" Foreground="White" Click="OpenSettingsToAI_Click" ToolTip="Open Settings → AI"/>
+                                </StackPanel>
+                            </Border>
+                        </WrapPanel>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
             <!-- File Management -->
             <TabItem Header="📁 File Management" 
@@ -376,6 +430,45 @@
                              Visibility="{Binding RemoteDesktop, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:RemoteDesktopView}" ViewDataContext="{Binding RemoteDesktop}" />
                     </TabItem>
+                    <!-- v4.0.3.10 reorg — Remote Hub (server, tunnel, fleet, treemap) — surfaces tools previously buried in Tools menu / Settings -->
+                    <TabItem Header="🛰️ Remote Hub" AutomationProperties.Name="Remote Hub">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Margin="24" MaxWidth="1100" HorizontalAlignment="Left">
+                                <TextBlock Text="🛰️ Remote Hub" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                <TextBlock Text="Headless management, fleet monitoring, and disk visualization. Configure the remote server / Cloudflare Tunnel from Settings → Remote Control."
+                                           TextWrapping="Wrap" Opacity="0.8" Margin="0,0,0,20"/>
+                                <WrapPanel ItemWidth="340">
+                                    <Border Background="{DynamicResource ControlBackgroundBrush}" BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,12,12">
+                                        <StackPanel>
+                                            <TextBlock Text="📡 Remote Server / Tunnel" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                            <TextBlock Text="Start/stop the embedded HTTPS server, manage Cloudflare Tunnels, route DNS, and run diagnostics."
+                                                       TextWrapping="Wrap" Opacity="0.85" Margin="0,0,0,12" MinHeight="60"/>
+                                            <Button Content="Open Remote Settings" Padding="14,8" HorizontalAlignment="Left"
+                                                    Background="#FF2196F3" Foreground="White" Click="OpenSettingsToRemoteControl_Click" ToolTip="Open Settings → Remote Control"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="{DynamicResource ControlBackgroundBrush}" BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,12,12">
+                                        <StackPanel>
+                                            <TextBlock Text="🛰️ Fleet View" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                            <TextBlock Text="LAN discovery and status of every PlatypusTools instance reachable on your network. Click hosts to drill into their dashboards."
+                                                       TextWrapping="Wrap" Opacity="0.85" Margin="0,0,0,12" MinHeight="60"/>
+                                            <Button Content="Open Fleet View" Padding="14,8" HorizontalAlignment="Left"
+                                                    Background="#FF4CAF50" Foreground="White" Click="OpenFleetView_Click" ToolTip="Open the Fleet View window"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="{DynamicResource ControlBackgroundBrush}" BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,12,12">
+                                        <StackPanel>
+                                            <TextBlock Text="🗺️ Disk TreeMap" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                            <TextBlock Text="Interactive visualization of disk usage. Spot space hogs and old data quickly with the squarified treemap layout."
+                                                       TextWrapping="Wrap" Opacity="0.85" Margin="0,0,0,12" MinHeight="60"/>
+                                            <Button Content="Open Disk TreeMap" Padding="14,8" HorizontalAlignment="Left"
+                                                    Background="#FF9C27B0" Foreground="White" Click="OpenTreeMap_Click" ToolTip="Open the Disk TreeMap window"/>
+                                        </StackPanel>
+                                    </Border>
+                                </WrapPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
                     <TabItem Header="☁️ Intune Backup"
                              Visibility="{Binding IntuneBackupSuite, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:IntuneBackupSuiteView}" ViewDataContext="{Binding IntuneBackupSuite}" />
@@ -459,6 +552,40 @@
                     <TabItem Header="📡 Network Traffic"
                              Visibility="{Binding NetworkTraffic, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:NetworkTrafficView}" ViewDataContext="{Binding NetworkTraffic}" />
+                    </TabItem>
+                    <!-- v4.0.3.10 reorg — Security launchers for tools previously hidden in Tools menu -->
+                    <TabItem Header="🧬 YARA Scanner" AutomationProperties.Name="YARA Scanner">
+                        <Grid Margin="24">
+                            <StackPanel MaxWidth="600" HorizontalAlignment="Left" VerticalAlignment="Top">
+                                <TextBlock Text="🧬 YARA Scanner" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <TextBlock Text="Scan files and folders against YARA rules to detect malware patterns, IoCs, and suspicious binaries."
+                                           TextWrapping="Wrap" Opacity="0.85" Margin="0,0,0,16"/>
+                                <Button Content="Open YARA Scanner" Padding="14,8" HorizontalAlignment="Left"
+                                        Background="#FFF44336" Foreground="White" Click="OpenYaraScanner_Click" ToolTip="Open the YARA Scanner window"/>
+                            </StackPanel>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="🔐 Encrypted Clipboard" AutomationProperties.Name="Encrypted Clipboard">
+                        <Grid Margin="24">
+                            <StackPanel MaxWidth="600" HorizontalAlignment="Left" VerticalAlignment="Top">
+                                <TextBlock Text="🔐 Encrypted Clipboard" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <TextBlock Text="DPAPI-encrypted clipboard history. Store secrets, paste with masking, and auto-clear after a configurable timeout."
+                                           TextWrapping="Wrap" Opacity="0.85" Margin="0,0,0,16"/>
+                                <Button Content="Open Encrypted Clipboard" Padding="14,8" HorizontalAlignment="Left"
+                                        Background="#FF673AB7" Foreground="White" Click="OpenEncryptedClipboard_Click" ToolTip="Open the Encrypted Clipboard window"/>
+                            </StackPanel>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="🔑 Credential Manager" AutomationProperties.Name="Credential Manager">
+                        <Grid Margin="24">
+                            <StackPanel MaxWidth="600" HorizontalAlignment="Left" VerticalAlignment="Top">
+                                <TextBlock Text="🔑 Credential Manager" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <TextBlock Text="Manage encrypted credentials used by PlatypusTools (FTP, SSH, API keys, remote hosts). Backed by DPAPI on Windows."
+                                           TextWrapping="Wrap" Opacity="0.85" Margin="0,0,0,16"/>
+                                <Button Content="Open Credential Manager" Padding="14,8" HorizontalAlignment="Left"
+                                        Background="#FF3F51B5" Foreground="White" Click="OpenCredentialManager_Click" ToolTip="Open the Credential Manager window"/>
+                            </StackPanel>
+                        </Grid>
                     </TabItem>
                 </TabControl>
             </TabItem>

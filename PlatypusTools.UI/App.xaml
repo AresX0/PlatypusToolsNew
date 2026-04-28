@@ -128,34 +128,28 @@
                     <converters:BoolToFavoriteIconConverter x:Key="BoolToFavoriteIconConverter" />
                     <converters:ListToStringConverter x:Key="ListToStringConverter" />
                     <converters:PercentToWidthConverter x:Key="PercentToWidthConverter" />
+                    <converters:ToolTipToStringConverter x:Key="ToolTipToStringConverter" />
+
+                    <!-- Phase 5.3 — Accessibility: visible focus rectangle. Applied programmatically
+                         from App.xaml.cs to every Button/ToggleButton at Loaded time. -->
+                    <Style x:Key="A11yFocusVisual">
+                        <Setter Property="Control.Template">
+                            <Setter.Value>
+                                <ControlTemplate>
+                                    <Rectangle Margin="-2" StrokeThickness="2" Stroke="#FFFFB000"
+                                               StrokeDashArray="2 1" SnapsToDevicePixels="True"/>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- Phase 5.3 — Accessibility: visible focus rectangle (opt-in via FocusVisualStyle="{StaticResource A11yFocusVisual}") -->
-            <Style x:Key="A11yFocusVisual">
-                <Setter Property="Control.Template">
-                    <Setter.Value>
-                        <ControlTemplate>
-                            <Rectangle Margin="-2" StrokeThickness="2" Stroke="#FFFFB000"
-                                       StrokeDashArray="2 1" SnapsToDevicePixels="True"/>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-
-            <!-- Phase 5.3 — Accessibility: implicit Button style supplies AutomationProperties.Name
-                 from ToolTip when the caller has not set a Name. Icon-only buttons (Content="🔄"
-                 etc.) become accessible to screen readers as long as a ToolTip is present.
-                 Buttons that already set AutomationProperties.Name win because explicit attached
-                 properties override implicit-style setters. -->
-            <Style TargetType="{x:Type Button}">
-                <Setter Property="AutomationProperties.Name" Value="{Binding RelativeSource={RelativeSource Self}, Path=ToolTip, TargetNullValue='', FallbackValue=''}"/>
-                <Setter Property="FocusVisualStyle" Value="{StaticResource A11yFocusVisual}"/>
-            </Style>
-            <Style TargetType="{x:Type ToggleButton}">
-                <Setter Property="AutomationProperties.Name" Value="{Binding RelativeSource={RelativeSource Self}, Path=ToolTip, TargetNullValue='', FallbackValue=''}"/>
-                <Setter Property="FocusVisualStyle" Value="{StaticResource A11yFocusVisual}"/>
-            </Style>
+            <!-- NOTE: implicit Button/ToggleButton accessibility styles were moved out of XAML
+                 entirely. They are applied via App.xaml.cs at Loaded time using EventManager
+                 class handlers. Self-contained .NET 10 publish builds crash when implicit
+                 Button/ToggleButton styles are declared in Application.Resources (BAML offset
+                 collision in the deferred ResourceDictionary). -->
         </ResourceDictionary>
     </Application.Resources>
 </Application>

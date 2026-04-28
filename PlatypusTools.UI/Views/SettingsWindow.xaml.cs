@@ -33,6 +33,33 @@ namespace PlatypusTools.UI.Views
             LoadSettings();
             _isInitialized = true;
         }
+
+        /// <summary>
+        /// Navigates the Settings window to a specific section by tag (e.g. "Dependencies",
+        /// "RemoteControl", "AI"). No-op if the tag is unknown. Used by callers (e.g. the
+        /// Help menu's "Manage Dependencies..." entry, the new AI/Remote tabs) to deep-link
+        /// into Settings.
+        /// </summary>
+        public void NavigateToSection(string tag)
+        {
+            if (string.IsNullOrEmpty(tag) || NavList == null) return;
+            try
+            {
+                foreach (var raw in NavList.Items)
+                {
+                    if (raw is ListBoxItem lbi && string.Equals(lbi.Tag as string, tag, StringComparison.OrdinalIgnoreCase))
+                    {
+                        NavList.SelectedItem = lbi;
+                        lbi.IsSelected = true;
+                        break;
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"NavigateToSection failed: {ex.Message}");
+            }
+        }
         
         private void InitializePanels()
         {

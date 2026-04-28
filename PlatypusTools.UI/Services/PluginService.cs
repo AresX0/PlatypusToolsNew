@@ -189,6 +189,23 @@ namespace PlatypusTools.UI.Services
         /// </summary>
         public void LoadPlugin(string assemblyPath)
         {
+            // Plugin verification gate (Phase 4.x). Mode is read from settings;
+            // when set to "Manifest" or "Signed", refuse to load any DLL whose
+            // SHA-256 isn't listed in plugins/allowed-plugins.json.
+            try
+            {
+                var mode = SettingsManager.Current.PluginVerificationMode;
+                var pluginsDir = Path.GetDirectoryName(assemblyPath) ?? "";
+                var v = Security.PluginVerificationService.Verify(assemblyPath, mode, pluginsDir);
+                if (!v.Allowed)
+                {
+                    LoggingService.Instance.Warning($"Plugin '{Path.GetFileName(assemblyPath)}' rejected: {v.Reason} (sha256={v.Sha256})");
+                    throw new InvalidOperationException($"Plugin verification failed: {v.Reason}");
+                }
+            }
+            catch (InvalidOperationException) { throw; }
+            catch { /* if verification crashes for any reason, fall through to legacy load */ }
+
             // Create isolated context for this plugin
             var loadContext = new PluginLoadContext(assemblyPath);
             

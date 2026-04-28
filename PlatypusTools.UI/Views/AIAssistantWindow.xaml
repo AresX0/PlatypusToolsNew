@@ -12,9 +12,10 @@
 
         <WrapPanel Grid.Row="0" Margin="0,0,0,8">
             <TextBlock Text="Backend:" VerticalAlignment="Center" Margin="0,0,6,0"/>
-            <ComboBox x:Name="BackendBox" Width="180" SelectionChanged="Backend_Changed">
-                <ComboBoxItem Content="Ollama (localhost:11434)" IsSelected="True"/>
-                <ComboBoxItem Content="OpenAI-compatible"/>
+            <ComboBox x:Name="BackendBox" Width="220" SelectionChanged="Backend_Changed">
+                <ComboBoxItem Content="Ollama (loopback, local)" IsSelected="True"/>
+                <ComboBoxItem Content="OpenAI-compatible (LM Studio / self-host)"/>
+                <ComboBoxItem Content="Anthropic (Claude / self-host proxy)"/>
             </ComboBox>
             <TextBlock Text="Model:" VerticalAlignment="Center" Margin="16,0,6,0"/>
             <ComboBox x:Name="ModelBox" Width="180" IsEditable="True" Text="llama3.2"/>

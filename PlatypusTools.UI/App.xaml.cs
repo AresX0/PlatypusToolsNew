@@ -31,6 +31,18 @@ namespace PlatypusTools.UI
             EventManager.RegisterClassHandler(typeof(System.Windows.Controls.DataGrid),
                 FrameworkElement.LoadedEvent,
                 new RoutedEventHandler(DataGrid_GlobalLoaded));
+
+            // Phase 5.3 — Accessibility: apply AutomationProperties.Name (from ToolTip) and
+            // the A11yFocusVisual focus rectangle to every Button/ToggleButton at Loaded time.
+            // Done programmatically (not via implicit XAML style) because self-contained
+            // .NET 10 publish builds crash with a BAML collision when implicit Button styles
+            // are declared in Application.Resources.
+            EventManager.RegisterClassHandler(typeof(System.Windows.Controls.Button),
+                FrameworkElement.LoadedEvent,
+                new RoutedEventHandler(AccessibleControl_Loaded));
+            EventManager.RegisterClassHandler(typeof(System.Windows.Controls.Primitives.ToggleButton),
+                FrameworkElement.LoadedEvent,
+                new RoutedEventHandler(AccessibleControl_Loaded));
             
             // Check for screensaver mode command-line arguments
             if (_startupArgs != null && _startupArgs.Length > 0)
@@ -142,6 +154,35 @@ namespace PlatypusTools.UI
                 sched.Start();
             }
             catch (Exception ex) { SimpleLogger.Error($"ThreatFeedScheduler start failed: {ex}"); }
+
+            // Phase 3.1 — apply persisted AI/LLM settings to the singleton so
+            // every consumer (AI Assistant, Smart Rename, Media Intelligence)
+            // shares the same backend choice and Local-Only guard.
+            try
+            {
+                var s = Services.SettingsManager.Current;
+                var llm = Services.AI.LocalLlmService.Instance;
+                llm.LocalOnlyMode = s.AiLocalOnlyMode;
+                llm.OllamaBaseUrl = s.AiOllamaBaseUrl;
+                llm.DefaultModel = s.AiOllamaModel;
+                llm.OpenAiCompatBaseUrl = s.AiOpenAiBaseUrl;
+                llm.OpenAiApiKey = string.IsNullOrEmpty(s.AiOpenAiApiKey) ? null : s.AiOpenAiApiKey;
+                llm.AnthropicBaseUrl = s.AiAnthropicBaseUrl;
+                llm.AnthropicApiKey = string.IsNullOrEmpty(s.AiAnthropicApiKey) ? null : s.AiAnthropicApiKey;
+                llm.AnthropicDefaultModel = s.AiAnthropicModel;
+                llm.AnthropicMaxTokens = s.AiAnthropicMaxTokens;
+                llm.ActiveBackend = s.AiBackend switch
+                {
+                    "OpenAiCompat" => Services.AI.LocalLlmService.Backend.OpenAiCompat,
+                    "Anthropic"    => Services.AI.LocalLlmService.Backend.Anthropic,
+                    _              => Services.AI.LocalLlmService.Backend.Ollama,
+                };
+            }
+            catch (Exception ex) { SimpleLogger.Error($"LocalLlmService settings apply failed: {ex}"); }
+
+            // Telemetry: mirror the persisted opt-in into the singleton (default OFF).
+            try { Services.Diagnostics.TelemetryService.Instance.Enabled = Services.SettingsManager.Current.TelemetryOptIn; }
+            catch (Exception ex) { SimpleLogger.Error($"Telemetry init failed: {ex}"); }
             
             // Now kick off the async initialization in the background
             // The video will loop while everything loads
@@ -191,6 +232,52 @@ namespace PlatypusTools.UI
                 dg.ContextMenu = !string.IsNullOrEmpty(pathProp)
                     ? Services.StandardContextMenuService.CreateFileContextMenu(pathProp)
                     : Services.StandardContextMenuService.CreateTextContextMenu();
+            }
+        }
+
+        /// <summary>
+        /// Phase 5.3 — Accessibility: applied to every Button/ToggleButton at Loaded time.
+        /// 1. Fills AutomationProperties.Name from the control's ToolTip (so screen readers
+        ///    announce icon-only buttons by their tooltip text) when the caller hasn't set
+        ///    AutomationProperties.Name explicitly.
+        /// 2. Applies the A11yFocusVisual amber dashed focus rectangle for keyboard users
+        ///    when the control hasn't been given a custom FocusVisualStyle.
+        /// </summary>
+        private void AccessibleControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is not FrameworkElement fe) return;
+
+                // 1. AutomationProperties.Name fallback from ToolTip.
+                var existingName = System.Windows.Automation.AutomationProperties.GetName(fe);
+                if (string.IsNullOrEmpty(existingName))
+                {
+                    string? tipText = null;
+                    var tip = fe.ToolTip;
+                    if (tip is string s) tipText = s;
+                    else if (tip is System.Windows.Controls.ToolTip tt && tt.Content != null)
+                        tipText = tt.Content as string ?? tt.Content.ToString();
+                    else if (tip != null) tipText = tip.ToString();
+
+                    if (!string.IsNullOrWhiteSpace(tipText))
+                    {
+                        System.Windows.Automation.AutomationProperties.SetName(fe, tipText);
+                    }
+                }
+
+                // 2. A11yFocusVisual focus rectangle (only if caller hasn't set one).
+                if (fe is System.Windows.Controls.Control ctrl && ctrl.FocusVisualStyle == null)
+                {
+                    if (TryFindResource("A11yFocusVisual") is System.Windows.Style fvs)
+                    {
+                        ctrl.FocusVisualStyle = fvs;
+                    }
+                }
+            }
+            catch
+            {
+                // Accessibility decoration must never crash the app.
             }
         }
         
@@ -404,7 +491,10 @@ namespace PlatypusTools.UI
             StartupProfiler.BeginPhase("DI Container");
             InitializeServiceContainer();
 
-            // Register global unhandled exception handlers
+            // Register global unhandled exception handlers + crash dumper.
+            // CrashHandler also writes a stack-trace file and best-effort minidump
+            // to %LOCALAPPDATA%\PlatypusTools\crashes\.
+            try { Services.Diagnostics.CrashHandler.Install(); } catch { }
             AppDomain.CurrentDomain.UnhandledException += (s, args) =>
             {
                 var ex = args.ExceptionObject as Exception;
@@ -413,6 +503,7 @@ namespace PlatypusTools.UI
             DispatcherUnhandledException += (s, args) =>
             {
                 SimpleLogger.Error($"Unhandled Dispatcher exception: {args.Exception}");
+                try { Services.Diagnostics.CrashHandler.CaptureDispatcher(args.Exception); } catch { }
                 args.Handled = true; // Prevent crash; log and continue if possible
             };
             TaskScheduler.UnobservedTaskException += (s, args) =>
@@ -531,10 +622,30 @@ namespace PlatypusTools.UI
             }
             catch (Exception ex)
             {
-                // Log full exception chain for debugging
-                var fullError = ex.ToString();
-                var innerMsg = ex.InnerException?.InnerException?.Message 
-                    ?? ex.InnerException?.Message 
+                // Log full exception chain for debugging — walk EVERY inner including
+                // XamlParseException.LineNumber/LinePosition/BaseUri properties.
+                var sb = new System.Text.StringBuilder();
+                var cur = ex; int depth = 0;
+                while (cur != null)
+                {
+                    sb.AppendLine($"=== Exception depth {depth} : {cur.GetType().FullName} ===");
+                    sb.AppendLine($"Message: {cur.Message}");
+                    if (cur is System.Windows.Markup.XamlParseException xpe)
+                    {
+                        sb.AppendLine($"BaseUri: {xpe.BaseUri}");
+                        sb.AppendLine($"Line: {xpe.LineNumber}, Pos: {xpe.LinePosition}");
+                        if (xpe.NameContext != null) sb.AppendLine($"NameContext: {xpe.NameContext}");
+                        if (xpe.KeyContext != null) sb.AppendLine($"KeyContext: {xpe.KeyContext}");
+                        if (xpe.UidContext != null) sb.AppendLine($"UidContext: {xpe.UidContext}");
+                    }
+                    sb.AppendLine("StackTrace:");
+                    sb.AppendLine(cur.StackTrace ?? "(null)");
+                    sb.AppendLine();
+                    cur = cur.InnerException; depth++;
+                }
+                var fullError = sb.ToString();
+                var innerMsg = ex.InnerException?.InnerException?.Message
+                    ?? ex.InnerException?.Message
                     ?? ex.Message;
                 SimpleLogger.Error($"Startup failed: {fullError}");
                 try { File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startup_crash.log"), fullError); } catch { }

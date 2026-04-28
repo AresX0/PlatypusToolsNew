@@ -23,46 +23,85 @@ namespace PlatypusTools.UI.Views
         {
             InitializeComponent();
             ChatLog.ItemsSource = _entries;
+            // Reflect persisted backend choice on open.
+            try
+            {
+                BackendBox.SelectedIndex = LocalLlmService.Instance.ActiveBackend switch
+                {
+                    LocalLlmService.Backend.OpenAiCompat => 1,
+                    LocalLlmService.Backend.Anthropic    => 2,
+                    _                                    => 0,
+                };
+                if (LocalLlmService.Instance.ActiveBackend == LocalLlmService.Backend.Anthropic
+                    && string.IsNullOrEmpty(ModelBox.Text))
+                {
+                    ModelBox.Text = LocalLlmService.Instance.AnthropicDefaultModel;
+                }
+            }
+            catch { }
             Loaded += async (_, _) => await ReloadModelsAsync();
         }
 
         private async System.Threading.Tasks.Task ReloadModelsAsync()
         {
-            StatusText.Text = "Probing local LLM…";
-            var ok = await LocalLlmService.Instance.PingAsync();
+            StatusText.Text = "Probing LLM backend…";
+            var llm = LocalLlmService.Instance;
+            var ok = await llm.PingAsync();
             if (!ok)
             {
-                StatusText.Text = "Ollama not reachable on localhost:11434";
+                StatusText.Text = llm.ActiveBackend switch
+                {
+                    LocalLlmService.Backend.Ollama       => "Ollama not reachable on " + llm.OllamaBaseUrl,
+                    LocalLlmService.Backend.OpenAiCompat => "OpenAI-compat endpoint not reachable on " + llm.OpenAiCompatBaseUrl,
+                    LocalLlmService.Backend.Anthropic    => "Anthropic backend requires an API key (Settings → AI).",
+                    _ => "Backend not reachable.",
+                };
                 return;
             }
-            var models = await LocalLlmService.Instance.ListModelsAsync();
+            var models = await llm.ListModelsAsync();
             ModelBox.Items.Clear();
             foreach (var m in models) ModelBox.Items.Add(m);
             if (models.Count > 0 && string.IsNullOrEmpty(ModelBox.Text))
                 ModelBox.Text = models[0];
-            StatusText.Text = models.Count > 0 ? $"{models.Count} model(s) available" : "Ollama up; no models installed";
+            StatusText.Text = models.Count > 0 ? $"{models.Count} model(s) available" : "Backend up; no models listed";
         }
 
         private async void Reload_Click(object sender, RoutedEventArgs e) => await ReloadModelsAsync();
 
         private void Clear_Click(object sender, RoutedEventArgs e) => _entries.Clear();
 
-        private void Backend_Changed(object sender, SelectionChangedEventArgs e)
+        private async void Backend_Changed(object sender, SelectionChangedEventArgs e)
         {
             // SelectionChanged can fire during XAML parsing (because ComboBoxItem
-            // IsSelected="True" lights up before later children construct). Guard
-            // every named control we touch here.
+            // IsSelected="True" lights up before later children construct).
             if (BackendBox == null) return;
-            if (BackendBox.SelectedIndex == 1)
+            var llm = LocalLlmService.Instance;
+            llm.ActiveBackend = BackendBox.SelectedIndex switch
             {
-                LocalLlmService.Instance.OpenAiCompatBaseUrl = "http://localhost:1234/v1";
-                if (StatusText != null) StatusText.Text = "Backend: OpenAI-compat at http://localhost:1234/v1 (LM Studio default)";
-            }
-            else
+                1 => LocalLlmService.Backend.OpenAiCompat,
+                2 => LocalLlmService.Backend.Anthropic,
+                _ => LocalLlmService.Backend.Ollama,
+            };
+            // Persist the choice.
+            try
             {
-                LocalLlmService.Instance.OpenAiCompatBaseUrl = null;
-                if (StatusText != null) StatusText.Text = "Backend: Ollama";
+                Services.SettingsManager.Current.AiBackend = llm.ActiveBackend.ToString();
+                Services.SettingsManager.SaveCurrent();
             }
+            catch { }
+            if (StatusText != null)
+            {
+                StatusText.Text = "Backend: " + llm.ActiveBackend +
+                    (llm.LocalOnlyMode ? " (local-only mode ON)" : " (local-only mode OFF)");
+            }
+            // For Anthropic, prefill a sensible model when the box is empty.
+            if (llm.ActiveBackend == LocalLlmService.Backend.Anthropic
+                && ModelBox != null && string.IsNullOrEmpty(ModelBox.Text))
+            {
+                ModelBox.Text = llm.AnthropicDefaultModel;
+            }
+            // Auto-refresh model list.
+            try { await ReloadModelsAsync(); } catch { }
         }
 
         private void InputBox_KeyDown(object sender, KeyEventArgs e)

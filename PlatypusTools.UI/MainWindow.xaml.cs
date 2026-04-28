@@ -1187,6 +1187,47 @@ namespace PlatypusTools.UI
             try { var w = new Views.EncryptedClipboardWindow { Owner = this }; w.Show(); }
             catch (System.Exception ex) { MessageBox.Show("Failed to open Encrypted Clipboard: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning); }
         }
+
+        // Phase 1.2 — Activity Log viewer
+        private void OpenActivityLog_Click(object sender, RoutedEventArgs e)
+        {
+            try { var w = new Views.ActivityLogWindow { Owner = this }; w.Show(); }
+            catch (System.Exception ex) { MessageBox.Show("Failed to open Activity Log: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        }
+
+        // v4.0.3.10 reorg — Settings deep-link launchers (used by new tabs and Help menu).
+        private void OpenSettingsToDependencies_Click(object sender, RoutedEventArgs e)
+            => OpenSettingsToSection("Dependencies");
+
+        private void OpenSettingsToRemoteControl_Click(object sender, RoutedEventArgs e)
+            => OpenSettingsToSection("RemoteControl");
+
+        private void OpenSettingsToAI_Click(object sender, RoutedEventArgs e)
+            => OpenSettingsToSection("AI");
+
+        private void OpenSettingsToVisualizer_Click(object sender, RoutedEventArgs e)
+            => OpenSettingsToSection("Visualizer");
+
+        private void OpenSettingsToSection(string section)
+        {
+            try
+            {
+                var sw = new Views.SettingsWindow { Owner = this };
+                sw.NavigateToSection(section);
+                sw.ShowDialog();
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Failed to open Settings: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        // v4.0.3.10 reorg — Credential Manager launcher (mirrors VM command, callable from XAML buttons).
+        private void OpenCredentialManager_Click(object sender, RoutedEventArgs e)
+        {
+            try { var w = new Views.CredentialManagerWindow { Owner = this }; w.Show(); }
+            catch (System.Exception ex) { MessageBox.Show("Failed to open Credential Manager: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        }
     }
 }
 
