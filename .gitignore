@@ -157,3 +157,5 @@ PLATYPUS/
 # Diagnostic output (collected from remote devices)
 # ===================
 diagnostic/
+
+release_notes.txt
