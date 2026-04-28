@@ -21,15 +21,15 @@ Last updated: simple cross-phase pass (working tree, build clean — 0 errors, r
 | # | Item | Status | Notes |
 |---|------|--------|-------|
 | 2.1 | Scripting Console | 🟡 | Subprocess PowerShell+Python tab shipped v4.0.3.0. **Missing:** `Microsoft.PowerShell.SDK` host, `$Platypus.*` proxies, sub-tabs, Settings opt-in, DependencyChecker registration. |
-| 2.2 | REST/gRPC `/api/v1` | 🔵 | Complex — needs new controllers, separate Bearer auth, Swagger UI, loopback default. Plan below. |
-| 2.3 | Workflow / Macro Recorder | 🔵 | Complex — needs node graph designer, `.platypusflow` schema, trigger wiring. Plan below. |
+| 2.2 | REST/gRPC `/api/v1` | � | `Remote.Server/Program.cs` exposes `/api/v1` group with file-based Bearer (auto-generated 32-byte token at `%APPDATA%/PlatypusTools/api-token.txt`). Endpoints: `/health`, `/info`, `/audio/{nowplaying,queue,play,pause,next,previous}`, `/vault/items`. |
+| 2.3 | Workflow / Macro Recorder | 🟢 | `WorkflowEngine` (shell/powershell/writefile/readfile/delay/log nodes, `{{key}}` substitution, JSON `.platypusflow` schema) + `WorkflowDesignerWindow` (Tools menu → 🔁 Workflow Designer). |
 | 2.4 | Scheduled Job Templates | � | `ScheduledJobTemplates.cs` ships 4 starter Task Scheduler XML templates (backup-home, cleanup-temp, media-convert-mp4, forensics-collect). 'Templates ▾' button on `ScheduledTasksView` saves chosen template to disk + shows the `schtasks /create /xml` registration command. |
 | 2.5 | Plugin Marketplace | 🔵 | Complex — registry.json + signature pinning + install/update UI on top of existing `PluginManager`. |
 
 ## Phase 3 — Intelligence Layer
 | # | Item | Status | Notes |
 |---|------|--------|-------|
-| 3.1 | Local LLM Sidebar | 🔵 | Complex — `LocalLlmService` (Ollama/llama.cpp/OpenAI-compat) + dockable `AssistantPanel` + `ILlmContextProvider` per tab + opt-in dialog + DependencyChecker (Ollama). Plan below. |
+| 3.1 | Local LLM Sidebar | � | `LocalLlmService` singleton (Ollama `/api/chat` + OpenAI-compat `/v1/chat/completions` for LM Studio) + `AIAssistantWindow` (Tools menu → 🤖 AI Assistant) with backend/model picker, system prompt, and chat log. |
 | 3.2 | Smart-Rename / Auto-Tag | 🔵 | Depends on 3.1 vision/LLM backend. |
 | 3.3 | Whisper Subtitles | ✅ | Pre-existing — `AudioTranscriptionView` already supports SRT + VTT export via `LocalWhisperService.TranscribeAsync` → `FormatCaptions`. Verified this pass. |
 | 3.4 | Auto-Chaptering | � | `SceneDetectionService` shells to ffmpeg `select='gt(scene,N)',showinfo`, parses `pts_time:` to scenes, writes `;FFMETADATA1` chapter file. '🎬 Detect Scenes' button in `MultimediaEditorView` video player. |
@@ -59,7 +59,7 @@ Last updated: simple cross-phase pass (working tree, build clean — 0 errors, r
 | 6.1 | Lazy Tab Loading | 🔵 | Complex — DataTemplate-driven refactor of `MainWindow.xaml`, `[LazyTab]` attribute, opt-in. |
 | 6.2 | Background Task Budget | � | `ResourceGovernor` adopted by `SceneDetectionService` (CPU slot acquired before ffmpeg invocation). Pattern is documented for future adopters. **Future:** JOB_OBJECT_LIMIT_CPU_RATE_CONTROL, more adopters across hot ffmpeg paths. |
 | 6.3 | Startup Profiler | ✅ | `StartupProfiler.cs` exists; About-dialog surface verified this pass. |
-| 6.4 | Fleet View | 🔵 | Complex — LAN discovery via remote channel + status grid. |
+| 6.4 | Fleet View | � | `FleetViewWindow` (Tools menu → 🛰️ Fleet View) parallel-scans `/24` subnet against the Remote.Server `/health` endpoint and renders an Address/Status/Latency/Banner grid. |
 | 6.5 | PWA Mobile Dashboard | 🔵 | Complex — manifest.json + service worker + push-notif on existing RemoteDashboard. |
 
 ---
@@ -75,6 +75,20 @@ Last updated: simple cross-phase pass (working tree, build clean — 0 errors, r
 | `PlatypusTools.UI/Views/AboutWindow.xaml` (+ .cs) | "Show startup profile" link |
 | `PlatypusTools.UI/App.xaml` | Focus-visual style |
 | `PlatypusTools.UI/Themes/HighContrast.xaml` (NEW) | High Contrast theme stub |
+
+## Wave B — REST + Workflow + LLM + Fleet (built clean)
+
+| File | Change |
+|------|--------|
+| `PlatypusTools.Remote.Server/Program.cs` | `/api/v1` group with file-based Bearer auth (auto-generated token), endpoints for health/info/audio/vault (Phase 2.2). |
+| `PlatypusTools.UI/Services/Workflow/WorkflowEngine.cs` (NEW) | Workflow engine with shell/powershell/writefile/readfile/delay/log nodes + JSON serializer (Phase 2.3). |
+| `PlatypusTools.UI/Views/WorkflowDesignerWindow.xaml` (+ .cs) (NEW) | Steps-list designer: Open/Save As/Run with streaming output. |
+| `PlatypusTools.UI/Services/AI/LocalLlmService.cs` (NEW) | Ollama + OpenAI-compat client (LM Studio) with model listing & non-streaming chat (Phase 3.1). |
+| `PlatypusTools.UI/Views/AIAssistantWindow.xaml` (+ .cs) (NEW) | Backend/model picker, system prompt, chat log, Ctrl+Enter send. |
+| `PlatypusTools.UI/Views/FleetViewWindow.xaml` (+ .cs) (NEW) | Parallel `/24` health-endpoint scanner with cancel + result grid (Phase 6.4). |
+| `PlatypusTools.UI/MainWindow.xaml` (+ .cs) | Tools menu: 🔁 Workflow Designer, 🤖 AI Assistant, 🛰️ Fleet View. |
+
+---
 
 ## Wave A — Phase 2-6 deferred items (built clean)
 

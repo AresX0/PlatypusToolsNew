@@ -1124,6 +1124,27 @@ namespace PlatypusTools.UI
                 MessageBox.Show($"Error opening settings: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
+
+        // Phase 2.3 — Workflow Designer
+        private void OpenWorkflowDesigner_Click(object sender, RoutedEventArgs e)
+        {
+            try { var w = new Views.WorkflowDesignerWindow { Owner = this }; w.Show(); }
+            catch (System.Exception ex) { MessageBox.Show("Failed to open Workflow Designer: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        }
+
+        // Phase 3.1 — AI Assistant
+        private void OpenAIAssistant_Click(object sender, RoutedEventArgs e)
+        {
+            try { var w = new Views.AIAssistantWindow { Owner = this }; w.Show(); }
+            catch (System.Exception ex) { MessageBox.Show("Failed to open AI Assistant: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        }
+
+        // Phase 6.4 — Fleet View
+        private void OpenFleetView_Click(object sender, RoutedEventArgs e)
+        {
+            try { var w = new Views.FleetViewWindow { Owner = this }; w.Show(); }
+            catch (System.Exception ex) { MessageBox.Show("Failed to open Fleet View: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        }
     }
 }
 

@@ -366,4 +366,62 @@ vault.MapPost("/generate-password", (GeneratePasswordRequest req, IVaultService 
     Results.Ok(new { password = vaultService.GeneratePassword(req) }))
     .WithName("VaultGeneratePassword");
 
+// ─────────────────────────────────────────────────────────────────────────
+// Phase 2.2 — Local /api/v1 surface with file-based Bearer token auth.
+// Token lives at %APPDATA%/PlatypusTools/api-token.txt (created on first
+// access if missing). This group is INDEPENDENT of the Entra-protected
+// /api routes above so local automation/scripting can hit a stable surface.
+// ─────────────────────────────────────────────────────────────────────────
+static string GetOrCreateLocalApiToken()
+{
+    var dir = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "PlatypusTools");
+    Directory.CreateDirectory(dir);
+    var path = Path.Combine(dir, "api-token.txt");
+    if (!File.Exists(path) || (new FileInfo(path)).Length < 16)
+    {
+        var bytes = new byte[32];
+        System.Security.Cryptography.RandomNumberGenerator.Fill(bytes);
+        var token = Convert.ToBase64String(bytes).Replace("/", "_").Replace("+", "-").TrimEnd('=');
+        File.WriteAllText(path, token);
+    }
+    return File.ReadAllText(path).Trim();
+}
+
+var v1 = app.MapGroup("/api/v1");
+v1.AddEndpointFilter(async (ctx, next) =>
+{
+    var auth = ctx.HttpContext.Request.Headers["Authorization"].ToString();
+    const string prefix = "Bearer ";
+    if (!auth.StartsWith(prefix, StringComparison.Ordinal))
+        return Results.Unauthorized();
+    var presented = auth.Substring(prefix.Length).Trim();
+    var expected = GetOrCreateLocalApiToken();
+    // Constant-time compare
+    var ok = presented.Length == expected.Length;
+    for (int i = 0; i < Math.Min(presented.Length, expected.Length); i++)
+        ok &= presented[i] == expected[i];
+    if (!ok) return Results.Unauthorized();
+    return await next(ctx);
+});
+
+v1.MapGet("/health", () => Results.Ok(new { status = "healthy", api = "v1", timestamp = DateTime.UtcNow }));
+v1.MapGet("/info", () => Results.Ok(new
+{
+    product = "PlatypusTools",
+    api = "v1",
+    machine = Environment.MachineName,
+    user = Environment.UserName,
+    osVersion = Environment.OSVersion.VersionString
+}));
+v1.MapGet("/audio/nowplaying", async (IRemoteAudioService a) => Results.Ok(await a.GetNowPlayingAsync()));
+v1.MapGet("/audio/queue", async (IRemoteAudioService a) => Results.Ok(await a.GetQueueAsync()));
+v1.MapPost("/audio/play", async (IRemoteAudioService a) => { await a.PlayAsync(); return Results.NoContent(); });
+v1.MapPost("/audio/pause", async (IRemoteAudioService a) => { await a.PauseAsync(); return Results.NoContent(); });
+v1.MapPost("/audio/next", async (IRemoteAudioService a) => { await a.NextTrackAsync(); return Results.NoContent(); });
+v1.MapPost("/audio/previous", async (IRemoteAudioService a) => { await a.PreviousTrackAsync(); return Results.NoContent(); });
+v1.MapGet("/vault/items", (IVaultService v) =>
+    !v.IsUnlocked ? Results.Unauthorized() : Results.Ok(v.GetItems()));
+
 app.Run();

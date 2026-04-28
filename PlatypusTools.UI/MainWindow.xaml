@@ -53,6 +53,10 @@
                 <Separator />
                 <MenuItem Header="Validate DataContext" Click="ValidateDataContext_Click" />
                 <Separator />
+                <MenuItem Header="🔁 Workflow Designer..." Click="OpenWorkflowDesigner_Click" />
+                <MenuItem Header="🤖 AI Assistant..." Click="OpenAIAssistant_Click" />
+                <MenuItem Header="🛰️ Fleet View..." Click="OpenFleetView_Click" />
+                <Separator />
                 <MenuItem Header="Settings..." Click="OpenSettings" InputGestureText="Ctrl+," />
             </MenuItem>
             <MenuItem Header="Help">
