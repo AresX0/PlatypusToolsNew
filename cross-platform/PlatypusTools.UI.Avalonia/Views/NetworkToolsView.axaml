@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.NetworkToolsView"
+             x:DataType="vm:NetworkToolsViewModel">
+    <Grid RowDefinitions="Auto,Auto,*">
+        <TextBlock Grid.Row="0" Text="🌐 Network Tools" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,8">
+            <TextBlock DockPanel.Dock="Left" Text="Host:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <Button DockPanel.Dock="Right" Content="Cancel" Command="{Binding CancelCommand}" Margin="4,0,0,0"/>
+            <Button DockPanel.Dock="Right" Content="IP" Command="{Binding IpCommand}" Margin="4,0,0,0"/>
+            <Button DockPanel.Dock="Right" Content="Ports" Command="{Binding PortsCommand}" Margin="4,0,0,0"/>
+            <Button DockPanel.Dock="Right" Content="DNS" Command="{Binding DnsCommand}" Margin="4,0,0,0"/>
+            <Button DockPanel.Dock="Right" Content="Trace" Command="{Binding TraceCommand}" Margin="4,0,0,0"/>
+            <Button DockPanel.Dock="Right" Content="Ping" Command="{Binding PingCommand}" Background="#2196F3" Foreground="White" Margin="4,0,0,0"/>
+            <TextBox Text="{Binding Host, Mode=TwoWay}"/>
+        </DockPanel>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Background="#101010">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <SelectableTextBlock Text="{Binding Output}" FontFamily="Cascadia Code,Consolas,Menlo,monospace"
+                                     FontSize="11" Foreground="#80FF80" Padding="8"/>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>

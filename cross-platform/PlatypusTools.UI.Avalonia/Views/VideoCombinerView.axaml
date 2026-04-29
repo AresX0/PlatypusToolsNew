@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.VideoCombinerView"
+             x:DataType="vm:VideoCombinerViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,150,Auto">
+        <DockPanel Grid.Row="0" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Left" Content="➕ Add inputs" Click="OnAddInputs" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="🗑 Clear" Command="{Binding ClearCommand}" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="▶ Combine" Command="{Binding CombineCommand}" Background="#4CAF50" Foreground="White"/>
+        </DockPanel>
+        <DockPanel Grid.Row="1" Margin="0,0,0,8">
+            <TextBlock Text="Output:" Width="80" VerticalAlignment="Center"/>
+            <Button DockPanel.Dock="Right" Content="📁" Click="OnPickOutput" Margin="4,0,0,0"/>
+            <TextBox Text="{Binding OutputPath, Mode=TwoWay}" Watermark="output.mp4"/>
+        </DockPanel>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
+            <ListBox ItemsSource="{Binding Inputs}"/>
+        </Border>
+        <Border Grid.Row="3" Background="#101010" Padding="8" Margin="0,8,0,0">
+            <ScrollViewer>
+                <SelectableTextBlock Text="{Binding Output}" Foreground="#80FF80" FontFamily="Cascadia Code,Consolas,monospace"/>
+            </ScrollViewer>
+        </Border>
+        <TextBlock Grid.Row="4" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

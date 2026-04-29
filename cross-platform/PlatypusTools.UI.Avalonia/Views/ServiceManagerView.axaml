@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.ServiceManagerView"
+             x:DataType="vm:ServiceManagerViewModel">
+    <Grid Margin="12" RowDefinitions="Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="Service Manager" FontSize="18" FontWeight="Bold" Margin="0,0,0,8"/>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
+            <TextBox Width="240" Watermark="Filter" Text="{Binding Filter}"/>
+            <Button Content="Refresh" Command="{Binding RefreshCommand}"/>
+            <Button Content="Start"   Command="{Binding StartCommand}"   Background="#FF4CAF50" Foreground="White"/>
+            <Button Content="Stop"    Command="{Binding StopCommand}"    Background="#FFF44336" Foreground="White"/>
+            <Button Content="Restart" Command="{Binding RestartCommand}" Background="#FFFF9800" Foreground="White"/>
+        </StackPanel>
+        <ListBox Grid.Row="2" ItemsSource="{Binding Services}" SelectedItem="{Binding Selected}" FontFamily="Consolas,Monospace"/>
+        <TextBlock Grid.Row="3" Text="{Binding Status}" Margin="0,8,0,0" Opacity="0.75"/>
+    </Grid>
+</UserControl>

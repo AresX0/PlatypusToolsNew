@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.IconConverterView"
+             x:DataType="vm:IconConverterViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="🎯 Icon Converter (multi-size)" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="🖼 Input" Click="OnPickInClicked" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Input, Mode=TwoWay}"/>
+        </DockPanel>
+        <DockPanel Grid.Row="2" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="📂 Output" Click="OnPickOutClicked" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding OutputDir, Mode=TwoWay}"/>
+        </DockPanel>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,4">
+            <Button Content="🚀 Convert" Command="{Binding ConvertCommand}" IsEnabled="{Binding !IsBusy}" Background="#4CAF50" Foreground="White"/>
+        </StackPanel>
+        <Border Grid.Row="4" BorderBrush="Gray" BorderThickness="1">
+            <ListBox ItemsSource="{Binding Output}" FontFamily="Cascadia Code,Consolas,Menlo,monospace" FontSize="11"/>
+        </Border>
+        <TextBlock Grid.Row="5" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

@@ -25,7 +25,7 @@
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>PlatypusTools.UI</RootNamespace>
-    <Version>4.0.4.1</Version>
+    <Version>4.0.4.4</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
@@ -58,6 +58,8 @@
     <EmbeddedResource Include="Resources\Remote\app.js" />
     <EmbeddedResource Include="Resources\Remote\manifest.json" />
     <EmbeddedResource Include="Resources\Remote\sw.js" />
+    <EmbeddedResource Include="Assets\honmoon_americas.png" />
+    <EmbeddedResource Include="Assets\honmoon_world_bg.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PlatypusTools.Core\PlatypusTools.Core.csproj" />

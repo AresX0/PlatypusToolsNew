@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.SlideshowScreensaverView"
+             x:DataType="vm:SlideshowScreensaverViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*">
+        <TextBlock Grid.Row="0" Text="🖼 Slideshow Screensaver" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="📂 Folder" Click="OnPickClicked" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Folder, Mode=TwoWay}"/>
+        </DockPanel>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,4">
+            <TextBlock Text="Interval (s):" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <NumericUpDown Value="{Binding IntervalSeconds, Mode=TwoWay}" Minimum="1" Maximum="600" Width="120"/>
+        </StackPanel>
+        <CheckBox Grid.Row="3" Content="Shuffle" IsChecked="{Binding Shuffle, Mode=TwoWay}" Margin="0,0,0,4"/>
+        <Button Grid.Row="4" Content="🚀 Start now" Command="{Binding StartCommand}" Background="#4CAF50" Foreground="White" HorizontalAlignment="Left"/>
+        <TextBlock Grid.Row="5" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

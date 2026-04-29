@@ -1,0 +1,14 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.SimpleBrowserView"
+             x:DataType="vm:SimpleBrowserViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,*">
+        <TextBlock Grid.Row="0" Text="🌐 Simple Browser" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Right" Content="🚀 Open" Command="{Binding OpenCommand}" Background="#4CAF50" Foreground="White" Margin="4,0,0,0"/>
+            <TextBox Text="{Binding Url, Mode=TwoWay}" Watermark="https://…"/>
+        </DockPanel>
+        <TextBlock Grid.Row="2" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

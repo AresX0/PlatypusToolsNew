@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.AudioTrimView"
+             x:DataType="vm:AudioTrimViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*">
+        <TextBlock Grid.Row="0" Text="✂️ Audio / Video Trim" FontSize="20" FontWeight="Bold" Margin="0,0,0,4"/>
+        <TextBlock Grid.Row="1" Text="{Binding FFmpegStatus}" Foreground="Gray" FontSize="11" Margin="0,0,0,8"/>
+        <Grid Grid.Row="2" ColumnDefinitions="Auto,*" Margin="0,0,0,4">
+            <Button Grid.Column="0" Content="📂 Input" Click="OnPickInput" Margin="0,0,4,0"/>
+            <TextBox Grid.Column="1" Text="{Binding Input, Mode=TwoWay}"/>
+        </Grid>
+        <Grid Grid.Row="3" ColumnDefinitions="Auto,*" Margin="0,0,0,4">
+            <Button Grid.Column="0" Content="💾 Output" Click="OnPickOutput" Margin="0,0,4,0"/>
+            <TextBox Grid.Column="1" Text="{Binding Output, Mode=TwoWay}" Watermark="Auto if blank"/>
+        </Grid>
+        <WrapPanel Grid.Row="4" Margin="0,0,0,8">
+            <StackPanel Orientation="Horizontal" Margin="0,0,12,4"><TextBlock Text="Start (s):" VerticalAlignment="Center" Margin="0,0,4,0"/><NumericUpDown Value="{Binding Start, Mode=TwoWay}" Minimum="0" Width="100"/></StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,0,12,4"><TextBlock Text="Duration (s):" VerticalAlignment="Center" Margin="0,0,4,0"/><NumericUpDown Value="{Binding Duration, Mode=TwoWay}" Minimum="0.1" Width="100"/></StackPanel>
+            <CheckBox Content="Re-encode" IsChecked="{Binding Reencode, Mode=TwoWay}" Margin="0,0,12,4"/>
+            <Button Content="✂ Trim" Command="{Binding TrimCommand}" IsEnabled="{Binding !IsRunning}" Background="#4CAF50" Foreground="White" Margin="0,0,4,0"/>
+            <Button Content="⏹" Command="{Binding CancelCommand}" IsEnabled="{Binding IsRunning}"/>
+        </WrapPanel>
+        <Border Grid.Row="5" BorderBrush="Gray" BorderThickness="1" Background="#101010">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <SelectableTextBlock Text="{Binding Log}" FontFamily="Cascadia Code,Consolas,Menlo,monospace" FontSize="10" Foreground="#80FF80" Padding="6"/>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>

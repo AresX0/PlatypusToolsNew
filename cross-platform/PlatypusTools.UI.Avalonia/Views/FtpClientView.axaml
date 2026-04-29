@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.FtpClientView"
+             x:DataType="vm:FtpClientViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="📡 FTP / FTPS Client" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,4">
+            <TextBox Text="{Binding Host, Mode=TwoWay}" Width="200" Watermark="Host" Margin="0,0,4,0"/>
+            <NumericUpDown Value="{Binding Port, Mode=TwoWay}" Minimum="1" Maximum="65535" Width="100" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding User, Mode=TwoWay}" Width="140" Watermark="User" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Password, Mode=TwoWay}" PasswordChar="●" Width="140" Watermark="Password" Margin="0,0,4,0"/>
+        </StackPanel>
+        <DockPanel Grid.Row="2" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Right" Content="⬇ Download" Click="OnDownloadClicked" Margin="4,0,0,0"/>
+            <Button DockPanel.Dock="Right" Content="📋 List" Command="{Binding ListCommand}" IsEnabled="{Binding !IsBusy}" Background="#2196F3" Foreground="White"/>
+            <TextBox Text="{Binding RemotePath, Mode=TwoWay}" Watermark="/"/>
+        </DockPanel>
+        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="1">
+            <DataGrid ItemsSource="{Binding Items}" SelectedItem="{Binding Selected, Mode=TwoWay}" AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Width="*" Binding="{Binding Name}"/>
+                    <DataGridTextColumn Header="Type" Width="100" Binding="{Binding Type}"/>
+                    <DataGridTextColumn Header="Size" Width="100" Binding="{Binding Size}"/>
+                    <DataGridTextColumn Header="Modified" Width="160" Binding="{Binding Modified}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+        <TextBlock Grid.Row="4" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

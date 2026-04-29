@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.ActivityLogView"
+             x:DataType="vm:ActivityLogViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="📜 Activity Log" FontSize="20" FontWeight="Bold" Margin="0,0,0,4"/>
+        <TextBlock Grid.Row="1" Text="{Binding LogPath}" Foreground="Gray" FontSize="11" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="2" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Right" Content="🗑 Clear" Command="{Binding ClearCommand}" Background="#F44336" Foreground="White" Margin="4,0,0,0"/>
+            <Button DockPanel.Dock="Right" Content="🔄 Reload" Command="{Binding ReloadCommand}" Margin="4,0,0,0"/>
+            <Button DockPanel.Dock="Right" Content="➕ Append" Command="{Binding AppendCommand}" Background="#4CAF50" Foreground="White" Margin="4,0,0,0"/>
+            <TextBox Text="{Binding NewEntry, Mode=TwoWay}" Watermark="New entry…"/>
+        </DockPanel>
+        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <SelectableTextBlock Text="{Binding Content}" FontFamily="Cascadia Code,Consolas,Menlo,monospace" FontSize="11" Padding="8"/>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>

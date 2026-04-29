@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.WebsiteDownloaderView"
+             x:DataType="vm:WebsiteDownloaderViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="🌐 Website / URL Downloader" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <TextBlock DockPanel.Dock="Left" Text="URL:" VerticalAlignment="Center" Width="60"/>
+            <TextBox Text="{Binding Url, Mode=TwoWay}" Watermark="https://example.com/file.zip"/>
+        </DockPanel>
+        <DockPanel Grid.Row="2" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="📂 Out Dir" Click="OnPickClicked" Margin="0,0,4,0"/>
+            <CheckBox DockPanel.Dock="Left" Content="Recursive (wget mirror)" IsChecked="{Binding Recursive, Mode=TwoWay}" Margin="0,0,8,0"/>
+            <Button DockPanel.Dock="Left" Content="⬇ Download" Command="{Binding DownloadCommand}" IsEnabled="{Binding !IsBusy}" Background="#4CAF50" Foreground="White"/>
+            <TextBox Text="{Binding OutDir, Mode=TwoWay}"/>
+        </DockPanel>
+        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="1">
+            <ScrollViewer>
+                <TextBox Text="{Binding Log}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap"
+                         FontFamily="Cascadia Code,Consolas,Menlo,monospace" FontSize="11"/>
+            </ScrollViewer>
+        </Border>
+        <TextBlock Grid.Row="4" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

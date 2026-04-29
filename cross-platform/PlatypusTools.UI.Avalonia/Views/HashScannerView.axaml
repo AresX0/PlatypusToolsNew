@@ -1,0 +1,64 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.HashScannerView"
+             x:DataType="vm:HashScannerViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0,0,0,8">
+            <TextBlock Text="🔐 Hash Scanner" FontSize="22" FontWeight="Bold" />
+            <ComboBox ItemsSource="{Binding Algorithms}"
+                      SelectedItem="{Binding SelectedAlgorithm}"
+                      Width="120" VerticalAlignment="Center" />
+            <Button Content="Pick Files…" Click="OnPickFilesClicked"
+                    IsEnabled="{Binding !IsBusy}" />
+            <Button Content="Cancel"
+                    Command="{Binding CancelCommand}"
+                    IsVisible="{Binding IsBusy}" />
+            <Button Content="Clear"
+                    Command="{Binding ClearCommand}"
+                    IsEnabled="{Binding !IsBusy}" />
+        </StackPanel>
+
+        <!-- Progress -->
+        <ProgressBar Grid.Row="1"
+                     Minimum="0" Maximum="100"
+                     Value="{Binding Progress}"
+                     IsVisible="{Binding IsBusy}"
+                     Height="6" Margin="0,0,0,8" />
+
+        <!-- Results -->
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Margin="0,0,0,8">
+            <ScrollViewer>
+                <ItemsControl ItemsSource="{Binding Results}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:HashResult">
+                            <Border Padding="8" Margin="2"
+                                    BorderBrush="{DynamicResource SystemBaseLowColor}"
+                                    BorderThickness="0,0,0,1">
+                                <StackPanel Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="{Binding FileName}" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding SizeDisplay}" Foreground="Gray" />
+                                        <TextBlock Text="{Binding Algorithm}" Foreground="Gray" />
+                                    </StackPanel>
+                                    <SelectableTextBlock Text="{Binding Hash}"
+                                                         FontFamily="Cascadia Code,Consolas,Menlo,monospace"
+                                                         FontSize="12"
+                                                         TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding FullPath}"
+                                               Foreground="Gray" FontSize="11"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Status bar -->
+        <TextBlock Grid.Row="3" Text="{Binding Status}" Foreground="Gray" />
+    </Grid>
+</UserControl>

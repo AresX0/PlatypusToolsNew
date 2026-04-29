@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.TerminalClientView"
+             x:DataType="vm:TerminalClientViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="🖥 Terminal Client" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <ComboBox DockPanel.Dock="Left" ItemsSource="{Binding Shells}" SelectedItem="{Binding Shell, Mode=TwoWay}" Width="120" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Right" Content="🗑 Clear" Command="{Binding ClearOutputCommand}" Margin="4,0,0,0"/>
+            <Button DockPanel.Dock="Right" Content="⏹ Cancel" Command="{Binding CancelCommand}" IsEnabled="{Binding IsBusy}" Margin="4,0,0,0"/>
+            <Button DockPanel.Dock="Right" Content="▶ Run" Command="{Binding RunCommand}" IsEnabled="{Binding !IsBusy}" Background="#4CAF50" Foreground="White" Margin="4,0,0,0"/>
+            <TextBox Text="{Binding Command, Mode=TwoWay}" Watermark="ls -la / dir /b / etc."/>
+        </DockPanel>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
+            <ScrollViewer>
+                <TextBox Text="{Binding Output}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap"
+                         FontFamily="Cascadia Code,Consolas,Menlo,monospace" FontSize="11" Background="#111" Foreground="#DDD"/>
+            </ScrollViewer>
+        </Border>
+        <TextBlock Grid.Row="3" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

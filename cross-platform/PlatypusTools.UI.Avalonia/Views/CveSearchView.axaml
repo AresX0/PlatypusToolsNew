@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.CveSearchView"
+             x:DataType="vm:CveSearchViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="🛡 CVE Search (NVD)" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Right" Content="🔍 Search" Command="{Binding SearchCommand}" IsEnabled="{Binding !IsBusy}" Background="#2196F3" Foreground="White" Margin="4,0,0,0"/>
+            <TextBox Text="{Binding Query, Mode=TwoWay}" Watermark="keyword or CVE-YYYY-NNNN…"/>
+        </DockPanel>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
+            <DataGrid ItemsSource="{Binding Results}" AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="CVE" Width="160" Binding="{Binding Id}"/>
+                    <DataGridTextColumn Header="Severity" Width="100" Binding="{Binding Severity}"/>
+                    <DataGridTextColumn Header="Score" Width="80" Binding="{Binding Score}"/>
+                    <DataGridTextColumn Header="Published" Width="180" Binding="{Binding Published}"/>
+                    <DataGridTextColumn Header="Description" Width="*" Binding="{Binding Description}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+        <TextBlock Grid.Row="3" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

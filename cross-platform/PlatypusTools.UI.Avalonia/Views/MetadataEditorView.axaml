@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.MetadataEditorView"
+             x:DataType="vm:MetadataEditorViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="🏷 Metadata Editor (exiftool)" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="📂 Pick" Click="OnPickClicked" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="📖 Read" Command="{Binding ReadCommand}" IsEnabled="{Binding !IsBusy}" Background="#2196F3" Foreground="White"/>
+            <TextBox Text="{Binding Input, Mode=TwoWay}"/>
+        </DockPanel>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,4">
+            <TextBlock Text="Tag:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Tag, Mode=TwoWay}" Width="160" Margin="0,0,8,0"/>
+            <TextBlock Text="Value:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Value, Mode=TwoWay}" Width="320" Margin="0,0,8,0"/>
+            <Button Content="✏ Write" Command="{Binding WriteCommand}" IsEnabled="{Binding !IsBusy}" Background="#4CAF50" Foreground="White"/>
+        </StackPanel>
+        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="1">
+            <ScrollViewer>
+                <TextBox Text="{Binding Output}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap"
+                         FontFamily="Cascadia Code,Consolas,Menlo,monospace" FontSize="11"/>
+            </ScrollViewer>
+        </Border>
+        <TextBlock Grid.Row="4" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

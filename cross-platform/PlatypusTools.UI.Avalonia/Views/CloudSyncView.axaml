@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.CloudSyncView"
+             x:DataType="vm:CloudSyncViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="☁ Cloud Sync (rclone)" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="📂 Local" Click="OnPickClicked" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding LocalPath, Mode=TwoWay}"/>
+        </DockPanel>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,4">
+            <TextBlock Text="Remote:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding RemoteName, Mode=TwoWay}" Width="120" Margin="0,0,4,0"/>
+            <TextBlock Text=":" VerticalAlignment="Center"/>
+            <TextBox Text="{Binding RemotePath, Mode=TwoWay}" Width="320" Margin="4,0,8,0"/>
+            <Button Content="📋 List Remotes" Command="{Binding ListRemotesCommand}"/>
+        </StackPanel>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,4">
+            <ComboBox ItemsSource="{Binding Directions}" SelectedItem="{Binding Direction, Mode=TwoWay}" Width="220" Margin="0,0,8,0"/>
+            <CheckBox Content="Dry-run" IsChecked="{Binding DryRun, Mode=TwoWay}" Margin="0,0,8,0"/>
+            <Button Content="🚀 Run" Command="{Binding RunCommand}" IsEnabled="{Binding !IsBusy}" Background="#4CAF50" Foreground="White" Margin="0,0,4,0"/>
+            <Button Content="⏹ Cancel" Command="{Binding CancelCommand}" IsEnabled="{Binding IsBusy}"/>
+        </StackPanel>
+        <Border Grid.Row="4" BorderBrush="Gray" BorderThickness="1">
+            <ScrollViewer>
+                <TextBox Text="{Binding Output}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap"
+                         FontFamily="Cascadia Code,Consolas,Menlo,monospace" FontSize="11"/>
+            </ScrollViewer>
+        </Border>
+        <TextBlock Grid.Row="5" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

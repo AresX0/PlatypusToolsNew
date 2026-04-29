@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.DiskCleanupView"
+             x:DataType="vm:DiskCleanupViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="🧹 Disk Cleanup" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,4">
+            <Button Content="🔍 Scan" Command="{Binding ScanCommand}" IsEnabled="{Binding !IsBusy}" Background="#2196F3" Foreground="White" Margin="0,0,4,0"/>
+            <Button Content="🧨 Clean Selected" Command="{Binding CleanCommand}" IsEnabled="{Binding !IsBusy}" Background="#F44336" Foreground="White"/>
+        </StackPanel>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
+            <DataGrid ItemsSource="{Binding Targets}" AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn Header="" Width="40" Binding="{Binding IsSelected, Mode=TwoWay}"/>
+                    <DataGridTextColumn Header="Name" Width="200" Binding="{Binding Name}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Size" Width="100" Binding="{Binding SizeDisplay}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Path" Width="*" Binding="{Binding Path}" IsReadOnly="True"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+        <TextBlock Grid.Row="3" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

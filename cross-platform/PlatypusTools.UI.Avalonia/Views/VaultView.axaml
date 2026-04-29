@@ -1,0 +1,101 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.VaultView"
+             x:DataType="vm:VaultViewModel">
+    <Grid Margin="0">
+        <!-- Locked screen -->
+        <Border IsVisible="{Binding IsLocked}" Padding="16">
+            <StackPanel Spacing="10" MaxWidth="420" HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                <TextBlock Text="🔒 Vault" FontSize="28" FontWeight="Bold"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding Status}" Foreground="Gray"
+                           TextWrapping="Wrap" HorizontalAlignment="Center" />
+                <TextBlock Text="Master password:" Margin="0,8,0,0" />
+                <TextBox Text="{Binding Password, Mode=TwoWay}" PasswordChar="•" />
+                <TextBlock Text="Confirm (new vault only):"
+                           IsVisible="{Binding !VaultExists}" />
+                <TextBox Text="{Binding ConfirmPassword, Mode=TwoWay}" PasswordChar="•"
+                         IsVisible="{Binding !VaultExists}" />
+                <Button Content="Unlock / Create" Command="{Binding UnlockOrCreateCommand}"
+                        HorizontalAlignment="Stretch" />
+                <TextBlock Text="{Binding VaultPath}" FontSize="10" Foreground="Gray"
+                           TextWrapping="Wrap" Margin="0,8,0,0" />
+            </StackPanel>
+        </Border>
+
+        <!-- Unlocked screen -->
+        <Grid IsVisible="{Binding !IsLocked}" RowDefinitions="Auto,*,Auto,Auto" Margin="0">
+            <DockPanel Grid.Row="0" Margin="0,0,0,8">
+                <Button DockPanel.Dock="Right" Content="🔒 Lock"
+                        Command="{Binding LockCommand}" />
+                <TextBlock Text="🔒 Vault" FontSize="20" FontWeight="Bold"
+                           VerticalAlignment="Center" />
+            </DockPanel>
+
+            <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1">
+                <DataGrid ItemsSource="{Binding Entries}"
+                          SelectedItem="{Binding SelectedEntry, Mode=TwoWay}"
+                          AutoGenerateColumns="False" IsReadOnly="True"
+                          GridLinesVisibility="Horizontal" CanUserResizeColumns="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Title" Width="200"
+                                            Binding="{Binding Title}" />
+                        <DataGridTextColumn Header="Username" Width="160"
+                                            Binding="{Binding Username}" />
+                        <DataGridTextColumn Header="URL" Width="*"
+                                            Binding="{Binding Url}" />
+                        <DataGridTextColumn Header="Modified" Width="140"
+                                            Binding="{Binding Modified, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <Border Grid.Row="2" Margin="0,8,0,0" Padding="8" BorderBrush="Gray"
+                    BorderThickness="1" CornerRadius="4">
+                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Title:"
+                               VerticalAlignment="Center" Margin="0,0,8,4" />
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding NewTitle, Mode=TwoWay}"
+                             Margin="0,0,8,4" />
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Username:"
+                               VerticalAlignment="Center" Margin="0,0,8,4" />
+                    <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding NewUsername, Mode=TwoWay}"
+                             Margin="0,0,0,4" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Password:"
+                               VerticalAlignment="Center" Margin="0,0,8,4" />
+                    <DockPanel Grid.Row="1" Grid.Column="1" LastChildFill="True" Margin="0,0,8,4">
+                        <Button DockPanel.Dock="Right" Content="🎲"
+                                Command="{Binding GeneratePasswordCommand}"
+                                ToolTip.Tip="Generate random password" />
+                        <TextBox Text="{Binding NewPasswordValue, Mode=TwoWay}" />
+                    </DockPanel>
+                    <TextBlock Grid.Row="1" Grid.Column="2" Text="URL:"
+                               VerticalAlignment="Center" Margin="0,0,8,4" />
+                    <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding NewUrl, Mode=TwoWay}"
+                             Margin="0,0,0,4" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Notes:"
+                               VerticalAlignment="Top" Margin="0,4,8,0" />
+                    <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3"
+                             Text="{Binding NewNotes, Mode=TwoWay}"
+                             AcceptsReturn="True" Height="50" TextWrapping="Wrap" />
+                </Grid>
+            </Border>
+
+            <DockPanel Grid.Row="3" Margin="0,8,0,0">
+                <Button DockPanel.Dock="Right" Content="🗑 Delete Selected"
+                        Command="{Binding DeleteSelectedCommand}" Margin="4,0,0,0" />
+                <Button DockPanel.Dock="Right" Content="📋 Copy Password"
+                        Command="{Binding CopyPasswordCommand}" Margin="4,0,0,0" />
+                <Button DockPanel.Dock="Left" Content="➕ Add Entry"
+                        Command="{Binding AddEntryCommand}" />
+                <TextBlock Text="{Binding Status}" Foreground="Gray"
+                           VerticalAlignment="Center" Margin="12,0,0,0"
+                           TextTrimming="CharacterEllipsis" />
+            </DockPanel>
+        </Grid>
+    </Grid>
+</UserControl>

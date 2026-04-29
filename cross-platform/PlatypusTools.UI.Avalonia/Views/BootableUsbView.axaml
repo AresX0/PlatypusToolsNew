@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.BootableUsbView"
+             x:DataType="vm:BootableUsbViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="💽 Bootable USB Writer (dd)" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="📀 ISO" Click="OnPickIsoClicked" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding IsoPath, Mode=TwoWay}"/>
+        </DockPanel>
+        <TextBox Grid.Row="2" Text="{Binding Device, Mode=TwoWay}" Watermark="Device path" Margin="0,0,0,4"/>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,4">
+            <CheckBox Content="I understand this DESTROYS all data on the device" IsChecked="{Binding Confirmed, Mode=TwoWay}" Margin="0,0,8,0"/>
+            <Button Content="🚀 Write" Command="{Binding WriteCommand}" IsEnabled="{Binding !IsBusy}" Background="#F44336" Foreground="White" Margin="0,0,4,0"/>
+            <Button Content="⏹ Cancel" Command="{Binding CancelCommand}" IsEnabled="{Binding IsBusy}"/>
+        </StackPanel>
+        <Border Grid.Row="4" BorderBrush="Gray" BorderThickness="1">
+            <ScrollViewer>
+                <TextBox Text="{Binding Output}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap"
+                         FontFamily="Cascadia Code,Consolas,Menlo,monospace" FontSize="11"/>
+            </ScrollViewer>
+        </Border>
+        <TextBlock Grid.Row="5" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

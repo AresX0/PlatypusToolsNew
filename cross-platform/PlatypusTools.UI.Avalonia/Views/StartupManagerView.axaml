@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.StartupManagerView"
+             x:DataType="vm:StartupManagerViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <DockPanel Grid.Row="0" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Left" Content="🔄 Refresh" Command="{Binding RefreshCommand}" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="🗑 Delete" Command="{Binding DeleteCommand}" Background="#F44336" Foreground="White"/>
+            <TextBlock Text="{Binding AutostartFolder}" Foreground="Gray" VerticalAlignment="Center" Margin="12,0,0,0"/>
+        </DockPanel>
+        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Padding="8" Margin="0,0,0,8">
+            <Grid ColumnDefinitions="160,*,Auto">
+                <TextBox Grid.Column="0" Text="{Binding NewName, Mode=TwoWay}" Watermark="entry name"/>
+                <TextBox Grid.Column="1" Text="{Binding NewCommand, Mode=TwoWay}" Watermark="command to run on login"/>
+                <Button Grid.Column="2" Content="➕ Add" Command="{Binding AddCommand}" Background="#4CAF50" Foreground="White"/>
+            </Grid>
+        </Border>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
+            <DataGrid ItemsSource="{Binding Items}" SelectedItem="{Binding Selected, Mode=TwoWay}"
+                      AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Width="280" Binding="{Binding Name}"/>
+                    <DataGridTextColumn Header="Path" Width="*" Binding="{Binding Path}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+        <TextBlock Grid.Row="3" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

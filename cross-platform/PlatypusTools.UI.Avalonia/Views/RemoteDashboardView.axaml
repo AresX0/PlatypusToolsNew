@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.RemoteDashboardView" x:DataType="vm:RemoteDashboardViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="🛰 Remote Dashboard" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Right" Content="➕ Add" Command="{Binding AddCommand}" Margin="4,0,0,0"/>
+            <TextBox DockPanel.Dock="Left" Watermark="Host" Text="{Binding NewHost, Mode=TwoWay}" Width="200" Margin="0,0,4,0"/>
+            <TextBox Watermark="User" Text="{Binding NewUser, Mode=TwoWay}"/>
+        </DockPanel>
+        <ItemsControl Grid.Row="2" ItemsSource="{Binding Hosts}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border BorderBrush="#444" BorderThickness="1" CornerRadius="6" Padding="12" Margin="6" Width="220">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Host}" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding User}" Foreground="Gray" FontSize="11"/>
+                            <TextBlock Text="{Binding Reachable, StringFormat='Up: {0}'}" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding Uptime}" TextWrapping="Wrap" FontSize="11" Foreground="#888"/>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Button Grid.Row="3" Content="📡 Refresh" Command="{Binding ProbeCommand}" IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Left" Background="#2196F3" Foreground="White"/>
+    </Grid>
+</UserControl>

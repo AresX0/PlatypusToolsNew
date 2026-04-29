@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             xmlns:ae="using:AvaloniaEdit"
+             x:Class="PlatypusTools.UI.Avalonia.Views.TextEditorView"
+             x:DataType="vm:TextEditorViewModel">
+    <Grid RowDefinitions="Auto,*,Auto">
+        <DockPanel Grid.Row="0" Margin="0,0,0,8" LastChildFill="True">
+            <Button DockPanel.Dock="Left" Content="📂 Open" Click="OnOpenClicked" Margin="0,0,4,0" />
+            <Button DockPanel.Dock="Left" Content="💾 Save" Command="{Binding SaveCommand}" Margin="0,0,4,0" />
+            <Button DockPanel.Dock="Left" Content="Save As…" Click="OnSaveAsClicked" Margin="0,0,8,0" />
+            <TextBlock Text="{Binding FilePath}" Foreground="Gray"
+                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+        </DockPanel>
+
+        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Margin="0,0,0,8">
+            <ae:TextEditor x:Name="Editor"
+                           ShowLineNumbers="True"
+                           FontFamily="Cascadia Code,Consolas,Menlo,monospace"
+                           FontSize="13" />
+        </Border>
+
+        <TextBlock Grid.Row="2" Text="{Binding Status}" Foreground="Gray" />
+    </Grid>
+</UserControl>

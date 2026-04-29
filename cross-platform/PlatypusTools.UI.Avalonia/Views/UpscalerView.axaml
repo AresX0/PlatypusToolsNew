@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.UpscalerView" x:DataType="vm:UpscalerViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*">
+        <TextBlock Grid.Row="0" Text="🔍 Upscaler (FFmpeg)" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="📂 Input" Click="OnPickInClicked" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Input, Mode=TwoWay}"/>
+        </DockPanel>
+        <DockPanel Grid.Row="2" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="💾 Output" Click="OnPickOutClicked" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Output, Mode=TwoWay}"/>
+        </DockPanel>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,4">
+            <TextBlock Text="Scale:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <ComboBox ItemsSource="{Binding Scales}" SelectedItem="{Binding Scale, Mode=TwoWay}" Width="80"/>
+        </StackPanel>
+        <Button Grid.Row="4" Content="🚀 Upscale" Command="{Binding UpscaleCommand}" IsEnabled="{Binding !IsBusy}" Background="#4CAF50" Foreground="White" HorizontalAlignment="Left"/>
+        <TextBlock Grid.Row="5" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

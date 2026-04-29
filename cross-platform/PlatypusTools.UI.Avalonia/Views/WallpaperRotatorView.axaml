@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.WallpaperRotatorView"
+             x:DataType="vm:WallpaperRotatorViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="🖼️ Wallpaper Rotator" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Left" Content="📂 Pick Folder" Click="OnPickClicked" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="🔄 Refresh" Command="{Binding RefreshCommand}" Margin="0,0,8,0"/>
+            <TextBox Text="{Binding Folder, Mode=TwoWay}"/>
+        </DockPanel>
+        <DockPanel Grid.Row="2" Margin="0,0,0,8">
+            <TextBlock DockPanel.Dock="Left" Text="Interval (sec):" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <NumericUpDown DockPanel.Dock="Left" Value="{Binding IntervalSeconds, Mode=TwoWay}" Minimum="5" Maximum="86400" Width="120" Margin="0,0,8,0"/>
+            <Button DockPanel.Dock="Left" Content="▶ Start" Command="{Binding StartCommand}" IsEnabled="{Binding !IsRotating}" Background="#4CAF50" Foreground="White" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="⏹ Stop" Command="{Binding StopCommand}" IsEnabled="{Binding IsRotating}" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="⏭ Apply Next Now" Command="{Binding ApplyNextCommand}"/>
+        </DockPanel>
+        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="1" Margin="0,0,0,8">
+            <ListBox ItemsSource="{Binding Wallpapers}"/>
+        </Border>
+        <StackPanel Grid.Row="4">
+            <TextBlock Text="{Binding CurrentImage}" FontSize="11" Foreground="Gray" TextTrimming="CharacterEllipsis"/>
+            <TextBlock Text="{Binding Status}" Foreground="Gray"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

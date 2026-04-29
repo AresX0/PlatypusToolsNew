@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.ScriptingConsoleView"
+             x:DataType="vm:ScriptingConsoleViewModel">
+    <Grid RowDefinitions="Auto,150,*,Auto">
+        <DockPanel Grid.Row="0" Margin="0,0,0,8">
+            <TextBlock DockPanel.Dock="Left" Text="Shell:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <ComboBox DockPanel.Dock="Left" ItemsSource="{Binding Shells}" SelectedItem="{Binding Shell, Mode=TwoWay}" Width="120" Margin="0,0,8,0"/>
+            <Button DockPanel.Dock="Left" Content="▶ Run" Command="{Binding RunCommand}" Background="#4CAF50" Foreground="White" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="⏹ Cancel" Command="{Binding CancelCommand}" Background="#F44336" Foreground="White" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="🗑 Clear" Command="{Binding ClearCommand}"/>
+        </DockPanel>
+        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Margin="0,0,0,8">
+            <TextBox Text="{Binding Script, Mode=TwoWay}" AcceptsReturn="True"
+                     FontFamily="Cascadia Code,Consolas,monospace"
+                     Watermark="Enter script (single command or block)…"/>
+        </Border>
+        <Border Grid.Row="2" Background="#101010" Padding="8">
+            <ScrollViewer>
+                <SelectableTextBlock Text="{Binding Output}" Foreground="#80FF80" FontFamily="Cascadia Code,Consolas,monospace"/>
+            </ScrollViewer>
+        </Border>
+        <TextBlock Grid.Row="3" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

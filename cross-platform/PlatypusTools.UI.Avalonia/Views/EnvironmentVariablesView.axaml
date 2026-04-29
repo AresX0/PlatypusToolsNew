@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.EnvironmentVariablesView"
+             x:DataType="vm:EnvironmentVariablesViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <DockPanel Grid.Row="0" Margin="0,0,0,8">
+            <TextBlock DockPanel.Dock="Left" Text="Scope:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <ComboBox DockPanel.Dock="Left" ItemsSource="{Binding Scopes}" SelectedItem="{Binding Scope, Mode=TwoWay}" Width="120" Margin="0,0,8,0"/>
+            <Button DockPanel.Dock="Left" Content="🔄 Refresh" Command="{Binding RefreshCommand}" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="🗑 Delete Selected" Command="{Binding DeleteVarCommand}" Background="#F44336" Foreground="White"/>
+        </DockPanel>
+        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Padding="8" Margin="0,0,0,8">
+            <Grid ColumnDefinitions="200,*,Auto">
+                <TextBox Grid.Column="0" Text="{Binding NewName, Mode=TwoWay}" Watermark="Variable name"/>
+                <TextBox Grid.Column="1" Text="{Binding NewValue, Mode=TwoWay}" Watermark="Value"/>
+                <Button Grid.Column="2" Content="Set" Command="{Binding SetVarCommand}" Background="#4CAF50" Foreground="White"/>
+            </Grid>
+        </Border>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
+            <DataGrid ItemsSource="{Binding Entries}" SelectedItem="{Binding Selected, Mode=TwoWay}"
+                      AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Width="220" Binding="{Binding Name}"/>
+                    <DataGridTextColumn Header="Value" Width="*" Binding="{Binding Value}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+        <TextBlock Grid.Row="3" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

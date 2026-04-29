@@ -1,0 +1,10 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.RecentCleanupView" x:DataType="vm:RecentCleanupViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,*">
+        <TextBlock Grid.Row="0" Text="🧹 Recent Cleanup" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <CheckBox Grid.Row="1" Content="Dry run" IsChecked="{Binding DryRun, Mode=TwoWay}" Margin="0,0,0,4"/>
+        <Button Grid.Row="2" Content="🧹 Clean recents" Command="{Binding CleanCommand}" Background="#FF9800" Foreground="White" HorizontalAlignment="Left"/>
+        <ScrollViewer Grid.Row="3"><TextBox Text="{Binding Result}" IsReadOnly="True" AcceptsReturn="True" FontFamily="Consolas, monospace"/></ScrollViewer>
+    </Grid>
+</UserControl>

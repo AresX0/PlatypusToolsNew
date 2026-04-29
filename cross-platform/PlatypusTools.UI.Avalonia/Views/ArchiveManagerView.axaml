@@ -1,0 +1,38 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.ArchiveManagerView"
+             x:DataType="vm:ArchiveManagerViewModel">
+    <StackPanel Spacing="10">
+        <TextBlock Text="📦 Archive Manager (ZIP)" FontSize="20" FontWeight="Bold"/>
+        <Border BorderBrush="Gray" BorderThickness="1" Padding="10" CornerRadius="4">
+            <StackPanel Spacing="8">
+                <TextBlock Text="Create ZIP" FontWeight="Bold"/>
+                <Grid ColumnDefinitions="Auto,*">
+                    <Button Grid.Column="0" Content="📂 Source" Click="OnPickSource" Margin="0,0,4,0"/>
+                    <TextBox Grid.Column="1" Text="{Binding SourceFolder, Mode=TwoWay}"/>
+                </Grid>
+                <Grid ColumnDefinitions="Auto,*">
+                    <Button Grid.Column="0" Content="💾 Zip path" Click="OnPickZipOut" Margin="0,0,4,0"/>
+                    <TextBox Grid.Column="1" Text="{Binding ArchivePath, Mode=TwoWay}"/>
+                </Grid>
+                <Button Content="📦 Create ZIP" Command="{Binding CreateZipCommand}" Background="#4CAF50" Foreground="White" HorizontalAlignment="Left"/>
+            </StackPanel>
+        </Border>
+        <Border BorderBrush="Gray" BorderThickness="1" Padding="10" CornerRadius="4">
+            <StackPanel Spacing="8">
+                <TextBlock Text="Extract ZIP" FontWeight="Bold"/>
+                <Grid ColumnDefinitions="Auto,*">
+                    <Button Grid.Column="0" Content="📂 Zip" Click="OnPickZipIn" Margin="0,0,4,0"/>
+                    <TextBox Grid.Column="1" Text="{Binding ArchivePath, Mode=TwoWay}"/>
+                </Grid>
+                <Grid ColumnDefinitions="Auto,*">
+                    <Button Grid.Column="0" Content="📂 Dest" Click="OnPickExtractTo" Margin="0,0,4,0"/>
+                    <TextBox Grid.Column="1" Text="{Binding ExtractTo, Mode=TwoWay}"/>
+                </Grid>
+                <Button Content="📤 Extract" Command="{Binding ExtractZipCommand}" Background="#2196F3" Foreground="White" HorizontalAlignment="Left"/>
+            </StackPanel>
+        </Border>
+        <TextBlock Text="{Binding Status}" Foreground="Gray"/>
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.MailSenderView"
+             x:DataType="vm:MailSenderViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="✉ Mail Sender (SMTP via MailKit)" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,4">
+            <TextBox Text="{Binding SmtpHost, Mode=TwoWay}" Width="240" Watermark="SMTP host" Margin="0,0,4,0"/>
+            <NumericUpDown Value="{Binding Port, Mode=TwoWay}" Minimum="1" Maximum="65535" Width="100" Margin="0,0,4,0"/>
+            <CheckBox Content="STARTTLS" IsChecked="{Binding UseSsl, Mode=TwoWay}"/>
+        </StackPanel>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,4">
+            <TextBox Text="{Binding User, Mode=TwoWay}" Width="240" Watermark="User" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Password, Mode=TwoWay}" PasswordChar="●" Width="240" Watermark="Password"/>
+        </StackPanel>
+        <TextBox Grid.Row="3" Text="{Binding From, Mode=TwoWay}" Watermark="From (defaults to user)" Margin="0,0,0,4"/>
+        <TextBox Grid.Row="4" Text="{Binding To, Mode=TwoWay}" Watermark="To (comma-separated)" Margin="0,0,0,4"/>
+        <TextBox Grid.Row="5" Text="{Binding Subject, Mode=TwoWay}" Watermark="Subject" Margin="0,0,0,4"/>
+        <TextBox Grid.Row="6" Text="{Binding Body, Mode=TwoWay}" AcceptsReturn="True" TextWrapping="Wrap" Watermark="Body (plain text)"/>
+        <DockPanel Grid.Row="7" Margin="0,8,0,0">
+            <Button DockPanel.Dock="Right" Content="📤 Send" Command="{Binding SendCommand}" IsEnabled="{Binding !IsBusy}" Background="#4CAF50" Foreground="White"/>
+            <TextBlock Text="{Binding Status}" Foreground="Gray" VerticalAlignment="Center"/>
+        </DockPanel>
+    </Grid>
+</UserControl>

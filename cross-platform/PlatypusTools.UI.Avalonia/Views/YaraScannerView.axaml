@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.YaraScannerView"
+             x:DataType="vm:YaraScannerViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="🪤 YARA Scanner" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="📜 Rules" Click="OnPickRulesClicked" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding RulesPath, Mode=TwoWay}"/>
+        </DockPanel>
+        <DockPanel Grid.Row="2" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="📂 Target" Click="OnPickTargetClicked" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding TargetPath, Mode=TwoWay}"/>
+        </DockPanel>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,4">
+            <CheckBox Content="Recursive" IsChecked="{Binding Recursive, Mode=TwoWay}" Margin="0,0,8,0"/>
+            <Button Content="🚀 Scan" Command="{Binding ScanCommand}" IsEnabled="{Binding !IsBusy}" Background="#4CAF50" Foreground="White" Margin="0,0,4,0"/>
+            <Button Content="⏹ Cancel" Command="{Binding CancelCommand}" IsEnabled="{Binding IsBusy}"/>
+        </StackPanel>
+        <Border Grid.Row="4" BorderBrush="Gray" BorderThickness="1">
+            <ScrollViewer>
+                <TextBox Text="{Binding Output}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap"
+                         FontFamily="Cascadia Code,Consolas,Menlo,monospace" FontSize="11"/>
+            </ScrollViewer>
+        </Border>
+        <TextBlock Grid.Row="5" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

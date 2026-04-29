@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.PdfToolsView"
+             x:DataType="vm:PdfToolsViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="📄 PDF Tools (qpdf)" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,4">
+            <TextBlock Text="Operation:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <ComboBox ItemsSource="{Binding Operations}" SelectedItem="{Binding Operation, Mode=TwoWay}" Width="140" Margin="0,0,8,0"/>
+            <TextBlock Text="Pages:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding PageRange, Mode=TwoWay}" Width="100" Margin="0,0,8,0"/>
+            <TextBlock Text="Password:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Password, Mode=TwoWay}" PasswordChar="●" Width="120" Margin="0,0,8,0"/>
+            <Button Content="🚀 Run" Command="{Binding RunCommand}" IsEnabled="{Binding !IsBusy}" Background="#4CAF50" Foreground="White"/>
+        </StackPanel>
+        <DockPanel Grid.Row="2" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="➕ Add Inputs" Click="OnAddClicked" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="🗑 Clear" Command="{Binding ClearCommand}" Margin="0,0,4,0"/>
+            <TextBlock VerticalAlignment="Center" Foreground="Gray" Text="Add one or more input PDFs"/>
+        </DockPanel>
+        <DockPanel Grid.Row="3" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="📂 Output" Click="OnOutClicked" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Output, Mode=TwoWay}"/>
+        </DockPanel>
+        <Border Grid.Row="4" BorderBrush="Gray" BorderThickness="1">
+            <ListBox ItemsSource="{Binding Inputs}" FontFamily="Cascadia Code,Consolas,Menlo,monospace" FontSize="11"/>
+        </Border>
+        <TextBlock Grid.Row="5" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

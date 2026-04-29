@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.ScreensaverView"
+             x:DataType="vm:ScreensaverViewModel">
+    <StackPanel Spacing="14">
+        <TextBlock Text="🌙 Screensaver / Lock" FontSize="20" FontWeight="Bold"/>
+        <TextBlock Text="{Binding PlatformInfo}" Foreground="Gray"/>
+        <Border BorderBrush="Gray" BorderThickness="1" Padding="12" CornerRadius="4">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Lock screen now" FontWeight="Bold"/>
+                <Button Content="🔒 Lock" Command="{Binding LockNowCommand}" HorizontalAlignment="Left"/>
+            </StackPanel>
+        </Border>
+        <Border BorderBrush="Gray" BorderThickness="1" Padding="12" CornerRadius="4">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Idle timeout before screen lock" FontWeight="Bold"/>
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Left" Text="Seconds:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <NumericUpDown DockPanel.Dock="Left" Value="{Binding IdleSeconds, Mode=TwoWay}" Minimum="60" Maximum="86400" Width="160" Margin="0,0,8,0"/>
+                    <Button Content="Apply" Command="{Binding ApplyTimeoutCommand}" HorizontalAlignment="Left"/>
+                </DockPanel>
+                <TextBlock Text="(Linux: gsettings org.gnome.desktop.session idle-delay; macOS: pmset displaysleep)" FontSize="10" Foreground="Gray"/>
+            </StackPanel>
+        </Border>
+        <TextBlock Text="{Binding Status}" Foreground="Gray"/>
+    </StackPanel>
+</UserControl>

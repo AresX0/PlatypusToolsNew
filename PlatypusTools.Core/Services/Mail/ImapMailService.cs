@@ -78,7 +78,7 @@ namespace PlatypusTools.Core.Services.Mail
             // Also add INBOX if not already included
             try
             {
-                var inbox = _client.Inbox;
+                var inbox = _client!.Inbox!;
                 if (!result.Any(f => f.FullPath.Equals("INBOX", StringComparison.OrdinalIgnoreCase)))
                 {
                     await inbox.OpenAsync(FolderAccess.ReadOnly, ct);
@@ -383,7 +383,7 @@ namespace PlatypusTools.Core.Services.Mail
                 ? _client!.Inbox
                 : await _client!.GetFolderAsync(folderPath, ct);
 
-            await folder.OpenAsync(access, ct);
+            await folder!.OpenAsync(access, ct);
             return folder;
         }
 

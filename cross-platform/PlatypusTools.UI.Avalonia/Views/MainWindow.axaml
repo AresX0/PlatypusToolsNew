@@ -1,0 +1,176 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+        xmlns:v="using:PlatypusTools.UI.Avalonia.Views"
+        x:Class="PlatypusTools.UI.Avalonia.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="PlatypusTools (Cross-Platform)"
+        Icon="avares://PlatypusTools.UI.Avalonia/Assets/app-icon.png"
+        Width="1280" Height="800"
+        MinWidth="900" MinHeight="600">
+
+    <Window.Resources>
+        <DataTemplate x:Key="AudioPlayerTpl"     DataType="vm:AudioPlayerViewModel"><v:AudioPlayerView /></DataTemplate>
+        <DataTemplate x:Key="FileManagerTpl"     DataType="vm:FileManagerViewModel"><v:FileManagerView /></DataTemplate>
+        <DataTemplate x:Key="DuplicatesTpl"      DataType="vm:DuplicatesViewModel"><v:DuplicatesView /></DataTemplate>
+        <DataTemplate x:Key="HashScannerTpl"     DataType="vm:HashScannerViewModel"><v:HashScannerView /></DataTemplate>
+        <DataTemplate x:Key="TextEditorTpl"      DataType="vm:TextEditorViewModel"><v:TextEditorView /></DataTemplate>
+        <DataTemplate x:Key="VaultTpl"           DataType="vm:VaultViewModel"><v:VaultView /></DataTemplate>
+        <DataTemplate x:Key="ImageViewerTpl"     DataType="vm:ImageViewerViewModel"><v:ImageViewerView /></DataTemplate>
+        <DataTemplate x:Key="AudioLibraryTpl"    DataType="vm:AudioLibraryViewModel"><v:AudioLibraryView /></DataTemplate>
+        <DataTemplate x:Key="SettingsTpl"        DataType="vm:SettingsViewModel"><v:SettingsView /></DataTemplate>
+        <DataTemplate x:Key="ProcessMgrTpl"       DataType="vm:ProcessManagerViewModel"><v:ProcessManagerView /></DataTemplate>
+        <DataTemplate x:Key="WallpaperRotTpl"     DataType="vm:WallpaperRotatorViewModel"><v:WallpaperRotatorView /></DataTemplate>
+        <DataTemplate x:Key="ScreensaverTpl"      DataType="vm:ScreensaverViewModel"><v:ScreensaverView /></DataTemplate>
+        <DataTemplate x:Key="NetworkToolsTpl"     DataType="vm:NetworkToolsViewModel"><v:NetworkToolsView /></DataTemplate>
+        <DataTemplate x:Key="DiskSpaceTpl"        DataType="vm:DiskSpaceAnalyzerViewModel"><v:DiskSpaceAnalyzerView /></DataTemplate>
+        <DataTemplate x:Key="FileDiffTpl"         DataType="vm:FileDiffViewModel"><v:FileDiffView /></DataTemplate>
+        <DataTemplate x:Key="EmptyFolderTpl"      DataType="vm:EmptyFolderScannerViewModel"><v:EmptyFolderScannerView /></DataTemplate>
+        <DataTemplate x:Key="BulkChecksumTpl"     DataType="vm:BulkChecksumViewModel"><v:BulkChecksumView /></DataTemplate>
+        <DataTemplate x:Key="VideoConvTpl"        DataType="vm:VideoConverterViewModel"><v:VideoConverterView /></DataTemplate>
+        <DataTemplate x:Key="GifMakerTpl"         DataType="vm:GifMakerViewModel"><v:GifMakerView /></DataTemplate>
+        <DataTemplate x:Key="AudioTrimTpl"        DataType="vm:AudioTrimViewModel"><v:AudioTrimView /></DataTemplate>
+        <DataTemplate x:Key="ImageResizeTpl"      DataType="vm:ImageResizerViewModel"><v:ImageResizerView /></DataTemplate>
+        <DataTemplate x:Key="FileEncryptTpl"      DataType="vm:FileEncryptionViewModel"><v:FileEncryptionView /></DataTemplate>
+        <DataTemplate x:Key="SecureWipeTpl"       DataType="vm:SecureWipeViewModel"><v:SecureWipeView /></DataTemplate>
+        <DataTemplate x:Key="ArchiveMgrTpl"       DataType="vm:ArchiveManagerViewModel"><v:ArchiveManagerView /></DataTemplate>
+        <DataTemplate x:Key="ColorPickerTpl"      DataType="vm:ColorPickerViewModel"><v:ColorPickerView /></DataTemplate>
+        <DataTemplate x:Key="WifiTpl"             DataType="vm:WifiPasswordsViewModel"><v:WifiPasswordsView /></DataTemplate>
+        <DataTemplate x:Key="ActivityLogTpl"      DataType="vm:ActivityLogViewModel"><v:ActivityLogView /></DataTemplate>
+        <DataTemplate x:Key="SymlinkTpl"          DataType="vm:SymlinkManagerViewModel"><v:SymlinkManagerView /></DataTemplate>
+        <DataTemplate x:Key="EnvVarsTpl"          DataType="vm:EnvironmentVariablesViewModel"><v:EnvironmentVariablesView /></DataTemplate>
+        <DataTemplate x:Key="BulkMoveTpl"         DataType="vm:BulkFileMoverViewModel"><v:BulkFileMoverView /></DataTemplate>
+        <DataTemplate x:Key="SmartRenameTpl"      DataType="vm:SmartRenameViewModel"><v:SmartRenameView /></DataTemplate>
+        <DataTemplate x:Key="SshKeyTpl"           DataType="vm:SshKeyManagerViewModel"><v:SshKeyManagerView /></DataTemplate>
+        <DataTemplate x:Key="RecentWsTpl"         DataType="vm:RecentWorkspacesViewModel"><v:RecentWorkspacesView /></DataTemplate>
+        <DataTemplate x:Key="ScriptConsoleTpl"    DataType="vm:ScriptingConsoleViewModel"><v:ScriptingConsoleView /></DataTemplate>
+        <DataTemplate x:Key="ScreenRecTpl"        DataType="vm:ScreenRecorderViewModel"><v:ScreenRecorderView /></DataTemplate>
+        <DataTemplate x:Key="VidCombineTpl"       DataType="vm:VideoCombinerViewModel"><v:VideoCombinerView /></DataTemplate>
+        <DataTemplate x:Key="ImgConvTpl"          DataType="vm:ImageConverterViewModel"><v:ImageConverterView /></DataTemplate>
+        <DataTemplate x:Key="WatermarkTpl"        DataType="vm:BatchWatermarkViewModel"><v:BatchWatermarkView /></DataTemplate>
+        <DataTemplate x:Key="AboutTpl"            DataType="vm:AboutViewModel"><v:AboutView /></DataTemplate>
+        <DataTemplate x:Key="NotifCenterTpl"      DataType="vm:NotificationCenterViewModel"><v:NotificationCenterView /></DataTemplate>
+        <DataTemplate x:Key="PrivacyTpl"          DataType="vm:PrivacyCleanerViewModel"><v:PrivacyCleanerView /></DataTemplate>
+        <DataTemplate x:Key="ScreenshotTpl"       DataType="vm:ScreenshotViewModel"><v:ScreenshotView /></DataTemplate>
+        <DataTemplate x:Key="StartupMgrTpl"       DataType="vm:StartupManagerViewModel"><v:StartupManagerView /></DataTemplate>
+        <DataTemplate x:Key="FileAnalyzeTpl"      DataType="vm:FileAnalyzerViewModel"><v:FileAnalyzerView /></DataTemplate>
+        <!-- Batch 6 -->
+        <DataTemplate x:Key="ClipHistTpl"         DataType="vm:ClipboardHistoryViewModel"><v:ClipboardHistoryView /></DataTemplate>
+        <DataTemplate x:Key="DiskCleanupTpl"      DataType="vm:DiskCleanupViewModel"><v:DiskCleanupView /></DataTemplate>
+        <DataTemplate x:Key="FileIntegTpl"        DataType="vm:FileIntegrityViewModel"><v:FileIntegrityView /></DataTemplate>
+        <DataTemplate x:Key="LogViewTpl"          DataType="vm:LogViewerViewModel"><v:LogViewerView /></DataTemplate>
+        <DataTemplate x:Key="VidMetaTpl"          DataType="vm:VideoMetadataViewModel"><v:VideoMetadataView /></DataTemplate>
+        <DataTemplate x:Key="NetTrafTpl"          DataType="vm:NetworkTrafficViewModel"><v:NetworkTrafficView /></DataTemplate>
+        <DataTemplate x:Key="SysAuditTpl"         DataType="vm:SystemAuditViewModel"><v:SystemAuditView /></DataTemplate>
+        <DataTemplate x:Key="WebDlTpl"            DataType="vm:WebsiteDownloaderViewModel"><v:WebsiteDownloaderView /></DataTemplate>
+        <DataTemplate x:Key="UpscaleTpl"          DataType="vm:BatchUpscaleViewModel"><v:BatchUpscaleView /></DataTemplate>
+        <DataTemplate x:Key="IconConvTpl"         DataType="vm:IconConverterViewModel"><v:IconConverterView /></DataTemplate>
+        <DataTemplate x:Key="SchedTasksTpl"       DataType="vm:ScheduledTasksViewModel"><v:ScheduledTasksView /></DataTemplate>
+        <DataTemplate x:Key="CertMgrTpl"          DataType="vm:CertificateManagerViewModel"><v:CertificateManagerView /></DataTemplate>
+        <!-- Batch 7 + polish -->
+        <DataTemplate x:Key="DashboardTpl"        DataType="vm:DashboardViewModel"><v:DashboardView /></DataTemplate>
+        <DataTemplate x:Key="QrCodeTpl"           DataType="vm:QrCodeViewModel"><v:QrCodeView /></DataTemplate>
+        <DataTemplate x:Key="PdfToolsTpl"         DataType="vm:PdfToolsViewModel"><v:PdfToolsView /></DataTemplate>
+        <DataTemplate x:Key="FtpClientTpl"        DataType="vm:FtpClientViewModel"><v:FtpClientView /></DataTemplate>
+        <DataTemplate x:Key="TerminalTpl"         DataType="vm:TerminalClientViewModel"><v:TerminalClientView /></DataTemplate>
+        <DataTemplate x:Key="FileSyncTpl"         DataType="vm:FileSyncViewModel"><v:FileSyncView /></DataTemplate>
+        <DataTemplate x:Key="MetaEditTpl"         DataType="vm:MetadataEditorViewModel"><v:MetadataEditorView /></DataTemplate>
+        <DataTemplate x:Key="MailSenderTpl"       DataType="vm:MailSenderViewModel"><v:MailSenderView /></DataTemplate>
+        <DataTemplate x:Key="DependenciesTpl"     DataType="vm:DependenciesViewModel"><v:DependenciesView /></DataTemplate>
+        <!-- Batch 8 -->
+        <DataTemplate x:Key="CommandPaletteTpl"   DataType="vm:CommandPaletteViewModel"><v:CommandPaletteView /></DataTemplate>
+        <DataTemplate x:Key="ChangelogTpl"        DataType="vm:ChangelogViewModel"><v:ChangelogView /></DataTemplate>
+        <DataTemplate x:Key="ShortcutsTpl"        DataType="vm:KeyboardShortcutsViewModel"><v:KeyboardShortcutsView /></DataTemplate>
+        <DataTemplate x:Key="CloudSyncTpl"        DataType="vm:CloudSyncViewModel"><v:CloudSyncView /></DataTemplate>
+        <DataTemplate x:Key="CveSearchTpl"        DataType="vm:CveSearchViewModel"><v:CveSearchView /></DataTemplate>
+        <DataTemplate x:Key="AudioTransTpl"       DataType="vm:AudioTranscriptionViewModel"><v:AudioTranscriptionView /></DataTemplate>
+        <DataTemplate x:Key="YaraTpl"             DataType="vm:YaraScannerViewModel"><v:YaraScannerView /></DataTemplate>
+        <DataTemplate x:Key="TreeMapTpl"          DataType="vm:TreeMapDiskViewModel"><v:TreeMapDiskView /></DataTemplate>
+        <DataTemplate x:Key="BatchJobTpl"         DataType="vm:BatchJobQueueViewModel"><v:BatchJobQueueView /></DataTemplate>
+        <DataTemplate x:Key="HiderTpl"            DataType="vm:HiderViewModel"><v:HiderView /></DataTemplate>
+        <DataTemplate x:Key="DiskHealthTpl"       DataType="vm:DiskHealthViewModel"><v:DiskHealthView /></DataTemplate>
+        <DataTemplate x:Key="PluginMgrTpl"        DataType="vm:PluginManagerViewModel"><v:PluginManagerView /></DataTemplate>
+        <DataTemplate x:Key="CredMgrTpl"          DataType="vm:CredentialManagerViewModel"><v:CredentialManagerView /></DataTemplate>
+        <DataTemplate x:Key="ForensicsTpl"        DataType="vm:ForensicsAnalyzerViewModel"><v:ForensicsAnalyzerView /></DataTemplate>
+        <DataTemplate x:Key="RemoteDeskTpl"       DataType="vm:RemoteDesktopViewModel"><v:RemoteDesktopView /></DataTemplate>
+        <DataTemplate x:Key="SchedBackupTpl"      DataType="vm:ScheduledBackupViewModel"><v:ScheduledBackupView /></DataTemplate>
+        <DataTemplate x:Key="SimpleBrowserTpl"    DataType="vm:SimpleBrowserViewModel"><v:SimpleBrowserView /></DataTemplate>
+        <DataTemplate x:Key="BootUsbTpl"          DataType="vm:BootableUsbViewModel"><v:BootableUsbView /></DataTemplate>
+        <!-- Batch 9 -->
+        <DataTemplate x:Key="NativeATrimTpl"       DataType="vm:NativeAudioTrimViewModel"><v:NativeAudioTrimView /></DataTemplate>
+        <DataTemplate x:Key="NativeImgEditTpl"     DataType="vm:NativeImageEditViewModel"><v:NativeImageEditView /></DataTemplate>
+        <DataTemplate x:Key="NativeVideoPlayerTpl" DataType="vm:NativeVideoPlayerViewModel"><v:NativeVideoPlayerView /></DataTemplate>
+        <DataTemplate x:Key="MediaHubTpl"          DataType="vm:MediaHubViewModel"><v:MediaHubView /></DataTemplate>
+        <DataTemplate x:Key="MediaLibraryTpl"      DataType="vm:MediaLibraryViewModel"><v:MediaLibraryView /></DataTemplate>
+        <DataTemplate x:Key="MultimediaEditorTpl"  DataType="vm:MultimediaEditorViewModel"><v:MultimediaEditorView /></DataTemplate>
+        <DataTemplate x:Key="Model3DEditorTpl"     DataType="vm:Model3DEditorViewModel"><v:Model3DEditorView /></DataTemplate>
+        <DataTemplate x:Key="ShotcutNativeTpl"     DataType="vm:ShotcutNativeEditorViewModel"><v:ShotcutNativeEditorView /></DataTemplate>
+        <DataTemplate x:Key="UpscalerTpl"          DataType="vm:UpscalerViewModel"><v:UpscalerView /></DataTemplate>
+        <DataTemplate x:Key="ScreensaverCfgTpl"    DataType="vm:ScreensaverConfigViewModel"><v:ScreensaverConfigView /></DataTemplate>
+        <DataTemplate x:Key="SlideshowSaverTpl"    DataType="vm:SlideshowScreensaverViewModel"><v:SlideshowScreensaverView /></DataTemplate>
+        <DataTemplate x:Key="IntuneBackupTpl"      DataType="vm:IntuneBackupViewModel"><v:IntuneBackupView /></DataTemplate>
+        <DataTemplate x:Key="AdvForensicsTpl"      DataType="vm:AdvancedForensicsViewModel"><v:AdvancedForensicsView /></DataTemplate>
+        <DataTemplate x:Key="MailClientTpl"        DataType="vm:MailClientViewModel"><v:MailClientView /></DataTemplate>
+        <DataTemplate x:Key="RebootAnalyzerTpl"    DataType="vm:RebootAnalyzerViewModel"><v:RebootAnalyzerView /></DataTemplate>
+        <DataTemplate x:Key="RecentCleanupTpl"     DataType="vm:RecentCleanupViewModel"><v:RecentCleanupView /></DataTemplate>
+        <DataTemplate x:Key="FileCleanerTpl"       DataType="vm:FileCleanerViewModel"><v:FileCleanerView /></DataTemplate>
+        <DataTemplate x:Key="SysHardenTpl"         DataType="vm:SystemHardeningViewModel"><v:SystemHardeningView /></DataTemplate>
+        <DataTemplate x:Key="SysRestoreTpl"        DataType="vm:SystemRestoreViewModel"><v:SystemRestoreView /></DataTemplate>
+        <DataTemplate x:Key="PlexBackupTpl"        DataType="vm:PlexBackupViewModel"><v:PlexBackupView /></DataTemplate>
+        <DataTemplate x:Key="ThemeBuilderTpl"      DataType="vm:ThemeBuilderViewModel"><v:ThemeBuilderView /></DataTemplate>
+        <DataTemplate x:Key="EncClipTpl"           DataType="vm:EncryptedClipboardViewModel"><v:EncryptedClipboardView /></DataTemplate>
+        <DataTemplate x:Key="ExportQueueTpl"       DataType="vm:ExportQueueViewModel"><v:ExportQueueView /></DataTemplate>
+        <DataTemplate x:Key="AIAsstTpl"            DataType="vm:AIAssistantViewModel"><v:AIAssistantView /></DataTemplate>
+        <DataTemplate x:Key="WorkflowTpl"          DataType="vm:WorkflowDesignerViewModel"><v:WorkflowDesignerView /></DataTemplate>
+        <DataTemplate x:Key="FleetTpl"             DataType="vm:FleetViewModel"><v:FleetView /></DataTemplate>
+        <DataTemplate x:Key="RemoteDashTpl"        DataType="vm:RemoteDashboardViewModel"><v:RemoteDashboardView /></DataTemplate>
+        <DataTemplate x:Key="MarketplaceTpl"       DataType="vm:PluginMarketplaceViewModel"><v:PluginMarketplaceView /></DataTemplate>
+        <DataTemplate x:Key="GlobalSearchTpl"      DataType="vm:GlobalSearchViewModel"><v:GlobalSearchView /></DataTemplate>
+        <DataTemplate x:Key="UpdateCheckerTpl"     DataType="vm:UpdateCheckerViewModel"><v:UpdateCheckerView /></DataTemplate>
+        <DataTemplate x:Key="ServiceMgrTpl"        DataType="vm:ServiceManagerViewModel"><v:ServiceManagerView /></DataTemplate>
+        <DataTemplate x:Key="DirSecTpl"            DataType="vm:DirectorySecurityAnalyzerViewModel"><v:DirectorySecurityAnalyzerView /></DataTemplate>
+    </Window.Resources>
+
+    <Grid ColumnDefinitions="240,*">
+
+        <Border Grid.Column="0" Background="{DynamicResource SystemListLowColor}" Padding="0">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Top" Margin="16,16,16,8">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Width="32" Height="32" Padding="0"
+                                Command="{Binding ToggleThemeCommand}" ToolTip.Tip="Toggle dark/light mode">
+                            <TextBlock Text="🌓" FontSize="16"/>
+                        </Button>
+                        <TextBlock Text="🐧 PlatypusTools" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <TextBlock Text="Linux / macOS / Windows" Foreground="Gray" FontSize="11" Margin="0,2,0,6" />
+                    <TextBox Text="{Binding Filter, Mode=TwoWay}" Watermark="🔍 Filter…" />
+                </StackPanel>
+
+                <ScrollViewer>
+                    <TreeView x:Name="NavTree"
+                              ItemsSource="{Binding Categories}"
+                              Background="Transparent"
+                              BorderThickness="0"
+                              SelectionChanged="OnNavSelectionChanged">
+                        <TreeView.DataTemplates>
+                            <TreeDataTemplate DataType="vm:NavigationCategory" ItemsSource="{Binding Items}">
+                                <TextBlock Text="{Binding Title}" FontWeight="Bold" Margin="2,4"/>
+                            </TreeDataTemplate>
+                            <DataTemplate DataType="vm:NavigationItem">
+                                <StackPanel Orientation="Horizontal" Spacing="10" Margin="2,2">
+                                    <TextBlock Text="{Binding Icon}" FontSize="14"/>
+                                    <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </TreeView.DataTemplates>
+                    </TreeView>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <ContentControl Grid.Column="1"
+                        Content="{Binding SelectedItem.Content}"
+                        Margin="16" />
+    </Grid>
+</Window>

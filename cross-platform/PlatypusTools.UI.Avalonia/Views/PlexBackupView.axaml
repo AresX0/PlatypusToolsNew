@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.PlexBackupView" x:DataType="vm:PlexBackupViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
+        <TextBlock Grid.Row="0" Text="🎬 Plex Backup" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="📂 Plex config" Click="OnPickInClicked" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding PlexConfig, Mode=TwoWay}"/>
+        </DockPanel>
+        <DockPanel Grid.Row="2" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="💾 Output zip" Click="OnPickOutClicked" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Output, Mode=TwoWay}"/>
+        </DockPanel>
+        <Button Grid.Row="3" Content="📦 Backup" Command="{Binding BackupCommand}" IsEnabled="{Binding !IsBusy}" Background="#4CAF50" Foreground="White" HorizontalAlignment="Left"/>
+        <TextBlock Grid.Row="4" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

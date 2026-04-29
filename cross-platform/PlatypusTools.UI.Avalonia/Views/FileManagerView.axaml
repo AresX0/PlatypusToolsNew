@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.FileManagerView"
+             x:DataType="vm:FileManagerViewModel">
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Toolbar -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,8" LastChildFill="True">
+            <Button DockPanel.Dock="Left" Content="🏠" Command="{Binding GoHomeCommand}"
+                    Margin="0,0,4,0" ToolTip.Tip="Home" />
+            <Button DockPanel.Dock="Left" Content="⬆" Command="{Binding GoUpCommand}"
+                    Margin="0,0,4,0" ToolTip.Tip="Up" />
+            <Button DockPanel.Dock="Left" Content="🔄" Command="{Binding RefreshCommand}"
+                    Margin="0,0,8,0" ToolTip.Tip="Refresh" />
+            <TextBox Text="{Binding CurrentPath, Mode=TwoWay}" />
+        </DockPanel>
+
+        <!-- File listing -->
+        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Margin="0,0,0,8">
+            <DataGrid ItemsSource="{Binding Entries}"
+                      SelectedItem="{Binding SelectedEntry}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      GridLinesVisibility="Horizontal"
+                      DoubleTapped="OnRowDoubleTapped">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="" Binding="{Binding Icon}" Width="36" />
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                    <DataGridTextColumn Header="Size" Binding="{Binding SizeDisplay}" Width="100" />
+                    <DataGridTextColumn Header="Modified" Binding="{Binding ModifiedDisplay}" Width="160" />
+                    <DataGridTemplateColumn Header="Actions" Width="220">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="vm:FileEntry">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <Button Content="Open"
+                                            Click="OnOpenClicked" />
+                                    <Button Content="Reveal"
+                                            Click="OnRevealClicked" />
+                                    <Button Content="🗑"
+                                            Click="OnTrashClicked" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- Status -->
+        <TextBlock Grid.Row="2" Text="{Binding Status}" Foreground="Gray" />
+    </Grid>
+</UserControl>

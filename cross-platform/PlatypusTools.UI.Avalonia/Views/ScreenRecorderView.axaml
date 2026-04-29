@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.ScreenRecorderView"
+             x:DataType="vm:ScreenRecorderViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <StackPanel Grid.Row="0" Spacing="6" Margin="0,0,0,8">
+            <DockPanel>
+                <TextBlock Text="Output:" Width="80" VerticalAlignment="Center"/>
+                <Button DockPanel.Dock="Right" Content="📁" Click="OnPick" Margin="4,0,0,0"/>
+                <TextBox Text="{Binding OutputPath, Mode=TwoWay}"/>
+            </DockPanel>
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="FPS:" VerticalAlignment="Center"/>
+                <NumericUpDown Value="{Binding Fps, Mode=TwoWay}" Minimum="1" Maximum="60" Width="100"/>
+                <TextBlock Text="Seconds:" VerticalAlignment="Center"/>
+                <NumericUpDown Value="{Binding Seconds, Mode=TwoWay}" Minimum="1" Maximum="3600" Width="100"/>
+            </StackPanel>
+        </StackPanel>
+        <DockPanel Grid.Row="1" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Left" Content="🔴 Record" Command="{Binding RecordCommand}" Background="#F44336" Foreground="White" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="⏹ Stop" Command="{Binding StopCommand}"/>
+        </DockPanel>
+        <Border Grid.Row="2" Background="#101010" Padding="8">
+            <ScrollViewer>
+                <SelectableTextBlock Text="{Binding Output}" Foreground="#80FF80" FontFamily="Cascadia Code,Consolas,monospace"/>
+            </ScrollViewer>
+        </Border>
+        <TextBlock Grid.Row="3" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

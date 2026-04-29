@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.CertificateManagerView"
+             x:DataType="vm:CertificateManagerViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
+        <TextBlock Grid.Row="0" Text="🔏 Certificate Manager" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,4">
+            <Button Content="🔍 Scan" Command="{Binding ScanCommand}" IsEnabled="{Binding !IsBusy}" Background="#2196F3" Foreground="White"/>
+        </StackPanel>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
+            <DataGrid ItemsSource="{Binding Entries}" SelectedItem="{Binding Selected, Mode=TwoWay}" AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Subject" Width="*" Binding="{Binding Subject}"/>
+                    <DataGridTextColumn Header="Not After" Width="160" Binding="{Binding NotAfter}"/>
+                    <DataGridTextColumn Header="Path" Width="300" Binding="{Binding Path}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="1" Margin="0,4,0,0" Height="120">
+            <ScrollViewer>
+                <TextBox Text="{Binding Details}" IsReadOnly="True" AcceptsReturn="True"
+                         FontFamily="Cascadia Code,Consolas,Menlo,monospace" FontSize="11"/>
+            </ScrollViewer>
+        </Border>
+        <TextBlock Grid.Row="4" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

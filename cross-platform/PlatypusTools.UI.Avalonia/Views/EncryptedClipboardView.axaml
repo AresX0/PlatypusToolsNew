@@ -1,0 +1,14 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.EncryptedClipboardView" x:DataType="vm:EncryptedClipboardViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
+        <TextBlock Grid.Row="0" Text="🔐 Encrypted Clipboard" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <TextBox Grid.Row="1" Watermark="Text / base64" Text="{Binding Text, Mode=TwoWay}" AcceptsReturn="True" Height="120" Margin="0,0,0,4"/>
+        <TextBox Grid.Row="2" Watermark="Password" Text="{Binding Password, Mode=TwoWay}" PasswordChar="*" Margin="0,0,0,4"/>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,4">
+            <Button Content="🔒 Encrypt" Command="{Binding EncryptCommand}" Background="#4CAF50" Foreground="White" Margin="0,0,4,0"/>
+            <Button Content="🔓 Decrypt" Command="{Binding DecryptCommand}" Background="#2196F3" Foreground="White"/>
+        </StackPanel>
+        <TextBox Grid.Row="4" Text="{Binding Result}" IsReadOnly="True" AcceptsReturn="True" FontFamily="Consolas, monospace"/>
+    </Grid>
+</UserControl>

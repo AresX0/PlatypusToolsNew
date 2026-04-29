@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.ImageViewerView"
+             x:DataType="vm:ImageViewerViewModel">
+    <Grid RowDefinitions="Auto,*,Auto">
+        <DockPanel Grid.Row="0" Margin="0,0,0,8" LastChildFill="True">
+            <Button DockPanel.Dock="Left" Content="📂 Open" Click="OnOpenClicked" Margin="0,0,4,0" />
+            <Button DockPanel.Dock="Left" Content="➕" Command="{Binding ZoomInCommand}"
+                    ToolTip.Tip="Zoom in" Margin="0,0,4,0" />
+            <Button DockPanel.Dock="Left" Content="➖" Command="{Binding ZoomOutCommand}"
+                    ToolTip.Tip="Zoom out" Margin="0,0,4,0" />
+            <Button DockPanel.Dock="Left" Content="1:1" Command="{Binding ZoomResetCommand}"
+                    Margin="0,0,4,0" />
+            <Button DockPanel.Dock="Left" Content="Reveal" Command="{Binding RevealCommand}"
+                    Margin="0,0,8,0" />
+            <TextBlock Text="{Binding FilePath}" Foreground="Gray"
+                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+        </DockPanel>
+
+        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Margin="0,0,0,8"
+                Background="#202020">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <Image Source="{Binding Image}"
+                       Stretch="None"
+                       RenderOptions.BitmapInterpolationMode="MediumQuality">
+                    <Image.RenderTransform>
+                        <ScaleTransform ScaleX="{Binding Zoom}" ScaleY="{Binding Zoom}" />
+                    </Image.RenderTransform>
+                </Image>
+            </ScrollViewer>
+        </Border>
+
+        <TextBlock Grid.Row="2" Text="{Binding Status}" Foreground="Gray" />
+    </Grid>
+</UserControl>

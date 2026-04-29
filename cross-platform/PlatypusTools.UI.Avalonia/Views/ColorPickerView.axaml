@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.ColorPickerView"
+             x:DataType="vm:ColorPickerViewModel">
+    <Grid ColumnDefinitions="*,300">
+        <StackPanel Grid.Column="0" Spacing="12" Margin="0,0,16,0">
+            <TextBlock Text="🎨 Color Picker" FontSize="20" FontWeight="Bold"/>
+            <StackPanel Spacing="6">
+                <TextBlock Text="{Binding R, StringFormat='R: {0}'}"/>
+                <Slider Minimum="0" Maximum="255" Value="{Binding R, Mode=TwoWay}"/>
+                <TextBlock Text="{Binding G, StringFormat='G: {0}'}"/>
+                <Slider Minimum="0" Maximum="255" Value="{Binding G, Mode=TwoWay}"/>
+                <TextBlock Text="{Binding B, StringFormat='B: {0}'}"/>
+                <Slider Minimum="0" Maximum="255" Value="{Binding B, Mode=TwoWay}"/>
+                <TextBlock Text="{Binding A, StringFormat='A: {0}'}"/>
+                <Slider Minimum="0" Maximum="255" Value="{Binding A, Mode=TwoWay}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Hex:" VerticalAlignment="Center"/>
+                <TextBox x:Name="HexInput" Text="{Binding Hex, Mode=TwoWay}" Width="120" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <Button Content="Parse" Click="OnParse"/>
+            </StackPanel>
+        </StackPanel>
+        <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="4"
+                Background="{Binding PreviewBrush}"/>
+    </Grid>
+</UserControl>

@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.FileDiffView"
+             x:DataType="vm:FileDiffViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="🔀 File Diff" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto,*,Auto" Margin="0,0,0,8">
+            <Button Grid.Column="0" Content="📂 Left" Click="OnPickLeft" Margin="0,0,4,0"/>
+            <TextBox Grid.Column="1" Text="{Binding LeftPath, Mode=TwoWay}" Margin="0,0,8,0"/>
+            <Button Grid.Column="2" Content="📂 Right" Click="OnPickRight" Margin="0,0,4,0"/>
+            <TextBox Grid.Column="3" Text="{Binding RightPath, Mode=TwoWay}" Margin="0,0,8,0"/>
+            <Button Grid.Column="4" Content="Compare" Command="{Binding CompareCommand}" Background="#2196F3" Foreground="White"/>
+        </Grid>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
+            <DataGrid ItemsSource="{Binding Rows}" AutoGenerateColumns="False" IsReadOnly="True"
+                      FontFamily="Cascadia Code,Consolas,Menlo,monospace" FontSize="11">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="L" Width="60" Binding="{Binding LeftDisplay}"/>
+                    <DataGridTextColumn Header="R" Width="60" Binding="{Binding RightDisplay}"/>
+                    <DataGridTextColumn Header=" " Width="20" Binding="{Binding Marker}"/>
+                    <DataGridTextColumn Header="Text" Width="*" Binding="{Binding Text}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+        <TextBlock Grid.Row="3" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

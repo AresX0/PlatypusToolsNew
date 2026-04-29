@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.DashboardView"
+             x:DataType="vm:DashboardViewModel">
+    <Grid RowDefinitions="Auto,*">
+        <TextBlock Grid.Row="0" Text="🏠 Dashboard" FontSize="22" FontWeight="Bold" Margin="0,0,0,12"/>
+        <ScrollViewer Grid.Row="1">
+            <ItemsControl ItemsSource="{Binding Tiles}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Click="OnTileClicked" Tag="{Binding Target}" Width="180" Height="120" Margin="6"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding Icon}" FontSize="32" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding Title}" FontSize="14" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

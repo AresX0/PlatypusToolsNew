@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.MultimediaEditorView"
+             x:DataType="vm:MultimediaEditorViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,*">
+        <TextBlock Grid.Row="0" Text="🎬 Multimedia Editor" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="📂 File (optional)" Click="OnPickClicked" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Input, Mode=TwoWay}"/>
+        </DockPanel>
+        <WrapPanel Grid.Row="2" Margin="0,0,0,4">
+            <Button Content="🎥 Shotcut" Command="{Binding OpenInShotcutCommand}" Margin="0,0,4,4"/>
+            <Button Content="🎥 Kdenlive" Command="{Binding OpenInKdenliveCommand}" Margin="0,0,4,4"/>
+            <Button Content="🎥 OpenShot" Command="{Binding OpenInOpenShotCommand}" Margin="0,0,4,4"/>
+            <Button Content="🎥 DaVinci Resolve" Command="{Binding OpenInDavinciCommand}" Margin="0,0,4,4"/>
+            <Button Content="🎥 iMovie" Command="{Binding OpenInIMovieCommand}" Margin="0,0,4,4"/>
+            <Button Content="🎙 Audacity" Command="{Binding OpenInAudacityCommand}" Margin="0,0,4,4"/>
+            <Button Content="🧊 Blender" Command="{Binding OpenInBlenderCommand}" Margin="0,0,4,4"/>
+            <Button Content="🖌 GIMP" Command="{Binding OpenInGimpCommand}" Margin="0,0,4,4"/>
+            <Button Content="🖌 Inkscape" Command="{Binding OpenInInkscapeCommand}" Margin="0,0,4,4"/>
+        </WrapPanel>
+        <TextBlock Grid.Row="3" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

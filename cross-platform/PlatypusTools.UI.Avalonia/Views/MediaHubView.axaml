@@ -1,0 +1,32 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.MediaHubView"
+             x:DataType="vm:MediaHubViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="🎞 Media Hub" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="📂 Root" Click="OnPickClicked" Margin="0,0,4,0"/>
+            <ComboBox DockPanel.Dock="Right" ItemsSource="{Binding Filters}" SelectedItem="{Binding Filter, Mode=TwoWay}" Width="120" Margin="4,0,0,0"/>
+            <Button DockPanel.Dock="Right" Content="🚀 Scan" Command="{Binding ScanCommand}" IsEnabled="{Binding !IsBusy}" Background="#4CAF50" Foreground="White" Margin="4,0,0,0"/>
+            <TextBox Text="{Binding Root, Mode=TwoWay}"/>
+        </DockPanel>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
+            <DataGrid ItemsSource="{Binding Items}" AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Type" Width="100" Binding="{Binding Type}"/>
+                    <DataGridTextColumn Header="Name" Width="*" Binding="{Binding Name}"/>
+                    <DataGridTextColumn Header="Size" Width="120" Binding="{Binding Size}"/>
+                    <DataGridTemplateColumn Header="Open" Width="80">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="▶" Click="OnOpenClicked"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+        <TextBlock Grid.Row="3" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.FileAnalyzerView"
+             x:DataType="vm:FileAnalyzerViewModel">
+    <Grid RowDefinitions="Auto,*,Auto">
+        <DockPanel Grid.Row="0" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Left" Content="📄 Pick" Click="OnPick" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="🔍 Analyze" Command="{Binding AnalyzeCommand}" Background="#4CAF50" Foreground="White" Margin="0,0,8,0"/>
+            <TextBox Text="{Binding Path, Mode=TwoWay}" Watermark="File path…"/>
+        </DockPanel>
+        <Border Grid.Row="1" Background="#101010" Padding="8">
+            <ScrollViewer>
+                <SelectableTextBlock Text="{Binding Report}" Foreground="#80FF80" FontFamily="Cascadia Code,Consolas,monospace"/>
+            </ScrollViewer>
+        </Border>
+        <TextBlock Grid.Row="2" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

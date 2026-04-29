@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.PrivacyCleanerView"
+             x:DataType="vm:PrivacyCleanerViewModel">
+    <Grid RowDefinitions="Auto,*,150,Auto">
+        <DockPanel Grid.Row="0" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Left" Content="🔄 Refresh" Command="{Binding RefreshCommand}" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="🧹 Clean Selected" Command="{Binding CleanCommand}" Background="#F44336" Foreground="White"/>
+        </DockPanel>
+        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1">
+            <DataGrid ItemsSource="{Binding Targets}" AutoGenerateColumns="False" IsReadOnly="False">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="" Width="40">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="vm:PrivacyTarget">
+                                <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" HorizontalAlignment="Center"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Target" Width="200" Binding="{Binding Name}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Size" Width="100" Binding="{Binding SizeDisplay}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Path" Width="*" Binding="{Binding Path}" IsReadOnly="True"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+        <Border Grid.Row="2" Background="#101010" Padding="8" Margin="0,8,0,0">
+            <ScrollViewer>
+                <SelectableTextBlock Text="{Binding Output}" Foreground="#80FF80" FontFamily="Cascadia Code,Consolas,monospace"/>
+            </ScrollViewer>
+        </Border>
+        <TextBlock Grid.Row="3" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

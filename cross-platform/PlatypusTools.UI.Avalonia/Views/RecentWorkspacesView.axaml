@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.RecentWorkspacesView"
+             x:DataType="vm:RecentWorkspacesViewModel">
+    <Grid RowDefinitions="Auto,*,Auto">
+        <DockPanel Grid.Row="0" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Right" Content="📁" Click="OnPick" Margin="4,0,0,0"/>
+            <Button DockPanel.Dock="Right" Content="➕ Add" Command="{Binding AddCommand}" Margin="4,0,0,0"/>
+            <Button DockPanel.Dock="Right" Content="🚀 Open" Command="{Binding OpenSelectedCommand}" Background="#4CAF50" Foreground="White" Margin="4,0,0,0"/>
+            <Button DockPanel.Dock="Right" Content="🗑 Remove" Command="{Binding RemoveCommand}" Background="#F44336" Foreground="White" Margin="4,0,0,0"/>
+            <TextBox Text="{Binding NewPath, Mode=TwoWay}" Watermark="Workspace path…"/>
+        </DockPanel>
+        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1">
+            <ListBox ItemsSource="{Binding Items}" SelectedItem="{Binding Selected, Mode=TwoWay}"/>
+        </Border>
+        <TextBlock Grid.Row="2" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

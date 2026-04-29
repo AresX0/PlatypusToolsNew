@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.NativeAudioTrimView"
+             x:DataType="vm:NativeAudioTrimViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*">
+        <TextBlock Grid.Row="0" Text="✂ Native Audio Trim" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="📂 Input" Click="OnPickInClicked" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Input, Mode=TwoWay}"/>
+        </DockPanel>
+        <DockPanel Grid.Row="2" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="💾 Output" Click="OnPickOutClicked" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Output, Mode=TwoWay}"/>
+        </DockPanel>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,4">
+            <TextBlock Text="Start:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Start, Mode=TwoWay}" Width="100" Margin="0,0,8,0"/>
+            <TextBlock Text="End:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding End, Mode=TwoWay}" Width="100" Margin="0,0,8,0"/>
+            <CheckBox Content="Re-encode" IsChecked="{Binding Reencode, Mode=TwoWay}"/>
+        </StackPanel>
+        <Button Grid.Row="4" Content="🚀 Trim" Command="{Binding TrimCommand}" IsEnabled="{Binding !IsBusy}" Background="#4CAF50" Foreground="White" HorizontalAlignment="Left"/>
+        <TextBlock Grid.Row="5" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

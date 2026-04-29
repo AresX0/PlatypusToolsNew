@@ -1,0 +1,44 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.SmartRenameView"
+             x:DataType="vm:SmartRenameViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <StackPanel Grid.Row="0" Spacing="6" Margin="0,0,0,8">
+            <DockPanel>
+                <TextBlock Text="Folder:" Width="90" VerticalAlignment="Center"/>
+                <Button DockPanel.Dock="Right" Content="📁" Click="OnPick" Margin="4,0,0,0"/>
+                <TextBox Text="{Binding Folder, Mode=TwoWay}"/>
+            </DockPanel>
+            <DockPanel>
+                <TextBlock Text="Pattern:" Width="90" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding Pattern, Mode=TwoWay}" Watermark="*.jpg"/>
+            </DockPanel>
+            <DockPanel>
+                <TextBlock Text="Find:" Width="90" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding FindRegex, Mode=TwoWay}" Watermark="regex or substring"/>
+            </DockPanel>
+            <DockPanel>
+                <TextBlock Text="Replace:" Width="90" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding ReplaceWith, Mode=TwoWay}" Watermark="replacement"/>
+            </DockPanel>
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <CheckBox IsChecked="{Binding UseRegex, Mode=TwoWay}" Content="Regex"/>
+                <CheckBox IsChecked="{Binding Recursive, Mode=TwoWay}" Content="Recursive"/>
+            </StackPanel>
+        </StackPanel>
+        <DockPanel Grid.Row="1" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Left" Content="🔍 Preview" Command="{Binding PreviewCommand}" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="✓ Apply" Command="{Binding ApplyCommand}" Background="#4CAF50" Foreground="White"/>
+        </DockPanel>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
+            <DataGrid ItemsSource="{Binding Rows}" AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Old name" Width="*" Binding="{Binding OldName}"/>
+                    <DataGridTextColumn Header="New name" Width="*" Binding="{Binding NewName}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+        <TextBlock Grid.Row="3" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

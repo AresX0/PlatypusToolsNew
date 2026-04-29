@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.ExportQueueView" x:DataType="vm:ExportQueueViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="📤 Export Queue" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Right" Content="➕ Add" Command="{Binding AddCommand}" Margin="4,0,0,0"/>
+            <TextBox DockPanel.Dock="Left" Watermark="Name" Text="{Binding NewName, Mode=TwoWay}" Width="160" Margin="0,0,4,0"/>
+            <TextBox Watermark="Shell command" Text="{Binding NewCmd, Mode=TwoWay}"/>
+        </DockPanel>
+        <DataGrid Grid.Row="2" ItemsSource="{Binding Jobs}" AutoGenerateColumns="False" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Width="160" Binding="{Binding Name}"/>
+                <DataGridTextColumn Header="Command" Width="*" Binding="{Binding Command}"/>
+                <DataGridTextColumn Header="State" Width="100" Binding="{Binding State}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <DockPanel Grid.Row="3" Margin="0,8,0,0">
+            <Button DockPanel.Dock="Left" Content="▶ Run all" Command="{Binding RunCommand}" IsEnabled="{Binding !IsBusy}" Background="#4CAF50" Foreground="White"/>
+            <TextBlock Text="{Binding Status}" Foreground="Gray" Margin="8,0,0,0" VerticalAlignment="Center"/>
+        </DockPanel>
+    </Grid>
+</UserControl>

@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.ImageConverterView"
+             x:DataType="vm:ImageConverterViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,150,Auto">
+        <DockPanel Grid.Row="0" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Left" Content="➕ Add images" Click="OnAdd" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="🗑 Clear" Command="{Binding ClearCommand}" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="▶ Convert" Command="{Binding ConvertCommand}" Background="#4CAF50" Foreground="White"/>
+        </DockPanel>
+        <StackPanel Grid.Row="1" Spacing="6" Margin="0,0,0,8">
+            <DockPanel>
+                <TextBlock Text="Out folder:" Width="100" VerticalAlignment="Center"/>
+                <Button DockPanel.Dock="Right" Content="📁" Click="OnPickOut" Margin="4,0,0,0"/>
+                <TextBox Text="{Binding OutputFolder, Mode=TwoWay}"/>
+            </DockPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Format:" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding Formats}" SelectedItem="{Binding Format, Mode=TwoWay}" Width="120"/>
+                <TextBlock Text="Quality:" VerticalAlignment="Center"/>
+                <NumericUpDown Value="{Binding Quality, Mode=TwoWay}" Minimum="1" Maximum="100" Width="100"/>
+            </StackPanel>
+        </StackPanel>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
+            <ListBox ItemsSource="{Binding Inputs}"/>
+        </Border>
+        <Border Grid.Row="3" Background="#101010" Padding="8" Margin="0,8,0,0">
+            <ScrollViewer>
+                <SelectableTextBlock Text="{Binding Output}" Foreground="#80FF80" FontFamily="Cascadia Code,Consolas,monospace"/>
+            </ScrollViewer>
+        </Border>
+        <TextBlock Grid.Row="4" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

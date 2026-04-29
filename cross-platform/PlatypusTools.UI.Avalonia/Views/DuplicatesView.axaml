@@ -1,0 +1,63 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             xmlns:core="using:PlatypusTools.Core.Services"
+             x:Class="PlatypusTools.UI.Avalonia.Views.DuplicatesView"
+             x:DataType="vm:DuplicatesViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="🗂️ Duplicate Finder" FontSize="22" FontWeight="Bold" Margin="0,0,0,8" />
+
+        <DockPanel Grid.Row="1" Margin="0,0,0,8" LastChildFill="True">
+            <Button DockPanel.Dock="Right" Content="Scan"
+                    Command="{Binding ScanCommand}"
+                    IsEnabled="{Binding !IsBusy}" Margin="4,0,0,0" />
+            <Button DockPanel.Dock="Right" Content="Cancel"
+                    Command="{Binding CancelCommand}"
+                    IsVisible="{Binding IsBusy}" Margin="4,0,0,0" />
+            <Button DockPanel.Dock="Right" Content="Pick Folder…"
+                    Click="OnPickFolderClicked" Margin="4,0,0,0" />
+            <CheckBox DockPanel.Dock="Right" Content="Recurse"
+                      IsChecked="{Binding Recurse}" VerticalAlignment="Center" Margin="4,0,0,0" />
+            <TextBox Text="{Binding SelectedFolder, Mode=TwoWay}"
+                     Watermark="Folder to scan…" />
+        </DockPanel>
+
+        <ProgressBar Grid.Row="2" Minimum="0" Maximum="100"
+                     Value="{Binding Progress}"
+                     IsVisible="{Binding IsBusy}"
+                     Height="6" Margin="0,0,0,8" />
+
+        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="1" Margin="0,0,0,8">
+            <ScrollViewer>
+                <ItemsControl ItemsSource="{Binding Groups}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="core:DuplicateGroup">
+                            <Border Padding="8" Margin="2"
+                                    BorderBrush="{DynamicResource SystemBaseLowColor}"
+                                    BorderThickness="0,0,0,1">
+                                <StackPanel Spacing="2">
+                                    <TextBlock FontWeight="Bold">
+                                        <Run Text="{Binding Files.Count}" />
+                                        <Run Text=" files · " />
+                                        <Run Text="{Binding Hash}" FontFamily="Cascadia Code,Consolas,Menlo,monospace" FontSize="11" />
+                                    </TextBlock>
+                                    <ItemsControl ItemsSource="{Binding Files}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" FontSize="12"
+                                                           Foreground="Gray" Margin="12,0,0,0"
+                                                           TextTrimming="CharacterEllipsis" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <TextBlock Grid.Row="4" Text="{Binding Status}" Foreground="Gray" />
+    </Grid>
+</UserControl>

@@ -1,0 +1,14 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.AIAssistantView" x:DataType="vm:AIAssistantViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*">
+        <TextBlock Grid.Row="0" Text="🤖 AI Assistant (OpenAI-compatible)" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <TextBox Grid.Row="1" Watermark="Endpoint" Text="{Binding Endpoint, Mode=TwoWay}" Margin="0,0,0,4"/>
+        <TextBox Grid.Row="2" Watermark="API key" Text="{Binding ApiKey, Mode=TwoWay}" PasswordChar="*" Margin="0,0,0,4"/>
+        <TextBox Grid.Row="3" Watermark="Model" Text="{Binding Model, Mode=TwoWay}" Margin="0,0,0,4"/>
+        <Button Grid.Row="4" Content="💾 Save settings" Command="{Binding SaveCommand}" HorizontalAlignment="Left" Margin="0,0,0,8"/>
+        <TextBox Grid.Row="5" Watermark="Prompt" Text="{Binding Prompt, Mode=TwoWay}" AcceptsReturn="True" Height="120" Margin="0,0,0,4"/>
+        <Button Grid.Row="6" Content="💬 Ask" Command="{Binding AskCommand}" IsEnabled="{Binding !IsBusy}" Background="#9C27B0" Foreground="White" HorizontalAlignment="Left"/>
+        <ScrollViewer Grid.Row="7" Margin="0,8,0,0"><TextBox Text="{Binding Response}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"/></ScrollViewer>
+    </Grid>
+</UserControl>

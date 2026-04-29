@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.WorkflowDesignerView" x:DataType="vm:WorkflowDesignerViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="🪢 Workflow Designer" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Right" Content="➕ Add" Command="{Binding AddCommand}" Margin="4,0,0,0"/>
+            <ComboBox DockPanel.Dock="Left" ItemsSource="{Binding Kinds}" SelectedItem="{Binding NewKind, Mode=TwoWay}" Width="100" Margin="0,0,4,0"/>
+            <TextBox Watermark="Arg (cmd / ms / text)" Text="{Binding NewArg, Mode=TwoWay}"/>
+        </DockPanel>
+        <DataGrid Grid.Row="2" ItemsSource="{Binding Steps}" AutoGenerateColumns="False" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Kind" Width="100" Binding="{Binding Kind}"/>
+                <DataGridTextColumn Header="Arg" Width="*" Binding="{Binding Arg}"/>
+                <DataGridTextColumn Header="State" Width="120" Binding="{Binding State}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <DockPanel Grid.Row="3" Margin="0,8,0,0">
+            <Button DockPanel.Dock="Left" Content="▶ Run" Command="{Binding RunCommand}" IsEnabled="{Binding !IsBusy}" Background="#4CAF50" Foreground="White"/>
+            <TextBlock Text="{Binding Status}" Foreground="Gray" Margin="8,0,0,0" VerticalAlignment="Center"/>
+        </DockPanel>
+    </Grid>
+</UserControl>

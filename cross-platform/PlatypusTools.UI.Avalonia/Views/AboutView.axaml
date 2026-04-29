@@ -1,0 +1,32 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.AboutView"
+             x:DataType="vm:AboutViewModel">
+    <ScrollViewer>
+        <StackPanel Spacing="14" Margin="0,0,0,16">
+            <StackPanel>
+                <TextBlock Text="🐧 PlatypusTools" FontSize="28" FontWeight="Bold"/>
+                <TextBlock Text="{Binding AppVersion, StringFormat='Version {0}'}" Foreground="Gray"/>
+                <TextBlock Text="{Binding Platform}" Foreground="Gray" FontSize="11"/>
+                <TextBlock Text="{Binding Runtime}" Foreground="Gray" FontSize="11"/>
+                <TextBlock Text="{Binding DataDir, StringFormat='Data: {0}'}" Foreground="Gray" FontSize="11"/>
+            </StackPanel>
+            <Border BorderBrush="Gray" BorderThickness="1" Padding="12" CornerRadius="4">
+                <SelectableTextBlock Text="{Binding Description}" TextWrapping="Wrap"/>
+            </Border>
+            <StackPanel Spacing="6">
+                <TextBlock Text="Keyboard shortcuts" FontWeight="Bold" FontSize="14"/>
+                <Border BorderBrush="Gray" BorderThickness="1" Padding="12" CornerRadius="4">
+                    <SelectableTextBlock Text="{Binding KeyboardShortcuts}" FontFamily="Cascadia Code,Consolas,monospace"/>
+                </Border>
+            </StackPanel>
+            <StackPanel Spacing="6">
+                <TextBlock Text="Credits &amp; licenses" FontWeight="Bold" FontSize="14"/>
+                <Border BorderBrush="Gray" BorderThickness="1" Padding="12" CornerRadius="4">
+                    <SelectableTextBlock Text="{Binding CreditsAndLicenses}"/>
+                </Border>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

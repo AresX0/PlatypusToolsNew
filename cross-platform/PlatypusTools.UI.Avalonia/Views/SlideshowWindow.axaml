@@ -1,0 +1,9 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PlatypusTools.UI.Avalonia.Views.SlideshowWindow"
+        WindowState="FullScreen" SystemDecorations="None" Background="Black" Topmost="True">
+    <Grid>
+        <Image Name="Img" Stretch="Uniform"/>
+        <TextBlock Name="Hint" Text="Esc / click to exit" Foreground="#80FFFFFF" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="16"/>
+    </Grid>
+</Window>

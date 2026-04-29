@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.DirectorySecurityAnalyzerView"
+             x:DataType="vm:DirectorySecurityAnalyzerViewModel">
+    <Grid Margin="12" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="Directory / LDAP Security Analyzer" FontSize="18" FontWeight="Bold" Margin="0,0,0,8"/>
+        <TextBlock Grid.Row="1" Text="Requires ldapsearch (openldap-clients / ldap-utils). Works against AD, OpenLDAP, FreeIPA." Opacity="0.7" Margin="0,0,0,8"/>
+        <Grid Grid.Row="2" ColumnDefinitions="120,*,120,*" Margin="0,0,0,4">
+            <TextBlock Grid.Column="0" Text="Host" VerticalAlignment="Center"/>
+            <TextBox   Grid.Column="1" Text="{Binding Host}" Margin="0,0,8,0"/>
+            <TextBlock Grid.Column="2" Text="Base DN" VerticalAlignment="Center"/>
+            <TextBox   Grid.Column="3" Text="{Binding BaseDn}"/>
+        </Grid>
+        <Grid Grid.Row="3" ColumnDefinitions="120,*,120,*" Margin="0,0,0,4">
+            <TextBlock Grid.Column="0" Text="Bind DN" VerticalAlignment="Center"/>
+            <TextBox   Grid.Column="1" Text="{Binding BindDn}" Margin="0,0,8,0"/>
+            <TextBlock Grid.Column="2" Text="Password" VerticalAlignment="Center"/>
+            <TextBox   Grid.Column="3" Text="{Binding Password}" PasswordChar="●"/>
+        </Grid>
+        <Grid Grid.Row="4" ColumnDefinitions="120,*" Margin="0,0,0,4">
+            <TextBlock Grid.Column="0" Text="Filter" VerticalAlignment="Center"/>
+            <TextBox   Grid.Column="1" Text="{Binding Filter}"/>
+        </Grid>
+        <Grid Grid.Row="5" ColumnDefinitions="120,*,Auto,Auto" Margin="0,0,0,8">
+            <TextBlock Grid.Column="0" Text="Attributes" VerticalAlignment="Center"/>
+            <TextBox   Grid.Column="1" Text="{Binding Attributes}" Margin="0,0,8,0"/>
+            <ComboBox  Grid.Column="2" Width="220" ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset}" PlaceholderText="Preset…"/>
+            <Button    Grid.Column="3" Content="Query" Command="{Binding QueryCommand}" Background="#FF2196F3" Foreground="White" Margin="6,0,0,0"/>
+        </Grid>
+        <ScrollViewer Grid.Row="6">
+            <TextBox Text="{Binding Output}" IsReadOnly="True" AcceptsReturn="True" FontFamily="Consolas,Monospace"/>
+        </ScrollViewer>
+        <TextBlock Grid.Row="7" Text="{Binding Status}" Margin="0,6,0,0" Opacity="0.75"/>
+    </Grid>
+</UserControl>

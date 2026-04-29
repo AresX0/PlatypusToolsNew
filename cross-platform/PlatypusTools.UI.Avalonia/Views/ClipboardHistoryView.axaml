@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.ClipboardHistoryView"
+             x:DataType="vm:ClipboardHistoryViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="📋 Clipboard History" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Right" Content="🗑 Clear" Command="{Binding ClearCommand}" Margin="4,0,0,0"/>
+            <Button DockPanel.Dock="Right" Content="✖ Remove" Command="{Binding RemoveCommand}" Margin="4,0,0,0"/>
+            <Button DockPanel.Dock="Right" Content="➕ Add" Command="{Binding AddCommand}" Background="#4CAF50" Foreground="White" Margin="4,0,0,0"/>
+            <Button DockPanel.Dock="Right" Content="📥 Paste from System" Click="OnPasteClicked" Margin="4,0,0,0"/>
+            <TextBox Text="{Binding NewEntry, Mode=TwoWay}" Watermark="Type or paste here…"/>
+        </DockPanel>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
+            <DataGrid ItemsSource="{Binding Entries}" SelectedItem="{Binding Selected, Mode=TwoWay}" AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="When" Width="160" Binding="{Binding When}"/>
+                    <DataGridTextColumn Header="Preview" Width="*" Binding="{Binding Preview}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+        <TextBlock Grid.Row="3" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

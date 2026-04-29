@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.SshKeyManagerView"
+             x:DataType="vm:SshKeyManagerViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,150,Auto">
+        <DockPanel Grid.Row="0" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Left" Content="🔄 Refresh" Command="{Binding RefreshCommand}" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="📋 Show Public" Command="{Binding ShowPublicCommand}" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="🗑 Delete" Command="{Binding DeleteCommand}" Background="#F44336" Foreground="White" Margin="0,0,8,0"/>
+            <TextBox Text="{Binding SshDir, Mode=TwoWay}" Watermark="~/.ssh"/>
+        </DockPanel>
+        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Padding="8" Margin="0,0,0,8">
+            <Grid ColumnDefinitions="160,120,*,Auto">
+                <TextBox Grid.Column="0" Text="{Binding NewKeyName, Mode=TwoWay}" Watermark="filename"/>
+                <ComboBox Grid.Column="1" ItemsSource="{Binding KeyTypes}" SelectedItem="{Binding NewKeyType, Mode=TwoWay}"/>
+                <TextBox Grid.Column="2" Text="{Binding NewKeyComment, Mode=TwoWay}" Watermark="comment (optional)"/>
+                <Button Grid.Column="3" Content="🔑 Generate" Command="{Binding GenerateCommand}" Background="#4CAF50" Foreground="White"/>
+            </Grid>
+        </Border>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
+            <DataGrid ItemsSource="{Binding Keys}" SelectedItem="{Binding Selected, Mode=TwoWay}"
+                      AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Width="220" Binding="{Binding Name}"/>
+                    <DataGridTextColumn Header="Kind" Width="90" Binding="{Binding Kind}"/>
+                    <DataGridTextColumn Header="Size" Width="80" Binding="{Binding Size}"/>
+                    <DataGridTextColumn Header="Path" Width="*" Binding="{Binding Path}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+        <Border Grid.Row="3" Background="#101010" Margin="0,8,0,0" Padding="8">
+            <ScrollViewer>
+                <SelectableTextBlock Text="{Binding Output}" Foreground="#80FF80" FontFamily="Cascadia Code,Consolas,monospace"/>
+            </ScrollViewer>
+        </Border>
+        <TextBlock Grid.Row="4" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

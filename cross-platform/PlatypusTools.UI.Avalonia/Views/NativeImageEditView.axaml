@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.NativeImageEditView"
+             x:DataType="vm:NativeImageEditViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*">
+        <TextBlock Grid.Row="0" Text="🖌 Native Image Edit" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="📂 Input" Click="OnPickInClicked" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Input, Mode=TwoWay}"/>
+        </DockPanel>
+        <DockPanel Grid.Row="2" Margin="0,0,0,4">
+            <Button DockPanel.Dock="Left" Content="💾 Output" Click="OnPickOutClicked" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Output, Mode=TwoWay}"/>
+        </DockPanel>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,4">
+            <TextBlock Text="Rotate:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <ComboBox ItemsSource="{Binding Rotations}" SelectedItem="{Binding Rotate, Mode=TwoWay}" Width="80" Margin="0,0,8,0"/>
+            <CheckBox Content="Flip H" IsChecked="{Binding FlipH, Mode=TwoWay}" Margin="0,0,8,0"/>
+            <CheckBox Content="Flip V" IsChecked="{Binding FlipV, Mode=TwoWay}"/>
+        </StackPanel>
+        <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0,0,0,4">
+            <TextBlock Text="Brightness:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <NumericUpDown Value="{Binding Brightness, Mode=TwoWay}" Minimum="-100" Maximum="100" Width="100" Margin="0,0,8,0"/>
+            <TextBlock Text="Contrast:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <NumericUpDown Value="{Binding Contrast, Mode=TwoWay}" Minimum="-100" Maximum="100" Width="100"/>
+        </StackPanel>
+        <Button Grid.Row="5" Content="🚀 Apply" Command="{Binding ApplyCommand}" IsEnabled="{Binding !IsBusy}" Background="#4CAF50" Foreground="White" HorizontalAlignment="Left"/>
+        <TextBlock Grid.Row="6" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

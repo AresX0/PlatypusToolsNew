@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.NotificationCenterView"
+             x:DataType="vm:NotificationCenterViewModel">
+    <Grid RowDefinitions="Auto,*,Auto">
+        <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="1" Padding="8" Margin="0,0,0,8">
+            <Grid ColumnDefinitions="120,*,Auto,Auto,Auto">
+                <ComboBox Grid.Column="0" ItemsSource="{Binding Levels}" SelectedItem="{Binding NewLevel, Mode=TwoWay}"/>
+                <TextBox Grid.Column="1" Text="{Binding NewMessage, Mode=TwoWay}" Watermark="Notification message…"/>
+                <Button Grid.Column="2" Content="➕ Add" Command="{Binding AddCommand}" Background="#4CAF50" Foreground="White"/>
+                <Button Grid.Column="3" Content="🔄" Command="{Binding RefreshCommand}"/>
+                <Button Grid.Column="4" Content="🗑 Clear all" Command="{Binding ClearCommand}" Background="#F44336" Foreground="White"/>
+            </Grid>
+        </Border>
+        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1">
+            <DataGrid ItemsSource="{Binding Items}" AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Time" Width="160" Binding="{Binding Time}"/>
+                    <DataGridTextColumn Header="Level" Width="80" Binding="{Binding Level}"/>
+                    <DataGridTextColumn Header="Message" Width="*" Binding="{Binding Message}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+        <TextBlock Grid.Row="2" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

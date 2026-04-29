@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.SymlinkManagerView"
+             x:DataType="vm:SymlinkManagerViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <DockPanel Grid.Row="0" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Left" Content="🔍 Scan" Command="{Binding ScanCommand}" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="🗑 Delete" Command="{Binding DeleteCommand}" Background="#F44336" Foreground="White" Margin="0,0,8,0"/>
+            <TextBox Text="{Binding ScanFolder, Mode=TwoWay}" Watermark="Folder to scan…"/>
+        </DockPanel>
+        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Padding="8" Margin="0,0,0,8">
+            <StackPanel Spacing="6">
+                <TextBlock Text="Create symbolic link" FontWeight="Bold"/>
+                <DockPanel>
+                    <TextBlock Text="Link path:" Width="80" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding LinkPath, Mode=TwoWay}" Watermark="/path/to/new/link"/>
+                </DockPanel>
+                <DockPanel>
+                    <TextBlock Text="Target:" Width="80" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding TargetPath, Mode=TwoWay}" Watermark="/path/to/existing/target"/>
+                </DockPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <CheckBox IsChecked="{Binding IsDirectoryLink, Mode=TwoWay}" Content="Directory link"/>
+                    <Button Content="Create" Command="{Binding CreateCommand}" Background="#4CAF50" Foreground="White"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
+            <DataGrid ItemsSource="{Binding Links}" SelectedItem="{Binding Selected, Mode=TwoWay}"
+                      AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Kind" Width="90" Binding="{Binding Kind}"/>
+                    <DataGridTextColumn Header="Link" Width="*" Binding="{Binding LinkPath}"/>
+                    <DataGridTextColumn Header="Target" Width="*" Binding="{Binding Target}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+        <TextBlock Grid.Row="3" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

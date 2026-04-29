@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+    <StackPanel Spacing="14">
+        <TextBlock Text="⚙️ Settings" FontSize="22" FontWeight="Bold" />
+
+        <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="12">
+            <StackPanel Spacing="8">
+                <TextBlock Text="Appearance" FontWeight="Bold" />
+                <CheckBox Content="Use Dark Theme" IsChecked="{Binding UseDarkTheme, Mode=TwoWay}" />
+            </StackPanel>
+        </Border>
+
+        <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="12">
+            <StackPanel Spacing="6">
+                <TextBlock Text="About" FontWeight="Bold" />
+                <TextBlock Text="{Binding PortInfo}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding PlatformInfo}"
+                           FontFamily="Cascadia Code,Consolas,Menlo,monospace"
+                           FontSize="11" Foreground="Gray" />
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

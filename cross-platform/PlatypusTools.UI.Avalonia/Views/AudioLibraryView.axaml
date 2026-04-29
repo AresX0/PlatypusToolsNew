@@ -1,0 +1,55 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.AudioLibraryView"
+             x:DataType="vm:AudioLibraryViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="0">
+        <DockPanel Grid.Row="0" Margin="0,0,0,8">
+            <TextBlock Text="💿 Audio Library" FontSize="20" FontWeight="Bold"
+                       VerticalAlignment="Center" />
+        </DockPanel>
+
+        <DockPanel Grid.Row="1" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Left" Content="📂 Pick Folder"
+                    Click="OnPickFolderClicked" Margin="0,0,4,0" />
+            <Button DockPanel.Dock="Left" Content="🔍 Scan"
+                    Command="{Binding ScanCommand}"
+                    IsEnabled="{Binding !IsScanning}" Margin="0,0,4,0" />
+            <Button DockPanel.Dock="Left" Content="⏹ Cancel"
+                    Command="{Binding CancelCommand}"
+                    IsEnabled="{Binding IsScanning}" Margin="0,0,8,0" />
+            <TextBox Text="{Binding LibraryRoot, Mode=TwoWay}" />
+        </DockPanel>
+
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
+            <DataGrid ItemsSource="{Binding Tracks}"
+                      SelectedItem="{Binding SelectedTrack, Mode=TwoWay}"
+                      AutoGenerateColumns="False" IsReadOnly="True"
+                      GridLinesVisibility="Horizontal"
+                      DoubleTapped="OnRowDoubleTapped">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="File" Width="240"
+                                        Binding="{Binding FileName}" />
+                    <DataGridTextColumn Header="Folder" Width="*"
+                                        Binding="{Binding Folder}" />
+                    <DataGridTextColumn Header="Size" Width="80"
+                                        Binding="{Binding SizeDisplay}" />
+                    <DataGridTextColumn Header="Modified" Width="140"
+                                        Binding="{Binding ModifiedDisplay}" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <DockPanel Grid.Row="3" Margin="0,8,0,0">
+            <Button DockPanel.Dock="Right" Content="📂 Reveal"
+                    Command="{Binding RevealCommand}" Margin="4,0,0,0" />
+            <Button DockPanel.Dock="Right" Content="▶ Play"
+                    Command="{Binding PlaySelectedCommand}" Margin="4,0,0,0" />
+            <ProgressBar DockPanel.Dock="Right" Width="120"
+                         IsIndeterminate="{Binding IsScanning}"
+                         IsVisible="{Binding IsScanning}" Margin="0,0,8,0" />
+            <TextBlock Text="{Binding Status}" Foreground="Gray"
+                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+        </DockPanel>
+    </Grid>
+</UserControl>

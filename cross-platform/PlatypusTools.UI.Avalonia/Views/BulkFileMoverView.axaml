@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.BulkFileMoverView"
+             x:DataType="vm:BulkFileMoverViewModel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <StackPanel Grid.Row="0" Spacing="6" Margin="0,0,0,8">
+            <DockPanel>
+                <TextBlock Text="Source:" Width="80" VerticalAlignment="Center"/>
+                <Button DockPanel.Dock="Right" Content="📁" Click="OnPickSrc" Margin="4,0,0,0"/>
+                <TextBox Text="{Binding Source, Mode=TwoWay}"/>
+            </DockPanel>
+            <DockPanel>
+                <TextBlock Text="Dest:" Width="80" VerticalAlignment="Center"/>
+                <Button DockPanel.Dock="Right" Content="📁" Click="OnPickDst" Margin="4,0,0,0"/>
+                <TextBox Text="{Binding Destination, Mode=TwoWay}"/>
+            </DockPanel>
+            <DockPanel>
+                <TextBlock Text="Pattern:" Width="80" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding Pattern, Mode=TwoWay}" Watermark="*.jpg, *.txt, etc."/>
+            </DockPanel>
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <CheckBox IsChecked="{Binding Recursive, Mode=TwoWay}" Content="Recursive"/>
+                <CheckBox IsChecked="{Binding CopyMode, Mode=TwoWay}" Content="Copy (instead of move)"/>
+                <CheckBox IsChecked="{Binding Overwrite, Mode=TwoWay}" Content="Overwrite"/>
+            </StackPanel>
+        </StackPanel>
+        <DockPanel Grid.Row="1" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Left" Content="🔍 Preview" Command="{Binding RefreshPreviewCommand}" Margin="0,0,4,0"/>
+            <Button DockPanel.Dock="Left" Content="▶ Execute" Command="{Binding ExecuteCommand}" Background="#4CAF50" Foreground="White"/>
+        </DockPanel>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
+            <ListBox ItemsSource="{Binding Preview}"/>
+        </Border>
+        <TextBlock Grid.Row="3" Text="{Binding Status}" Foreground="Gray" Margin="0,8,0,0"/>
+    </Grid>
+</UserControl>

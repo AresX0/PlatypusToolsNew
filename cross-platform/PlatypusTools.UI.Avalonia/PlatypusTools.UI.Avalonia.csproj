@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <RootNamespace>PlatypusTools.UI.Avalonia</RootNamespace>
+    <AssemblyName>PlatypusTools</AssemblyName>
+    <Version>4.0.4.3</Version>
+    <Authors>Platysoft</Authors>
+    <Product>PlatypusTools (Cross-Platform)</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.3" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.2.3" Condition="'$(Configuration)' == 'Debug'" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="LibVLCSharp" Version="3.9.0" />
+    <PackageReference Include="LibVLCSharp.Avalonia" Version="3.9.0" />
+    <!-- Linux: rely on the host's distro libvlc (apt/dnf) — no NuGet runtime exists.
+         Mac: bundle libvlc via VideoLAN.LibVLC.Mac. -->
+    <PackageReference Include="VideoLAN.LibVLC.Mac" Version="3.1.3.1" />
+    <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.1.0" />
+    <PackageReference Include="FluentFTP" Version="51.1.0" />
+    <PackageReference Include="QRCoder" Version="1.6.0" />
+    <!-- Pin Tmds.DBus.Protocol to a non-vulnerable version (transitive via Avalonia.X11). GHSA-xrw6-gwf8-vvr9 fixed in 0.21.0. -->
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\PlatypusTools.Core\PlatypusTools.Core.csproj" />
+  </ItemGroup>
+
+</Project>
