@@ -149,16 +149,21 @@ if ($UICsprojContent -match '<Version>(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?</Version>'
     }
     
     # Update HTML help file (has multiple occurrences)
+    # IMPORTANT: regex uses a negative-lookahead `(?![\d.])` so we never match a
+    # PREFIX of a longer version string. Without this, e.g. CurrentVersion=4.0.3
+    # would match "Version 4.0.3.10" and replace only the prefix, producing
+    # "Version 4.0.4.0.10" (the bug that produced the legendary
+    # 4.0.3.8.8.7.6.5.4.3.0.9... corruption over many bumps).
     $HelpFilePath = Join-Path $ProjectRoot "PlatypusTools.UI\Assets\PlatypusTools_Help.html"
     if (Test-Path $HelpFilePath) {
         $HelpContent = Get-Content $HelpFilePath -Raw
-        # Match both old 3-part versions and 4-part versions
-        $HelpNewContent = $HelpContent -replace "v$([regex]::Escape($CurrentVersion))", "v$NewVersion"
-        $HelpNewContent = $HelpNewContent -replace "Version $([regex]::Escape($CurrentVersion))", "Version $NewVersion"
-        # Also update any 3-part version references
+        $HelpNewContent = $HelpContent -replace "v$([regex]::Escape($CurrentVersion))(?![\d.])", "v$NewVersion"
+        $HelpNewContent = $HelpNewContent -replace "Version $([regex]::Escape($CurrentVersion))(?![\d.])", "Version $NewVersion"
+        # Also update any 3-part version references (boundary-anchored so we don't
+        # eat a 4-part version's prefix).
         $ThreePartCurrent = "$MajorNum.$MinorNum.$BuildNum"
-        $HelpNewContent = $HelpNewContent -replace "v$([regex]::Escape($ThreePartCurrent))", "v$NewVersion"
-        $HelpNewContent = $HelpNewContent -replace "Version $([regex]::Escape($ThreePartCurrent))", "Version $NewVersion"
+        $HelpNewContent = $HelpNewContent -replace "v$([regex]::Escape($ThreePartCurrent))(?![\d.])", "v$NewVersion"
+        $HelpNewContent = $HelpNewContent -replace "Version $([regex]::Escape($ThreePartCurrent))(?![\d.])", "Version $NewVersion"
         
         if ($WhatIf) {
             Write-Host "  PlatypusTools.UI\Assets\PlatypusTools_Help.html (multiple occurrences)"
