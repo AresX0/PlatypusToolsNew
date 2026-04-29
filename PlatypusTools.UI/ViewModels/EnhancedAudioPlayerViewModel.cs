@@ -3609,10 +3609,16 @@ public class EnhancedAudioPlayerViewModel : BindableBase, IDisposable
         var token = _scanCts.Token;
         
         // PERFORMANCE: Build index of existing tracks for incremental scanning
-        // This allows skipping files already in the library (by path + file size)
-        var existingTracks = _allLibraryTracks.ToDictionary(
-            t => (t.FilePath.ToLowerInvariant(), t.FileSize),
-            t => t);
+        // This allows skipping files already in the library (by path + file size).
+        // Use TryAdd so duplicate entries in the cache (e.g. from a recovered/truncated
+        // library file) don't crash the scan — first occurrence wins.
+        var existingTracks = new Dictionary<(string, long), AudioTrack>();
+        foreach (var t in _allLibraryTracks)
+        {
+            if (string.IsNullOrEmpty(t.FilePath)) continue;
+            var key = (t.FilePath.ToLowerInvariant(), t.FileSize);
+            existingTracks.TryAdd(key, t);
+        }
         
         var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
