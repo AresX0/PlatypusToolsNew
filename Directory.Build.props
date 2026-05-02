@@ -46,7 +46,8 @@
       CA1310;
       CA1822;
       CA1852;
-      CA1861
+      CA1861;
+      CA2000
     </NoWarn>
     <!--
       CA1001: Types owning disposables - ViewModels are long-lived, disposed with app

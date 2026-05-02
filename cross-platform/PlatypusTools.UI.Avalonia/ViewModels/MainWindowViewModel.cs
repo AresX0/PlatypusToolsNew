@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PlatypusTools.Core.Services;
 using PlatypusTools.UI.Avalonia.Services;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -198,8 +199,12 @@ public partial class MainWindowViewModel : ObservableObject
     {
         Categories.Clear();
         var f = (filter ?? "").Trim();
+        var mediaOnly = EditionService.Current == AppEdition.Media;
         foreach (var cat in AllCategories)
         {
+            if (mediaOnly && !IsCategoryAllowedInMediaEdition(cat.Title))
+                continue;
+
             if (string.IsNullOrEmpty(f))
             {
                 Categories.Add(cat);
@@ -210,6 +215,13 @@ public partial class MainWindowViewModel : ObservableObject
             var copy = new NavigationCategory(cat.Title, new ObservableCollection<NavigationItem>(matches));
             Categories.Add(copy);
         }
+    }
+
+    private static bool IsCategoryAllowedInMediaEdition(string categoryTitle)
+    {
+        // Media edition keeps multimedia + minimal navigation. Other top-level
+        // categories (Files / Security / System / Tools) are hidden.
+        return categoryTitle is "Home" or "Media" or "Settings";
     }
 
     /// <summary>

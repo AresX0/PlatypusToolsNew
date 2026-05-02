@@ -97,6 +97,7 @@ Write-Host "+===============================================================+" -
 # Get version from csproj
 $csprojPath = Join-Path $ProjectRoot "PlatypusTools.UI\PlatypusTools.UI.csproj"
 $productWxsPath = Join-Path $ProjectRoot "PlatypusTools.Installer\Product.wxs"
+$mediaProductWxsPath = Join-Path $ProjectRoot "PlatypusTools.Installer.Media\MediaProduct.wxs"
 $csproj = [xml](Get-Content $csprojPath)
 $currentVersion = $csproj.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
 Write-Host "Current version in csproj: $currentVersion" -ForegroundColor Gray
@@ -119,11 +120,20 @@ if (-not $Version -and -not $NoVersionBump) {
     Set-Content -Path $csprojPath -Value $csprojContent -NoNewline
     Write-Success "Updated csproj version to $Version"
     
-    # Update Product.wxs
+    # Update Product.wxs (Full edition)
     $wxsContent = Get-Content $productWxsPath -Raw
     $wxsContent = $wxsContent -replace 'Version="[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?"', "Version=`"$Version`""
     Set-Content -Path $productWxsPath -Value $wxsContent -NoNewline
     Write-Success "Updated Product.wxs version to $Version"
+
+    # Update MediaProduct.wxs (Multimedia edition)
+    if (Test-Path $mediaProductWxsPath) {
+        $mediaWxs = Get-Content $mediaProductWxsPath -Raw
+        $mediaWxs = $mediaWxs -replace 'Version="[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?"', "Version=`"$Version`""
+        $mediaWxs = $mediaWxs -replace 'Value="[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)? *" />', "Value=`"$Version`" />"
+        Set-Content -Path $mediaProductWxsPath -Value $mediaWxs -NoNewline
+        Write-Success "Updated MediaProduct.wxs version to $Version"
+    }
 } elseif ($Version) {
     Write-Host "Using specified version: $Version" -ForegroundColor Cyan
     
@@ -134,11 +144,20 @@ if (-not $Version -and -not $NoVersionBump) {
         Set-Content -Path $csprojPath -Value $csprojContent -NoNewline
         Write-Success "Updated csproj version to $Version"
         
-        # Update Product.wxs
+        # Update Product.wxs (Full edition)
         $wxsContent = Get-Content $productWxsPath -Raw
         $wxsContent = $wxsContent -replace 'Version="[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?"', "Version=`"$Version`""
         Set-Content -Path $productWxsPath -Value $wxsContent -NoNewline
         Write-Success "Updated Product.wxs version to $Version"
+
+        # Update MediaProduct.wxs (Multimedia edition)
+        if (Test-Path $mediaProductWxsPath) {
+            $mediaWxs = Get-Content $mediaProductWxsPath -Raw
+            $mediaWxs = $mediaWxs -replace 'Version="[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?"', "Version=`"$Version`""
+            $mediaWxs = $mediaWxs -replace 'Value="[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)? *" />', "Value=`"$Version`" />"
+            Set-Content -Path $mediaProductWxsPath -Value $mediaWxs -NoNewline
+            Write-Success "Updated MediaProduct.wxs version to $Version"
+        }
     }
 } else {
     $Version = $currentVersion
@@ -193,6 +212,8 @@ if (-not $SkipClean) {
         "PlatypusTools.Installer\bin",
         "PlatypusTools.Installer\obj",
         "PlatypusTools.Installer\publish",
+        "PlatypusTools.Installer.Media\bin",
+        "PlatypusTools.Installer.Media\obj",
         "PlatypusTools.Core.Tests\bin",
         "PlatypusTools.Core.Tests\obj",
         "tests\PlatypusTools.Core.Tests\bin",
@@ -275,6 +296,29 @@ $msiSizeMB = [math]::Round($msiInfo.Length / 1MB, 2)
 Write-Success "MSI built: $msiPath"
 Write-Host "  Size: $msiSizeMB MB" -ForegroundColor Gray
 Write-Host "  Created: $($msiInfo.LastWriteTime)" -ForegroundColor Gray
+
+# === STEP 6b: Build Media-only MSI installer ===
+Write-Step "Building Multimedia-edition MSI installer"
+
+$mediaInstallerProj = Join-Path $ProjectRoot "PlatypusTools.Installer.Media\PlatypusTools.Installer.Media.wixproj"
+$mediaMsiPath = $null
+if (Test-Path $mediaInstallerProj) {
+    dotnet restore $mediaInstallerProj
+    dotnet build $mediaInstallerProj -c Release
+    if ($LASTEXITCODE -ne 0) { throw "Media MSI build failed" }
+
+    $mediaMsiPath = Join-Path $ProjectRoot "PlatypusTools.Installer.Media\bin\x64\Release\PlatypusToolsMediaSetup.msi"
+    if (-not (Test-Path $mediaMsiPath)) {
+        throw "Media MSI not found at expected location: $mediaMsiPath"
+    }
+    $mediaInfo = Get-Item $mediaMsiPath
+    $mediaSizeMB = [math]::Round($mediaInfo.Length / 1MB, 2)
+    Write-Success "Media MSI built: $mediaMsiPath"
+    Write-Host "  Size: $mediaSizeMB MB" -ForegroundColor Gray
+} else {
+    Write-Warning "Media installer project not found ($mediaInstallerProj) - skipping"
+}
+
 
 # === STEP 7: Publish self-contained single-file EXE ===
 Write-Step "Publishing self-contained single-file executable"
@@ -378,6 +422,20 @@ if ($cert) {
     } catch {
         Write-Warning "Failed to sign MSI: $_"
     }
+
+    # Sign the Media MSI (if produced)
+    if ($mediaMsiPath -and (Test-Path $mediaMsiPath)) {
+        try {
+            $sigResult = Set-AuthenticodeSignature -FilePath $mediaMsiPath -Certificate $cert -TimestampServer $timestampServer
+            if ($sigResult.Status -eq "Valid") {
+                Write-Success "Media MSI signed successfully"
+            } else {
+                Write-Warning "Media MSI signing status: $($sigResult.Status) - $($sigResult.StatusMessage)"
+            }
+        } catch {
+            Write-Warning "Failed to sign Media MSI: $_"
+        }
+    }
 } else {
     Write-Warning "Code signing certificate not found (thumbprint: $certThumbprint)"
     Write-Warning "Skipping code signing - EXE and MSI will be unsigned"
@@ -419,6 +477,10 @@ Write-Host "  Self-contained EXE: $exePath" -ForegroundColor Gray
 Write-Host "                      Size: $exeSizeMB MB" -ForegroundColor Gray
 Write-Host "  MSI Installer:      $msiPath" -ForegroundColor Gray
 Write-Host "                      Size: $msiSizeMB MB" -ForegroundColor Gray
+if ($mediaMsiPath -and (Test-Path $mediaMsiPath)) {
+    Write-Host "  Media MSI:          $mediaMsiPath" -ForegroundColor Gray
+    Write-Host "                      Size: $mediaSizeMB MB" -ForegroundColor Gray
+}
 
 Write-Host "`nVersion: $Version" -ForegroundColor Cyan
 
@@ -436,6 +498,16 @@ $versionedMsiName = "PlatypusToolsSetup-v$Version.msi"
 $versionedMsiPath = Join-Path $releasesDir $versionedMsiName
 Copy-Item $msiPath $versionedMsiPath -Force
 Write-Success "MSI copied to: $versionedMsiPath"
+
+# Copy Media MSI (if built) to releases folder with version name
+$versionedMediaMsiName = $null
+$versionedMediaMsiPath = $null
+if ($mediaMsiPath -and (Test-Path $mediaMsiPath)) {
+    $versionedMediaMsiName = "PlatypusToolsMediaSetup-v$Version.msi"
+    $versionedMediaMsiPath = Join-Path $releasesDir $versionedMediaMsiName
+    Copy-Item $mediaMsiPath $versionedMediaMsiPath -Force
+    Write-Success "Media MSI copied to: $versionedMediaMsiPath"
+}
 
 Write-Host "`n[GitHub Release]" -ForegroundColor Cyan
 Write-Host "  To create a GitHub release, run:" -ForegroundColor White
@@ -490,6 +562,17 @@ if ($Upload) {
         exit 1
     }
     Write-Success "MSI uploaded successfully"
+
+    # Step 2b: Upload Media MSI as well (if built)
+    if ($versionedMediaMsiPath -and (Test-Path $versionedMediaMsiPath)) {
+        Write-Host "Uploading Media MSI..." -ForegroundColor Cyan
+        $uploadResult = gh release upload $tagName $versionedMediaMsiPath --clobber 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to upload Media MSI: $uploadResult"
+            exit 1
+        }
+        Write-Success "Media MSI uploaded successfully"
+    }
     
     # Step 3: Verify upload
     Write-Host "Verifying upload..." -ForegroundColor Cyan

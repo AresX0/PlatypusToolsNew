@@ -1,48 +1,59 @@
 #!/usr/bin/env bash
-# Build a Linux AppImage. Requires `appimagetool` in PATH (https://appimage.github.io/appimagetool/).
+# Build Linux AppImages. Requires `appimagetool` in PATH (https://appimage.github.io/appimagetool/).
+# Produces TWO AppImages:
+#   - dist/PlatypusTools-x86_64.AppImage          (Full edition)
+#   - dist/PlatypusTools-Multimedia-x86_64.AppImage (Media edition)
 set -euo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
-# Step 1: produce the self-contained binary.
+# Step 1: produce both self-contained binaries (Full + Media).
 ./build-linux.sh
 
-APPDIR="dist/PlatypusTools.AppDir"
-rm -rf "$APPDIR"
-mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/share/applications" "$APPDIR/usr/share/icons/hicolor/256x256/apps"
+build_appimage() {
+    local edition="$1"   # "Full" or "Media"
+    local suffix="$2"    # "" or "-media"
+    local app_name="$3"  # "PlatypusTools" or "PlatypusTools-Multimedia"
+    local desktop_name="$4"
 
-cp -r dist/linux-x64/* "$APPDIR/usr/bin/"
+    local appdir="dist/${app_name}.AppDir"
+    rm -rf "$appdir"
+    mkdir -p "$appdir/usr/bin" "$appdir/usr/share/applications" "$appdir/usr/share/icons/hicolor/256x256/apps"
 
-cat > "$APPDIR/PlatypusTools.desktop" <<'EOF'
+    cp -r "dist/linux-x64${suffix}"/* "$appdir/usr/bin/"
+
+    cat > "$appdir/${app_name}.desktop" <<EOF
 [Desktop Entry]
-Name=PlatypusTools
+Name=${desktop_name}
 Exec=PlatypusTools
-Icon=platypustools
+Icon=${app_name,,}
 Type=Application
-Categories=Utility;
+Categories=Utility;AudioVideo;
 EOF
 
-cp "$APPDIR/PlatypusTools.desktop" "$APPDIR/usr/share/applications/"
+    cp "$appdir/${app_name}.desktop" "$appdir/usr/share/applications/"
 
-# Real app icon — sourced from PlatypusTools.UI.Avalonia/Assets/app-icon.png
-ICON_SRC="PlatypusTools.UI.Avalonia/Assets/app-icon.png"
-ICON="$APPDIR/platypustools.png"
-if [ -f "$ICON_SRC" ]; then
-    cp "$ICON_SRC" "$ICON"
-else
-    # Transparent fallback
-    printf '\x89PNG\r\n\x1a\n' > "$ICON"
-fi
-cp "$ICON" "$APPDIR/usr/share/icons/hicolor/256x256/apps/"
+    local icon_src="PlatypusTools.UI.Avalonia/Assets/app-icon.png"
+    local icon="$appdir/${app_name,,}.png"
+    if [ -f "$icon_src" ]; then
+        cp "$icon_src" "$icon"
+    else
+        printf '\x89PNG\r\n\x1a\n' > "$icon"
+    fi
+    cp "$icon" "$appdir/usr/share/icons/hicolor/256x256/apps/"
 
-cat > "$APPDIR/AppRun" <<'EOF'
+    cat > "$appdir/AppRun" <<'EOF'
 #!/bin/bash
 HERE="$(dirname "$(readlink -f "${0}")")"
 exec "$HERE/usr/bin/PlatypusTools" "$@"
 EOF
-chmod +x "$APPDIR/AppRun"
+    chmod +x "$appdir/AppRun"
 
-OUT="dist/PlatypusTools-x86_64.AppImage"
-ARCH=x86_64 appimagetool "$APPDIR" "$OUT"
-echo "✓ AppImage: $OUT"
+    local out="dist/${app_name}-x86_64.AppImage"
+    ARCH=x86_64 appimagetool "$appdir" "$out"
+    echo "✓ AppImage (${edition}): $out"
+}
+
+build_appimage "Full"  ""       "PlatypusTools"            "PlatypusTools"
+build_appimage "Media" "-media" "PlatypusTools-Multimedia" "PlatypusTools Multimedia"

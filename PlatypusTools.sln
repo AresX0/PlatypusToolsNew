@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatypusTools.Core.Tests", 
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "PlatypusTools.Installer", "PlatypusTools.Installer\PlatypusTools.Installer.wixproj", "{5E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}"
 EndProject
+Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "PlatypusTools.Installer.Media", "PlatypusTools.Installer.Media\PlatypusTools.Installer.Media.wixproj", "{6F6F9C5F-5F6F-5060-9F6F-5F6F5F6F5F6F}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{7E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SamplePlugin", "samples\SamplePlugin\SamplePlugin.csproj", "{8E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}"
@@ -73,6 +75,14 @@ Global
 		{5E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}.Release|x64.ActiveCfg = Release|x64
 		{5E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}.Release|x64.Build.0 = Release|x64
 		{5E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}.Release|x86.ActiveCfg = Release|x86
+		{6F6F9C5F-5F6F-5060-9F6F-5F6F5F6F5F6F}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{6F6F9C5F-5F6F-5060-9F6F-5F6F5F6F5F6F}.Debug|x64.ActiveCfg = Debug|x64
+		{6F6F9C5F-5F6F-5060-9F6F-5F6F5F6F5F6F}.Debug|x64.Build.0 = Debug|x64
+		{6F6F9C5F-5F6F-5060-9F6F-5F6F5F6F5F6F}.Debug|x86.ActiveCfg = Debug|x86
+		{6F6F9C5F-5F6F-5060-9F6F-5F6F5F6F5F6F}.Release|Any CPU.ActiveCfg = Release|x64
+		{6F6F9C5F-5F6F-5060-9F6F-5F6F5F6F5F6F}.Release|x64.ActiveCfg = Release|x64
+		{6F6F9C5F-5F6F-5060-9F6F-5F6F5F6F5F6F}.Release|x64.Build.0 = Release|x64
+		{6F6F9C5F-5F6F-5060-9F6F-5F6F5F6F5F6F}.Release|x86.ActiveCfg = Release|x86
 		{8E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E5E8B4E-4E5E-4F5E-8E5E-4E5E4E5E4E5E}.Debug|x64.ActiveCfg = Debug|Any CPU

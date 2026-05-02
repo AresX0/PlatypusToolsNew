@@ -10072,6 +10072,96 @@ namespace PlatypusTools.UI.Views
         /// others follow the active color scheme. Inspired by satellite imagery with
         /// flowing energy waves overlaid on a dark landscape.
         /// </summary>
+        private static SKBitmap? _honmoonWorldBg;
+        private static bool _honmoonWorldBgTried;
+        private static readonly object _honmoonWorldBgLock = new();
+        // Cached pre-rendered background (darkened bitmap + vignette) so we don't pay
+        // the full-canvas composite cost every frame at fullscreen.
+        private SKImage? _honmoonBgCache;
+        private int _honmoonBgCacheW;
+        private int _honmoonBgCacheH;
+        private float _honmoonBgCacheDx, _honmoonBgCacheDy, _honmoonBgCacheDw, _honmoonBgCacheDh;
+        // Downsampled land-probability grid built from the world bitmap.
+        // Each byte 0..255 = "how land-like" that cell is (255 = pure land, 0 = pure sea).
+        private static byte[]? _honmoonLandProb;
+        private const int HONMOON_PROB_W = 256;
+        private const int HONMOON_PROB_H = 128;
+
+        private static SKBitmap? GetHonmoonWorldBg()
+        {
+            if (_honmoonWorldBgTried) return _honmoonWorldBg;
+            lock (_honmoonWorldBgLock)
+            {
+                if (_honmoonWorldBgTried) return _honmoonWorldBg;
+                try
+                {
+                    var asm = typeof(AudioVisualizerView).Assembly;
+                    string? resName = null;
+                    foreach (var n in asm.GetManifestResourceNames())
+                    {
+                        if (n.EndsWith("honmoon_world_bg.png", StringComparison.OrdinalIgnoreCase))
+                        { resName = n; break; }
+                    }
+                    if (resName != null)
+                    {
+                        using var stream = asm.GetManifestResourceStream(resName);
+                        if (stream != null)
+                        {
+                            _honmoonWorldBg = SKBitmap.Decode(stream);
+                            BuildHonmoonLandProb(_honmoonWorldBg);
+                        }
+                    }
+                }
+                catch { _honmoonWorldBg = null; }
+                _honmoonWorldBgTried = true;
+                return _honmoonWorldBg;
+            }
+        }
+
+        private static void BuildHonmoonLandProb(SKBitmap? bmp)
+        {
+            if (bmp == null) { _honmoonLandProb = null; return; }
+            int W = HONMOON_PROB_W, H = HONMOON_PROB_H;
+            var prob = new byte[W * H];
+            int iw = bmp.Width, ih = bmp.Height;
+            for (int y = 0; y < H; y++)
+            {
+                int sy = (int)((y + 0.5f) / H * ih);
+                if (sy < 0) sy = 0; else if (sy >= ih) sy = ih - 1;
+                for (int x = 0; x < W; x++)
+                {
+                    int sx = (int)((x + 0.5f) / W * iw);
+                    if (sx < 0) sx = 0; else if (sx >= iw) sx = iw - 1;
+                    var c = bmp.GetPixel(sx, sy);
+                    // Land = warm hues (purples/pinks/greens/browns); Sea = cool blues/teals.
+                    // Use R - B as the warm/cool axis: positive = land, negative = sea.
+                    // Works for the purple-continent map (R high, B medium) and traditional
+                    // green-land/blue-sea maps (R+G high, B low).
+                    int diff = c.Red - c.Blue;
+                    int p;
+                    if (diff <= -20) p = 0;                    // strongly blue/teal → sea
+                    else if (diff >= 20) p = 255;              // clearly warm → land
+                    else p = (diff + 20) * 255 / 40;           // coastal ramp
+                    prob[y * W + x] = (byte)Math.Clamp(p, 0, 255);
+                }
+            }
+            _honmoonLandProb = prob;
+        }
+
+        // Sample land probability at canvas (x,y) given the cover-fit destination rect.
+        private static float HonmoonLandAt(float x, float y, float dx, float dy, float dw, float dh)
+        {
+            if (_honmoonLandProb == null) return 0f;
+            float u = (x - dx) / dw;
+            float v = (y - dy) / dh;
+            if (u < 0 || u > 1 || v < 0 || v > 1) return 0f;
+            int px = (int)(u * (HONMOON_PROB_W - 1));
+            int py = (int)(v * (HONMOON_PROB_H - 1));
+            if (px < 0) px = 0; else if (px >= HONMOON_PROB_W) px = HONMOON_PROB_W - 1;
+            if (py < 0) py = 0; else if (py >= HONMOON_PROB_H) py = HONMOON_PROB_H - 1;
+            return _honmoonLandProb[py * HONMOON_PROB_W + px] / 255f;
+        }
+
         private void RenderHonmoonHdSkia(SKCanvas canvas, SKImageInfo info)
         {
             int w = info.Width;
@@ -10137,23 +10227,74 @@ namespace PlatypusTools.UI.Views
                 rawBassPeak = Math.Max(rawBassPeak, rawSpec[i]);
             bool isGoldenMode = rawBassPeak > 0.45f;
             
-            // === Background: pulses warmer on bass hits ===
-            using (var bgPaint = new SKPaint())
+            // === Background: pre-rendered cache (darkened world map + vignette).
+            // Built once per canvas size — cheap blit per frame regardless of fullscreen size.
+            var worldBg = GetHonmoonWorldBg();
+            float bgDx = 0, bgDy = 0, bgDw = w, bgDh = h;
+            if (worldBg != null)
             {
-                byte bgR = (byte)(18 + bassEnergy * 20);
-                byte bgG = (byte)(12 + bassEnergy * 8);
-                byte bgB = (byte)(28 + midEnergy * 15);
-                bgPaint.Shader = SKShader.CreateRadialGradient(
-                    new SKPoint(w * 0.4f, h * 0.5f), Math.Max(w, h) * 0.8f,
-                    new SKColor[] {
-                        new SKColor(bgR, bgG, bgB),
-                        new SKColor(8, 5, 15),
-                        new SKColor(3, 2, 6)
-                    },
-                    new float[] { 0f, 0.5f, 1f },
-                    SKShaderTileMode.Clamp);
-                canvas.DrawRect(0, 0, w, h, bgPaint);
+                float iw = worldBg.Width, ih = worldBg.Height;
+                float scale = Math.Max(w / iw, h / ih);
+                bgDw = iw * scale; bgDh = ih * scale;
+                bgDx = (w - bgDw) * 0.5f;
+                bgDy = (h - bgDh) * 0.5f;
             }
+
+            // Rebuild cache if size changed or it doesn't exist.
+            if (_honmoonBgCache == null || _honmoonBgCacheW != w || _honmoonBgCacheH != h)
+            {
+                _honmoonBgCache?.Dispose();
+                using var surf = SKSurface.Create(new SKImageInfo(w, h, SKColorType.Rgba8888, SKAlphaType.Premul));
+                var bgCanvas = surf.Canvas;
+
+                if (worldBg != null)
+                {
+                    using var bmpPaint = new SKPaint
+                    {
+                        // FilterQuality.None is much cheaper for big sizes; the 0.40× darkening
+                        // hides interpolation artifacts.
+                        FilterQuality = SKFilterQuality.Low,
+                        ColorFilter = SKColorFilter.CreateColorMatrix(new float[]
+                        {
+                            0.60f, 0,     0,     0, 0,
+                            0,     0.60f, 0,     0, 0,
+                            0,     0,     0.60f, 0, 0,
+                            0,     0,     0,     1, 0
+                        })
+                    };
+                    bgCanvas.DrawBitmap(worldBg, new SKRect(bgDx, bgDy, bgDx + bgDw, bgDy + bgDh), bmpPaint);
+                }
+                else
+                {
+                    using var solid = new SKPaint { Color = new SKColor(8, 5, 15) };
+                    bgCanvas.DrawRect(0, 0, w, h, solid);
+                }
+
+                // Static vignette (no longer audio-reactive — kept dark and consistent).
+                using (var bgPaint = new SKPaint())
+                {
+                    bgPaint.Shader = SKShader.CreateRadialGradient(
+                        new SKPoint(w * 0.5f, h * 0.5f), Math.Max(w, h) * 0.85f,
+                        new SKColor[] {
+                            new SKColor(8,  6,  16, 0),
+                            new SKColor(4,  2,  10, 130),
+                            new SKColor(0,  0,  4,  220)
+                        },
+                        new float[] { 0f, 0.55f, 1f },
+                        SKShaderTileMode.Clamp);
+                    bgCanvas.DrawRect(0, 0, w, h, bgPaint);
+                }
+
+                _honmoonBgCache = surf.Snapshot();
+                _honmoonBgCacheW = w;
+                _honmoonBgCacheH = h;
+                _honmoonBgCacheDx = bgDx; _honmoonBgCacheDy = bgDy;
+                _honmoonBgCacheDw = bgDw; _honmoonBgCacheDh = bgDh;
+            }
+
+            canvas.DrawImage(_honmoonBgCache, 0, 0);
+            bgDx = _honmoonBgCacheDx; bgDy = _honmoonBgCacheDy;
+            bgDw = _honmoonBgCacheDw; bgDh = _honmoonBgCacheDh;
             
             // === Pulsing ground glow — bass-reactive ===
             using (var glowPaint = new SKPaint { IsAntialias = true })
@@ -10181,16 +10322,10 @@ namespace PlatypusTools.UI.Views
             // Music sync: wavelength (sine frequency) modulated by energy, amplitude by onset ratio.
             // Visibility: alpha/thickness varies per-row so some lines "pop" as accent lines.
             int lineCount, pointsPerLine;
-            if (_isLargeSurface)
-            {
-                lineCount = Math.Clamp(h / 8, 20, 50);
-                pointsPerLine = Math.Clamp(w / 6, 60, 160);
-            }
-            else
-            {
-                lineCount = Math.Clamp(h / 5, 30, 80);
-                pointsPerLine = Math.Clamp(w / 4, 80, 240);
-            }
+            // Use the SAME line/point budget regardless of surface size — perf is now
+            // bounded by line count, not pixel count, so fullscreen ≈ windowed.
+            lineCount = Math.Clamp(h / 6, 70, 130);
+            pointsPerLine = Math.Clamp(w / 9, 70, 140);
             
             // Phase speed reacts to energy — waves flow faster on loud parts
             float phaseSpeed = 1.0f + totalEnergy * 2.0f + bassEnergy * 1.0f;
@@ -10226,60 +10361,185 @@ namespace PlatypusTools.UI.Views
                 StrokeCap = SKStrokeCap.Round,
                 StrokeJoin = SKStrokeJoin.Round
             })
-            using (var wavePath = new SKPath()) // ONE path, Reset() per row — zero per-row allocations
+            using (var wavePath = new SKPath())  // dim base pass — full curve
+            using (var landPath = new SKPath())  // bright accent pass — land segments only
             {
+                bool haveLandProb = _honmoonLandProb != null;
+                // Pre-sample land probability per X column for the *base* row Y. Used both
+                // to bulge the lines upward over continents (topographic feel) and to mask
+                // the bright accent pass.
+                int columns = pointsPerLine + 1;
+                float[] landAtX = new float[columns];
+                if (haveLandProb)
+                {
+                    // Sample at canvas mid-Y — gives a per-X "is this column over land?" probe
+                    // good enough for warping. Per-row precise sampling still happens during
+                    // the accent pass.
+                    for (int px = 0; px < columns; px++)
+                    {
+                        float xT = (float)px / pointsPerLine;
+                        float x = xT * w;
+                        float l = HonmoonLandAt(x, h * 0.5f, bgDx, bgDy, bgDw, bgDh);
+                        landAtX[px] = l;
+                    }
+                    // Light box-blur smoothing so the bulge edges feel organic, not jagged.
+                    // Wider kernel → rounder, more flowy contour shoulders.
+                    var smoothed = new float[columns];
+                    int kernelHalf = Math.Max(4, columns / 32);
+                    for (int i = 0; i < columns; i++)
+                    {
+                        int a = Math.Max(0, i - kernelHalf);
+                        int b = Math.Min(columns - 1, i + kernelHalf);
+                        float s = 0; int n = 0;
+                        for (int j = a; j <= b; j++) { s += landAtX[j]; n++; }
+                        smoothed[i] = s / n;
+                    }
+                    // Two passes for extra-smooth shoulders.
+                    var smoothed2 = new float[columns];
+                    for (int i = 0; i < columns; i++)
+                    {
+                        int a = Math.Max(0, i - kernelHalf);
+                        int b = Math.Min(columns - 1, i + kernelHalf);
+                        float s = 0; int n = 0;
+                        for (int j = a; j <= b; j++) { s += smoothed[j]; n++; }
+                        smoothed2[i] = s / n;
+                    }
+                    landAtX = smoothed2;
+                }
+
                 for (int row = 0; row < lineCount; row++)
                 {
                     float rowT = (float)row / (lineCount - 1); // 0..1
                     float baseY = rowT * h;
                     
-                    // Per-row spectrum for brightness/alpha variation (some lines glow more)
-                    int rowSpecIdx = Math.Clamp((int)(rowT * (barCount - 1)), 0, barCount - 1);
+                    // Per-row spectrum bin: hash-shuffled so brightness is NOT correlated with
+                    // row position. Previous mapping rowT→bin made top rows bassy/bright.
+                    uint hashed = ((uint)row * 2654435761u) ^ 0xA53F1B0Du;
+                    int rowSpecIdx = (int)(hashed % (uint)barCount);
                     float rowRaw = rawSpec[rowSpecIdx];
                     if (rowSpecIdx > 0 && rowSpecIdx < barCount - 1)
                         rowRaw = rawSpec[rowSpecIdx - 1] * 0.25f + rawSpec[rowSpecIdx] * 0.5f + rawSpec[rowSpecIdx + 1] * 0.25f;
-                    float rowBrightness = Math.Min(1.0f, rowRaw * 2.5f);
+                    // Floor every row at total energy so all rows respond, plus per-row sparkle.
+                    float rowBrightness = Math.Min(1.0f, totalEnergy * 0.55f + rowRaw * 1.6f);
                     
                     // Per-row amplitude: global beat amp + small per-row variation
                     float rowAmp = globalAmp * (0.7f + rowBrightness * 0.6f);
                     
-                    // Line thickness: accent lines (high energy rows) are thicker
-                    linePaint.StrokeWidth = (0.4f + rowBrightness * 1.0f) * resScale;
-                    
-                    // Color: golden when bass peaks, scheme colors otherwise
+                    // Color base — Honmoon teal/cyan glow palette (replaces rainbow scheme).
+                    // Quiet rows: deep teal. Loud rows: cyan→white. Golden mode: amber/gold.
+                    SKColor schemeColor;
+                    byte baseAlpha;
                     if (isGoldenMode)
                     {
                         byte gAlpha = (byte)Math.Min(255, 80 + rowBrightness * 175);
                         byte gGreen = (byte)Math.Min(255, 170 + rowBrightness * 70);
-                        linePaint.Color = new SKColor(255, gGreen, 45, gAlpha);
+                        schemeColor = new SKColor(255, gGreen, 45);
+                        baseAlpha = gAlpha;
                     }
                     else
                     {
-                        SKColor schemeColor = GetHDColor(Math.Max(0.1, Math.Min(1.0, rowBrightness)));
-                        byte cAlpha = (byte)Math.Min(255, 40 + rowBrightness * 215);
-                        linePaint.Color = schemeColor.WithAlpha(cAlpha);
+                        // Vivid deep violet → hot magenta-pink as brightness rises.
+                        float t = Math.Clamp(rowBrightness, 0f, 1f);
+                        byte r = (byte)(90 + t * 165);
+                        byte g = (byte)(20 + t * 110);
+                        byte b = (byte)(220 + t * 35);
+                        schemeColor = new SKColor(r, g, b);
+                        baseAlpha = (byte)Math.Min(255, 60 + rowBrightness * 195);
                     }
                     
-                    // Build path — PARALLEL contour lines. Reuse single path, Reset() each row.
+                    // Build paths — PARALLEL contour lines that BULGE over land.
                     float rowPhase = row * 0.02f;
                     wavePath.Reset();
+                    landPath.Reset();
+                    
+                    // Compute all points for this row first so we can stroke a smooth
+                    // quadratic-Bezier curve through them (rounder, more flowy than LineTo).
+                    var pts = new SKPoint[columns];
+                    var ptLp = new float[columns];
+                    
+                    // Row-level bulge magnitude: how far up the line lifts over peak land.
+                    // Constant per row so adjacent rows share the bulge → topographic stack.
+                    float bulgeMag = h * 0.06f * (0.7f + rowBrightness * 0.5f);
                     
                     for (int px = 0; px <= pointsPerLine; px++)
                     {
                         float xT = (float)px / pointsPerLine;
                         float x = xT * w;
                         
-                        float wave1 = (float)Math.Sin(xT * 2.5 * Math.PI * waveFreqMod + phase * phaseSpeed * 0.8 + rowPhase) * rowAmp;
-                        float wave2 = (float)Math.Sin(xT * 4.5 * Math.PI * waveFreqMod + phase * phaseSpeed * 0.5 + rowPhase * 1.5) * rowAmp * 0.25f;
-                        float wave3 = (float)Math.Sin(xT * 1.2 * Math.PI + phase * phaseSpeed * 0.3 + rowPhase * 0.5) * rowAmp * 0.4f;
+                        // Lower-frequency wave shapes → smoother flow.
+                        float wave1 = (float)Math.Sin(xT * 1.6 * Math.PI * waveFreqMod + phase * phaseSpeed * 0.8 + rowPhase) * rowAmp;
+                        float wave2 = (float)Math.Sin(xT * 2.6 * Math.PI * waveFreqMod + phase * phaseSpeed * 0.5 + rowPhase * 1.5) * rowAmp * 0.20f;
+                        float wave3 = (float)Math.Sin(xT * 0.9 * Math.PI + phase * phaseSpeed * 0.3 + rowPhase * 0.5) * rowAmp * 0.45f;
                         
-                        float y = baseY + wave1 + wave2 + wave3;
+                        float lp = haveLandProb ? landAtX[px] : 0f;
+                        float bulge = -bulgeMag * (float)Math.Pow(lp, 1.3);
+                        if (lp > 0.05f)
+                            bulge += -bulgeMag * 0.18f * lp * (float)Math.Sin(xT * 4.5 + phase * phaseSpeed * 1.4);
                         
-                        if (px == 0) wavePath.MoveTo(x, y);
-                        else wavePath.LineTo(x, y);
+                        float y = baseY + wave1 + wave2 + wave3 + bulge;
+                        pts[px] = new SKPoint(x, y);
+                        ptLp[px] = lp;
                     }
                     
+                    // Stroke wavePath as a smooth curve: quadratic Beziers through midpoints.
+                    if (columns >= 2)
+                    {
+                        wavePath.MoveTo(pts[0]);
+                        for (int i = 1; i < columns - 1; i++)
+                        {
+                            float mx = (pts[i].X + pts[i + 1].X) * 0.5f;
+                            float my = (pts[i].Y + pts[i + 1].Y) * 0.5f;
+                            wavePath.QuadTo(pts[i].X, pts[i].Y, mx, my);
+                        }
+                        wavePath.LineTo(pts[columns - 1]);
+                    }
+                    
+                    // Build landPath similarly, but only over runs where probability > threshold.
+                    if (haveLandProb)
+                    {
+                        bool penDown = false;
+                        int runStart = -1;
+                        for (int i = 0; i < columns; i++)
+                        {
+                            float lpHere = HonmoonLandAt(pts[i].X, pts[i].Y, bgDx, bgDy, bgDw, bgDh);
+                            bool onLand = lpHere > 0.18f;
+                            if (onLand && !penDown) { runStart = i; penDown = true; }
+                            else if ((!onLand || i == columns - 1) && penDown)
+                            {
+                                int runEnd = onLand ? i : i - 1;
+                                if (runEnd > runStart)
+                                {
+                                    landPath.MoveTo(pts[runStart]);
+                                    for (int k = runStart + 1; k < runEnd; k++)
+                                    {
+                                        float mx = (pts[k].X + pts[k + 1].X) * 0.5f;
+                                        float my = (pts[k].Y + pts[k + 1].Y) * 0.5f;
+                                        landPath.QuadTo(pts[k].X, pts[k].Y, mx, my);
+                                    }
+                                    landPath.LineTo(pts[runEnd]);
+                                }
+                                penDown = false;
+                            }
+                        }
+                    }
+                    
+                    // Pass 1: VERY dim base — sea reads as ghosted background motion only.
+                    linePaint.StrokeWidth = (0.18f + rowBrightness * 0.30f) * resScale;
+                    linePaint.Color = schemeColor.WithAlpha((byte)(baseAlpha * 0.18f));
                     canvas.DrawPath(wavePath, linePaint);
+                    
+                    // Pass 2: glow halo over land (faint, fat) — gives the "fingerprint over land" pop.
+                    if (haveLandProb && !landPath.IsEmpty)
+                    {
+                        linePaint.StrokeWidth = (1.4f + rowBrightness * 1.6f) * resScale;
+                        linePaint.Color = schemeColor.WithAlpha((byte)(baseAlpha * 0.30f));
+                        canvas.DrawPath(landPath, linePaint);
+                        
+                        // Pass 3: bright accent core over land — full alpha, thinner.
+                        linePaint.StrokeWidth = (0.40f + rowBrightness * 0.65f) * resScale;
+                        linePaint.Color = schemeColor.WithAlpha(baseAlpha);
+                        canvas.DrawPath(landPath, linePaint);
+                    }
                 }
             }
             

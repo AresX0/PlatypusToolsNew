@@ -27,6 +27,27 @@ namespace PlatypusTools.UI
             base.OnStartup(e);
             _startupArgs = e.Args;
             
+            // Edition override: --edition=Full | --edition=Media (or /edition:Media)
+            try
+            {
+                if (_startupArgs != null)
+                {
+                    foreach (var raw in _startupArgs)
+                    {
+                        if (string.IsNullOrEmpty(raw)) continue;
+                        var a = raw.TrimStart('-', '/').Replace(':', '=');
+                        if (a.StartsWith("edition=", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var val = a.Substring("edition=".Length);
+                            if (Enum.TryParse<AppEdition>(val, true, out var ed))
+                                EditionService.Override(ed);
+                            break;
+                        }
+                    }
+                }
+            }
+            catch { /* ignore */ }
+            
             // IDEA-011: Auto-apply standard context menus to all DataGrids
             EventManager.RegisterClassHandler(typeof(System.Windows.Controls.DataGrid),
                 FrameworkElement.LoadedEvent,

@@ -220,11 +220,18 @@
                         </Grid>
                         
                         <!-- Lyrics Overlay (shown via Lyrics button, floats on top of visualizer or album art) -->
-                        <Border Background="#80000000" CornerRadius="8" Margin="20,0,20,30"
+                        <Border Background="#CC000000" CornerRadius="8" Margin="20,0,20,30"
                                 VerticalAlignment="Bottom" HorizontalAlignment="Center" Padding="20,10"
                                 Visibility="{Binding ShowLyricsOverlay, Converter={StaticResource BoolToVis}}">
+                            <Border.Effect>
+                                <DropShadowEffect Color="Black" BlurRadius="12" ShadowDepth="0" Opacity="0.9"/>
+                            </Border.Effect>
                             <TextBlock Text="{Binding CurrentLyricLineText}" FontSize="20" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource WindowForegroundBrush}" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="600"/>
+                                       Foreground="White" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="600">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect Color="Black" BlurRadius="6" ShadowDepth="0" Opacity="1"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
                         </Border>
                     </Grid>
                 </Border>

@@ -61,6 +61,10 @@ namespace PlatypusTools.UI.Services
         public Visibility GetVisibility(string tabKey)
         {
             if (string.IsNullOrEmpty(tabKey)) return Visibility.Visible;
+            // Edition gating: tabs not allowed by the current edition are always Collapsed,
+            // regardless of the user's saved settings.
+            if (!PlatypusTools.Core.Services.EditionService.IsTabAllowed(tabKey))
+                return Visibility.Collapsed;
             return _tabVisibility.TryGetValue(tabKey, out var visibility) ? visibility : Visibility.Visible;
         }
 

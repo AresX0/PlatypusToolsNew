@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    PlatypusTools Multimedia Edition installer.
+
+    This MSI installs the same EXE as the Full edition but:
+      - Lives in its own ProgramFiles folder ("PlatypusTools Media")
+      - Has its own UpgradeCode (installs side-by-side with the Full edition)
+      - Drops an edition.txt sidecar with "Media" so the app hides non-media tabs
+      - Bundles only multimedia tooling (FFmpeg + fonts). No ExifTool / no domain
+        scripts.
+      - Start menu shortcut points at PlatypusTools.UI.exe with --edition=Media
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <Package Name="PlatypusTools Multimedia"
+           Manufacturer="Platysoft"
+           Version="4.0.4.4"
+           UpgradeCode="B7C1D2E3-F4A5-4B6C-9D7E-8F9A0B1C2D3E"
+           InstallerVersion="500"
+           Compressed="yes"
+           Scope="perMachine">
+
+    <SummaryInformation Keywords="Installer"
+                        Description="PlatypusTools - Multimedia &amp; Streaming Edition"
+                        Manufacturer="Platysoft" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."
+                  AllowSameVersionUpgrades="yes"
+                  Schedule="afterInstallInitialize" />
+
+    <Launch Condition="VersionNT64" Message="This application requires a 64-bit version of Windows." />
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="PlatypusIcon" SourceFile="..\JosephThePlatypus.ico" />
+    <Property Id="ARPPRODUCTICON" Value="PlatypusIcon" />
+    <Property Id="ARPURLINFOABOUT" Value="https://platysoft.com/" />
+
+    <!-- Directory layout -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="PlatypusTools Media">
+        <Directory Id="ToolsFolder" Name="Tools">
+          <Directory Id="FFmpegFolder" Name="ffmpeg" />
+        </Directory>
+        <Directory Id="DataFolder" Name="Data" />
+        <Directory Id="LogsFolder" Name="Logs" />
+        <Directory Id="AppFontsFolder" Name="Fonts" />
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="PlatypusTools Multimedia" />
+    </StandardDirectory>
+
+    <!-- Shortcut + edition marker file -->
+    <Component Id="MediaApplicationShortcut" Directory="ApplicationProgramsFolder"
+               Guid="C8D9E0F1-A2B3-4C5D-9E6F-7A8B9C0D1E2F">
+      <Shortcut Id="MediaStartMenuShortcut"
+                Name="PlatypusTools Multimedia"
+                Description="PlatypusTools - Multimedia &amp; Streaming Edition"
+                Target="[INSTALLFOLDER]PlatypusTools.UI.exe"
+                Arguments="--edition=Media"
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="PlatypusIcon" />
+      <RemoveFolder Id="CleanUpMediaShortCut" Directory="ApplicationProgramsFolder" On="uninstall" />
+      <RegistryValue Root="HKCU"
+                     Key="Software\PlatypusTools\Media"
+                     Name="installed"
+                     Type="integer"
+                     Value="1"
+                     KeyPath="yes" />
+    </Component>
+
+    <Component Id="MediaRegistryEntries" Directory="INSTALLFOLDER"
+               Guid="D9E0F1A2-B3C4-4D5E-9F6A-8B9C0D1E2F3A">
+      <RegistryValue Root="HKLM"
+                     Key="Software\PlatypusTools"
+                     Name="MediaInstallPath"
+                     Type="string"
+                     Value="[INSTALLFOLDER]"
+                     KeyPath="yes" />
+      <RegistryValue Root="HKLM"
+                     Key="Software\PlatypusTools"
+                     Name="MediaVersion"
+                     Type="string"
+                     Value="4.0.4.4" />
+    </Component>
+
+    <Component Id="EditionMarkerFile" Directory="INSTALLFOLDER"
+               Guid="E0F1A2B3-C4D5-4E6F-9A7B-9C0D1E2F3A4B">
+      <File Id="edition_txt"
+            Source="..\PlatypusTools.Installer.Media\edition.txt"
+            Name="edition.txt"
+            KeyPath="yes" />
+    </Component>
+
+    <!-- Bundled multimedia support files (FFmpeg + theme fonts). -->
+    <ComponentGroup Id="MediaSupportFiles">
+      <Component Id="MediaFFmpegExe" Directory="FFmpegFolder"
+                 Guid="A0B1C2D3-E4F5-4A6B-9C7D-0E1F2A3B4C5D">
+        <File Id="media_ffmpeg_exe" Source="..\Tools\ffmpeg\ffmpeg.exe" KeyPath="yes" />
+      </Component>
+      <Component Id="MediaFFprobeExe" Directory="FFmpegFolder"
+                 Guid="A1B2C3D4-E5F6-4A7B-9C8D-1E2F3A4B5C6E">
+        <File Id="media_ffprobe_exe" Source="..\Tools\ffmpeg\ffprobe.exe" KeyPath="yes" />
+      </Component>
+      <Component Id="MediaFFplayExe" Directory="FFmpegFolder"
+                 Guid="A2B3C4D5-E6F7-4A8B-9C9D-2E3F4A5B6C7F">
+        <File Id="media_ffplay_exe" Source="..\Tools\ffmpeg\ffplay.exe" KeyPath="yes" />
+      </Component>
+      <Component Id="MediaFFmpegLicense" Directory="FFmpegFolder"
+                 Guid="A3B4C5D6-E7F8-4A9B-9C0D-3E4F5A6B7C8A">
+        <File Id="media_ffmpeg_license" Source="..\Tools\ffmpeg\LICENSE.txt" KeyPath="yes" />
+      </Component>
+
+      <Component Id="MediaFontMonofonto" Directory="AppFontsFolder"
+                 Guid="B0C1D2E3-F4A5-4B6C-9D7E-0F1A2B3C4D5E">
+        <File Id="media_font_monofonto" Source="..\PlatypusTools.UI\Assets\monofonto.otf" KeyPath="yes" />
+      </Component>
+      <Component Id="MediaFontOkuda" Directory="AppFontsFolder"
+                 Guid="B1C2D3E4-F5A6-4B7C-9D8E-1F2A3B4C5D6F">
+        <File Id="media_font_okuda" Source="..\PlatypusTools.UI\Assets\Okuda.otf" KeyPath="yes" />
+      </Component>
+      <Component Id="MediaFontOkudaBold" Directory="AppFontsFolder"
+                 Guid="B2C3D4E5-F6A7-4B8C-9D9E-2F3A4B5C6D7A">
+        <File Id="media_font_okuda_bold" Source="..\PlatypusTools.UI\Assets\Okuda Bold.otf" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <Feature Id="MediaProductFeature" Title="PlatypusTools Multimedia" Level="1">
+      <ComponentGroupRef Id="PublishFiles" />
+      <ComponentGroupRef Id="MediaSupportFiles" />
+      <ComponentRef Id="MediaApplicationShortcut" />
+      <ComponentRef Id="MediaRegistryEntries" />
+      <ComponentRef Id="EditionMarkerFile" />
+    </Feature>
+
+    <WixVariable Id="WixUILicenseRtf" Value="..\PlatypusTools.Installer\License.rtf" />
+    <ui:WixUI Id="WixUI_Minimal" />
+  </Package>
+</Wix>
