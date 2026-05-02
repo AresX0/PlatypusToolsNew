@@ -3,19 +3,18 @@
     PlatypusTools Multimedia Edition installer.
 
     This MSI installs the same EXE as the Full edition but:
-      - Lives in its own ProgramFiles folder ("PlatypusTools Media")
-      - Has its own UpgradeCode (installs side-by-side with the Full edition)
-      - Drops an edition.txt sidecar with "Media" so the app hides non-media tabs
-      - Bundles only multimedia tooling (FFmpeg + fonts). No ExifTool / no domain
-        scripts.
-      - Start menu shortcut points at PlatypusTools.UI.exe with --edition=Media
--->
+      * Lives in its own ProgramFiles folder ("PlatypusTools Media")
+      * Has its own UpgradeCode (installs side-by-side with the Full edition)
+      * Drops an edition.txt sidecar with "Media" so the app hides non-media tabs
+      * Bundles only multimedia tooling (FFmpeg + fonts).
+      * Start menu shortcut points at PlatypusTools.UI.exe with /edition Media
+   -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
   <Package Name="PlatypusTools Multimedia"
            Manufacturer="Platysoft"
-           Version="4.0.4.4"
+           Version="4.0.4.5"
            UpgradeCode="B7C1D2E3-F4A5-4B6C-9D7E-8F9A0B1C2D3E"
            InstallerVersion="500"
            Compressed="yes"
@@ -84,7 +83,7 @@
                      Key="Software\PlatypusTools"
                      Name="MediaVersion"
                      Type="string"
-                     Value="4.0.4.4" />
+                     Value="4.0.4.5" />
     </Component>
 
     <Component Id="EditionMarkerFile" Directory="INSTALLFOLDER"
