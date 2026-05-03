@@ -320,6 +320,9 @@ namespace PlatypusTools.Core.Services.Platytalk
             const long generation = 1L;
             var state = _senderKeys.GetOrCreateOutgoing(conv.ConversationId, _identity!.DeviceId, generation);
             var firstUseInProcess = state.Counter == 0;
+            // Snapshot the pre-advance chain key for distribution on first use; this
+            // way receivers can derive every message in this generation from counter 1.
+            var initialChainForDistribution = firstUseInProcess ? (byte[])state.ChainKey.Clone() : null;
             state.Counter += 1;
             var (msgKey, nextCk) = PlatytalkSenderKeys.AdvanceChain(state.ChainKey);
             state.ChainKey = nextCk;
@@ -348,16 +351,11 @@ namespace PlatypusTools.Core.Services.Platytalk
             // Distribute the *initial* chain key to every recipient on first use of
             // this generation. Each distribution is encrypted under the recipient's
             // identity key using the same X3DH-lite root scheme as 1:1 messages.
-            if (firstUseInProcess)
+            if (firstUseInProcess && initialChainForDistribution is not null)
             {
                 try
                 {
                     var dists = new List<SenderKeyDistribution>();
-                    var initialChain = state.ChainKey; // already advanced once for this msg
-                    // We must distribute the *starting* chain so receiver can derive
-                    // generation 1, 2, 3 ...; reconstruct it by undoing one HMAC step
-                    // is impossible — instead distribute *current* chain + counter.
-                    // Receivers can derive gen N+1, N+2 ... from this state.
                     foreach (var recipientId in env.RecipientIds)
                     {
                         var contact = Contacts.FirstOrDefault(c => c.ContactId == recipientId);
@@ -367,8 +365,11 @@ namespace PlatypusTools.Core.Services.Platytalk
                             _identity.IdentityKeyPrivate, contact.IdentityKeyPublic,
                             ePriv, contact.IdentityKeyPublic,
                             info: $"sk:{conv.ConversationId}:{generation}");
-                        var aadDist = Encoding.UTF8.GetBytes($"sk|{conv.ConversationId}|{generation}|{_identity.DeviceId}|{state.Counter}");
-                        var sealed_ = PlatytalkCrypto.EncryptMessage(root, initialChain, aadDist, out _);
+                        // Distribution AAD uses fixed counter 0 ("initial chain"); the
+                        // chain key inside is pre-advance so the receiver derives msg N
+                        // by replaying AdvanceChain N times.
+                        var aadDist = Encoding.UTF8.GetBytes($"sk|{conv.ConversationId}|{generation}|{_identity.DeviceId}|0");
+                        var sealed_ = PlatytalkCrypto.EncryptMessage(root, initialChainForDistribution, aadDist, out _);
                         dists.Add(new SenderKeyDistribution
                         {
                             RecipientUserId = recipientId,
@@ -519,21 +520,17 @@ namespace PlatypusTools.Core.Services.Platytalk
                             _identity.IdentityKeyPrivate, senderContact.IdentityKeyPublic,
                             _identity.IdentityKeyPrivate, ePub,
                             info: $"sk:{d.GroupId}:{d.Generation}");
-                        var aadDist = Encoding.UTF8.GetBytes($"sk|{d.GroupId}|{d.Generation}|{d.SenderDeviceId}|*");
-                        // AAD includes the sender counter at distribution time \u2014 try common
-                        // values: the protocol embeds it but we only have it on send. Fall
-                        // back to attempting decryption with known counter == 1.
+                        // Distributions are sealed with fixed counter 0 in their AAD;
+                        // the chain inside is pre-advance, so the receiver replays
+                        // AdvanceChain to reach any message in this generation.
                         var blob = Convert.FromBase64String(d.CipherBlob);
                         byte[]? chain = null;
-                        for (long c = 1; c <= 5 && chain is null; c++)
+                        try
                         {
-                            try
-                            {
-                                var aad = Encoding.UTF8.GetBytes($"sk|{d.GroupId}|{d.Generation}|{d.SenderDeviceId}|{c}");
-                                chain = PlatytalkCrypto.DecryptMessage(root, blob, aad);
-                            }
-                            catch (CryptographicException) { /* try next counter */ }
+                            var aad = Encoding.UTF8.GetBytes($"sk|{d.GroupId}|{d.Generation}|{d.SenderDeviceId}|0");
+                            chain = PlatytalkCrypto.DecryptMessage(root, blob, aad);
                         }
+                        catch (CryptographicException) { /* leave null */ }
                         if (chain is null) continue;
                         _senderKeys.StoreIncoming(d.GroupId, d.SenderUserId, d.SenderDeviceId, d.Generation, chain);
                         ackIds.Add(d.Id);
