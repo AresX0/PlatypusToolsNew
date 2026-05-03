@@ -1,0 +1,319 @@
+<UserControl x:Class="PlatypusTools.UI.Views.PlatytalkView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="1200"
+             d:DataContext="{d:DesignInstance Type=vm:PlatytalkViewModel}">
+    <UserControl.Resources>
+        <!-- Sci-fi neon palette -->
+        <SolidColorBrush x:Key="PtkBg" Color="#FF06090F"/>
+        <SolidColorBrush x:Key="PtkPanel" Color="#FF0B131D"/>
+        <SolidColorBrush x:Key="PtkPanel2" Color="#FF101B29"/>
+        <SolidColorBrush x:Key="PtkBorder" Color="#FF1F3A52"/>
+        <SolidColorBrush x:Key="PtkCyan" Color="#FF00E5FF"/>
+        <SolidColorBrush x:Key="PtkMagenta" Color="#FFFF00C8"/>
+        <SolidColorBrush x:Key="PtkText" Color="#FFE6F7FF"/>
+        <SolidColorBrush x:Key="PtkMuted" Color="#FF7FA1B8"/>
+
+        <LinearGradientBrush x:Key="PtkHeaderGrad" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#FF0E1A2A" Offset="0"/>
+            <GradientStop Color="#FF1A2238" Offset="1"/>
+        </LinearGradientBrush>
+
+        <Style TargetType="TextBlock" x:Key="PtkLabel">
+            <Setter Property="Foreground" Value="{StaticResource PtkMuted}"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+        </Style>
+
+        <Style TargetType="TextBox" x:Key="PtkTextBox">
+            <Setter Property="Background" Value="#FF071018"/>
+            <Setter Property="Foreground" Value="{StaticResource PtkText}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PtkBorder}"/>
+            <Setter Property="CaretBrush" Value="{StaticResource PtkCyan}"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style TargetType="Button" x:Key="PtkButton">
+            <Setter Property="Background" Value="#FF12253B"/>
+            <Setter Property="Foreground" Value="{StaticResource PtkCyan}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PtkCyan}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#FF00E5FF" BlurRadius="8" ShadowDepth="0" Opacity="0.35"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#FF1A3552"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Button" x:Key="PtkButtonMagenta" BasedOn="{StaticResource PtkButton}">
+            <Setter Property="Foreground" Value="{StaticResource PtkMagenta}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PtkMagenta}"/>
+        </Style>
+
+        <Style TargetType="ListBoxItem" x:Key="PtkListItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource PtkText}"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="BorderBrush" Value="#FF142233"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#FF0F2237"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FF0A1A28"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="{StaticResource PtkBg}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{StaticResource PtkHeaderGrad}" BorderBrush="{StaticResource PtkBorder}" BorderThickness="0,0,0,1" Padding="14,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Source="/Assets/Platytalk.png" Width="36" Height="36" Margin="0,0,10,0"/>
+                    <StackPanel>
+                        <TextBlock Text="PLATYTALK" FontFamily="Consolas" FontSize="20" FontWeight="Bold" Foreground="{StaticResource PtkCyan}">
+                            <TextBlock.Effect>
+                                <DropShadowEffect Color="#FF00E5FF" BlurRadius="14" ShadowDepth="0" Opacity="0.85"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                        <TextBlock Text="end-to-end encrypted • point-to-point • signal-grade" Style="{StaticResource PtkLabel}"/>
+                    </StackPanel>
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="{Binding Status}" Style="{StaticResource PtkLabel}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Button Grid.Column="2" Content="WIPE LOCAL DATA" Style="{StaticResource PtkButtonMagenta}" Command="{Binding WipeDataCommand}"/>
+            </Grid>
+        </Border>
+
+        <!-- Body -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="320"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="320"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left rail: contacts + conversations -->
+            <Border Grid.Column="0" Background="{StaticResource PtkPanel}" BorderBrush="{StaticResource PtkBorder}" BorderThickness="0,0,1,0">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="12,12,12,8">
+                        <TextBlock Text="ADD CONTACT" Style="{StaticResource PtkLabel}" Margin="0,0,0,4"/>
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="+" Width="36" Margin="6,0,0,0" Style="{StaticResource PtkButton}" Command="{Binding AddContactCommand}"/>
+                            <TextBox Style="{StaticResource PtkTextBox}" Text="{Binding NewContactHandle, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DockPanel>
+                        <TextBlock Text="@handle from a Platytalk invite" Style="{StaticResource PtkLabel}" Margin="0,4,0,0"/>
+
+                        <TextBlock Text="NEW GROUP" Style="{StaticResource PtkLabel}" Margin="0,12,0,4"/>
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="GROUP" Width="60" Margin="6,0,0,0" Style="{StaticResource PtkButton}" Command="{Binding CreateGroupCommand}"/>
+                            <TextBox Style="{StaticResource PtkTextBox}" Text="{Binding NewGroupTitle, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DockPanel>
+                    </StackPanel>
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="CONTACTS" Style="{StaticResource PtkLabel}" Margin="12,8,12,4"/>
+                        <ListBox Grid.Row="1" Background="Transparent" BorderThickness="0"
+                                 ItemsSource="{Binding Contacts}" SelectedItem="{Binding SelectedContact}"
+                                 ItemContainerStyle="{StaticResource PtkListItem}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="10" Height="10" Fill="{StaticResource PtkCyan}" Margin="0,0,8,0"/>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding DisplayName}" Foreground="{StaticResource PtkText}" FontFamily="Consolas"/>
+                                            <TextBlock Text="{Binding SafetyNumber}" Style="{StaticResource PtkLabel}" FontSize="9"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <Button Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="8" Content="OPEN CHAT" Style="{StaticResource PtkButton}" Command="{Binding StartChatCommand}"/>
+
+                        <TextBlock Grid.Row="2" Text="CONVERSATIONS" Style="{StaticResource PtkLabel}" Margin="12,8,12,4"/>
+                        <ListBox Grid.Row="3" Background="Transparent" BorderThickness="0"
+                                 ItemsSource="{Binding Conversations}" SelectedItem="{Binding SelectedConversation}"
+                                 ItemContainerStyle="{StaticResource PtkListItem}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Title}" Foreground="{StaticResource PtkText}" FontFamily="Consolas"/>
+                                        <TextBlock Text="{Binding LastMessagePreview}" Style="{StaticResource PtkLabel}" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </DockPanel>
+            </Border>
+
+            <!-- Center: chat -->
+            <Grid Grid.Column="1" Background="{StaticResource PtkPanel2}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" Padding="14,10" BorderBrush="{StaticResource PtkBorder}" BorderThickness="0,0,0,1">
+                    <DockPanel>
+                        <ComboBox DockPanel.Dock="Right" Width="160" Margin="6,0,0,0"
+                                  ItemsSource="{Binding DisappearingOptions}"
+                                  DisplayMemberPath="Label"
+                                  SelectedValuePath="Seconds"
+                                  SelectedValue="{Binding SelectedDisappearingSeconds, Mode=TwoWay}"
+                                  IsEnabled="{Binding IsConversationSelected}"
+                                  ToolTip="Disappearing-message TTL (Signal-style)"/>
+                        <TextBlock DockPanel.Dock="Right" Text="⏳" VerticalAlignment="Center" Margin="0,0,4,0" Foreground="{StaticResource PtkCyan}"/>
+                        <StackPanel>
+                            <TextBlock Text="{Binding SelectedConversation.Title, FallbackValue='No conversation selected'}" Foreground="{StaticResource PtkCyan}" FontFamily="Consolas" FontSize="14" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding DisappearingStatusText}" Style="{StaticResource PtkLabel}"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="14">
+                    <ItemsControl ItemsSource="{Binding MessagesView}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,4" Padding="10,6" CornerRadius="6" MaxWidth="640"
+                                        HorizontalAlignment="{Binding Direction, Converter={x:Static vm:DirectionToAlignmentConverter.Instance}}"
+                                        Background="{Binding Direction, Converter={x:Static vm:DirectionToBrushConverter.Instance}}"
+                                        BorderBrush="{StaticResource PtkBorder}" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Body}" Foreground="{StaticResource PtkText}" TextWrapping="Wrap" FontFamily="Consolas"/>
+                                        <DockPanel>
+                                            <Button DockPanel.Dock="Right" Content="DELETE EVERYWHERE" FontSize="9" Padding="6,2"
+                                                    Style="{StaticResource PtkButtonMagenta}"
+                                                    Command="{Binding DataContext.DeleteEverywhereCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"/>
+                                            <TextBlock Text="{Binding TimestampUtc, StringFormat={}{0:HH:mm:ss UTC}}" Style="{StaticResource PtkLabel}" FontSize="9"/>
+                                        </DockPanel>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <Border Grid.Row="2" BorderBrush="{StaticResource PtkBorder}" BorderThickness="0,1,0,0" Padding="10">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="SEND ▶" Style="{StaticResource PtkButton}" Command="{Binding SendCommand}"/>
+                        <TextBox Style="{StaticResource PtkTextBox}" AcceptsReturn="False" Margin="0,0,8,0"
+                                 Text="{Binding Composer, UpdateSourceTrigger=PropertyChanged}"/>
+                    </DockPanel>
+                </Border>
+            </Grid>
+
+            <!-- Right rail: identity / invite / registration -->
+            <Border Grid.Column="2" Background="{StaticResource PtkPanel}" BorderBrush="{StaticResource PtkBorder}" BorderThickness="1,0,0,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="14">
+                    <StackPanel>
+                        <TextBlock Text="IDENTITY" Style="{StaticResource PtkLabel}"/>
+                        <TextBox Style="{StaticResource PtkTextBox}" Margin="0,4,0,8"
+                                 Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <Border Background="#FF071018" BorderBrush="{StaticResource PtkBorder}" BorderThickness="1" Padding="10" Margin="0,0,0,12"
+                                Visibility="{Binding IsRegistered, Converter={x:Static vm:BoolToVisibilityConverter.Instance}}">
+                            <StackPanel>
+                                <TextBlock Text="INVITE QR" Style="{StaticResource PtkLabel}"/>
+                                <Image Source="{Binding InviteQrSource, Mode=OneWay}" Stretch="Uniform" Width="220" Height="220" Margin="0,4,0,6" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                                <TextBlock Text="INVITE LINK" Style="{StaticResource PtkLabel}"/>
+                                <TextBox Style="{StaticResource PtkTextBox}" IsReadOnly="True" TextWrapping="Wrap" Margin="0,4,0,6" Text="{Binding InviteLink, Mode=OneWay}"/>
+                                <Button Content="COPY LINK" Style="{StaticResource PtkButton}" Command="{Binding CopyInviteLinkCommand}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#FF071018" BorderBrush="{StaticResource PtkBorder}" BorderThickness="1" Padding="10"
+                                Visibility="{Binding IsRegistered, Converter={x:Static vm:InverseBoolToVisibilityConverter.Instance}}">
+                            <StackPanel>
+                                <TextBlock Text="SIGN IN" Foreground="{StaticResource PtkMagenta}" FontFamily="Consolas" FontWeight="Bold" Margin="0,0,0,6"/>
+                                <TextBlock Text="Platytalk uses your Microsoft account for identity. Microsoft Authenticator handles MFA — no SMS, no passwords sent to us." Style="{StaticResource PtkLabel}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                <Button Content="🔑  Sign in with Microsoft" Style="{StaticResource PtkButton}" Command="{Binding SignInWithMicrosoftCommand}" Padding="12,10" FontSize="13"/>
+                                <TextBlock Text="No account? Visit signup.live.com — it's free." Style="{StaticResource PtkLabel}" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                                <TextBlock Text="See Help → Platytalk Setup for the 7-step secure-account walkthrough." Style="{StaticResource PtkLabel}" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#FF071018" BorderBrush="{StaticResource PtkBorder}" BorderThickness="1" Padding="10" Margin="0,12,0,0"
+                                Visibility="{Binding IsRegistered, Converter={x:Static vm:BoolToVisibilityConverter.Instance}}">
+                            <StackPanel>
+                                <TextBlock Text="ACCOUNT" Style="{StaticResource PtkLabel}"/>
+                                <DockPanel Margin="0,2,0,8">
+                                    <Button DockPanel.Dock="Right" Content="✎" Width="28" Padding="0" ToolTip="Edit handle" Style="{StaticResource PtkButton}" Command="{Binding BeginEditHandleCommand}"/>
+                                    <TextBlock Text="{Binding SignedInHandle}" Foreground="{StaticResource PtkCyan}" FontFamily="Consolas" FontWeight="Bold" VerticalAlignment="Center"/>
+                                </DockPanel>
+                                <StackPanel Visibility="{Binding IsEditingHandle, Converter={x:Static vm:BoolToVisibilityConverter.Instance}}" Margin="0,0,0,8">
+                                    <TextBox Style="{StaticResource PtkTextBox}" Text="{Binding HandleEditValue, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <DockPanel Margin="0,4,0,0">
+                                        <Button DockPanel.Dock="Right" Content="SAVE" Width="60" Style="{StaticResource PtkButton}" Command="{Binding SaveHandleCommand}"/>
+                                        <Button DockPanel.Dock="Right" Content="CANCEL" Width="70" Margin="0,0,4,0" Style="{StaticResource PtkButton}" Command="{Binding CancelEditHandleCommand}"/>
+                                        <TextBlock Text="{Binding HandleEditError}" Foreground="{StaticResource PtkMagenta}" Style="{StaticResource PtkLabel}"/>
+                                    </DockPanel>
+                                </StackPanel>
+                                <TextBlock Text="BACKUP" Style="{StaticResource PtkLabel}" Margin="0,8,0,4"/>
+                                <PasswordBox Name="BackupPassphraseBox" Margin="0,0,0,4" PasswordChanged="BackupPassphraseBox_PasswordChanged" Background="#FF0a121c" Foreground="{StaticResource PtkText}" BorderBrush="{StaticResource PtkBorder}" Padding="6"/>
+                                <TextBlock Text="Use a strong passphrase. The relay never sees it." Style="{StaticResource PtkLabel}" Margin="0,0,0,4" TextWrapping="Wrap"/>
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" Content="RESTORE" Style="{StaticResource PtkButton}" Command="{Binding RestoreBackupCommand}"/>
+                                    <Button Content="BACKUP" Style="{StaticResource PtkButton}" Command="{Binding CreateBackupCommand}" Margin="0,0,4,0"/>
+                                </DockPanel>
+                                <Button Content="SIGN OUT" Style="{StaticResource PtkButtonMagenta}" Command="{Binding SignOutCommand}" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- Footer / status -->
+        <Border Grid.Row="2" Background="#FF050810" BorderBrush="{StaticResource PtkBorder}" BorderThickness="0,1,0,0" Padding="14,4">
+            <TextBlock Text="🔐 X25519/ECDH • AES-256-GCM • HKDF-SHA256 • forward-secret per message" Style="{StaticResource PtkLabel}"/>
+        </Border>
+    </Grid>
+</UserControl>

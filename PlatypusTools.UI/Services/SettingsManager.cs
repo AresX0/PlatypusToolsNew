@@ -943,6 +943,7 @@ namespace PlatypusTools.UI.Services
                 new("Security.FileEncryption", "File Encryption", "Security"),
                 new("Security.SystemHardening", "System Hardening", "Security"),
                 new("Security.NetworkTraffic", "Network Traffic", "Security"),
+                new("Security.Platytalk", "Platytalk Secure Messaging", "Security"),
             };
         }
     }

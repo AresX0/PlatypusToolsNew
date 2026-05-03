@@ -1,0 +1,11 @@
+# v4.0.3.8
+
+### Changes
+- **ActivityLogService** (Phase 1.2 finisher) — singleton ring buffer (2 000 entries) + append-only JSONL log under `%APPDATA%/PlatypusTools/activity-log/`. Every toast now also lands in the unified activity log automatically (no caller changes required).
+- **MediaIntelligenceService** (Phase 3.2 finisher) — media-aware wrapper around `SmartRenameService` and `LocalLlmService`. Per-kind hint generation for audio (artist_track), video (show_sNNeNN / movie_year), and image (subject_yyyymmdd) batches, plus instant non-LLM `QuickTagsFromName()` for grids that want suggestions before the LLM call returns.
+- **Bug fix** — `ShotcutNativeEditorView.VideoPlayer_Seeked` was empty; player scrubs now correctly move the timeline playhead.
+- Doc-only: `SettingsWindow.GlassEffectCheck_Changed` legacy no-op clarified.
+
+### Artifacts
+- `PlatypusToolsSetup-v4.0.3.8.msi` — signed MSI installer
+- `PlatypusTools.UI.exe` — portable standalone executable

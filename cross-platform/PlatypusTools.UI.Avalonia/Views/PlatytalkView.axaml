@@ -1,0 +1,214 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PlatypusTools.UI.Avalonia.ViewModels"
+             x:Class="PlatypusTools.UI.Avalonia.Views.PlatytalkView"
+             x:DataType="vm:PlatytalkViewModel">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="PtkBg" Color="#06090F"/>
+        <SolidColorBrush x:Key="PtkPanel" Color="#0B131D"/>
+        <SolidColorBrush x:Key="PtkPanel2" Color="#101B29"/>
+        <SolidColorBrush x:Key="PtkBorder" Color="#1F3A52"/>
+        <SolidColorBrush x:Key="PtkCyan" Color="#00E5FF"/>
+        <SolidColorBrush x:Key="PtkMagenta" Color="#FF00C8"/>
+        <SolidColorBrush x:Key="PtkText" Color="#E6F7FF"/>
+        <SolidColorBrush x:Key="PtkMuted" Color="#7FA1B8"/>
+    </UserControl.Resources>
+    <UserControl.Styles>
+        <Style Selector="TextBox.ptk">
+            <Setter Property="Background" Value="#071018"/>
+            <Setter Property="Foreground" Value="{StaticResource PtkText}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PtkBorder}"/>
+            <Setter Property="CaretBrush" Value="{StaticResource PtkCyan}"/>
+            <Setter Property="FontFamily" Value="Consolas,Menlo,monospace"/>
+            <Setter Property="Padding" Value="8,6"/>
+        </Style>
+        <Style Selector="Button.ptk">
+            <Setter Property="Background" Value="#12253B"/>
+            <Setter Property="Foreground" Value="{StaticResource PtkCyan}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PtkCyan}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Consolas,Menlo,monospace"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="12,6"/>
+        </Style>
+        <Style Selector="Button.ptkmag">
+            <Setter Property="Background" Value="#12253B"/>
+            <Setter Property="Foreground" Value="{StaticResource PtkMagenta}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PtkMagenta}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Consolas,Menlo,monospace"/>
+            <Setter Property="Padding" Value="12,6"/>
+        </Style>
+        <Style Selector="TextBlock.label">
+            <Setter Property="Foreground" Value="{StaticResource PtkMuted}"/>
+            <Setter Property="FontFamily" Value="Consolas,Menlo,monospace"/>
+            <Setter Property="FontSize" Value="11"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Background="{StaticResource PtkBg}" RowDefinitions="Auto,*,Auto">
+        <!-- Header -->
+        <Border Background="#0E1A2A" BorderBrush="{StaticResource PtkBorder}" BorderThickness="0,0,0,1" Padding="14,10">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Source="/Assets/Platytalk.png" Width="36" Height="36" Margin="0,0,10,0"/>
+                    <StackPanel>
+                        <TextBlock Text="PLATYTALK" FontFamily="Consolas,Menlo,monospace" FontSize="20" FontWeight="Bold" Foreground="{StaticResource PtkCyan}"/>
+                        <TextBlock Classes="label" Text="end-to-end encrypted • point-to-point • signal-grade"/>
+                    </StackPanel>
+                </StackPanel>
+                <TextBlock Grid.Column="1" Classes="label" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding Status}"/>
+                <Button Grid.Column="2" Classes="ptkmag" Content="WIPE LOCAL DATA" Command="{Binding WipeDataCommand}"/>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="320,*,320">
+            <!-- Left rail -->
+            <Border Background="{StaticResource PtkPanel}" BorderBrush="{StaticResource PtkBorder}" BorderThickness="0,0,1,0">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="12">
+                        <TextBlock Classes="label" Text="ADD CONTACT"/>
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                            <TextBox Classes="ptk" Text="{Binding NewContactHandle}"/>
+                            <Button Grid.Column="1" Classes="ptk" Content="+" Margin="6,0,0,0" Command="{Binding AddContactCommand}"/>
+                        </Grid>
+                        <TextBlock Classes="label" Text="@handle from a Platytalk invite" Margin="0,4,0,0"/>
+
+                        <TextBlock Classes="label" Text="NEW GROUP" Margin="0,12,0,0"/>
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                            <TextBox Classes="ptk" Text="{Binding NewGroupTitle}"/>
+                            <Button Grid.Column="1" Classes="ptk" Content="GROUP" Margin="6,0,0,0" Command="{Binding CreateGroupCommand}"/>
+                        </Grid>
+                    </StackPanel>
+                    <Grid RowDefinitions="Auto,*,Auto,*">
+                        <TextBlock Classes="label" Text="CONTACTS" Margin="12,8,12,4"/>
+                        <ListBox Grid.Row="1" Background="Transparent" BorderThickness="0"
+                                 ItemsSource="{Binding Contacts}" SelectedItem="{Binding SelectedContact}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding DisplayName}" Foreground="{StaticResource PtkText}" FontFamily="Consolas,Menlo,monospace"/>
+                                        <TextBlock Classes="label" FontSize="9" Text="{Binding SafetyNumber}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <Button Grid.Row="1" Classes="ptk" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="8" Content="OPEN CHAT" Command="{Binding StartChatCommand}"/>
+                        <TextBlock Grid.Row="2" Classes="label" Text="CONVERSATIONS" Margin="12,8,12,4"/>
+                        <ListBox Grid.Row="3" Background="Transparent" BorderThickness="0"
+                                 ItemsSource="{Binding Conversations}" SelectedItem="{Binding SelectedConversation}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Title}" Foreground="{StaticResource PtkText}" FontFamily="Consolas,Menlo,monospace"/>
+                                        <TextBlock Classes="label" Text="{Binding LastMessagePreview}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </DockPanel>
+            </Border>
+
+            <!-- Center -->
+            <Grid Grid.Column="1" Background="{StaticResource PtkPanel2}" RowDefinitions="Auto,*,Auto">
+                <Border Padding="14,10" BorderBrush="{StaticResource PtkBorder}" BorderThickness="0,0,0,1">
+                    <DockPanel>
+                        <ComboBox DockPanel.Dock="Right" Width="160" Margin="6,0,0,0"
+                                  ItemsSource="{Binding DisappearingOptions}"
+                                  SelectedValue="{Binding SelectedDisappearingSeconds, Mode=TwoWay}"
+                                  SelectedValueBinding="{Binding Seconds}"
+                                  IsEnabled="{Binding IsConversationSelected}"
+                                  ToolTip.Tip="Disappearing-message TTL (Signal-style)">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate><TextBlock Text="{Binding Label}"/></DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <StackPanel>
+                            <TextBlock Text="{Binding SelectedConversation.Title, FallbackValue='No conversation selected'}" Foreground="{StaticResource PtkCyan}" FontFamily="Consolas,Menlo,monospace" FontSize="14" FontWeight="Bold"/>
+                            <TextBlock Classes="label" Text="{Binding DisappearingStatusText}"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <ScrollViewer Grid.Row="1" Padding="14">
+                    <ItemsControl ItemsSource="{Binding MessagesView}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,4" Padding="10,6" CornerRadius="6"
+                                        Background="#101B29" BorderBrush="{StaticResource PtkBorder}" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Body}" Foreground="{StaticResource PtkText}" TextWrapping="Wrap" FontFamily="Consolas,Menlo,monospace"/>
+                                        <DockPanel>
+                                            <TextBlock Classes="label" FontSize="9" Text="{Binding TimestampUtc, StringFormat='{}{0:HH:mm:ss UTC}'}"/>
+                                        </DockPanel>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                <Border Grid.Row="2" BorderBrush="{StaticResource PtkBorder}" BorderThickness="0,1,0,0" Padding="10">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Classes="ptk" Content="SEND ▶" Command="{Binding SendCommand}"/>
+                        <TextBox Classes="ptk" Margin="0,0,8,0" Text="{Binding Composer}"/>
+                    </DockPanel>
+                </Border>
+            </Grid>
+
+            <!-- Right rail -->
+            <Border Grid.Column="2" Background="{StaticResource PtkPanel}" BorderBrush="{StaticResource PtkBorder}" BorderThickness="1,0,0,0">
+                <ScrollViewer Padding="14">
+                    <StackPanel>
+                        <TextBlock Classes="label" Text="DISPLAY NAME"/>
+                        <TextBox Classes="ptk" Margin="0,4,0,8" Text="{Binding DisplayName}"/>
+
+                        <Border Background="#FF071018" BorderBrush="{StaticResource PtkBorder}" BorderThickness="1" Padding="10" IsVisible="{Binding !IsRegistered}">
+                            <StackPanel>
+                                <TextBlock Classes="label" Text="SIGN IN"/>
+                                <TextBlock Classes="label" Text="Platytalk uses your Microsoft account for identity. Microsoft Authenticator handles MFA — no SMS, no passwords sent to us." TextWrapping="Wrap" Margin="0,4,0,10"/>
+                                <Button Classes="ptk" Content="🔑  Sign in with Microsoft" Command="{Binding SignInWithMicrosoftCommand}" Padding="12,10" FontSize="13"/>
+                                <TextBlock Classes="label" Text="No account? Visit signup.live.com — it's free." Margin="0,8,0,0" TextWrapping="Wrap"/>
+                                <TextBlock Classes="label" Text="See DOCS/PLATYTALK_HELP.md for the 7-step secure-account walkthrough." Margin="0,4,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#FF071018" BorderBrush="{StaticResource PtkBorder}" BorderThickness="1" Padding="10" IsVisible="{Binding IsRegistered}">
+                            <StackPanel>
+                                <TextBlock Classes="label" Text="ACCOUNT"/>
+                                <DockPanel Margin="0,2,0,8">
+                                    <Button DockPanel.Dock="Right" Classes="ptk" Content="✎" Width="28" Padding="0" ToolTip.Tip="Edit handle" Command="{Binding BeginEditHandleCommand}"/>
+                                    <TextBlock Text="{Binding SignedInHandle}" Foreground="{StaticResource PtkCyan}" FontFamily="Consolas" FontWeight="Bold" VerticalAlignment="Center"/>
+                                </DockPanel>
+                                <StackPanel IsVisible="{Binding IsEditingHandle}" Margin="0,0,0,8">
+                                    <TextBox Classes="ptk" Text="{Binding HandleEditValue}"/>
+                                    <DockPanel Margin="0,4,0,0">
+                                        <Button DockPanel.Dock="Right" Classes="ptk" Content="SAVE" Command="{Binding SaveHandleCommand}"/>
+                                        <Button DockPanel.Dock="Right" Classes="ptk" Content="CANCEL" Margin="0,0,4,0" Command="{Binding CancelEditHandleCommand}"/>
+                                        <TextBlock Classes="label" Foreground="{StaticResource PtkMagenta}" Text="{Binding HandleEditError}"/>
+                                    </DockPanel>
+                                </StackPanel>
+                                <TextBlock Classes="label" Text="BACKUP" Margin="0,8,0,4"/>
+                                <TextBox Classes="ptk" PasswordChar="•" Watermark="Strong passphrase" Text="{Binding BackupPassphrase}" Margin="0,0,0,4"/>
+                                <TextBlock Classes="label" Text="The relay never sees your passphrase." Margin="0,0,0,4" TextWrapping="Wrap"/>
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" Classes="ptk" Content="RESTORE" Command="{Binding RestoreBackupCommand}"/>
+                                    <Button Classes="ptk" Content="BACKUP" Command="{Binding CreateBackupCommand}" Margin="0,0,4,0"/>
+                                </DockPanel>
+                                <Button Classes="ptkmag" Content="SIGN OUT" Command="{Binding SignOutCommand}" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Classes="label" Text="INVITE QR" Margin="0,16,0,4" IsVisible="{Binding IsRegistered}"/>
+                        <Image Source="{Binding InviteQrSource}" Stretch="Uniform" Width="220" Height="220" Margin="0,4,0,6" IsVisible="{Binding IsRegistered}"/>
+                        <TextBlock Classes="label" Text="INVITE LINK" Margin="0,8,0,4" IsVisible="{Binding IsRegistered}"/>
+                        <TextBox Classes="ptk" IsReadOnly="True" TextWrapping="Wrap" Text="{Binding InviteLink}" IsVisible="{Binding IsRegistered}"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2" Background="#050810" BorderBrush="{StaticResource PtkBorder}" BorderThickness="0,1,0,0" Padding="14,4">
+            <TextBlock Classes="label" Text="🔐 X25519/ECDH • AES-256-GCM • HKDF-SHA256 • forward-secret per message"/>
+        </Border>
+    </Grid>
+</UserControl>

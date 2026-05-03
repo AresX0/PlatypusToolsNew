@@ -25,7 +25,7 @@
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>PlatypusTools.UI</RootNamespace>
-    <Version>4.0.4.5</Version>
+    <Version>4.0.4.7</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
@@ -68,6 +68,7 @@
     <Resource Include="Assets\platypus.png" />
     <Resource Include="Assets\platypus-loading.gif" />
     <Resource Include="Assets\PlatypusToolsLogo.png" />
+    <Resource Include="Assets\Platytalk.png" />
     <Resource Include="Assets\file.png" />
     <Resource Include="Assets\folder.png" />
     <Resource Include="Assets\Klingon.png" />

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>About Platytalk — Encrypted End-to-End Messaging</title>
+<meta name="description" content="Platytalk: Signal-grade end-to-end encrypted point-to-point messaging from PlatypusTools. Microsoft sign-in, Authenticator MFA, disappearing messages, group chats, multi-device sync." />
+<link rel="icon" href="Platytalk.png" type="image/png" />
+<link rel="stylesheet" href="platytalk.css" />
+</head>
+<body>
+<div class="grid-bg" aria-hidden="true"></div>
+<div class="scanlines" aria-hidden="true"></div>
+
+<header class="ptk-header">
+  <div class="brand">
+    <img src="Platytalk.png" alt="" class="logo" />
+    <div>
+      <div class="brand-name">PLATYTALK</div>
+      <div class="brand-tag">// secure transmission · platytalk.platysoft.com</div>
+    </div>
+  </div>
+  <nav>
+    <a href="/">web client</a>
+    <a href="#features">features</a>
+    <a href="#security">security</a>
+    <a href="help.html">help</a>
+    <a href="#download">download</a>
+    <a href="/" class="cta">launch web app ▶</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>End-to-end <span class="neon">encrypted</span><br/>point-to-point <span class="neonm">messaging</span>.</h1>
+    <p class="lede">
+      Messages are encrypted on your device with X25519 + AES-256-GCM and Signal-style
+      forward-secret ratcheting. Our relay never sees plaintext. Add contacts by
+      Platytalk handle or scan a QR. Mandatory MFA via Microsoft Authenticator.
+      Disappearing messages. Group chats. Delete anywhere — really anywhere.
+    </p>
+    <div class="hero-actions">
+      <a class="btn primary" href="/">▶ Launch web client</a>
+      <a class="btn ghost" href="#download">Download desktop</a>
+      <a class="btn ghost" href="help.html">Read the guide</a>
+    </div>
+    <div class="badges">
+      <span>X25519 / ECDH</span>
+      <span>AES-256-GCM</span>
+      <span>HKDF-SHA256</span>
+      <span>Microsoft sign-in</span>
+      <span>Authenticator MFA</span>
+    </div>
+  </section>
+
+  <section id="features" class="features">
+    <h2>Mission profile</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="ico">🔐</div>
+        <h3>Zero-knowledge relay</h3>
+        <p>The relay only routes opaque ciphertext. Keys never leave your device.</p>
+      </div>
+      <div class="card">
+        <div class="ico">📡</div>
+        <h3>Multi-device sync</h3>
+        <p>Read on desktop or browser. Messages sync — and disappear — everywhere.</p>
+      </div>
+      <div class="card">
+        <div class="ico">⏱</div>
+        <h3>Disappearing</h3>
+        <p>Set a TTL per conversation. Messages self-destruct on every device once it expires.</p>
+      </div>
+      <div class="card">
+        <div class="ico">👥</div>
+        <h3>Group chats</h3>
+        <p>End-to-end encrypted group sessions with sender-key ratcheting per recipient.</p>
+      </div>
+      <div class="card">
+        <div class="ico">📱</div>
+        <h3>Add by handle / QR</h3>
+        <p>Find contacts by their Platytalk handle, or scan a one-shot QR / invite link.</p>
+      </div>
+      <div class="card">
+        <div class="ico">🧨</div>
+        <h3>Delete everywhere</h3>
+        <p>Tombstone a message and it vanishes from every linked device — yours and theirs.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="security" class="security">
+    <h2>Cryptography</h2>
+    <ul class="speclist">
+      <li><b>Identity</b> · long-term X25519 + ECDSA-P256 signing key per device</li>
+      <li><b>Session</b> · X3DH-lite handshake → 32-byte conversation root key</li>
+      <li><b>Per-message</b> · HKDF-SHA256 derived AES-256-GCM key, fresh nonce, AAD-bound counter</li>
+      <li><b>Forward secrecy</b> · ephemeral DH ratchet on every outgoing message</li>
+      <li><b>Verification</b> · 60-digit safety numbers — compare in person or over a trusted channel</li>
+      <li><b>Identity binding</b> · Microsoft account (Entra ID / personal MSA) with Microsoft Authenticator MFA</li>
+    </ul>
+    <div class="howto-callout">
+      <h4>Why Microsoft sign-in?</h4>
+      <p>Platytalk doesn't want to manage your password, can't SIM-swap your phone, and never sees your MFA codes. By delegating identity to Microsoft you get enterprise-grade account protection (Authenticator, passkeys, conditional access if your org uses Entra ID) for free — and Platytalk only ever receives a signed assertion that you are who you say.</p>
+    </div>
+  </section>
+
+  <section id="download" class="download">
+    <h2>Download</h2>
+    <p>Platytalk is included in PlatypusTools — Security tab — or use the web client at <a href="/">platytalk.platysoft.com</a>.</p>
+    <div class="cards">
+      <a class="card link" href="https://github.com/dorancorpdev/PlatypusToolsNew/releases/latest">
+        <div class="ico">🪟</div><h3>Windows</h3><p>MSI installer, signed</p>
+      </a>
+      <a class="card link" href="https://github.com/dorancorpdev/PlatypusToolsNew/releases/latest">
+        <div class="ico">🐧</div><h3>Linux</h3><p>x64 / arm64 portable</p>
+      </a>
+      <a class="card link" href="https://github.com/dorancorpdev/PlatypusToolsNew/releases/latest">
+        <div class="ico">🍎</div><h3>macOS</h3><p>x64 / arm64 portable</p>
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer class="ptk-footer">
+  <div>© <span id="yr"></span> PlatypusTools · <a href="/">web client</a> · <a href="help.html">help</a> · <a href="https://platysoft.com">platysoft.com</a></div>
+  <div class="footnote">platytalk.platysoft.com — encrypted, ephemeral, yours.</div>
+</footer>
+<script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+</body>
+</html>

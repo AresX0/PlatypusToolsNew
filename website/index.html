@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Platytalk — encrypted messenger</title>
+<meta name="description" content="Platytalk web client: end-to-end encrypted messaging, sign in with your Microsoft account." />
+<link rel="icon" href="Platytalk.png" type="image/png" />
+<link rel="stylesheet" href="platytalk.css" />
+<style>
+  /* Standalone web-client chrome — no marketing content on this page. */
+  html, body { height: 100%; }
+  body.app-page { display: flex; flex-direction: column; min-height: 100vh; }
+  body.app-page .ptk-header { padding: .6rem 1rem; }
+  body.app-page main.app-shell { flex: 1 1 auto; padding: 0 .8rem 0; max-width: 1400px; width: 100%; margin: 0 auto; display: flex; }
+  body.app-page #app { flex: 1; padding: 0; margin: 0; }
+  body.app-page .webapp { height: calc(100vh - 130px); margin-top: .4rem; }
+  body.app-page .ptk-footer { padding: .5rem 1rem; font-size: .75rem; }
+  .ptk-input.handle-edit { font-family: var(--mono); font-size: .9rem; padding: .35rem .5rem; width: 100%; box-sizing: border-box; margin: .2rem 0; }
+</style>
+</head>
+<body class="app-page">
+<div class="grid-bg" aria-hidden="true"></div>
+<div class="scanlines" aria-hidden="true"></div>
+
+<header class="ptk-header">
+  <div class="brand">
+    <img src="Platytalk.png" alt="" class="logo" />
+    <div>
+      <div class="brand-name">PLATYTALK</div>
+      <div class="brand-tag">// platytalk.platysoft.com</div>
+    </div>
+  </div>
+  <nav>
+    <a href="about.html">about</a>
+    <a href="help.html">help</a>
+    <a href="https://github.com/dorancorpdev/PlatypusToolsNew/releases/latest" target="_blank" rel="noopener">desktop app ↗</a>
+  </nav>
+</header>
+
+<main class="app-shell">
+  <section id="app" class="app full-app">
+    <div class="webapp">
+      <aside class="rail">
+        <div class="rail-section">
+          <div class="rail-label">YOUR IDENTITY</div>
+          <div id="ptk-me" class="me-card">
+            <div class="me-name">not signed in</div>
+            <div class="me-handle">sign in with your Microsoft account</div>
+          </div>
+          <a id="ptk-signin" class="btn primary tiny" href="/auth/start?returnTo=/">🔑 Sign in with Microsoft</a>
+          <button id="ptk-edit-handle" class="btn ghost tiny" hidden>✎ Edit handle</button>
+          <div id="ptk-handle-editor" hidden>
+            <input id="ptk-handle-input" class="ptk-input handle-edit" maxlength="24" placeholder="3-24 chars, a-z 0-9 -" />
+            <div style="display:flex; gap:.4rem;">
+              <button id="ptk-handle-save" class="btn primary tiny" style="flex:1">Save</button>
+              <button id="ptk-handle-cancel" class="btn ghost tiny" style="flex:1">Cancel</button>
+            </div>
+            <div id="ptk-handle-err" class="rail-help" style="color:#ff6688; min-height:1em;"></div>
+          </div>
+          <button id="ptk-signout" class="btn ghost tiny" hidden>Sign out</button>
+        </div>
+
+        <div class="rail-section" id="ptk-invite-box" hidden>
+          <div class="rail-label">YOUR INVITE QR</div>
+          <div id="ptk-qr" class="qr-box"></div>
+          <div id="ptk-invite-handle" class="me-handle"></div>
+          <button id="ptk-copy-invite" class="btn ghost tiny">Copy invite link</button>
+        </div>
+
+        <div class="rail-section">
+          <div class="rail-label">CONTACTS</div>
+          <input id="ptk-add" class="ptk-input" placeholder="add by handle (e.g. platy-7K9F2)" />
+          <button id="ptk-add-btn" class="btn primary tiny">+ Add</button>
+          <ul id="ptk-contacts" class="rail-list"></ul>
+        </div>
+
+        <div class="rail-section signed-out-only">
+          <div class="rail-label">NEW HERE?</div>
+          <p class="rail-help">Platytalk uses your Microsoft account for identity and Microsoft Authenticator for MFA — no SMS, no passwords. Your handle stays the same on every device.</p>
+          <a class="btn ghost tiny" href="help.html">📖 Read the guide</a>
+          <a class="btn ghost tiny" href="about.html">ℹ About Platytalk</a>
+        </div>
+      </aside>
+      <main class="chat">
+        <header class="chat-head">
+          <div>
+            <div class="chat-title" id="ptk-title">No conversation selected</div>
+            <div class="chat-sub">end-to-end encrypted • this browser holds your keys only</div>
+          </div>
+          <button id="ptk-disappear" class="btn ghost tiny">Disappearing: off</button>
+        </header>
+        <ol id="ptk-msgs" class="msgs"></ol>
+        <footer class="composer">
+          <input id="ptk-msg" class="ptk-input grow" placeholder="Type a message…" />
+          <button id="ptk-send" class="btn primary">Send ▶</button>
+        </footer>
+      </main>
+    </div>
+  </section>
+</main>
+
+<footer class="ptk-footer">
+  <div>© <span id="yr"></span> PlatypusTools · <a href="about.html">about</a> · <a href="help.html">help</a></div>
+  <div class="footnote">🔐 X25519 · AES-256-GCM · HKDF-SHA256 · forward-secret per message</div>
+</footer>
+<script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" defer></script>
+<script src="platytalk.js" defer></script>
+</body>
+</html>

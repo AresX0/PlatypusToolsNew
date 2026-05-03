@@ -77,6 +77,12 @@
       <Component Id="CMP_ICSharpCode_SharpZipLib_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_ICSharpCode_SharpZipLib_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\ICSharpCode.SharpZipLib.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CMP_Konscious_Security_Cryptography_Argon2_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Konscious_Security_Cryptography_Argon2_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Konscious.Security.Cryptography.Argon2.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_Konscious_Security_Cryptography_Blake2_dll" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_Konscious_Security_Cryptography_Blake2_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\Konscious.Security.Cryptography.Blake2.dll" KeyPath="yes" />
+      </Component>
       <Component Id="CMP_libSkiaSharp_dll" Guid="*" Directory="INSTALLFOLDER">
         <File Id="FIL_libSkiaSharp_dll" Source="$(var.PlatypusTools.UI.TargetDir)publish\libSkiaSharp.dll" KeyPath="yes" />
       </Component>
@@ -4988,6 +4994,8 @@
       <ComponentRef Id="CMP_hostpolicy_dll" />
       <ComponentRef Id="CMP_HtmlAgilityPack_dll" />
       <ComponentRef Id="CMP_ICSharpCode_SharpZipLib_dll" />
+      <ComponentRef Id="CMP_Konscious_Security_Cryptography_Argon2_dll" />
+      <ComponentRef Id="CMP_Konscious_Security_Cryptography_Blake2_dll" />
       <ComponentRef Id="CMP_libSkiaSharp_dll" />
       <ComponentRef Id="CMP_LibVLCSharp_dll" />
       <ComponentRef Id="CMP_LibVLCSharp_WPF_dll" />

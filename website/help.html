@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Platytalk help — Microsoft sign-in, security, day-to-day use</title>
+<meta name="description" content="How to set up Platytalk: Microsoft account, Authenticator MFA, contacts, groups, disappearing messages, multi-device, account wipe, troubleshooting." />
+<link rel="icon" href="Platytalk.png" type="image/png" />
+<link rel="stylesheet" href="platytalk.css" />
+</head>
+<body>
+<div class="grid-bg" aria-hidden="true"></div>
+<div class="scanlines" aria-hidden="true"></div>
+
+<header class="ptk-header">
+  <div class="brand">
+    <img src="Platytalk.png" alt="" class="logo" />
+    <div>
+      <div class="brand-name">PLATYTALK · HELP</div>
+      <div class="brand-tag">// platytalk.platysoft.com/help</div>
+    </div>
+  </div>
+  <nav>
+    <a href="/">web client</a>
+    <a href="about.html">about</a>
+    <a href="#setup">7-step setup</a>
+    <a href="#daily">daily use</a>
+    <a href="#trouble">troubleshooting</a>
+    <a href="#faq">faq</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero compact">
+    <h1>Platytalk <span class="neon">help</span></h1>
+    <p class="lede">
+      Microsoft sign-in, MFA, key management, day-to-day chat, multi-device, troubleshooting,
+      and security model — everything you need to use Platytalk safely.
+    </p>
+    <div class="hero-actions">
+      <a class="btn primary" href="/">▶ Open web client</a>
+      <a class="btn ghost" href="about.html">About</a>
+    </div>
+  </section>
+
+  <section id="setup" class="howto">
+    <h2>The 7-step secure-account walkthrough</h2>
+    <p>Do this <b>once</b>, before you sign in to Platytalk.</p>
+    <div class="steps">
+      <article class="step">
+        <div class="step-num">01</div>
+        <h3>Get a free Microsoft account</h3>
+        <p>If you don't already have one, sign up at <a href="https://signup.live.com" target="_blank" rel="noopener">signup.live.com</a>. It costs nothing — you can use any email address you control (Gmail, Proton, your own domain). Pick a long, unique password or have your password manager generate a 24-character random one.</p>
+      </article>
+      <article class="step">
+        <div class="step-num">02</div>
+        <h3>Turn on two-step verification with Microsoft Authenticator</h3>
+        <p>Install <a href="https://www.microsoft.com/security/mobile-authenticator-app" target="_blank" rel="noopener">Microsoft Authenticator</a> on your phone. Sign in to <a href="https://account.microsoft.com/security" target="_blank" rel="noopener">account.microsoft.com/security</a>, click <b>Advanced security options → Add a new way to sign in or verify → Use an app</b>, and scan the QR with Authenticator. Confirm the test prompt and enable <b>Two-step verification</b>.</p>
+      </article>
+      <article class="step">
+        <div class="step-num">03</div>
+        <h3>Set Authenticator as your primary sign-in method</h3>
+        <p>On the same security page, choose <b>Change verification options</b> and put <b>Microsoft Authenticator</b> at the top of the list. Every sign-in (including Platytalk) will then push a notification to your phone. SMS and email codes become a fallback only.</p>
+      </article>
+      <article class="step">
+        <div class="step-num">04</div>
+        <h3>Add a recovery method you trust</h3>
+        <p>Add a recovery email or phone number that <b>you alone control</b>. Print or save the one-time recovery code somewhere safe (password manager, sealed envelope). Without it, losing your authenticator phone can lock you out of Platytalk forever.</p>
+      </article>
+      <article class="step">
+        <div class="step-num">05</div>
+        <h3>Lock down sign-in surfaces</h3>
+        <p>Review <b>Sign-in activity</b> and sign out anything you don't recognize. Remove unused <b>App passwords</b>. Turn on <b>Passwordless account</b> if your phone supports it — your password becomes optional and Authenticator becomes the primary credential.</p>
+      </article>
+      <article class="step">
+        <div class="step-num">06</div>
+        <h3>Bring your device into known-good state</h3>
+        <p>Patch your OS. Run PlatypusTools' <b>System Hardening</b> view at least once. On Windows, enable BitLocker on the drive that holds <code>%APPDATA%\PlatypusTools\Platytalk\</code> — that's where your private keys live.</p>
+      </article>
+      <article class="step">
+        <div class="step-num">07</div>
+        <h3>Sign in to Platytalk</h3>
+        <p>Open the <a href="/">web client</a> or PlatypusTools → Platytalk and click <b>🔑 Sign in with Microsoft</b>. Approve the Authenticator push. The browser tab says "Signed in" and Platytalk flips to the chat UI with your handle in the right rail.</p>
+      </article>
+    </div>
+    <div class="howto-callout">
+      <h4>Why Microsoft sign-in?</h4>
+      <p>Phone numbers leak your real-world identity, are easily SIM-swapped, and are expensive to verify. Microsoft accounts are free, support phishing-resistant MFA out of the box, and let you rotate the underlying email without rotating your Platytalk handle. Platytalk never sees your password, only a signed assertion of who you are.</p>
+    </div>
+  </section>
+
+  <section id="daily" class="howto">
+    <h2>Day-to-day use</h2>
+    <div class="steps">
+      <article class="step">
+        <h3>Adding a contact</h3>
+        <p>Type the contact's Platytalk handle (e.g. <code>quiet-otter-h7k2c</code>) into the <b>add by handle</b> field and click <b>+ Add</b>. The relay returns the contact's public identity key. Compare the 60-character <b>safety number</b> in person or over a trusted channel — when both match, you have an authenticated end-to-end channel.</p>
+      </article>
+      <article class="step">
+        <h3>Starting a chat</h3>
+        <p>Select a contact, click <b>Open chat</b>. Each message uses a fresh ephemeral ECDH share so even if one message key leaks, prior and future messages stay private (forward secrecy).</p>
+      </article>
+      <article class="step">
+        <h3>Groups</h3>
+        <p>Type a group title and click <b>Group</b> on the desktop app. Each recipient gets an individually encrypted copy of every message — no group key the server can reuse.</p>
+      </article>
+      <article class="step">
+        <h3>Disappearing messages</h3>
+        <p>Click <b>Disappearing</b> in the chat header to toggle a 24-hour TTL. Both sides purge messages locally after that window. The relay always deletes once acknowledged regardless.</p>
+      </article>
+      <article class="step">
+        <h3>Delete everywhere</h3>
+        <p>Click the small <b>Delete everywhere</b> badge on any message you sent. The app sends a tombstone to all recipients; their clients remove the message from view and storage on receipt.</p>
+      </article>
+      <article class="step">
+        <h3>Multi-device & key rotation</h3>
+        <p>Each device generates its own keypair. To rotate, click <b>Wipe local data</b> and sign back in — new keys are uploaded; contacts will see a <i>safety number changed</i> badge until they re-verify. Lost a device? Sign out at <a href="https://account.microsoft.com/security" target="_blank" rel="noopener">account.microsoft.com/security</a>, then on a remaining device sign back in to overwrite the public keys.</p>
+      </article>
+      <article class="step">
+        <h3>Account / data wipe</h3>
+        <p><b>Wipe local data</b> removes the local SQLite store, key files, and JWT. <b>Delete my Platytalk account</b> calls <code>DELETE /v1/me</code> on the relay and cascades to your contacts, groups, prekeys, and pending messages. Your Microsoft account is not affected — sign out of Microsoft separately if you also want that gone.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="trouble" class="howto">
+    <h2>Troubleshooting</h2>
+    <div class="steps">
+      <article class="step">
+        <h3>"Could not bind any loopback port"</h3>
+        <p>Some other app is using ports 53682 – 53685. Close VPN clients, other OAuth-using apps (gh CLI, Azure CLI), or restart the machine.</p>
+      </article>
+      <article class="step">
+        <h3>"Sign-in returned error: invalid_client"</h3>
+        <p>The relay's Microsoft credentials are wrong or expired. Email <a href="mailto:platytalk@platysoft.com">platytalk@platysoft.com</a>. (Self-hosters: rotate the secret in the Azure Portal and update <code>PLATYTALK_MS_CLIENT_SECRET</code>.)</p>
+      </article>
+      <article class="step">
+        <h3>"Contact has no key"</h3>
+        <p>The contact has signed up but has not yet completed <code>/v1/keys/identity</code> upload. Ask them to open Platytalk once on a device that's online.</p>
+      </article>
+      <article class="step">
+        <h3>Browser opens but never returns to the desktop app</h3>
+        <p>Your firewall is blocking inbound on <code>localhost</code>. Allow <code>PlatypusTools.UI.exe</code> through Windows Defender Firewall (Private network), or use the <a href="/">web client</a>.</p>
+      </article>
+      <article class="step">
+        <h3>"Safety number changed" warning</h3>
+        <p>The contact rotated keys (new device, wiped data, or — worst case — account takeover). <b>Do not send sensitive messages until you re-verify the safety number out-of-band.</b></p>
+      </article>
+      <article class="step">
+        <h3>Lost access to your Microsoft account</h3>
+        <p>If you lose Authenticator and your recovery codes, you cannot get back in. Microsoft account recovery can take 30 days and is not guaranteed. Your Platytalk identity is gone with it; create a new account and ask contacts to re-add you.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="faq" class="howto">
+    <h2>Security model FAQ</h2>
+    <div class="steps">
+      <article class="step">
+        <h3>What does the Platytalk relay actually see?</h3>
+        <p>Routing metadata — your Platytalk userId, recipient userIds, message size, timestamp, and the <b>ciphertext blob</b>. It never sees plaintext, and it never holds your private keys.</p>
+      </article>
+      <article class="step">
+        <h3>What crypto is used?</h3>
+        <p>P-256 ECDH for key agreement, AES-256-GCM for encryption, HKDF-SHA256 for key derivation, Ed25519 (or P-256 ECDSA on the web) for signatures. Each message uses a fresh ephemeral DH share; the AAD binds the ciphertext to <code>${conversationId}|${messageId}</code>.</p>
+      </article>
+      <article class="step">
+        <h3>Who controls the relay?</h3>
+        <p>The PlatypusTools project. Source for every relay endpoint is in <code>platytalk/{db,auth,routes,ws}.js</code> so you can audit it. You can also self-host: set <code>PLATYTALK_MS_CLIENT_ID</code>, <code>PLATYTALK_MS_CLIENT_SECRET</code>, <code>PLATYTALK_REDIRECT_URI</code>, and <code>PLATYTALK_JWT_SECRET</code> to your own values and point the clients at your domain.</p>
+      </article>
+      <article class="step">
+        <h3>Is this audited?</h3>
+        <p>Not yet by a third party. The crypto primitives are standard and the code is small. If you're relying on Platytalk for high-stakes communication, treat it as <b>alpha-grade</b> and prefer Signal Desktop until a formal audit lands.</p>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer class="ptk-footer">
+  <div>© <span id="yr"></span> PlatypusTools · <a href="/">web client</a> · <a href="about.html">about</a> · <a href="https://platysoft.com">platysoft.com</a></div>
+  <div class="footnote">📚 Need more? Read DOCS/PLATYTALK_HELP.md in the source.</div>
+</footer>
+<script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+</body>
+</html>

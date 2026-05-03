@@ -100,6 +100,7 @@ public partial class MainWindowViewModel : ObservableObject
                 new("Advanced Forensics",  "🔬",  new AdvancedForensicsViewModel()),
                 new("Encrypted Clipboard", "🔐",  new EncryptedClipboardViewModel()),
                 new("Directory Analyzer",  "🏛",  new DirectorySecurityAnalyzerViewModel()),
+                new("Platytalk",           "🛸",  new PlatytalkViewModel()),
             }),
             new NavigationCategory("System", new()
             {

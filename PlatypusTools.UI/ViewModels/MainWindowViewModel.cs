@@ -103,6 +103,7 @@ namespace PlatypusTools.UI.ViewModels
         private readonly Lazy<TextEditorViewModel> _textEditor = new(() => new TextEditorViewModel());
         private readonly Lazy<WallpaperRotatorViewModel> _wallpaperRotator = new(() => new WallpaperRotatorViewModel());
         private readonly Lazy<ScreensaverViewModel> _screensaver = new(() => new ScreensaverViewModel());
+        private readonly Lazy<PlatytalkViewModel> _platytalk = new(() => new PlatytalkViewModel());
         
         #endregion
 
@@ -233,6 +234,7 @@ namespace PlatypusTools.UI.ViewModels
         public TextEditorViewModel TextEditor => _textEditor.Value;
         public WallpaperRotatorViewModel WallpaperRotator => _wallpaperRotator.Value;
         public ScreensaverViewModel Screensaver => _screensaver.Value;
+        public PlatytalkViewModel Platytalk => _platytalk.Value;
         
         #endregion
 

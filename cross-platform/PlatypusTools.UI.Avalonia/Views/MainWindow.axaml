@@ -129,6 +129,7 @@
         <DataTemplate x:Key="UpdateCheckerTpl"     DataType="vm:UpdateCheckerViewModel"><v:UpdateCheckerView /></DataTemplate>
         <DataTemplate x:Key="ServiceMgrTpl"        DataType="vm:ServiceManagerViewModel"><v:ServiceManagerView /></DataTemplate>
         <DataTemplate x:Key="DirSecTpl"            DataType="vm:DirectorySecurityAnalyzerViewModel"><v:DirectorySecurityAnalyzerView /></DataTemplate>
+        <DataTemplate x:Key="PlatytalkTpl"         DataType="vm:PlatytalkViewModel"><v:PlatytalkView /></DataTemplate>
     </Window.Resources>
 
     <Grid ColumnDefinitions="240,*">

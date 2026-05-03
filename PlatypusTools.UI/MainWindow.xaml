@@ -553,6 +553,10 @@
                              Visibility="{Binding NetworkTraffic, Source={x:Static services:TabVisibilityService.Instance}}">
                         <controls:LazyTabContent ViewType="{x:Type views:NetworkTrafficView}" ViewDataContext="{Binding NetworkTraffic}" />
                     </TabItem>
+                    <TabItem Header="🛸 Platytalk"
+                             Visibility="{Binding Platytalk, Source={x:Static services:TabVisibilityService.Instance}}">
+                        <controls:LazyTabContent ViewType="{x:Type views:PlatytalkView}" ViewDataContext="{Binding Platytalk}" />
+                    </TabItem>
                     <!-- v4.0.3.10 reorg — Security launchers for tools previously hidden in Tools menu -->
                     <TabItem Header="🧬 YARA Scanner" AutomationProperties.Name="YARA Scanner">
                         <Grid Margin="24">
