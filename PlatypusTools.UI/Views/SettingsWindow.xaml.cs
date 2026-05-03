@@ -1599,6 +1599,10 @@ namespace PlatypusTools.UI.Views
             { "TabFileEncryption", "Security.FileEncryption" },
             { "TabSystemHardening", "Security.SystemHardening" },
             { "TabNetworkTraffic", "Security.NetworkTraffic" },
+            { "TabPlatytalk", "Security.Platytalk" },
+            { "TabYaraScanner", "Security.YaraScanner" },
+            { "TabEncryptedClipboard", "Security.EncryptedClipboard" },
+            { "TabCredentialManager", "Security.CredentialManager" },
             { "TabWallpaperRotator", "System.WallpaperRotator" },
             { "TabScreensaver", "System.Screensaver" },
             

@@ -116,61 +116,12 @@
   </section>
 
   <section id="app" class="app">
-    <h2>Web client (preview)</h2>
-    <div class="webapp">
-      <aside class="rail">
-        <div class="rail-section">
-          <div class="rail-label">YOUR IDENTITY</div>
-          <div id="ptk-me" class="me-card">
-            <div class="me-name">not signed in</div>
-            <div class="me-handle">sign in with your Microsoft account</div>
-          </div>
-          <button id="ptk-signin" class="btn primary tiny">🔑 Sign in with Microsoft</button>
-          <button id="ptk-signout" class="btn ghost tiny" hidden>Sign out</button>
-        </div>
-        <div class="rail-section">
-          <div class="rail-label">CONTACTS</div>
-          <input id="ptk-add" class="ptk-input" placeholder="add by handle (e.g. platy-7K9F2)" />
-          <button id="ptk-add-btn" class="btn primary tiny">+ Add</button>
-          <ul id="ptk-contacts" class="rail-list"></ul>
-        </div>
-        <div class="rail-section signed-in-only" hidden>
-          <div class="rail-label">GROUPS</div>
-          <input id="ptk-group-name" class="ptk-input" placeholder="new group name" />
-          <button id="ptk-group-create" class="btn primary tiny">+ Create</button>
-          <ul id="ptk-groups" class="rail-list"></ul>
-        </div>
-        <div class="rail-section signed-in-only" hidden>
-          <div class="rail-label">DEVICES</div>
-          <ul id="ptk-devices" class="rail-list"></ul>
-          <button id="ptk-devices-refresh" class="btn ghost tiny">Refresh</button>
-        </div>
-        <div class="rail-section signed-in-only" hidden>
-          <div class="rail-label">BACKUP</div>
-          <input id="ptk-backup-pass" class="ptk-input" type="password" placeholder="backup passphrase" />
-          <div class="rail-row">
-            <button id="ptk-backup-create" class="btn primary tiny">Backup</button>
-            <button id="ptk-backup-restore" class="btn ghost tiny">Restore</button>
-          </div>
-          <div id="ptk-backup-status" class="me-handle"></div>
-        </div>
-      </aside>
-      <main class="chat">
-        <header class="chat-head">
-          <div>
-            <div class="chat-title" id="ptk-title">No conversation selected</div>
-            <div class="chat-sub">end-to-end encrypted • this browser holds your keys only</div>
-          </div>
-          <button id="ptk-disappear" class="btn ghost tiny">Disappearing: off</button>
-        </header>
-        <ol id="ptk-msgs" class="msgs"></ol>
-        <footer class="composer">
-          <input id="ptk-msg" class="ptk-input grow" placeholder="Type a message…" />
-          <button id="ptk-send" class="btn primary">Send ▶</button>
-        </footer>
-      </main>
+    <h2>Web client</h2>
+    <div style="text-align:center; padding:40px 20px;">
+      <p style="margin-bottom:24px; color:#cfeaf3;">The full Platytalk messenger — encrypted end-to-end in your browser, with groups, multi-device, disappearing messages, and encrypted backup.</p>
+      <a href="/client.html" class="btn primary" style="font-size:18px; padding:14px 28px;">🚀 Launch Web Client →</a>
+      <p class="note" style="margin-top:18px;">Opens a dedicated full-screen messenger. Sign in with your Microsoft account. Keys live only in your browser's IndexedDB.</p>
     </div>
-    <p class="note">The web client uses the WebCrypto SubtleCrypto API for ECDH + AES-GCM in your browser. Private keys live only in IndexedDB and are never transmitted to the relay.</p>
   </section>
 
   <section id="howto" class="howto">

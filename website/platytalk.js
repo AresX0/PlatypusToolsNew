@@ -109,15 +109,34 @@
     const inviteUrl = `${location.origin}/?add=${encodeURIComponent(handle)}`;
     handleEl.textContent = '@' + handle;
     qrEl.innerHTML = '';
-    if (typeof QRCode !== 'undefined' && QRCode.toCanvas) {
-      const c = document.createElement('canvas');
-      qrEl.appendChild(c);
-      QRCode.toCanvas(c, inviteUrl, { width: 156, margin: 1, color: { dark: '#00e5ff', light: '#04070d' } }, (err) => {
-        if (err) qrEl.textContent = inviteUrl;
-      });
-    } else {
-      qrEl.textContent = inviteUrl;
-    }
+    const renderText = () => {
+      // Compact fallback: show only the handle, not the full URL, so it stays in the box.
+      qrEl.innerHTML = `<div style="padding:8px;color:#7fd6e8;font-size:11px;word-break:break-all;">@${escapeHtml(handle)}</div>`;
+    };
+    const tryRender = (attempt) => {
+      // npm `qrcode` (preferred): exposes QRCode.toCanvas function.
+      if (typeof QRCode !== 'undefined' && typeof QRCode.toCanvas === 'function') {
+        const c = document.createElement('canvas');
+        qrEl.appendChild(c);
+        QRCode.toCanvas(c, inviteUrl, { width: 156, margin: 1, color: { dark: '#00e5ff', light: '#04070d' } }, (err) => {
+          if (err) renderText();
+        });
+        return;
+      }
+      // davidshimjs/qrcodejs fallback: constructor-based.
+      if (typeof QRCode !== 'undefined' && QRCode.prototype && typeof QRCode.prototype.makeCode === 'function') {
+        try {
+          new QRCode(qrEl, { text: inviteUrl, width: 156, height: 156, colorDark: '#00e5ff', colorLight: '#04070d' });
+          return;
+        } catch (e) { /* fall through */ }
+      }
+      if (attempt < 30) {
+        setTimeout(() => tryRender(attempt + 1), 150);
+      } else {
+        renderText();
+      }
+    };
+    tryRender(0);
     const copyBtn = $('ptk-copy-invite');
     if (copyBtn) copyBtn.onclick = () => { navigator.clipboard?.writeText(inviteUrl); copyBtn.textContent = 'Copied!'; setTimeout(() => copyBtn.textContent = 'Copy invite link', 1500); };
   }
@@ -150,10 +169,11 @@
     }
   }
 
-  function appendMessage(direction, text, when) {
+  function appendMessage(direction, text, when, messageId) {
     const ol = $('ptk-msgs'); if (!ol) return;
     const li = document.createElement('li');
     li.className = direction === 'out' ? 'out' : 'in';
+    if (messageId) li.dataset.messageId = messageId;
     li.innerHTML = `<div class="bubble">${text.replace(/[<&>]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]))}</div><time>${new Date(when).toLocaleTimeString()}</time>`;
     ol.appendChild(li); ol.scrollTop = ol.scrollHeight;
   }
@@ -163,7 +183,54 @@
     $('ptk-title').textContent = '@' + contact.handle;
     $('ptk-msgs').innerHTML = '';
     const buf = state.conversations[contact.id] || [];
-    for (const m of buf) appendMessage(m.direction, m.text, m.when);
+    for (const m of buf) appendMessage(m.direction, m.text, m.when, m.messageId);
+    refreshDisappearingLabel();
+    // Pull the server-side TTL so the indicator is correct even right after sign-in.
+    try {
+      const cid = [state.me.id, contact.id].sort().join(':');
+      api(`/v1/conversations/${encodeURIComponent(cid)}/settings`).then(s => {
+        if (s && Number.isInteger(s.disappearingSeconds)) {
+          state.convSettings[cid] = s.disappearingSeconds;
+          refreshDisappearingLabel();
+        }
+      }).catch(()=>{});
+    } catch {}
+  }
+
+  // ---------- Disappearing-message TTL (per conversation) ------------
+  state.convSettings = state.convSettings || {};
+  function ttlLabelShort(s) {
+    if (!s) return 'off';
+    if (s < 60) return s + 's';
+    if (s < 3600) return ((s / 60) | 0) + 'm';
+    if (s < 86400) return ((s / 3600) | 0) + 'h';
+    if (s < 604800) return ((s / 86400) | 0) + 'd';
+    return ((s / 604800) | 0) + 'w';
+  }
+  function refreshDisappearingLabel() {
+    const btn = $('ptk-disappear'); if (!btn) return;
+    if (!state.selected) { btn.textContent = 'Disappearing: off'; return; }
+    const convId = [state.me.id, state.selected.id].sort().join(':');
+    const s = state.convSettings[convId] || 0;
+    btn.textContent = 'Disappearing: ' + ttlLabelShort(s);
+  }
+  async function cycleDisappearing() {
+    if (!state.selected) { alert('Select a conversation first.'); return; }
+    const convId = [state.me.id, state.selected.id].sort().join(':');
+    const opts = [0, 30, 300, 3600, 28800, 86400, 604800, 2419200];
+    const cur = state.convSettings[convId] || 0;
+    const next = opts[(opts.indexOf(cur) + 1) % opts.length];
+    try {
+      await api(`/v1/conversations/${encodeURIComponent(convId)}/settings`, {
+        method: 'PUT', body: JSON.stringify({ disappearingSeconds: next }),
+      });
+      state.convSettings[convId] = next;
+      refreshDisappearingLabel();
+    } catch (e) {
+      // Fall back to a local-only setting if the endpoint isn't supported on this server.
+      state.convSettings[convId] = next;
+      refreshDisappearingLabel();
+    }
   }
 
   async function send() {
@@ -184,8 +251,8 @@
       }),
     });
     state.conversations[peer.id] = state.conversations[peer.id] || [];
-    state.conversations[peer.id].push({ direction: 'out', text: txt, when: Date.now() });
-    appendMessage('out', txt, Date.now());
+    state.conversations[peer.id].push({ direction: 'out', text: txt, when: Date.now(), messageId });
+    appendMessage('out', txt, Date.now(), messageId);
   }
 
   async function handleEnvelope(env) {
@@ -194,8 +261,17 @@
       const text = await decryptFromPeer(env.cipherBlob, env.ephemeralPublic, state.identity.identityPrivPkcs8, ctx);
       const contact = state.contacts.find(c => c.id === env.senderId) || { id: env.senderId, handle: 'unknown', displayName: 'unknown' };
       state.conversations[contact.id] = state.conversations[contact.id] || [];
-      state.conversations[contact.id].push({ direction: 'in', text, when: env.timestampMs });
-      if (state.selected && state.selected.id === contact.id) appendMessage('in', text, env.timestampMs);
+      state.conversations[contact.id].push({ direction: 'in', text, when: env.timestampMs, messageId: env.messageId });
+      if (state.selected && state.selected.id === contact.id) appendMessage('in', text, env.timestampMs, env.messageId);
+      else {
+        // Auto-refresh contact list (sender may not be a contact yet) and surface a tiny notification.
+        refreshContacts().catch(()=>{});
+        try {
+          if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            new Notification('Platytalk', { body: '@' + contact.handle + ': ' + text.slice(0, 80) });
+          }
+        } catch {}
+      }
       try { state.ws?.send(JSON.stringify({ type: 'ack', messageIds: [env.messageId + ':' + state.me.id] })); } catch {}
     } catch (e) { console.warn('decrypt failed', e); }
   }
@@ -209,6 +285,16 @@
       if (m.type === 'envelope') handleEnvelope(m);
       else if (m.type === 'tombstone') {
         for (const k of Object.keys(state.conversations)) state.conversations[k] = state.conversations[k].filter(x => x.messageId !== m.messageId);
+        // Also strip from the visible message list if present.
+        const ol = $('ptk-msgs');
+        if (ol) [...ol.children].forEach(li => { if (li.dataset.messageId === m.messageId) li.remove(); });
+      }
+      else if (m.type === 'convSettings') {
+        state.convSettings[m.conversationId] = m.disappearingSeconds || 0;
+        refreshDisappearingLabel();
+      }
+      else if (m.type === 'contactAdded') {
+        refreshContacts().catch(()=>{});
       }
     };
     ws.onclose = () => setTimeout(connectWs, 2000);
@@ -223,6 +309,7 @@
     state.me = await api('/v1/me');
     await refreshContacts();
     connectWs();
+    try { if (typeof Notification !== 'undefined' && Notification.permission === 'default') Notification.requestPermission().catch(()=>{}); } catch {}
   }
 
   function checkFragment() {
@@ -303,6 +390,7 @@
   };
   if ($('ptk-send')) $('ptk-send').onclick = send;
   const msgInput = $('ptk-msg'); if (msgInput) msgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); send(); } });
+  if ($('ptk-disappear')) $('ptk-disappear').onclick = cycleDisappearing;
 
   // Auto-add by handle from invite link (?add=handle)
   try {

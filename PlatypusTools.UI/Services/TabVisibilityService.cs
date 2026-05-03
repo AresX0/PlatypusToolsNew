@@ -216,5 +216,10 @@ namespace PlatypusTools.UI.Services
         public Visibility FileEncryption => GetVisibility("Security.FileEncryption");
         public Visibility SystemHardening => GetVisibility("Security.SystemHardening");
         public Visibility NetworkTraffic => GetVisibility("Security.NetworkTraffic");
+
+        // Security - Reorg launcher tabs (v4.0.3.10)
+        public Visibility YaraScanner => GetVisibility("Security.YaraScanner");
+        public Visibility EncryptedClipboard => GetVisibility("Security.EncryptedClipboard");
+        public Visibility CredentialManager => GetVisibility("Security.CredentialManager");
     }
 }

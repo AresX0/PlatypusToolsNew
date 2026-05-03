@@ -558,7 +558,8 @@
                         <controls:LazyTabContent ViewType="{x:Type views:PlatytalkView}" ViewDataContext="{Binding Platytalk}" />
                     </TabItem>
                     <!-- v4.0.3.10 reorg — Security launchers for tools previously hidden in Tools menu -->
-                    <TabItem Header="🧬 YARA Scanner" AutomationProperties.Name="YARA Scanner">
+                    <TabItem Header="🧬 YARA Scanner" AutomationProperties.Name="YARA Scanner"
+                             Visibility="{Binding YaraScanner, Source={x:Static services:TabVisibilityService.Instance}}">
                         <Grid Margin="24">
                             <StackPanel MaxWidth="600" HorizontalAlignment="Left" VerticalAlignment="Top">
                                 <TextBlock Text="🧬 YARA Scanner" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,8"/>
@@ -569,7 +570,8 @@
                             </StackPanel>
                         </Grid>
                     </TabItem>
-                    <TabItem Header="🔐 Encrypted Clipboard" AutomationProperties.Name="Encrypted Clipboard">
+                    <TabItem Header="🔐 Encrypted Clipboard" AutomationProperties.Name="Encrypted Clipboard"
+                             Visibility="{Binding EncryptedClipboard, Source={x:Static services:TabVisibilityService.Instance}}">
                         <Grid Margin="24">
                             <StackPanel MaxWidth="600" HorizontalAlignment="Left" VerticalAlignment="Top">
                                 <TextBlock Text="🔐 Encrypted Clipboard" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,8"/>
@@ -580,7 +582,8 @@
                             </StackPanel>
                         </Grid>
                     </TabItem>
-                    <TabItem Header="🔑 Credential Manager" AutomationProperties.Name="Credential Manager">
+                    <TabItem Header="🔑 Credential Manager" AutomationProperties.Name="Credential Manager"
+                             Visibility="{Binding CredentialManager, Source={x:Static services:TabVisibilityService.Instance}}">
                         <Grid Margin="24">
                             <StackPanel MaxWidth="600" HorizontalAlignment="Left" VerticalAlignment="Top">
                                 <TextBlock Text="🔑 Credential Manager" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,8"/>

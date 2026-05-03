@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<title>Platytalk — Web Client</title>
+<meta name="description" content="Platytalk encrypted messenger — web client." />
+
+<!-- PWA -->
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="theme-color" content="#04070d" />
+<meta name="color-scheme" content="dark" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Platytalk" />
+<link rel="apple-touch-icon" href="/Platytalk.png" />
+<link rel="icon" href="/Platytalk.png" type="image/png" />
+
+<link rel="stylesheet" href="platytalk.css" />
+<style>
+  /* Force HTML hidden attribute to win over any explicit display rules. */
+  [hidden] { display: none !important; }
+
+  /* ===== Standalone client layout ===== */
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body.client-page {
+    display: flex; flex-direction: column;
+    min-height: 100vh; min-height: 100dvh;
+    background: #04070d; color: #cfeaf3;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  .client-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 16px; border-bottom: 1px solid #093143; background: #050a14;
+    flex-shrink: 0;
+  }
+  .client-bar .brand { display: flex; align-items: center; gap: 10px; color: #00e5ff; font-weight: 600; letter-spacing: 1px; font-size: 14px; }
+  .client-bar .brand img { width: 26px; height: 26px; }
+  .client-bar nav { display: flex; gap: 4px; }
+  .client-bar a { color: #7fd6e8; text-decoration: none; font-size: 11px; padding: 6px 8px; border-radius: 4px; }
+  .client-bar a:hover { color: #00e5ff; background: rgba(0,229,255,0.08); }
+  .menu-btn {
+    display: none; background: transparent; color: #00e5ff; border: 1px solid #00e5ff;
+    border-radius: 4px; padding: 4px 10px; font-size: 18px; cursor: pointer;
+  }
+
+  #app-host { flex: 1 1 auto; display: flex; min-height: 0; padding: 8px; gap: 8px; }
+  #app-host .webapp {
+    flex: 1 1 auto; display: grid; grid-template-columns: 280px 1fr; gap: 0;
+    min-height: 0; height: 100%;
+    border: 1px solid #093143; border-radius: 6px; overflow: hidden; background: #0a131e;
+    position: relative;
+  }
+
+  /* Mobile drawer backdrop — must be outside grid flow at all sizes. */
+  .backdrop {
+    display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.5); z-index: 99;
+  }
+
+  #app-host .rail {
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding: 12px; display: flex; flex-direction: column; gap: 14px;
+    border-right: 1px solid #093143; background: #0a131e;
+    align-items: stretch;
+    min-height: 0; max-height: 100%;
+  }
+  /* Bubbles: make outgoing not shrink to a single character. */
+  #app-host .msgs li.in, #app-host .msgs li.out { display: block; margin: .35rem 0; }
+  #app-host .msgs li { max-width: 80%; padding: 0; border: 0; background: transparent; }
+  #app-host .msgs li.out { align-self: flex-end; text-align: right; }
+  #app-host .msgs li.in  { align-self: flex-start; text-align: left; }
+  #app-host .msgs .bubble { display: inline-block; max-width: 100%; word-break: break-word; white-space: pre-wrap; text-align: left; }
+  /* Sub-blocks inside the rail must stack vertically with their own gap. */
+  #app-host .rail .rail-section { display: flex; flex-direction: column; gap: 6px; }
+  #app-host .rail .rail-label { color: #7fa1b8; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; }
+  #app-host .chat { display: flex; flex-direction: column; min-height: 0; background: #0e1a29; }
+  #app-host .msgs { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px; }
+  #app-host .composer { padding: 8px; border-top: 1px solid #093143; gap: 6px; }
+
+  .qr-card { padding: 8px; background: #061520; border: 1px solid #093143; border-radius: 6px; text-align: center; overflow: hidden; box-sizing: border-box; }
+  .qr-card #ptk-qr { display: flex; justify-content: center; padding: 6px 0; max-width: 100%; overflow: hidden; min-height: 100px; }
+  .qr-card #ptk-qr canvas, .qr-card #ptk-qr img { max-width: 100%; height: auto; }
+  .qr-card .me-handle { font-size: 11px; word-break: break-all; max-width: 100%; }
+  .qr-card .btn { width: 100%; margin-top: 6px; }
+  .rail-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .rail-row .btn { flex: 1 1 auto; }
+  /* Editor stays vertical-stacked when shown by JS removing [hidden]. */
+  .handle-editor:not([hidden]) { display: flex; flex-direction: column; gap: 4px; padding-top: 4px; }
+  .handle-editor .err { color: #ff6b6b; font-size: 11px; min-height: 12px; }
+
+  .btn, .ptk-input { min-height: 36px; }
+  .btn.tiny { padding: 6px 10px; }
+  .ptk-input { font-size: 16px; /* prevents iOS zoom-on-focus */ }
+
+  #ptk-install-banner {
+    display: none; align-items: center; gap: 8px; padding: 8px 12px;
+    background: linear-gradient(90deg, rgba(0,229,255,0.15), rgba(255,0,200,0.1));
+    border-bottom: 1px solid #093143; font-size: 12px; color: #cfeaf3;
+  }
+  #ptk-install-banner button.close { background: transparent; color: #7fd6e8; border: none; font-size: 18px; cursor: pointer; padding: 0 6px; margin-left: auto; }
+
+  /* Mobile: drawer rail */
+  @media (max-width: 800px) {
+    .client-bar { padding: 8px 10px; }
+    .client-bar .brand { font-size: 13px; }
+    .client-bar nav a { display: none; }
+    .menu-btn { display: inline-block; }
+    .menu-btn.active { background: #00e5ff; color: #04070d; }
+
+    #app-host { padding: 4px; gap: 0; }
+    #app-host .webapp { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+    #app-host .rail {
+      position: absolute; top: 0; left: 0; bottom: 0;
+      width: min(85vw, 320px); z-index: 100;
+      transform: translateX(-100%); transition: transform .22s ease-out;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+    }
+    #app-host .webapp.rail-open .rail { transform: translateX(0); }
+    #app-host .webapp.rail-open .backdrop { display: block; }
+    #app-host .chat-head { padding: 10px 12px; }
+    .chat-title { font-size: 14px; }
+    .chat-sub { font-size: 10px; }
+    .msgs li .bubble, .msgs li { max-width: 88% !important; font-size: 14px; }
+  }
+
+  @media (display-mode: standalone) {
+    .client-bar nav a { display: none; }
+  }
+</style>
+</head>
+<body class="client-page">
+
+<div class="grid-bg" aria-hidden="true"></div>
+<div class="scanlines" aria-hidden="true"></div>
+
+<div class="client-bar">
+  <div class="brand">
+    <img src="Platytalk.png" alt="" />
+    <span>PLATYTALK</span>
+  </div>
+  <button class="menu-btn" id="ptk-menu-btn" aria-label="Toggle menu">☰</button>
+  <nav>
+    <a href="/">← Home</a>
+    <a href="/help.html">Help</a>
+    <a href="/about.html">About</a>
+  </nav>
+</div>
+
+<div id="ptk-install-banner">
+  <span id="ptk-install-text">📱 Install Platytalk for offline access</span>
+  <button id="ptk-install-btn" class="btn primary tiny">Install</button>
+  <button class="close" id="ptk-install-dismiss" aria-label="Dismiss">×</button>
+</div>
+
+<div id="app-host">
+  <div class="webapp" id="ptk-webapp">
+    <div class="backdrop" id="ptk-backdrop"></div>
+    <aside class="rail">
+
+      <div class="rail-section">
+        <div class="rail-label">YOUR IDENTITY</div>
+        <div id="ptk-me" class="me-card">
+          <div class="me-name">not signed in</div>
+          <div class="me-handle">sign in with your Microsoft account</div>
+        </div>
+        <a id="ptk-signin" class="btn primary tiny" href="/auth/start?returnTo=/client.html">🔑 Sign in with Microsoft</a>
+        <button id="ptk-signout" class="btn ghost tiny" hidden>Sign out</button>
+        <button id="ptk-edit-handle" class="btn ghost tiny" hidden>Edit handle</button>
+        <div id="ptk-handle-editor" class="handle-editor" hidden>
+          <input id="ptk-handle-input" class="ptk-input" placeholder="new-handle" />
+          <div class="rail-row">
+            <button id="ptk-handle-save" class="btn primary tiny">Save</button>
+            <button id="ptk-handle-cancel" class="btn ghost tiny">Cancel</button>
+          </div>
+          <div id="ptk-handle-err" class="err"></div>
+        </div>
+      </div>
+
+      <div id="ptk-invite-box" class="rail-section qr-card" hidden>
+        <div class="rail-label">INVITE QR</div>
+        <div id="ptk-qr"></div>
+        <div id="ptk-invite-handle" class="me-handle"></div>
+        <button id="ptk-copy-invite" class="btn ghost tiny">Copy invite link</button>
+      </div>
+
+      <div class="rail-section">
+        <div class="rail-label">CONTACTS</div>
+        <input id="ptk-add" class="ptk-input" placeholder="add by handle" />
+        <button id="ptk-add-btn" class="btn primary tiny">+ Add</button>
+        <ul id="ptk-contacts" class="rail-list"></ul>
+      </div>
+
+      <div class="rail-section signed-in-only" hidden>
+        <div class="rail-label">GROUPS</div>
+        <input id="ptk-group-name" class="ptk-input" placeholder="new group name" />
+        <button id="ptk-group-create" class="btn primary tiny">+ Create</button>
+        <ul id="ptk-groups" class="rail-list"></ul>
+      </div>
+
+      <div class="rail-section signed-in-only" hidden>
+        <div class="rail-label">DEVICES</div>
+        <ul id="ptk-devices" class="rail-list"></ul>
+        <button id="ptk-devices-refresh" class="btn ghost tiny">Refresh</button>
+      </div>
+
+      <div class="rail-section signed-in-only" hidden>
+        <div class="rail-label">BACKUP</div>
+        <input id="ptk-backup-pass" class="ptk-input" type="password" placeholder="backup passphrase" />
+        <div class="rail-row">
+          <button id="ptk-backup-create" class="btn primary tiny">Backup</button>
+          <button id="ptk-backup-restore" class="btn ghost tiny">Restore</button>
+        </div>
+        <div id="ptk-backup-status" class="me-handle"></div>
+      </div>
+
+    </aside>
+
+    <main class="chat">
+      <header class="chat-head">
+        <div>
+          <div class="chat-title" id="ptk-title">No conversation selected</div>
+          <div class="chat-sub">end-to-end encrypted</div>
+        </div>
+        <button id="ptk-disappear" class="btn ghost tiny">Disappearing: off</button>
+      </header>
+      <ol id="ptk-msgs" class="msgs"></ol>
+      <footer class="composer">
+        <input id="ptk-msg" class="ptk-input grow" placeholder="Type a message…" autocomplete="off" autocapitalize="off" />
+        <button id="ptk-send" class="btn primary">Send</button>
+      </footer>
+    </main>
+  </div>
+</div>
+
+<!-- QR libraries: prefer local copy, then CDNs. -->
+<script src="qrcode.min.js" onerror="window.__qrLocalFailed=true"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" onerror="window.__qrCdnFailed1=true"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" onerror="window.__qrCdnFailed2=true"></script>
+<script src="platytalk.js"></script>
+<script>
+  // ----- Mobile drawer -----
+  (function() {
+    const btn = document.getElementById('ptk-menu-btn');
+    const wa = document.getElementById('ptk-webapp');
+    const backdrop = document.getElementById('ptk-backdrop');
+    if (!btn || !wa) return;
+    const close = () => { wa.classList.remove('rail-open'); btn.classList.remove('active'); };
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      wa.classList.toggle('rail-open');
+      btn.classList.toggle('active');
+    });
+    backdrop?.addEventListener('click', close);
+    // Close when a contact/group is selected on mobile.
+    document.getElementById('ptk-contacts')?.addEventListener('click', () => { if (window.innerWidth <= 800) close(); });
+    document.getElementById('ptk-groups')?.addEventListener('click', () => { if (window.innerWidth <= 800) close(); });
+  })();
+
+  // ----- Service worker (PWA offline shell) -----
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
+  }
+
+  // ----- Install prompt -----
+  (function() {
+    let deferred = null;
+    const banner = document.getElementById('ptk-install-banner');
+    const installBtn = document.getElementById('ptk-install-btn');
+    const dismissBtn = document.getElementById('ptk-install-dismiss');
+    const installText = document.getElementById('ptk-install-text');
+    const dismissed = (() => { try { return localStorage.getItem('ptk_install_dismissed') === '1'; } catch { return false; } })();
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferred = e;
+      if (!dismissed && banner) banner.style.display = 'flex';
+    });
+    installBtn?.addEventListener('click', async () => {
+      if (!deferred) return;
+      banner.style.display = 'none';
+      deferred.prompt();
+      try { await deferred.userChoice; } catch {}
+      deferred = null;
+    });
+    dismissBtn?.addEventListener('click', () => {
+      banner.style.display = 'none';
+      try { localStorage.setItem('ptk_install_dismissed', '1'); } catch {}
+    });
+
+    // iOS — beforeinstallprompt isn't supported; show share-sheet hint.
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isIos && !isStandalone && !dismissed && banner) {
+      installText.textContent = '📱 Tap Share → "Add to Home Screen" to install';
+      installBtn.style.display = 'none';
+      banner.style.display = 'flex';
+    }
+  })();
+</script>
+</body>
+</html>

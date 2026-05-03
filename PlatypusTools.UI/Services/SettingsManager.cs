@@ -914,6 +914,9 @@ namespace PlatypusTools.UI.Services
                 new("Security.FileIntegrity", "File Integrity Monitor", "Security"),
                 new("Security.CertificateManager", "Certificate Manager", "Security"),
                 new("Security.SecurityVault", "Security Vault", "Security"),
+                new("Security.YaraScanner", "🧬 YARA Scanner", "Security"),
+                new("Security.EncryptedClipboard", "🔐 Encrypted Clipboard", "Security"),
+                new("Security.CredentialManager", "🔑 Credential Manager", "Security"),
 
                 new("Metadata", "📋 Metadata", null),
 

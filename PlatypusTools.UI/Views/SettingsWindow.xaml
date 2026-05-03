@@ -592,6 +592,10 @@
                                 <CheckBox x:Name="TabAdvForensicsRegistry" Content="        Registry Diff" IsChecked="True" Margin="32,4,0,4"/>
                                 <CheckBox x:Name="TabAdvForensicsPCAP" Content="        PCAP Parser" IsChecked="True" Margin="32,4,0,4"/>
                                 <CheckBox x:Name="TabAdvForensicsResults" Content="        Results" IsChecked="True" Margin="32,4,0,4"/>
+                                <CheckBox x:Name="TabPlatytalk" Content="    🛸 Platytalk Secure Messaging" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabYaraScanner" Content="    🧬 YARA Scanner" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabEncryptedClipboard" Content="    🔐 Encrypted Clipboard" IsChecked="True" Margin="16,4,0,4"/>
+                                <CheckBox x:Name="TabCredentialManager" Content="    🔑 Credential Manager" IsChecked="True" Margin="16,4,0,4"/>
                             </StackPanel>
                         </GroupBox>
                         
