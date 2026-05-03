@@ -14,7 +14,7 @@
 
   <Package Name="PlatypusTools Multimedia"
            Manufacturer="Platysoft"
-           Version="4.0.4.11"
+           Version="4.0.4.13"
            UpgradeCode="B7C1D2E3-F4A5-4B6C-9D7E-8F9A0B1C2D3E"
            InstallerVersion="500"
            Compressed="yes"
@@ -83,7 +83,7 @@
                      Key="Software\PlatypusTools"
                      Name="MediaVersion"
                      Type="string"
-                     Value="4.0.4.11" />
+                     Value="4.0.4.13" />
     </Component>
 
     <Component Id="EditionMarkerFile" Directory="INSTALLFOLDER"

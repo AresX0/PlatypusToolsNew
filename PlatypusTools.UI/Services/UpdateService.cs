@@ -90,19 +90,45 @@ namespace PlatypusTools.UI.Services
                     HtmlUrl = root.GetProperty("html_url").GetString() ?? ""
                 };
 
-                // Find installer asset - prefer MSI over standalone EXE
+                // Find installer asset - prefer MSI matching the current edition.
                 if (root.TryGetProperty("assets", out var assets))
                 {
-                    // First pass: look for MSI installer
+                    // Edition-aware MSI selection. Media MSI filenames contain "Media",
+                    // Full MSI filenames are PlatypusToolsSetup-*.msi (no "Media").
+                    var isMedia = PlatypusTools.Core.Services.EditionService.Current
+                                  == PlatypusTools.Core.Services.AppEdition.Media;
+                    bool MatchesEdition(string name)
+                    {
+                        var hasMedia = name.Contains("Media", StringComparison.OrdinalIgnoreCase);
+                        return isMedia ? hasMedia : !hasMedia;
+                    }
+
+                    // First pass: MSI matching the current edition.
                     foreach (var asset in assets.EnumerateArray())
                     {
                         var name = asset.GetProperty("name").GetString() ?? "";
-                        if (name.EndsWith(".msi", StringComparison.OrdinalIgnoreCase))
+                        if (name.EndsWith(".msi", StringComparison.OrdinalIgnoreCase) && MatchesEdition(name))
                         {
                             updateInfo.DownloadUrl = asset.GetProperty("browser_download_url").GetString() ?? "";
                             updateInfo.FileName = name;
                             updateInfo.FileSize = asset.GetProperty("size").GetInt64();
                             break;
+                        }
+                    }
+
+                    // Fallback: any MSI (older releases without edition split).
+                    if (string.IsNullOrEmpty(updateInfo.DownloadUrl))
+                    {
+                        foreach (var asset in assets.EnumerateArray())
+                        {
+                            var name = asset.GetProperty("name").GetString() ?? "";
+                            if (name.EndsWith(".msi", StringComparison.OrdinalIgnoreCase))
+                            {
+                                updateInfo.DownloadUrl = asset.GetProperty("browser_download_url").GetString() ?? "";
+                                updateInfo.FileName = name;
+                                updateInfo.FileSize = asset.GetProperty("size").GetInt64();
+                                break;
+                            }
                         }
                     }
 
