@@ -3,7 +3,7 @@
 [CmdletBinding()]
 param(
     [string[]]$Rids = @('linux-x64','linux-arm64','osx-x64','osx-arm64','win-x64','win-arm64'),
-    [string]$Version = '4.0.4.5'
+    [string]$Version = '4.0.4.7'
 )
 
 $ErrorActionPreference = 'Stop'

@@ -134,6 +134,26 @@
           <button id="ptk-add-btn" class="btn primary tiny">+ Add</button>
           <ul id="ptk-contacts" class="rail-list"></ul>
         </div>
+        <div class="rail-section signed-in-only" hidden>
+          <div class="rail-label">GROUPS</div>
+          <input id="ptk-group-name" class="ptk-input" placeholder="new group name" />
+          <button id="ptk-group-create" class="btn primary tiny">+ Create</button>
+          <ul id="ptk-groups" class="rail-list"></ul>
+        </div>
+        <div class="rail-section signed-in-only" hidden>
+          <div class="rail-label">DEVICES</div>
+          <ul id="ptk-devices" class="rail-list"></ul>
+          <button id="ptk-devices-refresh" class="btn ghost tiny">Refresh</button>
+        </div>
+        <div class="rail-section signed-in-only" hidden>
+          <div class="rail-label">BACKUP</div>
+          <input id="ptk-backup-pass" class="ptk-input" type="password" placeholder="backup passphrase" />
+          <div class="rail-row">
+            <button id="ptk-backup-create" class="btn primary tiny">Backup</button>
+            <button id="ptk-backup-restore" class="btn ghost tiny">Restore</button>
+          </div>
+          <div id="ptk-backup-status" class="me-handle"></div>
+        </div>
       </aside>
       <main class="chat">
         <header class="chat-head">

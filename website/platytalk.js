@@ -318,4 +318,230 @@
   setSignedInUi();
   checkFragment();
   tryRestore();
+
+  // ===================================================================
+  // Groups, Devices, Backup (parity with desktop client)
+  // ===================================================================
+
+  function showSignedInRails() {
+    document.querySelectorAll('.signed-in-only').forEach(el => { el.hidden = !state.token; });
+  }
+  const _origSetSignedInUi = setSignedInUi;
+  // Re-run after sign-in to toggle the new rail sections.
+  const _hookInterval = setInterval(() => { showSignedInRails(); }, 800);
+
+  // ----- Groups -------------------------------------------------------
+
+  state.groups = [];
+
+  async function refreshGroups() {
+    if (!state.token) return;
+    try {
+      const r = await api('/v1/groups');
+      state.groups = r.groups || [];
+      const ul = $('ptk-groups'); if (!ul) return;
+      ul.innerHTML = '';
+      for (const g of state.groups) {
+        const li = document.createElement('li');
+        const ttlLabel = formatTtl(g.disappearingSeconds || 0);
+        li.innerHTML = `<span class="g-name">${escapeHtml(g.name)}</span> <span class="g-ttl">${escapeHtml(ttlLabel)}</span>`;
+        li.title = `${g.members?.length || 0} members`;
+        li.onclick = () => openGroupSettings(g);
+        ul.appendChild(li);
+      }
+    } catch (e) { console.warn('groups load failed', e); }
+  }
+
+  function formatTtl(s) {
+    if (!s) return 'TTL: off';
+    if (s < 60) return `TTL: ${s}s`;
+    if (s < 3600) return `TTL: ${(s / 60) | 0}m`;
+    if (s < 86400) return `TTL: ${(s / 3600) | 0}h`;
+    if (s < 604800) return `TTL: ${(s / 86400) | 0}d`;
+    return `TTL: ${(s / 604800) | 0}w`;
+  }
+
+  const TTL_OPTIONS = [
+    { s: 0, label: 'Off' },
+    { s: 30, label: '30 seconds' },
+    { s: 300, label: '5 minutes' },
+    { s: 3600, label: '1 hour' },
+    { s: 28800, label: '8 hours' },
+    { s: 86400, label: '1 day' },
+    { s: 604800, label: '1 week' },
+    { s: 2419200, label: '4 weeks' },
+  ];
+
+  async function openGroupSettings(g) {
+    const opts = TTL_OPTIONS.map(o => `${o.s}=${o.label}`).join(', ');
+    const ttl = prompt(`Disappearing-message TTL (seconds) for "${g.name}".\nOptions: ${opts}`, String(g.disappearingSeconds || 0));
+    if (ttl === null) return;
+    const seconds = parseInt(ttl, 10);
+    if (Number.isNaN(seconds)) return;
+    try {
+      await api(`/v1/groups/${encodeURIComponent(g.id)}/settings`, {
+        method: 'PUT', body: JSON.stringify({ disappearingSeconds: seconds }),
+      });
+      await refreshGroups();
+    } catch (e) { alert('TTL update failed: ' + e.message); }
+  }
+
+  if ($('ptk-group-create')) $('ptk-group-create').onclick = async () => {
+    const name = ($('ptk-group-name').value || '').trim();
+    if (!name) return;
+    try {
+      const memberIds = state.contacts.map(c => c.id);
+      const r = await api('/v1/groups', {
+        method: 'POST', body: JSON.stringify({ name, memberIds, disappearingSeconds: 0, invitesAdminOnly: false }),
+      });
+      $('ptk-group-name').value = '';
+      await refreshGroups();
+    } catch (e) { alert('Create failed: ' + e.message); }
+  };
+
+  // ----- Devices ------------------------------------------------------
+
+  async function refreshDevices() {
+    if (!state.token) return;
+    try {
+      const r = await api('/v1/me/devices');
+      const ul = $('ptk-devices'); if (!ul) return;
+      ul.innerHTML = '';
+      for (const d of (r.devices || [])) {
+        const li = document.createElement('li');
+        li.innerHTML = `<span class="d-name">${escapeHtml(d.deviceName || d.id.slice(0, 8))}</span> <button class="btn ghost tiny d-del" data-id="${escapeHtml(d.id)}">×</button>`;
+        ul.appendChild(li);
+      }
+      ul.querySelectorAll('.d-del').forEach(b => {
+        b.onclick = async (ev) => {
+          ev.stopPropagation();
+          const id = b.getAttribute('data-id');
+          if (!confirm('Sign this device out?')) return;
+          try { await api(`/v1/me/devices/${encodeURIComponent(id)}`, { method: 'DELETE' }); await refreshDevices(); }
+          catch (e) { alert('Failed: ' + e.message); }
+        };
+      });
+    } catch (e) { console.warn('devices load failed', e); }
+  }
+
+  if ($('ptk-devices-refresh')) $('ptk-devices-refresh').onclick = refreshDevices;
+
+  // ----- Encrypted backup --------------------------------------------
+  // Uses PBKDF2-SHA256 (600k iterations) + AES-256-GCM. The server stores
+  // kdfParams alongside, so desktop clients with Argon2id and web clients
+  // with PBKDF2 can each restore their own backups.
+  const PBKDF2_ITERS = 600000;
+
+  async function deriveBackupKey(passphrase, saltBytes) {
+    const baseKey = await subtle.importKey('raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveBits']);
+    const bits = await subtle.deriveBits(
+      { name: 'PBKDF2', hash: 'SHA-256', salt: saltBytes, iterations: PBKDF2_ITERS },
+      baseKey, 256);
+    return subtle.importKey('raw', bits, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  }
+
+  function backupSnapshot() {
+    return {
+      formatVersion: 1,
+      userId: state.me?.id || '',
+      handle: state.me?.handle || '',
+      displayName: state.me?.displayName || '',
+      identityKeyPublicBase64: state.identity?.identityPubSpki || '',
+      identityKeyPrivateBase64: state.identity?.identityPrivPkcs8 || '',
+      signingKeyPublicBase64: state.identity?.signingPubSpki || '',
+      signingKeyPrivateBase64: state.identity?.signingPrivPkcs8 || '',
+      contacts: (state.contacts || []).map(c => ({
+        contactId: c.id, displayName: c.displayName || c.handle,
+        identityKeyPublicBase64: c.identityKeyPublic || '',
+      })),
+      conversations: [],
+      groups: [],
+      createdUtc: new Date().toISOString(),
+    };
+  }
+
+  async function createBackup() {
+    const pass = $('ptk-backup-pass').value;
+    if (!pass) { setBackupStatus('Enter a passphrase first.'); return; }
+    if (!state.me) { setBackupStatus('Sign in first.'); return; }
+    setBackupStatus('Encrypting…');
+    try {
+      const snap = backupSnapshot();
+      const plain = enc.encode(JSON.stringify(snap));
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const key = await deriveBackupKey(pass, salt);
+      const ct = await subtle.encrypt({ name: 'AES-GCM', iv }, key, plain);
+      // versioned blob: [v=1][iv 12][ct||tag]
+      const ctArr = new Uint8Array(ct);
+      const blob = new Uint8Array(1 + 12 + ctArr.length);
+      blob[0] = 1; blob.set(iv, 1); blob.set(ctArr, 13);
+      await api('/v1/backup', {
+        method: 'PUT', body: JSON.stringify({
+          cipherBlob: b64(blob),
+          kdfSalt: b64(salt),
+          kdfParams: { algorithm: 'pbkdf2-sha256', iterations: PBKDF2_ITERS, length: 32 },
+          cipherAlg: 'aes-256-gcm',
+        }),
+      });
+      $('ptk-backup-pass').value = '';
+      setBackupStatus('Backup uploaded.');
+    } catch (e) { setBackupStatus('Backup failed: ' + e.message); }
+  }
+
+  async function restoreBackup() {
+    const pass = $('ptk-backup-pass').value;
+    if (!pass) { setBackupStatus('Enter the passphrase.'); return; }
+    setBackupStatus('Downloading…');
+    try {
+      const r = await api('/v1/backup');
+      if (!r) { setBackupStatus('No backup found for this account.'); return; }
+      const salt = unb64(r.kdfSalt);
+      const blob = unb64(r.cipherBlob);
+      if (blob[0] !== 1) { setBackupStatus('Unsupported backup format.'); return; }
+      const iv = blob.slice(1, 13);
+      const ct = blob.slice(13);
+      const algo = r.kdfParams?.algorithm || 'pbkdf2-sha256';
+      if (!algo.toLowerCase().startsWith('pbkdf2')) {
+        setBackupStatus('This backup was created by the desktop client (Argon2id). Open the desktop app to restore it.');
+        return;
+      }
+      const key = await deriveBackupKey(pass, salt);
+      let plain;
+      try { plain = await subtle.decrypt({ name: 'AES-GCM', iv }, key, ct); }
+      catch { setBackupStatus('Wrong passphrase or corrupt backup.'); return; }
+      const snap = JSON.parse(dec.decode(plain));
+      // Apply: identity + contacts. Conversations are server-side per device.
+      if (snap.identityKeyPrivateBase64) {
+        state.identity = {
+          identityPubSpki: snap.identityKeyPublicBase64,
+          identityPrivPkcs8: snap.identityKeyPrivateBase64,
+          signingPubSpki: snap.signingKeyPublicBase64,
+          signingPrivPkcs8: snap.signingKeyPrivateBase64,
+        };
+        await kvSet('identity', state.identity);
+      }
+      $('ptk-backup-pass').value = '';
+      setBackupStatus(`Restored ${snap.contacts?.length || 0} contacts.`);
+      await refreshContacts();
+    } catch (e) { setBackupStatus('Restore failed: ' + e.message); }
+  }
+
+  function setBackupStatus(s) { const el = $('ptk-backup-status'); if (el) el.textContent = s; }
+
+  if ($('ptk-backup-create')) $('ptk-backup-create').onclick = createBackup;
+  if ($('ptk-backup-restore')) $('ptk-backup-restore').onclick = restoreBackup;
+
+  // Refresh groups + devices once we're signed in.
+  setInterval(() => {
+    if (state.token && state.me) {
+      if (!state._didFirstLoad) {
+        state._didFirstLoad = true;
+        refreshGroups();
+        refreshDevices();
+      }
+    } else {
+      state._didFirstLoad = false;
+    }
+  }, 1500);
 })();

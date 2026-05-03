@@ -26,6 +26,8 @@ namespace PlatypusTools.Core.Services.Platytalk
         private readonly object _gate = new();
         private readonly string _dataDir;
         private readonly PlatytalkRelayClient _relay;
+        private readonly PlatytalkMessageStore _store;
+        private readonly PlatytalkSenderKeyCache _senderKeys = new();
         private PlatytalkIdentity? _identity;
         private long _outboundCounter;
 
@@ -51,6 +53,7 @@ namespace PlatypusTools.Core.Services.Platytalk
             _relay = relay ?? new PlatytalkRelayClient();
             _relay.EnvelopeReceived += OnEnvelopeReceived;
             _relay.ConnectionStatusChanged += (_, s) => StatusChanged?.Invoke(this, s);
+            _store = new PlatytalkMessageStore(_dataDir);
             TryLoadIdentity();
             TryLoadSession();
         }
@@ -64,6 +67,7 @@ namespace PlatypusTools.Core.Services.Platytalk
                 if (!_messagesByConv.TryGetValue(conversationId, out var list))
                 {
                     list = new ObservableCollection<PlatytalkMessage>();
+                    foreach (var m in _store.LoadMessages(conversationId)) list.Add(m);
                     _messagesByConv[conversationId] = list;
                 }
                 return list;
@@ -243,45 +247,140 @@ namespace PlatypusTools.Core.Services.Platytalk
             };
             if (conv.DisappearingAfter is { } ttl) msg.ExpiresUtc = DateTime.UtcNow.Add(ttl);
             GetMessages(conv.ConversationId).Add(msg);
+            _store.UpsertMessage(msg);
 
             try
             {
-                var counter = Interlocked.Increment(ref _outboundCounter);
-                foreach (var recipientId in conv.ParticipantIds.Where(p => p != _identity.UserId))
-                {
-                    var contact = Contacts.FirstOrDefault(c => c.ContactId == recipientId);
-                    if (contact is null) continue;
-
-                    var (ePub, ePriv) = PlatytalkCrypto.GenerateKeyExchangeKeyPair();
-                    var root = PlatytalkCrypto.DeriveRootKey(
-                        _identity.IdentityKeyPrivate, contact.IdentityKeyPublic,
-                        ePriv, contact.IdentityKeyPublic, // recipient ephemeral n/a for v1 — bound to identity
-                        info: $"to:{recipientId}");
-                    var key = PlatytalkCrypto.DeriveMessageKey(root, counter, conv.ConversationId);
-
-                    var aad = Encoding.UTF8.GetBytes($"{_identity.UserId}|{conv.ConversationId}|{counter}");
-                    var blob = PlatytalkCrypto.EncryptMessage(key, Encoding.UTF8.GetBytes(body), aad, out _);
-                    var env = new RelayEnvelope
-                    {
-                        MessageId = msg.MessageId,
-                        ConversationId = conv.ConversationId,
-                        SenderId = _identity.UserId,
-                        RecipientIds = new[] { recipientId },
-                        CipherBlobBase64 = Convert.ToBase64String(blob),
-                        EphemeralPublicBase64 = Convert.ToBase64String(ePub),
-                        Counter = counter,
-                        TimestampUnixMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    };
-                    await _relay.SendEnvelopeAsync(env, ct).ConfigureAwait(false);
-                }
+                if (conv.Kind == ConversationKind.Group)
+                    await SendGroupMessageAsync(conv, msg, body, ct).ConfigureAwait(false);
+                else
+                    await SendDirectMessageAsync(conv, msg, body, ct).ConfigureAwait(false);
                 msg.Status = MessageStatus.Sent;
+                _store.UpsertMessage(msg);
                 conv.LastMessagePreview = body;
                 conv.LastActivityUtc = DateTime.UtcNow;
             }
             catch (Exception ex)
             {
                 msg.Status = MessageStatus.Failed;
+                _store.UpsertMessage(msg);
                 StatusChanged?.Invoke(this, "Send failed: " + ex.Message);
+            }
+        }
+
+        private async Task SendDirectMessageAsync(PlatytalkConversation conv, PlatytalkMessage msg, string body, CancellationToken ct)
+        {
+            var counter = Interlocked.Increment(ref _outboundCounter);
+            var recipientIds = conv.ParticipantIds.Where(p => p != _identity!.UserId).ToList();
+            // B4 — multi-device fan-out: also deliver a sender-copy to my own user_id
+            // so any other device of mine that shares this identity (via backup-restore)
+            // sees the message in its pending queue.
+            var allTargets = new List<string>(recipientIds) { _identity!.UserId };
+            foreach (var recipientId in allTargets)
+            {
+                byte[] peerPub;
+                if (recipientId == _identity!.UserId)
+                    peerPub = _identity.IdentityKeyPublic;
+                else
+                {
+                    var contact = Contacts.FirstOrDefault(c => c.ContactId == recipientId);
+                    if (contact is null) continue;
+                    peerPub = contact.IdentityKeyPublic;
+                }
+
+                var (ePub, ePriv) = PlatytalkCrypto.GenerateKeyExchangeKeyPair();
+                var root = PlatytalkCrypto.DeriveRootKey(
+                    _identity!.IdentityKeyPrivate, peerPub,
+                    ePriv, peerPub,
+                    info: $"to:{recipientId}");
+                var key = PlatytalkCrypto.DeriveMessageKey(root, counter, conv.ConversationId);
+
+                var aad = Encoding.UTF8.GetBytes($"{_identity.UserId}|{conv.ConversationId}|{counter}");
+                var blob = PlatytalkCrypto.EncryptMessage(key, Encoding.UTF8.GetBytes(body), aad, out _);
+                var env = new RelayEnvelope
+                {
+                    MessageId = recipientId == _identity.UserId ? msg.MessageId + ":self" : msg.MessageId,
+                    ConversationId = conv.ConversationId,
+                    SenderId = _identity.UserId,
+                    RecipientIds = new[] { recipientId },
+                    CipherBlobBase64 = Convert.ToBase64String(blob),
+                    EphemeralPublicBase64 = Convert.ToBase64String(ePub),
+                    Counter = counter,
+                    TimestampUnixMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                };
+                await _relay.SendEnvelopeAsync(env, ct).ConfigureAwait(false);
+            }
+        }
+
+        private async Task SendGroupMessageAsync(PlatytalkConversation conv, PlatytalkMessage msg, string body, CancellationToken ct)
+        {
+            // B3 — sender-key per-message ratchet for groups.
+            // Generation = settings_version-style monotonic; we use 1 for v1 and rotate
+            // when membership changes (caller responsibility).
+            const long generation = 1L;
+            var state = _senderKeys.GetOrCreateOutgoing(conv.ConversationId, _identity!.DeviceId, generation);
+            var firstUseInProcess = state.Counter == 0;
+            state.Counter += 1;
+            var (msgKey, nextCk) = PlatytalkSenderKeys.AdvanceChain(state.ChainKey);
+            state.ChainKey = nextCk;
+
+            var aad = Encoding.UTF8.GetBytes($"{_identity.UserId}|{conv.ConversationId}|{generation}|{state.Counter}");
+            var ciphertext = PlatytalkCrypto.EncryptMessage(msgKey, Encoding.UTF8.GetBytes(body), aad, out _);
+            var env = new RelayEnvelope
+            {
+                MessageId = msg.MessageId,
+                ConversationId = conv.ConversationId,
+                SenderId = _identity.UserId,
+                RecipientIds = conv.ParticipantIds.Where(p => p != _identity.UserId).ToArray(),
+                CipherBlobBase64 = Convert.ToBase64String(ciphertext),
+                EphemeralPublicBase64 = string.Empty,
+                Counter = state.Counter,
+                TimestampUnixMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                Headers = new Dictionary<string, string>
+                {
+                    ["groupId"] = conv.ConversationId,
+                    ["generation"] = generation.ToString(),
+                    ["senderDeviceId"] = _identity.DeviceId,
+                },
+            };
+            await _relay.SendEnvelopeAsync(env, ct).ConfigureAwait(false);
+
+            // Distribute the *initial* chain key to every recipient on first use of
+            // this generation. Each distribution is encrypted under the recipient's
+            // identity key using the same X3DH-lite root scheme as 1:1 messages.
+            if (firstUseInProcess)
+            {
+                try
+                {
+                    var dists = new List<SenderKeyDistribution>();
+                    var initialChain = state.ChainKey; // already advanced once for this msg
+                    // We must distribute the *starting* chain so receiver can derive
+                    // generation 1, 2, 3 ...; reconstruct it by undoing one HMAC step
+                    // is impossible — instead distribute *current* chain + counter.
+                    // Receivers can derive gen N+1, N+2 ... from this state.
+                    foreach (var recipientId in env.RecipientIds)
+                    {
+                        var contact = Contacts.FirstOrDefault(c => c.ContactId == recipientId);
+                        if (contact is null) continue;
+                        var (ePub, ePriv) = PlatytalkCrypto.GenerateKeyExchangeKeyPair();
+                        var root = PlatytalkCrypto.DeriveRootKey(
+                            _identity.IdentityKeyPrivate, contact.IdentityKeyPublic,
+                            ePriv, contact.IdentityKeyPublic,
+                            info: $"sk:{conv.ConversationId}:{generation}");
+                        var aadDist = Encoding.UTF8.GetBytes($"sk|{conv.ConversationId}|{generation}|{_identity.DeviceId}|{state.Counter}");
+                        var sealed_ = PlatytalkCrypto.EncryptMessage(root, initialChain, aadDist, out _);
+                        dists.Add(new SenderKeyDistribution
+                        {
+                            RecipientUserId = recipientId,
+                            RecipientDeviceId = recipientId,
+                            CipherBlob = Convert.ToBase64String(sealed_),
+                            EphemeralPublic = Convert.ToBase64String(ePub),
+                        });
+                    }
+                    if (dists.Count > 0)
+                        await _relay.PostSenderKeyDistributionsAsync(conv.ConversationId, _identity.DeviceId, generation, dists, ct).ConfigureAwait(false);
+                }
+                catch (Exception ex) { StatusChanged?.Invoke(this, "Sender-key fan-out failed: " + ex.Message); }
             }
         }
 
@@ -293,6 +392,7 @@ namespace PlatypusTools.Core.Services.Platytalk
             msg.IsTombstoned = true;
             msg.Body = string.Empty;
             msg.Status = MessageStatus.RemotelyDeleted;
+            _store.Tombstone(msg.MessageId);
             try { await _relay.DeleteRemoteAsync(msg.MessageId, ct).ConfigureAwait(false); }
             catch (Exception ex) { StatusChanged?.Invoke(this, "Tombstone failed: " + ex.Message); }
         }
@@ -307,6 +407,8 @@ namespace PlatypusTools.Core.Services.Platytalk
                 _messagesByConv.Clear();
                 LinkedDevices.Clear();
                 _identity = null;
+                _senderKeys.Clear();
+                try { _store.Wipe(); } catch { }
                 try { if (Directory.Exists(_dataDir)) Directory.Delete(_dataDir, recursive: true); } catch { }
                 Directory.CreateDirectory(_dataDir);
                 StatusChanged?.Invoke(this, "Local data wiped");
@@ -332,38 +434,115 @@ namespace PlatypusTools.Core.Services.Platytalk
                         existing.Body = string.Empty;
                         existing.Status = MessageStatus.RemotelyDeleted;
                     }
+                    _store.Tombstone(env.MessageId);
                     return;
                 }
 
-                var contact = Contacts.FirstOrDefault(c => c.ContactId == env.SenderId);
-                byte[] root;
-                if (contact is null) return;
-                var ePub = Convert.FromBase64String(env.EphemeralPublicBase64);
-                root = PlatytalkCrypto.DeriveRootKey(
-                    _identity.IdentityKeyPrivate, contact.IdentityKeyPublic,
-                    _identity.IdentityKeyPrivate, ePub,
-                    info: $"to:{_identity.UserId}");
-                var key = PlatytalkCrypto.DeriveMessageKey(root, env.Counter, env.ConversationId);
-                var aad = Encoding.UTF8.GetBytes($"{env.SenderId}|{env.ConversationId}|{env.Counter}");
-                var blob = Convert.FromBase64String(env.CipherBlobBase64);
-                var plain = PlatytalkCrypto.DecryptMessage(key, blob, aad);
+                // Self-copy envelope (B4): the sender is me. Don't add a duplicate
+                // outgoing message; the local copy is already present.
+                if (env.SenderId == _identity.UserId && env.MessageId.EndsWith(":self", StringComparison.Ordinal))
+                    return;
+
+                byte[] plain;
+                if (env.Headers != null && env.Headers.TryGetValue("groupId", out var gid) && !string.IsNullOrEmpty(gid))
+                {
+                    // B3 \u2014 group sender-key path.
+                    var generation = long.TryParse(env.Headers.GetValueOrDefault("generation"), out var g) ? g : 1L;
+                    var senderDevice = env.Headers.GetValueOrDefault("senderDeviceId") ?? env.SenderId;
+                    var state = _senderKeys.FindIncoming(gid, env.SenderId, senderDevice, generation);
+                    if (state is null)
+                    {
+                        // No distribution received yet \u2014 try to fetch and cache.
+                        _ = TryConsumePendingSenderKeysAsync();
+                        StatusChanged?.Invoke(this, "Group message awaiting sender-key distribution.");
+                        return;
+                    }
+                    var msgKey = PlatytalkSenderKeys.DeriveMessageKeyAt(state.ChainKey, env.Counter - 1);
+                    var aad = Encoding.UTF8.GetBytes($"{env.SenderId}|{env.ConversationId}|{generation}|{env.Counter}");
+                    var blob = Convert.FromBase64String(env.CipherBlobBase64);
+                    plain = PlatytalkCrypto.DecryptMessage(msgKey, blob, aad);
+                }
+                else
+                {
+                    var contact = Contacts.FirstOrDefault(c => c.ContactId == env.SenderId);
+                    if (contact is null && env.SenderId != _identity.UserId) return;
+                    var peerPub = env.SenderId == _identity.UserId ? _identity.IdentityKeyPublic : contact!.IdentityKeyPublic;
+                    var ePub = Convert.FromBase64String(env.EphemeralPublicBase64);
+                    var root = PlatytalkCrypto.DeriveRootKey(
+                        _identity.IdentityKeyPrivate, peerPub,
+                        _identity.IdentityKeyPrivate, ePub,
+                        info: $"to:{_identity.UserId}");
+                    var key = PlatytalkCrypto.DeriveMessageKey(root, env.Counter, env.ConversationId);
+                    var aad = Encoding.UTF8.GetBytes($"{env.SenderId}|{env.ConversationId}|{env.Counter}");
+                    var blob = Convert.FromBase64String(env.CipherBlobBase64);
+                    plain = PlatytalkCrypto.DecryptMessage(key, blob, aad);
+                }
 
                 var msg = new PlatytalkMessage
                 {
                     MessageId = env.MessageId,
                     ConversationId = env.ConversationId,
                     SenderId = env.SenderId,
-                    Direction = MessageDirection.Incoming,
+                    Direction = env.SenderId == _identity.UserId ? MessageDirection.Outgoing : MessageDirection.Incoming,
                     Body = Encoding.UTF8.GetString(plain),
                     Status = MessageStatus.Delivered,
                 };
                 GetMessages(env.ConversationId).Add(msg);
+                _store.UpsertMessage(msg);
                 MessageReceived?.Invoke(this, msg);
             }
             catch (CryptographicException ex)
             {
                 StatusChanged?.Invoke(this, "Decrypt failed: " + ex.Message);
             }
+        }
+
+        /// <summary>Polls the relay for pending sender-key distributions
+        /// addressed to this device, decrypts them with our identity key, and
+        /// installs the chain key for future group-message decryption.</summary>
+        public async Task TryConsumePendingSenderKeysAsync(CancellationToken ct = default)
+        {
+            if (_identity is null) return;
+            try
+            {
+                var resp = await _relay.GetPendingSenderKeysAsync(_identity.DeviceId, ct).ConfigureAwait(false);
+                if (resp?.Distributions is null || resp.Distributions.Count == 0) return;
+                var ackIds = new List<long>();
+                foreach (var d in resp.Distributions)
+                {
+                    try
+                    {
+                        var senderContact = Contacts.FirstOrDefault(c => c.ContactId == d.SenderUserId);
+                        if (senderContact is null) continue;
+                        var ePub = Convert.FromBase64String(d.EphemeralPublic);
+                        var root = PlatytalkCrypto.DeriveRootKey(
+                            _identity.IdentityKeyPrivate, senderContact.IdentityKeyPublic,
+                            _identity.IdentityKeyPrivate, ePub,
+                            info: $"sk:{d.GroupId}:{d.Generation}");
+                        var aadDist = Encoding.UTF8.GetBytes($"sk|{d.GroupId}|{d.Generation}|{d.SenderDeviceId}|*");
+                        // AAD includes the sender counter at distribution time \u2014 try common
+                        // values: the protocol embeds it but we only have it on send. Fall
+                        // back to attempting decryption with known counter == 1.
+                        var blob = Convert.FromBase64String(d.CipherBlob);
+                        byte[]? chain = null;
+                        for (long c = 1; c <= 5 && chain is null; c++)
+                        {
+                            try
+                            {
+                                var aad = Encoding.UTF8.GetBytes($"sk|{d.GroupId}|{d.Generation}|{d.SenderDeviceId}|{c}");
+                                chain = PlatytalkCrypto.DecryptMessage(root, blob, aad);
+                            }
+                            catch (CryptographicException) { /* try next counter */ }
+                        }
+                        if (chain is null) continue;
+                        _senderKeys.StoreIncoming(d.GroupId, d.SenderUserId, d.SenderDeviceId, d.Generation, chain);
+                        ackIds.Add(d.Id);
+                    }
+                    catch { /* continue with next distribution */ }
+                }
+                if (ackIds.Count > 0) await _relay.AckSenderKeysAsync(ackIds, ct).ConfigureAwait(false);
+            }
+            catch (Exception ex) { StatusChanged?.Invoke(this, "Sender-key fetch failed: " + ex.Message); }
         }
 
         // ---------- Persistence -------------------------------------------
@@ -616,6 +795,10 @@ namespace PlatypusTools.Core.Services.Platytalk
             }
         }
 
-        public async ValueTask DisposeAsync() => await _relay.DisposeAsync().ConfigureAwait(false);
+        public async ValueTask DisposeAsync()
+        {
+            try { _store.Dispose(); } catch { }
+            await _relay.DisposeAsync().ConfigureAwait(false);
+        }
     }
 }
