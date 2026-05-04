@@ -27,6 +27,67 @@ namespace PlatypusTools.Core.Services.Platytalk
         public const int NonceSize = 12;
         public const int TagSize = 16;
 
+        // ===== Web-compatible 1:1 path ========================================
+        // The web/mobile clients use a simpler scheme that any P-256 ECDH peer
+        // can interop with:
+        //   AES key = HKDF-SHA256( ECDH(ephPriv, peerIdPub),
+        //                          salt = "platytalk/v1",
+        //                          info = "{convId}|{messageId}",
+        //                          length = 32 )
+        //   blob    = iv(12 random) || AES-GCM_ct_with_appended_tag
+        //   AAD     = "{convId}|{messageId}" (UTF-8 bytes)
+        // Wire field: cipherBlob = base64(blob), ephemeralPublic = base64(SPKI).
+
+        public static (string CipherBlobB64, string EphemeralPublicB64) EncryptToPeerWeb(
+            string plaintext, byte[] peerIdentityPublicSpki, string contextInfo)
+        {
+            var (ephPub, ephPriv) = GenerateKeyExchangeKeyPair();
+            var aesKey = DeriveAesKeyWeb(ephPriv, peerIdentityPublicSpki, contextInfo);
+            var iv = RandomNumberGenerator.GetBytes(NonceSize);
+            var pt = Encoding.UTF8.GetBytes(plaintext);
+            var ct = new byte[pt.Length];
+            var tag = new byte[TagSize];
+            var aad = Encoding.UTF8.GetBytes(contextInfo);
+            using (var aes = new AesGcm(aesKey, TagSize))
+                aes.Encrypt(iv, pt, ct, tag, aad);
+            // Web wire format: iv(12) || ct || tag (WebCrypto appends tag).
+            var blob = new byte[NonceSize + ct.Length + TagSize];
+            Buffer.BlockCopy(iv, 0, blob, 0, NonceSize);
+            Buffer.BlockCopy(ct, 0, blob, NonceSize, ct.Length);
+            Buffer.BlockCopy(tag, 0, blob, NonceSize + ct.Length, TagSize);
+            return (Convert.ToBase64String(blob), Convert.ToBase64String(ephPub));
+        }
+
+        public static string DecryptFromPeerWeb(
+            string cipherBlobB64, string ephemeralPublicB64,
+            byte[] myIdentityPrivatePkcs8, string contextInfo)
+        {
+            var blob = Convert.FromBase64String(cipherBlobB64);
+            if (blob.Length < NonceSize + TagSize)
+                throw new CryptographicException("Cipher blob too short.");
+            var ephPub = Convert.FromBase64String(ephemeralPublicB64);
+            var aesKey = DeriveAesKeyWeb(myIdentityPrivatePkcs8, ephPub, contextInfo);
+            var iv = new byte[NonceSize];
+            var tag = new byte[TagSize];
+            var ct = new byte[blob.Length - NonceSize - TagSize];
+            Buffer.BlockCopy(blob, 0, iv, 0, NonceSize);
+            Buffer.BlockCopy(blob, NonceSize, ct, 0, ct.Length);
+            Buffer.BlockCopy(blob, NonceSize + ct.Length, tag, 0, TagSize);
+            var pt = new byte[ct.Length];
+            using (var aes = new AesGcm(aesKey, TagSize))
+                aes.Decrypt(iv, ct, tag, pt, Encoding.UTF8.GetBytes(contextInfo));
+            return Encoding.UTF8.GetString(pt);
+        }
+
+        private static byte[] DeriveAesKeyWeb(byte[] privPkcs8, byte[] peerPubSpki, string contextInfo)
+        {
+            var shared = DeriveSharedSecret(privPkcs8, peerPubSpki);
+            var salt = Encoding.UTF8.GetBytes("platytalk/v1");
+            var info = Encoding.UTF8.GetBytes(contextInfo);
+            return HKDF.DeriveKey(HashAlgorithmName.SHA256, shared, KeySize, salt, info);
+        }
+        // =====================================================================
+
         // ----- Key generation -------------------------------------------------
 
         /// <summary>Generates an X25519 keypair using ECDiffieHellman with a

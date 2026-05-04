@@ -260,23 +260,25 @@
     }, delayMs);
   }
 
-  function selectConversation(contact) {
+  async function selectConversation(contact) {
     state.selected = contact;
     $('ptk-title').textContent = '@' + contact.handle;
     $('ptk-msgs').innerHTML = '';
-    const buf = state.conversations[contact.id] || [];
-    for (const m of buf) appendMessage(m.direction, m.text, m.when, m.messageId);
     refreshDisappearingLabel();
-    // Pull the server-side TTL so the indicator is correct even right after sign-in.
+    // Pull the server-side TTL FIRST so disappearing-message scheduling works even
+    // if the user immediately taps Send (otherwise on slow mobile networks the
+    // settings response races the send and TTL is missed for the first message).
     try {
       const cid = [state.me.id, contact.id].sort().join(':');
-      api(`/v1/conversations/${encodeURIComponent(cid)}/settings`).then(s => {
-        if (s && Number.isInteger(s.disappearingSeconds)) {
-          state.convSettings[cid] = s.disappearingSeconds;
-          refreshDisappearingLabel();
-        }
-      }).catch(()=>{});
+      const s = await api(`/v1/conversations/${encodeURIComponent(cid)}/settings`);
+      if (s && Number.isInteger(s.disappearingSeconds)) {
+        state.convSettings[cid] = s.disappearingSeconds;
+        refreshDisappearingLabel();
+      }
     } catch {}
+    // Render after settings arrive so each appendMessage sees the correct TTL.
+    const buf = state.conversations[contact.id] || [];
+    for (const m of buf) appendMessage(m.direction, m.text, m.when, m.messageId);
   }
 
   // ---------- Disappearing-message TTL (per conversation) ------------
@@ -327,6 +329,15 @@
     if (!peer.identityKeyPublic) { alert('Contact has no key yet — they need to sign in once.'); return; }
     const messageId = crypto.randomUUID();
     const conversationId = [state.me.id, peer.id].sort().join(':');
+    // Backstop: if we haven't loaded the conversation's TTL yet (e.g. user sent before
+    // selectConversation's settings fetch returned), pull it now so the disappearing
+    // timer is scheduled for this very first message.
+    if (state.convSettings[conversationId] === undefined) {
+      try {
+        const s = await api(`/v1/conversations/${encodeURIComponent(conversationId)}/settings`);
+        if (s && Number.isInteger(s.disappearingSeconds)) state.convSettings[conversationId] = s.disappearingSeconds;
+      } catch {}
+    }
     const ctx = `${conversationId}|${messageId}`;
     const { cipherBlob, ephemeralPublic } = await encryptToPeer(txt, peer.identityKeyPublic, ctx);
     await api('/v1/messages/send', {
@@ -343,6 +354,16 @@
 
   async function handleEnvelope(env) {
     try {
+      // Dedupe: server can re-flush pending envelopes on reconnect (and a stale WS
+      // can briefly co-exist with the new one), which would otherwise render the
+      // same message twice. Track every messageId we've already processed.
+      state._seenEnvelopes = state._seenEnvelopes || new Set();
+      if (state._seenEnvelopes.has(env.messageId)) {
+        // Still ACK so the server stops re-flushing this one to us.
+        try { state.ws?.send(JSON.stringify({ type: 'ack', messageIds: [env.messageId + ':' + state.me.id] })); } catch {}
+        return;
+      }
+      state._seenEnvelopes.add(env.messageId);
       const ctx = `${env.conversationId}|${env.messageId}`;
       const text = await decryptFromPeer(env.cipherBlob, env.ephemeralPublic, state.identity.identityPrivPkcs8, ctx);
       const contact = state.contacts.find(c => c.id === env.senderId) || { id: env.senderId, handle: 'unknown', displayName: 'unknown' };
@@ -385,6 +406,15 @@
 
   function connectWs() {
     if (!state.token) return;
+    // Close any prior socket so we don't end up with two live connections for the
+    // same user (which causes the server to deliver each envelope twice).
+    try {
+      if (state.ws && (state.ws.readyState === WebSocket.OPEN || state.ws.readyState === WebSocket.CONNECTING)) {
+        // Suppress its onclose so it doesn't trigger another reconnect.
+        state.ws.onclose = null;
+        state.ws.close();
+      }
+    } catch {}
     const ws = new WebSocket(`${WS_URL}?token=${encodeURIComponent(state.token)}`);
     state.ws = ws;
     ws.onmessage = (ev) => {
@@ -751,4 +781,179 @@
       state._didFirstLoad = false;
     }
   }, 1500);
+
+  // ===================================================================
+  // PIN lock + idle timeout
+  // -------------------------------------------------------------------
+  // - PIN is stored as PBKDF2-SHA256(pin, salt, 200k iterations) → 32 bytes,
+  //   never leaves the browser.
+  // - Auto-lock fires after `timeoutMinutes` of no user input (mouse, key,
+  //   touch). 0 = never (until tab closes).
+  // - Locks immediately on tab hidden + when sign-out so PIN is required
+  //   on resume even on the same machine.
+  // ===================================================================
+  const Lock = (() => {
+    const LS_HASH = 'ptk_pin_v1';        // {salt, hash, iterations} base64
+    const LS_TIMEOUT = 'ptk_pin_timeout_min';
+    const DEFAULT_TIMEOUT = 15;
+    const ITER = 200000;
+
+    const b64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
+    const fromB64 = (s) => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+
+    async function pbkdf2(pin, salt) {
+      const enc = new TextEncoder();
+      const key = await crypto.subtle.importKey('raw', enc.encode(pin), 'PBKDF2', false, ['deriveBits']);
+      const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: ITER, hash: 'SHA-256' }, key, 256);
+      return new Uint8Array(bits);
+    }
+    function constTimeEq(a, b) {
+      if (a.length !== b.length) return false;
+      let r = 0; for (let i = 0; i < a.length; i++) r |= a[i] ^ b[i]; return r === 0;
+    }
+    function getStored() { try { const j = localStorage.getItem(LS_HASH); return j ? JSON.parse(j) : null; } catch { return null; } }
+    function clearStored() { try { localStorage.removeItem(LS_HASH); } catch {} }
+    function getTimeoutMin() {
+      const v = parseInt(localStorage.getItem(LS_TIMEOUT) || '', 10);
+      return Number.isFinite(v) && v >= 0 ? v : DEFAULT_TIMEOUT;
+    }
+    function setTimeoutMin(n) { try { localStorage.setItem(LS_TIMEOUT, String(n)); } catch {} }
+
+    async function setPin(pin) {
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const hash = await pbkdf2(pin, salt);
+      localStorage.setItem(LS_HASH, JSON.stringify({ salt: b64(salt), hash: b64(hash), iter: ITER }));
+    }
+    async function verify(pin) {
+      const s = getStored(); if (!s) return false;
+      const hash = await pbkdf2(pin, fromB64(s.salt));
+      return constTimeEq(hash, fromB64(s.hash));
+    }
+
+    // ---------- UI wiring ----------
+    const overlay = document.getElementById('ptk-lock-overlay');
+    const host = document.getElementById('app-host');
+    const pinInput = document.getElementById('ptk-lock-input');
+    const pinConfirm = document.getElementById('ptk-lock-confirm');
+    const errEl = document.getElementById('ptk-lock-err');
+    const subEl = document.getElementById('ptk-lock-sub');
+    const btnSubmit = document.getElementById('ptk-lock-submit');
+    const btnSignout = document.getElementById('ptk-lock-signout');
+    const btnReset = document.getElementById('ptk-lock-reset');
+    const timeoutSel = document.getElementById('ptk-lock-timeout');
+
+    let mode = 'unlock'; // 'unlock' | 'set' | 'confirm'
+    let firstPin = '';
+    let idleTimer = null;
+    let armedForSignedIn = false;
+
+    function show(newMode) {
+      mode = newMode;
+      errEl.textContent = '';
+      pinInput.value = ''; pinConfirm.value = '';
+      if (mode === 'unlock') {
+        subEl.textContent = 'Enter your PIN to unlock Platytalk.';
+        pinConfirm.hidden = true;
+        btnSubmit.textContent = 'Unlock';
+        btnReset.parentElement.hidden = false;
+      } else if (mode === 'set') {
+        subEl.textContent = 'Set a PIN (4–32 chars) to lock Platytalk on this device. You\u2019ll be asked for it when the app is idle.';
+        pinConfirm.hidden = true;
+        btnSubmit.textContent = 'Continue';
+        btnReset.parentElement.hidden = true;
+      } else if (mode === 'confirm') {
+        subEl.textContent = 'Re-enter the PIN to confirm.';
+        pinInput.hidden = true;
+        pinConfirm.hidden = false;
+        btnSubmit.textContent = 'Save PIN';
+        btnReset.parentElement.hidden = true;
+      }
+      pinInput.hidden = (mode === 'confirm');
+      overlay.classList.add('show');
+      host.classList.add('locked');
+      setTimeout(() => (mode === 'confirm' ? pinConfirm : pinInput).focus(), 30);
+    }
+    function hide() {
+      overlay.classList.remove('show');
+      host.classList.remove('locked');
+      pinInput.value = ''; pinConfirm.value = '';
+      pinInput.hidden = false; pinConfirm.hidden = true;
+      armIdleTimer();
+    }
+
+    async function submit() {
+      const v1 = pinInput.value.trim();
+      const v2 = pinConfirm.value.trim();
+      errEl.textContent = '';
+      if (mode === 'unlock') {
+        if (!v1) { errEl.textContent = 'Enter your PIN.'; return; }
+        const ok = await verify(v1);
+        if (!ok) { errEl.textContent = 'Wrong PIN.'; pinInput.value = ''; return; }
+        hide();
+      } else if (mode === 'set') {
+        if (v1.length < 4) { errEl.textContent = 'PIN must be at least 4 characters.'; return; }
+        firstPin = v1;
+        show('confirm');
+      } else if (mode === 'confirm') {
+        if (v2 !== firstPin) { errEl.textContent = 'PINs don\u2019t match.'; firstPin=''; show('set'); return; }
+        await setPin(v2);
+        firstPin = '';
+        hide();
+      }
+    }
+
+    function lock() { if (state.token) show('unlock'); }
+    function clearIdleTimer() { if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; } }
+    function armIdleTimer() {
+      clearIdleTimer();
+      if (!state.token || !getStored()) return;
+      const min = getTimeoutMin();
+      if (min <= 0) return; // 0 = never until tab close
+      idleTimer = setTimeout(lock, min * 60 * 1000);
+    }
+
+    // Kick on any user activity.
+    ['mousemove','mousedown','keydown','touchstart','wheel','scroll'].forEach(ev => {
+      document.addEventListener(ev, () => { if (!overlay.classList.contains('show')) armIdleTimer(); }, { passive: true, capture: true });
+    });
+    // Lock immediately on hide (Signal-style).
+    document.addEventListener('visibilitychange', () => { if (document.hidden) lock(); });
+
+    btnSubmit.addEventListener('click', submit);
+    [pinInput, pinConfirm].forEach(el => el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } }));
+    btnSignout.addEventListener('click', async () => { hide(); clearStored(); try { await signOut(); } catch {} });
+    btnReset.addEventListener('click', async (e) => { e.preventDefault(); if (confirm('Reset PIN and sign out? You\u2019ll have to sign in again and set a new PIN.')) { clearStored(); hide(); try { await signOut(); } catch {} } });
+
+    // Init timeout selector.
+    timeoutSel.value = String(getTimeoutMin());
+    timeoutSel.addEventListener('change', () => { setTimeoutMin(parseInt(timeoutSel.value, 10) || 0); armIdleTimer(); });
+
+    // Public API: arm or trigger from the bootstrap.
+    return {
+      onSignedIn() {
+        armedForSignedIn = true;
+        if (getStored()) show('unlock');
+        else show('set');
+      },
+      onSignedOut() {
+        armedForSignedIn = false;
+        clearIdleTimer();
+        overlay.classList.remove('show');
+        host.classList.remove('locked');
+      },
+      lockNow: lock,
+      hasPin: () => !!getStored(),
+    };
+  })();
+
+  // Hook lock into the sign-in/out flow without monkey-patching by polling state.token.
+  // Function declarations in this IIFE are referenced by event handlers via closure, so
+  // reassigning them is fragile. Polling is robust and runs only once per second.
+  let _lockLastSignedIn = false;
+  setInterval(() => {
+    const signedIn = !!state.token;
+    if (signedIn && !_lockLastSignedIn) { try { Lock.onSignedIn(); } catch {} }
+    if (!signedIn && _lockLastSignedIn) { try { Lock.onSignedOut(); } catch {} }
+    _lockLastSignedIn = signedIn;
+  }, 700);
 })();

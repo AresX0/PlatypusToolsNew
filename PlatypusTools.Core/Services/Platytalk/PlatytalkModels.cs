@@ -15,6 +15,8 @@ namespace PlatypusTools.Core.Services.Platytalk
         public required string UserId { get; init; }
         public required string DeviceId { get; init; }
         public required string DisplayName { get; set; }
+        /// <summary>Server-assigned @handle (lowercase, no '@'). Distinct from DisplayName.</summary>
+        public string Handle { get; set; } = string.Empty;
         public required byte[] IdentityKeyPublic { get; init; }      // X25519 32 bytes
         public required byte[] IdentityKeyPrivate { get; init; }     // X25519 32 bytes
         public required byte[] SigningKeyPublic { get; init; }       // Ed25519 32 bytes

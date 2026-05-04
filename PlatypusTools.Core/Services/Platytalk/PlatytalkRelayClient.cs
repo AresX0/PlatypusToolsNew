@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -97,8 +98,36 @@ namespace PlatypusTools.Core.Services.Platytalk
 
         // ---------- Contacts / discovery ----------------------------------
 
-        public Task<DirectoryHit[]> FindContactAsync(string handle, CancellationToken ct = default)
-            => GetAsync<DirectoryHit[]>($"/v1/directory/find?handle={Uri.EscapeDataString(handle)}", ct);
+        public async Task<DirectoryHit[]> FindContactAsync(string handle, CancellationToken ct = default)
+        {
+            // Server returns {results:[{id,handle,displayName,identityKeyPublic,signingKeyPublic}]}.
+            var resp = await GetAsync<DirectorySearchResponse>(
+                $"/v1/directory/find?handle={Uri.EscapeDataString(handle)}", ct).ConfigureAwait(false);
+            return (resp.Results ?? new List<DirectoryRow>())
+                .Select(r => new DirectoryHit
+                {
+                    ContactId = r.Id,
+                    DisplayName = string.IsNullOrEmpty(r.DisplayName) ? r.Handle : r.DisplayName,
+                    IdentityKeyPublicBase64 = r.IdentityKeyPublic ?? string.Empty,
+                    SigningKeyPublicBase64 = r.SigningKeyPublic ?? string.Empty,
+                }).ToArray();
+        }
+
+        public async Task<DirectoryHit[]> ListContactsAsync(CancellationToken ct = default)
+        {
+            var resp = await GetAsync<ContactsListResponse>("/v1/contacts", ct).ConfigureAwait(false);
+            return (resp.Contacts ?? new List<DirectoryRow>())
+                .Select(r => new DirectoryHit
+                {
+                    ContactId = r.Id,
+                    DisplayName = string.IsNullOrEmpty(r.DisplayName) ? r.Handle : r.DisplayName,
+                    IdentityKeyPublicBase64 = r.IdentityKeyPublic ?? string.Empty,
+                    SigningKeyPublicBase64 = r.SigningKeyPublic ?? string.Empty,
+                }).ToArray();
+        }
+
+        public Task AddContactAsync(string handle, CancellationToken ct = default)
+            => PostAsync("/v1/contacts/add", new { handle }, ct);
 
         public Task<DirectoryHit> GetPrekeyBundleAsync(string contactId, CancellationToken ct = default)
             => GetAsync<DirectoryHit>($"/v1/directory/prekeys?contactId={Uri.EscapeDataString(contactId)}", ct);
@@ -107,6 +136,9 @@ namespace PlatypusTools.Core.Services.Platytalk
 
         public Task<HandleResponse> SetHandleAsync(string handle, CancellationToken ct = default)
             => SendAsync<HandleResponse>(HttpMethod.Put, "/v1/me/handle", new { handle }, ct);
+
+        public Task<MeResponse> GetMeAsync(CancellationToken ct = default)
+            => GetAsync<MeResponse>("/v1/me", ct);
 
         // ---------- Devices -----------------------------------------------
 
@@ -121,14 +153,22 @@ namespace PlatypusTools.Core.Services.Platytalk
         public Task SendEnvelopeAsync(RelayEnvelope env, CancellationToken ct = default)
             => PostAsync("/v1/messages/send", env, ct);
 
-        public Task DeleteRemoteAsync(string messageId, CancellationToken ct = default)
-            => PostAsync("/v1/messages/delete", new { messageId }, ct);
+        public Task DeleteRemoteAsync(string messageId, string conversationId, IEnumerable<string> recipientUserIds, CancellationToken ct = default)
+            => PostAsync("/v1/messages/delete", new
+            {
+                messageId,
+                conversationId,
+                recipients = recipientUserIds.Select(u => new { userId = u }).ToArray(),
+            }, ct);
 
-        public Task<RelayEnvelope[]> FetchPendingAsync(CancellationToken ct = default)
-            => GetAsync<RelayEnvelope[]>("/v1/messages/pending", ct);
+        public async Task<RelayEnvelope[]> FetchPendingAsync(CancellationToken ct = default)
+        {
+            var resp = await GetAsync<PendingEnvelopesResponse>("/v1/messages/pending", ct).ConfigureAwait(false);
+            return resp?.Envelopes?.ToArray() ?? Array.Empty<RelayEnvelope>();
+        }
 
         public Task AckMessagesAsync(IEnumerable<string> messageIds, CancellationToken ct = default)
-            => PostAsync("/v1/messages/ack", new { ids = messageIds }, ct);
+            => PostAsync("/v1/messages/ack", new { messageIds = messageIds.ToArray() }, ct);
 
         // ---------- Groups -----------------------------------------------
 
@@ -212,10 +252,13 @@ namespace PlatypusTools.Core.Services.Platytalk
 
         public async Task ConnectAsync(CancellationToken ct = default)
         {
+            // The Node WS hub authenticates via ?token=<jwt> on the query string.
+            // Sending an Authorization header alone fails (server returns 4401 close).
             _ws = new ClientWebSocket();
-            if (!string.IsNullOrEmpty(_bearerToken))
-                _ws.Options.SetRequestHeader("Authorization", $"Bearer {_bearerToken}");
-            await _ws.ConnectAsync(_wsUri, ct).ConfigureAwait(false);
+            var uri = string.IsNullOrEmpty(_bearerToken)
+                ? _wsUri
+                : new Uri(_wsUri + "?token=" + Uri.EscapeDataString(_bearerToken));
+            await _ws.ConnectAsync(uri, ct).ConfigureAwait(false);
             ConnectionStatusChanged?.Invoke(this, "Connected");
             _ = Task.Run(() => ReceiveLoopAsync(_ws), CancellationToken.None);
         }
@@ -238,23 +281,23 @@ namespace PlatypusTools.Core.Services.Platytalk
                     ms.Position = 0;
                     try
                     {
-                        // Server may send either a bare envelope or a typed frame {type, ...}.
+                        // Server sends typed frames: {type, messageId, conversationId, senderId,
+                        // cipherBlob, ephemeralPublic, counter, timestampMs} for envelope/tombstone,
+                        // plus contactAdded/profileUpdated/convSettings/hello/error.
                         using var doc = JsonDocument.Parse(ms);
                         var root = doc.RootElement;
-                        if (root.TryGetProperty("type", out var typeProp) && typeProp.ValueKind == JsonValueKind.String)
-                        {
-                            var type = typeProp.GetString() ?? string.Empty;
-                            WsEventReceived?.Invoke(this, new RelayWsEvent { Type = type, RawJson = root.GetRawText() });
-                            if (type == "envelope" && root.TryGetProperty("envelope", out var envEl))
-                            {
-                                var env = JsonSerializer.Deserialize<RelayEnvelope>(envEl.GetRawText(), JsonOpts);
-                                if (env != null) EnvelopeReceived?.Invoke(this, env);
-                            }
-                        }
-                        else
+                        var type = root.TryGetProperty("type", out var typeProp) && typeProp.ValueKind == JsonValueKind.String
+                            ? (typeProp.GetString() ?? string.Empty)
+                            : string.Empty;
+                        WsEventReceived?.Invoke(this, new RelayWsEvent { Type = type, RawJson = root.GetRawText() });
+                        if (type == "envelope" || type == "tombstone")
                         {
                             var env = JsonSerializer.Deserialize<RelayEnvelope>(root.GetRawText(), JsonOpts);
-                            if (env != null) EnvelopeReceived?.Invoke(this, env);
+                            if (env != null)
+                            {
+                                if (type == "tombstone") env.IsTombstone = true;
+                                EnvelopeReceived?.Invoke(this, env);
+                            }
                         }
                     }
                     catch { /* best-effort */ }
@@ -371,16 +414,31 @@ namespace PlatypusTools.Core.Services.Platytalk
 
     public sealed class RelayEnvelope
     {
-        public string MessageId { get; set; } = string.Empty;
-        public string ConversationId { get; set; } = string.Empty;
-        public string SenderId { get; set; } = string.Empty;
-        public string[] RecipientIds { get; set; } = Array.Empty<string>();
-        public string CipherBlobBase64 { get; set; } = string.Empty;
-        public string EphemeralPublicBase64 { get; set; } = string.Empty;
-        public long Counter { get; set; }
-        public long TimestampUnixMs { get; set; }
-        public bool IsTombstone { get; set; }
-        public Dictionary<string, string>? Headers { get; set; }
+        // Server uses these exact JSON names. Keep [JsonPropertyName] so we
+        // serialize correctly on outgoing /messages/send and deserialize
+        // correctly on incoming WS "envelope" frames + /messages/pending rows.
+        [JsonPropertyName("messageId")]      public string MessageId { get; set; } = string.Empty;
+        [JsonPropertyName("conversationId")] public string ConversationId { get; set; } = string.Empty;
+        [JsonPropertyName("senderId")]       public string SenderId { get; set; } = string.Empty;
+        [JsonPropertyName("recipients")]     public RelayRecipient[]? Recipients { get; set; }
+        [JsonPropertyName("cipherBlob")]     public string CipherBlob { get; set; } = string.Empty;
+        [JsonPropertyName("ephemeralPublic")] public string EphemeralPublic { get; set; } = string.Empty;
+        [JsonPropertyName("counter")]        public long Counter { get; set; }
+        [JsonPropertyName("timestampMs")]    public long TimestampUnixMs { get; set; }
+        [JsonIgnore] public bool IsTombstone { get; set; }
+        [JsonIgnore] public Dictionary<string, string>? Headers { get; set; }
+
+        // Back-compat aliases (older callers used "...Base64" suffixed names).
+        [JsonIgnore] public string CipherBlobBase64 { get => CipherBlob; set => CipherBlob = value; }
+        [JsonIgnore] public string EphemeralPublicBase64 { get => EphemeralPublic; set => EphemeralPublic = value; }
+        [JsonIgnore] public string[] RecipientIds { get; set; } = Array.Empty<string>();
+    }
+
+    public sealed class RelayRecipient
+    {
+        [JsonPropertyName("userId")]          public string UserId { get; set; } = string.Empty;
+        [JsonPropertyName("cipherBlob")]      public string? CipherBlob { get; set; }
+        [JsonPropertyName("ephemeralPublic")] public string? EphemeralPublic { get; set; }
     }
 
     // ----- New response DTOs ---------------------------------------------
@@ -425,6 +483,39 @@ namespace PlatypusTools.Core.Services.Platytalk
         public string? DisplayName { get; set; }
         public bool IsAdmin { get; set; }
         public string? JoinedUtc { get; set; }
+    }
+
+    public sealed class MeResponse
+    {
+        [JsonPropertyName("id")]                 public string Id { get; set; } = string.Empty;
+        [JsonPropertyName("handle")]             public string Handle { get; set; } = string.Empty;
+        [JsonPropertyName("displayName")]        public string DisplayName { get; set; } = string.Empty;
+        [JsonPropertyName("identityKeyPublic")]  public string? IdentityKeyPublic { get; set; }
+        [JsonPropertyName("signingKeyPublic")]   public string? SigningKeyPublic { get; set; }
+    }
+
+    internal sealed class DirectorySearchResponse
+    {
+        [JsonPropertyName("results")] public List<DirectoryRow>? Results { get; set; }
+    }
+
+    internal sealed class ContactsListResponse
+    {
+        [JsonPropertyName("contacts")] public List<DirectoryRow>? Contacts { get; set; }
+    }
+
+    internal sealed class PendingEnvelopesResponse
+    {
+        [JsonPropertyName("envelopes")] public List<RelayEnvelope>? Envelopes { get; set; }
+    }
+
+    internal sealed class DirectoryRow
+    {
+        [JsonPropertyName("id")]                 public string Id { get; set; } = string.Empty;
+        [JsonPropertyName("handle")]             public string Handle { get; set; } = string.Empty;
+        [JsonPropertyName("displayName")]        public string? DisplayName { get; set; }
+        [JsonPropertyName("identityKeyPublic")]  public string? IdentityKeyPublic { get; set; }
+        [JsonPropertyName("signingKeyPublic")]   public string? SigningKeyPublic { get; set; }
     }
 
     public sealed class SenderKeyDistribution

@@ -89,6 +89,41 @@
   #app-host .rail::-webkit-scrollbar-track { background: #0a131e; }
   #app-host .rail::-webkit-scrollbar-thumb { background: #1f4a72; border-radius: 5px; border: 2px solid #0a131e; }
   #app-host .rail::-webkit-scrollbar-thumb:hover { background: #2a6394; }
+
+  /* ===== PIN lock overlay ===== */
+  #ptk-lock-overlay {
+    position: absolute; inset: 0; z-index: 500;
+    background: rgba(4, 7, 13, 0.97);
+    display: none; align-items: center; justify-content: center;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  #ptk-lock-overlay.show { display: flex; }
+  #ptk-lock-overlay .lock-card {
+    background: #0a131e; border: 1px solid #1f4a72; border-radius: 8px;
+    padding: 28px 32px; max-width: 420px; width: 92%;
+    box-shadow: 0 0 32px rgba(0,229,255,0.18);
+    text-align: center;
+  }
+  #ptk-lock-overlay h2 { color: #00e5ff; margin: 0 0 6px; font-size: 22px; letter-spacing: .12em; }
+  #ptk-lock-overlay .lock-sub { color: #b8d4e8; font-size: 13px; margin: 0 0 18px; line-height: 1.5; }
+  #ptk-lock-overlay .lock-input {
+    width: 100%; box-sizing: border-box;
+    padding: 12px 14px; font-size: 22px; letter-spacing: .35em; text-align: center;
+    background: #061520; color: #f1faff; border: 1px solid #1f4a72; border-radius: 6px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    margin-bottom: 10px;
+  }
+  #ptk-lock-overlay .lock-input:focus { outline: none; border-color: #00e5ff; box-shadow: 0 0 0 2px rgba(0,229,255,0.18); }
+  #ptk-lock-overlay .lock-row { display: flex; gap: 8px; margin-top: 6px; }
+  #ptk-lock-overlay .lock-row .btn { flex: 1 1 auto; }
+  #ptk-lock-overlay .lock-err { color: #ff6b6b; font-size: 12px; min-height: 14px; margin: 4px 0 8px; }
+  #ptk-lock-overlay .lock-meta { color: #7fa1b8; font-size: 11px; margin-top: 14px; }
+  #ptk-lock-overlay select.lock-timeout {
+    background: #061520; color: #f1faff; border: 1px solid #1f4a72; border-radius: 4px;
+    padding: 4px 6px; font-size: 11px; margin-left: 6px;
+  }
+  /* Hide chat content while locked so a quick screenshot doesn't leak. */
+  #app-host.locked .webapp { filter: blur(14px); pointer-events: none; user-select: none; }
   /* Bubbles: high-contrast, readable. */
   #app-host .msgs { gap: 10px; padding: 14px 16px; }
   #app-host .msgs li.in, #app-host .msgs li.out { display: block; margin: .25rem 0; }
@@ -284,6 +319,35 @@
         <button id="ptk-send" class="btn primary">Send</button>
       </footer>
     </main>
+  </div>
+
+  <!-- PIN lock overlay (sibling to .webapp; covers it via absolute positioning inside #app-host) -->
+  <div id="ptk-lock-overlay" role="dialog" aria-modal="true" aria-labelledby="ptk-lock-title">
+    <div class="lock-card">
+      <h2 id="ptk-lock-title">🔒 LOCKED</h2>
+      <p class="lock-sub" id="ptk-lock-sub">Enter your PIN to unlock Platytalk.</p>
+      <input id="ptk-lock-input" class="lock-input" type="password" inputmode="numeric" autocomplete="off" maxlength="32" placeholder="••••" aria-label="PIN" />
+      <input id="ptk-lock-confirm" class="lock-input" type="password" inputmode="numeric" autocomplete="off" maxlength="32" placeholder="confirm PIN" hidden />
+      <div class="lock-err" id="ptk-lock-err"></div>
+      <div class="lock-row">
+        <button id="ptk-lock-submit" class="btn primary">Unlock</button>
+        <button id="ptk-lock-signout" class="btn ghost">Sign out</button>
+      </div>
+      <div class="lock-meta">
+        <label>Auto-lock after
+          <select id="ptk-lock-timeout" class="lock-timeout" aria-label="Auto-lock timeout">
+            <option value="1">1 min</option>
+            <option value="5">5 min</option>
+            <option value="15" selected>15 min</option>
+            <option value="30">30 min</option>
+            <option value="60">1 hour</option>
+            <option value="240">4 hours</option>
+            <option value="0">Never (until tab close)</option>
+          </select>
+        </label>
+        <div style="margin-top:6px"><a href="#" id="ptk-lock-reset" style="color:#7fa1b8; text-decoration:underline; font-size:11px">Forgot PIN? Reset (signs you out)</a></div>
+      </div>
+    </div>
   </div>
 </div>
 

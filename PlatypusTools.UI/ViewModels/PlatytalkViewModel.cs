@@ -34,13 +34,25 @@ namespace PlatypusTools.UI.ViewModels
         private readonly PlatytalkService _svc;
         private readonly PlatytalkBackupService _backup;
 
+        /// <summary>Local PIN-lock + idle-timeout (15-min default) for this view.</summary>
+        public PlatytalkLockManager Lock { get; }
+
         public PlatytalkViewModel() : this(new PlatytalkService()) { }
 
         public PlatytalkViewModel(PlatytalkService service)
         {
             _svc = service;
             _backup = new PlatytalkBackupService(_svc.Relay);
-            _svc.StatusChanged += (_, s) => Status = s;
+            Lock = new PlatytalkLockManager();
+            // If we restored an already-signed-in session at startup, immediately require the PIN.
+            if (_svc.IsRegistered) Lock.OnSignedIn();
+            _svc.StatusChanged += (_, s) =>
+            {
+                Status = s;
+                // The async /v1/me refresh in PlatytalkService raises StatusChanged once
+                // it populates the handle on a restored session — re-bind the rail label.
+                OnPropertyChanged(nameof(SignedInHandle));
+            };
             _svc.MessageReceived += (_, m) =>
             {
                 if (SelectedConversation?.ConversationId == m.ConversationId)
@@ -289,7 +301,9 @@ namespace PlatypusTools.UI.ViewModels
         private bool _isSigningIn;
         public bool IsSigningIn { get => _isSigningIn; set { _isSigningIn = value; OnPropertyChanged(); } }
 
-        public string SignedInHandle => _svc.Identity?.DisplayName ?? string.Empty;
+        public string SignedInHandle => string.IsNullOrWhiteSpace(_svc.Identity?.Handle)
+            ? (_svc.Identity?.DisplayName ?? string.Empty)
+            : ("@" + _svc.Identity!.Handle);
 
         private async Task SignInWithMicrosoftAsync()
         {
@@ -302,6 +316,7 @@ namespace PlatypusTools.UI.ViewModels
                 OnPropertyChanged(nameof(IsRegistered));
                 OnPropertyChanged(nameof(InviteLink));
                 OnPropertyChanged(nameof(SignedInHandle));
+                Lock.OnSignedIn();
                 try { await _svc.ConnectAsync(); } catch { /* WS will retry */ }
             }
             catch (Exception ex) { Status = "Sign-in failed: " + ex.Message; }
@@ -311,6 +326,7 @@ namespace PlatypusTools.UI.ViewModels
         private void SignOut()
         {
             _svc.SignOut();
+            Lock.OnSignedOut();
             OnPropertyChanged(nameof(IsRegistered));
             OnPropertyChanged(nameof(InviteLink));
             OnPropertyChanged(nameof(SignedInHandle));

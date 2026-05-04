@@ -57,6 +57,47 @@ namespace PlatypusTools.Core.Services.Platytalk
             _store = new PlatytalkMessageStore(_dataDir);
             TryLoadIdentity();
             TryLoadSession();
+            // For sessions persisted before Handle was tracked locally, refresh from /v1/me
+            // so the UI shows @handle instead of falling back to Microsoft display name.
+            // Also pull contacts + pending and open the WS so a returning user sees
+            // their full state without needing to sign out / back in.
+            if (_identity is not null && _relay.HasBearer)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var me = await _relay.GetMeAsync().ConfigureAwait(false);
+                        if (_identity is not null && !string.IsNullOrWhiteSpace(me.Handle))
+                        {
+                            _identity.Handle = me.Handle;
+                            if (!string.IsNullOrWhiteSpace(me.DisplayName)) _identity.DisplayName = me.DisplayName;
+                            PersistIdentity();
+                            StatusChanged?.Invoke(this, $"Signed in as @{me.Handle}");
+                        }
+                        // Detect identity-key mismatch (server holds a different public
+                        // key than this device's private key — we can't decrypt).
+                        if (_identity is not null && _identity.IdentityKeyPublic is { Length: > 0 }
+                            && !string.IsNullOrEmpty(me.IdentityKeyPublic))
+                        {
+                            var localPubB64 = Convert.ToBase64String(_identity.IdentityKeyPublic);
+                            if (!string.Equals(me.IdentityKeyPublic, localPubB64, StringComparison.Ordinal))
+                            {
+                                StatusChanged?.Invoke(this,
+                                    "⚠ Identity key mismatch. Restore the encrypted backup from your phone/web client (BACKUP panel) so this device can decrypt incoming messages.");
+                            }
+                        }
+                    }
+                    catch { /* offline/unauthorized — UI will recover on next sign-in */ }
+
+                    try { await RefreshContactsAsync().ConfigureAwait(false); }
+                    catch (Exception ex) { StatusChanged?.Invoke(this, "Contact refresh failed: " + ex.Message); }
+                    try { await FlushPendingAsync().ConfigureAwait(false); }
+                    catch (Exception ex) { StatusChanged?.Invoke(this, "Pending fetch failed: " + ex.Message); }
+                    try { await _relay.ConnectAsync().ConfigureAwait(false); }
+                    catch (Exception ex) { StatusChanged?.Invoke(this, "Realtime connect failed: " + ex.Message); }
+                });
+            }
         }
 
         // ---------- Identity / registration -------------------------------
@@ -90,15 +131,38 @@ namespace PlatypusTools.Core.Services.Platytalk
             var result = await MicrosoftSignIn.SignInAsync(_relay.BaseUrl, openBrowser, ct).ConfigureAwait(false);
             _relay.SetBearer(result.Token);
 
-            // Reuse existing local key material if we have it; otherwise generate fresh.
-            var (idPub, idPriv) = PlatytalkCrypto.GenerateKeyExchangeKeyPair();
-            var (sigPub, sigPriv) = PlatytalkCrypto.GenerateSigningKeyPair();
+            // Resolve what the server already knows about this account so we
+            // don't clobber an existing identity key (which would lock other
+            // devices of the same user out of decrypting historical / new
+            // messages).
+            MeResponse? me = null;
+            try { me = await _relay.GetMeAsync(ct).ConfigureAwait(false); } catch { }
+
+            var sameUserAsBefore = _identity is not null && _identity.UserId == result.UserId
+                                   && _identity.IdentityKeyPublic is { Length: > 0 };
+
+            byte[] idPub, idPriv, sigPub, sigPriv;
+            if (sameUserAsBefore)
+            {
+                // Reuse local keys; we are the same user signing back in on the
+                // same machine. Do NOT regenerate or re-upload.
+                idPub  = _identity!.IdentityKeyPublic;
+                idPriv = _identity.IdentityKeyPrivate;
+                sigPub = _identity.SigningKeyPublic;
+                sigPriv = _identity.SigningKeyPrivate;
+            }
+            else
+            {
+                (idPub, idPriv) = PlatytalkCrypto.GenerateKeyExchangeKeyPair();
+                (sigPub, sigPriv) = PlatytalkCrypto.GenerateSigningKeyPair();
+            }
 
             _identity = new PlatytalkIdentity
             {
                 UserId = result.UserId,
-                DeviceId = Guid.NewGuid().ToString("N"),
+                DeviceId = _identity?.DeviceId ?? Guid.NewGuid().ToString("N"),
                 DisplayName = string.IsNullOrWhiteSpace(result.DisplayName) ? result.Handle : result.DisplayName,
+                Handle = result.Handle ?? me?.Handle ?? string.Empty,
                 IdentityKeyPublic = idPub,
                 IdentityKeyPrivate = idPriv,
                 SigningKeyPublic = sigPub,
@@ -106,15 +170,105 @@ namespace PlatypusTools.Core.Services.Platytalk
                 Email = null,
                 PhoneE164 = null,
                 IsRegistered = true,
-                MfaEnabled = true, // MS account MFA is the gate
+                MfaEnabled = true,
             };
             PersistIdentity();
             PersistSession(result.Token);
-            try { await _relay.UploadIdentityKeysAsync(idPub, sigPub, ct).ConfigureAwait(false); }
-            catch (Exception ex) { StatusChanged?.Invoke(this, "Key upload failed: " + ex.Message); }
-            StatusChanged?.Invoke(this, $"Signed in as @{result.Handle}");
+
+            // Only upload identity keys if the server has none yet for this user.
+            // Otherwise another device already published a key — overwriting it
+            // would brick that device's incoming messages.
+            var serverHasKey = me is not null && !string.IsNullOrEmpty(me.IdentityKeyPublic);
+            if (!serverHasKey)
+            {
+                try { await _relay.UploadIdentityKeysAsync(idPub, sigPub, ct).ConfigureAwait(false); }
+                catch (Exception ex) { StatusChanged?.Invoke(this, "Key upload failed: " + ex.Message); }
+            }
+            else
+            {
+                // Compare server's identity key with what we have locally. If they
+                // differ for the same user, this device's private key cannot decrypt
+                // anything other devices send (they encrypt to the server-stored
+                // public key) — only restoring the encrypted backup from a device
+                // that owns the matching private key will fix it.
+                var localPubB64 = Convert.ToBase64String(idPub);
+                if (!string.Equals(me!.IdentityKeyPublic, localPubB64, StringComparison.Ordinal))
+                {
+                    StatusChanged?.Invoke(this,
+                        "⚠ Identity key mismatch. Your phone/web client holds the active private key. Use the BACKUP panel on that device → Backup, then on this device → Restore. Or click 'Reset Identity' to take over (will brick your other devices).");
+                }
+                else if (!sameUserAsBefore)
+                {
+                    StatusChanged?.Invoke(this,
+                        "Signed in. Restore your encrypted backup from your other device to receive messages from existing contacts.");
+                }
+            }
+
+            StatusChanged?.Invoke(this, $"Signed in as @{_identity.Handle}");
+
+            // Pull initial state in the background so the UI is populated even
+            // before the WebSocket connects (and so queued messages flush).
+            _ = Task.Run(async () =>
+            {
+                try { await RefreshContactsAsync(ct).ConfigureAwait(false); }
+                catch (Exception ex) { StatusChanged?.Invoke(this, "Contact refresh failed: " + ex.Message); }
+                try { await FlushPendingAsync(ct).ConfigureAwait(false); }
+                catch (Exception ex) { StatusChanged?.Invoke(this, "Pending fetch failed: " + ex.Message); }
+                try { await _relay.ConnectAsync(ct).ConfigureAwait(false); }
+                catch (Exception ex) { StatusChanged?.Invoke(this, "Realtime connect failed: " + ex.Message); }
+            }, CancellationToken.None);
+
             return result;
         }
+
+        /// <summary>Pulls the server-side contact list and merges it into
+        /// <see cref="Contacts"/>. Safe to call repeatedly.</summary>
+        public async Task RefreshContactsAsync(CancellationToken ct = default)
+        {
+            EnsureIdentity();
+            var hits = await _relay.ListContactsAsync(ct).ConfigureAwait(false);
+            lock (_gate)
+            {
+                foreach (var hit in hits)
+                {
+                    if (Contacts.Any(c => c.ContactId == hit.ContactId)) continue;
+                    if (string.IsNullOrEmpty(hit.IdentityKeyPublicBase64)) continue;
+                    byte[] pub;
+                    try { pub = Convert.FromBase64String(hit.IdentityKeyPublicBase64); }
+                    catch { continue; }
+                    var c = new PlatytalkContact
+                    {
+                        ContactId = hit.ContactId,
+                        DisplayName = string.IsNullOrEmpty(hit.DisplayName) ? hit.ContactId : hit.DisplayName,
+                        IdentityKeyPublic = pub,
+                    };
+                    c.SafetyNumber = PlatytalkCrypto.ComputeSafetyNumber(_identity!.IdentityKeyPublic, pub);
+                    Contacts.Add(c);
+                }
+            }
+        }
+
+        /// <summary>Fetches every pending envelope (queued while we were
+        /// offline) and replays them through the normal receive pipeline.</summary>
+        public async Task FlushPendingAsync(CancellationToken ct = default)
+        {
+            EnsureIdentity();
+            var envs = await _relay.FetchPendingAsync(ct).ConfigureAwait(false);
+            if (envs.Length == 0) return;
+            var ackIds = new List<string>(envs.Length);
+            foreach (var env in envs)
+            {
+                try
+                {
+                    OnEnvelopeReceived(this, env);
+                    ackIds.Add(env.MessageId);
+                }
+                catch (Exception ex) { StatusChanged?.Invoke(this, "Pending decrypt failed: " + ex.Message); }
+            }
+            if (ackIds.Count > 0)
+                try { await _relay.AckMessagesAsync(ackIds, ct).ConfigureAwait(false); } catch { }
+        }
+
 
         /// <summary>Signs the current device out of the relay (token is forgotten,
         /// keys remain locally). To purge keys too, call <see cref="WipeLocalData"/>.</summary>
@@ -161,19 +315,29 @@ namespace PlatypusTools.Core.Services.Platytalk
         public async Task<PlatytalkContact?> AddContactByHandleAsync(string handle, CancellationToken ct = default)
         {
             EnsureIdentity();
-            var hits = await _relay.FindContactAsync(handle, ct).ConfigureAwait(false);
+            var clean = handle.Trim().TrimStart('@');
+            // Server does the mutual-add and broadcasts contactAdded over WS.
+            try { await _relay.AddContactAsync(clean, ct).ConfigureAwait(false); }
+            catch (Exception ex) { StatusChanged?.Invoke(this, "Add contact failed: " + ex.Message); return null; }
+
+            // Look up the contact's keys so we can encrypt to them immediately.
+            var hits = await _relay.FindContactAsync(clean, ct).ConfigureAwait(false);
             var hit = hits.FirstOrDefault();
-            if (hit is null) return null;
+            if (hit is null || string.IsNullOrEmpty(hit.IdentityKeyPublicBase64)) return null;
             var contact = new PlatytalkContact
             {
                 ContactId = hit.ContactId,
-                DisplayName = string.IsNullOrEmpty(hit.DisplayName) ? handle : hit.DisplayName,
+                DisplayName = string.IsNullOrEmpty(hit.DisplayName) ? clean : hit.DisplayName,
                 IdentityKeyPublic = Convert.FromBase64String(hit.IdentityKeyPublicBase64),
-                PhoneE164 = handle.StartsWith('+') ? handle : null,
-                Email = handle.Contains('@') ? handle : null,
+                PhoneE164 = clean.StartsWith('+') ? clean : null,
+                Email = clean.Contains('@') ? clean : null,
             };
             contact.SafetyNumber = PlatytalkCrypto.ComputeSafetyNumber(_identity!.IdentityKeyPublic, contact.IdentityKeyPublic);
-            lock (_gate) Contacts.Add(contact);
+            lock (_gate)
+            {
+                if (!Contacts.Any(c => c.ContactId == contact.ContactId))
+                    Contacts.Add(contact);
+            }
             return contact;
         }
 
@@ -271,43 +435,50 @@ namespace PlatypusTools.Core.Services.Platytalk
 
         private async Task SendDirectMessageAsync(PlatytalkConversation conv, PlatytalkMessage msg, string body, CancellationToken ct)
         {
-            var counter = Interlocked.Increment(ref _outboundCounter);
-            var recipientIds = conv.ParticipantIds.Where(p => p != _identity!.UserId).ToList();
-            // B4 — multi-device fan-out: also deliver a sender-copy to my own user_id
-            // so any other device of mine that shares this identity (via backup-restore)
-            // sees the message in its pending queue.
-            var allTargets = new List<string>(recipientIds) { _identity!.UserId };
-            foreach (var recipientId in allTargets)
+            // Web/mobile-compatible 1:1 protocol.
+            //   contextInfo = "{conversationId}|{messageId}"
+            //   AES key     = HKDF-SHA256( ECDH(eph, peerIdPub), salt="platytalk/v1", info=contextInfo )
+            //   wire        = iv(12) || AES-GCM ct||tag, base64 in cipherBlob
+            //   send body   = { messageId, conversationId, recipients:[{userId,cipherBlob,ephemeralPublic}],
+            //                   cipherBlob, ephemeralPublic, counter:0 }
+            // Fan-out: one /messages/send call per recipient (matches web client).
+            var recipientIds = conv.ParticipantIds.Where(p => p != _identity!.UserId).Distinct().ToList();
+            if (recipientIds.Count == 0) return;
+            var ctx = $"{conv.ConversationId}|{msg.MessageId}";
+            foreach (var recipientId in recipientIds)
             {
-                byte[] peerPub;
-                if (recipientId == _identity!.UserId)
-                    peerPub = _identity.IdentityKeyPublic;
-                else
+                var contact = Contacts.FirstOrDefault(c => c.ContactId == recipientId);
+                if (contact is null)
                 {
-                    var contact = Contacts.FirstOrDefault(c => c.ContactId == recipientId);
-                    if (contact is null) continue;
-                    peerPub = contact.IdentityKeyPublic;
+                    // Try to look them up so we can still send.
+                    try
+                    {
+                        var hit = (await _relay.FindContactAsync(recipientId, ct).ConfigureAwait(false)).FirstOrDefault();
+                        if (hit is null || string.IsNullOrEmpty(hit.IdentityKeyPublicBase64)) continue;
+                        contact = new PlatytalkContact
+                        {
+                            ContactId = hit.ContactId,
+                            DisplayName = hit.DisplayName,
+                            IdentityKeyPublic = Convert.FromBase64String(hit.IdentityKeyPublicBase64),
+                        };
+                        lock (_gate) Contacts.Add(contact);
+                    }
+                    catch { continue; }
                 }
 
-                var (ePub, ePriv) = PlatytalkCrypto.GenerateKeyExchangeKeyPair();
-                var root = PlatytalkCrypto.DeriveRootKey(
-                    _identity!.IdentityKeyPrivate, peerPub,
-                    ePriv, peerPub,
-                    info: $"to:{recipientId}");
-                var key = PlatytalkCrypto.DeriveMessageKey(root, counter, conv.ConversationId);
-
-                var aad = Encoding.UTF8.GetBytes($"{_identity.UserId}|{conv.ConversationId}|{counter}");
-                var blob = PlatytalkCrypto.EncryptMessage(key, Encoding.UTF8.GetBytes(body), aad, out _);
+                var (cipherBlob, ephPub) = PlatytalkCrypto.EncryptToPeerWeb(body, contact.IdentityKeyPublic, ctx);
                 var env = new RelayEnvelope
                 {
-                    MessageId = recipientId == _identity.UserId ? msg.MessageId + ":self" : msg.MessageId,
+                    MessageId = msg.MessageId,
                     ConversationId = conv.ConversationId,
-                    SenderId = _identity.UserId,
-                    RecipientIds = new[] { recipientId },
-                    CipherBlobBase64 = Convert.ToBase64String(blob),
-                    EphemeralPublicBase64 = Convert.ToBase64String(ePub),
-                    Counter = counter,
-                    TimestampUnixMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                    SenderId = _identity!.UserId,
+                    CipherBlob = cipherBlob,
+                    EphemeralPublic = ephPub,
+                    Counter = 0,
+                    Recipients = new[]
+                    {
+                        new RelayRecipient { UserId = recipientId, CipherBlob = cipherBlob, EphemeralPublic = ephPub }
+                    },
                 };
                 await _relay.SendEnvelopeAsync(env, ct).ConfigureAwait(false);
             }
@@ -395,7 +566,12 @@ namespace PlatypusTools.Core.Services.Platytalk
             msg.Body = string.Empty;
             msg.Status = MessageStatus.RemotelyDeleted;
             _store.Tombstone(msg.MessageId);
-            try { await _relay.DeleteRemoteAsync(msg.MessageId, ct).ConfigureAwait(false); }
+            try
+            {
+                var conv = Conversations.FirstOrDefault(c => c.ConversationId == msg.ConversationId);
+                var recips = conv?.ParticipantIds ?? new List<string> { msg.SenderId };
+                await _relay.DeleteRemoteAsync(msg.MessageId, msg.ConversationId, recips, ct).ConfigureAwait(false);
+            }
             catch (Exception ex) { StatusChanged?.Invoke(this, "Tombstone failed: " + ex.Message); }
         }
 
@@ -466,18 +642,36 @@ namespace PlatypusTools.Core.Services.Platytalk
                 }
                 else
                 {
+                    // 1:1 web/mobile-compatible decrypt path.
+                    //   contextInfo = "{conversationId}|{messageId}"
+                    //   AES key     = HKDF-SHA256( ECDH(myIdPriv, env.ephemeralPublic),
+                    //                              salt="platytalk/v1", info=contextInfo )
                     var contact = Contacts.FirstOrDefault(c => c.ContactId == env.SenderId);
-                    if (contact is null && env.SenderId != _identity.UserId) return;
-                    var peerPub = env.SenderId == _identity.UserId ? _identity.IdentityKeyPublic : contact!.IdentityKeyPublic;
-                    var ePub = Convert.FromBase64String(env.EphemeralPublicBase64);
-                    var root = PlatytalkCrypto.DeriveRootKey(
-                        _identity.IdentityKeyPrivate, peerPub,
-                        _identity.IdentityKeyPrivate, ePub,
-                        info: $"to:{_identity.UserId}");
-                    var key = PlatytalkCrypto.DeriveMessageKey(root, env.Counter, env.ConversationId);
-                    var aad = Encoding.UTF8.GetBytes($"{env.SenderId}|{env.ConversationId}|{env.Counter}");
-                    var blob = Convert.FromBase64String(env.CipherBlobBase64);
-                    plain = PlatytalkCrypto.DecryptMessage(key, blob, aad);
+                    if (contact is null && env.SenderId != _identity.UserId)
+                    {
+                        // Unknown sender — try to resolve their record so we can label the message,
+                        // but decrypt doesn't actually need the sender's identity key (web protocol
+                        // uses ephemeral × my identity).
+                        try
+                        {
+                            var hit = (_relay.FindContactAsync(env.SenderId).GetAwaiter().GetResult()).FirstOrDefault();
+                            if (hit is not null && !string.IsNullOrEmpty(hit.IdentityKeyPublicBase64))
+                            {
+                                contact = new PlatytalkContact
+                                {
+                                    ContactId = hit.ContactId,
+                                    DisplayName = string.IsNullOrEmpty(hit.DisplayName) ? hit.ContactId : hit.DisplayName,
+                                    IdentityKeyPublic = Convert.FromBase64String(hit.IdentityKeyPublicBase64),
+                                };
+                                lock (_gate) Contacts.Add(contact);
+                            }
+                        }
+                        catch { /* not fatal */ }
+                    }
+                    var ctx = $"{env.ConversationId}|{env.MessageId}";
+                    var text = PlatytalkCrypto.DecryptFromPeerWeb(
+                        env.CipherBlob, env.EphemeralPublic, _identity.IdentityKeyPrivate, ctx);
+                    plain = Encoding.UTF8.GetBytes(text);
                 }
 
                 var msg = new PlatytalkMessage
@@ -491,6 +685,7 @@ namespace PlatypusTools.Core.Services.Platytalk
                 };
                 GetMessages(env.ConversationId).Add(msg);
                 _store.UpsertMessage(msg);
+                EnsureConversationFor(env, msg);
                 MessageReceived?.Invoke(this, msg);
             }
             catch (CryptographicException ex)
@@ -632,26 +827,93 @@ namespace PlatypusTools.Core.Services.Platytalk
         // UI sees a handle change made from another client (e.g. web client) without restart.
         private void OnWsEventReceived(object? sender, RelayWsEvent e)
         {
-            if (e.Type != "profileUpdated" || _identity is null) return;
+            if (_identity is null) return;
             try
             {
                 using var doc = System.Text.Json.JsonDocument.Parse(e.RawJson);
                 var root = doc.RootElement;
-                if (!root.TryGetProperty("userId", out var uidEl)) return;
-                var uid = uidEl.GetString();
-                if (!string.Equals(uid, _identity.UserId, StringComparison.Ordinal)) return;
-                if (root.TryGetProperty("handle", out var hEl) && hEl.ValueKind == System.Text.Json.JsonValueKind.String)
+                switch (e.Type)
                 {
-                    var newHandle = hEl.GetString();
-                    if (!string.IsNullOrWhiteSpace(newHandle) && !string.Equals(_identity.DisplayName, newHandle, StringComparison.Ordinal))
-                    {
-                        _identity.DisplayName = newHandle!;
-                        PersistIdentity();
-                        StatusChanged?.Invoke(this, "Handle synced from another client: @" + newHandle);
-                    }
+                    case "profileUpdated":
+                        if (root.TryGetProperty("userId", out var uidEl)
+                            && string.Equals(uidEl.GetString(), _identity.UserId, StringComparison.Ordinal)
+                            && root.TryGetProperty("handle", out var hEl)
+                            && hEl.ValueKind == System.Text.Json.JsonValueKind.String)
+                        {
+                            var newHandle = hEl.GetString();
+                            if (!string.IsNullOrWhiteSpace(newHandle) && !string.Equals(_identity.Handle, newHandle, StringComparison.Ordinal))
+                            {
+                                _identity.Handle = newHandle!;
+                                PersistIdentity();
+                                StatusChanged?.Invoke(this, "Handle synced from another client: @" + newHandle);
+                            }
+                        }
+                        break;
+
+                    case "contactAdded":
+                        if (root.TryGetProperty("contact", out var cEl) && cEl.ValueKind == System.Text.Json.JsonValueKind.Object)
+                        {
+                            var id = cEl.TryGetProperty("id", out var idEl) ? idEl.GetString() : null;
+                            var handle = cEl.TryGetProperty("handle", out var hh) ? hh.GetString() : null;
+                            var dn = cEl.TryGetProperty("displayName", out var dnEl) ? dnEl.GetString() : null;
+                            var idPub = cEl.TryGetProperty("identityKeyPublic", out var ipEl) ? ipEl.GetString() : null;
+                            if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(idPub))
+                            {
+                                lock (_gate)
+                                {
+                                    if (!Contacts.Any(c => c.ContactId == id))
+                                    {
+                                        try
+                                        {
+                                            var pub = Convert.FromBase64String(idPub!);
+                                            var c = new PlatytalkContact
+                                            {
+                                                ContactId = id!,
+                                                DisplayName = string.IsNullOrEmpty(dn) ? (handle ?? id!) : dn!,
+                                                IdentityKeyPublic = pub,
+                                            };
+                                            c.SafetyNumber = PlatytalkCrypto.ComputeSafetyNumber(_identity!.IdentityKeyPublic, pub);
+                                            Contacts.Add(c);
+                                            StatusChanged?.Invoke(this, "Contact added: @" + (handle ?? id));
+                                        }
+                                        catch { }
+                                    }
+                                }
+                            }
+                        }
+                        break;
                 }
             }
             catch { /* best-effort */ }
+        }
+
+        // Ensures a Conversation exists for the given incoming envelope so it
+        // shows up in the chat list immediately.
+        private void EnsureConversationFor(RelayEnvelope env, PlatytalkMessage msg)
+        {
+            if (_identity is null) return;
+            lock (_gate)
+            {
+                var conv = Conversations.FirstOrDefault(c => c.ConversationId == env.ConversationId);
+                if (conv is null)
+                {
+                    var otherId = env.SenderId == _identity.UserId
+                        ? env.ConversationId.Split(':').FirstOrDefault(p => p != _identity.UserId) ?? env.SenderId
+                        : env.SenderId;
+                    var contact = Contacts.FirstOrDefault(c => c.ContactId == otherId);
+                    conv = new PlatytalkConversation
+                    {
+                        ConversationId = env.ConversationId,
+                        Kind = ConversationKind.Direct,
+                        Title = contact?.DisplayName ?? otherId,
+                    };
+                    conv.ParticipantIds.Add(_identity.UserId);
+                    conv.ParticipantIds.Add(otherId);
+                    Conversations.Add(conv);
+                }
+                conv.LastMessagePreview = msg.Body;
+                conv.LastActivityUtc = DateTime.UtcNow;
+            }
         }
 
         public Task<HandleResponse> SetHandleAsync(string handle, CancellationToken ct = default)
@@ -660,7 +922,7 @@ namespace PlatypusTools.Core.Services.Platytalk
             {
                 if (t.IsCompletedSuccessfully && _identity is not null)
                 {
-                    _identity.DisplayName = t.Result.Handle;
+                    _identity.Handle = t.Result.Handle;
                     PersistIdentity();
                     StatusChanged?.Invoke(this, "Handle updated to @" + t.Result.Handle);
                 }
@@ -804,6 +1066,7 @@ namespace PlatypusTools.Core.Services.Platytalk
                         UserId = _identity.UserId,
                         DeviceId = _identity.DeviceId,
                         DisplayName = string.IsNullOrEmpty(snap.DisplayName) ? _identity.DisplayName : snap.DisplayName!,
+                        Handle = _identity.Handle,
                         IdentityKeyPublic = idPub,
                         IdentityKeyPrivate = idPriv,
                         SigningKeyPublic = sigPub,

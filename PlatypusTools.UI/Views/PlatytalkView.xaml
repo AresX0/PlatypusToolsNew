@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="1200"
              d:DataContext="{d:DesignInstance Type=vm:PlatytalkViewModel}">
@@ -314,6 +315,62 @@
         <!-- Footer / status -->
         <Border Grid.Row="2" Background="#FF050810" BorderBrush="{StaticResource PtkBorder}" BorderThickness="0,1,0,0" Padding="14,4">
             <TextBlock Text="🔐 X25519/ECDH • AES-256-GCM • HKDF-SHA256 • forward-secret per message" Style="{StaticResource PtkLabel}"/>
+        </Border>
+
+        <!-- ===================== PIN LOCK OVERLAY ===================== -->
+        <!-- Sits on top of all 3 rows. Shown when Lock.LockBannerVisible is true. -->
+        <Border Grid.Row="0" Grid.RowSpan="3" Panel.ZIndex="999"
+                Background="#F2030608"
+                Visibility="{Binding Lock.LockBannerVisible, Converter={x:Static vm:BoolToVisibilityConverter.Instance}}">
+            <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Background="{StaticResource PtkPanel}" BorderBrush="{StaticResource PtkCyan}" BorderThickness="1"
+                    Padding="32,28" MinWidth="420" MaxWidth="500">
+                <Border.Effect>
+                    <DropShadowEffect Color="#FF00E5FF" BlurRadius="22" ShadowDepth="0" Opacity="0.55"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="{Binding Lock.StageHeading}" Foreground="{StaticResource PtkCyan}" FontFamily="Consolas" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                    <TextBlock Text="{Binding Lock.StageSubtitle}" Style="{StaticResource PtkLabel}" FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,18"/>
+                    <PasswordBox x:Name="LockPinBox" PasswordChanged="LockPinBox_PasswordChanged"
+                                 Background="#FF071018" Foreground="{StaticResource PtkText}" CaretBrush="{StaticResource PtkCyan}"
+                                 BorderBrush="{StaticResource PtkBorder}" BorderThickness="1"
+                                 Padding="12,10" FontFamily="Consolas" FontSize="20"
+                                 KeyDown="LockPinBox_KeyDown"/>
+                    <TextBlock Text="{Binding Lock.PinError}" Foreground="{StaticResource PtkMagenta}" FontFamily="Consolas" FontSize="11" Margin="0,8,0,8" MinHeight="14" HorizontalAlignment="Center"/>
+                    <Button Content="{Binding Lock.SubmitButtonLabel}" Style="{StaticResource PtkButton}"
+                            Command="{Binding Lock.SubmitPinCommand}" Click="LockSubmit_Click"
+                            HorizontalAlignment="Stretch" Padding="12,10" FontSize="13"/>
+                    <DockPanel Margin="0,16,0,0">
+                        <TextBlock DockPanel.Dock="Left" Text="Auto-lock after" Style="{StaticResource PtkLabel}" VerticalAlignment="Center"/>
+                        <ComboBox DockPanel.Dock="Right" Width="120" SelectedValue="{Binding Lock.TimeoutMinutes, Mode=TwoWay}" SelectedValuePath="Tag">
+                            <ComboBoxItem Content="1 min">
+                                <ComboBoxItem.Tag><sys:Int32>1</sys:Int32></ComboBoxItem.Tag>
+                            </ComboBoxItem>
+                            <ComboBoxItem Content="5 min">
+                                <ComboBoxItem.Tag><sys:Int32>5</sys:Int32></ComboBoxItem.Tag>
+                            </ComboBoxItem>
+                            <ComboBoxItem Content="15 min">
+                                <ComboBoxItem.Tag><sys:Int32>15</sys:Int32></ComboBoxItem.Tag>
+                            </ComboBoxItem>
+                            <ComboBoxItem Content="30 min">
+                                <ComboBoxItem.Tag><sys:Int32>30</sys:Int32></ComboBoxItem.Tag>
+                            </ComboBoxItem>
+                            <ComboBoxItem Content="1 hour">
+                                <ComboBoxItem.Tag><sys:Int32>60</sys:Int32></ComboBoxItem.Tag>
+                            </ComboBoxItem>
+                            <ComboBoxItem Content="4 hours">
+                                <ComboBoxItem.Tag><sys:Int32>240</sys:Int32></ComboBoxItem.Tag>
+                            </ComboBoxItem>
+                            <ComboBoxItem Content="Never">
+                                <ComboBoxItem.Tag><sys:Int32>0</sys:Int32></ComboBoxItem.Tag>
+                            </ComboBoxItem>
+                        </ComboBox>
+                    </DockPanel>
+                    <Button Content="Forgot PIN? Reset" Style="{StaticResource PtkButton}" Margin="0,12,0,0"
+                            Command="{Binding Lock.ResetPinCommand}"
+                            Visibility="{Binding Lock.IsResetVisible, Converter={x:Static vm:BoolToVisibilityConverter.Instance}}"/>
+                </StackPanel>
+            </Border>
         </Border>
     </Grid>
 </UserControl>
