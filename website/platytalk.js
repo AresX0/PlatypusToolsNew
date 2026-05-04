@@ -222,6 +222,42 @@
     if (messageId) li.dataset.messageId = messageId;
     li.innerHTML = `<div class="bubble">${text.replace(/[<&>]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]))}</div><time>${new Date(when).toLocaleTimeString()}</time>`;
     ol.appendChild(li); ol.scrollTop = ol.scrollHeight;
+    // ----- Disappearing-message scheduling -----
+    // If a TTL is set on this conversation, schedule a tombstone after the TTL.
+    // OUT: we both delete locally AND notify the server so the recipient is tombstoned.
+    // IN:  we delete locally; the sender already scheduled a server-side tombstone for symmetry.
+    if (state.selected && messageId) {
+      const cid = [state.me.id, state.selected.id].sort().join(':');
+      const ttl = state.convSettings && state.convSettings[cid];
+      if (Number.isInteger(ttl) && ttl > 0) {
+        const ageMs = Math.max(0, Date.now() - (when || Date.now()));
+        const remainMs = Math.max(500, ttl * 1000 - ageMs);
+        scheduleExpire(direction, messageId, state.selected.id, cid, remainMs);
+      }
+    }
+  }
+
+  function scheduleExpire(direction, messageId, peerId, conversationId, delayMs) {
+    state._expireTimers = state._expireTimers || {};
+    if (state._expireTimers[messageId]) return; // already scheduled
+    state._expireTimers[messageId] = setTimeout(async () => {
+      delete state._expireTimers[messageId];
+      // Strip from local in-memory store + DOM regardless of network outcome.
+      if (state.conversations[peerId]) {
+        state.conversations[peerId] = state.conversations[peerId].filter(x => x.messageId !== messageId);
+      }
+      const ol = $('ptk-msgs');
+      if (ol) [...ol.children].forEach(li => { if (li.dataset.messageId === messageId) li.remove(); });
+      if (direction === 'out') {
+        // Server-side tombstone so the recipient also deletes (live via WS, or on next connect).
+        try {
+          await api('/v1/messages/delete', {
+            method: 'POST',
+            body: JSON.stringify({ messageId, conversationId, recipients: [{ userId: peerId }, { userId: state.me.id }] }),
+          });
+        } catch (e) { console.warn('tombstone failed', e); }
+      }
+    }, delayMs);
   }
 
   function selectConversation(contact) {
@@ -262,6 +298,8 @@
   }
   async function cycleDisappearing() {
     if (!state.selected) { alert('Select a conversation first.'); return; }
+    // Browsers gate Notification.requestPermission() to a user gesture; piggyback on this click.
+    try { if (typeof Notification !== 'undefined' && Notification.permission === 'default') Notification.requestPermission().catch(()=>{}); } catch {}
     const convId = [state.me.id, state.selected.id].sort().join(':');
     const opts = [0, 30, 300, 3600, 28800, 86400, 604800, 2419200];
     const cur = state.convSettings[convId] || 0;
@@ -281,6 +319,8 @@
 
   async function send() {
     if (!state.selected) return;
+    // Latch notification permission on a real user gesture (most browsers block silent prompts).
+    try { if (typeof Notification !== 'undefined' && Notification.permission === 'default') Notification.requestPermission().catch(()=>{}); } catch {}
     const txt = $('ptk-msg').value.trim(); if (!txt) return;
     $('ptk-msg').value = '';
     const peer = state.selected;
@@ -308,13 +348,34 @@
       const contact = state.contacts.find(c => c.id === env.senderId) || { id: env.senderId, handle: 'unknown', displayName: 'unknown' };
       state.conversations[contact.id] = state.conversations[contact.id] || [];
       state.conversations[contact.id].push({ direction: 'in', text, when: env.timestampMs, messageId: env.messageId });
-      if (state.selected && state.selected.id === contact.id) appendMessage('in', text, env.timestampMs, env.messageId);
-      else {
-        // Auto-refresh contact list (sender may not be a contact yet) and surface a tiny notification.
-        refreshContacts().catch(()=>{});
+      // Schedule local TTL expiry for incoming messages too, so both sides clear simultaneously.
+      const cid = [state.me.id, contact.id].sort().join(':');
+      const ttl = state.convSettings && state.convSettings[cid];
+      const isFocused = document.visibilityState === 'visible' && document.hasFocus();
+      const isCurrentConv = state.selected && state.selected.id === contact.id;
+      if (isCurrentConv) {
+        appendMessage('in', text, env.timestampMs, env.messageId);
+      } else if (Number.isInteger(ttl) && ttl > 0) {
+        // Conversation not selected but TTL set — still need to schedule local expiry.
+        scheduleExpire('in', env.messageId, contact.id, cid, ttl * 1000);
+      }
+      // Notify whenever the user can't currently see the message: different conv, hidden tab, or unfocused window.
+      if (!isCurrentConv || !isFocused) {
+        if (!isCurrentConv) refreshContacts().catch(()=>{});
         try {
-          if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-            new Notification('Platytalk', { body: '@' + contact.handle + ': ' + text.slice(0, 80) });
+          if (typeof Notification !== 'undefined') {
+            if (Notification.permission === 'granted') {
+              const n = new Notification('Platytalk — @' + contact.handle, {
+                body: text.slice(0, 120),
+                icon: '/Platytalk.png', badge: '/Platytalk.png',
+                tag: 'platytalk:' + contact.id,
+                renotify: true,
+              });
+              n.onclick = () => { try { window.focus(); selectConversation(contact); n.close(); } catch {} };
+            } else if (Notification.permission === 'default') {
+              // Prompt opportunistically on first incoming message if not yet asked.
+              Notification.requestPermission().catch(()=>{});
+            }
           }
         } catch {}
       }
