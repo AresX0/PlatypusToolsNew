@@ -56,7 +56,20 @@
     const ephPrivPkcs8 = b64(await subtle.exportKey('pkcs8', eph.privateKey));
     const aes = await deriveAesKey(ephPrivPkcs8, peerPubSpkiB64, contextInfo);
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    const ct = await subtle.encrypt({ name: 'AES-GCM', iv, additionalData: enc.encode(contextInfo) }, aes, enc.encode(plaintext));
+    // Length-prefixed padding to a 256-byte boundary so traffic analysis can't infer
+    // message size. Layout: [u32 BE plaintext-length] [plaintext bytes] [random pad].
+    const ptBytes = enc.encode(plaintext);
+    const PAD_BLOCK = 256;
+    const headerLen = 4;
+    const total = Math.max(PAD_BLOCK, Math.ceil((headerLen + ptBytes.length) / PAD_BLOCK) * PAD_BLOCK);
+    const buf = new Uint8Array(total);
+    buf[0] = (ptBytes.length >>> 24) & 0xff;
+    buf[1] = (ptBytes.length >>> 16) & 0xff;
+    buf[2] = (ptBytes.length >>> 8) & 0xff;
+    buf[3] = ptBytes.length & 0xff;
+    buf.set(ptBytes, 4);
+    crypto.getRandomValues(buf.subarray(4 + ptBytes.length));
+    const ct = await subtle.encrypt({ name: 'AES-GCM', iv, additionalData: enc.encode(contextInfo) }, aes, buf);
     const blob = new Uint8Array(12 + ct.byteLength);
     blob.set(iv, 0); blob.set(new Uint8Array(ct), 12);
     return { cipherBlob: b64(blob), ephemeralPublic: ephPubSpki };
@@ -67,7 +80,15 @@
     const buf = unb64(cipherBlobB64);
     const iv = buf.slice(0, 12), ct = buf.slice(12);
     const pt = await subtle.decrypt({ name: 'AES-GCM', iv, additionalData: enc.encode(contextInfo) }, aes, ct);
-    return dec.decode(pt);
+    const bytes = new Uint8Array(pt);
+    // v2 padded format: u32 BE length prefix. v1 (legacy unpadded): treat whole thing as text.
+    if (bytes.length >= 4) {
+      const len = (bytes[0] << 24 >>> 0) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
+      if (len >= 0 && len <= bytes.length - 4 && len < 1024 * 1024) {
+        return dec.decode(bytes.subarray(4, 4 + len));
+      }
+    }
+    return dec.decode(bytes);
   }
 
   const state = {
@@ -203,6 +224,77 @@
     await api('/v1/keys/identity', { method: 'POST', body: JSON.stringify({ identityKeyPublic: id.identityPubSpki, signingKeyPublic: id.signingPubSpki }) });
   }
 
+  // ---------- Safety numbers + peer-key change detection -------------
+  // The "safety number" is a deterministic, human-readable fingerprint of the
+  // (myIdentityKey, peerIdentityKey) pair. Two devices in the same conversation
+  // see the same number; reading it out-of-band defeats a malicious server that
+  // tries to swap in its own identity key for MITM. We also persist the last-seen
+  // peer key per peer.id and warn loudly whenever it changes.
+  async function computeSafetyNumber(myIdPubSpkiB64, peerIdPubSpkiB64) {
+    if (!myIdPubSpkiB64 || !peerIdPubSpkiB64) return '';
+    // Sort the two keys lexicographically so both sides compute the same digest.
+    const pair = [myIdPubSpkiB64, peerIdPubSpkiB64].sort().join('|');
+    const h = await subtle.digest('SHA-256', enc.encode('platytalk-safety-v1|' + pair));
+    // Take 30 bytes -> map to 60 decimal digits in 5 groups of 12.
+    const bytes = new Uint8Array(h);
+    const groups = [];
+    for (let g = 0; g < 5; g++) {
+      let n = 0n;
+      for (let i = 0; i < 6; i++) n = (n << 8n) | BigInt(bytes[g * 6 + i]);
+      groups.push((n.toString().padStart(15, '0')).slice(-12));
+    }
+    return groups.join(' ');
+  }
+
+  async function checkPeerKeyChange(peer) {
+    if (!peer || !peer.id || !peer.identityKeyPublic) return null;
+    const seen = (await kvGet('seenKeys')) || {};
+    const prev = seen[peer.id];
+    if (prev && prev !== peer.identityKeyPublic) {
+      try {
+        const ol = $('ptk-msgs');
+        if (ol && state.selected && state.selected.id === peer.id) {
+          const li = document.createElement('li');
+          li.className = 'system warn';
+          li.style.cssText = 'list-style:none;text-align:center;color:#ffb84a;font-size:12px;margin:6px 0;border:1px dashed #ffb84a;border-radius:4px;padding:6px 10px;';
+          li.textContent = '\u26a0\ufe0f @' + peer.handle + "'s identity key just changed. If you did not expect this, do NOT send sensitive messages until you re-verify their safety number.";
+          ol.appendChild(li); ol.scrollTop = ol.scrollHeight;
+        }
+      } catch {}
+      try { console.warn('[platytalk] peer identity key changed for', peer.handle); } catch {}
+    }
+    seen[peer.id] = peer.identityKeyPublic;
+    await kvSet('seenKeys', seen);
+    return prev || null;
+  }
+
+  // Modal: show the safety number for the currently-selected conversation.
+  async function showSafetyNumberModal() {
+    if (!state.selected || !state.identity) return;
+    const peer = state.selected;
+    if (!peer.identityKeyPublic) {
+      try {
+        const r = await api('/v1/directory/find?handle=' + encodeURIComponent(peer.handle));
+        const hit = (r && r.results && r.results[0]) || null;
+        if (hit && hit.identityKeyPublic) peer.identityKeyPublic = hit.identityKeyPublic;
+      } catch {}
+    }
+    const num = await computeSafetyNumber(state.identity.identityPubSpki, peer.identityKeyPublic || '');
+    let modal = document.getElementById('ptk-safety-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'ptk-safety-modal';
+      modal.className = 'ptk-modal';
+      modal.innerHTML = '<div class="ptk-modal-card"><h3>Safety number</h3><p class="rail-help">Compare these 60 digits with @<span id="ptk-safety-handle"></span>. If they match on both screens, no one is intercepting this conversation.</p><pre id="ptk-safety-num" class="ptk-safety-num"></pre><div style="display:flex; gap:.4rem; justify-content:flex-end;"><button id="ptk-safety-close" class="btn primary tiny">Close</button></div></div>';
+      document.body.appendChild(modal);
+      modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
+      modal.querySelector('#ptk-safety-close').addEventListener('click', () => modal.classList.remove('show'));
+    }
+    modal.querySelector('#ptk-safety-handle').textContent = peer.handle || '';
+    modal.querySelector('#ptk-safety-num').textContent = num || '(peer has not set up keys yet)';
+    modal.classList.add('show');
+  }
+
   async function refreshContacts() {
     const r = await api('/v1/contacts'); state.contacts = r.contacts || [];
     const ul = $('ptk-contacts'); if (!ul) return;
@@ -265,6 +357,8 @@
     $('ptk-title').textContent = '@' + contact.handle;
     $('ptk-msgs').innerHTML = '';
     refreshDisappearingLabel();
+    // On mobile, tapping a contact swaps the visible pane to the chat view.
+    try { if (typeof showMobilePane === 'function') showMobilePane('chat'); else if (window.__ptkShowPane) window.__ptkShowPane('chat'); } catch {}
     // Pull the server-side TTL FIRST so disappearing-message scheduling works even
     // if the user immediately taps Send (otherwise on slow mobile networks the
     // settings response races the send and TTL is missed for the first message).
@@ -323,10 +417,9 @@
     if (!state.selected) return;
     // Latch notification permission on a real user gesture (most browsers block silent prompts).
     try { if (typeof Notification !== 'undefined' && Notification.permission === 'default') Notification.requestPermission().catch(()=>{}); } catch {}
-    const txt = $('ptk-msg').value.trim(); if (!txt) return;
-    $('ptk-msg').value = '';
+    const input = $('ptk-msg');
+    const txt = input.value.trim(); if (!txt) return;
     const peer = state.selected;
-    if (!peer.identityKeyPublic) { alert('Contact has no key yet — they need to sign in once.'); return; }
     const messageId = crypto.randomUUID();
     const conversationId = [state.me.id, peer.id].sort().join(':');
     // Backstop: if we haven't loaded the conversation's TTL yet (e.g. user sent before
@@ -338,18 +431,70 @@
         if (s && Number.isInteger(s.disappearingSeconds)) state.convSettings[conversationId] = s.disappearingSeconds;
       } catch {}
     }
-    const ctx = `${conversationId}|${messageId}`;
-    const { cipherBlob, ephemeralPublic } = await encryptToPeer(txt, peer.identityKeyPublic, ctx);
-    await api('/v1/messages/send', {
-      method: 'POST', body: JSON.stringify({
-        messageId, conversationId,
-        recipients: [{ userId: peer.id, cipherBlob, ephemeralPublic }],
-        cipherBlob, ephemeralPublic, counter: 0,
-      }),
-    });
-    state.conversations[peer.id] = state.conversations[peer.id] || [];
-    state.conversations[peer.id].push({ direction: 'out', text: txt, when: Date.now(), messageId });
-    appendMessage('out', txt, Date.now(), messageId);
+    // Resolve / refresh the recipient's identity key. The contact list can be stale
+    // (peer just signed in for the first time, or rotated keys), so before we silently
+    // drop the message we always do a fresh directory lookup. Without this, desktop->mobile
+    // can fail asymmetrically: desktop holds an old key for the mobile peer (cached when
+    // mobile hadn't published yet), encrypts with it, mobile cannot decrypt → message
+    // silently disappears. Mobile->desktop still works because mobile fetched after
+    // desktop had already published. The cost is one extra GET per send; worth it.
+    try {
+      const r = await api('/v1/directory/find?handle=' + encodeURIComponent(peer.handle));
+      const hit = (r && r.results && r.results[0]) || null;
+      if (hit && hit.identityKeyPublic) {
+        if (peer.identityKeyPublic && peer.identityKeyPublic !== hit.identityKeyPublic) {
+          try { console.warn('[platytalk] refreshed stale identity key for @' + peer.handle); } catch {}
+        }
+        peer.identityKeyPublic = hit.identityKeyPublic;
+        peer.signingKeyPublic = hit.signingKeyPublic || peer.signingKeyPublic;
+      }
+    } catch {}
+    if (!peer.identityKeyPublic) {
+      showSendError('@' + peer.handle + " hasn't set up their keys yet — ask them to sign in once.");
+      return;
+    }
+    // Don't clear the input until we've actually accepted the send. If anything below
+    // throws, we want the user's text preserved so they can retry.
+    try {
+      // Peer-key change detection: warn loudly if the recipient's identity key has rotated.
+      await checkPeerKeyChange(peer);
+      // Send-time jitter (50-200ms) to disrupt traffic-analysis timing fingerprints.
+      const jitterMs = 50 + Math.floor(Math.random() * 150);
+      await new Promise(r => setTimeout(r, jitterMs));
+      const ctx = `${conversationId}|${messageId}`;
+      // Sealed-sender format v2: include senderId in the encrypted plaintext so the
+      // server-side at-rest record does not have to retain it. The recipient extracts
+      // the senderId from the decrypted blob (see handleEnvelope).
+      const innerPlain = JSON.stringify({ v: 2, from: state.me.id, t: txt });
+      const { cipherBlob, ephemeralPublic } = await encryptToPeer(innerPlain, peer.identityKeyPublic, ctx);
+      await api('/v1/messages/send', {
+        method: 'POST', body: JSON.stringify({
+          messageId, conversationId,
+          recipients: [{ userId: peer.id, cipherBlob, ephemeralPublic }],
+          cipherBlob, ephemeralPublic, counter: 0,
+          sealed: true,
+        }),
+      });
+      input.value = '';
+      state.conversations[peer.id] = state.conversations[peer.id] || [];
+      state.conversations[peer.id].push({ direction: 'out', text: txt, when: Date.now(), messageId });
+      appendMessage('out', txt, Date.now(), messageId);
+    } catch (e) {
+      showSendError('Send failed: ' + (e && e.message ? e.message : String(e)));
+    }
+  }
+
+  // Inline send-error notice. Appends a non-bubble system row to the message list and
+  // auto-fades after a few seconds. No alert() because iOS Safari can suppress it.
+  function showSendError(msg) {
+    try { console.warn('[platytalk send]', msg); } catch {}
+    const ol = $('ptk-msgs'); if (!ol) return;
+    const li = document.createElement('li');
+    li.className = 'system error';
+    li.style.cssText = 'list-style:none;text-align:center;color:#ff6b6b;font-size:12px;margin:6px 0;opacity:0.9;';
+    li.textContent = msg;
+    ol.appendChild(li); ol.scrollTop = ol.scrollHeight;
+    setTimeout(() => { try { li.remove(); } catch {} }, 6000);
   }
 
   async function handleEnvelope(env) {
@@ -365,8 +510,22 @@
       }
       state._seenEnvelopes.add(env.messageId);
       const ctx = `${env.conversationId}|${env.messageId}`;
-      const text = await decryptFromPeer(env.cipherBlob, env.ephemeralPublic, state.identity.identityPrivPkcs8, ctx);
-      const contact = state.contacts.find(c => c.id === env.senderId) || { id: env.senderId, handle: 'unknown', displayName: 'unknown' };
+      const raw = await decryptFromPeer(env.cipherBlob, env.ephemeralPublic, state.identity.identityPrivPkcs8, ctx);
+      // Sealed-sender format v2: plaintext is JSON {v:2, from, t}. Older messages are bare strings.
+      let text = raw;
+      let senderId = env.senderId;
+      if (raw && raw.length > 2 && raw.charCodeAt(0) === 0x7b /* '{' */) {
+        try {
+          const inner = JSON.parse(raw);
+          if (inner && inner.v === 2 && typeof inner.t === 'string') {
+            text = inner.t;
+            if (inner.from && (!senderId || senderId === '' || senderId === inner.from)) senderId = inner.from;
+          }
+        } catch { /* not v2; keep raw */ }
+      }
+      const contact = state.contacts.find(c => c.id === senderId) || { id: senderId, handle: 'unknown', displayName: 'unknown' };
+      // Track key-change events on inbound messages too so the receiver gets a warning.
+      try { if (contact && contact.identityKeyPublic) await checkPeerKeyChange(contact); } catch {}
       state.conversations[contact.id] = state.conversations[contact.id] || [];
       state.conversations[contact.id].push({ direction: 'in', text, when: env.timestampMs, messageId: env.messageId });
       // Schedule local TTL expiry for incoming messages too, so both sides clear simultaneously.
@@ -664,10 +823,29 @@
   if ($('ptk-devices-refresh')) $('ptk-devices-refresh').onclick = refreshDevices;
 
   // ----- Encrypted backup --------------------------------------------
-  // Uses PBKDF2-SHA256 (600k iterations) + AES-256-GCM. The server stores
-  // kdfParams alongside, so desktop clients with Argon2id and web clients
-  // with PBKDF2 can each restore their own backups.
+  // Default KDF is Argon2id (memory-hard, identical to desktop) via the vendored
+  // hash-wasm bundle. Older PBKDF2-SHA256 backups are still restorable. If hash-wasm
+  // is unavailable (e.g. user blocked the script), fall back to PBKDF2 so backup
+  // never silently breaks.
   const PBKDF2_ITERS = 600000;
+  const ARGON2_PARAMS = { m: 65536, t: 3, p: 1, len: 32 }; // 64 MiB, 3 iters, 1 lane
+
+  function argon2Available() {
+    return !!(typeof window !== 'undefined' && window.hashwasm && typeof window.hashwasm.argon2id === 'function');
+  }
+
+  async function deriveBackupKeyArgon2(passphrase, saltBytes) {
+    const raw = await window.hashwasm.argon2id({
+      password: passphrase,
+      salt: saltBytes,
+      parallelism: ARGON2_PARAMS.p,
+      iterations: ARGON2_PARAMS.t,
+      memorySize: ARGON2_PARAMS.m,
+      hashLength: ARGON2_PARAMS.len,
+      outputType: 'binary',
+    });
+    return subtle.importKey('raw', raw, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  }
 
   async function deriveBackupKey(passphrase, saltBytes) {
     const baseKey = await subtle.importKey('raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveBits']);
@@ -701,13 +879,20 @@
     const pass = $('ptk-backup-pass').value;
     if (!pass) { setBackupStatus('Enter a passphrase first.'); return; }
     if (!state.me) { setBackupStatus('Sign in first.'); return; }
-    setBackupStatus('Encrypting…');
+    setBackupStatus(argon2Available() ? 'Encrypting (Argon2id)…' : 'Encrypting (PBKDF2)…');
     try {
       const snap = backupSnapshot();
       const plain = enc.encode(JSON.stringify(snap));
       const salt = crypto.getRandomValues(new Uint8Array(16));
       const iv = crypto.getRandomValues(new Uint8Array(12));
-      const key = await deriveBackupKey(pass, salt);
+      let key, kdfParams;
+      if (argon2Available()) {
+        key = await deriveBackupKeyArgon2(pass, salt);
+        kdfParams = { algorithm: 'argon2id', m: ARGON2_PARAMS.m, t: ARGON2_PARAMS.t, p: ARGON2_PARAMS.p, length: ARGON2_PARAMS.len };
+      } else {
+        key = await deriveBackupKey(pass, salt);
+        kdfParams = { algorithm: 'pbkdf2-sha256', iterations: PBKDF2_ITERS, length: 32 };
+      }
       const ct = await subtle.encrypt({ name: 'AES-GCM', iv }, key, plain);
       // versioned blob: [v=1][iv 12][ct||tag]
       const ctArr = new Uint8Array(ct);
@@ -717,12 +902,12 @@
         method: 'PUT', body: JSON.stringify({
           cipherBlob: b64(blob),
           kdfSalt: b64(salt),
-          kdfParams: { algorithm: 'pbkdf2-sha256', iterations: PBKDF2_ITERS, length: 32 },
+          kdfParams,
           cipherAlg: 'aes-256-gcm',
         }),
       });
       $('ptk-backup-pass').value = '';
-      setBackupStatus('Backup uploaded.');
+      setBackupStatus('Backup uploaded (' + kdfParams.algorithm + ').');
     } catch (e) { setBackupStatus('Backup failed: ' + e.message); }
   }
 
@@ -738,12 +923,20 @@
       if (blob[0] !== 1) { setBackupStatus('Unsupported backup format.'); return; }
       const iv = blob.slice(1, 13);
       const ct = blob.slice(13);
-      const algo = r.kdfParams?.algorithm || 'pbkdf2-sha256';
-      if (!algo.toLowerCase().startsWith('pbkdf2')) {
-        setBackupStatus('This backup was created by the desktop client (Argon2id). Open the desktop app to restore it.');
+      const algo = (r.kdfParams?.algorithm || r.kdfParams?.algo || 'pbkdf2-sha256').toLowerCase();
+      let key;
+      if (algo.startsWith('argon2')) {
+        if (!argon2Available()) {
+          setBackupStatus('This backup uses Argon2id but the Argon2 module failed to load. Reload the page and try again.');
+          return;
+        }
+        key = await deriveBackupKeyArgon2(pass, salt);
+      } else if (algo.startsWith('pbkdf2')) {
+        key = await deriveBackupKey(pass, salt);
+      } else {
+        setBackupStatus('Unsupported KDF: ' + algo);
         return;
       }
-      const key = await deriveBackupKey(pass, salt);
       let plain;
       try { plain = await subtle.decrypt({ name: 'AES-GCM', iv }, key, ct); }
       catch { setBackupStatus('Wrong passphrase or corrupt backup.'); return; }
@@ -765,6 +958,20 @@
   }
 
   function setBackupStatus(s) { const el = $('ptk-backup-status'); if (el) el.textContent = s; }
+
+  // ---------- Mobile pane switcher (index.html tab strip + chat back button) ----------
+  function showMobilePane(which) {
+    const wa = $('ptk-webapp'); if (!wa) return;
+    if (which === 'chat') wa.classList.add('show-chat');
+    else wa.classList.remove('show-chat');
+    const railTab = $('ptk-tab-rail'), chatTab = $('ptk-tab-chat');
+    if (railTab) { railTab.classList.toggle('active', which !== 'chat'); railTab.setAttribute('aria-selected', String(which !== 'chat')); }
+    if (chatTab) { chatTab.classList.toggle('active', which === 'chat'); chatTab.setAttribute('aria-selected', String(which === 'chat')); }
+  }
+  if ($('ptk-tab-rail')) $('ptk-tab-rail').onclick = () => showMobilePane('rail');
+  if ($('ptk-tab-chat')) $('ptk-tab-chat').onclick = () => showMobilePane('chat');
+  if ($('ptk-back')) $('ptk-back').onclick = () => showMobilePane('rail');
+  if ($('ptk-verify')) $('ptk-verify').onclick = () => showSafetyNumberModal();
 
   if ($('ptk-backup-create')) $('ptk-backup-create').onclick = createBackup;
   if ($('ptk-backup-restore')) $('ptk-backup-restore').onclick = restoreBackup;

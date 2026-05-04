@@ -40,7 +40,11 @@
 
 <main class="app-shell">
   <section id="app" class="app full-app">
-    <div class="webapp">
+    <div class="webapp" id="ptk-webapp">
+      <div class="mobile-tabs" role="tablist" aria-label="View">
+        <button class="mt-tab active" id="ptk-tab-rail" role="tab" aria-selected="true">☰ Contacts</button>
+        <button class="mt-tab" id="ptk-tab-chat" role="tab" aria-selected="false">💬 Chat</button>
+      </div>
       <aside class="rail">
         <div class="rail-section">
           <div class="rail-label">YOUR IDENTITY</div>
@@ -84,10 +88,12 @@
       </aside>
       <main class="chat">
         <header class="chat-head">
-          <div>
+          <button id="ptk-back" class="btn ghost tiny mobile-only" aria-label="Back to contacts" style="margin-right:.5rem;">← Contacts</button>
+          <div style="flex:1;">
             <div class="chat-title" id="ptk-title">No conversation selected</div>
             <div class="chat-sub">end-to-end encrypted • this browser holds your keys only</div>
           </div>
+          <button id="ptk-verify" class="btn ghost tiny" title="Compare a 60-digit number with your contact to confirm no one is intercepting">🔐 Verify</button>
           <button id="ptk-disappear" class="btn ghost tiny">Disappearing: off</button>
         </header>
         <ol id="ptk-msgs" class="msgs"></ol>
@@ -106,7 +112,41 @@
 </footer>
 <script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" defer></script>
+<script src="qrcode.min.js" defer></script>
+<script src="argon2.umd.min.js" defer></script>
 <script src="platytalk.js" defer></script>
+<script>
+  // Mobile pane switcher — kept OUTSIDE platytalk.js so it works even if the
+  // main script throws during sign-in / crypto setup.
+  (function () {
+    function show(which) {
+      var wa = document.getElementById('ptk-webapp');
+      if (!wa) return;
+      if (which === 'chat') wa.classList.add('show-chat');
+      else wa.classList.remove('show-chat');
+      var rt = document.getElementById('ptk-tab-rail');
+      var ct = document.getElementById('ptk-tab-chat');
+      if (rt) { rt.classList.toggle('active', which !== 'chat'); rt.setAttribute('aria-selected', String(which !== 'chat')); }
+      if (ct) { ct.classList.toggle('active', which === 'chat'); ct.setAttribute('aria-selected', String(which === 'chat')); }
+    }
+    function wire() {
+      var rt = document.getElementById('ptk-tab-rail');
+      var ct = document.getElementById('ptk-tab-chat');
+      var bk = document.getElementById('ptk-back');
+      if (rt) rt.addEventListener('click', function () { show('rail'); });
+      if (ct) ct.addEventListener('click', function () { show('chat'); });
+      if (bk) bk.addEventListener('click', function () { show('rail'); });
+      // Auto-switch to chat when a contact is tapped on mobile.
+      var contacts = document.getElementById('ptk-contacts');
+      if (contacts) contacts.addEventListener('click', function (e) {
+        if (e.target && e.target.closest && e.target.closest('li') && window.innerWidth <= 800) show('chat');
+      });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire);
+    else wire();
+    // Expose for platytalk.js to call after a contact is selected programmatically.
+    window.__ptkShowPane = show;
+  })();
+</script>
 </body>
 </html>

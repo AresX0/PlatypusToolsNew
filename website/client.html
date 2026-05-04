@@ -311,6 +311,7 @@
           <div class="chat-title" id="ptk-title">No conversation selected</div>
           <div class="chat-sub">end-to-end encrypted</div>
         </div>
+        <button id="ptk-verify" class="btn ghost tiny" title="Compare a 60-digit number with your contact to confirm no one is intercepting">🔐 Verify</button>
         <button id="ptk-disappear" class="btn ghost tiny">Disappearing: off</button>
       </header>
       <ol id="ptk-msgs" class="msgs"></ol>
@@ -361,10 +362,9 @@
   </div>
 </div>
 
-<!-- QR libraries: prefer local copy, then CDNs. -->
-<script src="qrcode.min.js" onerror="window.__qrLocalFailed=true"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" onerror="window.__qrCdnFailed1=true"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" onerror="window.__qrCdnFailed2=true"></script>
+<!-- QR + Argon2id (vendored locally; CDNs removed for strict CSP and supply-chain safety). -->
+<script src="qrcode.min.js"></script>
+<script src="argon2.umd.min.js"></script>
 <script src="platytalk.js"></script>
 <script>
   // ----- Mobile drawer -----

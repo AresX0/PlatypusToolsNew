@@ -146,10 +146,38 @@ section h2 { font-size: 28px; color: var(--cyan); letter-spacing: .14em; text-tr
 }
 .footnote { letter-spacing: .12em; }
 
+/* Mobile-only tab strip — hidden on desktop. */
+.mobile-tabs { display: none; }
+.mobile-only { display: none; }
+
 @media (max-width: 800px) {
-  .webapp { grid-template-columns: 1fr; }
+  /* Stack as a single column with a tab strip controlling which pane is visible. */
+  .webapp { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
   .rail { border-right: 0; border-bottom: 1px solid var(--border); }
   nav a:not(.cta) { display: none; }
+
+  .mobile-tabs {
+    display: flex; gap: 4px; padding: 6px; background: var(--panel);
+    border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50;
+  }
+  .mobile-tabs .mt-tab {
+    flex: 1; padding: 10px 8px; background: #04070d; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 4px; font-family: var(--mono);
+    font-size: 13px; cursor: pointer; transition: all .15s;
+  }
+  .mobile-tabs .mt-tab.active {
+    background: var(--cyan); color: #04070d; border-color: var(--cyan);
+    box-shadow: 0 0 12px rgba(0,229,255,.4);
+  }
+  .mobile-only { display: inline-block; }
+
+  /* Default on mobile: show rail, hide chat. JS swaps `.show-chat` class. */
+  .webapp .rail { display: flex; }
+  .webapp .chat { display: none; }
+  .webapp.show-chat .rail { display: none; }
+  .webapp.show-chat .chat { display: flex; }
+  .webapp.show-chat #ptk-tab-chat { background: var(--cyan); color: #04070d; }
+  .webapp.show-chat #ptk-tab-rail { background: #04070d; color: var(--muted); }
 }
 
 /* === Platytalk: Microsoft sign-in + howto + chat bubbles === */
@@ -199,3 +227,10 @@ body.app-page .webapp { min-height: calc(100vh - 220px); }
 
 a#ptk-signin { display:inline-block; text-align:center; text-decoration:none; }
 a#ptk-signin:hover { filter: brightness(1.15); }
+
+/* Safety-number modal */
+.ptk-modal { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.7); align-items:center; justify-content:center; padding:1rem; }
+.ptk-modal.show { display:flex; }
+.ptk-modal .ptk-modal-card { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:1.4rem; max-width:540px; width:100%; box-shadow: 0 0 36px rgba(0,229,255,.18); }
+.ptk-modal h3 { color:var(--cyan); margin:0 0 .6rem; font-size:1.1rem; letter-spacing:.05em; }
+.ptk-safety-num { font-family:var(--mono); font-size:1.1rem; color:#d6f7ff; background:#04070d; border:1px solid var(--border); border-radius:4px; padding:1rem; letter-spacing:.18em; line-height:1.7; word-spacing:.5em; text-align:center; user-select:all; margin:.8rem 0 1rem; }
