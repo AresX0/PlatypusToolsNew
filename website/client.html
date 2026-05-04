@@ -22,12 +22,24 @@
   /* Force HTML hidden attribute to win over any explicit display rules. */
   [hidden] { display: none !important; }
 
+  /* ===== Readability overrides scoped to client page ===== */
+  /* Kill the marketing-page scanlines + dim the grid; they hurt legibility on the chat UI. */
+  body.client-page .scanlines { display: none !important; }
+  body.client-page .grid-bg { opacity: .35; }
+  /* Brighter palette + larger base font, scoped via body.client-page so marketing pages keep their look. */
+  body.client-page {
+    --text: #f1faff;
+    --muted: #b8d4e8;
+    --border: #2a4d6e;
+    font-size: 15px; line-height: 1.55;
+  }
+
   /* ===== Standalone client layout ===== */
   html, body { height: 100%; margin: 0; overflow: hidden; }
   body.client-page {
     display: flex; flex-direction: column;
     min-height: 100vh; min-height: 100dvh;
-    background: #04070d; color: #cfeaf3;
+    background: #04070d; color: #f1faff;
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
@@ -36,25 +48,26 @@
   }
   .client-bar {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 16px; border-bottom: 1px solid #093143; background: #050a14;
+    padding: 8px 16px; border-bottom: 1px solid #1a4a66; background: #050a14;
     flex-shrink: 0;
   }
-  .client-bar .brand { display: flex; align-items: center; gap: 10px; color: #00e5ff; font-weight: 600; letter-spacing: 1px; font-size: 14px; }
+  .client-bar .brand { display: flex; align-items: center; gap: 10px; color: #00e5ff; font-weight: 700; letter-spacing: 1px; font-size: 15px; }
   .client-bar .brand img { width: 26px; height: 26px; }
   .client-bar nav { display: flex; gap: 4px; }
-  .client-bar a { color: #7fd6e8; text-decoration: none; font-size: 11px; padding: 6px 8px; border-radius: 4px; }
-  .client-bar a:hover { color: #00e5ff; background: rgba(0,229,255,0.08); }
+  .client-bar a { color: #cfeaf3; text-decoration: none; font-size: 12px; padding: 6px 10px; border-radius: 4px; }
+  .client-bar a:hover { color: #00e5ff; background: rgba(0,229,255,0.12); }
   .menu-btn {
     display: none; background: transparent; color: #00e5ff; border: 1px solid #00e5ff;
     border-radius: 4px; padding: 4px 10px; font-size: 18px; cursor: pointer;
   }
 
-  #app-host { flex: 1 1 auto; display: flex; min-height: 0; padding: 8px; gap: 8px; }
+  #app-host { flex: 1 1 auto; display: flex; min-height: 0; padding: 8px; gap: 8px; position: relative; z-index: 2; }
   #app-host .webapp {
-    flex: 1 1 auto; display: grid; grid-template-columns: 280px 1fr; gap: 0;
+    flex: 1 1 auto; display: grid; grid-template-columns: 300px 1fr; gap: 0;
     min-height: 0; height: 100%;
-    border: 1px solid #093143; border-radius: 6px; overflow: hidden; background: #0a131e;
+    border: 1px solid #1f4a72; border-radius: 6px; overflow: hidden; background: #0a131e;
     position: relative;
+    box-shadow: 0 0 24px rgba(0,229,255,0.08);
   }
 
   /* Mobile drawer backdrop — must be outside grid flow at all sizes. */
@@ -64,29 +77,58 @@
 
   #app-host .rail {
     overflow-y: auto; -webkit-overflow-scrolling: touch;
-    padding: 12px; display: flex; flex-direction: column; gap: 14px;
-    border-right: 1px solid #093143; background: #0a131e;
+    padding: 14px; display: flex; flex-direction: column; gap: 16px;
+    border-right: 1px solid #1f4a72; background: #0a131e;
     align-items: stretch;
     min-height: 0; max-height: 100%;
+    color: #f1faff;
   }
-  /* Bubbles: make outgoing not shrink to a single character. */
-  #app-host .msgs li.in, #app-host .msgs li.out { display: block; margin: .35rem 0; }
-  #app-host .msgs li { max-width: 80%; padding: 0; border: 0; background: transparent; }
+  /* Bubbles: high-contrast, readable. */
+  #app-host .msgs { gap: 10px; padding: 14px 16px; }
+  #app-host .msgs li.in, #app-host .msgs li.out { display: block; margin: .25rem 0; }
+  #app-host .msgs li { max-width: 78%; padding: 0; border: 0; background: transparent; }
   #app-host .msgs li.out { align-self: flex-end; text-align: right; }
   #app-host .msgs li.in  { align-self: flex-start; text-align: left; }
-  #app-host .msgs .bubble { display: inline-block; max-width: 100%; word-break: break-word; white-space: pre-wrap; text-align: left; }
+  #app-host .msgs .bubble {
+    display: inline-block; max-width: 100%;
+    padding: 9px 13px; border-radius: 12px;
+    word-break: break-word; white-space: pre-wrap; text-align: left;
+    font-size: 14px; line-height: 1.45;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.35);
+  }
+  #app-host .msgs li.in  .bubble { background: #14283d; color: #f1faff; border: 1px solid #1f4a72; border-bottom-left-radius: 4px; }
+  #app-host .msgs li.out .bubble { background: linear-gradient(135deg, #00b4d6, #0080c0); color: #04070d; font-weight: 500; border-bottom-right-radius: 4px; }
+  #app-host .msgs li time { display: block; font-size: 10px; color: #7fa1b8; margin-top: 3px; padding: 0 4px; }
   /* Sub-blocks inside the rail must stack vertically with their own gap. */
   #app-host .rail .rail-section { display: flex; flex-direction: column; gap: 6px; }
-  #app-host .rail .rail-label { color: #7fa1b8; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; }
+  #app-host .rail .rail-label { color: #00e5ff; font-size: 11px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; opacity: .85; }
+  #app-host .rail .me-card .me-name { color: #00e5ff; font-weight: 700; font-size: 14px; }
+  #app-host .rail .me-card .me-handle { color: #cfeaf3; font-size: 12px; }
+  #app-host .rail .rail-list li { color: #f1faff; font-size: 13px; padding: 9px 12px; border-bottom: 1px solid #142c44; }
+  #app-host .rail .rail-list li:hover { background: #14283d; }
+  #app-host .rail .rail-list li.sel { background: #1a3a5c; color: #00e5ff; font-weight: 600; }
   #app-host .chat { display: flex; flex-direction: column; min-height: 0; background: #0e1a29; }
-  #app-host .msgs { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px; }
-  #app-host .composer { padding: 8px; border-top: 1px solid #093143; gap: 6px; }
+  #app-host .chat-head { padding: 12px 18px; background: #112236; border-bottom: 1px solid #1f4a72; }
+  #app-host .chat-title { color: #00e5ff; font-weight: 700; font-size: 15px; }
+  #app-host .chat-sub { color: #b8d4e8; font-size: 11px; margin-top: 2px; }
+  #app-host .msgs { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #0e1a29; }
+  #app-host .composer { padding: 10px; border-top: 1px solid #1f4a72; gap: 8px; background: #0a1828; }
+  #app-host .composer .ptk-input { font-size: 14px; padding: 10px 12px; }
 
-  .qr-card { padding: 8px; background: #061520; border: 1px solid #093143; border-radius: 6px; text-align: center; overflow: hidden; box-sizing: border-box; }
-  .qr-card #ptk-qr { display: flex; justify-content: center; padding: 6px 0; max-width: 100%; overflow: hidden; min-height: 100px; }
-  .qr-card #ptk-qr canvas, .qr-card #ptk-qr img { max-width: 100%; height: auto; }
-  .qr-card .me-handle { font-size: 11px; word-break: break-all; max-width: 100%; }
-  .qr-card .btn { width: 100%; margin-top: 6px; }
+  .qr-card { padding: 10px; background: #0d1d2e; border: 1px solid #1f4a72; border-radius: 6px; text-align: center; overflow: visible; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px; }
+  .qr-card #ptk-qr { display: flex; justify-content: center; padding: 6px 0; max-width: 100%; min-height: 100px; cursor: zoom-in; }
+  .qr-card #ptk-qr canvas, .qr-card #ptk-qr img { max-width: 100%; height: auto; border-radius: 4px; }
+  .qr-card .me-handle { font-size: 12px; color: #cfeaf3; word-break: break-all; max-width: 100%; font-weight: 600; }
+  .qr-card .invite-url { font-size: 10px; color: #7fa1b8; word-break: break-all; padding: 4px 6px; background: #061520; border: 1px dashed #1f4a72; border-radius: 4px; user-select: all; }
+  .qr-card .btn { width: 100%; }
+  .qr-card .btn.primary { margin-top: 2px; }
+  /* QR enlarge modal */
+  #ptk-qr-modal { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; padding: 20px; cursor: zoom-out; }
+  #ptk-qr-modal.show { display: flex; }
+  #ptk-qr-modal .modal-inner { background: #0a131e; border: 1px solid #1f4a72; border-radius: 8px; padding: 20px; text-align: center; max-width: 90vw; max-height: 90vh; }
+  #ptk-qr-modal canvas, #ptk-qr-modal img { max-width: min(80vw, 80vh); height: auto; image-rendering: pixelated; }
+  #ptk-qr-modal .modal-handle { color: #00e5ff; font-weight: 700; margin-top: 12px; font-size: 16px; }
+  #ptk-qr-modal .modal-url { color: #b8d4e8; margin-top: 6px; font-size: 11px; word-break: break-all; user-select: all; }
   .rail-row { display: flex; gap: 6px; flex-wrap: wrap; }
   .rail-row .btn { flex: 1 1 auto; }
   /* Editor stays vertical-stacked when shown by JS removing [hidden]. */
@@ -182,10 +224,12 @@
       </div>
 
       <div id="ptk-invite-box" class="rail-section qr-card" hidden>
-        <div class="rail-label">INVITE QR</div>
-        <div id="ptk-qr"></div>
+        <div class="rail-label">SHARE YOUR INVITE</div>
+        <div id="ptk-qr" title="Click to enlarge"></div>
         <div id="ptk-invite-handle" class="me-handle"></div>
-        <button id="ptk-copy-invite" class="btn ghost tiny">Copy invite link</button>
+        <div id="ptk-invite-url" class="invite-url"></div>
+        <button id="ptk-copy-invite" class="btn primary tiny">📋 Copy invite link</button>
+        <button id="ptk-share-invite" class="btn ghost tiny" hidden>Share…</button>
       </div>
 
       <div class="rail-section">
@@ -234,6 +278,16 @@
         <button id="ptk-send" class="btn primary">Send</button>
       </footer>
     </main>
+  </div>
+</div>
+
+<!-- QR enlarge modal -->
+<div id="ptk-qr-modal" aria-hidden="true">
+  <div class="modal-inner">
+    <div id="ptk-qr-modal-img"></div>
+    <div class="modal-handle" id="ptk-qr-modal-handle"></div>
+    <div class="modal-url" id="ptk-qr-modal-url"></div>
+    <button class="btn ghost tiny" id="ptk-qr-modal-close" style="margin-top:14px">Close</button>
   </div>
 </div>
 

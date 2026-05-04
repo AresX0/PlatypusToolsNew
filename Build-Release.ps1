@@ -494,7 +494,7 @@ $releasesDir = Join-Path $ProjectRoot "releases"
 if (-not (Test-Path $releasesDir)) {
     New-Item -ItemType Directory -Path $releasesDir -Force | Out-Null
 }
-$versionedMsiName = "PlatypusToolsSetup-v$Version.msi"
+$versionedMsiName = "PlatypusToolsFullSetup-v$Version.msi"
 $versionedMsiPath = Join-Path $releasesDir $versionedMsiName
 Copy-Item $msiPath $versionedMsiPath -Force
 Write-Success "MSI copied to: $versionedMsiPath"

@@ -53,6 +53,7 @@ namespace PlatypusTools.Core.Services.Platytalk
             _relay = relay ?? new PlatytalkRelayClient();
             _relay.EnvelopeReceived += OnEnvelopeReceived;
             _relay.ConnectionStatusChanged += (_, s) => StatusChanged?.Invoke(this, s);
+            _relay.WsEventReceived += OnWsEventReceived;
             _store = new PlatytalkMessageStore(_dataDir);
             TryLoadIdentity();
             TryLoadSession();
@@ -626,6 +627,32 @@ namespace PlatypusTools.Core.Services.Platytalk
         public PlatytalkRelayClient Relay => _relay;
 
         public Task<DeviceListResponse> ListMyDevicesAsync(CancellationToken ct = default) => _relay.ListMyDevicesAsync(ct);
+
+        // Mirror server's profileUpdated event into local identity so the WPF/Avalonia
+        // UI sees a handle change made from another client (e.g. web client) without restart.
+        private void OnWsEventReceived(object? sender, RelayWsEvent e)
+        {
+            if (e.Type != "profileUpdated" || _identity is null) return;
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(e.RawJson);
+                var root = doc.RootElement;
+                if (!root.TryGetProperty("userId", out var uidEl)) return;
+                var uid = uidEl.GetString();
+                if (!string.Equals(uid, _identity.UserId, StringComparison.Ordinal)) return;
+                if (root.TryGetProperty("handle", out var hEl) && hEl.ValueKind == System.Text.Json.JsonValueKind.String)
+                {
+                    var newHandle = hEl.GetString();
+                    if (!string.IsNullOrWhiteSpace(newHandle) && !string.Equals(_identity.DisplayName, newHandle, StringComparison.Ordinal))
+                    {
+                        _identity.DisplayName = newHandle!;
+                        PersistIdentity();
+                        StatusChanged?.Invoke(this, "Handle synced from another client: @" + newHandle);
+                    }
+                }
+            }
+            catch { /* best-effort */ }
+        }
 
         public Task<HandleResponse> SetHandleAsync(string handle, CancellationToken ct = default)
         {

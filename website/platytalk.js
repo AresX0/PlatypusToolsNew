@@ -137,8 +137,54 @@
       }
     };
     tryRender(0);
+    const urlEl = $('ptk-invite-url');
+    if (urlEl) urlEl.textContent = inviteUrl;
     const copyBtn = $('ptk-copy-invite');
-    if (copyBtn) copyBtn.onclick = () => { navigator.clipboard?.writeText(inviteUrl); copyBtn.textContent = 'Copied!'; setTimeout(() => copyBtn.textContent = 'Copy invite link', 1500); };
+    if (copyBtn) copyBtn.onclick = async () => {
+      try { await navigator.clipboard.writeText(inviteUrl); }
+      catch { /* clipboard API may be blocked; fall back below */ }
+      const orig = '📋 Copy invite link';
+      copyBtn.textContent = '✓ Copied!';
+      setTimeout(() => copyBtn.textContent = orig, 1600);
+    };
+    // Native share sheet (mobile / supported browsers).
+    const shareBtn = $('ptk-share-invite');
+    if (shareBtn) {
+      if (navigator.share) {
+        shareBtn.hidden = false;
+        shareBtn.onclick = () => navigator.share({
+          title: 'Add me on Platytalk',
+          text: `Add me on Platytalk: @${handle}`,
+          url: inviteUrl,
+        }).catch(() => {});
+      } else {
+        shareBtn.hidden = true;
+      }
+    }
+    // Click QR (or "enlarge") to open modal with a bigger version.
+    const modal = document.getElementById('ptk-qr-modal');
+    const modalImg = document.getElementById('ptk-qr-modal-img');
+    const modalHandle = document.getElementById('ptk-qr-modal-handle');
+    const modalUrl = document.getElementById('ptk-qr-modal-url');
+    const modalClose = document.getElementById('ptk-qr-modal-close');
+    if (modal && modalImg) {
+      const openModal = () => {
+        modalImg.innerHTML = '';
+        if (typeof QRCode !== 'undefined' && typeof QRCode.toCanvas === 'function') {
+          const c = document.createElement('canvas');
+          modalImg.appendChild(c);
+          QRCode.toCanvas(c, inviteUrl, { width: 480, margin: 2, color: { dark: '#00e5ff', light: '#04070d' } }, () => {});
+        } else if (typeof QRCode !== 'undefined' && QRCode.prototype && QRCode.prototype.makeCode) {
+          try { new QRCode(modalImg, { text: inviteUrl, width: 480, height: 480, colorDark: '#00e5ff', colorLight: '#04070d' }); } catch {}
+        }
+        if (modalHandle) modalHandle.textContent = '@' + handle;
+        if (modalUrl) modalUrl.textContent = inviteUrl;
+        modal.classList.add('show');
+      };
+      qrEl.onclick = openModal;
+      modalClose && (modalClose.onclick = (e) => { e.stopPropagation(); modal.classList.remove('show'); });
+      modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('show'); };
+    }
   }
 
   async function api(path, opts = {}) {
@@ -295,6 +341,18 @@
       }
       else if (m.type === 'contactAdded') {
         refreshContacts().catch(()=>{});
+      }
+      else if (m.type === 'profileUpdated') {
+        // Handle was changed from another client (desktop or another tab) — refresh local cache + UI.
+        if (state.me && m.userId === state.me.id) {
+          state.me.handle = m.handle;
+          if (m.displayName) state.me.displayName = m.displayName;
+          const nameEl = document.querySelector('#ptk-me .me-name');
+          const handleEl = document.querySelector('#ptk-me .me-handle');
+          if (nameEl) nameEl.textContent = state.me.displayName || state.me.handle;
+          if (handleEl) handleEl.textContent = '@' + state.me.handle;
+          renderInviteQr();
+        }
       }
     };
     ws.onclose = () => setTimeout(connectWs, 2000);
