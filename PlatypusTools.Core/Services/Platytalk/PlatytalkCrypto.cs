@@ -45,11 +45,24 @@ namespace PlatypusTools.Core.Services.Platytalk
             var aesKey = DeriveAesKeyWeb(ephPriv, peerIdentityPublicSpki, contextInfo);
             var iv = RandomNumberGenerator.GetBytes(NonceSize);
             var pt = Encoding.UTF8.GetBytes(plaintext);
-            var ct = new byte[pt.Length];
+            // v2 padded format: [u32 BE plaintext-length] [plaintext] [random pad] to a 256-byte boundary
+            // so traffic-analysis can't infer message size. Web client uses the same layout.
+            const int PadBlock = 256;
+            const int HeaderLen = 4;
+            int total = Math.Max(PadBlock, ((HeaderLen + pt.Length + PadBlock - 1) / PadBlock) * PadBlock);
+            var padded = new byte[total];
+            padded[0] = (byte)((pt.Length >> 24) & 0xff);
+            padded[1] = (byte)((pt.Length >> 16) & 0xff);
+            padded[2] = (byte)((pt.Length >> 8) & 0xff);
+            padded[3] = (byte)(pt.Length & 0xff);
+            Buffer.BlockCopy(pt, 0, padded, HeaderLen, pt.Length);
+            if (total - HeaderLen - pt.Length > 0)
+                RandomNumberGenerator.Fill(padded.AsSpan(HeaderLen + pt.Length));
+            var ct = new byte[padded.Length];
             var tag = new byte[TagSize];
             var aad = Encoding.UTF8.GetBytes(contextInfo);
             using (var aes = new AesGcm(aesKey, TagSize))
-                aes.Encrypt(iv, pt, ct, tag, aad);
+                aes.Encrypt(iv, padded, ct, tag, aad);
             // Web wire format: iv(12) || ct || tag (WebCrypto appends tag).
             var blob = new byte[NonceSize + ct.Length + TagSize];
             Buffer.BlockCopy(iv, 0, blob, 0, NonceSize);
@@ -76,6 +89,13 @@ namespace PlatypusTools.Core.Services.Platytalk
             var pt = new byte[ct.Length];
             using (var aes = new AesGcm(aesKey, TagSize))
                 aes.Decrypt(iv, ct, tag, pt, Encoding.UTF8.GetBytes(contextInfo));
+            // v2 padded: u32 BE length prefix; v1 (legacy unpadded): treat whole thing as text.
+            if (pt.Length >= 4)
+            {
+                int len = (pt[0] << 24) | (pt[1] << 16) | (pt[2] << 8) | pt[3];
+                if (len >= 0 && len <= pt.Length - 4 && len < 1024 * 1024)
+                    return Encoding.UTF8.GetString(pt, 4, len);
+            }
             return Encoding.UTF8.GetString(pt);
         }
 
@@ -90,16 +110,15 @@ namespace PlatypusTools.Core.Services.Platytalk
 
         // ----- Key generation -------------------------------------------------
 
-        /// <summary>Generates an X25519 keypair using ECDiffieHellman with a
-        /// pseudo-curve fallback (P-256) when X25519 isn't available on the
-        /// host — the wire format remains the raw 32-byte public key for
-        /// X25519, or DER-encoded SubjectPublicKeyInfo otherwise.</summary>
+        /// <summary>Generates an ECDH P-256 keypair. We pin to P-256 explicitly
+        /// because <c>ECDiffieHellman.Create()</c> with no curve argument defaults
+        /// to <b>nistP521</b> on Windows .NET, which the Platytalk web client
+        /// (WebCrypto) cannot interop with — the web client always uses P-256.
+        /// Wire format is DER-encoded SubjectPublicKeyInfo for the public side
+        /// and PKCS#8 for the private side.</summary>
         public static (byte[] Public, byte[] Private) GenerateKeyExchangeKeyPair()
         {
-            // .NET 10 supports MLKemAlgorithm but not yet first-class X25519
-            // ECDH; use ECDiffieHellman.Create() default curve which is
-            // platform-best, and serialize PKCS#8 for the private side.
-            using var ecdh = ECDiffieHellman.Create();
+            using var ecdh = ECDiffieHellman.Create(ECCurve.NamedCurves.nistP256);
             var pub = ecdh.PublicKey.ExportSubjectPublicKeyInfo();
             var priv = ecdh.ExportPkcs8PrivateKey();
             return (pub, priv);

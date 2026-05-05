@@ -29,6 +29,18 @@
   const enc = new TextEncoder(), dec = new TextDecoder();
   const b64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
   const unb64 = (s) => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  // iOS Safari (and some older WebKit builds) reject Uint8Array views passed
+  // to subtle.encrypt / subtle.decrypt / additionalData when the view's byteOffset
+  // is non-zero or its byteLength < buffer.byteLength. Coerce to a fresh
+  // ArrayBuffer so every call is unambiguous BufferSource.
+  const toAB = (u) => {
+    if (u instanceof ArrayBuffer) return u;
+    const v = u instanceof Uint8Array ? u : new Uint8Array(u);
+    if (v.byteOffset === 0 && v.byteLength === v.buffer.byteLength) return v.buffer;
+    const out = new ArrayBuffer(v.byteLength);
+    new Uint8Array(out).set(v);
+    return out;
+  };
 
   async function genIdentity() {
     const ec = await subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
@@ -42,44 +54,123 @@
   }
 
   async function deriveAesKey(myPrivPkcs8B64, peerPubSpkiB64, info) {
-    const priv = await subtle.importKey('pkcs8', unb64(myPrivPkcs8B64), { name: 'ECDH', namedCurve: 'P-256' }, false, ['deriveBits']);
-    const pub = await subtle.importKey('spki', unb64(peerPubSpkiB64), { name: 'ECDH', namedCurve: 'P-256' }, false, []);
-    const shared = await subtle.deriveBits({ name: 'ECDH', public: pub }, priv, 256);
-    const baseKey = await subtle.importKey('raw', shared, 'HKDF', false, ['deriveBits']);
-    const keyBits = await subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt: enc.encode('platytalk/v1'), info: enc.encode(info) }, baseKey, 256);
-    return subtle.importKey('raw', keyBits, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+    // iOS WebKit (Safari + iOS Edge) refuses Uint8Array views for importKey input;
+    // must be a fresh ArrayBuffer. toAB() handles both.
+    // Detect curves separately — receiver may hold a P-256 identity key while
+    // the sender's ephemeral could be any curve. ECDH agreement requires both
+    // sides to be on the same curve, so we must trust the ephemeral's curve.
+    const myBytes = unb64(myPrivPkcs8B64);
+    const peerBytes = unb64(peerPubSpkiB64);
+    const peerCurve = detectEcCurveFromSpki(peerBytes) || 'P-256';
+    // The receiver's stored private must be importable on the same curve as the
+    // sender's ephemeral, since that's what was used during encrypt. We try the
+    // peer-detected curve first (sender's ephemeral curve) for the public side.
+    const priv = await subtle.importKey('pkcs8', toAB(myBytes), { name: 'ECDH', namedCurve: peerCurve }, false, ['deriveBits']);
+    const pub = await subtle.importKey('spki', toAB(peerBytes), { name: 'ECDH', namedCurve: peerCurve }, false, []);
+    const sharedBits = peerCurve === 'P-521' ? 528 : (peerCurve === 'P-384' ? 384 : 256);
+    const shared = await subtle.deriveBits({ name: 'ECDH', public: pub }, priv, sharedBits);
+    const baseKey = await subtle.importKey('raw', toAB(shared), 'HKDF', false, ['deriveBits']);
+    const keyBits = await subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt: toAB(enc.encode('platytalk/v1')), info: toAB(enc.encode(info)) }, baseKey, 256);
+    return subtle.importKey('raw', toAB(keyBits), { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  }
+
+  // Same as deriveAesKey but takes already-imported ECDH CryptoKey objects directly.
+  // Used by encryptToPeer to avoid the export-reimport round-trip on a freshly
+  // generated ephemeral private key — that round-trip throws DataError on iOS WebKit
+  // (Edge/Safari/PWA) for some ECDH P-256 PKCS8 encodings the same browser just exported.
+  async function deriveAesKeyFromCryptoKeys(privCryptoKey, pubCryptoKey, info) {
+    const shared = await subtle.deriveBits({ name: 'ECDH', public: pubCryptoKey }, privCryptoKey, 256);
+    const baseKey = await subtle.importKey('raw', toAB(shared), 'HKDF', false, ['deriveBits']);
+    const keyBits = await subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt: toAB(enc.encode('platytalk/v1')), info: toAB(enc.encode(info)) }, baseKey, 256);
+    return subtle.importKey('raw', toAB(keyBits), { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  }
+
+  // Detect the named curve of an ECDH SPKI by sniffing the algorithm OID. Returns
+  // 'P-256' | 'P-384' | 'P-521' | null. Web has historically assumed P-256 but
+  // older desktop builds used the .NET default (nistP521 on Windows), so we
+  // gracefully match whatever the peer actually published.
+  function detectEcCurveFromSpki(bytes) {
+    // Named-curve OID suffixes:
+    //   P-256: 1.2.840.10045.3.1.7  -> 2A 86 48 CE 3D 03 01 07
+    //   P-384: 1.3.132.0.34         -> 2B 81 04 00 22
+    //   P-521: 1.3.132.0.35         -> 2B 81 04 00 23
+    const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    if (hex.includes('2a8648ce3d030107')) return 'P-256';
+    if (hex.includes('2b81040022')) return 'P-384';
+    if (hex.includes('2b81040023')) return 'P-521';
+    return null;
   }
 
   async function encryptToPeer(plaintext, peerPubSpkiB64, contextInfo) {
-    const eph = await subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
-    const ephPubSpki = b64(await subtle.exportKey('spki', eph.publicKey));
-    const ephPrivPkcs8 = b64(await subtle.exportKey('pkcs8', eph.privateKey));
-    const aes = await deriveAesKey(ephPrivPkcs8, peerPubSpkiB64, contextInfo);
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    // Length-prefixed padding to a 256-byte boundary so traffic analysis can't infer
-    // message size. Layout: [u32 BE plaintext-length] [plaintext bytes] [random pad].
-    const ptBytes = enc.encode(plaintext);
-    const PAD_BLOCK = 256;
-    const headerLen = 4;
-    const total = Math.max(PAD_BLOCK, Math.ceil((headerLen + ptBytes.length) / PAD_BLOCK) * PAD_BLOCK);
-    const buf = new Uint8Array(total);
-    buf[0] = (ptBytes.length >>> 24) & 0xff;
-    buf[1] = (ptBytes.length >>> 16) & 0xff;
-    buf[2] = (ptBytes.length >>> 8) & 0xff;
-    buf[3] = ptBytes.length & 0xff;
-    buf.set(ptBytes, 4);
-    crypto.getRandomValues(buf.subarray(4 + ptBytes.length));
-    const ct = await subtle.encrypt({ name: 'AES-GCM', iv, additionalData: enc.encode(contextInfo) }, aes, buf);
-    const blob = new Uint8Array(12 + ct.byteLength);
-    blob.set(iv, 0); blob.set(new Uint8Array(ct), 12);
-    return { cipherBlob: b64(blob), ephemeralPublic: ephPubSpki };
+    let sub = 'init';
+    try {
+      sub = 'import-peer-pub';
+      const peerPubBytes = unb64(peerPubSpkiB64);
+      const curve = detectEcCurveFromSpki(peerPubBytes) || 'P-256';
+      let peerPub;
+      try {
+        peerPub = await subtle.importKey('spki', toAB(peerPubBytes), { name: 'ECDH', namedCurve: curve }, false, []);
+      } catch (impErr) {
+        // Last-ditch fallback: try raw uncompressed point on detected curve.
+        const expectedRawLen = curve === 'P-521' ? 133 : (curve === 'P-384' ? 97 : 65);
+        if (peerPubBytes.length === expectedRawLen && peerPubBytes[0] === 0x04) {
+          peerPub = await subtle.importKey('raw', toAB(peerPubBytes), { name: 'ECDH', namedCurve: curve }, false, []);
+        } else {
+          const dump = 'curve=' + curve + ' len=' + peerPubBytes.length + ' first=' + Array.from(peerPubBytes.slice(0,12)).map(b=>b.toString(16).padStart(2,'0')).join('');
+          throw new Error('spki failed: ' + (impErr && impErr.message) + ' (' + dump + ')');
+        }
+      }
+      sub = 'gen-eph';
+      // Match the peer's curve so ECDH actually agrees.
+      const eph = await subtle.generateKey({ name: 'ECDH', namedCurve: curve }, true, ['deriveBits']);
+      sub = 'export-eph-pub';
+      const ephPubSpki = b64(await subtle.exportKey('spki', eph.publicKey));
+      sub = 'derive-aes';
+      // ECDH on P-521 needs 528 bits raw output; clamp to 256 via HKDF anyway.
+      const sharedBits = curve === 'P-521' ? 528 : (curve === 'P-384' ? 384 : 256);
+      const shared = await subtle.deriveBits({ name: 'ECDH', public: peerPub }, eph.privateKey, sharedBits);
+      const baseKey = await subtle.importKey('raw', toAB(shared), 'HKDF', false, ['deriveBits']);
+      const keyBits = await subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt: toAB(enc.encode('platytalk/v1')), info: toAB(enc.encode(contextInfo)) }, baseKey, 256);
+      const aes = await subtle.importKey('raw', toAB(keyBits), { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+      sub = 'iv';
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      // Length-prefixed padding to a 256-byte boundary so traffic analysis can't infer
+      // message size. Layout: [u32 BE plaintext-length] [plaintext bytes] [random pad].
+      sub = 'pad';
+      const ptBytes = enc.encode(plaintext);
+      const PAD_BLOCK = 256;
+      const headerLen = 4;
+      const total = Math.max(PAD_BLOCK, Math.ceil((headerLen + ptBytes.length) / PAD_BLOCK) * PAD_BLOCK);
+      const buf = new Uint8Array(total);
+      buf[0] = (ptBytes.length >>> 24) & 0xff;
+      buf[1] = (ptBytes.length >>> 16) & 0xff;
+      buf[2] = (ptBytes.length >>> 8) & 0xff;
+      buf[3] = ptBytes.length & 0xff;
+      buf.set(ptBytes, 4);
+      if (total - 4 - ptBytes.length > 0) crypto.getRandomValues(buf.subarray(4 + ptBytes.length));
+      // iOS Safari requires ArrayBuffer (not Uint8Array view) for data + additionalData.
+      sub = 'aes-gcm';
+      const aad = toAB(enc.encode(contextInfo));
+      const ct = await subtle.encrypt({ name: 'AES-GCM', iv: toAB(iv), additionalData: aad }, aes, toAB(buf));
+      sub = 'pack';
+      const blob = new Uint8Array(12 + ct.byteLength);
+      blob.set(iv, 0); blob.set(new Uint8Array(ct), 12);
+      return { cipherBlob: b64(blob), ephemeralPublic: ephPubSpki };
+    } catch (e) {
+      const inner = (e && e.message) ? e.message : String(e);
+      const name = (e && e.name) ? e.name : 'Error';
+      const wrapped = new Error('[' + sub + '] ' + name + ': ' + inner);
+      wrapped.name = name;
+      throw wrapped;
+    }
   }
 
   async function decryptFromPeer(cipherBlobB64, ephemeralPubSpkiB64, myIdentityPrivPkcs8, contextInfo) {
     const aes = await deriveAesKey(myIdentityPrivPkcs8, ephemeralPubSpkiB64, contextInfo);
     const buf = unb64(cipherBlobB64);
     const iv = buf.slice(0, 12), ct = buf.slice(12);
-    const pt = await subtle.decrypt({ name: 'AES-GCM', iv, additionalData: enc.encode(contextInfo) }, aes, ct);
+    const aad = toAB(enc.encode(contextInfo));
+    const pt = await subtle.decrypt({ name: 'AES-GCM', iv: toAB(iv), additionalData: aad }, aes, toAB(ct));
     const bytes = new Uint8Array(pt);
     // v2 padded format: u32 BE length prefix. v1 (legacy unpadded): treat whole thing as text.
     if (bytes.length >= 4) {
@@ -455,18 +546,24 @@
     }
     // Don't clear the input until we've actually accepted the send. If anything below
     // throws, we want the user's text preserved so they can retry.
+    let stage = 'init';
     try {
       // Peer-key change detection: warn loudly if the recipient's identity key has rotated.
+      stage = 'checkPeerKeyChange';
       await checkPeerKeyChange(peer);
       // Send-time jitter (50-200ms) to disrupt traffic-analysis timing fingerprints.
+      stage = 'jitter';
       const jitterMs = 50 + Math.floor(Math.random() * 150);
       await new Promise(r => setTimeout(r, jitterMs));
       const ctx = `${conversationId}|${messageId}`;
       // Sealed-sender format v2: include senderId in the encrypted plaintext so the
       // server-side at-rest record does not have to retain it. The recipient extracts
       // the senderId from the decrypted blob (see handleEnvelope).
+      stage = 'wrap-v2';
       const innerPlain = JSON.stringify({ v: 2, from: state.me.id, t: txt });
+      stage = 'encryptToPeer';
       const { cipherBlob, ephemeralPublic } = await encryptToPeer(innerPlain, peer.identityKeyPublic, ctx);
+      stage = 'POST /messages/send';
       await api('/v1/messages/send', {
         method: 'POST', body: JSON.stringify({
           messageId, conversationId,
@@ -480,7 +577,10 @@
       state.conversations[peer.id].push({ direction: 'out', text: txt, when: Date.now(), messageId });
       appendMessage('out', txt, Date.now(), messageId);
     } catch (e) {
-      showSendError('Send failed: ' + (e && e.message ? e.message : String(e)));
+      const msg = (e && e.message) ? e.message : String(e);
+      const name = (e && e.name) ? e.name : 'Error';
+      try { console.error('[platytalk send] failed at stage', stage, e); } catch {}
+      showSendError('Send failed @ ' + stage + ': ' + name + ': ' + msg);
     }
   }
 
@@ -560,7 +660,16 @@
         } catch {}
       }
       try { state.ws?.send(JSON.stringify({ type: 'ack', messageIds: [env.messageId + ':' + state.me.id] })); } catch {}
-    } catch (e) { console.warn('decrypt failed', e); }
+    } catch (e) {
+      console.warn('decrypt failed', e);
+      // Surface decrypt failures to the UI so silent breakage doesn't masquerade as
+      // "message never arrived". Show one inline system row in the current convo.
+      try {
+        const msg = (e && e.message) ? e.message : String(e);
+        const ephLen = (() => { try { return unb64(env.ephemeralPublic).length; } catch { return -1; } })();
+        showSendError('Decrypt failed: ' + msg + ' (ephLen=' + ephLen + ' msgId=' + (env.messageId||'').slice(0,8) + ')');
+      } catch {}
+    }
   }
 
   function connectWs() {
@@ -893,7 +1002,7 @@
         key = await deriveBackupKey(pass, salt);
         kdfParams = { algorithm: 'pbkdf2-sha256', iterations: PBKDF2_ITERS, length: 32 };
       }
-      const ct = await subtle.encrypt({ name: 'AES-GCM', iv }, key, plain);
+      const ct = await subtle.encrypt({ name: 'AES-GCM', iv: toAB(iv) }, key, toAB(plain));
       // versioned blob: [v=1][iv 12][ct||tag]
       const ctArr = new Uint8Array(ct);
       const blob = new Uint8Array(1 + 12 + ctArr.length);
@@ -938,7 +1047,7 @@
         return;
       }
       let plain;
-      try { plain = await subtle.decrypt({ name: 'AES-GCM', iv }, key, ct); }
+      try { plain = await subtle.decrypt({ name: 'AES-GCM', iv: toAB(iv) }, key, toAB(ct)); }
       catch { setBackupStatus('Wrong passphrase or corrupt backup.'); return; }
       const snap = JSON.parse(dec.decode(plain));
       // Apply: identity + contacts. Conversations are server-side per device.

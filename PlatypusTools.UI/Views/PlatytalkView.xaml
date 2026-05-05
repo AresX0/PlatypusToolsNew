@@ -4,11 +4,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:PlatypusTools.UI.ViewModels"
+             xmlns:conv="clr-namespace:PlatypusTools.UI.Converters"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="1200"
              d:DataContext="{d:DesignInstance Type=vm:PlatytalkViewModel}">
     <UserControl.Resources>
+        <conv:EmptyStringFallbackConverter x:Key="EmptyFallback"/>
         <!-- Sci-fi neon palette -->
         <SolidColorBrush x:Key="PtkBg" Color="#FF06090F"/>
         <SolidColorBrush x:Key="PtkPanel" Color="#FF0B131D"/>
@@ -54,10 +56,16 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2">
-                            <Border.Effect>
-                                <DropShadowEffect Color="#FF00E5FF" BlurRadius="8" ShadowDepth="0" Opacity="0.35"/>
-                            </Border.Effect>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True">
+                                <ContentPresenter.Resources>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                        <Setter Property="FontFamily" Value="{Binding FontFamily, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                        <Setter Property="FontWeight" Value="{Binding FontWeight, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                        <Setter Property="FontSize" Value="{Binding FontSize, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                    </Style>
+                                </ContentPresenter.Resources>
+                            </ContentPresenter>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -77,6 +85,119 @@
             <Setter Property="BorderBrush" Value="{StaticResource PtkMagenta}"/>
         </Style>
 
+        <!-- ComboBox toggle button (arrow) -->
+        <ControlTemplate x:Key="PtkComboBoxToggle" TargetType="ToggleButton">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="22"/>
+                </Grid.ColumnDefinitions>
+                <Border x:Name="Border" Grid.ColumnSpan="2" Background="#FF071018" BorderBrush="{StaticResource PtkBorder}" BorderThickness="1" CornerRadius="2"/>
+                <Path x:Name="Arrow" Grid.Column="1" Fill="{StaticResource PtkCyan}" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M0,0 L4,4 L8,0 Z"/>
+            </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource PtkCyan}"/>
+                </Trigger>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource PtkCyan}"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <ControlTemplate x:Key="PtkComboBoxTextBox" TargetType="TextBox">
+            <Border x:Name="PART_ContentHost" Focusable="False" Background="{TemplateBinding Background}"/>
+        </ControlTemplate>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#FF071018"/>
+            <Setter Property="Foreground" Value="{StaticResource PtkText}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PtkBorder}"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton" Template="{StaticResource PtkComboBoxToggle}" Focusable="False"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press"/>
+                            <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              Margin="6,3,23,3" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                <ContentPresenter.Resources>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{StaticResource PtkText}"/>
+                                        <Setter Property="FontFamily" Value="Consolas"/>
+                                    </Style>
+                                </ContentPresenter.Resources>
+                            </ContentPresenter>
+                            <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                <Grid x:Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border x:Name="DropDownBorder" Background="#FF0B131D" BorderThickness="1" BorderBrush="{StaticResource PtkBorder}"/>
+                                    <ScrollViewer Margin="4,6,4,6" SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="HasItems" Value="False">
+                                <Setter TargetName="DropDownBorder" Property="MinHeight" Value="40"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource PtkText}"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="Border" Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                            <ContentPresenter>
+                                <ContentPresenter.Resources>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{StaticResource PtkText}"/>
+                                        <Setter Property="FontFamily" Value="Consolas"/>
+                                    </Style>
+                                </ContentPresenter.Resources>
+                            </ContentPresenter>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#FF1A3552"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#FF12253B"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="PasswordBox" x:Key="PtkPasswordBox">
+            <Setter Property="Background" Value="#FF071018"/>
+            <Setter Property="Foreground" Value="{StaticResource PtkText}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PtkBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CaretBrush" Value="{StaticResource PtkCyan}"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="Padding" Value="8,6"/>
+        </Style>
+
         <Style TargetType="ListBoxItem" x:Key="PtkListItem">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{StaticResource PtkText}"/>
@@ -84,14 +205,31 @@
             <Setter Property="BorderBrush" Value="#FF142233"/>
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-            <Style.Triggers>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#FF0F2237"/>
-                </Trigger>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#FF0A1A28"/>
-                </Trigger>
-            </Style.Triggers>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FF0A1A28"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FF0F2237"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </UserControl.Resources>
 
@@ -166,10 +304,11 @@
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
-                                        <Ellipse Width="10" Height="10" Fill="{StaticResource PtkCyan}" Margin="0,0,8,0"/>
+                                        <Ellipse Width="10" Height="10" Fill="{StaticResource PtkCyan}" Margin="0,4,8,0" VerticalAlignment="Top"/>
                                         <StackPanel>
-                                            <TextBlock Text="{Binding DisplayName}" Foreground="{StaticResource PtkText}" FontFamily="Consolas"/>
-                                            <TextBlock Text="{Binding SafetyNumber}" Style="{StaticResource PtkLabel}" FontSize="9"/>
+                                            <TextBlock Foreground="{StaticResource PtkCyan}" FontFamily="Consolas" FontSize="13" FontWeight="SemiBold"
+                                                       Text="{Binding DisplayName, Converter={StaticResource EmptyFallback}, ConverterParameter=(no name)}"/>
+                                            <TextBlock Text="{Binding SafetyNumber}" Style="{StaticResource PtkLabel}" FontSize="9" TextTrimming="CharacterEllipsis" MaxWidth="200"/>
                                         </StackPanel>
                                     </StackPanel>
                                 </DataTemplate>
@@ -211,6 +350,9 @@
                                   IsEnabled="{Binding IsConversationSelected}"
                                   ToolTip="Disappearing-message TTL (Signal-style)"/>
                         <TextBlock DockPanel.Dock="Right" Text="⏳" VerticalAlignment="Center" Margin="0,0,4,0" Foreground="{StaticResource PtkCyan}"/>
+                        <Button DockPanel.Dock="Right" Content="🔐 VERIFY" Style="{StaticResource PtkButton}" Command="{Binding VerifySafetyNumberCommand}" Margin="6,0,6,0" Padding="8,4"
+                                IsEnabled="{Binding IsConversationSelected}"
+                                ToolTip="Show a 60-digit safety number. Compare it out-of-band with this contact to confirm there's no MITM."/>
                         <StackPanel>
                             <TextBlock Text="{Binding SelectedConversation.Title, FallbackValue='No conversation selected'}" Foreground="{StaticResource PtkCyan}" FontFamily="Consolas" FontSize="14" FontWeight="Bold"/>
                             <TextBlock Text="{Binding DisappearingStatusText}" Style="{StaticResource PtkLabel}"/>
@@ -300,10 +442,10 @@
                                 <TextBlock Text="BACKUP" Style="{StaticResource PtkLabel}" Margin="0,8,0,4"/>
                                 <PasswordBox Name="BackupPassphraseBox" Margin="0,0,0,4" PasswordChanged="BackupPassphraseBox_PasswordChanged" Background="#FF0a121c" Foreground="{StaticResource PtkText}" BorderBrush="{StaticResource PtkBorder}" Padding="6"/>
                                 <TextBlock Text="Use a strong passphrase. The relay never sees it." Style="{StaticResource PtkLabel}" Margin="0,0,0,4" TextWrapping="Wrap"/>
-                                <DockPanel>
-                                    <Button DockPanel.Dock="Right" Content="RESTORE" Style="{StaticResource PtkButton}" Command="{Binding RestoreBackupCommand}"/>
-                                    <Button Content="BACKUP" Style="{StaticResource PtkButton}" Command="{Binding CreateBackupCommand}" Margin="0,0,4,0"/>
-                                </DockPanel>
+                                <UniformGrid Columns="2" Margin="0,0,0,0">
+                                    <Button Content="💾 BACKUP" Style="{StaticResource PtkButton}" Command="{Binding CreateBackupCommand}" Margin="0,0,3,0" MinHeight="30" ToolTip="Encrypt your contacts + identity with the passphrase and upload to the relay."/>
+                                    <Button Content="↻ RESTORE" Style="{StaticResource PtkButton}" Command="{Binding RestoreBackupCommand}" Margin="3,0,0,0" MinHeight="30" ToolTip="Download and decrypt your latest backup with the passphrase above."/>
+                                </UniformGrid>
                                 <Button Content="SIGN OUT" Style="{StaticResource PtkButtonMagenta}" Command="{Binding SignOutCommand}" Margin="0,8,0,0"/>
                             </StackPanel>
                         </Border>

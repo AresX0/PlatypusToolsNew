@@ -1,7 +1,8 @@
 // Platytalk service worker — offline app shell.
 // IMPORTANT: never cache /v1/, /auth/, /ws — those are live API/auth and must
-// always go to the network. Only static shell assets are cached.
-const VERSION = 'ptk-sw-v2';
+// always go to the network. Static shell assets use NETWORK-FIRST so deployed
+// fixes reach iOS PWA users immediately; cache is only a fallback for offline.
+const VERSION = 'ptk-sw-v6-decrypt-toast';
 const SHELL = [
   '/',
   '/client.html',
@@ -37,22 +38,16 @@ self.addEventListener('fetch', (event) => {
       url.pathname.startsWith('/auth/') ||
       url.pathname.startsWith('/ws')) return;
 
+  // Network-first for shell. Falls back to cache when offline. This guarantees
+  // iOS PWA users always pick up the latest platytalk.js / sw bumps as soon as
+  // they have network — no stale-cache deadlock.
   event.respondWith(
-    caches.match(req).then((hit) => {
-      if (hit) {
-        // Update in the background.
-        fetch(req).then((res) => {
-          if (res && res.ok) caches.open(VERSION).then((c) => c.put(req, res.clone()));
-        }).catch(() => {});
-        return hit;
+    fetch(req).then((res) => {
+      if (res && res.ok && res.type === 'basic') {
+        const clone = res.clone();
+        caches.open(VERSION).then((c) => c.put(req, clone)).catch(() => {});
       }
-      return fetch(req).then((res) => {
-        if (res && res.ok && res.type === 'basic') {
-          const clone = res.clone();
-          caches.open(VERSION).then((c) => c.put(req, clone));
-        }
-        return res;
-      }).catch(() => caches.match('/client.html'));
-    }),
+      return res;
+    }).catch(() => caches.match(req).then((hit) => hit || caches.match('/client.html'))),
   );
 });

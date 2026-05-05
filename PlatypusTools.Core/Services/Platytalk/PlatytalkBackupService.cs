@@ -93,36 +93,67 @@ namespace PlatypusTools.Core.Services.Platytalk
 
             var salt = Convert.FromBase64String(blob.KdfSalt);
             // Honor server-stored params if present (in case defaults change in future).
+            // The web client uses the field names "algorithm"/"length" while the desktop
+            // client originally used "algo"/"len" — accept either so that backups taken
+            // on either platform are restorable on the other.
             int m = MemoryKiB, t = Iterations, p = Parallelism, len = KeyLength;
+            string algoName = "argon2id";
             if (blob.KdfParams is { } kp)
             {
                 if (kp.TryGetValue("m", out var em) && em.TryGetInt32(out var mv)) m = mv;
                 if (kp.TryGetValue("t", out var et) && et.TryGetInt32(out var tv)) t = tv;
                 if (kp.TryGetValue("p", out var ep) && ep.TryGetInt32(out var pv)) p = pv;
                 if (kp.TryGetValue("len", out var el) && el.TryGetInt32(out var lv)) len = lv;
-                if (kp.TryGetValue("algo", out var ea) && ea.ValueKind == JsonValueKind.String &&
-                    !string.Equals(ea.GetString(), "argon2id", StringComparison.OrdinalIgnoreCase))
-                    throw new CryptographicException("Unsupported KDF algorithm in backup metadata.");
+                else if (kp.TryGetValue("length", out var el2) && el2.TryGetInt32(out var lv2)) len = lv2;
+                if (kp.TryGetValue("iterations", out var it) && it.TryGetInt32(out var itv)) t = itv;
+                JsonElement algoElem = default;
+                bool hasAlgo = (kp.TryGetValue("algo", out algoElem) && algoElem.ValueKind == JsonValueKind.String)
+                    || (kp.TryGetValue("algorithm", out algoElem) && algoElem.ValueKind == JsonValueKind.String);
+                if (hasAlgo) algoName = algoElem.GetString() ?? "argon2id";
             }
 
-            var key = DeriveKey(passphrase, salt, m, t, p, len);
+            // PBKDF2-SHA256 fallback for backups created on the web client when hash-wasm
+            // wasn't available. Detected by the kdf params reporting a pbkdf2-* algorithm.
+            byte[] key;
+            if (algoName.StartsWith("pbkdf2", StringComparison.OrdinalIgnoreCase))
+            {
+                using var pbk = new System.Security.Cryptography.Rfc2898DeriveBytes(
+                    Encoding.UTF8.GetBytes(passphrase), salt, t > 0 ? t : 600000,
+                    System.Security.Cryptography.HashAlgorithmName.SHA256);
+                key = pbk.GetBytes(len);
+            }
+            else if (algoName.StartsWith("argon2", StringComparison.OrdinalIgnoreCase))
+            {
+                key = DeriveKey(passphrase, salt, m, t, p, len);
+            }
+            else
+            {
+                throw new CryptographicException($"Unsupported KDF algorithm '{algoName}' in backup metadata.");
+            }
             try
             {
                 var bytes = Convert.FromBase64String(blob.CipherBlob);
                 if (bytes.Length < 1 + NonceLength + TagLength + 1) throw new CryptographicException("Backup blob truncated.");
                 if (bytes[0] != FormatVersion) throw new CryptographicException("Unsupported backup format version.");
+
+                // Two known on-the-wire blob layouts after the version byte:
+                //   Desktop: [nonce 12][tag 16][ciphertext]
+                //   Web:     [iv 12][ciphertext || tag 16]   (Web Crypto AES-GCM concatenates the tag at the end)
+                // Both produce the same total length, so we can't distinguish by size — try
+                // desktop layout first, fall back to the web layout on auth-tag mismatch.
                 var nonce = new byte[NonceLength];
-                var tag = new byte[TagLength];
-                var ciphertext = new byte[bytes.Length - 1 - NonceLength - TagLength];
                 Buffer.BlockCopy(bytes, 1, nonce, 0, NonceLength);
-                Buffer.BlockCopy(bytes, 1 + NonceLength, tag, 0, TagLength);
-                Buffer.BlockCopy(bytes, 1 + NonceLength + TagLength, ciphertext, 0, ciphertext.Length);
-                var plaintext = new byte[ciphertext.Length];
-                using (var aes = new AesGcm(key, TagLength))
-                    aes.Decrypt(nonce, ciphertext, tag, plaintext);
+                var bodyLen = bytes.Length - 1 - NonceLength - TagLength;
+                if (bodyLen < 0) throw new CryptographicException("Backup blob truncated.");
+                var plaintext = new byte[bodyLen];
+                bool ok = TryDecryptDesktopLayout(bytes, nonce, key, plaintext)
+                       || TryDecryptWebLayout(bytes, nonce, key, plaintext);
+                if (!ok)
+                    throw new CryptographicException("Failed to decrypt backup. Wrong passphrase, or the backup data is corrupt.");
                 try
                 {
-                    return JsonSerializer.Deserialize<BackupSnapshot>(plaintext);
+                    var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    return JsonSerializer.Deserialize<BackupSnapshot>(plaintext, opts);
                 }
                 finally { CryptographicOperations.ZeroMemory(plaintext); }
             }
@@ -130,6 +161,40 @@ namespace PlatypusTools.Core.Services.Platytalk
             {
                 CryptographicOperations.ZeroMemory(key);
             }
+        }
+
+        // Desktop layout: [v=1][nonce 12][tag 16][ciphertext]
+        private static bool TryDecryptDesktopLayout(byte[] blob, byte[] nonce, byte[] key, byte[] plaintext)
+        {
+            try
+            {
+                var tag = new byte[TagLength];
+                Buffer.BlockCopy(blob, 1 + NonceLength, tag, 0, TagLength);
+                var ciphertext = new byte[blob.Length - 1 - NonceLength - TagLength];
+                Buffer.BlockCopy(blob, 1 + NonceLength + TagLength, ciphertext, 0, ciphertext.Length);
+                using var aes = new AesGcm(key, TagLength);
+                aes.Decrypt(nonce, ciphertext, tag, plaintext);
+                return true;
+            }
+            catch (CryptographicException) { return false; }
+        }
+
+        // Web Crypto layout: [v=1][iv 12][ciphertext || tag 16]
+        private static bool TryDecryptWebLayout(byte[] blob, byte[] nonce, byte[] key, byte[] plaintext)
+        {
+            try
+            {
+                var ctAndTag = new byte[blob.Length - 1 - NonceLength];
+                Buffer.BlockCopy(blob, 1 + NonceLength, ctAndTag, 0, ctAndTag.Length);
+                var ciphertext = new byte[ctAndTag.Length - TagLength];
+                var tag = new byte[TagLength];
+                Buffer.BlockCopy(ctAndTag, 0, ciphertext, 0, ciphertext.Length);
+                Buffer.BlockCopy(ctAndTag, ciphertext.Length, tag, 0, TagLength);
+                using var aes = new AesGcm(key, TagLength);
+                aes.Decrypt(nonce, ciphertext, tag, plaintext);
+                return true;
+            }
+            catch (CryptographicException) { return false; }
         }
 
         public Task<BackupInfoResponse?> GetInfoAsync(CancellationToken ct = default) => _relay.GetBackupInfoAsync(ct);

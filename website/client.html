@@ -198,10 +198,19 @@
     #app-host { padding: 4px; gap: 0; }
     #app-host .webapp { grid-template-columns: 1fr; grid-template-rows: 1fr; }
     #app-host .rail {
-      position: absolute; top: 0; left: 0; bottom: 0;
-      width: min(85vw, 320px); z-index: 100;
+      position: absolute; top: 0; left: 0;
+      width: min(85vw, 320px);
+      /* Use explicit height (not top/bottom) — iOS/Edge mobile is unreliable
+         scrolling an absolute-positioned overflow container that derives its
+         height from top/bottom. */
+      height: 100%; max-height: 100%; bottom: auto;
+      z-index: 100;
       transform: translateX(-100%); transition: transform .22s ease-out;
       box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+      overscroll-behavior: contain;
     }
     #app-host .webapp.rail-open .rail { transform: translateX(0); }
     #app-host .webapp.rail-open .backdrop { display: block; }
@@ -209,6 +218,14 @@
     .chat-title { font-size: 14px; }
     .chat-sub { font-size: 10px; }
     .msgs li .bubble, .msgs li { max-width: 88% !important; font-size: 14px; }
+    /* On mobile, let the rail itself handle scrolling — kill the inner
+       per-list max-height clamp that creates a nested touch-scroll container
+       (iOS/Edge mobile won't reliably scroll inside a nested 260px box). */
+    #app-host .rail .rail-list { max-height: none !important; overflow: visible !important; }
+    /* Don't let any rail child shrink — let the rail itself scroll. */
+    #app-host .rail > * { flex-shrink: 0; }
+    /* Bottom padding so the last contact isn't hidden under the iOS home bar. */
+    #app-host .rail { padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px)); }
   }
 
   @media (display-mode: standalone) {

@@ -178,6 +178,34 @@ section h2 { font-size: 28px; color: var(--cyan); letter-spacing: .14em; text-tr
   .webapp.show-chat .chat { display: flex; }
   .webapp.show-chat #ptk-tab-chat { background: var(--cyan); color: #04070d; }
   .webapp.show-chat #ptk-tab-rail { background: #04070d; color: var(--muted); }
+
+  /* Mobile rail must scroll the WHOLE rail (identity + invite + contacts +
+     "new here?"), not a tiny 260px nested contact box. Kill the inner cap
+     and let the page itself scroll naturally. */
+  .rail-list { max-height: none !important; overflow: visible !important; }
+  #ptk-contacts { max-height: none !important; overflow: visible !important; }
+  body.app-page .webapp { min-height: 0 !important; height: auto !important; }
+  body.app-page .rail { height: auto !important; max-height: none !important; overflow: visible !important; padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
+  /* Allow native page scroll on mobile so the user can reach everything. */
+  html, body.app-page { height: auto !important; overflow: auto !important; -webkit-overflow-scrolling: touch; }
+
+  /* Chat pane mobile fixes: header was overflowing horizontally because
+     title + Verify + Disappearing buttons can't fit in one row on a phone.
+     Force the title onto its own row above the action buttons. */
+  .chat-head { flex-wrap: wrap; gap: 6px 8px; padding: 10px 12px !important; align-items: center; }
+  /* The title wrapper div (no class on it). Force it to claim a full row and
+     come visually first so the back button + action buttons sit on the row below. */
+  .chat-head > div { flex: 1 1 100% !important; min-width: 0; width: 100%; order: -1; }
+  .chat-head .btn.tiny { font-size: 11px; padding: 5px 8px; }
+  /* IMPORTANT: never break-all here — that renders names like "Joseph the platypus"
+     one character per line whenever the column is briefly narrow. */
+  .chat-title { font-size: 14px; line-height: 1.25; word-break: normal; overflow-wrap: anywhere; white-space: normal; }
+  .chat-sub { font-size: 10px; word-break: normal; overflow-wrap: anywhere; white-space: normal; }
+  /* Bubbles: allow wider on phones, never overflow. */
+  .msgs li .bubble { max-width: 92% !important; word-break: break-word; }
+  .msgs { padding: 12px 12px !important; }
+  .composer { padding: 8px !important; gap: 6px !important; }
+  .composer .ptk-input { font-size: 16px; /* prevents iOS auto-zoom */ }
 }
 
 /* === Platytalk: Microsoft sign-in + howto + chat bubbles === */

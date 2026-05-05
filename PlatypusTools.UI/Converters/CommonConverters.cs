@@ -331,4 +331,18 @@ namespace PlatypusTools.UI.Converters
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => throw new NotImplementedException();
     }
+
+    /// <summary>Returns the input string if non-empty, else the converter parameter (or "(unknown)").</summary>
+    public class EmptyStringFallbackConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var s = value as string;
+            if (!string.IsNullOrWhiteSpace(s)) return s;
+            return parameter as string ?? "(unknown)";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
 }

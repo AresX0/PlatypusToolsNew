@@ -441,10 +441,29 @@ namespace PlatypusTools.Core.Services.Platytalk
             //   wire        = iv(12) || AES-GCM ct||tag, base64 in cipherBlob
             //   send body   = { messageId, conversationId, recipients:[{userId,cipherBlob,ephemeralPublic}],
             //                   cipherBlob, ephemeralPublic, counter:0 }
+            // Plaintext is wrapped in sealed-sender v2 JSON {v:2,from,t} so the server-side
+            // at-rest record does not have to retain senderId. Plaintext is also length-prefix
+            // padded to a 256-byte boundary inside EncryptToPeerWeb.
             // Fan-out: one /messages/send call per recipient (matches web client).
             var recipientIds = conv.ParticipantIds.Where(p => p != _identity!.UserId).Distinct().ToList();
             if (recipientIds.Count == 0) return;
             var ctx = $"{conv.ConversationId}|{msg.MessageId}";
+            // Sealed-sender v2 wrapper. JSON keys match the web client: v, from, t.
+            var sealedPlain = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                v = 2,
+                from = _identity!.UserId,
+                t = body,
+            });
+
+            // Send-time jitter (50-200ms) to disrupt traffic-analysis timing fingerprints.
+            try
+            {
+                var jitter = 50 + System.Security.Cryptography.RandomNumberGenerator.GetInt32(150);
+                await Task.Delay(jitter, ct).ConfigureAwait(false);
+            }
+            catch (TaskCanceledException) { throw; }
+
             foreach (var recipientId in recipientIds)
             {
                 var contact = Contacts.FirstOrDefault(c => c.ContactId == recipientId);
@@ -466,7 +485,7 @@ namespace PlatypusTools.Core.Services.Platytalk
                     catch { continue; }
                 }
 
-                var (cipherBlob, ephPub) = PlatytalkCrypto.EncryptToPeerWeb(body, contact.IdentityKeyPublic, ctx);
+                var (cipherBlob, ephPub) = PlatytalkCrypto.EncryptToPeerWeb(sealedPlain, contact.IdentityKeyPublic, ctx);
                 var env = new RelayEnvelope
                 {
                     MessageId = msg.MessageId,
@@ -671,7 +690,34 @@ namespace PlatypusTools.Core.Services.Platytalk
                     var ctx = $"{env.ConversationId}|{env.MessageId}";
                     var text = PlatytalkCrypto.DecryptFromPeerWeb(
                         env.CipherBlob, env.EphemeralPublic, _identity.IdentityKeyPrivate, ctx);
-                    plain = Encoding.UTF8.GetBytes(text);
+                    // Sealed-sender format v2: plaintext may be JSON {v:2, from, t}; older messages are bare strings.
+                    string actualText = text;
+                    string actualSenderId = env.SenderId;
+                    if (!string.IsNullOrEmpty(text) && text.Length > 2 && text[0] == '{')
+                    {
+                        try
+                        {
+                            using var doc = System.Text.Json.JsonDocument.Parse(text);
+                            var rootEl = doc.RootElement;
+                            if (rootEl.ValueKind == System.Text.Json.JsonValueKind.Object
+                                && rootEl.TryGetProperty("v", out var vEl) && vEl.ValueKind == System.Text.Json.JsonValueKind.Number && vEl.GetInt32() == 2
+                                && rootEl.TryGetProperty("t", out var tEl) && tEl.ValueKind == System.Text.Json.JsonValueKind.String)
+                            {
+                                actualText = tEl.GetString() ?? string.Empty;
+                                if (rootEl.TryGetProperty("from", out var fEl) && fEl.ValueKind == System.Text.Json.JsonValueKind.String)
+                                {
+                                    var inner = fEl.GetString();
+                                    if (!string.IsNullOrEmpty(inner) && (string.IsNullOrEmpty(actualSenderId) || actualSenderId == inner))
+                                        actualSenderId = inner;
+                                }
+                            }
+                        }
+                        catch { /* not v2 — keep raw */ }
+                    }
+                    plain = Encoding.UTF8.GetBytes(actualText);
+                    // Update env-derived sender for downstream message creation.
+                    if (!string.IsNullOrEmpty(actualSenderId) && actualSenderId != env.SenderId)
+                        env.SenderId = actualSenderId;
                 }
 
                 var msg = new PlatytalkMessage
@@ -1031,10 +1077,13 @@ namespace PlatypusTools.Core.Services.Platytalk
                     var pub = !string.IsNullOrEmpty(c.IdentityKeyPublicBase64)
                         ? Convert.FromBase64String(c.IdentityKeyPublicBase64)
                         : Array.Empty<byte>();
+                    var name = c.DisplayName;
+                    if (string.IsNullOrWhiteSpace(name)) name = c.Handle;
+                    if (string.IsNullOrWhiteSpace(name)) name = c.ContactId;
                     Contacts.Add(new PlatytalkContact
                     {
                         ContactId = c.ContactId,
-                        DisplayName = c.DisplayName,
+                        DisplayName = name ?? string.Empty,
                         IdentityKeyPublic = pub,
                         PhoneE164 = c.PhoneE164,
                         Email = c.Email,

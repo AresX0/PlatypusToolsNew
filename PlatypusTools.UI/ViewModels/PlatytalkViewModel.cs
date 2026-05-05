@@ -76,6 +76,7 @@ namespace PlatypusTools.UI.ViewModels
             SaveHandleCommand = new RelayCommand(async _ => await SaveHandleAsync(), _ => IsEditingHandle && !string.IsNullOrWhiteSpace(HandleEditValue));
             CreateBackupCommand = new RelayCommand(async _ => await CreateBackupAsync(), _ => IsRegistered && !string.IsNullOrEmpty(BackupPassphrase));
             RestoreBackupCommand = new RelayCommand(async _ => await RestoreBackupAsync(), _ => IsRegistered && !string.IsNullOrEmpty(BackupPassphrase));
+            VerifySafetyNumberCommand = new RelayCommand(_ => ShowSafetyNumber(), _ => SelectedConversation != null);
         }
 
         public ObservableCollection<PlatytalkContact> Contacts => _svc.Contacts;
@@ -233,6 +234,64 @@ namespace PlatypusTools.UI.ViewModels
         public ICommand SaveHandleCommand { get; }
         public ICommand CreateBackupCommand { get; }
         public ICommand RestoreBackupCommand { get; }
+        public ICommand VerifySafetyNumberCommand { get; }
+
+        // Safety-number dialog: pull the current peer's identity key and render the
+        // 60-digit fingerprint via PlatytalkCrypto.ComputeSafetyNumber. For group
+        // conversations we render the number for each participant.
+        private void ShowSafetyNumber()
+        {
+            try
+            {
+                if (SelectedConversation is null || _svc.Identity is null) return;
+                var sb = new System.Text.StringBuilder();
+                if (SelectedConversation.Kind == ConversationKind.Direct)
+                {
+                    var peerId = SelectedConversation.ParticipantIds.FirstOrDefault(p => p != _svc.Identity.UserId);
+                    var peer = Contacts.FirstOrDefault(c => c.ContactId == peerId);
+                    if (peer is null || peer.IdentityKeyPublic is null || peer.IdentityKeyPublic.Length == 0)
+                    {
+                        System.Windows.MessageBox.Show(
+                            "This contact has not published an identity key yet, or has not been refreshed since signing in.\r\n\r\nAsk them to open Platytalk on their device, then re-add or re-select them here.",
+                            "Safety number unavailable", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                        return;
+                    }
+                    var num = PlatytalkCrypto.ComputeSafetyNumber(_svc.Identity.IdentityKeyPublic, peer.IdentityKeyPublic);
+                    sb.AppendLine($"Safety number for @{peer.DisplayName}:");
+                    sb.AppendLine();
+                    sb.AppendLine(num);
+                    sb.AppendLine();
+                    sb.AppendLine("Compare these 60 digits out-of-band (in person, on a video call, etc.). If they match on both screens, no one is intercepting this conversation.");
+                }
+                else
+                {
+                    sb.AppendLine($"Group: {SelectedConversation.Title}");
+                    sb.AppendLine();
+                    foreach (var pid in SelectedConversation.ParticipantIds)
+                    {
+                        if (pid == _svc.Identity.UserId) continue;
+                        var peer = Contacts.FirstOrDefault(c => c.ContactId == pid);
+                        if (peer is null) { sb.AppendLine($"• (unknown {pid}): no key"); continue; }
+                        if (peer.IdentityKeyPublic is null || peer.IdentityKeyPublic.Length == 0)
+                        {
+                            sb.AppendLine($"• @{peer.DisplayName}: no published key yet");
+                            continue;
+                        }
+                        var num = PlatytalkCrypto.ComputeSafetyNumber(_svc.Identity.IdentityKeyPublic, peer.IdentityKeyPublic);
+                        sb.AppendLine($"• @{peer.DisplayName}");
+                        sb.AppendLine($"  {num}");
+                    }
+                    sb.AppendLine();
+                    sb.AppendLine("Verify each participant's number out-of-band (in person, on a video call, etc.).");
+                }
+                System.Windows.MessageBox.Show(sb.ToString(), "🔐 Safety number",
+                    System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                Status = "Verify failed: " + ex.Message;
+            }
+        }
 
         // ----- Edit handle -----
         private bool _isEditingHandle;
